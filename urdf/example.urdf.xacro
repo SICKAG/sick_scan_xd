@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+  xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+  xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+  xmlns:xacro="http://ros.org/wiki/xacro"
+  name="sick_scan">
+
+  <xacro:include filename="$(find sick_scan)/urdf/sick_scan.urdf.xacro" />
+
+  <xacro:sick_tim_5xx name="laser" ros_topic="scan" />
+  <xacro:sick_mrs_1xxx name="laser" ros_topic="scan" />
+</robot>
+
