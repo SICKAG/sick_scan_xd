@@ -85,4 +85,5 @@ tools/sick_generic_device_finder/.idea
 
 doc/angle_compensation/ampl_phase_offset\.png
 
+test/emulator/scandata/
 test/emulator/scandata/20210126-tim781s-test-fieldsets.pcapng.json
