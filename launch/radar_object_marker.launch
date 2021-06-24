@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+     LAUNCH-FILE for
+     RADAR OBJECT MARKER
+     EXPERIMENTAL - brand new driver
+  -->
+<launch>
+    <param name="rawtarget_sphere_radius" type="double" value="0.5"/>
+    <param name="rawtarget_palette_name" type="string" value="viridis.pal"/>
+    <param name="rawtarget_palette_min_ampl" type="double" value="0.0"/>
+    <param name="rawtarget_palette_max_ampl" type="double" value="100.0"/>
+    <param name="object_arrow_scale" type="double" value="1.0"/>
+    <node name="radar_object_marker" pkg="sick_scan" type="radar_object_marker" respawn="false" output="screen">
+    </node>
+</launch>

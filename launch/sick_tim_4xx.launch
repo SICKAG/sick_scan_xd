@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+     **********************************************
+     Launch File for TiM 4xx lidar family
+     
+     Family covers TiM 433 and TiM 443.
+     **********************************************
+     Start and stop angle is given in [rad]
+
+     Default min_angle is  -120 degree (-2.09439510 rad).
+     Default max_angle is  +120 degree (+2.09439510 rad).
+
+     Axis orientation is given in ROS standard notation.
+
+                  X
+                  .
+                  .
+                  .
+                  .
+       Y .........+  (Z-Axis upwards to you - right hand rule)
+
+           +............+
+           |            |
+           | Top View   |      
+           | Device     |      
+           |            |
+           +............+
+              .      .     
+              .      .
+              .      .
+           Power   Ethernet
+           Cable   Cacle
+
+
+     Check IP-address, if you scanner is not found after roslaunch.
+-->
+
+<!-- You can launch the lidar on a specific ip address (e.g. 192.68.0.71) using the following example call:
+
+     roslaunch sick_scan sick_tim_443.launch hostname:=192.168.0.71
+
+-->
+
+<launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <arg name="cloud_topic" default="cloud"/>
+    <arg name="frame_id" default="cloud"/>
+    <node name="sick_tim_443" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+        <!--<param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_scan)/urdf/example.urdf.xacro'" />-->
+        <param name="scanner_type" type="string" value="sick_tim_4xx"/>
+        <!-- -120° -->
+        <param name="min_ang" type="double" value="-2.094395102"/>
+        <!-- 120° -->
+        <param name="max_ang" type="double" value="2.094395102"/>
+        <param name="use_binary_protocol" type="bool" value="false"/>
+        <param name="range_max" type="double" value="100.0"/>
+        <param name="intensity" type="bool" value="True"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="frame_id" type="str" value="$(arg frame_id)"/>
+        <param name="port" type="string" value="2112"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="sw_pll_only_publish" type="bool" value="false"/>
+    </node>
+</launch>
+
+

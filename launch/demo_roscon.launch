@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--
+     LAUNCH-FILE for
+     RMS3xx - Radar device emulation and visualisation
+  -->
+<launch>
+    <arg name="emul_sensor" default="false"/>
+
+    <arg name="rawtarget_sphere_radius" default="1.0"/>
+    <arg name="rawtarget_palette_name" default="viridis.pal"/>
+    <arg name="rawtarget_palette_min_ampl" default="30.0"/>
+    <arg name="rawtarget_palette_max_ampl" default="70.0"/>
+    <arg name="rawtarget_arrow_scale" default="1.0"/>
+
+    <!-- heatmap is controlled by using a factor between 0.0 and 1.0 -->
+    <!-- The interval between min_ampl and max_ampl is mapped to [0.0 .. 1.0] -->
+
+    <arg name="object_arrow_scale" default="1.0"/>
+    <arg name="hostname" default="192.168.0.1"/>
+
+    <!-- Scaling factor to show speed of vehicle -->
+    <!-- Length = scale * speed [m/s], scale can be interpreted
+         as delta_t to estimate driven distance in this time interval -->
+
+    <!-- Filter example:
+    rosbag filter demo_ra_la_all_001.bag tmp.bag "topic == '/radar' or topic == '/cloud'"
+    -->
+    <node pkg="tf"
+          type="static_transform_publisher"
+          name="map_radar_broadcaster"
+          args="0 0 -1.0 0 -0.19 0 map radar 100"/>
+
+    <node pkg="tf"
+          type="static_transform_publisher"
+          name="map_laser_broadcaster"
+          args="0 0 0 0 0 0 map laser 100"/>
+
+    <node name="radar_object_marker" pkg="sick_scan"
+          type="radar_object_marker" respawn="false" output="screen">
+        <param name="rawtarget_sphere_radius" type="double" value="$(arg rawtarget_sphere_radius)"/>
+        <param name="rawtarget_palette_name" type="string" value="$(arg rawtarget_palette_name)"/>
+        <param name="rawtarget_palette_min_ampl" type="double" value="$(arg rawtarget_palette_min_ampl)"/>
+        <param name="rawtarget_palette_max_ampl" type="double" value="$(arg rawtarget_palette_max_ampl)"/>
+    </node>
+    <node pkg="sick_scan" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen"/>
+
+    <node pkg="rosbag"
+          type="play"
+          name="rosbag_play_video"
+          args="$(find sick_scan)/test/demo_roscon/demo_ra_la_001.bag $(find sick_scan)/test/demo_roscon/demo_video_001.bag -s 10 -u 230 -l"
+
+    />
+
+    <!-- rviz -->
+    <arg name="rviz" default="true"/>
+    <arg name="rviz_file" default="$(find sick_scan)/launch/rviz/demo_roscon.rviz"/>
+    <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(arg rviz_file)" output="screen" if="$(arg rviz)"/>
+
+
+</launch>

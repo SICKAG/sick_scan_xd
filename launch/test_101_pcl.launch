@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!--
+     Example launch for testing pointcloud to image converter
+-->
+<launch>
+    <node pkg="sick_scan" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen"/>
+</launch>

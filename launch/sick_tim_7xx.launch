@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<!--
+     **********************************************
+     Launch File for TIM 5xx scanner
+     **********************************************
+     Start and stop angle is given in [rad]
+
+     Default min_angle is  -135 degree.
+     Default max_angle is +135 degree.
+
+     Check IP-address, if you scanner is not found after roslaunch.
+-->
+
+<!-- You can launch a TIM_5xx-scanner on a specific ip address (e.g. 192.68.0.71) using the following example call:
+
+     roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71
+
+-->
+
+<launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <arg name="cloud_topic" default="cloud"/>
+    <arg name="frame_id" default="cloud"/>
+    <node name="sick_tim_7xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+        <!--<param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_scan)/urdf/example.urdf.xacro'" />-->
+        <param name="scanner_type" type="string" value="sick_tim_7xx"/>
+        <!-- -135° -->
+        <param name="min_ang" type="double" value="-2.35619449"/>
+        <!-- 135° -->
+        <param name="max_ang" type="double" value="2.35619449"/>
+        <param name="use_binary_protocol" type="bool" value="true"/>
+        <param name="range_max" type="double" value="100.0"/>
+        <param name="intensity" type="bool" value="True"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="frame_id" type="str" value="$(arg frame_id)"/>
+        <param name="port" type="string" value="2112"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="start_services" type="bool" value="True"/> <!-- start ros service for cola commands -->
+        <param name="activate_lferec" type="bool" value="True"/> <!-- activate field monitoring by lferec messages -->
+        <param name="activate_lidoutputstate" type="bool" value="True"/> <!-- activate field monitoring by lidoutputstate messages -->
+        <param name="activate_lidinputstate" type="bool" value="True"/> <!-- activate field monitoring by lidinputstate messages -->
+    </node>
+
+</launch>
+        <!--
+        Conversion between degree and rad
+
+        DEG	RAD
+        -180	-3.141592654
+        -175	-3.054326191
+        -170	-2.967059728
+        -165	-2.879793266
+        -160	-2.792526803
+        -155	-2.705260341
+        -150	-2.617993878
+        -145	-2.530727415
+        -140	-2.443460953
+        -137.5	-2,3998277
+        -135	-2.35619449
+        -130	-2.268928028
+        -125	-2.181661565
+        -120	-2.094395102
+        -115	-2.00712864
+        -110	-1.919862177
+        -105	-1.832595715
+        -100	-1.745329252
+        -95	-1.658062789
+        -90	-1.570796327
+        -85	-1.483529864
+        -80	-1.396263402
+        -75	-1.308996939
+        -70	-1.221730476
+        -65	-1.134464014
+        -60	-1.047197551
+        -55	-0.959931089
+        -50	-0.872664626
+        -45	-0.785398163
+        -40	-0.698131701
+        -35	-0.610865238
+        -30	-0.523598776
+        -25	-0.436332313
+        -20	-0.34906585
+        -15	-0.261799388
+        -10	-0.174532925
+        -5	-0.087266463
+        0	0
+        5	0.087266463
+        10	0.174532925
+        15	0.261799388
+        20	0.34906585
+        25	0.436332313
+        30	0.523598776
+        35	0.610865238
+        40	0.698131701
+        45	0.785398163
+        50	0.872664626
+        55	0.959931089
+        60	1.047197551
+        65	1.134464014
+        70	1.221730476
+        75	1.308996939
+        80	1.396263402
+        85	1.483529864
+        90	1.570796327
+        95	1.658062789
+        100	1.745329252
+        105	1.832595715
+        110	1.919862177
+        115	2.00712864
+        120	2.094395102
+        125	2.181661565
+        130	2.268928028
+        135	2.35619449
+        137.5	2,3998277
+        140	2.443460953
+        145	2.530727415
+        150	2.617993878
+        155	2.705260341
+        160	2.792526803
+        165	2.879793266
+        170	2.967059728
+        175	3.054326191
+        180	3.141592654
+        185	3.228859116
+        190	3.316125579
+        195	3.403392041
+        200	3.490658504
+        205	3.577924967
+        210	3.665191429
+        215	3.752457892
+        220	3.839724354
+        225	3.926990817
+        230	4.01425728
+        235	4.101523742
+        240	4.188790205
+        245	4.276056667
+        250	4.36332313
+        255	4.450589593
+        260	4.537856055
+        265	4.625122518
+        270	4.71238898
+        275	4.799655443
+        280	4.886921906
+        285	4.974188368
+        290	5.061454831
+        295	5.148721293
+        300	5.235987756
+        305	5.323254219
+        310	5.410520681
+        315	5.497787144
+        320	5.585053606
+        325	5.672320069
+        330	5.759586532
+        335	5.846852994
+        340	5.934119457
+        345	6.021385919
+        350	6.108652382
+        355	6.195918845
+        360	6.283185307
+        -->
+

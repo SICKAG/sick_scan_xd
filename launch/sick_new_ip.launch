@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!--
+     !!!EXPERIMENTAL!!!
+     !!! ONLY BINARY COMMAND SUPPORT !!!
+     **********************************************
+     Lanch File for setting new ip address
+     **********************************************
+    This is an experimental launch file to set a new ip address in the scanner.
+    Maybe one should add a EEPROM-write command. But in our tests this was not necessary.
+-->
+
+<launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <arg name="new_IP" default="192.168.0.2"/>
+    <node name="sick_new_ip" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+        <param name="scanner_type" type="string" value="sick_tim_5xx"/>
+        <param name="use_binary_protocol" type="bool" value="True"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="port" type="string" value="2112"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="new_IP_address" type="string" value="$(arg new_IP)"/>
+    </node>
+
+</launch>
+
+

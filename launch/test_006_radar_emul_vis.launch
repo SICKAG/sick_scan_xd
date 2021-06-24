@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+     LAUNCH-FILE for
+     RMS3xx - Radar device emulation and visualisation
+  -->
+<launch>
+    <arg name="emul_sensor" default="true"/>
+    <arg name="rawtarget_sphere_radius" default="1.0"/>
+    <arg name="rawtarget_palette_name" default="viridis.pal"/>
+    <arg name="rawtarget_palette_min_ampl" default="30.0"/>
+    <arg name="rawtarget_palette_max_ampl" default="70.0"/>
+    <arg name="rawtarget_arrow_scale" default="1.0"/>
+    <!-- heatmap is controlled by using a factor between 0.0 and 1.0 -->
+    <!-- The interval between min_ampl and max_ampl is mapped to [0.0 .. 1.0] -->
+    <arg name="object_arrow_scale" default="1.0"/>
+    <arg name="hostname" default="192.168.0.1"/>
+    <!-- Scaling factor to show speed of vehicle -->
+    <!-- Length = scale * speed [m/s], scale can be interpreted
+         as delta_t to estimate driven distance in this time interval -->
+    <node pkg="tf"
+          type="static_transform_publisher"
+          name="map_radar_broadcaster"
+          args="0 0 0 0 0 0 map radar 100"/>
+    <node name="sick_rms_3xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+        <!-- default values: -->
+        <param name="scanner_type" type="string" value="sick_rms_3xx"/>
+        <param name="range_max" type="double" value="25.0"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="port" type="string" value="2112"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="emul_sensor" type="bool" value="$(arg emul_sensor)"/>
+    </node>
+    <node name="radar_object_marker" pkg="sick_scan"
+          type="radar_object_marker" respawn="false" output="screen">
+        <param name="rawtarget_sphere_radius" type="double" value="$(arg rawtarget_sphere_radius)"/>
+        <param name="rawtarget_palette_name" type="string" value="$(arg rawtarget_palette_name)"/>
+        <param name="rawtarget_palette_min_ampl" type="double" value="$(arg rawtarget_palette_min_ampl)"/>
+        <param name="rawtarget_palette_max_ampl" type="double" value="$(arg rawtarget_palette_max_ampl)"/>
+    </node>
+    <!-- rviz -->
+    <arg name="rviz" default="true"/>
+    <arg name="rviz_file" default="$(find sick_scan)/launch/rviz/radar.rviz"/>
+    <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(arg rviz_file)" output="screen" if="$(arg rviz)"/>
+</launch>

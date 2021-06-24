@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!--
+     **********************************************
+     Launch File for TIM 240 scanner
+     **********************************************
+     Start and stop angle is given in [rad]
+
+     Check IP-address, if you scanner is not found after roslaunch.
+-->
+
+<!-- You can launch a TIM_240-scanner on a specific ip address (e.g. 192.68.0.71) using the following example call:
+
+     roslaunch sick_scan sick_tim_240.launch hostname:=192.168.0.71
+
+-->
+
+<launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <arg name="port" default="2111"/>
+    <arg name="cloud_topic" default="cloud"/>
+    <arg name="frame_id" default="cloud"/>
+    <node name="sick_tim_240" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+        <param name="scanner_type" type="string" value="sick_tim_240"/>
+        <!-- datagram shows values from -90 ... 120 (211 values) -->
+        <!-- -120° -->
+        <param name="min_ang" type="double" value="-2.094395102"/>
+        <!-- 120° -->
+        <param name="max_ang" type="double" value="+2.094395102"/>
+        <!-- corresponds to 1.0/(14.4 * 360) -->
+        <param name="time_increment" type="double" value="0.00019290123"/>
+        <param name="use_binary_protocol" type="bool" value="false"/>
+        <param name="intensity" type="bool" value="true"/>
+        <param name="intensity_resolution_16bit" type="bool" value="true"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="frame_id" type="str" value="$(arg frame_id)"/>
+        <param name="port" type="string" value="$(arg port)"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="sw_pll_only_publish" type="bool" value="true"/>
+    </node>
+</launch>

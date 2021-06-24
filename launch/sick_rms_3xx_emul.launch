@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+     LAUNCH-FILE for
+     RMS3xx - Radar device
+     EXPERIMENTAL - brand new driver
+     Only SOPAS-ASCII supported.
+  -->
+<launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <node name="sick_rms_3xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+        <!-- default values: -->
+        <param name="scanner_type" type="string" value="sick_rms_3xx"/>
+        <param name="range_max" type="double" value="25.0"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="port" type="string" value="2112"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="emul_sensor" type="bool" value="true"/>
+    </node>
+</launch>
