@@ -1,0 +1,24 @@
+# Definition of ROS service SickLocSetResultMode for sick localization.
+#
+# ROS service SickLocSetResultMode sets the mode of the result output (stream or poll)
+# by sending cola command ("sMN LocSetResultMode <mode>")
+# with parameter
+# <mode>: 0:stream, 1: poll, default: stream
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+int32 mode # 0:stream, 1: poll, default: stream
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
+

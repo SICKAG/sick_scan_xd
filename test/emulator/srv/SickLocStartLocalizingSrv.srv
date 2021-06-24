@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocStartLocalizing for sick localization.
+#
+# ROS service SickLocStartLocalizing starts localization
+# by sending cola command ("sMN LocStartLocalizing").
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: success response received from localization controller (localization started), false: service failed (timeout or error status from controller)
+

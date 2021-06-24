@@ -1,0 +1,21 @@
+# Definition of ROS service SickLocSaveRingBufferRecording for sick localization
+# Saves the current sensor data ring buffer as log file. The log file can be downloaded via FTP.
+# Example call (ROS1):
+# rosservice call SickLocSaveRingBufferRecording "{reason: test}"
+# Example call (ROS2):
+# ros2 service call SickLocSaveRingBufferRecording sick_scan/srv/SickLocSaveRingBufferRecordingSrv "{reason: test}"
+# 
+
+# 
+# Request (input)
+# 
+
+string reason # Reason why the recording should be saved. Max length = 512
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocRequestResultData for sick localization.
+#
+# If in poll mode, ROS service SickLocRequestResultData triggers sending the localization result of the next processed scan via TCP interface
+# by sending cola command ("sMN LocRequestResultData").
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
+

@@ -1,0 +1,24 @@
+# Definition of ROS service SickLocSetResultPoseInterval for sick localization.
+#
+# ROS service SickLocSetResultPoseInterval sets the interval of the pose result output.
+# by sending cola command ("sMN LocSetResultPoseInterval <interval>")
+# with parameter
+# <interval>:  0-255, interval in number of scans, 1: result with each processed scan, default: 1
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+int32 interval # interval in number of scans, 0-255, 1 (default): result with each processed scan
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
+

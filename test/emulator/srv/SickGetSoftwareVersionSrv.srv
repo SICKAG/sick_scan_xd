@@ -1,0 +1,20 @@
+# Definition of ROS service SickGetSoftwareVersion for sick localization
+# Returns the version string of the localization system.
+# Example call (ROS1):
+# rosservice call SickGetSoftwareVersion "{}"
+# Example call (ROS2):
+# ros2 service call SickGetSoftwareVersion sick_scan/srv/SickGetSoftwareVersionSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+string version # The software version. Max length = 255
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

@@ -1,0 +1,21 @@
+# Definition of ROS service SickLocSetReflectorsForSupportActive for sick localization
+# Enables or disables usage of mapped reflectors for map based localization robustification
+# Example call (ROS1):
+# rosservice call SickLocSetReflectorsForSupportActive "{active: 1}"
+# Example call (ROS2):
+# ros2 service call SickLocSetReflectorsForSupportActive sick_scan/srv/SickLocSetReflectorsForSupportActiveSrv "{active: 1}"
+# 
+
+# 
+# Request (input)
+# 
+
+bool active # Whether the map based localization shall use mapped reflectors for robustification. {0 (false), 1 (true)}
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

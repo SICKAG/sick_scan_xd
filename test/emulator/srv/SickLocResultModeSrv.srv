@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocResultMode for sick localization
+# Returns the current result mode: 0 STREAM (default), 1 POLL
+# Example call (ROS1):
+# rosservice call SickLocResultMode "{}"
+# Example call (ROS2):
+# ros2 service call SickLocResultMode sick_scan/srv/SickLocResultModeSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+int32 mode # The current result mode. 0 STREAM (default), 1 POLL
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

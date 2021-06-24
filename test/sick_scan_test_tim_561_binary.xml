@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <filename>sick_tim_5xx.launch</filename>
+    <paramList>
+        <!-- Set the ip address to the ip address of our TIM561 scanner -->
+        <param name="hostname" type="string" value="192.168.0.61" />
+        <param name="use_binary_protocol" type="bool" value="true" />
+        <param name="min_ang" type="double" value="-1.0" />
+        <param name="max_ang" type="double" value="+1.0" />
+        <param name="range_min" type="double" value="+11.1" />
+        <param name="range_max" type="double" value="+101.1" />
+
+    </paramList>
+    <resultList>
+        <param name="shotsPerLayer" type="int" value="345" />
+        <param name="RSSIEnabled" type="bool" value="True" />
+        <param name="min_ang" type="double" value="-1.0" valueMin="-1.001" valueMax="-0.999"/>
+        <param name="max_ang" type="double" value="+1.0" valueMin="+0.999" valueMax="+1.001"/>
+        <param name="range_min" type="double" value="11.1" valueMin="11.09" valueMax="11.11"/>
+        <param name="range_max" type="double" value="101.1" valueMin="101.09" valueMax="101.11"/>
+
+        <param name="angle_increment" type="double" value="0.00581718236" valueMin="+0.00581" valueMax="+0.00582"/>
+        <param name="time_increment" type="double" value="0.000061728" valueMin="0.000061720" valueMax="0.000061736"/>
+
+    </resultList>
+</launch>

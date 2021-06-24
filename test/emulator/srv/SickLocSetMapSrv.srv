@@ -1,0 +1,22 @@
+# Definition of ROS service SickLocSetMap for sick localization
+# Loads the given map
+# Example call (ROS1):
+# rosservice call SickLocSetMap "{mapfilename: test.map}"
+# Example call (ROS2):
+# ros2 service call SickLocSetMap sick_scan/srv/SickLocSetMapSrv "{mapfilename: test.map}"
+# 
+
+# 
+# Request (input)
+# 
+
+string mapfilename # The filename of the map to load. Max length = 255 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool set # Whether the arguments were valid and have been configured. {0 (false), 1 (true)} 
+bool executed # Whether the lidar driver started and received data. {0 (false), 1 (true)} 

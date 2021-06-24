@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<filename>sick_lms_1xxx.launch</filename>
+	<paramList>
+		<!-- Set the ip address to the ip address of our LMS1000 scanner -->
+	<param name="hostname" type="string" value="192.168.0.3" />
+	<param name="filter_echos" type="int" value="1" />
+	</paramList>
+	<resultList>
+		<param name="shotsPerLayer" type="int" value="367" />
+		<param name="scanRate" type="double" value="10.0" valueMin="9.0" valueMax="11.0" />
+
+	</resultList>
+</launch>

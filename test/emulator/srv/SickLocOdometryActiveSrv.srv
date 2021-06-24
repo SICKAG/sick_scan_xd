@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocOdometryActive for sick localization
+# Whether the Scan Matcher uses data from an odometry sensor
+# Example call (ROS1):
+# rosservice call SickLocOdometryActive "{}"
+# Example call (ROS2):
+# ros2 service call SickLocOdometryActive sick_scan/srv/SickLocOdometryActiveSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool active # Whether data from an odometry sensor is considered in Scan Matching {0 (false), 1 (true)} 
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

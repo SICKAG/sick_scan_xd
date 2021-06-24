@@ -1,0 +1,19 @@
+# Definition of ROS service SickLocStartDemoMapping for sick localization
+# If all conditions are met, starts the demo mapping system.
+# Example call (ROS1):
+# rosservice call SickLocStartDemoMapping "{}"
+# Example call (ROS2):
+# ros2 service call SickLocStartDemoMapping sick_scan/srv/SickLocStartDemoMappingSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

@@ -1,0 +1,24 @@
+# Definition of ROS service SickLocSetResultPort for sick localization.
+#
+# ROS service SickLocSetResultPort sets the TCP-port for result output telegrams
+# by sending cola command ("sMN LocSetResultPort <port>")
+# with parameter
+# <port>: TCP-port for result output telegrams (default: 2201)
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+int32 port # TCP-port for result output telegrams (default: 2201)
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
+

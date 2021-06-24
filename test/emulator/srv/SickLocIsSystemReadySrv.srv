@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocIsSystemReady for sick localization.
+#
+# ROS service SickLocIsSystemReady check if the system is ready
+# by sending cola command ("sMN IsSystemReady").
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: system ready response received from localization controller, false: system not ready or service failed (timeout or error status from controller)
+

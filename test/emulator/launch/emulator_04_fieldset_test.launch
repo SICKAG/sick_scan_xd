@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Launch sick_scan_emulator -->
+  <arg name="scandatafiles" default="$(find sick_scan)/scandata/20210126-tim781s-test-fieldsets.pcapng.json"/>
+  <arg name="scandatatypes" default="sSN LMDscandata ,sSN LIDinputstate ,sSN LIDoutputstate ,sSN LFErec "/>
+  <rosparam command="load" file="$(find sick_scan)/yaml/emulator.yaml" />
+  <node name="sick_scan_emulator" pkg="sick_scan" type="sick_scan_emulator" output="screen">
+    <param name="scandatafiles" type="string" value="$(arg scandatafiles)"/>
+    <param name="scandatatypes" type="string" value="$(arg scandatatypes)"/>
+    <param name="scanner_type" type="string" value="sick_tim_7xx"/>
+  </node>
+
+</launch>
+

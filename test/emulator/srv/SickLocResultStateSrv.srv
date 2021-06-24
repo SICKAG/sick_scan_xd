@@ -1,0 +1,19 @@
+# Definition of ROS service SickLocResultState for sick localization
+# Example call (ROS1):
+# rosservice call SickLocResultState "{}"
+# Example call (ROS2):
+# ros2 service call SickLocResultState sick_scan/srv/SickLocResultStateSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+uint32 state # The output state of the result interface as bit field: From LSB to MSB: Bit 1: Pose output enabled Bit 8: Error flag
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

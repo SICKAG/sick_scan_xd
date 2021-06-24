@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocResultPoseInterval for sick localization
+# Reads the interval of the pose result output.
+# Example call (ROS1):
+# rosservice call SickLocResultPoseInterval "{}"
+# Example call (ROS2):
+# ros2 service call SickLocResultPoseInterval sick_scan/srv/SickLocResultPoseIntervalSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+int32 interval # interval in number of scans, 0-255, 1 (default): result with each processed scan
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

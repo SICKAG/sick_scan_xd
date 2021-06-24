@@ -1,0 +1,22 @@
+# Definition of ROS service SickDevGetLidarIdent for sick localization
+# Returns the scanner ident of the specified lidar.
+# Example call (ROS1):
+# rosservice call SickDevGetLidarIdent "{index: 0}"
+# Example call (ROS2):
+# ros2 service call SickDevGetLidarIdent sick_scan/srv/SickDevGetLidarIdentSrv "{index: 0}"
+# 
+
+# 
+# Request (input)
+# 
+
+uint32 index # The scanner index. [<min>, 1] 
+
+---
+
+# 
+# Response (output)
+# 
+
+string scannerident # The type name of the scanner available after configuration and successful connection. Max length = 255 
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

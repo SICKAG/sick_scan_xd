@@ -1,0 +1,21 @@
+# Definition of ROS service SickLocState for sick localization.
+#
+# ROS service SickLocState read localization state (0:BOOTING, 1:IDLE, 2:LOCALIZING, 3:DEMO_MAPPING)
+# by sending cola command  ("sRN LocState").
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+---
+
+#
+# Response (output)
+#
+
+int32 state  # localization state (0:BOOTING, 1:IDLE, 2:LOCALIZING, 3:DEMO_MAPPING)
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
+

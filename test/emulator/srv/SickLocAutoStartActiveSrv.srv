@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocAutoStartActive for sick localization
+# Returns whether autostart is active or not
+# Example call (ROS1):
+# rosservice call SickLocAutoStartActive "{}"
+# Example call (ROS2):
+# ros2 service call SickLocAutoStartActive sick_scan/srv/SickLocAutoStartActiveSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool active # Whether autostart should be used or not. {0 (false), 1 (true)} 
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

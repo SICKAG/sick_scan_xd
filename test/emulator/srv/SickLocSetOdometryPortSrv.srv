@@ -1,0 +1,22 @@
+# Definition of ROS service SickLocSetOdometryPort for sick localization
+# Sets the UDP port of the UDP socket for odometry measurement input.
+# Example call (ROS1):
+# rosservice call SickLocSetOdometryPort "{port: 3000}"
+# Example call (ROS2):
+# ros2 service call SickLocSetOdometryPort sick_scan/srv/SickLocSetOdometryPortSrv "{port: 3000}"
+# 
+
+# 
+# Request (input)
+# 
+
+uint32 port # The new UDP port of the UDP socket for odometry measurement input. [<min>, <max>] 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool set # Whether the arguments were valid and have been configured. {0 (false), 1 (true)} 
+bool executed # Whether the lidar driver started and received data. {0 (false), 1 (true)} 
