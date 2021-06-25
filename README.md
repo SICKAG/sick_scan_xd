@@ -33,11 +33,11 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 |                    |                                                                                                                                  | Scan-Rate: 50 Hz, 4x12.5 Hz            |                 |
 | LMS1104            | [1092445](https://www.sick.com/ag/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1000/c/g387151)                         | 1 layer max. range: 64 m, ang. resol. 0.25 [deg] |  ROS1: ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 150 Hz, 4x37.5 Hz   |                 |
-| TiM240             | prototype [more info here](doc/tim240/tim240.md) | 1 layer max. range: 10 m, ang. resol. 1.00 [deg], 240 [deg]| ✔ [prototype]|
+| TiM240             | prototype [more info here](doc/tim240/tim240.md) | 1 layer max. range: 10 m, ang. resol. 1.00 [deg], 240 [deg]| ROS1: ✔ [prototype]|
 |                    |                                                                                                                                  | Scan-Rate: 14.5 Hz   |                 |
-| TiM433             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [prototype]|
+| TiM433             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ROS1: ✔ [prototype]|
 |                    |                                                                                                                                  | Scan-Rate: 15.0 Hz   |                 |
-| TiM443             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [prototype]|
+| TiM443             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ROS1: ✔ [prototype]|
 |                    |                                                                                                                                  | Scan-Rate: 15.0 Hz   |                 |
 | TiM551             | [1060445](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim551-2050001/p/p343045)                 | 1 layer max. range: 10 m, ang. resol. 1.00[deg] | ROS1: ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
@@ -59,17 +59,57 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 |                    |                                                                                                                                  | Scan-Rate: 8 Hz   |                 |
 | NAV210+NAV245      | [e.g. 	1074308](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav2xx/c/g356151) | 1 layer max. range: 100 m, ang. resol. 0.25 [deg]| ROS1: ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 25 Hz   |                 |
-| LMS4xxx-Family      | [e.g. 1091423](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/lms4000/lms4111r-13000/p/p578044?ff_data) | 1 layer max. range: 3 m, ang. resol. 0,0833 [deg]| ROS1: ✔ [stable]|
+| LMS4xxx-Family      | [e.g. 1091423](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/lms4000/lms4111r-13000/p/p578044?ff_data) | 1 layer max. range: 3 m, ang. resol. 0,0833 [deg], opening angle: +/- 50 [deg] | ROS1: ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 600 Hz   |                 |
-|                    |                                                                                                   | Opening angle: +/- 50 [deg]   |                 |
 | RMS3xx             | [8021530](https://cdn.sick.com/media/docs/4/04/504/Operating_instructions_RMS3xx_en_IM0075504.PDF)| Radar Sensor | ROS1: ✔ [stable]|
 
 ## Build on Linux
 
-Install jsoncpp:
-```
-sudo apt-get install libjsoncpp-dev
-```
+Run the following steps to build sick_scan_xd on Linux (no ROS required):
+
+1. Install jsoncpp:
+   ```
+   sudo apt-get install libjsoncpp-dev
+   ```
+
+2. Clone repository https://github.com/SICKAG/sick_scan_xd:
+   ```
+   git clone https://github.com/SICKAG/sick_scan_xd.git
+   ```
+
+3. Build sick_generic_caller:
+   ```
+   cd sick_scan_xd
+   mkdir -p ./build_linux
+   pushd ./build_linux
+   cmake -DROS_VERSION=0 -G "Unix Makefiles" ..
+   make -j4
+   popd
+   ```
+
+## Build on Linux-ROS1
+
+Run the following steps to build sick_scan_xd on Linux with ROS 1:
+
+1. Install jsoncpp:
+   ```
+   sudo apt-get install libjsoncpp-dev
+   ```
+
+2. Clone repository https://github.com/SICKAG/sick_scan_xd:
+   ```
+   mkdir ./src
+   pushd ./src
+   git clone https://github.com/SICKAG/sick_scan_xd.git
+   popd
+   ```
+
+3. Build sick_generic_caller:
+   ```
+   source /opt/ros/melodic/setup.bash
+   catkin_make install --cmake-args -DROS_VERSION=1
+   source ./install/setup.bash 
+   ```
 
 ## Build on Windows
 
@@ -117,44 +157,6 @@ To install sick_scan_xd on Windows, follow the steps below:
    popd
    ```
    Open file `build\sick_scan_xd.sln` in Visual Studio and build all targets (shortcut F7).
-
-## Build on Linux
-
-Run the following steps to build sick_scan_xd on Linux (no ROS required):
-
-1. Clone repository https://github.com/SICKAG/sick_scan_xd:
-   ```
-   git clone https://github.com/SICKAG/sick_scan_xd.git
-   ```
-
-2. Build sick_generic_caller:
-   ```
-   cd sick_scan_xd
-   mkdir -p ./build_linux
-   pushd ./build_linux
-   cmake -DROS_VERSION=0 -G "Unix Makefiles" ..
-   make -j4
-   popd
-   ```
-
-## Build on Linux-ROS1
-
-Run the following steps to build sick_scan_xd on Linux with ROS 1:
-
-1. Clone repository https://github.com/SICKAG/sick_scan_xd:
-   ```
-   mkdir ./src
-   pushd ./src
-   git clone https://github.com/SICKAG/sick_scan_xd.git
-   popd
-   ```
-
-2. Build sick_generic_caller:
-   ```
-   source /opt/ros/melodic/setup.bash
-   catkin_make install --cmake-args -DROS_VERSION=1
-   source ./install/setup.bash 
-   ```
 
 ## IMU Support
 Devices of the MRS6xxx and MRS1xxx series are available with an optionally built-in IMU.
