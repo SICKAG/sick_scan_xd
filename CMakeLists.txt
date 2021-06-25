@@ -19,8 +19,6 @@ endif (POLICY CMP0048)
 
 project(sick_scan)
 
-
-
 macro(use_cxx11)
     if (CMAKE_VERSION VERSION_LESS "3.1")
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -40,7 +38,24 @@ endif(BUILD_DEBUG_TARGET)
 
 # Switch on, if you use c11-specific commands
 use_cxx11()
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow")
+if(NOT WIN32)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow")
+endif()
+
+if(WIN32 AND EXISTS "c:/vcpkg/installed/x64-windows")
+    include_directories(c:/vcpkg/installed/x64-windows/include)
+    link_directories(c:/vcpkg/installed/x64-windows/lib)
+endif()
+
+add_compile_options(-D__ROS_VERSION=${ROS_VERSION})
+if(ROS_VERSION EQUAL 0)
+    add_compile_options(-DROSSIMU)
+endif()
+if(WIN32)
+    add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
+else()
+    set (pthread_LIBRARIES "pthread")
+endif()
 
 # By uncommenting the following lines you can list all variable names ...
 # --- CUT ---
@@ -61,13 +76,14 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow")
 # set(CATKIN_DEVEL_PREFIX "${CMAKE_BINARY_DIR}/devel")
 # set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/devel;/opt/ros/melodic")
 
-find_package(Boost REQUIRED COMPONENTS system serialization)
+find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread)
 
 if(ENABLE_EMULATOR)
-        find_package(jsoncpp REQUIRED) # install libjsoncpp by running "sudo apt-get install libjsoncpp-dev"
+        find_package(jsoncpp REQUIRED) # install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" (Linux) resp. "vcpkg install jsoncpp:x64-windows" (Windows)
 endif(ENABLE_EMULATOR)
 
-find_package(catkin REQUIRED COMPONENTS
+if(ROS_VERSION EQUAL 1)
+    find_package(catkin REQUIRED COMPONENTS
         roscpp
         roslib # needed ros::package::getPath()
         sensor_msgs
@@ -82,18 +98,15 @@ find_package(catkin REQUIRED COMPONENTS
         tf2
         )
 
+    find_package(PkgConfig REQUIRED)
 
-find_package(PkgConfig REQUIRED)
-
-
-
-generate_dynamic_reconfigure_options(
+    generate_dynamic_reconfigure_options(
         cfg/SickScan.cfg
         cfg/tf_dyn.cfg
-)
+    )
 
-# driver messages
-add_message_files(
+    # driver messages
+    add_message_files(
         DIRECTORY msg
         FILES
         SickImu.msg
@@ -108,18 +121,19 @@ add_message_files(
         LFErecFieldMsg.msg
         LFErecMsg.msg
         LIDoutputstateMsg.msg
-)
+    )
 
-# driver services
-add_service_files(
+    # driver services
+    add_service_files(
         DIRECTORY srv
         FILES
         ColaMsgSrv.srv
         ECRChangeArrSrv.srv
         LIDoutputstateSrv.srv
-)
+    )
+endif(ROS_VERSION EQUAL 1)
 
-if(ENABLE_EMULATOR)
+if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
     # emulator messages
     add_message_files(
         DIRECTORY test/emulator/msg
@@ -189,25 +203,28 @@ if(ENABLE_EMULATOR)
         SickDevSetIMUActiveSrv.srv
         SickDevIMUActiveSrv.srv
     ) 
-endif(ENABLE_EMULATOR)
+endif(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
 
-generate_messages(
+if(ROS_VERSION EQUAL 1)
+    generate_messages(
         DEPENDENCIES
         std_msgs
         geometry_msgs
         sensor_msgs
-)
+    )
 
-catkin_package(
+    catkin_package(
         CATKIN_DEPENDS message_runtime roscpp sensor_msgs diagnostic_updater dynamic_reconfigure pcl_conversions pcl_ros tf tf2
         LIBRARIES sick_scan_lib
         INCLUDE_DIRS include
         DEPENDS Boost
-)
+    )
+endif(ROS_VERSION EQUAL 1)
 
-include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS}  include/sick_scan)
+include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} include/sick_scan)
 
-add_library(sick_scan_lib
+if(ROS_VERSION EQUAL 1)
+    add_library(sick_scan_lib
         driver/src/dataDumper.cpp
         driver/src/sick_scan_common.cpp
         driver/src/abstract_parser.cpp
@@ -236,85 +253,138 @@ add_library(sick_scan_lib
         driver/src/sick_scan_services.cpp
         )
 
-add_dependencies(sick_scan_lib ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+    add_dependencies(sick_scan_lib ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
-target_link_libraries(sick_scan_lib
+    target_link_libraries(sick_scan_lib
         ${catkin_LIBRARIES})
 
-add_executable(sick_generic_caller
+    add_executable(sick_generic_caller
         driver/src/sick_generic_laser.cpp
         driver/src/sick_generic_caller.cpp
         )
 
-#
-#  radar_object_marker (receives radar msg. and publishes marker array for rviz or similar
-#
-add_executable(radar_object_marker
+    #
+    #  radar_object_marker (receives radar msg. and publishes marker array for rviz or similar
+    #
+    add_executable(radar_object_marker
         tools/radar_object_marker/src/radar_object_marker.cpp
         tools/pcl_converter/src/gnuplotPaletteReader.cpp
         include/radar_object_marker/radar_object_marker.h)
 
-target_link_libraries(radar_object_marker sick_scan_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-#
-#
-#
+    target_link_libraries(radar_object_marker sick_scan_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+
+    #
+    # pcl_converter disabled to avoid dependency to pcl
+    #
+    # add_executable(pcl_converter tools/pcl_converter/src/pcl_converter.cpp tools/pcl_converter/src/gnuplotPaletteReader.cpp)
+    #
+    # target_link_libraries(pcl_converter
+    #        ${catkin_LIBRARIES})
 
 
-#
-# pcl_converter disabled to avoid dependency to pcl
-#
-# add_executable(pcl_converter tools/pcl_converter/src/pcl_converter.cpp tools/pcl_converter/src/gnuplotPaletteReader.cpp)
-#
-# target_link_libraries(pcl_converter
-#        ${catkin_LIBRARIES})
-
-
-target_link_libraries(sick_generic_caller sick_scan_lib)
-
-add_executable(sick_scan_test
+    target_link_libraries(sick_generic_caller sick_scan_lib)
+    
+    add_executable(sick_scan_test
         test/src/sick_scan_test.cpp
         driver/src/tinyxml/tinystr.cpp
         driver/src/tinyxml/tinyxml.cpp
         driver/src/tinyxml/tinyxmlerror.cpp
         driver/src/tinyxml/tinyxmlparser.cpp
         )
-target_link_libraries(sick_scan_test
+    target_link_libraries(sick_scan_test
         ${catkin_LIBRARIES}
         ${roslib_LIBRARIES}
         sick_scan_lib)
+endif(ROS_VERSION EQUAL 1)
 
-install(TARGETS sick_scan_lib
+if(ROS_VERSION EQUAL 0)
+
+    if(WIN32)
+        include_directories(roswrap/helper_win)
+        file(GLOB SRC_WIN_FILES roswrap/helper_win/usleep/usleep.c)
+    endif()
+    include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg)
+
+    add_library(sick_scan_lib
+	roswrap/src/cfgsimu/sick_scan/time_modi.cpp
+	roswrap/src/rossimu/kinetic/src/rossimu.cpp
+	roswrap/src/rossimu/kinetic/src/duration.cpp
+	roswrap/src/rossimu/kinetic/src/rate.cpp
+	roswrap/src/getopt/getopt.c
+        roswrap/src/toojpeg/toojpeg.cpp
+        roswrap/src/include/launchparser/launchparser.h
+        roswrap/src/launchparser/launchparser.cpp 
+        driver/src/sick_generic_field_mon.cpp
+	driver/src/sick_generic_imu.cpp
+        driver/src/sick_generic_laser.cpp
+	driver/src/sick_generic_parser.cpp
+        driver/src/sick_generic_radar.cpp
+	driver/src/sick_scan_common.cpp
+	driver/src/sick_scan_common_nw.cpp
+	driver/src/sick_scan_common_tcp.cpp
+        driver/src/sick_scan_marker.cpp
+        driver/src/sick_scan_messages.cpp
+        driver/src/abstract_parser.cpp
+	driver/src/binScanf.cpp
+	driver/src/dataDumper.cpp
+        driver/src/tinyxml/tinystr.cpp
+        driver/src/tinyxml/tinyxml.cpp
+        driver/src/tinyxml/tinyxmlerror.cpp
+        driver/src/tinyxml/tinyxmlparser.cpp
+	driver/src/tcp/colaa.cpp
+	driver/src/tcp/colab.cpp
+	driver/src/tcp/errorhandler.cpp
+	driver/src/tcp/Mutex.cpp
+	driver/src/tcp/SickThread.cpp
+	driver/src/tcp/tcp.cpp
+	driver/src/tcp/toolbox.cpp
+	driver/src/softwarePLL.cpp
+	driver/src/helper/angle_compensator.cpp
+        )
+
+    add_executable(sick_generic_caller
+        driver/src/sick_generic_caller.cpp
+	${SRC_WIN_FILES}
+    )
+
+    target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${pthread_LIBRARIES})
+endif(ROS_VERSION EQUAL 0)
+
+
+if(ROS_VERSION EQUAL 1)
+    install(TARGETS sick_scan_lib
         DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
-install(
+    install(
         TARGETS
         sick_generic_caller
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-install(
+    install(
         TARGETS
         sick_scan_test
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-install(FILES include/${PROJECT_NAME}/abstract_parser.h
+    install(FILES include/${PROJECT_NAME}/abstract_parser.h
         include/${PROJECT_NAME}/sick_scan_common.h
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
-install(DIRECTORY test/
+    install(DIRECTORY test/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/test
         FILES_MATCHING PATTERN "*.xml"
         PATTERN "test/src" EXCLUDE)
 
-install(DIRECTORY launch/
+    install(DIRECTORY launch/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
-install(DIRECTORY meshes/
+    install(DIRECTORY meshes/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/meshes)
 
-install(DIRECTORY urdf/
+    install(DIRECTORY urdf/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/urdf)
+endif(ROS_VERSION EQUAL 1)
 
-if(ENABLE_EMULATOR)
+if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
     #
     # emulator
     #
@@ -360,4 +430,4 @@ if(ENABLE_EMULATOR)
     install(DIRECTORY test/emulator/scandata/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scandata)
 
-endif(ENABLE_EMULATOR)
+endif(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)

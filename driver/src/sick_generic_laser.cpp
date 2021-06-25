@@ -60,7 +60,7 @@
 */
 
 #ifdef _MSC_VER
-#define _WIN32_WINNT 0x0501
+//#define _WIN32_WINNT 0x0501
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
 #endif
@@ -74,12 +74,14 @@
 
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_laser.h>
-#include <sick_scan/sick_scan_services.h>
 
-
-#ifdef _MSC_VER
+#ifdef ROSSIMU
 #include "sick_scan/rosconsole_simu.hpp"
+#include "launchparser/launchparser.h"
+#else
+#include <sick_scan/sick_scan_services.h>
 #endif
+
 #define _USE_MATH_DEFINES
 
 #include <math.h>
@@ -158,6 +160,13 @@ void my_handler(int signalRecv)
   ros::shutdown();
 }
 
+inline bool ends_with(std::string const &value, std::string const &ending)
+{
+  if (ending.size() > value.size())
+  { return false; }
+  return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 /*!
 \brief Internal Startup routine.
 \param argc: Number of Arguments
@@ -205,6 +214,49 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
 
   ros::NodeHandle nhPriv("~");
 
+#ifdef ROSSIMU
+  int launchArgcFileIdx = -1;
+  for (int i = 1; i < argc; i++)
+  {
+    std::string extKey = ".launch";
+    std::string s = argv[i];
+    if (ends_with(s, extKey))
+    {
+      launchArgcFileIdx = i;
+      std::vector<std::string> tagList, typeList, valList;
+      LaunchParser launchParser;
+      bool ret = launchParser.parseFile(s, tagList, typeList, valList);
+      if (ret == false)
+      {
+        ROS_INFO("Cannot parse launch file (check existence and content): >>>%s<<<\n", s.c_str());
+        exit(-1);
+      }
+      for (size_t i = 0; i < tagList.size(); i++)
+      {
+        printf("%-30s %-10s %-20s\n", tagList[i].c_str(), typeList[i].c_str(), valList[i].c_str());
+        nhPriv.setParam(tagList[i], valList[i]);
+      }
+    }
+  }
+
+  for (int i = 1; i < argc; i++)
+  {
+    std::string s = argv[i];
+    if (getTagVal(s, tag, val))
+    {
+      nhPriv.setParam(tag, val);
+    }
+    else
+    {
+      if (launchArgcFileIdx != i)
+      {
+        ROS_INFO("Tag-Value setting not valid. Use pattern: <tag>:=<value>  (e.g. hostname:=192.168.0.4) (Check the entry: %s)\n", s.c_str());
+        exit(-1);
+
+      }
+    }
+  }
+#endif
 
   std::string scannerName;
   if (false == nhPriv.getParam("scanner_type", scannerName))
@@ -217,7 +269,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
 
   if (doInternalDebug)
   {
-#ifdef _MSC_VER
+#ifdef ROSSIMU
     nhPriv.setParam("name", scannerName);
     rossimu_settings(nhPriv);  // just for tiny simulations under Visual C++
 #else
@@ -313,8 +365,10 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
     colaDialectId = 'A';
   }
 
+#ifndef ROSSIMU
   bool start_services = false;
   sick_scan::SickScanServices* services = 0;
+#endif
   int result = sick_scan::ExitError;
 
   sick_scan::SickScanConfig cfg;
@@ -344,12 +398,14 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
         }
         result = s->init();
 
+#ifndef ROSSIMU
         // Start ROS services
         if (true == nhPriv.getParam("start_services", start_services) && true == start_services)
         {
             services = new sick_scan::SickScanServices(&nhPriv, s, parser->getCurrentParamPtr()->getUseBinaryProtocol());
             ROS_INFO("SickScanServices: ros services initialized");
         }
+#endif
 
         isInitialized = true;
         signal(SIGINT, SIG_DFL); // change back to standard signal handler after initialising
@@ -387,11 +443,13 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
         break;
     }
   }
+#ifndef ROSSIMU
   if(services)
   {
     delete services;
     services = 0;
   }
+#endif
   if (s != NULL)
   {
     delete s; // close connnect

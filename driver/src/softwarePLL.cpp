@@ -326,7 +326,7 @@ void SoftwarePLL::testbed()
   if (testWithDataFile)
   {
     // commented for trusty bRet = testPll.getDemoFileData("/home/rosuser/dumpimu3.csv", tickVec, secVec, nanoSecVec);
-    maxLoop = tickVec.size();
+    maxLoop = (int)tickVec.size();
   }
 
   for (int i = 0; i < maxLoop; i++)

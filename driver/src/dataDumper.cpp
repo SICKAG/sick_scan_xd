@@ -1,6 +1,6 @@
 // "dataDumper.cpp": Definiert den Einstiegspunkt für die Konsolenanwendung.
 //
-#define _CRT_SECURE_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
 #define _USE_MATH_DEFINES
 
 #include <math.h>
@@ -82,7 +82,7 @@ int DataDumper::dumpUcharBufferToConsole(unsigned char *buffer, int bufLen)
 		{
 			ch = (char) buffer[i];
 		}
-		int iStrLen = strlen(asciiBuffer);
+		int iStrLen = (int)strlen(asciiBuffer);
 		asciiBuffer[iStrLen] = ch;
 		asciiBuffer[iStrLen + 1] = '\0';
 

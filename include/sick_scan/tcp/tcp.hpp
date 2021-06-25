@@ -17,8 +17,12 @@
 #define TCP_HPP
 
 #include "sick_scan/tcp/BasicDatatypes.hpp"
+#ifdef linux
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+#else
+#include <winsock2.h>
+#endif
 #include "sick_scan/tcp/Mutex.hpp"
 #include "sick_scan/tcp/SickThread.hpp"
 #include <list>

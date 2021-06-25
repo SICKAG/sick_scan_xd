@@ -17,5 +17,5 @@ popd
 # make
 #
 
-./make.bash
+./make_ros1.bash
 

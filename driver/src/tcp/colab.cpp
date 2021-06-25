@@ -7,7 +7,7 @@
 // colab.cpp
 //
 // (c) 2010 SICK AG, Hamburg, Germany
-#define _CRT_SECURE_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
 #include "sick_scan/tcp/colab.hpp"
 #include <cstring>
 #include <cassert>

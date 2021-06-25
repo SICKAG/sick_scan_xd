@@ -74,9 +74,9 @@
 
 #include "sick_scan/sick_generic_laser.h"
 #include "sick_scan/dataDumper.h"
-
 #include "sick_scan/helper/angle_compensator.h"
-#ifdef _MSC_VER
+
+#ifdef ROSSIMU
 #include "sick_scan/rosconsole_simu.hpp"
 #endif
 

@@ -6,8 +6,12 @@
 #define TOOLBOX_HPP
 
 #include <stdio.h>      /* for printf() and fprintf() */
+#ifdef linux
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+#else
+#include <winsock2.h>
+#endif
 #include <stdlib.h>     /* for atoi() and exit() */
 #include <string.h>     /* for memset() */
 #include "sick_scan/tcp/BasicDatatypes.hpp"	// for PI

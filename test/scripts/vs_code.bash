@@ -1,6 +1,6 @@
 #!/bin/bash
 
-gedit ./make.bash ./run_simu_tim7xx_tim7xxS.bash ./run_simu_lms5xx.bash ./run_simu_lms1xx.bash & 
+gedit ./make_ros1.bash ./run_ros1_simu_tim7xx_tim7xxS.bash ./run_ros1_simu_lms5xx.bash ./run_ros1_simu_lms1xx.bash & 
 
 pushd ../../../..
 source /opt/ros/melodic/setup.bash

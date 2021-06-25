@@ -64,6 +64,97 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 |                    |                                                                                                   | Opening angle: +/- 50 [deg]   |                 |
 | RMS3xx             | [8021530](https://cdn.sick.com/media/docs/4/04/504/Operating_instructions_RMS3xx_en_IM0075504.PDF)| Radar Sensor | ROS1: ✔ [stable]|
 
+## Build on Linux
+
+Install jsoncpp:
+```
+sudo apt-get install libjsoncpp-dev
+```
+
+## Build on Windows
+
+To install sick_scan_xd on Windows, follow the steps below:
+
+1. If not yet done, install Visual Studio. Visual Studio 2019 Community or Professional Edition is recommended.
+
+2. If not yet done, install boost and pthread using Visual Studios package manager vcpkg:
+   * Install vcpkg:
+      * Download vcpkg-master.zip from https://github.com/microsoft/vcpkg/archive/master.zip and unzip to `c:\vcpkg`. Alternatively, run "git clone https://github.com/microsoft/vcpkg"
+      * Install vcpkg by running the following commands:
+         ```
+        cd c:/vcpkg
+        bootstrap-vcpkg.bat
+        vcpkg integrate install
+        ```
+   * Install required packages:
+      ```
+     vcpkg install pthread:x86-windows
+     vcpkg install pthread:x64-windows
+     vcpkg install boost:x64-windows
+     vcpkg install jsoncpp
+     vcpkg install jsoncpp:x64-windows
+     ```
+   * Include vcpkg in your path:
+      ```
+     set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
+     ```
+
+3. Clone repository https://github.com/SICKAG/sick_scan_xd:
+   ```
+   git clone https://github.com/SICKAG/sick_scan_xd.git
+   ```
+
+4. Build sick_generic_caller with cmake and Visual Studio 2019:
+   ```
+   cd sick_scan_xd
+   set _os=x64
+   set _cmake_string=Visual Studio 16 2019
+   set _msvc=Visual Studio 2019
+   set _cmake_build_dir=build
+   if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
+   pushd %_cmake_build_dir%
+   cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
+   popd
+   ```
+   Open file `build\sick_scan_xd.sln` in Visual Studio and build all targets (shortcut F7).
+
+## Build on Linux
+
+Run the following steps to build sick_scan_xd on Linux (no ROS required):
+
+1. Clone repository https://github.com/SICKAG/sick_scan_xd:
+   ```
+   git clone https://github.com/SICKAG/sick_scan_xd.git
+   ```
+
+2. Build sick_generic_caller:
+   ```
+   cd sick_scan_xd
+   mkdir -p ./build_linux
+   pushd ./build_linux
+   cmake -DROS_VERSION=0 -G "Unix Makefiles" ..
+   make -j4
+   popd
+   ```
+
+## Build on Linux-ROS1
+
+Run the following steps to build sick_scan_xd on Linux with ROS 1:
+
+1. Clone repository https://github.com/SICKAG/sick_scan_xd:
+   ```
+   mkdir ./src
+   pushd ./src
+   git clone https://github.com/SICKAG/sick_scan_xd.git
+   popd
+   ```
+
+2. Build sick_generic_caller:
+   ```
+   source /opt/ros/melodic/setup.bash
+   catkin_make install --cmake-args -DROS_VERSION=1
+   source ./install/setup.bash 
+   ```
 
 ## IMU Support
 Devices of the MRS6xxx and MRS1xxx series are available with an optionally built-in IMU.

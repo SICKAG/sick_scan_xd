@@ -7,8 +7,11 @@
 
 #include "sick_scan/tcp/BasicDatatypes.hpp"
 #include <pthread.h>
+#ifdef linux
 #include <unistd.h>
-
+#else
+#include <unistd_win.h>
+#endif
 
 extern "C" void* wrapper_prerun(void*);
 class ThreadWrapperBase

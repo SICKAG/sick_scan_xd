@@ -52,8 +52,7 @@
 #ifdef _MSC_VER // compiling simulation for MS-Visual C++ - not defined for linux system
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267) // due to conversion warning size_t in the ros header file
-#define _WIN32_WINNT 0x0501
-
+//#define _WIN32_WINNT 0x0501
 #endif
 
 #include <sick_scan/sick_scan_common_nw.h>
@@ -63,11 +62,13 @@
 #include <sick_scan/helper/angle_compensator.h>
 #include <sick_scan/sick_scan_config_internal.h>
 
-#ifdef _MSC_VER
+#ifdef ROSSIMU
+
 #include "sick_scan/rosconsole_simu.hpp"
 #endif
 
 #include "sick_scan/binScanf.hpp"
+#include "sick_scan/dataDumper.h"
 // if there is a missing RadarScan.h, try to run catkin_make in der workspace-root
 #include <sick_scan/RadarScan.h>
 
@@ -93,6 +94,17 @@
 #include <climits>
 #include <sick_scan/sick_generic_imu.h>
 #include <sick_scan/sick_scan_messages.h>
+
+#ifdef ROSSIMU
+#include "toojpeg.h"
+
+FILE *foutJpg;
+
+void jpegOutputCallback(unsigned char oneByte)
+{
+  fwrite(&oneByte, 1, 1, foutJpg);
+}
+#endif
 
 /*!
 \brief Universal swapping function
@@ -138,7 +150,7 @@ std::vector<unsigned char> stringToVector(std::string s)
 */
 static int getDiagnosticErrorCode() // workaround due to compiling error under Visual C++
 {
-#ifdef _MSC_VER
+#ifdef ROSSIMU
 #undef ERROR
   return(2);
 #else
@@ -340,7 +352,7 @@ namespace sick_scan
 
     setSensorIsRadar(false);
     init_cmdTables();
-#ifndef _MSC_VER
+#ifndef ROSSIMU
     dynamic_reconfigure::Server<sick_scan::SickScanConfig>::CallbackType f;
     f = boost::bind(&sick_scan::SickScanCommon::update_config, this, _1, _2);
     dynamic_reconfigure_server_.setCallback(f);
@@ -399,7 +411,7 @@ namespace sick_scan
     // scan publisher
     pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
 
-#ifndef _MSC_VER
+#ifndef ROSSIMU
     diagnostics_.setHardwareID("none");   // set from device after connection
     diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>(pub_, diagnostics_,
         // frequency should be target +- 10%.
@@ -413,6 +425,8 @@ namespace sick_scan
                                                                                                 expectedFrequency_ -
                                                                                                 config_.time_offset));
     ROS_ASSERT(diagnosticPub_ != NULL);
+#else
+    config_.time_offset = 0; // to avoid uninitialized variable
 #endif
   }
 
@@ -2876,8 +2890,7 @@ namespace sick_scan
         return ExitSuccess;
       }
 
-      ROS_DEBUG_STREAM("SickScanCommon::loopOnce: received " << actual_length << " byte data " << DataDumper::binDataToAsciiString(&receiveBuffer[0], std::min(32, actual_length)) << " ... ");
-
+      ROS_DEBUG_STREAM("SickScanCommon::loopOnce: received " << actual_length << " byte data " << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(32, actual_length)) << " ... ");
 
       if (publish_datagram_)
       {
@@ -3430,8 +3443,8 @@ namespace sick_scan
 
                               if (this->parser_->getCurrentParamPtr()->getScanMirroredAndShifted())
                               {
-                                msg.angle_min -= M_PI/2;
-                                msg.angle_max -= M_PI/2;
+                                msg.angle_min -= (float)(M_PI / 2);
+                                msg.angle_max -= (float)(M_PI / 2);
 
                                 msg.angle_min *= -1.0;
                                 msg.angle_increment *= -1.0;
@@ -3956,7 +3969,180 @@ namespace sick_scan
 
               if (shallIFire) // shall i fire the signal???
               {
-                if (config_.cloud_output_mode == 0)
+#ifdef ROSSIMU
+                static int cnt = 0;
+                cnt++;
+
+                printf("PUBLISH_DATA:\n");
+
+                unsigned char *cloudDataPtr = &(cloud_.data[0]);
+                int w = cloud_.width;
+                int h = cloud_.height;
+
+                int numShots = w * h;
+
+                float *ptr = (float *) cloudDataPtr;
+
+                if (cnt == 25)
+                {
+				  char jpgFileName_tmp[255] = { 0 };
+#if linux				  
+				  strcpy(jpgFileName_tmp , "./demo/scan.jpg_tmp");
+#else
+				  strcpy(jpgFileName_tmp , "..\\demo\\scan.jpg_tmp");
+#endif
+                  int xic = 400;
+                  int yic = 400;
+                  int w2i = 400;
+                  int h2i = 400;
+                  int hi = h2i * 2 + 1;
+                  int wi = w2i * 2 + 1;
+                  int pixNum = hi * wi;
+                  int numColorChannel = 3;
+                  unsigned char *pixel = (unsigned char *) malloc(numColorChannel * hi * wi);
+                  memset(pixel, 0, numColorChannel * pixNum);
+                  double scaleFac = 50.0;
+
+                  for (int i = 0; i < hi; i++)
+                  {
+                    int pixAdr = numColorChannel * (i * wi + xic);
+                    pixel[pixAdr] = 0x40;
+                    pixel[pixAdr + 1] = 0x40;
+                    pixel[pixAdr + 2] = 0x40;
+                  }
+                  for (int i = 0; i < wi; i++)
+                  {
+                    int pixAdr = numColorChannel * (yic * wi + i);
+                    pixel[pixAdr] = 0x40;
+                    pixel[pixAdr + 1] = 0x40;
+                    pixel[pixAdr + 2] = 0x40;
+                  }
+
+                  scaleFac *= -1.0;
+                  for (int i = 0; i < numShots; i++)
+                  {
+                    double x, y, z, intensity;
+                    x = ptr[0];
+                    y = ptr[1];
+                    z = ptr[2];
+                    intensity = ptr[3];
+                    ptr += 4;
+                    int xi = (x * scaleFac) + xic;
+                    int yi = (y * scaleFac) + yic;
+                    if ((xi >= 0) && (xi < wi))
+                    {
+                      if ((yi >= 0) && (xi < hi))
+                      {
+                        // yi shows left (due to neg. scaleFac)
+                        // xi shows up (due to neg. scaleFac)
+                        int pixAdr = numColorChannel * (xi * wi + yi);
+                        int layer = i / w;
+                        unsigned char color[3] = {0x00};
+                        switch (layer)
+                        {
+                          case 0:
+                            color[0] = 0xFF;
+                            break;
+                          case 1:
+                            color[1] = 0xFF;
+                            break;
+                          case 2:
+                            color[2] = 0xFF;
+                            break;
+                          case 3:
+                            color[0] = 0xFF;
+                            color[1] = 0xFF;
+                            break;
+                        }
+
+                        for (int kk = 0; kk < 3; kk++)
+                        {
+                          pixel[pixAdr + kk] = color[kk];
+
+                        }
+                      }
+                    }
+
+                  }
+
+
+
+                  // Write JPEG Scan Top View
+                  foutJpg = fopen(jpgFileName_tmp, "wb");
+                  if (foutJpg == NULL)
+                  {
+                    ROS_INFO("PANIC: Can not open %s for writing. Check existience of demo dir. or patch  code.\n", jpgFileName_tmp);
+                  }
+                  else
+                  {
+                  TooJpeg::writeJpeg(jpegOutputCallback, pixel, wi, hi, true, 99);
+                  fclose(foutJpg);
+
+                  free(pixel);
+
+#if linux				  
+				  rename(jpgFileName_tmp, "./demo/scan.jpg");
+#else
+				  _unlink("..\\demo\\scan.jpg");
+				  rename(jpgFileName_tmp, "..\\demo\\scan.jpg");
+#endif
+
+                  }
+                  // Write CSV-File
+				  char csvFileNameTmp[255];
+#if linux				  
+				  strcpy(csvFileNameTmp, "./demo/scan.csv_tmp");
+#else
+				  strcpy(csvFileNameTmp, "..\\demo\\scan.csv_tmp");
+#endif
+                  FILE *foutCsv = fopen(csvFileNameTmp, "w");
+                  if (foutCsv)
+                  {
+                    // ZIEL: fprintf(foutCsv,"timestamp;range;elevation;azimuth;x;y;z;intensity\n");
+                    fprintf(foutCsv,"timestamp_sec;timestamp_nanosec;range;azimuth_deg;elevation_deg;x;y;z;intensity\n");
+                    unsigned char *cloudDataPtr = &(cloud_.data[0]);
+
+                    int numShots = w * h;
+
+                    float *ptr = (float *) cloudDataPtr;
+
+
+                    long timestamp_sec = cloud_.header.stamp.sec;
+                    long timestamp_nanosec = cloud_.header.stamp.nsec;
+                    for (int i = 0; i < numShots; i++)
+                    {
+                      double x, y, z, intensity;
+                      x = ptr[0];
+                      y = ptr[1];
+                      z = ptr[2];
+                      float range_xy = sqrt(x*x+y*y);
+                      float range_xyz = sqrt(x*x+y*y+z*z);
+                      float elevation = atan2(z, range_xy);
+                      float azimuth = atan2(y,x);
+                      float elevationDeg = elevation * 180.0 / M_PI;
+                      float azimuthDeg = azimuth * 180.0 / M_PI;
+
+                      intensity = ptr[3];
+                      ptr += 4;
+                      fprintf(foutCsv,"%12ld;%12ld;%8.3lf;%8.3lf;%8.3lf;%8.3f;%8.3f;%8.3f;%8.0f\n", timestamp_sec, timestamp_nanosec, range_xyz, azimuthDeg, elevationDeg, x,y,z,intensity);
+                    }
+                      fclose(foutCsv);
+#ifdef linux
+                     rename(csvFileNameTmp, "./demo/scan.csv");
+#else
+					  _unlink("..\\demo\\scan.csv");
+					  rename(csvFileNameTmp, "..\\demo\\scan.csv");
+#endif
+                  }
+                  else
+                  {
+                        ROS_INFO("PANIC: Can not open %s for writing. Check existience of demo dir. or patch  code.\n",csvFileNameTmp );
+                  }
+                  cnt = 0;
+                }
+
+#else
+                if (config_.cloud_output_mode==0)
                 {
                   // standard handling of scans
                   cloud_pub_.publish(cloud_);
@@ -3973,7 +4159,6 @@ namespace sick_scan
                   //          angle increment is 0.75° (yields 274,5° covery -> OK)
                   // MRS6124: Publish very 24th layer at the layer = 237 , MRS6124 contains no sequence with seq 0
                   //BBB
-#ifndef _MSC_VER
                   int numTotalShots = 360; //TODO where is this from ?
                   int numPartialShots = 40; //
 
@@ -4050,16 +4235,12 @@ namespace sick_scan
 
 
                     cloud_pub_.publish(partialCloud);
-#if 0
-                    memcpy(&(partialCloud.data[0]), &(cloud_.data[0]) + i * cloud_.point_step, cloud_.point_step * numPartialShots);
-                    cloud_pub_.publish(partialCloud);
-#endif
+                    //memcpy(&(partialCloud.data[0]), &(cloud_.data[0]) + i * cloud_.point_step, cloud_.point_step * numPartialShots);
+                    //cloud_pub_.publish(partialCloud);
                   }
                 }
                 //                cloud_pub_.publish(cloud_);
 
-#else
-                printf("PUBLISH:\n");
 #endif
               }
             }

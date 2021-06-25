@@ -8,7 +8,7 @@
 //#include <backward/iostream.h>	// fuer cout()
 #include "pthread.h"
 #include "sick_scan/tcp/errorhandler.hpp"
-#ifndef _MSC_VER
+#ifndef ROSSIMU
 #include "sick_scan/tcp/Time.hpp"
 #endif
 // Print mutex to print thread-safe
@@ -47,14 +47,14 @@ void infoMessage(std::string message, bool print)
 {
 	if (print == true)
 	{
-#ifndef _MSC_VER
+#ifndef ROSSIMU
 		Time t = Time::now();
 #endif	
 		// Mutex setzen
 		pthread_mutex_lock(&m_printMutex);
 		
 		// Nachricht schreiben
-#ifndef _MSC_VER
+#ifndef ROSSIMU
 		printf("%s ", t.toString().c_str());
 #endif	
 		printf ("Info: %s\n", message.c_str());
@@ -72,13 +72,13 @@ void infoMessage(std::string message, bool print)
 //
 void printWarning(std::string message)
 {
-#ifndef _MSC_VER
+#ifndef ROSSIMU
 	Time t = Time::now();
 #endif	
 	// Mutex setzen
 	pthread_mutex_lock(&m_printMutex);
 		
-#ifndef _MSC_VER
+#ifndef ROSSIMU
 	printf ("%s ", t.toString().c_str());
 #endif
 	printf ("Warning: %s\n", message.c_str());
@@ -93,14 +93,14 @@ void printWarning(std::string message)
 //
 void printError(std::string message)
 {
-#ifndef _MSC_VER
+#ifndef ROSSIMU
 	Time t = Time::now();
 #endif	
 	
 	// Mutex setzen
 	pthread_mutex_lock(&m_printMutex);
 		
-#ifndef _MSC_VER
+#ifndef ROSSIMU
 	printf("%s ", t.toString().c_str());
 #endif
 	printf ("ERROR: %s\n", message.c_str());

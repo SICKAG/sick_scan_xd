@@ -135,7 +135,7 @@ namespace sick_scan
     int getPointCount(void) const
     { 
       assert(m_fieldPoints_X.size() == m_fieldPoints_Y.size());
-      return m_fieldPoints_X.size(); 
+      return (int)m_fieldPoints_X.size(); 
     }
 
     const std::vector<float>& getFieldPointsX(void) const { return m_fieldPoints_X; }

@@ -43,7 +43,7 @@
 */
 
 #ifdef _MSC_VER
-#define _WIN32_WINNT 0x0501
+//#define _WIN32_WINNT 0x0501
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
 #endif
@@ -58,7 +58,8 @@
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_imu.h>
 
-#ifdef _MSC_VER
+#ifdef ROSSIMU
+
 #include "sick_scan/rosconsole_simu.hpp"
 #endif
 

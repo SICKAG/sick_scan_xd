@@ -51,7 +51,7 @@
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4267)
 #pragma warning(disable: 4101)   // C4101: "e" : Unreferenzierte lokale Variable
-#define _WIN32_WINNT 0x0501
+//#define _WIN32_WINNT 0x0501
 
 #endif
 
@@ -67,7 +67,8 @@
 #include <vector>
 #include <sick_scan/sick_generic_radar.h>
 
-#ifdef _MSC_VER
+#ifdef ROSSIMU
+
 #include "sick_scan/rosconsole_simu.hpp"
 #endif
 

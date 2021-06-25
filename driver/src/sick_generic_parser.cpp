@@ -51,14 +51,14 @@
 #pragma warning(disable: 4267)
 #endif
 
-#define _CRT_SECURE_NO_WARNINGS
+//#define _CRT_SECURE_NO_WARNINGS
 #define _USE_MATH_DEFINES
 
 #include <math.h>
 #include <sick_scan/sick_scan_common.h>
 #include <ros/ros.h>
 
-#ifdef _MSC_VER
+#ifdef ROSSIMU
 #include "sick_scan/rosconsole_simu.hpp"
 #endif
 

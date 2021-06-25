@@ -78,6 +78,18 @@
 #include "sick_scan/sick_generic_field_mon.h"
 #include "sick_scan/sick_scan_marker.h"
 
+
+#if defined _MSC_VER && defined min
+#define MIN min
+#else
+#define MIN std::min
+#endif
+#if defined _MSC_VER && defined max
+#define MAX max
+#else
+#define MAX std::max
+#endif
+
 void swap_endian(unsigned char *ptr, int numBytes);
 
 namespace sick_scan
