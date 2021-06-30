@@ -4,9 +4,14 @@
 # The accuracy measures for Lienar acceleration and angular velocity are abitre values, where higher values are better.
 # 
 #
-Header header
 
-sensor_msgs/Imu Imu
+# ROS-1: 
+#Header header
+# ROS-2: 
+std_msgs/Header header
+
+#sensor_msgs/Imu Imu # ROS1
+sensor_msgs/Imu imu  # ROS2
 #IMU Message
 
 uint32 ticks

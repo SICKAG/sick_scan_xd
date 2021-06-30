@@ -2,9 +2,12 @@
 // Created by rosuser on 11.07.19.
 //
 
-#include "launchparser/launchparser.h"
-#include <ros/ros.h>
+#include "launchparser.h"
+//#include "launchparser/launchparser.h"
+#include <sick_scan/sick_ros_wrapper.h>
 
+#include "tinystr.h"
+#include "tinyxml.h"
 
 class paramEntryAscii
 {
@@ -104,11 +107,12 @@ private:
 
 
 #ifndef _MSC_VER
-
+#include <signal.h>
+//#include <unistd.h>
 void sudokill(pid_t tokill)
 {
   kill(tokill, SIGTERM);
-  sleep(5);
+  rosSleep(5); // sleep(5);
 }
 #endif
 
@@ -206,13 +210,13 @@ bool LaunchParser::parseFile(std::string launchFileFullName, std::vector<std::st
     std::vector<std::string>& typeVec, std::vector<std::string>& valVec)
 {
   bool ret = false;
-  ROS_INFO("Try loading launchfile :%s",launchFileFullName.c_str());
+  ROS_INFO_STREAM("Try loading launchfile : " << launchFileFullName);
   TiXmlDocument doc;
   doc.LoadFile(launchFileFullName.c_str());
 
   if (doc.Error() == true)
   {
-    ROS_INFO("ERROR parsing launch file %s\nRow: %d\nCol: %d", doc.ErrorDesc(), doc.ErrorRow(), doc.ErrorCol());
+    ROS_INFO_STREAM("ERROR parsing launch file " << doc.ErrorDesc() << "\nRow: " << doc.ErrorRow() << "\nCol: " << doc.ErrorCol() << "");
     return(ret);
   }
   TiXmlNode *node = doc.FirstChild("launch");

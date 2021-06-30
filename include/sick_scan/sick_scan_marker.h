@@ -39,12 +39,7 @@
 #ifndef SICK_SCAN_MARKER_H_
 #define SICK_SCAN_MARKER_H_
 
-#include <ros/ros.h>
-#include <std_msgs/ColorRGBA.h>
-#include <visualization_msgs/MarkerArray.h>
-
-#include "sick_scan/LFErecMsg.h"
-#include "sick_scan/LIDoutputstateMsg.h"
+#include <sick_scan/sick_ros_wrapper.h>
 #include "sick_scan/sick_generic_field_mon.h"
 
 
@@ -54,45 +49,45 @@ namespace sick_scan
   {
   public:
 
-    SickScanMarker(ros::NodeHandle* nh = 0, const std::string & marker_topic = "", const std::string & marker_frame_id = "");
+    SickScanMarker(rosNodePtr nh = 0, const std::string & marker_topic = "", const std::string & marker_frame_id = "");
 
     virtual ~SickScanMarker();
 
     void updateMarker(const std::vector<SickScanMonField>& fields, int fieldset, int eval_field_logic);
 
-    void updateMarker(sick_scan::LIDoutputstateMsg& msg, int eval_field_logic);
+    void updateMarker(sick_scan_msg::LIDoutputstateMsg& msg, int eval_field_logic);
 
-    void updateMarker(sick_scan::LFErecMsg& msg, int eval_field_logic);
+    void updateMarker(sick_scan_msg::LFErecMsg& msg, int eval_field_logic);
 
   protected:
 
     class FieldInfo
     {
     public:
-      FieldInfo(int idx=0, int result=0, const std::string& status="", const std::string& name="", const std_msgs::ColorRGBA& color=std_msgs::ColorRGBA())
+      FieldInfo(int idx=0, int result=0, const std::string& status="", const std::string& name="", const ros_std_msgs::ColorRGBA& color= ros_std_msgs::ColorRGBA())
       : field_index_scan_mon(idx), field_result(result), field_status(status), field_name(name), field_color(color) {}
       int field_index_scan_mon; // 0 to 47
       int field_result;// 0 = invalid = gray, 1 = free/clear = green, 2 = infringed = yellow
       std::string field_status; // field_result as string
       std::string field_name; // name within the field set ("1", "2" or "3")
-      std_msgs::ColorRGBA field_color; // field_result as color
+      ros_std_msgs::ColorRGBA field_color; // field_result as color
     };
 
     void publishMarker(void);
-    std::vector<visualization_msgs::Marker> createMonFieldMarker(const std::vector<FieldInfo>& field_info);
-    std::vector<visualization_msgs::Marker> createMonFieldLegend(const std::vector<FieldInfo>& field_info);
-    std::vector<visualization_msgs::Marker> createMonFieldsetLegend(int fieldset);
-    std::vector<visualization_msgs::Marker> createOutputStateLegend(const std::vector<std::string>& output_state, const std::vector<std::string>& output_count, const std::vector<std_msgs::ColorRGBA>& output_colors);
+    std::vector<ros_visualization_msgs::Marker> createMonFieldMarker(const std::vector<FieldInfo>& field_info);
+    std::vector<ros_visualization_msgs::Marker> createMonFieldLegend(const std::vector<FieldInfo>& field_info);
+    std::vector<ros_visualization_msgs::Marker> createMonFieldsetLegend(int fieldset);
+    std::vector<ros_visualization_msgs::Marker> createOutputStateLegend(const std::vector<std::string>& output_state, const std::vector<std::string>& output_count, const std::vector<ros_std_msgs::ColorRGBA>& output_colors);
 
     std::string m_frame_id;
-    ros::Publisher m_marker_publisher;
+    rosPublisher<ros_visualization_msgs::MarkerArray> m_marker_publisher;
     int m_scan_mon_fieldset;
     std::vector<sick_scan::SickScanMonField> m_scan_mon_fields;
-    std::vector<visualization_msgs::Marker> m_scan_mon_field_marker;
-    std::vector<visualization_msgs::Marker> m_scan_mon_field_legend;
-    std::vector<visualization_msgs::Marker> m_scan_fieldset_legend;
-    std::vector<visualization_msgs::Marker> m_scan_outputstate_legend;
-    float m_marker_output_legend_offset_x;
+    std::vector<ros_visualization_msgs::Marker> m_scan_mon_field_marker;
+    std::vector<ros_visualization_msgs::Marker> m_scan_mon_field_legend;
+    std::vector<ros_visualization_msgs::Marker> m_scan_fieldset_legend;
+    std::vector<ros_visualization_msgs::Marker> m_scan_outputstate_legend;
+    double m_marker_output_legend_offset_x;
 
   }; /* class SickScanMarker */
 

@@ -55,7 +55,7 @@ template<typename T> static bool readBinaryBuffer(byte_ptr& buffer, int & buffer
     return true;
 }
 
-sick_scan::SickScanMessages::SickScanMessages(ros::NodeHandle* nh)
+sick_scan::SickScanMessages::SickScanMessages(rosNodePtr nh)
 {
 }
 
@@ -80,7 +80,7 @@ sick_scan::SickScanMessages::~SickScanMessages()
  * 
  * @return true on success, false on error
  */
-bool sick_scan::SickScanMessages::parseLIDoutputstateMsg(const ros::Time& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, const std::string& frame_id, sick_scan::LIDoutputstateMsg& output_msg)
+bool sick_scan::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, const std::string& frame_id, sick_scan_msg::LIDoutputstateMsg& output_msg)
 {
     if(useBinaryProtocol)
     {
@@ -178,7 +178,7 @@ bool sick_scan::SickScanMessages::parseLIDoutputstateMsg(const ros::Time& timeSt
             }
         }
         output_msg.header.stamp = timeStamp;
-        output_msg.header.seq = 0;
+        ROS_HEADER_SEQ(output_msg.header, 0);
         output_msg.header.frame_id = frame_id;
 
         // Debug messages
@@ -228,7 +228,7 @@ bool sick_scan::SickScanMessages::parseLIDoutputstateMsg(const ros::Time& timeSt
  * 
  * @return true on success, false on error
  */
-bool sick_scan::SickScanMessages::parseLFErecMsg(const ros::Time& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, EVAL_FIELD_SUPPORT eval_field_logic, const std::string& frame_id, sick_scan::LFErecMsg& output_msg)
+bool sick_scan::SickScanMessages::parseLFErecMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, EVAL_FIELD_SUPPORT eval_field_logic, const std::string& frame_id, sick_scan_msg::LFErecMsg& output_msg)
 {
     if(useBinaryProtocol)
     {
@@ -250,7 +250,7 @@ bool sick_scan::SickScanMessages::parseLFErecMsg(const ros::Time& timeStamp, uin
         output_msg.fields.reserve(output_msg.fields_number);
         for(int field_idx = 0; field_idx < output_msg.fields_number; field_idx++)
         {
-            sick_scan::LFErecFieldMsg field_msg;
+            sick_scan_msg::LFErecFieldMsg field_msg;
             if( !readBinaryBuffer(receiveBuffer, receiveLength, field_msg.version_number)
              || !readBinaryBuffer(receiveBuffer, receiveLength, field_msg.field_index)
              || !readBinaryBuffer(receiveBuffer, receiveLength, field_msg.sys_count)
@@ -333,13 +333,13 @@ bool sick_scan::SickScanMessages::parseLFErecMsg(const ros::Time& timeStamp, uin
         }
 
         output_msg.header.stamp = timeStamp;
-        output_msg.header.seq = 0;
+        ROS_HEADER_SEQ(output_msg.header, 0);
         output_msg.header.frame_id = frame_id;
 
         std::stringstream fields_str;
         for(int field_idx = 0; field_idx < output_msg.fields.size(); field_idx++)
         {
-            sick_scan::LFErecFieldMsg& field_msg = output_msg.fields[field_idx];
+            sick_scan_msg::LFErecFieldMsg& field_msg = output_msg.fields[field_idx];
             if(field_idx > 0)
                 fields_str << "\n";
             fields_str << "field[" << field_idx << "]: idx=" << (uint32_t)field_msg.field_index 

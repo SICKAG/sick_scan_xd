@@ -65,21 +65,18 @@
 #pragma warning(disable: 4267)
 #endif
 
-#ifndef _MSC_VER
-
-
-#endif
-
+#include <sick_scan/sick_ros_wrapper.h>
 #include <sick_scan/sick_scan_common_tcp.h>
-
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_laser.h>
 
-#ifdef ROSSIMU
-#include "sick_scan/rosconsole_simu.hpp"
-#include "launchparser/launchparser.h"
-#else
+#if defined __ROS_VERSION && __ROS_VERSION == 1 // ROS services currently supported on ROS-1 only, todo...
 #include <sick_scan/sick_scan_services.h>
+#define USE_ROSSERVICES
+#else
+#include "launchparser.h"
+//#include "launchparser/launchparser.h"
+#define USE_LAUNCHPARSER // settings and parameter by LaunchParser
 #endif
 
 #define _USE_MATH_DEFINES
@@ -142,12 +139,12 @@ bool getTagVal(std::string tagVal, std::string &tag, std::string &val)
 }
 
 
-void my_handler(int signalRecv)
+void rosSignalHandler(int signalRecv)
 {
-  ROS_INFO("Caught signal %d\n", signalRecv);
-  ROS_INFO("good bye");
-  ROS_INFO("You are leaving the following version of this node:");
-  ROS_INFO("%s", getVersionInfo().c_str());
+  ROS_INFO_STREAM("Caught signal " << signalRecv << "\n");
+  ROS_INFO_STREAM("good bye\n");
+  ROS_INFO_STREAM("You are leaving the following version of this node:\n");
+  ROS_INFO_STREAM(getVersionInfo() << "\n");
   if (s != NULL)
   {
     if (isInitialized)
@@ -157,7 +154,7 @@ void my_handler(int signalRecv)
 
     runState = scanner_finalize;
   }
-  ros::shutdown();
+  rosShutdown();
 }
 
 inline bool ends_with(std::string const &value, std::string const &ending)
@@ -175,7 +172,7 @@ inline bool ends_with(std::string const &value, std::string const &ending)
 \return exit-code
 \sa main
 */
-int mainGenericLaser(int argc, char **argv, std::string nodeName)
+int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhPriv)
 {
   std::string tag;
   std::string val;
@@ -209,12 +206,8 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
     }
   }
 
-  ros::init(argc, argv, nodeName, ros::init_options::NoSigintHandler);  // scannerName holds the node-name
-  signal(SIGINT, my_handler);
 
-  ros::NodeHandle nhPriv("~");
-
-#ifdef ROSSIMU
+#ifdef USE_LAUNCHPARSER
   int launchArgcFileIdx = -1;
   for (int i = 1; i < argc; i++)
   {
@@ -228,13 +221,13 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
       bool ret = launchParser.parseFile(s, tagList, typeList, valList);
       if (ret == false)
       {
-        ROS_INFO("Cannot parse launch file (check existence and content): >>>%s<<<\n", s.c_str());
+        ROS_INFO_STREAM("Cannot parse launch file (check existence and content): >>>" << s << "<<<\n");
         exit(-1);
       }
       for (size_t i = 0; i < tagList.size(); i++)
       {
         printf("%-30s %-10s %-20s\n", tagList[i].c_str(), typeList[i].c_str(), valList[i].c_str());
-        nhPriv.setParam(tagList[i], valList[i]);
+        rosSetParam(nhPriv, tagList[i], valList[i]);
       }
     }
   }
@@ -244,13 +237,13 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
     std::string s = argv[i];
     if (getTagVal(s, tag, val))
     {
-      nhPriv.setParam(tag, val);
+        rosSetParam(nhPriv, tag, val);
     }
     else
     {
       if (launchArgcFileIdx != i)
       {
-        ROS_INFO("Tag-Value setting not valid. Use pattern: <tag>:=<value>  (e.g. hostname:=192.168.0.4) (Check the entry: %s)\n", s.c_str());
+          ROS_INFO_STREAM("Tag-Value setting not valid. Use pattern: <tag>:=<value>  (e.g. hostname:=192.168.0.4) (Check the entry: " << s << ")\n");
         exit(-1);
 
       }
@@ -259,78 +252,99 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
 #endif
 
   std::string scannerName;
-  if (false == nhPriv.getParam("scanner_type", scannerName))
+  rosDeclareParam(nhPriv, "scanner_type", scannerName);
+  rosGetParam(nhPriv, "scanner_type", scannerName);
+  if (false == rosGetParam(nhPriv, "scanner_type", scannerName) || scannerName.empty())
   {
-    ROS_ERROR("cannot find parameter ""scanner_type"" in the param set. Please specify scanner_type.");
-    ROS_ERROR("Try to set %s as fallback.\n", nodeName.c_str());
+    ROS_ERROR_STREAM("cannot find parameter ""scanner_type"" in the param set. Please specify scanner_type.");
+    ROS_ERROR_STREAM("Try to set " << nodeName << " as fallback.\n");
     scannerName = nodeName;
   }
 
-
+  rosDeclareParam(nhPriv, "hostname", "192.168.0.4");
+  rosDeclareParam(nhPriv, "imu_enable", true);
+  rosDeclareParam(nhPriv, "cloud_topic", "pt_cloud");
   if (doInternalDebug)
   {
 #ifdef ROSSIMU
-    nhPriv.setParam("name", scannerName);
-    rossimu_settings(nhPriv);  // just for tiny simulations under Visual C++
+      nhPriv->setParam("name", scannerName);
+    rossimu_settings(*nhPriv);  // just for tiny simulations under Visual C++
 #else
-    nhPriv.setParam("hostname", "192.168.0.4");
-    nhPriv.setParam("imu_enable", true);
-    nhPriv.setParam("cloud_topic", "pt_cloud");
+      rosSetParam(nhPriv, "hostname", "192.168.0.4");
+      rosSetParam(nhPriv, "imu_enable", true);
+      rosSetParam(nhPriv, "cloud_topic", "pt_cloud");
 #endif
   }
 
 // check for TCP - use if ~hostname is set.
   bool useTCP = false;
   std::string hostname;
-  if (nhPriv.getParam("hostname", hostname))
+  if (rosGetParam(nhPriv, "hostname", hostname))
   {
     useTCP = true;
   }
   bool changeIP = false;
   std::string sNewIp;
-  if (nhPriv.getParam("new_IP_address", sNewIp))
+  rosDeclareParam(nhPriv, "new_IP_address", sNewIp);
+  if (rosGetParam(nhPriv, "new_IP_address", sNewIp) && !sNewIp.empty())
   {
     changeIP = true;
   }
-  std::string port;
-  nhPriv.param<std::string>("port", port, "2112");
+  std::string port = "2112";
+  rosDeclareParam(nhPriv, "port", port);
+  rosGetParam(nhPriv, "port", port);
 
-  int timelimit;
-  nhPriv.param("timelimit", timelimit, 5);
+  int timelimit = 5;
+  rosDeclareParam(nhPriv, "timelimit", timelimit);
+  rosGetParam(nhPriv, "timelimit", timelimit);
 
-  bool subscribe_datagram;
-  int device_number;
-  nhPriv.param("subscribe_datagram", subscribe_datagram, false);
-  nhPriv.param("device_number", device_number, 0);
+  bool subscribe_datagram = false;
+  rosDeclareParam(nhPriv, "subscribe_datagram", subscribe_datagram);
+  rosGetParam(nhPriv, "subscribe_datagram", subscribe_datagram);
+
+  int device_number = 0;
+  rosDeclareParam(nhPriv, "device_number", device_number);
+  rosGetParam(nhPriv, "device_number", device_number);
+
+  int verboseLevel = 0;
+  rosDeclareParam(nhPriv, "verboseLevel", verboseLevel);
+  rosGetParam(nhPriv, "verboseLevel", verboseLevel);
 
 
   sick_scan::SickGenericParser *parser = new sick_scan::SickGenericParser(scannerName);
 
-  double param;
   char colaDialectId = 'A'; // A or B (Ascii or Binary)
 
-  if (nhPriv.getParam("range_min", param))
+  float range_min = parser->get_range_min();
+  rosDeclareParam(nhPriv, "range_min", range_min);
+  if (rosGetParam(nhPriv, "range_min", range_min))
   {
-    parser->set_range_min(param);
+    parser->set_range_min(range_min);
   }
-  if (nhPriv.getParam("range_max", param))
+  float range_max = parser->get_range_max();
+  rosDeclareParam(nhPriv, "range_max", range_max);
+  if (rosGetParam(nhPriv, "range_max", range_max))
   {
-    parser->set_range_max(param);
+    parser->set_range_max(range_max);
   }
-  if (nhPriv.getParam("time_increment", param))
+  float time_increment = parser->get_time_increment();
+  rosDeclareParam(nhPriv, "time_increment", time_increment);
+  if (rosGetParam(nhPriv, "time_increment", time_increment))
   {
-    parser->set_time_increment(param);
+    parser->set_time_increment(time_increment);
   }
 
   /*
    *  Check, if parameter for protocol type is set
    */
   bool use_binary_protocol = true;
-  if (true == nhPriv.getParam("emul_sensor", emulSensor))
+  rosDeclareParam(nhPriv, "emul_sensor", emulSensor);
+  if (true == rosGetParam(nhPriv, "emul_sensor", emulSensor))
   {
-    ROS_INFO("Found emul_sensor overwriting default settings. Emulation: %s", emulSensor ? "True" : "False");
+    ROS_INFO_STREAM("Found emul_sensor overwriting default settings. Emulation:" << (emulSensor ? "True" : "False"));
   }
-  if (true == nhPriv.getParam("use_binary_protocol", use_binary_protocol))
+  rosDeclareParam(nhPriv, "use_binary_protocol", use_binary_protocol);
+  if (true == rosGetParam(nhPriv, "use_binary_protocol", use_binary_protocol))
   {
     ROS_INFO("Found sopas_protocol_type param overwriting default protocol:");
     if (use_binary_protocol == true)
@@ -341,7 +355,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
     {
       if (parser->getCurrentParamPtr()->getNumberOfLayers() > 4)
       {
-        nhPriv.setParam("sopas_protocol_type", true);
+          rosSetParam(nhPriv, "sopas_protocol_type", true);
         use_binary_protocol = true;
         ROS_WARN("This scanner type does not support ASCII communication.\n"
                  "Binary communication has been activated.\n"
@@ -365,7 +379,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
     colaDialectId = 'A';
   }
 
-#ifndef ROSSIMU
+#ifdef USE_ROSSERVICES
   bool start_services = false;
   sick_scan::SickScanServices* services = 0;
 #endif
@@ -373,17 +387,17 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
 
   sick_scan::SickScanConfig cfg;
 
-  while (ros::ok())
+  while (rosOk())
   {
     switch (runState)
     {
       case scanner_init:
-        ROS_INFO("Start initialising scanner [Ip: %s] [Port: %s]", hostname.c_str(), port.c_str());
+        ROS_INFO_STREAM("Start initialising scanner [Ip: " << hostname  << "] [Port:" << port << "]");
         // attempt to connect/reconnect
         delete s;  // disconnect scanner
         if (useTCP)
         {
-          s = new sick_scan::SickScanCommonTcp(hostname, port, timelimit, parser, colaDialectId);
+          s = new sick_scan::SickScanCommonTcp(hostname, port, timelimit, nhPriv, parser, colaDialectId);
         }
         else
         {
@@ -396,13 +410,13 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
         {
           s->setEmulSensor(true);
         }
-        result = s->init();
+        result = s->init(nhPriv);
 
-#ifndef ROSSIMU
+#ifdef USE_ROSSERVICES
         // Start ROS services
-        if (true == nhPriv.getParam("start_services", start_services) && true == start_services)
+        if (true == nhPriv->getParam("start_services", start_services) && true == start_services)
         {
-            services = new sick_scan::SickScanServices(&nhPriv, s, parser->getCurrentParamPtr()->getUseBinaryProtocol());
+            services = new sick_scan::SickScanServices(nhPriv, s, parser->getCurrentParamPtr()->getUseBinaryProtocol());
             ROS_INFO("SickScanServices: ros services initialized");
         }
 #endif
@@ -429,8 +443,8 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
       case scanner_run:
         if (result == sick_scan::ExitSuccess) // OK -> loop again
         {
-          ros::spinOnce();
-          result = s->loopOnce();
+            rosSpinOnce(nhPriv);
+          result = s->loopOnce(nhPriv);
         }
         else
         {
@@ -443,7 +457,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
         break;
     }
   }
-#ifndef ROSSIMU
+#ifdef USE_ROSSERVICES
   if(services)
   {
     delete services;

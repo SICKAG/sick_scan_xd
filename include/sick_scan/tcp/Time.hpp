@@ -8,8 +8,14 @@
 #ifndef TIME_HPP
 #define TIME_HPP
 
+
 #include "sick_scan/tcp/BasicDatatypes.hpp"
+#ifdef WIN32
+#include <sys/timeb.h>
+#include <winsock2.h> // For struct timeval
+#else
 #include <sys/time.h>
+#endif
 #include <time.h>
 
 // Eine Zeitspanne, in [s]

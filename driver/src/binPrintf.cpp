@@ -183,33 +183,33 @@ static int binPrint(char **out, long long *varg)
       }
       if (*format == 'd')
       {
-        pc += binPrinti(out, *varg++, 10, 1, width, pad, 'a');
+        pc += binPrinti(out, (int)(*varg++), 10, 1, width, pad, 'a');
         continue;
       }
       if (*format == 'x')
       {
-        pc += binPrinti(out, *varg++, 16, 0, width, pad, 'a');
+        pc += binPrinti(out, (int)(*varg++), 16, 0, width, pad, 'a');
         continue;
       }
       if (*format == 'X')
       {
-        pc += binPrinti(out, *varg++, 16, 0, width, pad, 'A');
+        pc += binPrinti(out, (int)(*varg++), 16, 0, width, pad, 'A');
         continue;
       }
       if (*format == 'y')
       {
-        pc += binPrinti(out, *varg++, 1, 0, width, pad, 'A');
+        pc += binPrinti(out, (int)(*varg++), 1, 0, width, pad, 'A');
         continue;
       }
       if (*format == 'u')
       {
-        pc += binPrinti(out, *varg++, 10, 0, width, pad, 'a');
+        pc += binPrinti(out, (int)(*varg++), 10, 0, width, pad, 'a');
         continue;
       }
       if (*format == 'c')
       {
         /* char are converted to int then pushed on the stack */
-        scr[0] = *varg++;
+        scr[0] = (char)(*varg++);
         scr[1] = '\0';
         pc += binPrints(out, scr, width, pad);
         continue;
@@ -261,7 +261,7 @@ int binSprintfVec(std::vector<unsigned char> *outvec, const char *fmt, ...)
 }
 
 
-std::string binDumpVecToString(std::vector<unsigned char> *outvec, bool appendReadableText /*= false*/)
+std::string binDumpVecToString(const std::vector<unsigned char> *outvec, bool appendReadableText /*= false*/)
 {
   std::string s;
   for (int i = 0; i < outvec->size(); i++)

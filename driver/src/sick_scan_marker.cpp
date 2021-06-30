@@ -41,9 +41,9 @@
 
 #include "sick_scan/sick_scan_marker.h"
 
-static std_msgs::ColorRGBA color(float r, float g, float b, float a = 0.5f)
+static ros_std_msgs::ColorRGBA color(float r, float g, float b, float a = 0.5f)
 {
-    std_msgs::ColorRGBA color;
+    ros_std_msgs::ColorRGBA color;
     color.r = r;
     color.g = g;
     color.b = b;
@@ -51,38 +51,38 @@ static std_msgs::ColorRGBA color(float r, float g, float b, float a = 0.5f)
     return color;
 }
 
-static std_msgs::ColorRGBA red(void)
+static ros_std_msgs::ColorRGBA red(void)
 {
     return color(1.0f, 0.0f, 0.0f);
 }
 
-static std_msgs::ColorRGBA green(void) // free fields
+static ros_std_msgs::ColorRGBA green(void) // free fields
 {
     return color(0.0f, 1.0f, 0.0f);
 }
 
-static std_msgs::ColorRGBA blue(void)
+static ros_std_msgs::ColorRGBA blue(void)
 {
     return color(0.0f, 0.0f, 1.0f);
 }
 
-static std_msgs::ColorRGBA yellow(void) // infringed fields
+static ros_std_msgs::ColorRGBA yellow(void) // infringed fields
 {
     return color(1.0f, 1.0f, 0.0f);
 }
 
-static std_msgs::ColorRGBA gray(void) // invalid fields (default)
+static ros_std_msgs::ColorRGBA gray(void) // invalid fields (default)
 {
     return color(0.5f, 0.5f, 0.5f);
 }
 
-sick_scan::SickScanMarker::SickScanMarker(ros::NodeHandle* nh, const std::string & marker_topic, const std::string & marker_frame_id)
+sick_scan::SickScanMarker::SickScanMarker(rosNodePtr nh, const std::string & marker_topic, const std::string & marker_frame_id)
 : m_scan_mon_fieldset(0), m_marker_output_legend_offset_x(-0.5)
 {
     if(nh)
     {
         m_frame_id = marker_frame_id.empty() ? "/cloud" : marker_frame_id;
-        m_marker_publisher = nh->advertise<visualization_msgs::MarkerArray>(marker_topic.empty() ? "sick_scan/marker" : marker_topic, 1);
+        m_marker_publisher = rosAdvertise<ros_visualization_msgs::MarkerArray>(nh, marker_topic.empty() ? "sick_scan/marker" : marker_topic, 1);
     }
 }
 
@@ -107,7 +107,7 @@ void sick_scan::SickScanMarker::updateMarker(const std::vector<SickScanMonField>
     publishMarker();
 }
 
-void sick_scan::SickScanMarker::updateMarker(sick_scan::LIDoutputstateMsg& msg, int _eval_field_logic)
+void sick_scan::SickScanMarker::updateMarker(sick_scan_msg::LIDoutputstateMsg& msg, int _eval_field_logic)
 {
     sick_scan::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan::EVAL_FIELD_SUPPORT)_eval_field_logic;
     SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
@@ -119,7 +119,7 @@ void sick_scan::SickScanMarker::updateMarker(sick_scan::LIDoutputstateMsg& msg, 
     int num_devices = (int)MIN(msg.output_count.size(), msg.output_state.size());
     std::vector<std::string> output_state(num_devices);
     std::vector<std::string> output_count(num_devices);
-    std::vector<std_msgs::ColorRGBA> output_colors(num_devices);
+    std::vector<ros_std_msgs::ColorRGBA> output_colors(num_devices);
     for(int field_idx = 0; field_idx < num_devices; field_idx++)
     {
         int count = msg.output_count[field_idx];
@@ -149,7 +149,7 @@ void sick_scan::SickScanMarker::updateMarker(sick_scan::LIDoutputstateMsg& msg, 
     publishMarker();
 }
 
-void sick_scan::SickScanMarker::updateMarker(sick_scan::LFErecMsg& msg, int _eval_field_logic)
+void sick_scan::SickScanMarker::updateMarker(sick_scan_msg::LFErecMsg& msg, int _eval_field_logic)
 {
     sick_scan::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan::EVAL_FIELD_SUPPORT)_eval_field_logic;
     SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
@@ -202,7 +202,7 @@ void sick_scan::SickScanMarker::updateMarker(sick_scan::LFErecMsg& msg, int _eva
 
 void sick_scan::SickScanMarker::publishMarker(void)
 {
-    visualization_msgs::MarkerArray marker_array;
+    ros_visualization_msgs::MarkerArray marker_array;
     marker_array.markers.reserve(m_scan_mon_field_marker.size() + m_scan_mon_field_legend.size() + m_scan_outputstate_legend.size());
     for(int n = 0; n < m_scan_mon_field_marker.size(); n++)
         marker_array.markers.push_back(m_scan_mon_field_marker[n]);
@@ -212,11 +212,11 @@ void sick_scan::SickScanMarker::publishMarker(void)
         marker_array.markers.push_back(m_scan_outputstate_legend[n]);
     for(int n = 0; n < m_scan_fieldset_legend.size(); n++)
         marker_array.markers.push_back(m_scan_fieldset_legend[n]);
-    m_marker_publisher.publish(marker_array);
+    rosPublish(m_marker_publisher, marker_array);
 }
 
 static void appendTrianglePoints(int point_count, const std::vector<float>& points_x, const std::vector<float>& points_y, 
-    visualization_msgs::Marker& marker_point, int& triangle_idx, int nr_triangles, std_msgs::ColorRGBA field_color)
+    ros_visualization_msgs::Marker& marker_point, int& triangle_idx, int nr_triangles, ros_std_msgs::ColorRGBA field_color)
 {
     for(int point_idx = 2; point_idx < point_count && triangle_idx < nr_triangles; point_idx++, triangle_idx++)
     {
@@ -239,7 +239,7 @@ static void appendTrianglePoints(int point_count, const std::vector<float>& poin
     }
 }
 
-std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFieldMarker(const std::vector<FieldInfo>& field_info)
+std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFieldMarker(const std::vector<FieldInfo>& field_info)
 {
     int nr_triangles = 0;
     for(int field_info_idx = 0; field_info_idx < field_info.size(); field_info_idx++)
@@ -253,12 +253,12 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
     }
 
     // Draw fields using marker triangles
-    visualization_msgs::Marker marker_point;
-    marker_point.header.stamp = ros::Time::now();
+    ros_visualization_msgs::Marker marker_point;
+    marker_point.header.stamp = rosTimeNow();
     marker_point.header.frame_id = m_frame_id;
     marker_point.ns = "sick_scan";
     marker_point.id = 1;
-    marker_point.type = visualization_msgs::Marker::TRIANGLE_LIST;
+    marker_point.type = ros_visualization_msgs::Marker::TRIANGLE_LIST;
     marker_point.scale.x = 1;
     marker_point.scale.y = 1;
     marker_point.scale.z = 1;
@@ -269,18 +269,18 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
     marker_point.pose.orientation.y = 0.0;
     marker_point.pose.orientation.z = 0.0;
     marker_point.pose.orientation.w = 1.0;
-    marker_point.action = visualization_msgs::Marker::ADD; // note: ADD == MODIFY
+    marker_point.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
     marker_point.color = gray();
-    marker_point.lifetime = ros::Duration(0); // lifetime 0 indicates forever
+    marker_point.lifetime = rosDuration(0); // lifetime 0 indicates forever
 
     marker_point.points.resize(3 * nr_triangles);
     marker_point.colors.resize(3 * nr_triangles);
-    std::vector<geometry_msgs::Point> triangle_centroids;
+    std::vector<ros_geometry_msgs::Point> triangle_centroids;
     triangle_centroids.reserve(field_info.size());
     for(int field_info_idx = 0, triangle_idx = 0; field_info_idx < field_info.size() && triangle_idx < nr_triangles; field_info_idx++)
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
-        std_msgs::ColorRGBA field_color = field_info[field_info_idx].field_color;
+        ros_std_msgs::ColorRGBA field_color = field_info[field_info_idx].field_color;
         int point_count = m_scan_mon_fields[field_idx].getPointCount();
         const std::vector<float>& points_x = m_scan_mon_fields[field_idx].getFieldPointsX();
         const std::vector<float>& points_y = m_scan_mon_fields[field_idx].getFieldPointsY();
@@ -295,7 +295,7 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
                 field2_points_x[n] = points_x[n + point_count/2];
                 field2_points_y[n] = points_y[n + point_count/2];
             }
-            std_msgs::ColorRGBA field1_color = field_color, field2_color = field_color;
+            ros_std_msgs::ColorRGBA field1_color = field_color, field2_color = field_color;
             field1_color.r *= 0.5;
             field1_color.g *= 0.5;
             field1_color.b *= 0.5;
@@ -308,7 +308,7 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
         }
     }
 
-    std::vector<visualization_msgs::Marker> marker_array;
+    std::vector<ros_visualization_msgs::Marker> marker_array;
     marker_array.reserve(1 + field_info.size());
     marker_array.push_back(marker_point);
 
@@ -318,7 +318,7 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
         if(m_scan_mon_fields[field_idx].getPointCount() >= 3)
         {
-            geometry_msgs::Point triangle_centroid;
+            ros_geometry_msgs::Point triangle_centroid;
             triangle_centroid.x = 0;
             triangle_centroid.y = 0;
             triangle_centroid.z = 0;
@@ -331,12 +331,12 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
             }
             triangle_centroid.x /= (float)(m_scan_mon_fields[field_idx].getPointCount());
             triangle_centroid.y /= (float)(m_scan_mon_fields[field_idx].getPointCount());
-            visualization_msgs::Marker marker_field_name;
-            marker_field_name.header.stamp = ros::Time::now();
+            ros_visualization_msgs::Marker marker_field_name;
+            marker_field_name.header.stamp = rosTimeNow();
             marker_field_name.header.frame_id = m_frame_id;
             marker_field_name.ns = "sick_scan";
             marker_field_name.id = 2 + field_info_idx;
-            marker_field_name.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+            marker_field_name.type = ros_visualization_msgs::Marker::TEXT_VIEW_FACING;
             marker_field_name.scale.z = 0.1;
             marker_field_name.pose.position.x = triangle_centroid.x;
             marker_field_name.pose.position.y = triangle_centroid.y;
@@ -345,22 +345,29 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
             marker_field_name.pose.orientation.y = 0.0;
             marker_field_name.pose.orientation.z = 0.0;
             marker_field_name.pose.orientation.w = 1.0;
-            marker_field_name.action = visualization_msgs::Marker::ADD; // note: ADD == MODIFY
+            marker_field_name.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
             marker_field_name.color = field_info[field_info_idx].field_color;
             marker_field_name.color.a = 1;
-            marker_field_name.lifetime = ros::Duration(0); // lifetime 0 indicates forever
+            marker_field_name.lifetime = rosDuration(0); // lifetime 0 indicates forever
             marker_field_name.text = field_info[field_info_idx].field_name;
             marker_array.push_back(marker_field_name);
         }
         else
         {
-            visualization_msgs::Marker marker_field_name;
-            marker_field_name.header.stamp = ros::Time::now();
+            ros_visualization_msgs::Marker marker_field_name;
+            marker_field_name.header.stamp = rosTimeNow();
             marker_field_name.header.frame_id = m_frame_id;
             marker_field_name.ns = "sick_scan";
             marker_field_name.id = 2 + field_info_idx;
-            marker_field_name.action = visualization_msgs::Marker::DELETE;
-            marker_field_name.lifetime = ros::Duration(0); // lifetime 0 indicates forever
+#if defined(_WIN32) && defined(DELETE)
+#           pragma push_macro("DELETE")
+#           undef DELETE
+            marker_field_name.action = ros_visualization_msgs::Marker::DELETE;
+#           pragma pop_macro("DELETE")
+#else
+            marker_field_name.action = ros_visualization_msgs::Marker::DELETE;
+#endif
+            marker_field_name.lifetime = rosDuration(0); // lifetime 0 indicates forever
             marker_array.push_back(marker_field_name);
         }
         
@@ -369,21 +376,21 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
     return marker_array;
 }
 
-std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFieldLegend(const std::vector<FieldInfo>& field_info)
+std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFieldLegend(const std::vector<FieldInfo>& field_info)
 {
-    std::vector<visualization_msgs::Marker> marker_array;
+    std::vector<ros_visualization_msgs::Marker> marker_array;
     marker_array.reserve(2 * field_info.size());
     for(int loop_cnt = 0; loop_cnt < 2; loop_cnt++)
     {
         for(int field_info_idx = 0, triangle_idx = 0; field_info_idx < field_info.size(); field_info_idx++)
         {
             int field_idx = field_info[field_info_idx].field_index_scan_mon;
-            visualization_msgs::Marker marker_point;
-            marker_point.header.stamp = ros::Time::now();
+            ros_visualization_msgs::Marker marker_point;
+            marker_point.header.stamp = rosTimeNow();
             marker_point.header.frame_id = m_frame_id;
             marker_point.ns = "sick_scan";
             marker_point.id = 100 + loop_cnt * (int)m_scan_mon_fields.size() + field_info_idx;
-            marker_point.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+            marker_point.type = ros_visualization_msgs::Marker::TEXT_VIEW_FACING;
             marker_point.scale.z = 0.1;
             marker_point.pose.position.x = -0.1 * field_info_idx - 0.1;
             marker_point.pose.position.y = ((loop_cnt == 0) ? 0.3 : -0.2);
@@ -392,10 +399,10 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
             marker_point.pose.orientation.y = 0.0;
             marker_point.pose.orientation.z = 0.0;
             marker_point.pose.orientation.w = 1.0;
-            marker_point.action = visualization_msgs::Marker::ADD; // note: ADD == MODIFY
+            marker_point.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
             marker_point.color = field_info[field_info_idx].field_color;
             marker_point.color.a = 1;
-            marker_point.lifetime = ros::Duration(0); // lifetime 0 indicates forever
+            marker_point.lifetime = rosDuration(0); // lifetime 0 indicates forever
             std::stringstream marker_text;
             // int detection_field_number = field_info.size() - field_info_idx; // field_info[field_info_idx].field_index;
             if (loop_cnt == 0)
@@ -411,18 +418,18 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
     return marker_array;
 }
 
-std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFieldsetLegend(int fieldset)
+std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFieldsetLegend(int fieldset)
 {
-    std::vector<visualization_msgs::Marker> marker_array;
+    std::vector<ros_visualization_msgs::Marker> marker_array;
     marker_array.reserve(2);
     for(int loop_cnt = 0; loop_cnt < 2; loop_cnt++)
     {
-        visualization_msgs::Marker marker_point;
-        marker_point.header.stamp = ros::Time::now();
+        ros_visualization_msgs::Marker marker_point;
+        marker_point.header.stamp = rosTimeNow();
         marker_point.header.frame_id = m_frame_id;
         marker_point.ns = "sick_scan";
         marker_point.id = 500 + loop_cnt;
-        marker_point.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+        marker_point.type = ros_visualization_msgs::Marker::TEXT_VIEW_FACING;
         marker_point.scale.z = 0.1;
         marker_point.pose.position.x = -0.4;
         marker_point.pose.position.y = ((loop_cnt == 0) ? 0.16 : -0.2);
@@ -431,10 +438,10 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
         marker_point.pose.orientation.y = 0.0;
         marker_point.pose.orientation.z = 0.0;
         marker_point.pose.orientation.w = 1.0;
-        marker_point.action = visualization_msgs::Marker::ADD; // note: ADD == MODIFY
+        marker_point.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
         marker_point.color = green();
         marker_point.color.a = 1;
-        marker_point.lifetime = ros::Duration(0); // lifetime 0 indicates forever
+        marker_point.lifetime = rosDuration(0); // lifetime 0 indicates forever
         std::stringstream marker_text;
         if (loop_cnt == 0)
             marker_text << "Fieldset :";
@@ -447,20 +454,20 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFiel
 }
 
 
-std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createOutputStateLegend(const std::vector<std::string>& output_state, const std::vector<std::string>& output_count, const std::vector<std_msgs::ColorRGBA>& output_colors)
+std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createOutputStateLegend(const std::vector<std::string>& output_state, const std::vector<std::string>& output_count, const std::vector<ros_std_msgs::ColorRGBA>& output_colors)
 {
-    std::vector<visualization_msgs::Marker> marker_array;
+    std::vector<ros_visualization_msgs::Marker> marker_array;
     marker_array.reserve(2 * output_count.size());
     for(int loop_cnt = 0; loop_cnt < 2; loop_cnt++)
     {
         for(int field_idx = 0; field_idx < output_count.size(); field_idx++)
         {
-            visualization_msgs::Marker marker_point;
-            marker_point.header.stamp = ros::Time::now();
+            ros_visualization_msgs::Marker marker_point;
+            marker_point.header.stamp = rosTimeNow();
             marker_point.header.frame_id = m_frame_id;
             marker_point.ns = "sick_scan";
             marker_point.id = 400 + loop_cnt * (int)output_count.size() + field_idx;
-            marker_point.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+            marker_point.type = ros_visualization_msgs::Marker::TEXT_VIEW_FACING;
             marker_point.scale.z = 0.1;
             marker_point.pose.position.x = -0.1 * field_idx + m_marker_output_legend_offset_x;
             marker_point.pose.position.y = ((loop_cnt == 0) ? 0.16 : -0.3);
@@ -469,10 +476,10 @@ std::vector<visualization_msgs::Marker> sick_scan::SickScanMarker::createOutputS
             marker_point.pose.orientation.y = 0.0;
             marker_point.pose.orientation.z = 0.0;
             marker_point.pose.orientation.w = 1.0;
-            marker_point.action = visualization_msgs::Marker::ADD; // note: ADD == MODIFY
+            marker_point.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
             marker_point.color = output_colors[field_idx];
             marker_point.color.a = 1;
-            marker_point.lifetime = ros::Duration(0); // lifetime 0 indicates forever
+            marker_point.lifetime = rosDuration(0); // lifetime 0 indicates forever
             std::stringstream marker_text;
             int output_device = field_idx + 1;
             if (loop_cnt == 0)

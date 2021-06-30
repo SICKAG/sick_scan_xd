@@ -48,25 +48,15 @@
 #pragma warning(disable: 4267)
 #endif
 
-#ifndef _MSC_VER
-
-
-#endif
+#include <sick_scan/sick_ros_wrapper.h>
 
 #include <sick_scan/sick_scan_common_tcp.h>
 #include <sick_scan/sick_scan_common.h>
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_imu.h>
 
-#ifdef ROSSIMU
-
-#include "sick_scan/rosconsole_simu.hpp"
-#endif
-
 // #include <tf/tf.h>
-#include <geometry_msgs/Pose2D.h>
-
-#include "sensor_msgs/Imu.h"
+//#include <geometry_msgs/Pose2D.h>
 
 #define _USE_MATH_DEFINES
 
@@ -555,14 +545,14 @@ namespace sick_scan
 
   }
 
-  int SickScanImu::parseDatagram(ros::Time timeStamp, unsigned char *receiveBuffer, int actual_length,
+  int SickScanImu::parseDatagram(rosTime timeStamp, unsigned char *receiveBuffer, int actual_length,
                                  bool useBinaryProtocol)
   {
     int exitCode = ExitSuccess;
 
     SickScanImuValue imuValue;
-    sensor_msgs::Imu imuMsg_;
-    static ros::Time lastTimeStamp;
+    ros_sensor_msgs::Imu imuMsg_;
+    static rosTime lastTimeStamp;
 
     static double lastRoll = 0.0;
     static double lastPitch = 0.0;
@@ -612,15 +602,17 @@ namespace sick_scan
     timeStampNanoSecBuffer[idx] = timeStamp.nsec;
     imuTimeStamp[idx] = imuValue.TimeStamp();
 */
-    bool bRet = SoftwarePLL::instance().getCorrectedTimeStamp(timeStamp.sec, timeStamp.nsec,
+    uint32_t timeStampSec = (uint32_t)sec(timeStamp), timeStampNsec = (uint32_t)nsec(timeStamp);
+    bool bRet = SoftwarePLL::instance().getCorrectedTimeStamp(timeStampSec, timeStampNsec,
                                                               (uint32_t) (imuValue.TimeStamp() & 0xFFFFFFFF));
+    timeStamp = rosTime(timeStampSec, timeStampNsec);
     /*
     timeStampSecCorBuffer[idx] = timeStamp.sec;
     timeStampNanoSecCorBuffer[idx] = timeStamp.nsec;
     timeStampValid[idx] = bRet ? 1 : 0;
     */
     imuMsg_.header.stamp = timeStamp;
-    imuMsg_.header.seq = 0;
+    ROS_HEADER_SEQ(imuMsg_.header, 0);
     imuMsg_.header.frame_id = commonPtr->config_.imu_frame_id; //
 
 
@@ -718,7 +710,7 @@ namespace sick_scan
          * into Euler angles for this purpose. The angular velocity is then calculated from these
          * sequential Euler angles.
          */
-        ros::Duration timeDiffRos = timeStamp - lastTimeStamp;
+        rosDuration timeDiffRos = timeStamp - lastTimeStamp;
         double timeDiff = timeDiffRos.toSec();
         if (timeDiff > 1E-6) // Epsilon-Check
         {
@@ -828,7 +820,7 @@ namespace sick_scan
     }
     if (true == bRet)
     {
-      this->commonPtr->imuScan_pub_.publish(imuMsg_);
+        rosPublish(this->commonPtr->imuScan_pub_, imuMsg_);
     }
     return (exitCode);
 

@@ -10,7 +10,8 @@
 #ifdef linux
 #include <unistd.h>
 #else
-#include <unistd_win.h>
+//#include <unistd_win.h>
+#include <usleep.h>
 #endif
 
 extern "C" void* wrapper_prerun(void*);

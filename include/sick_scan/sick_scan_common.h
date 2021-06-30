@@ -50,45 +50,19 @@
 
 #include <boost/asio.hpp>
 
-#include <ros/ros.h>
-#include <sensor_msgs/LaserScan.h>
-#include <sensor_msgs/PointCloud.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <std_msgs/String.h>
+#include <sick_scan/sick_ros_wrapper.h>
 
 #include <thread>
 #include <mutex>
 
-#include <diagnostic_updater/diagnostic_updater.h>
-#include <diagnostic_updater/publisher.h>
 #include <sick_scan/sick_scan_common_nw.h>
 #include <sick_scan/helper/angle_compensator.h>
-
-#ifndef _MSC_VER
-
-#include <dynamic_reconfigure/server.h>
-#include <sick_scan/SickScanConfig.h>
-
-#endif
 
 #include "sick_scan/sick_generic_parser.h"
 #include "sick_scan/sick_scan_common_nw.h"
 
-#include "sick_scan/Encoder.h"
 #include "sick_scan/sick_generic_field_mon.h"
 #include "sick_scan/sick_scan_marker.h"
-
-
-#if defined _MSC_VER && defined min
-#define MIN min
-#else
-#define MIN std::min
-#endif
-#if defined _MSC_VER && defined max
-#define MAX max
-#else
-#define MAX std::max
-#endif
 
 void swap_endian(unsigned char *ptr, int numBytes);
 
@@ -191,7 +165,7 @@ namespace sick_scan
 // --- END KEYWORD DEFINITIONS ---
 
 
-    SickScanCommon(SickGenericParser *parser);
+    SickScanCommon(rosNodePtr nh, SickGenericParser *parser);
 
     virtual ~SickScanCommon();
 
@@ -234,9 +208,9 @@ namespace sick_scan
 
     void setProtocolType(SopasProtocol cola_dialect_id);
 
-    virtual int init();
+    virtual int init(rosNodePtr nh);
 
-    int loopOnce();
+    int loopOnce(rosNodePtr nh);
 
     void check_angle_range(SickScanConfig &conf);
 
@@ -284,18 +258,18 @@ namespace sick_scan
     /* FÜR MRS10000 brauchen wir einen Publish und eine NAchricht */
     // Should we publish laser or point cloud?
     // ros::Publisher cloud_pub_;
-    ros::Publisher cloud_pub_;
-    ros::Publisher imuScan_pub_;
-    ros::Publisher Encoder_pub;
+    rosPublisher<ros_sensor_msgs::PointCloud2> cloud_pub_;
+    rosPublisher<ros_sensor_msgs::Imu> imuScan_pub_;
+    rosPublisher<sick_scan_msg::Encoder> Encoder_pub;
     // sensor_msgs::PointCloud cloud_;
-    sensor_msgs::PointCloud2 cloud_;
+    ros_sensor_msgs::PointCloud2 cloud_;
     //////
     // Dynamic Reconfigure
     SickScanConfig config_;
   protected:
     virtual int init_device() = 0;
 
-    virtual int init_scanner();
+    virtual int init_scanner(rosNodePtr nh);
 
     virtual int stop_scanner();
 
@@ -316,7 +290,7 @@ namespace sick_scan
      * \param [out] actual_length the actual amount of data written
      * \param [in] isBinaryProtocol used Communication protocol True=Binary false=ASCII
      */
-    virtual int get_datagram(ros::Time &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize, int *actual_length,
+    virtual int get_datagram(rosNodePtr nh, rosTime &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize, int *actual_length,
                              bool isBinaryProtocol, int *numberOfRemainingFifoEntries) = 0;
 
     /// Converts reply from sendSOPASCommand to string
@@ -349,29 +323,33 @@ namespace sick_scan
 
     bool dumpDatagramForDebugging(unsigned char *buffer, int bufLen);
 
+#ifdef USE_DIAGNOSTIC_UPDATER
     diagnostic_updater::Updater diagnostics_;
-
+#endif
 
   private:
     SopasProtocol m_protocolId;
     // ROS
-    ros::NodeHandle nh_;
-    ros::Publisher pub_;
-    ros::Publisher datagram_pub_;
+    rosPublisher<ros_sensor_msgs::LaserScan> pub_;
+    rosPublisher<ros_std_msgs::String> datagram_pub_;
     bool publish_datagram_;
 
-    ros::Publisher lferec_pub_;
+    rosPublisher<sick_scan_msg::LFErecMsg> lferec_pub_;
     bool publish_lferec_;
-    ros::Publisher lidoutputstate_pub_;
+    rosPublisher<sick_scan_msg::LIDoutputstateMsg> lidoutputstate_pub_;
     bool publish_lidoutputstate_;
     SickScanMarker* cloud_marker_;
 
     // Diagnostics
+#ifdef USE_DIAGNOSTIC_UPDATER
     diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan> *diagnosticPub_;
+#else
+    void* diagnosticPub_; // always 0
+#endif
     double expectedFrequency_;
 
 
-#ifndef _MSC_VER
+#ifdef USE_DYNAMIC_RECONFIGURE
     dynamic_reconfigure::Server<sick_scan::SickScanConfig> dynamic_reconfigure_server_;
 #endif
     // Parser

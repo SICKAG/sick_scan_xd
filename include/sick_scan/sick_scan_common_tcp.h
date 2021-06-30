@@ -53,14 +53,14 @@ namespace sick_scan
   class DatagramWithTimeStamp
   {
   public:
-    DatagramWithTimeStamp(ros::Time timeStamp_, std::vector<unsigned char> datagram_)
+    DatagramWithTimeStamp(rosTime timeStamp_, std::vector<unsigned char> datagram_)
     {
       timeStamp = timeStamp_;
       datagram = datagram_;
     }
 
 // private:
-    ros::Time timeStamp;
+    rosTime timeStamp;
     std::vector<unsigned char> datagram;
   };
 
@@ -70,7 +70,7 @@ namespace sick_scan
   public:
     static void disconnectFunctionS(void *obj);
 
-    SickScanCommonTcp(const std::string &hostname, const std::string &port, int &timelimit, SickGenericParser *parser,
+    SickScanCommonTcp(const std::string &hostname, const std::string &port, int &timelimit, rosNodePtr nh, SickGenericParser *parser,
                       char cola_dialect_id);
 
     virtual ~SickScanCommonTcp();
@@ -93,7 +93,7 @@ namespace sick_scan
 
     SopasEventMessage findFrameInReceiveBuffer();
 
-    void processFrame(ros::Time timeStamp, SopasEventMessage &frame);
+    void processFrame(rosTime timeStamp, SopasEventMessage &frame);
 
     // Queue<std::vector<unsigned char> > recvQueue;
     Queue<DatagramWithTimeStamp> recvQueue;
@@ -126,7 +126,7 @@ namespace sick_scan
      * \param [in] isBinaryProtocol true=binary False=ASCII
      */
     virtual int
-    get_datagram(ros::Time &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize, int *actual_length,
+    get_datagram(rosNodePtr nh, rosTime &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize, int *actual_length,
                  bool isBinaryProtocol, int *numberOfRemainingFifoEntries);
 
     // Helpers for boost asio

@@ -52,7 +52,6 @@
 #define SICK_SCANNER_TIM_4XX_NAME "sick_tim_4xx"
 #include "abstract_parser.h"
 
-#include "sensor_msgs/LaserScan.h"
 #include "sick_scan/sick_scan_common.h"
 #include "sick_scan/dataDumper.h"
 // namespace sensor_msgs
@@ -160,7 +159,7 @@ namespace sick_scan
     virtual ~SickGenericParser();
 
     virtual int parse_datagram(char *datagram, size_t datagram_length, SickScanConfig &config,
-                               sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask);
+                               ros_sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask);
 
 
     void checkScanTiming(float time_increment, float scan_time, float angle_increment, float tol);
@@ -174,6 +173,8 @@ namespace sick_scan
     float get_range_max(void);
 
     void set_time_increment(float time);
+
+    float get_time_increment(void);
 
     void setScannerType(std::string s);
 

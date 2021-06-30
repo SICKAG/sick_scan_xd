@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>sick_scan</name>
+  <version>1.10.1</version>
+  <description>
+    A ROS driver for the SICK TiM and SICK MRS series of lidars.
+    This package is based on the original sick_tim-repository of Martin Günther et al.
+  </description>
+
+  <maintainer email="michael.lehning@lehning.de">Michael Lehning</maintainer>
+  <author email="michael.lehning@lehning.de">Michael Lehning</author>
+  <author email="ros@jochen.sprickerhof.de">Jochen Sprickerhof</author>
+  <author email="martin.guenther@dfki.de">Martin Günther</author>
+
+  <license>BSD</license>
+  <url type="website">http://wiki.ros.org/sick_scan</url>
+  <url type="repository">https://github.com/SICKAG/sick_scan</url>
+
+  <!-- structure corresponds to tutorial package.xml like structure.
+       e.g. http://wiki.ros.org/tf/Tutorials/Writing%20a%20tf%20broadcaster%20%28C%2B%2B%29 -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_depend>diagnostic_updater</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf2</build_depend>
+  
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>tf</build_export_depend>
+  <build_export_depend>tf2</build_export_depend>
+
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  <exec_depend>pcl_conversions</exec_depend>
+  <exec_depend>pcl_ros</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>diagnostic_updater</exec_depend>
+  <exec_depend>dynamic_reconfigure</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+</package>
+
+

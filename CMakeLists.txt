@@ -1,7 +1,7 @@
 ####################################################
 # CMakeLists.txt for project sick_scan_xd
 ####################################################
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 
 # build options: set OFF for relese version, ON for development and test
 option(ENABLE_EMULATOR "Build emulator for offline and unittests" ON) # OFF (release) or ON (development)
@@ -19,15 +19,10 @@ endif (POLICY CMP0048)
 
 project(sick_scan)
 
-macro(use_cxx11)
-    if (CMAKE_VERSION VERSION_LESS "3.1")
-        if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-        endif ()
-    else ()
-        set(CMAKE_CXX_STANDARD 11)
-    endif ()
-endmacro(use_cxx11)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 
 if(BUILD_DEBUG_TARGET)
         set(CMAKE_BUILD_TYPE Debug) #uncomment to activate debug mode for lib_sick as well
@@ -37,7 +32,6 @@ if(BUILD_DEBUG_TARGET)
 endif(BUILD_DEBUG_TARGET)
 
 # Switch on, if you use c11-specific commands
-use_cxx11()
 if(NOT WIN32)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow")
 endif()
@@ -53,7 +47,8 @@ if(ROS_VERSION EQUAL 0)
 endif()
 if(WIN32)
     add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
-else()
+endif()
+if(ROS_VERSION EQUAL 0 AND NOT WIN32)
     set (pthread_LIBRARIES "pthread")
 endif()
 
@@ -76,7 +71,9 @@ endif()
 # set(CATKIN_DEVEL_PREFIX "${CMAKE_BINARY_DIR}/devel")
 # set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/devel;/opt/ros/melodic")
 
-find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread)
+if(ROS_VERSION LESS 2)
+    find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread)
+endif(ROS_VERSION LESS 2)
 
 if(ENABLE_EMULATOR)
         find_package(jsoncpp REQUIRED) # install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" (Linux) resp. "vcpkg install jsoncpp:x64-windows" (Windows)
@@ -132,6 +129,46 @@ if(ROS_VERSION EQUAL 1)
         LIDoutputstateSrv.srv
     )
 endif(ROS_VERSION EQUAL 1)
+
+if(ROS_VERSION EQUAL 2)
+    #uncomment this lines and change path accordingly
+    set(FastRTPS_INCLUDE_DIR /opt/ros/foxy/include)
+    set(FastRTPS_LIBRARY_RELEASE /opt/ros/foxy/lib/libfastrtps.so)
+    #to fix
+    #CMake Error at /snap/clion/126/bin/cmake/linux/share/cmake-3.17/Modules/FindPackageHandleStandardArgs.cmake:164 (message):
+    #  Could NOT find FastRTPS (missing: FastRTPS_INCLUDE_DIR FastRTPS_LIBRARIES)
+
+    find_package(ament_cmake REQUIRED)
+    # find_package(diagnostic_updater REQUIRED)
+    find_package(rclcpp REQUIRED)
+    find_package(sensor_msgs REQUIRED)
+    find_package(std_msgs REQUIRED)
+    find_package(tf2 REQUIRED)
+    find_package(geometry_msgs REQUIRED)
+    find_package(diagnostic_msgs REQUIRED)
+    find_package(visualization_msgs REQUIRED)
+    find_package(tf2_ros REQUIRED)
+    find_package(rosidl_default_generators REQUIRED)
+    rosidl_generate_interfaces(${PROJECT_NAME}
+        "msg/Encoder.msg"
+        "msg/ImuExtended.msg"
+        "msg/LFErecFieldMsg.msg"
+        "msg/LFErecMsg.msg"
+        "msg/LIDoutputstateMsg.msg"
+        "msg/ros2/RadarObject.msg"
+        "msg/RadarPreHeader.msg"
+        "msg/RadarPreHeaderDeviceBlock.msg"
+        "msg/RadarPreHeaderEncoderBlock.msg"
+        "msg/RadarPreHeaderMeasurementParam1Block.msg"
+        "msg/RadarPreHeaderStatusBlock.msg"
+        "msg/RadarScan.msg"
+        "msg/SickImu.msg"
+        "msg/ldmrs/SickLdmrsObject.msg"
+        "msg/ldmrs/SickLdmrsObjectArray.msg"
+        DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
+    )     
+    find_package(Boost REQUIRED COMPONENTS filesystem system serialization)# thread) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost ) after calling rosidl_generate_interfaces in CMakeLists.txt
+endif(ROS_VERSION EQUAL 2)
 
 if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
     # emulator messages
@@ -224,7 +261,7 @@ endif(ROS_VERSION EQUAL 1)
 include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} include/sick_scan)
 
 if(ROS_VERSION EQUAL 1)
-    add_library(sick_scan_lib
+    add_library(sick_scan_lib STATIC
         driver/src/dataDumper.cpp
         driver/src/sick_scan_common.cpp
         driver/src/abstract_parser.cpp
@@ -236,6 +273,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/tcp/Time.cpp
         driver/src/tcp/colaa.cpp
         driver/src/tcp/colab.cpp
+        driver/src/binPrintf.cpp
         driver/src/binScanf.cpp
         driver/src/sick_scan_common_tcp.cpp
         driver/src/sick_generic_radar.cpp
@@ -295,24 +333,28 @@ if(ROS_VERSION EQUAL 1)
         ${catkin_LIBRARIES}
         ${roslib_LIBRARIES}
         sick_scan_lib)
-endif(ROS_VERSION EQUAL 1)
 
-if(ROS_VERSION EQUAL 0)
+else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
 
     if(WIN32)
         include_directories(roswrap/helper_win)
         file(GLOB SRC_WIN_FILES roswrap/helper_win/usleep/usleep.c)
     endif()
-    include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg)
-
-    add_library(sick_scan_lib
+    if(ROS_VERSION EQUAL 0)
+        include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg)
+        file(GLOB SRC_ROSSIMU_FILES 
 	roswrap/src/cfgsimu/sick_scan/time_modi.cpp
 	roswrap/src/rossimu/kinetic/src/rossimu.cpp
 	roswrap/src/rossimu/kinetic/src/duration.cpp
 	roswrap/src/rossimu/kinetic/src/rate.cpp
+        )
+    endif()
+
+    include_directories(roswrap/src/include/launchparser)
+    
+    add_library(sick_scan_lib STATIC
 	roswrap/src/getopt/getopt.c
         roswrap/src/toojpeg/toojpeg.cpp
-        roswrap/src/include/launchparser/launchparser.h
         roswrap/src/launchparser/launchparser.cpp 
         driver/src/sick_generic_field_mon.cpp
 	driver/src/sick_generic_imu.cpp
@@ -325,6 +367,7 @@ if(ROS_VERSION EQUAL 0)
         driver/src/sick_scan_marker.cpp
         driver/src/sick_scan_messages.cpp
         driver/src/abstract_parser.cpp
+        driver/src/binPrintf.cpp
 	driver/src/binScanf.cpp
 	driver/src/dataDumper.cpp
         driver/src/tinyxml/tinystr.cpp
@@ -337,19 +380,53 @@ if(ROS_VERSION EQUAL 0)
 	driver/src/tcp/Mutex.cpp
 	driver/src/tcp/SickThread.cpp
 	driver/src/tcp/tcp.cpp
+	driver/src/tcp/Time.cpp
 	driver/src/tcp/toolbox.cpp
 	driver/src/softwarePLL.cpp
 	driver/src/helper/angle_compensator.cpp
-        )
-
-    add_executable(sick_generic_caller
-        driver/src/sick_generic_caller.cpp
+	${SRC_ROSSIMU_FILES}
 	${SRC_WIN_FILES}
     )
 
-    target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${pthread_LIBRARIES})
-endif(ROS_VERSION EQUAL 0)
+    add_executable(sick_generic_caller
+        driver/src/sick_generic_caller.cpp
+    )
 
+    target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${pthread_LIBRARIES})
+
+endif()
+
+if(ROS_VERSION EQUAL 2)
+
+    ament_target_dependencies(
+        sick_scan_lib
+        "Boost"
+        "rclcpp"
+        "sensor_msgs"
+        "std_msgs"
+        "geometry_msgs"
+        "diagnostic_msgs" 
+        "visualization_msgs"
+        "tf2_ros" 
+        ${LDMRS_TARGET_DEPENDENCIES}
+    )
+
+    ament_target_dependencies(
+        sick_generic_caller
+        "Boost"
+        "rclcpp"
+        "sensor_msgs"
+        "std_msgs"
+        "geometry_msgs"
+        "diagnostic_msgs" 
+        "visualization_msgs"
+        "tf2_ros" 
+        ${LDMRS_TARGET_DEPENDENCIES}
+    )
+
+    rosidl_target_interfaces(sick_scan_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
+        
+endif(ROS_VERSION EQUAL 2)
 
 if(ROS_VERSION EQUAL 1)
     install(TARGETS sick_scan_lib
@@ -383,6 +460,22 @@ if(ROS_VERSION EQUAL 1)
     install(DIRECTORY urdf/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/urdf)
 endif(ROS_VERSION EQUAL 1)
+
+if(ROS_VERSION EQUAL 2)
+    install(TARGETS
+        sick_generic_caller
+        DESTINATION lib/${PROJECT_NAME})
+
+    install(TARGETS
+        sick_scan_lib
+        DESTINATION lib)
+
+    install(DIRECTORY
+        launch
+        DESTINATION share/${PROJECT_NAME})
+        
+    ament_package()        
+endif(ROS_VERSION EQUAL 2)
 
 if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
     #

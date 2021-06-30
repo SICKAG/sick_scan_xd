@@ -56,11 +56,7 @@
 
 #include <math.h>
 #include <sick_scan/sick_scan_common.h>
-#include <ros/ros.h>
-
-#ifdef ROSSIMU
-#include "sick_scan/rosconsole_simu.hpp"
-#endif
+#include <sick_scan/sick_ros_wrapper.h>
 
 namespace sick_scan
 {
@@ -346,7 +342,7 @@ namespace sick_scan
   {
     return this->maxEvalFields;
   }
-  
+
   void ScannerBasicParam::setMaxEvalFields(int _maxEvalFields)
   {
     this->maxEvalFields = _maxEvalFields;
@@ -716,8 +712,7 @@ namespace sick_scan
     unsigned short int number_of_data = 0;
     if (strstr(fields[baseOffset], "DIST") != fields[baseOffset]) // First initial check
     {
-      ROS_WARN("Field 20 of received data does not start with DIST (is: %s). Unexpected data, ignoring scan",
-               fields[20]);
+      ROS_WARN_STREAM("Field 20 of received data does not start with DIST (is: " << std::string(fields[20]) << ". Unexpected data, ignoring scan\n");
       return ExitError;
     }
 
@@ -801,11 +796,18 @@ namespace sick_scan
         fabs(this->getCurrentParamPtr()->getNumberOfLayers() * scan_time * angle_increment / (2.0 * M_PI));//If the direction of rotation is reversed, i.e. negative angle increment, a negative scan time results. This does not makes sense, therefore the absolute value is calculated.
     if (fabs(expected_time_increment - time_increment) > 0.00001)
     {
+#if defined __ROS_VERSION && __ROS_VERSION == 1
       ROS_WARN_THROTTLE(60,
                         "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
                         "Expected time_increment: %.9f, reported time_increment: %.9f. "
                         "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.",
                         expected_time_increment, time_increment);
+#else
+        ROS_WARN_STREAM(
+            "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
+            << "Expected time_increment: " << expected_time_increment << ", reported time_increment:" << time_increment << ". "
+            << "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.");
+#endif
     }
   };
 
@@ -821,13 +823,11 @@ namespace sick_scan
 \return set_range_max
 */
   int SickGenericParser::parse_datagram(char *datagram, size_t datagram_length, SickScanConfig &config,
-                                        sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask)
+                                        ros_sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask)
   {
     // echoMask introduced to get a workaround for cfg bug using MRS1104
-		// ros::NodeHandle tmpParam("~");
     bool dumpData = false;
     int verboseLevel = 0;
-		// tmpParam.getParam("verboseLevel", verboseLevel);
 
     int HEADER_FIELDS = 32;
     char *cur_field;
@@ -923,11 +923,8 @@ namespace sick_scan
     // tool. The header remains stable, however.
     if (count < HEADER_FIELDS)
     {
-      ROS_WARN(
-          "received less fields than minimum fields (actual: %d, minimum: %d), ignoring scan", (int) count,
-          HEADER_FIELDS);
-      ROS_WARN(
-          "are you using the correct node? (124 --> sick_tim310_1130000m01, > 33 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
+      ROS_WARN_STREAM("received less fields than minimum fields (actual: " << (int)count << ", minimum: " << (int)HEADER_FIELDS << "), ignoring scan\n");
+      ROS_WARN_STREAM("are you using the correct node? (124 --> sick_tim310_1130000m01, > 33 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)\n");
       // ROS_DEBUG("received message was: %s", datagram_copy);
       return ExitError;
     }
@@ -936,7 +933,7 @@ namespace sick_scan
     {
       if (strcmp(fields[15], "0"))
       {
-        ROS_WARN("Field 15 of received data is not equal to 0 (%s). Unexpected data, ignoring scan", fields[15]);
+          ROS_WARN_STREAM("Field 15 of received data is not equal to 0 (" << std::string(fields[15]) << "). Unexpected data, ignoring scan\n");
         return ExitError;
       }
     }
@@ -949,7 +946,7 @@ namespace sick_scan
     }
     if (strcmp(fields[20], "DIST1"))
     {
-      ROS_WARN("Field 20 of received data is not equal to DIST1i (%s). Unexpected data, ignoring scan", fields[20]);
+      ROS_WARN_STREAM("Field 20 of received data is not equal to DIST1i (" << std::string(fields[20]) << "). Unexpected data, ignoring scan\n");
       return ExitError;
     }
 
@@ -961,15 +958,15 @@ namespace sick_scan
     int numOfExpectedShots = basicParams[scannerIdx].getNumberOfShots();
     if (number_of_data < 1 || number_of_data > numOfExpectedShots)
     {
-      ROS_WARN("Data length is outside acceptable range 1-%d (%d). Ignoring scan", numOfExpectedShots, number_of_data);
+      ROS_WARN_STREAM("Data length is outside acceptable range 1-" << numOfExpectedShots << " (" << number_of_data << "). Ignoring scan");
       return ExitError;
     }
     if (count < HEADER_FIELDS + number_of_data)
     {
-      ROS_WARN("Less fields than expected for %d data points (%zu). Ignoring scan", number_of_data, count);
+        ROS_WARN_STREAM("Less fields than expected for " << number_of_data << " data points (" << count << "). Ignoring scan");
       return ExitError;
     }
-    ROS_DEBUG("Number of data: %d", number_of_data);
+    ROS_DEBUG_STREAM("Number of data: " << number_of_data);
 
     // Calculate offset of field that contains indicator of whether or not RSSI data is included
     size_t rssi_idx = 26 + number_of_data;
@@ -986,8 +983,7 @@ namespace sick_scan
       // Number of RSSI data should be equal to number of data
       if (number_of_rssi_data != number_of_data)
       {
-        ROS_WARN("Number of RSSI data is lower than number of range data (%d vs %d", number_of_data,
-                 number_of_rssi_data);
+        ROS_WARN_STREAM("Number of RSSI data is lower than number of range data (" << number_of_data  << " vs " << number_of_rssi_data  << ")");
         return ExitError;
       }
 
@@ -995,29 +991,28 @@ namespace sick_scan
       // RSSI data size = number of RSSI readings + 6 fields describing the data
       if (count < HEADER_FIELDS + number_of_data + number_of_rssi_data + 6)
       {
-        ROS_WARN("Less fields than expected for %d data points (%zu). Ignoring scan", number_of_data, count);
+        ROS_WARN_STREAM("Less fields than expected for " << number_of_data << " data points (" << count << "). Ignoring scan");
         return ExitError;
       }
 
       if (strcmp(fields[rssi_idx], "RSSI1"))
       {
-        ROS_WARN("Field %zu of received data is not equal to RSSI1 (%s). Unexpected data, ignoring scan", rssi_idx + 1,
-                 fields[rssi_idx + 1]);
+        ROS_WARN_STREAM("Field " << rssi_idx + 1 << " of received data is not equal to RSSI1 (" << fields[rssi_idx + 1] << "). Unexpected data, ignoring scan");
       }
     }
 
+    short layer = 0;
     if (basicParams[scannerIdx].getNumberOfLayers() > 1)
     {
-      short layer = -1;
       sscanf(fields[15], "%hx", &layer);
-      msg.header.seq = layer;
+      ROS_HEADER_SEQ(msg.header, layer);
     }
     // ----- read fields into msg
     msg.header.frame_id = config.frame_id;
     // evtl. debug stream benutzen
     // ROS_DEBUG("publishing with frame_id %s", config.frame_id.c_str());
 
-    ros::Time start_time = ros::Time::now(); // will be adjusted in the end
+    rosTime start_time = rosTimeNow(); // will be adjusted in the end
 
 
     /*
@@ -1110,7 +1105,7 @@ namespace sick_scan
       }
       else
       {
-        ROS_WARN_ONCE("Intensity parameter is enabled, but the scanner is not configured to send RSSI values! "
+        ROS_WARN("Intensity parameter is enabled, but the scanner is not configured to send RSSI values! "
                       "Please read the section 'Enabling intensity (RSSI) output' here: http://wiki.ros.org/sick_tim.");
       }
     }
@@ -1129,19 +1124,17 @@ namespace sick_scan
     if (basicParams[scannerIdx].getNumberOfLayers() > 1)
     {
       char szDummy[255] = {0};
-      sprintf(szDummy, "%s_%+04d", config.frame_id.c_str(), msg.header.seq);
+      sprintf(szDummy, "%s_%+04d", config.frame_id.c_str(), layer); // msg.header.seq := layer
       msg.header.frame_id = szDummy;
     }
     // ----- adjust start time
     // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
 #ifndef _MSC_VER  // TIMING in Simulation not correct
-    msg.header.stamp = start_time - ros::Duration().fromSec(number_of_data * msg.time_increment);
+    double duration_sec = number_of_data * msg.time_increment
+        + index_min * msg.time_increment // shift forward to time of first published scan point
+        + config.time_offset; // add time offset (to account for USB latency etc.)
+    msg.header.stamp = start_time - rosDurationFromSec(duration_sec); // rosDuration().fromSec(number_of_data * msg.time_increment);
 
-    // - shift forward to time of first published scan point
-    msg.header.stamp += ros::Duration().fromSec((double) index_min * msg.time_increment);
-
-    // - add time offset (to account for USB latency etc.)
-    msg.header.stamp += ros::Duration().fromSec(config.time_offset);
 #endif
     // ----- consistency check
 
@@ -1199,6 +1192,16 @@ namespace sick_scan
   void SickGenericParser::set_time_increment(float time)
   {
     override_time_increment_ = time;
+  }
+
+  /*!
+\brief getting time increment between shots
+
+\param time increment
+*/
+  float SickGenericParser::get_time_increment(void)
+  {
+      return override_time_increment_;
   }
 
   /*!

@@ -348,19 +348,20 @@ int encoder_mode;
 
       if (count != dynamic_reconfigure::ConfigTools::size(msg))
       {
-        ROS_ERROR("SickScanConfig::__fromMessage__ called with an unexpected parameter.");
-        ROS_ERROR("Booleans:");
+        ROS_ERROR_STREAM("SickScanConfig::__fromMessage__ called with an unexpected parameter.");
+        ROS_ERROR_STREAM("\nBooleans:");
         for (unsigned int i = 0; i < msg.bools.size(); i++)
-          ROS_ERROR("  %s", msg.bools[i].name.c_str());
-        ROS_ERROR("Integers:");
+            ROS_ERROR_STREAM("  " << msg.bools[i].name);
+        ROS_ERROR_STREAM("\nIntegers:");
         for (unsigned int i = 0; i < msg.ints.size(); i++)
-          ROS_ERROR("  %s", msg.ints[i].name.c_str());
-        ROS_ERROR("Doubles:");
+            ROS_ERROR_STREAM("  " << msg.ints[i].name);
+        ROS_ERROR_STREAM("\nDoubles:");
         for (unsigned int i = 0; i < msg.doubles.size(); i++)
-          ROS_ERROR("  %s", msg.doubles[i].name.c_str());
-        ROS_ERROR("Strings:");
+            ROS_ERROR_STREAM("  " << msg.doubles[i].name);
+        ROS_ERROR_STREAM("\nStrings:");
         for (unsigned int i = 0; i < msg.strs.size(); i++)
-          ROS_ERROR("  %s", msg.strs[i].name.c_str());
+            ROS_ERROR_STREAM("  " << msg.strs[i].name);
+        ROS_ERROR_STREAM("\n");
         // @todo Check that there are no duplicates. Make this error more
         // explicit.
         return false;

@@ -5,6 +5,7 @@
 #ifndef SICK_SCAN_BASE_LAUNCHPARSER_H
 #define SICK_SCAN_BASE_LAUNCHPARSER_H
 
+/*
 #include "boost/filesystem.hpp"
 #include <boost/regex.hpp>
 #include <boost/algorithm/string.hpp>
@@ -28,7 +29,9 @@
 
 #include "tinystr.h"
 #include "tinyxml.h"
-
+*/
+#include <string>
+#include <vector>
 
 class LaunchParser
 {

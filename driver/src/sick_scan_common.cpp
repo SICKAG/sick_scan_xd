@@ -62,17 +62,10 @@
 #include <sick_scan/helper/angle_compensator.h>
 #include <sick_scan/sick_scan_config_internal.h>
 
-#ifdef ROSSIMU
-
-#include "sick_scan/rosconsole_simu.hpp"
-#endif
-
 #include "sick_scan/binScanf.hpp"
 #include "sick_scan/dataDumper.h"
 // if there is a missing RadarScan.h, try to run catkin_make in der workspace-root
-#include <sick_scan/RadarScan.h>
-
-#include "sick_scan/Encoder.h"
+//#include <sick_scan/RadarScan.h>
 
 #include <cstdio>
 #include <cstring>
@@ -148,15 +141,12 @@ std::vector<unsigned char> stringToVector(std::string s)
      This small helper function was introduced to allow the compiling under Visual c++.
 \return Diagnostic error code (value 2)
 */
+#ifdef USE_DIAGNOSTIC_UPDATER
 static int getDiagnosticErrorCode() // workaround due to compiling error under Visual C++
 {
-#ifdef ROSSIMU
-#undef ERROR
-  return(2);
-#else
-  return (diagnostic_msgs::DiagnosticStatus::ERROR);
-#endif
+    return (diagnostic_msgs_DiagnosticStatus_ERROR);
 }
+#endif
 
 /*!
 \brief Convert part of unsigned char vector into a std::string
@@ -344,7 +334,7 @@ namespace sick_scan
   \brief Construction of SickScanCommon
   \param parser: Corresponding parser holding specific scanner parameter
   */
-  SickScanCommon::SickScanCommon(SickGenericParser *parser) :
+  SickScanCommon::SickScanCommon(rosNodePtr nh, SickGenericParser *parser) :
       diagnosticPub_(NULL), parser_(parser)
   // FIXME All Tims have 15Hz
   {
@@ -352,7 +342,7 @@ namespace sick_scan
 
     setSensorIsRadar(false);
     init_cmdTables();
-#ifndef ROSSIMU
+#ifdef USE_DYNAMIC_RECONFIGURE
     dynamic_reconfigure::Server<sick_scan::SickScanConfig>::CallbackType f;
     f = boost::bind(&sick_scan::SickScanCommon::update_config, this, _1, _2);
     dynamic_reconfigure_server_.setCallback(f);
@@ -360,29 +350,38 @@ namespace sick_scan
     // For simulation under MS Visual c++ the update config is switched off
     {
       SickScanConfig cfg;
-      ros::NodeHandle tmp("~");
-      double min_angle, max_angle, res_angle;
-      tmp.getParam(PARAM_MIN_ANG, min_angle);
-      tmp.getParam(PARAM_MAX_ANG, max_angle);
-      tmp.getParam(PARAM_RES_ANG, res_angle);
+      double min_angle = cfg.min_ang, max_angle = cfg.max_ang, res_angle = cfg.ang_res;
+
+      rosDeclareParam(nh, PARAM_MIN_ANG, min_angle);
+      rosGetParam(nh, PARAM_MIN_ANG, min_angle);
+
+      rosDeclareParam(nh, PARAM_MAX_ANG, max_angle);
+      rosGetParam(nh, PARAM_MAX_ANG, max_angle);
+
+      rosDeclareParam(nh, PARAM_RES_ANG, res_angle);
+      rosGetParam(nh, PARAM_RES_ANG, res_angle);
+          
       cfg.min_ang = min_angle;
       cfg.max_ang = max_angle;
       cfg.skip = 0;
       update_config(cfg);
     }
 #endif
+
     // datagram publisher (only for debug)
-    ros::NodeHandle pn("~");
-    pn.param<bool>("publish_datagram", publish_datagram_, false);
+    rosDeclareParam(nh, "publish_datagram", false);
+    if(rosGetParam(nh, "publish_datagram", publish_datagram_))
     if (publish_datagram_)
     {
-      datagram_pub_ = nh_.advertise<std_msgs::String>("datagram", 1000);
+        datagram_pub_ = rosAdvertise<ros_std_msgs::String>(nh, "datagram", 1000);
     }
     std::string cloud_topic_val = "cloud";
-    pn.getParam("cloud_topic", cloud_topic_val);
-    std::string frame_id_val = cloud_topic_val;
-    pn.getParam("frame_id", frame_id_val);
+    rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
+    rosGetParam(nh, "cloud_topic", cloud_topic_val);
 
+    std::string frame_id_val = cloud_topic_val;
+    rosDeclareParam(nh, "frame_id", frame_id_val);
+    rosGetParam(nh, "frame_id", frame_id_val);
 
     cloud_marker_ = 0;
     publish_lferec_ = false;
@@ -390,28 +389,26 @@ namespace sick_scan
     const std::string scannername = parser_->getCurrentParamPtr()->getScannerName();
     if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
     {
-      lferec_pub_ = nh_.advertise<sick_scan::LFErecMsg>(scannername + "/lferec", 100);
-      lidoutputstate_pub_ = nh_.advertise<sick_scan::LIDoutputstateMsg>(scannername + "/lidoutputstate", 100);
+      lferec_pub_ = rosAdvertise<sick_scan_msg::LFErecMsg>(nh, scannername + "/lferec", 100);
+      lidoutputstate_pub_ = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(nh, scannername + "/lidoutputstate", 100);
       publish_lferec_ = true;
       publish_lidoutputstate_ = true;
-      cloud_marker_ = new sick_scan::SickScanMarker(&nh_, scannername + "/marker", frame_id_val); // "cloud");
+      cloud_marker_ = new sick_scan::SickScanMarker(nh, scannername + "/marker", frame_id_val); // "cloud");
     }
 
     // Pointcloud2 publisher
     //
+    ROS_INFO_STREAM("Publishing laserscan-pointcloud2 to " << cloud_topic_val);
+    cloud_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, cloud_topic_val, 100);
+
+    imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, "imu", 100);
 
 
-    ROS_INFO("Publishing laserscan-pointcloud2 to %s", cloud_topic_val.c_str());
-    cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(cloud_topic_val, 100);
-
-    imuScan_pub_ = nh_.advertise<sensor_msgs::Imu>("imu", 100);
-
-
-    Encoder_pub = nh_.advertise<sick_scan::Encoder>("encoder", 100);
+    Encoder_pub = rosAdvertise<sick_scan_msg::Encoder>(nh, "encoder", 100);
     // scan publisher
-    pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
+    pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, "scan", 1000);
 
-#ifndef ROSSIMU
+#ifdef USE_DIAGNOSTIC_UPDATER
     diagnostics_.setHardwareID("none");   // set from device after connection
     diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>(pub_, diagnostics_,
         // frequency should be target +- 10%.
@@ -539,14 +536,18 @@ namespace sick_scan
     if (result != 0)
     {
       ROS_ERROR("SOPAS - Error setting access mode");
+#ifdef USE_DIAGNOSTIC_UPDATER
       diagnostics_.broadcast(getDiagnosticErrorCode(), "SOPAS - Error setting access mode.");
+#endif
       return false;
     }
     std::string access_reply_str = replyToString(access_reply);
     if (access_reply_str != "sAN SetAccessMode 1")
     {
       ROS_ERROR_STREAM("SOPAS - Error setting access mode, unexpected response : " << access_reply_str);
+#ifdef USE_DIAGNOSTIC_UPDATER
       diagnostics_.broadcast(getDiagnosticErrorCode(), "SOPAS - Error setting access mode.");
+#endif
       return false;
     }
 
@@ -558,21 +559,25 @@ namespace sick_scan
     if (result != 0)
     {
       ROS_ERROR("SOPAS - Error rebooting scanner");
+#ifdef USE_DIAGNOSTIC_UPDATER
       diagnostics_.broadcast(getDiagnosticErrorCode(), "SOPAS - Error rebooting device.");
+#endif
       return false;
     }
     std::string reboot_reply_str = replyToString(reboot_reply);
     if (reboot_reply_str != "sAN mSCreboot")
     {
       ROS_ERROR_STREAM("SOPAS - Error rebooting scanner, unexpected response : " << reboot_reply_str);
+#ifdef USE_DIAGNOSTIC_UPDATER
       diagnostics_.broadcast(getDiagnosticErrorCode(), "SOPAS - Error setting access mode.");
+#endif
       return false;
     }
 
     ROS_INFO("SOPAS - Rebooted scanner");
 
     // Wait a few seconds after rebooting
-    ros::Duration(15.0).sleep();
+    rosSleep(15.0);
 
     return true;
   }
@@ -761,19 +766,21 @@ namespace sick_scan
     // send sopas cmd
 
     std::string reqStr = replyToString(requestStr);
-    ROS_INFO("Sending  : %s", stripControl(requestStr).c_str());
+    ROS_INFO_STREAM("Sending  : " << stripControl(requestStr));
     result = sendSOPASCommand(cmdStr.c_str(), reply, cmdLen);
     std::string replyStr = replyToString(*reply);
     std::vector<unsigned char> replyVec;
     replyStr = "<STX>" + replyStr + "<ETX>";
     replyVec = stringToVector(replyStr);
-    ROS_INFO("Receiving: %s", stripControl(replyVec).c_str());
+    ROS_INFO_STREAM("Receiving: " << stripControl(replyVec));
 
     if (result != 0)
     {
       std::string tmpStr = "SOPAS Communication -" + errString;
-      ROS_INFO("%s\n", tmpStr.c_str());
+      ROS_INFO_STREAM(tmpStr << "\n");
+#ifdef USE_DIAGNOSTIC_UPDATER
       diagnostics_.broadcast(getDiagnosticErrorCode(), tmpStr);
+#endif
     }
     else
     {
@@ -788,14 +795,16 @@ namespace sick_scan
       {
         if (cmdId == CMD_START_IMU_DATA)
         {
-          ROS_INFO("IMU-Data transfer started. No checking of reply to avoid confusing with LMD Scandata\n");
+          ROS_INFO_STREAM("IMU-Data transfer started. No checking of reply to avoid confusing with LMD Scandata\n");
           result = 0;
         }
         else
         {
           std::string tmpMsg = "Error Sopas answer mismatch " + errString + "Answer= >>>" + answerStr + "<<<";
-          ROS_ERROR("%s\n", tmpMsg.c_str());
+          ROS_ERROR_STREAM(tmpMsg << "\n");
+#ifdef USE_DIAGNOSTIC_UPDATER
           diagnostics_.broadcast(getDiagnosticErrorCode(), tmpMsg);
+#endif
           result = -1;
         }
       }
@@ -847,24 +856,23 @@ namespace sick_scan
   \brief init routine of scanner
   \return exit code
   */
-  int SickScanCommon::init()
+  int SickScanCommon::init(rosNodePtr nh)
   {
     int result = init_device();
     if (result != 0)
     {
-      ROS_FATAL("Failed to init device: %d", result);
+      ROS_FATAL_STREAM("Failed to init device: " << result);
       return result;
     }
 
-    result = init_scanner();
+    result = init_scanner(nh);
     if (result != 0)
     {
-      ROS_INFO("Failed to init scanner Error Code: %d\nWaiting for timeout...\n"
+      ROS_INFO_STREAM("Failed to init scanner Error Code: " << result << "\nWaiting for timeout...\n"
                "If the communication mode set in the scanner memory is different from that used by the driver, the scanner's communication mode is changed.\n"
                "This requires a restart of the TCP-IP connection, which can extend the start time by up to 30 seconds. There are two ways to prevent this:\n"
                "1. [Recommended] Set the communication mode with the SOPAS ET software to binary and save this setting in the scanner's EEPROM.\n"
-               "2. Use the parameter \"use_binary_protocol\" to overwrite the default settings of the driver.",
-               result);
+               "2. Use the parameter \"use_binary_protocol\" to overwrite the default settings of the driver.");
     }
 
     return result;
@@ -1173,7 +1181,7 @@ namespace sick_scan
   \brief initialize scanner
   \return exit code
   */
-  int SickScanCommon::init_scanner()
+  int SickScanCommon::init_scanner(rosNodePtr nh)
   {
 
     const int MAX_STR_LEN = 1024;
@@ -1187,16 +1195,17 @@ namespace sick_scan
     bool rssiFlag = false;
     bool rssiResolutionIs16Bit = true; //True=16 bit Flase=8bit
     int activeEchos = 0;
-    ros::NodeHandle pn("~");
 
-    pn.getParam("intensity", rssiFlag);
-    pn.getParam("intensity_resolution_16bit", rssiResolutionIs16Bit);
+    rosDeclareParam(nh, "intensity", rssiFlag);
+    rosGetParam(nh, "intensity", rssiFlag);
+    rosDeclareParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
+    rosGetParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
     //check new ip adress and add cmds to write ip to comand chain
     std::string sNewIPAddr = "";
     boost::asio::ip::address_v4 ipNewIPAddr;
     bool setNewIPAddr = false;
-    setNewIPAddr = pn.getParam("new_IP_address", sNewIPAddr);
-    if (setNewIPAddr)
+    rosDeclareParam(nh, "new_IP_address", sNewIPAddr);
+    if(rosGetParam(nh, "new_IP_address", sNewIPAddr) && !sNewIPAddr.empty())
     {
       boost::system::error_code ec;
       ipNewIPAddr = boost::asio::ip::address_v4::from_string(sNewIPAddr, ec);
@@ -1208,14 +1217,15 @@ namespace sick_scan
       else
       {
         setNewIPAddr = false;
-        ROS_ERROR("ERROR: IP ADDRESS could not be parsed Boost Error %s:%d", ec.category().name(), ec.value());;
+        ROS_ERROR_STREAM("ERROR: IP ADDRESS could not be parsed Boost Error " << ec.category().name() << ":" << ec.value());
       }
 
     }
     std::string sNTPIpAdress = "";
     boost::asio::ip::address_v4 NTPIpAdress;
     bool setUseNTP = false;
-    setUseNTP = pn.getParam("ntp_server_address", sNTPIpAdress);
+    rosDeclareParam(nh, "ntp_server_address", sNTPIpAdress);
+    setUseNTP = rosGetParam(nh, "ntp_server_address", sNTPIpAdress);
     if (setUseNTP)
     {
       boost::system::error_code ec;
@@ -1223,16 +1233,16 @@ namespace sick_scan
       if (ec != boost::system::errc::success)
       {
         setUseNTP = false;
-        ROS_ERROR("ERROR: NTP Server IP ADDRESS could not be parsed Boost Error %s:%d", ec.category().name(),
-                  ec.value());;
+        ROS_ERROR_STREAM("ERROR: NTP Server IP ADDRESS could not be parsed Boost Error " << ec.category().name() << ":" << ec.value());
       }
     }
 
     this->parser_->getCurrentParamPtr()->setIntensityResolutionIs16Bit(rssiResolutionIs16Bit);
     // parse active_echos entry and set flag array
-    pn.getParam("active_echos", activeEchos);
+    rosDeclareParam(nh, "active_echos", activeEchos);
+    rosGetParam(nh, "active_echos", activeEchos);
 
-    ROS_INFO("Parameter setting for <active_echo: %d>", activeEchos);
+    ROS_INFO_STREAM("Parameter setting for <active_echo: " << activeEchos << "d>\n");
     std::vector<bool> outputChannelFlag;
     outputChannelFlag.resize(maxNumberOfEchos);
     int i;
@@ -1268,7 +1278,9 @@ namespace sick_scan
 
     //================== DEFINE ENCODER SETTING ==========================
     int EncoderSetings = -1; //Do not use encoder commands as default
-    pn.getParam("encoder_mode", EncoderSetings);
+    rosDeclareParam(nh, "encoder_mode", EncoderSetings);
+    rosGetParam(nh, "encoder_mode", EncoderSetings);
+
     this->parser_->getCurrentParamPtr()->setEncoderMode((int8_t) EncoderSetings);
     if (parser_->getCurrentParamPtr()->getEncoderMode() >= 0)
     {
@@ -1344,7 +1356,7 @@ namespace sick_scan
 
     for (size_t i = 0; i < this->sopasCmdChain.size(); i++)
     {
-      ros::Duration(0.2).sleep();   // could maybe removed
+      rosSleep(0.2);     // could maybe removed
 
       int cmdId = sopasCmdChain[i]; // get next command
       std::string sopasCmd = sopasCmdVec[cmdId];
@@ -1356,7 +1368,7 @@ namespace sick_scan
       {
         sopasCmdVec.push_back(sopasCmd[j]);
       }
-      ROS_DEBUG("Command: %s", stripControl(sopasCmdVec).c_str());
+      ROS_DEBUG_STREAM("Command: " << stripControl(sopasCmdVec));
 
         // switch to either binary or ascii after switching the command mode
       // via ... command
@@ -1397,8 +1409,10 @@ namespace sick_scan
       }
       if (result != 0)
       {
-        ROS_ERROR("%s", sopasCmdErrMsg[cmdId].c_str());
+        ROS_ERROR(sopasCmdErrMsg[cmdId]);
+#ifdef USE_DIAGNOSTIC_UPDATER
         diagnostics_.broadcast(getDiagnosticErrorCode(), sopasCmdErrMsg[cmdId]);
+#endif
       }
       else
       {
@@ -1485,7 +1499,9 @@ namespace sick_scan
                 ptr2++;
               }
             }
+#ifdef USE_DIAGNOSTIC_UPDATER
             diagnostics_.setHardwareID(deviceIdent);
+#endif
             if (!isCompatibleDevice(deviceIdent))
             {
               return ExitFatal;
@@ -1517,7 +1533,9 @@ namespace sick_scan
             binScanfVec(&restOfReplyDummy, "%02y", &versionLen);
             std::string versionStr = binScanfGetStringFromVec(&restOfReplyDummy, scanDataLen1, versionLen);
             std::string fullIdentVersionInfo = identStr + " V" + versionStr;
+#ifdef USE_DIAGNOSTIC_UPDATER
             diagnostics_.setHardwareID(fullIdentVersionInfo);
+#endif
             if (!isCompatibleDevice(fullIdentVersionInfo))
             {
               return ExitFatal;
@@ -1535,9 +1553,10 @@ namespace sick_scan
           }
           else
           {
-            diagnostics_.setHardwareID(
+#ifdef USE_DIAGNOSTIC_UPDATER
+              diagnostics_.setHardwareID(
                 sopasReplyStrVec[CMD_DEVICE_IDENT_LEGACY] + " " + sopasReplyStrVec[CMD_SERIAL_NUMBER]);
-
+#endif
             if (!isCompatibleDevice(sopasReplyStrVec[CMD_DEVICE_IDENT_LEGACY]))
             {
               return ExitFatal;
@@ -1618,7 +1637,9 @@ namespace sick_scan
           if (iRetVal > 0)
           {
             double hours = 0.1 * operationHours;
-            pn.setParam("operationHours", hours);
+            rosDeclareParam(nh, "operationHours", hours);
+            rosSetParam(nh, "operationHours", hours);
+
           }
         }
           break;
@@ -1640,7 +1661,8 @@ namespace sick_scan
           }
           if (iRetVal > 0)
           {
-            pn.setParam("powerOnCount", powerOnCount);
+            rosDeclareParam(nh, "powerOnCount", powerOnCount);
+            rosSetParam(nh, "powerOnCount", powerOnCount);
           }
 
         }
@@ -1684,7 +1706,8 @@ namespace sick_scan
               ROS_WARN("Location command not supported.\n");
             }
           }
-          pn.setParam("locationName", std::string(szLocationName));
+          rosDeclareParam(nh, "locationName", std::string(szLocationName));
+          rosSetParam(nh, "locationName", std::string(szLocationName));
         }
           break;
 
@@ -1692,8 +1715,7 @@ namespace sick_scan
         case CMD_GET_PARTIAL_SCANDATA_CFG:
         {
 
-          const char *strPtr = sopasReplyStrVec[CMD_GET_PARTIAL_SCANDATA_CFG].c_str();
-          ROS_INFO("Config: %s\n", strPtr);
+          ROS_INFO_STREAM("Config: " << sopasReplyStrVec[CMD_GET_PARTIAL_SCANDATA_CFG] << "\n");
         }
           break;
 
@@ -1722,7 +1744,7 @@ namespace sick_scan
             }
             angleCompensator->parseReply(useBinaryCmd, tmpVec);
 
-            ROS_INFO("Angle Comp. Formula used: %s\n", angleCompensator->getHumanReadableFormula().c_str());
+            ROS_INFO_STREAM("Angle Comp. Formula used: " << angleCompensator->getHumanReadableFormula());
           }
           break;
           // if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_2XX_NAME) == 0)
@@ -1777,7 +1799,7 @@ namespace sick_scan
       // The TiM561 and TiM571 have an angular resolution of 0.333 [deg]
       //-----------------------------------------------------------------
 
-      angleRes10000th = (int) (boost::math::round(
+      angleRes10000th = (int) (std::round(
           10000.0 * this->parser_->getCurrentParamPtr()->getAngularDegreeResolution()));
       std::vector<unsigned char> askOutputAngularRangeReply;
 
@@ -1856,10 +1878,8 @@ namespace sick_scan
             double askTmpAngleEnd = askTmpAngleEnd10000th / 10000.0;
 
             angleRes10000th = askTmpAngleRes10000th;
-            ROS_INFO("Angle resolution of scanner is %0.5lf [deg]  (in 1/10000th deg: 0x%X)", askTmpAngleRes,
-                     askTmpAngleRes10000th);
-            ROS_INFO("[From:To] %0.5lf [deg] to %0.5lf [deg] (in 1/10000th deg: from 0x%X to 0x%X)",
-                     askTmpAngleStart, askTmpAngleEnd, askTmpAngleStart10000th, askTmpAngleEnd10000th);
+            ROS_INFO_STREAM("Angle resolution of scanner is " << askTmpAngleRes << " [deg]  (in 1/10000th deg: " << askTmpAngleRes10000th << ")");
+            ROS_INFO_STREAM("[From:To] " << askTmpAngleStart << " [deg] to " << askTmpAngleEnd << "f [deg] (in 1/10000th deg: from " << askTmpAngleStart10000th << " to " << askTmpAngleEnd10000th << ")");
           }
         }
       }
@@ -1869,8 +1889,8 @@ namespace sick_scan
       //
       //-----------------------------------------------------------------
 
-      ROS_INFO("MIN_ANG: %8.3f [rad] %8.3f [deg]", config_.min_ang, rad2deg(this->config_.min_ang));
-      ROS_INFO("MAX_ANG: %8.3f [rad] %8.3f [deg]", config_.max_ang, rad2deg(this->config_.max_ang));
+      ROS_INFO_STREAM("MIN_ANG: " << config_.min_ang << " [rad] " << rad2deg(this->config_.min_ang) << " [deg]");
+      ROS_INFO_STREAM("MAX_ANG: " << config_.max_ang << " [rad] " << rad2deg(this->config_.max_ang) << " [deg]");
 
       // convert to 10000th degree
       double minAngSopas = rad2deg(this->config_.min_ang);
@@ -1886,8 +1906,8 @@ namespace sick_scan
         maxAngSopas += 90.0;
       }
 
-      angleStart10000th = (int) (boost::math::round(10000.0 * minAngSopas));
-      angleEnd10000th = (int) (boost::math::round(10000.0 * maxAngSopas));
+      angleStart10000th = (int) (std::round(10000.0 * minAngSopas));
+      angleEnd10000th = (int) (std::round(10000.0 * maxAngSopas));
 
       char requestOutputAngularRange[MAX_STR_LEN];
 
@@ -2052,8 +2072,7 @@ namespace sick_scan
           double askTmpAngleEnd = askAngleEnd10000th / 10000.0;
 
           angleRes10000th = askAngleRes10000th;
-          ROS_INFO("Angle resolution of scanner is %0.5lf [deg]  (in 1/10000th deg: 0x%X)", askTmpAngleRes,
-                   askAngleRes10000th);
+          ROS_INFO_STREAM("Angle resolution of scanner is " << askTmpAngleRes << " [deg]  (in 1/10000th deg: " << askAngleRes10000th << ")");
 
         }
         double askAngleRes = askAngleRes10000th / 10000.0;
@@ -2071,15 +2090,14 @@ namespace sick_scan
         }
         this->config_.min_ang = askAngleStart / 180.0 * M_PI;
         this->config_.max_ang = askAngleEnd / 180.0 * M_PI;
-        ros::NodeHandle nhPriv("~");
-        nhPriv.setParam("min_ang",
-                        this->config_.min_ang); // update parameter setting with "true" values read from scanner
-        nhPriv.setParam("max_ang",
-                        this->config_.max_ang); // update parameter setting with "true" values read from scanner
-        ROS_INFO("MIN_ANG (after command verification): %8.3f [rad] %8.3f [deg]", config_.min_ang,
-                 rad2deg(this->config_.min_ang));
-        ROS_INFO("MAX_ANG (after command verification): %8.3f [rad] %8.3f [deg]", config_.max_ang,
-                 rad2deg(this->config_.max_ang));
+        
+        rosDeclareParam(nh, "min_ang", this->config_.min_ang); // update parameter setting with "true" values read from scanner
+        rosGetParam(nh, "min_ang", this->config_.min_ang); // update parameter setting with "true" values read from scanner
+        rosDeclareParam(nh, "max_ang", this->config_.max_ang); // update parameter setting with "true" values read from scanner
+        rosGetParam(nh, "max_ang", this->config_.max_ang); // update parameter setting with "true" values read from scanner
+
+        ROS_INFO_STREAM("MIN_ANG (after command verification): " << config_.min_ang<< " [rad] " << rad2deg(this->config_.min_ang) << " [deg]");
+        ROS_INFO_STREAM("MAX_ANG (after command verification): " << config_.max_ang << " [rad] " << rad2deg(this->config_.max_ang) << " [deg]");
       }
       //-----------------------------------------------------------------
       //
@@ -2246,8 +2264,10 @@ namespace sick_scan
       // set scanning angle for tim5xx and for mrs1104
       double scan_freq = 0;
       double ang_res = 0;
-      pn.getParam("scan_freq", scan_freq); // filter_echos
-      pn.getParam("ang_res", ang_res); // filter_echos
+      rosDeclareParam(nh, "scan_freq", scan_freq); // filter_echos
+      rosGetParam(nh, "scan_freq", scan_freq); // filter_echos
+      rosDeclareParam(nh, "ang_res", ang_res); // filter_echos
+      rosGetParam(nh, "ang_res", ang_res); // filter_echos
       if (scan_freq != 0 || ang_res != 0)
       {
         if (scan_freq != 0 && ang_res != 0)
@@ -2341,7 +2361,9 @@ namespace sick_scan
       {
         char requestEchoSetting[MAX_STR_LEN];
         int filterEchoSetting = 0;
-        pn.getParam("filter_echos", filterEchoSetting); // filter_echos
+        rosDeclareParam(nh, "filter_echos", filterEchoSetting); // filter_echos
+        rosGetParam(nh, "filter_echos", filterEchoSetting); // filter_echos
+
         if (filterEchoSetting < 0)
         { filterEchoSetting = 0; }
         if (filterEchoSetting > 2)
@@ -2384,7 +2406,6 @@ namespace sick_scan
     bool deviceIsRadar = false;
     if (this->parser_->getCurrentParamPtr()->getDeviceIsRadar())
     {
-      ros::NodeHandle tmpParam("~");
       bool transmitRawTargets = true;
       bool transmitObjects = true;
       int trackingMode = 0;
@@ -2392,19 +2413,23 @@ namespace sick_scan
 
       int numTrackingModes = sizeof(trackingModeDescription) / sizeof(trackingModeDescription[0]);
 
-      tmpParam.getParam("transmit_raw_targets", transmitRawTargets);
-      tmpParam.getParam("transmit_objects", transmitObjects);
-      tmpParam.getParam("tracking_mode", trackingMode);
+      rosDeclareParam(nh, "transmit_raw_targets", transmitRawTargets);
+      rosGetParam(nh, "transmit_raw_targets", transmitRawTargets);
 
+      rosDeclareParam(nh, "transmit_objects", transmitObjects);
+      rosGetParam(nh, "transmit_objects", transmitObjects);
+
+      rosDeclareParam(nh, "tracking_mode", trackingMode);
+      rosGetParam(nh, "tracking_mode", trackingMode);
 
       if ((trackingMode < 0) || (trackingMode >= numTrackingModes))
       {
         ROS_WARN("tracking mode id invalid. Switch to tracking mode 0");
         trackingMode = 0;
       }
-      ROS_INFO("Raw target transmission is switched [%s]", transmitRawTargets ? "ON" : "OFF");
-      ROS_INFO("Object transmission is switched [%s]", transmitObjects ? "ON" : "OFF");
-      ROS_INFO("Tracking mode is set to id [%d] [%s]", trackingMode, trackingModeDescription[trackingMode].c_str());
+      ROS_INFO_STREAM("Raw target transmission is switched [" << (transmitRawTargets ? "ON" : "OFF") << "]");
+      ROS_INFO_STREAM("Object transmission is switched [" << (transmitObjects ? "ON" : "OFF") << "]");
+      ROS_INFO_STREAM("Tracking mode is set to id [" << trackingMode << "] [" << trackingModeDescription[trackingMode] << "]");
 
       deviceIsRadar = true;
 
@@ -2477,19 +2502,21 @@ namespace sick_scan
       {
         
         // Activate LFErec, LIDoutputstate and LIDinputstate messages
-        ros::NodeHandle tmpParam("~");
         bool activate_lferec = true, activate_lidoutputstate = true, activate_lidinputstate = true;
-        if (true == tmpParam.getParam("activate_lferec", activate_lferec) && true == activate_lferec)
+        rosDeclareParam(nh, "activate_lferec", activate_lferec);
+        rosDeclareParam(nh, "activate_lidoutputstate", activate_lidoutputstate);
+        rosDeclareParam(nh, "activate_lidinputstate", activate_lidinputstate);
+        if (true == rosGetParam(nh, "activate_lferec", activate_lferec) && true == activate_lferec)
         {
           startProtocolSequence.push_back(CMD_SET_LFEREC_ACTIVE);      // TiM781S: activate LFErec messages, send "sEN LFErec 1"
           ROS_INFO_STREAM(parser_->getCurrentParamPtr()->getScannerName() << ": activating field monitoring by lferec messages");
         }
-        if (true == tmpParam.getParam("activate_lidoutputstate", activate_lidoutputstate) && true == activate_lidoutputstate)
+        if (true == rosGetParam(nh, "activate_lidoutputstate", activate_lidoutputstate) && true == activate_lidoutputstate)
         {
           startProtocolSequence.push_back(CMD_SET_LID_OUTPUTSTATE_ACTIVE); // TiM781S: activate LIDoutputstate messages, send "sEN LIDoutputstate 1"
           ROS_INFO_STREAM(parser_->getCurrentParamPtr()->getScannerName() << ": activating field monitoring by lidoutputstate messages");
         }
-        if (true == tmpParam.getParam("activate_lidinputstate", activate_lidinputstate) && true == activate_lidinputstate)
+        if (true == rosGetParam(nh, "activate_lidinputstate", activate_lidinputstate) && true == activate_lidinputstate)
         {
           startProtocolSequence.push_back(CMD_SET_LID_INPUTSTATE_ACTIVE); // TiM781S: activate LIDinputstate messages, send "sEN LIDinputstate 1"
           ROS_INFO_STREAM(parser_->getCurrentParamPtr()->getScannerName() << ": activating field monitoring by lidinputstate messages");
@@ -2498,9 +2525,9 @@ namespace sick_scan
 
       if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 4)  // MRS1104 - start IMU-Transfer
       {
-        ros::NodeHandle tmp("~");
         bool imu_enable = false;
-        tmp.getParam("imu_enable", imu_enable);
+        rosDeclareParam(nh, "imu_enable", imu_enable);
+        rosGetParam(nh, "imu_enable", imu_enable);
         if (imu_enable)
         {
           if (useBinaryCmdNow == true)
@@ -2532,7 +2559,7 @@ namespace sick_scan
       std::vector<unsigned char> reqBinary;
       std::vector<unsigned char> sopasVec;
       sopasVec = stringToVector(sopasCmd);
-      ROS_DEBUG("Command: %s", stripControl(sopasVec).c_str());
+      ROS_DEBUG_STREAM("Command: " << stripControl(sopasVec));
       if (useBinaryCmd)
       {
         this->convertAscii2BinaryCmd(sopasCmd.c_str(), &reqBinary);
@@ -2543,7 +2570,7 @@ namespace sick_scan
         {
           case CMD_START_SCANDATA:
             // ROS_DEBUG("Sleeping for a couple of seconds of start measurement\n");
-            // ros::Duration(10.0).sleep();
+            // rosSleep(10.0);
             break;
         }
       }
@@ -2554,8 +2581,10 @@ namespace sick_scan
 
       if (result != 0)
       {
-        ROS_ERROR("%s", sopasCmdErrMsg[cmdId].c_str());
+        ROS_ERROR(sopasCmdErrMsg[cmdId]);
+#ifdef USE_DIAGNOSTIC_UPDATER
         diagnostics_.broadcast(getDiagnosticErrorCode(), sopasCmdErrMsg[cmdId]);
+#endif
       }
       else
       {
@@ -2602,7 +2631,7 @@ namespace sick_scan
             std::vector<unsigned char> reqBinary;
             std::vector<unsigned char> sopasVec;
             sopasVec = stringToVector(sopasCmd);
-            ROS_DEBUG("Command: %s", stripControl(sopasVec).c_str());
+            ROS_DEBUG_STREAM("Command: " << stripControl(sopasVec));
             if (useBinaryCmd)
             {
               this->convertAscii2BinaryCmd(sopasCmd.c_str(), &reqBinary);
@@ -2634,12 +2663,12 @@ namespace sick_scan
               if (deviceState == 1) // scanner is ready
               {
                 scannerReady = true; // interrupt waiting for scanner ready
-                ROS_INFO("Scanner ready for measurement after %d [sec]", i);
+                ROS_INFO_STREAM("Scanner ready for measurement after " << i << " [sec]");
                 break;
               }
             }
-            ROS_INFO("Waiting for scanner ready state since %d secs", i);
-            ros::Duration(shortSleepTime).sleep();
+            ROS_INFO_STREAM("Waiting for scanner ready state since " << i << " secs");
+            rosSleep(shortSleepTime);
 
             if (scannerReady)
             {
@@ -2757,7 +2786,7 @@ namespace sick_scan
     {
       ROS_ERROR("This scanner model/firmware combination does not support ranging output!");
       ROS_ERROR("Supported scanners: TiM5xx: all firmware versions; TiM3xx: firmware versions < V2.50.");
-      ROS_ERROR("This is a %s, firmware version %d.%d", device_string, version_major, version_minor);
+      ROS_ERROR_STREAM("This is a " << device_string << ", firmware version " << version_major << "." << version_minor);
 
       return false;
     }
@@ -2777,8 +2806,7 @@ namespace sick_scan
 
       if (supported == true)
       {
-        ROS_INFO("Device %s V%d.%d found and supported by this driver.", identStr.c_str(), version_major,
-                 version_minor);
+        ROS_INFO_STREAM("Device " << identStr << " V" << version_major << "." << version_minor << " found and supported by this driver.");
       }
 
     }
@@ -2788,7 +2816,7 @@ namespace sick_scan
         || (identStr.find("LMS1xxx") != std::string::npos)
         )
     {
-      ROS_INFO("Deviceinfo %s found and supported by this driver.", identStr.c_str());
+      ROS_INFO_STREAM("Deviceinfo " << identStr << " found and supported by this driver.");
       supported = true;
     }
 
@@ -2796,23 +2824,22 @@ namespace sick_scan
     if (identStr.find("MRS6") !=
         std::string::npos)  // received pattern contains 4 'x' but we check only for 3 'x' (MRS1104 should be MRS1xxx)
     {
-      ROS_INFO("Deviceinfo %s found and supported by this driver.", identStr.c_str());
+      ROS_INFO_STREAM("Deviceinfo " << identStr << " found and supported by this driver.");
       supported = true;
     }
 
     if (identStr.find("RMS3xx") !=
         std::string::npos)   // received pattern contains 4 'x' but we check only for 3 'x' (MRS1104 should be MRS1xxx)
     {
-      ROS_INFO("Deviceinfo %s found and supported by this driver.", identStr.c_str());
+      ROS_INFO_STREAM("Deviceinfo " << identStr << " found and supported by this driver.");
       supported = true;
     }
 
 
     if (supported == false)
     {
-      ROS_WARN("Device %s V%d.%d found and maybe unsupported by this driver.", device_string, version_major,
-               version_minor);
-      ROS_WARN("Full SOPAS answer: %s", identStr.c_str());
+      ROS_WARN_STREAM("Device " << device_string << "s V" << version_major << "." << version_minor << " found and maybe unsupported by this driver.");
+      ROS_WARN_STREAM("Full SOPAS answer: " << identStr);
     }
     return true;
   }
@@ -2822,19 +2849,21 @@ namespace sick_scan
   \brief parsing datagram and publishing ros messages
   \return error code
   */
-  int SickScanCommon::loopOnce()
+  int SickScanCommon::loopOnce(rosNodePtr nh)
   {
     static int cnt = 0;
+#ifdef USE_DIAGNOSTIC_UPDATER
     diagnostics_.update();
+#endif
 
     unsigned char receiveBuffer[65536];
     int actual_length = 0;
     static unsigned int iteration_count = 0;
     bool useBinaryProtocol = this->parser_->getCurrentParamPtr()->getUseBinaryProtocol();
 
-    ros::Time recvTimeStamp = ros::Time::now();  // timestamp incoming package, will be overwritten by get_datagram
+    rosTime recvTimeStamp = rosTimeNow();  // timestamp incoming package, will be overwritten by get_datagram
     // tcp packet
-    ros::Time recvTimeStampPush = ros::Time::now();  // timestamp
+    rosTime recvTimeStampPush = recvTimeStamp;  // timestamp
 
     /*
      * Try to get datagram
@@ -2859,24 +2888,31 @@ namespace sick_scan
     {
 
       /* Dump Binary Protocol */
-      ros::NodeHandle tmpParam("~");
-      tmpParam.getParam("slam_echo", echoForSlam);
-      tmpParam.getParam("slam_bundle", slamBundle);
-      tmpParam.getParam("verboseLevel", verboseLevel);
+        rosDeclareParam(nh, "slam_echo", echoForSlam);
+        rosGetParam(nh, "slam_echo", echoForSlam);
+
+        rosDeclareParam(nh, "slam_bundle", slamBundle);
+        rosGetParam(nh, "slam_bundle", slamBundle);
+
+        rosDeclareParam(nh, "verboseLevel", verboseLevel);
+        rosGetParam(nh, "verboseLevel", verboseLevel);
+
       firstTimeCalled = false;
     }
     do
     {
 
-      int result = get_datagram(recvTimeStamp, receiveBuffer, 65536, &actual_length, useBinaryProtocol, &packetsInLoop);
+      int result = get_datagram(nh, recvTimeStamp, receiveBuffer, 65536, &actual_length, useBinaryProtocol, &packetsInLoop);
       numPacketsProcessed++;
 
-      ros::Duration dur = recvTimeStampPush - recvTimeStamp;
+      rosDuration dur = recvTimeStampPush - recvTimeStamp;
 
       if (result != 0)
       {
-        ROS_ERROR("Read Error when getting datagram: %i.", result);
+        ROS_ERROR_STREAM("Read Error when getting datagram: " << result);
+#ifdef USE_DIAGNOSTIC_UPDATER
         diagnostics_.broadcast(getDiagnosticErrorCode(), "Read Error when getting datagram.");
+#endif
         return ExitError; // return failure to exit node
       }
       if (actual_length <= 0)
@@ -2894,9 +2930,9 @@ namespace sick_scan
 
       if (publish_datagram_)
       {
-        std_msgs::String datagram_msg;
+        ros_std_msgs::String datagram_msg;
         datagram_msg.data = std::string(reinterpret_cast<char *>(receiveBuffer));
-        datagram_pub_.publish(datagram_msg);
+        rosPublish(datagram_pub_, datagram_msg);
       }
 
 
@@ -2915,7 +2951,7 @@ namespace sick_scan
 
       if (true == deviceIsRadar)
       {
-        SickScanRadarSingleton *radar = SickScanRadarSingleton::getInstance();
+        SickScanRadarSingleton *radar = SickScanRadarSingleton::getInstance(nh);
         int errorCode = ExitSuccess;
         // parse radar telegram and send pointcloud2-debug messages
         errorCode = radar->parseDatagram(recvTimeStamp, (unsigned char *) receiveBuffer, actual_length,
@@ -2947,13 +2983,13 @@ namespace sick_scan
         // Parse and convert LIDoutputstate message
         std::string scanner_name = parser_->getCurrentParamPtr()->getScannerName();
         EVAL_FIELD_SUPPORT eval_field_logic = this->parser_->getCurrentParamPtr()->getUseEvalFields();
-        sick_scan::LIDoutputstateMsg outputstate_msg;
+        sick_scan_msg::LIDoutputstateMsg outputstate_msg;
         if (sick_scan::SickScanMessages::parseLIDoutputstateMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, scanner_name, outputstate_msg))
         {
           // Publish LIDoutputstate message
           if(publish_lidoutputstate_)
           {
-            lidoutputstate_pub_.publish(outputstate_msg);
+              rosPublish(lidoutputstate_pub_, outputstate_msg);
           }
           if(cloud_marker_)
           {
@@ -2986,7 +3022,7 @@ namespace sick_scan
         int errorCode = ExitSuccess;
         ROS_DEBUG_STREAM("SickScanCommon: received " << actual_length << " byte LFErec " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length));
         // Parse and convert LFErec message
-        sick_scan::LFErecMsg lferec_msg;
+        sick_scan_msg::LFErecMsg lferec_msg;
         std::string scanner_name = parser_->getCurrentParamPtr()->getScannerName();
         EVAL_FIELD_SUPPORT eval_field_logic = parser_->getCurrentParamPtr()->getUseEvalFields(); // == USE_EVAL_FIELD_LMS5XX_LOGIC
         if (sick_scan::SickScanMessages::parseLFErecMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, eval_field_logic, scanner_name, lferec_msg))
@@ -2994,7 +3030,7 @@ namespace sick_scan
           // Publish LFErec message
           if(publish_lferec_)
           {
-            lferec_pub_.publish(lferec_msg);
+            rosPublish(lferec_pub_, lferec_msg);
           }
           if(cloud_marker_)
           {
@@ -3016,15 +3052,17 @@ namespace sick_scan
       else
       {
 
-        sensor_msgs::LaserScan msg;
-        sick_scan::Encoder EncoderMsg;
-        EncoderMsg.header.stamp = recvTimeStamp + ros::Duration(config_.time_offset);
+        ros_sensor_msgs::LaserScan msg;
+        sick_scan_msg::Encoder EncoderMsg;
+        EncoderMsg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
         //TODO remove this hardcoded variable
         bool FireEncoder = false;
         EncoderMsg.header.frame_id = "Encoder";
-        EncoderMsg.header.seq = numPacketsProcessed;
-        msg.header.stamp = recvTimeStamp + ros::Duration(config_.time_offset);
+        ROS_HEADER_SEQ(EncoderMsg.header, numPacketsProcessed);
+        msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
         double elevationAngleInRad = 0.0;
+        short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
+        // F5B2h -> -2638/200= -13.19°
         /*
          * datagrams are enclosed in <STX> (0x02), <ETX> (0x03) pairs
          */
@@ -3111,26 +3149,28 @@ namespace sick_scan
 
                   elevationAngleInRad = -elevAngleX200 / 200.0 * deg2rad_const;
                   //TODO check this ??
-                  msg.header.seq = elevAngleX200; // should be multiple of 0.625° starting with -2638 (corresponding to 13.19°)
+                  ROS_HEADER_SEQ(msg.header, elevAngleX200); // should be multiple of 0.625° starting with -2638 (corresponding to 13.19°)
 
                   memcpy(&SystemCountScan, receiveBuffer + 0x26, 4);
                   swap_endian((unsigned char *) &SystemCountScan, 4);
 
                   memcpy(&SystemCountTransmit, receiveBuffer + 0x2A, 4);
                   swap_endian((unsigned char *) &SystemCountTransmit, 4);
-                  double timestampfloat = recvTimeStamp.sec + recvTimeStamp.nsec * 1e-9;
+                  double timestampfloat = sec(recvTimeStamp) + nsec(recvTimeStamp) * 1e-9;
                   bool bRet;
                   if (SystemCountScan !=
                       lastSystemCountScan)//MRS 6000 sends 6 packets with same  SystemCountScan we should only update the pll once with this time stamp since the SystemCountTransmit are different and this will only increase jitter of the pll
                   {
-                    bRet = SoftwarePLL::instance().updatePLL(recvTimeStamp.sec, recvTimeStamp.nsec,
+                    bRet = SoftwarePLL::instance().updatePLL(sec(recvTimeStamp), nsec(recvTimeStamp),
                                                              SystemCountTransmit);
                     lastSystemCountScan = SystemCountScan;
                   }
-                  ros::Time tmp_time = recvTimeStamp;
-                  bRet = SoftwarePLL::instance().getCorrectedTimeStamp(recvTimeStamp.sec, recvTimeStamp.nsec,
+                  rosTime tmp_time = recvTimeStamp;
+                  uint32_t recvTimeStampSec = (uint32_t)sec(recvTimeStamp), recvTimeStampNsec = (uint32_t)nsec(recvTimeStamp);
+                  bRet = SoftwarePLL::instance().getCorrectedTimeStamp(recvTimeStampSec, recvTimeStampNsec,
                                                                        SystemCountScan);
-                  double timestampfloat_coor = recvTimeStamp.sec + recvTimeStamp.nsec * 1e-9;
+                  recvTimeStamp = rosTime(recvTimeStampSec, recvTimeStampNsec);
+                  double timestampfloat_coor = sec(recvTimeStamp) + nsec(recvTimeStamp) * 1e-9;
                   double DeltaTime = timestampfloat - timestampfloat_coor;
                   //ROS_INFO("%F,%F,%u,%u,%F",timestampfloat,timestampfloat_coor,SystemCountTransmit,SystemCountScan,DeltaTime);
                   //TODO Handle return values
@@ -3138,8 +3178,7 @@ namespace sick_scan
                   {
                     int packets_expected_to_drop = SoftwarePLL::instance().fifoSize - 1;
                     SoftwarePLL::instance().packeds_droped++;
-                    ROS_INFO("%i / %i Packet dropped Software PLL not yet locked.",
-                             SoftwarePLL::instance().packeds_droped, packets_expected_to_drop);
+                    ROS_INFO_STREAM("" << SoftwarePLL::instance().packeds_droped<< " / " << packets_expected_to_drop << " Packet dropped Software PLL not yet locked.");
                     if (SoftwarePLL::instance().packeds_droped == packets_expected_to_drop)
                     {
                       ROS_INFO("Software PLL is expected to be ready now!");
@@ -3171,7 +3210,7 @@ namespace sick_scan
                   if(fieldMon)
                   {
                     fieldMon->setActiveFieldset(u16_active_fieldset & 0xFF);
-                    ROS_INFO("Binary scandata: active_fieldset = %d", fieldMon->getActiveFieldset());
+                    ROS_INFO_STREAM("Binary scandata: active_fieldset = " << fieldMon->getActiveFieldset());
                   }
                   */
                   // byte 48 + 49: output status (0 0)
@@ -3634,13 +3673,13 @@ namespace sick_scan
               case 4:
 
                 baseLayer = -1;
-                if (msg.header.seq == 250)
+                if (elevAngleX200 == 250) // if (msg.header.seq == 250) // msg.header.seq := elevAngleX200
                 { layer = -1; }
-                else if (msg.header.seq == 0)
+                else if (elevAngleX200 == 0) // else if (msg.header.seq == 0) // msg.header.seq := elevAngleX200
                 { layer = 0; }
-                else if (msg.header.seq == -250)
+                else if (elevAngleX200 == -250) // else if (msg.header.seq == -250) // msg.header.seq := elevAngleX200
                 { layer = 1; }
-                else if (msg.header.seq == -500)
+                else if (elevAngleX200 == -500) // else if (msg.header.seq == -500) // msg.header.seq := elevAngleX200
                 { layer = 2; }
                 elevationAngleDegree = this->parser_->getCurrentParamPtr()->getElevationDegreeResolution();
                 elevationAngleDegree = elevationAngleDegree / 180.0 * M_PI;
@@ -3648,7 +3687,7 @@ namespace sick_scan
                 break;
               case 24: // Preparation for MRS6000
                 baseLayer = -1;
-                layer = (msg.header.seq - (-2638)) / 125;
+                layer = (elevAngleX200 - (-2638)) / 125; // (msg.header.seq - (-2638)) / 125; // msg.header.seq := elevAngleX200
                 layer = (23 - layer) - 1;
 #if 0
               elevationAngleDegree = this->parser_->getCurrentParamPtr()->getElevationDegreeResolution();
@@ -3721,7 +3760,8 @@ namespace sick_scan
                     sprintf(szTmp, "%s_%+04d_DIST%d", cpFrameId, msg.header.seq, i + 1);
 #else // experimental
                     char szSignName[10] = {0};
-                    if ((int) msg.header.seq < 0)
+                    int seqDummy = elevAngleX200;  // msg.header.seq := elevAngleX200
+                    if (seqDummy < 0)
                     {
                       strcpy(szSignName, "NEG");
                     }
@@ -3731,7 +3771,7 @@ namespace sick_scan
 
                     }
 
-                    sprintf(szTmp, "%s_%s_%03d_DIST%d", cpFrameId, szSignName, abs((int) msg.header.seq), i + 1);
+                    sprintf(szTmp, "%s_%s_%03d_DIST%d", cpFrameId, szSignName, abs((int)seqDummy), i + 1);
 #endif
                   }
                   else
@@ -3777,7 +3817,7 @@ namespace sick_scan
 #ifndef _MSC_VER
                 if (parser_->getCurrentParamPtr()->getEncoderMode() >= 0 && FireEncoder == true)//
                 {
-                  Encoder_pub.publish(EncoderMsg);
+                  rosPublish(Encoder_pub, EncoderMsg);
                 }
                 if (numOfLayers > 4)
                 {
@@ -3787,7 +3827,7 @@ namespace sick_scan
                     outputChannelFlagId)  // publish only configured channels - workaround for cfg-bug MRS1104
                 {
 
-                  pub_.publish(msg);
+                  rosPublish(pub_, msg);
 
                 }
 #else
@@ -3806,11 +3846,11 @@ namespace sick_scan
               int numTmpLayer = numOfLayers;
 
 
-              cloud_.header.stamp = recvTimeStamp + ros::Duration(config_.time_offset);
+              cloud_.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
 
 
               cloud_.header.frame_id = config_.frame_id;
-              cloud_.header.seq = 0;
+              ROS_HEADER_SEQ(cloud_.header, 0);
               cloud_.height = numTmpLayer * numValidEchos; // due to multi echo multiplied by num. of layers
               cloud_.width = msg.ranges.size();
               cloud_.is_bigendian = false;
@@ -3824,7 +3864,7 @@ namespace sick_scan
                 cloud_.fields[i].name = channelId[i];
                 cloud_.fields[i].offset = i * sizeof(float);
                 cloud_.fields[i].count = 1;
-                cloud_.fields[i].datatype = sensor_msgs::PointField::FLOAT32;
+                cloud_.fields[i].datatype = ros_sensor_msgs::PointField::FLOAT32;
               }
 
               cloud_.data.resize(cloud_.row_step * cloud_.height);
@@ -3881,7 +3921,7 @@ namespace sick_scan
                   unsigned char *ptr = cloudDataPtr + adroff;
                   float *fptr = (float *) (cloudDataPtr + adroff);
 
-                  geometry_msgs::Point32 point;
+                  ros_geometry_msgs::Point32 point;
                   float range_meter = rangeTmpPtr[iEcho * rangeNum + i];
                   float phi = angle; // azimuth angle
                   float alpha = 0.0;  // elevation angle
@@ -3942,7 +3982,7 @@ namespace sick_scan
               }
               // if ( (msg.header.seq == 0) || (layerOff == 0)) // FIXEN!!!!
               bool shallIFire = false;
-              if ((msg.header.seq == 0) || (msg.header.seq == 237))
+              if ((elevAngleX200 == 0) || (elevAngleX200 == 237)) // if ((msg.header.seq == 0) || (msg.header.seq == 237)) // msg.header.seq := elevAngleX200
               {
                 shallIFire = true;
               }
@@ -4071,7 +4111,7 @@ namespace sick_scan
                   foutJpg = fopen(jpgFileName_tmp, "wb");
                   if (foutJpg == NULL)
                   {
-                    ROS_INFO("PANIC: Can not open %s for writing. Check existience of demo dir. or patch  code.\n", jpgFileName_tmp);
+                    ROS_INFO_STREAM("PANIC: Can not open " << jpgFileName_tmp << " for writing. Check existience of demo dir. or patch  code.\n");
                   }
                   else
                   {
@@ -4136,7 +4176,7 @@ namespace sick_scan
                   }
                   else
                   {
-                        ROS_INFO("PANIC: Can not open %s for writing. Check existience of demo dir. or patch  code.\n",csvFileNameTmp );
+                        ROS_INFO_STREAM("PANIC: Can not open " << csvFileNameTmp << " for writing. Check existience of demo dir. or patch  code.\n");
                   }
                   cnt = 0;
                 }
@@ -4145,7 +4185,7 @@ namespace sick_scan
                 if (config_.cloud_output_mode==0)
                 {
                   // standard handling of scans
-                  cloud_pub_.publish(cloud_);
+                  rosPublish(cloud_pub_, cloud_);
 
                 }
                 else if (config_.cloud_output_mode == 2)
@@ -4164,12 +4204,12 @@ namespace sick_scan
 
                   for (int i = 0; i < numTotalShots; i += numPartialShots)
                   {
-                    sensor_msgs::PointCloud2 partialCloud;
+                    ros_sensor_msgs::PointCloud2 partialCloud;
                     partialCloud = cloud_;
-                    ros::Time partialTimeStamp = cloud_.header.stamp;
+                    rosTime partialTimeStamp = cloud_.header.stamp;
 
-                    partialTimeStamp += ros::Duration((i + 0.5 * (numPartialShots - 1)) * timeIncrement);
-                    partialTimeStamp += ros::Duration((3 * numTotalShots) * timeIncrement);
+                    partialTimeStamp = partialTimeStamp + rosDurationFromSec((i + 0.5 * (numPartialShots - 1)) * timeIncrement);
+                    partialTimeStamp = partialTimeStamp + rosDurationFromSec((3 * numTotalShots) * timeIncrement);
                     partialCloud.header.stamp = partialTimeStamp;
                     partialCloud.width = numPartialShots * 3;  // die sind sicher in diesem Bereich
 
@@ -4198,7 +4238,7 @@ namespace sick_scan
                       partialCloud.fields[ii].name = channelId[ii];
                       partialCloud.fields[ii].offset = ii * sizeof(float);
                       partialCloud.fields[ii].count = 1;
-                      partialCloud.fields[ii].datatype = sensor_msgs::PointField::FLOAT32;
+                      partialCloud.fields[ii].datatype = ros_sensor_msgs::PointField::FLOAT32;
                     }
 
                     partialCloud.data.resize(partialCloud.row_step);
@@ -4234,7 +4274,7 @@ namespace sick_scan
                     assert(partialCloud.data.size() == partialCloud.width * partialCloud.point_step);
 
 
-                    cloud_pub_.publish(partialCloud);
+                    rosPublish(cloud_pub_, partialCloud);
                     //memcpy(&(partialCloud.data[0]), &(cloud_.data[0]) + i * cloud_.point_step, cloud_.point_step * numPartialShots);
                     //cloud_pub_.publish(partialCloud);
                   }
@@ -4688,9 +4728,9 @@ namespace sick_scan
             // we must reconnect and set the new protocoltype
             int iRet = this->close_device();
             ROS_INFO("SOPAS - Close and reconnected to scanner due to protocol change and wait 15 sec. ");
-            ROS_INFO("SOPAS - Changing from %s to %s\n", shouldUseBinary ? "ASCII" : "BINARY", shouldUseBinary ? "BINARY" : "ASCII");
+            ROS_INFO_STREAM("SOPAS - Changing from " << shouldUseBinary ? "ASCII" : "BINARY" << " to " << shouldUseBinary ? "BINARY" : "ASCII" << "\n");
             // Wait a few seconds after rebooting
-            ros::Duration(15.0).sleep();
+            rosSleep(15.0);
 
             iRet = this->init_device();
             */

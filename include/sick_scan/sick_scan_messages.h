@@ -43,8 +43,6 @@
 
 #include "sick_scan/sick_scan_common.h"
 #include "sick_scan/sick_scan_common_tcp.h"
-#include "sick_scan/LFErecMsg.h"
-#include "sick_scan/LIDoutputstateMsg.h"
 
 namespace sick_scan
 {
@@ -53,7 +51,7 @@ namespace sick_scan
   {
   public:
 
-    SickScanMessages(ros::NodeHandle* nh = 0);
+    SickScanMessages(rosNodePtr nh = 0);
 
     virtual ~SickScanMessages();
 
@@ -74,7 +72,7 @@ namespace sick_scan
      * 
      * @return true on success, false on error
      */
-    static bool parseLIDoutputstateMsg(const ros::Time& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, const std::string& frame_id, sick_scan::LIDoutputstateMsg& output_msg);
+    static bool parseLIDoutputstateMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, const std::string& frame_id, sick_scan_msg::LIDoutputstateMsg& output_msg);
 
     /*
      * @brief parses and converts a lidar LFErec message to a ros LFErec message
@@ -100,7 +98,7 @@ namespace sick_scan
      * 
      * @return true on success, false on error
      */
-    static bool parseLFErecMsg(const ros::Time& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, EVAL_FIELD_SUPPORT eval_field_logic, const std::string& frame_id, sick_scan::LFErecMsg& output_msg);
+    static bool parseLFErecMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, EVAL_FIELD_SUPPORT eval_field_logic, const std::string& frame_id, sick_scan_msg::LFErecMsg& output_msg);
 
   protected:
 

@@ -1,7 +1,10 @@
 # This message contains the "sSN LIDoutputstate" message of a Sick laser scanner as an ros message.
 #
 
-Header header
+# ROS-1: 
+#Header header
+# ROS-2: 
+std_msgs/Header header
 
 # Status code
 uint16 version_number # Status code version number

@@ -76,10 +76,6 @@
 #include "sick_scan/dataDumper.h"
 #include "sick_scan/helper/angle_compensator.h"
 
-#ifdef ROSSIMU
-#include "sick_scan/rosconsole_simu.hpp"
-#endif
-
 #define MAX_NAME_LEN (1024)
 
 // 001.001.000 Switch to multithreaded processing of data
@@ -185,7 +181,23 @@ int main(int argc, char **argv)
   versionInfo += std::string(SICK_GENERIC_PATCH_LEVEL);
 
   setVersionInfo(versionInfo);
-  ROS_INFO("%s", versionInfo.c_str());
+
+#if defined __ROS_VERSION && __ROS_VERSION == 2
+  // Pass command line arguments to rclcpp.
+  rclcpp::init(argc, argv);
+
+  rclcpp::NodeOptions node_options;
+  node_options.allow_undeclared_parameters(true);
+  //node_options.automatically_declare_initial_parameters(true);
+  rosNodePtr node = rclcpp::Node::make_shared("sick_scan", "", node_options);
+#else
+  ros::init(argc, argv, scannerName, ros::init_options::NoSigintHandler);  // scannerName holds the node-name
+  signal(SIGINT, rosSignalHandler);
+  ros::NodeHandle nh("~");
+  rosNodePtr node = &nh;
+#endif
+
+  ROS_INFO_STREAM(versionInfo << "\n");
   for (int i = 0; i < argc_tmp; i++)
   {
     if (strstr(argv_tmp[i], nameId) == argv_tmp[i])
@@ -193,10 +205,10 @@ int main(int argc, char **argv)
       strcpy(nameVal, argv_tmp[i] + strlen(nameId));
       scannerName = nameVal;
     }
-    ROS_INFO("Program arguments: %s", argv_tmp[i]);
+    ROS_INFO_STREAM("Program argument " << (i+1) << ": " << argv_tmp[i] << "\n");
   }
 
-  int result = mainGenericLaser(argc_tmp, argv_tmp, scannerName);
+  int result = mainGenericLaser(argc_tmp, argv_tmp, scannerName, node);
   return result;
 
 }

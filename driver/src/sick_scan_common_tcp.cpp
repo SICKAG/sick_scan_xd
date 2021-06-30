@@ -67,11 +67,6 @@
 #include <vector>
 #include <sick_scan/sick_generic_radar.h>
 
-#ifdef ROSSIMU
-
-#include "sick_scan/rosconsole_simu.hpp"
-#endif
-
 std::vector<unsigned char> exampleData(65536);
 std::vector<unsigned char> receivedData(65536);
 static long receivedDataLen = 0;
@@ -82,7 +77,7 @@ static int getDiagnosticErrorCode()
 #undef ERROR
   return(2);
 #else
-  return (diagnostic_msgs::DiagnosticStatus::ERROR);
+  return diagnostic_msgs_DiagnosticStatus_ERROR; // (diagnostic_msgs::DiagnosticStatus::ERROR);
 #endif
 }
 
@@ -170,9 +165,9 @@ namespace sick_scan
 
 
   SickScanCommonTcp::SickScanCommonTcp(const std::string &hostname, const std::string &port, int &timelimit,
-                                       SickGenericParser *parser, char cola_dialect_id)
+      rosNodePtr nh, SickGenericParser *parser, char cola_dialect_id)
       :
-      SickScanCommon(parser),
+      SickScanCommon(nh, parser),
       socket_(io_service_),
       deadline_(io_service_),
       hostname_(hostname),
@@ -464,7 +459,7 @@ namespace sick_scan
  * hereingekommen sind.
  */
 
-  void SickScanCommonTcp::processFrame(ros::Time timeStamp, SopasEventMessage &frame)
+  void SickScanCommonTcp::processFrame(rosTime timeStamp, SopasEventMessage &frame)
   {
 
     if (getProtocolType() == CoLa_A)
@@ -493,7 +488,7 @@ namespace sick_scan
 
   void SickScanCommonTcp::readCallbackFunction(UINT8 *buffer, UINT32 &numOfBytes)
   {
-    ros::Time rcvTimeStamp = ros::Time::now(); // stamp received datagram
+    rosTime rcvTimeStamp = rosTimeNow(); // stamp received datagram
     bool beVerboseHere = false;
     printInfoMessage(
         "SickScanCommonNw::readCallbackFunction(): Called with " + toString(numOfBytes) + " available bytes.",
@@ -648,7 +643,7 @@ namespace sick_scan
     }
     if (i >= timeout_ms)
     {
-      ROS_ERROR("no answer received after %zu ms. Maybe sopas mode is wrong.\n", timeout_ms);
+      ROS_ERROR_STREAM("no answer received after " << timeout_ms << " ms. Maybe sopas mode is wrong.\n");
       return (ExitError);
     }
     boost::condition_variable cond_;
@@ -763,9 +758,15 @@ namespace sick_scan
     {
       if (readWithTimeout(getReadTimeOutInMs(), buffer, BUF_SIZE, &bytes_read, 0, cmdIsBinary) == ExitError)
       {
-        ROS_INFO_THROTTLE(1.0, "sendSOPASCommand: no full reply available for read after %d ms", getReadTimeOutInMs());
-        diagnostics_.broadcast(getDiagnosticErrorCode(),
+#if defined __ROS_VERSION && __ROS_VERSION == 1
+          ROS_INFO_THROTTLE(1.0, "sendSOPASCommand: no full reply available for read after %d ms", getReadTimeOutInMs());
+#else
+          ROS_WARN_STREAM("sendSOPASCommand: no full reply available for read after " << getReadTimeOutInMs() << " ms");
+#endif
+#ifdef USE_DIAGNOSTIC_UPDATER
+          diagnostics_.broadcast(getDiagnosticErrorCode(),
                                "sendSOPASCommand: no full reply available for read after timeout.");
+#endif
         return ExitError;
       }
 
@@ -781,7 +782,7 @@ namespace sick_scan
   }
 
 
-  int SickScanCommonTcp::get_datagram(ros::Time &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize,
+  int SickScanCommonTcp::get_datagram(rosNodePtr nh, rosTime &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize,
                                       int *actual_length,
                                       bool isBinaryProtocol, int *numberOfRemainingFifoEntries)
   {
@@ -794,20 +795,20 @@ namespace sick_scan
     if (this->getEmulSensor())
     {
       // boost::this_thread::sleep(boost::posix_time::milliseconds(waitingTimeInMs));
-      ros::Time timeStamp = ros::Time::now();
-      uint32_t nanoSec = timeStamp.nsec;
+      rosTime timeStamp = rosTimeNow();
+      uint32_t nanoSec = nsec(timeStamp);
       double waitTime10Hz = 10.0 * (double) nanoSec / 1E9;  // 10th of sec. [0..10[
 
       uint32_t waitTime = (int) waitTime10Hz; // round down
 
       double waitTimeUntilNextTime10Hz = 1 / 10.0 * (1.0 - (waitTime10Hz - waitTime));
 
-      ros::Duration(waitTimeUntilNextTime10Hz).sleep();
+      rosSleep(waitTimeUntilNextTime10Hz);
 
-      SickScanRadarSingleton *radar = SickScanRadarSingleton::getInstance();
+      SickScanRadarSingleton *radar = SickScanRadarSingleton::getInstance(nh);
       radar->setEmulation(true);
       radar->simulateAsciiDatagram(receiveBuffer, actual_length);
-      recvTimeStamp = ros::Time::now();
+      recvTimeStamp = rosTimeNow();
     }
     else
     {
@@ -860,7 +861,9 @@ namespace sick_scan
     if (!socket_.is_open())
     {
       ROS_ERROR("get_datagram: socket not open");
+#ifdef USE_DIAGNOSTIC_UPDATER
       diagnostics_.broadcast(getDiagnosticErrorCode(), "get_datagram: socket not open.");
+#endif
       return ExitError;
     }
 
@@ -878,8 +881,14 @@ namespace sick_scan
     if (readWithTimeout(timeout, buffer, bufferSize, actual_length, &exception_occured, isBinaryProtocol) !=
         ExitSuccess)
     {
-      ROS_ERROR_THROTTLE(1.0, "get_datagram: no data available for read after %zu ms", timeout);
-      diagnostics_.broadcast(getDiagnosticErrorCode(), "get_datagram: no data available for read after timeout.");
+#if defined __ROS_VERSION && __ROS_VERSION == 1
+        ROS_ERROR_THROTTLE(1.0, "get_datagram: no data available for read after %zu ms", timeout);
+#else
+        ROS_ERROR_STREAM ("get_datagram: no data available for read after "<< timeout << " ms");
+#endif
+#ifdef USE_DIAGNOSTIC_UPDATER
+        diagnostics_.broadcast(getDiagnosticErrorCode(), "get_datagram: no data available for read after timeout.");
+#endif
 
       // Attempt to reconnect when the connection was terminated
       if (!socket_.is_open())
@@ -890,7 +899,7 @@ namespace sick_scan
         sleep(1);
 #endif
         ROS_INFO("Failure - attempting to reconnect");
-        return init();
+        return init(nh);
       }
 
       return exception_occured ? ExitError : ExitSuccess;    // keep on trying

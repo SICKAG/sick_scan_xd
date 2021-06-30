@@ -35,8 +35,7 @@
 #ifndef ABSTRACT_PARSER_H_
 #define ABSTRACT_PARSER_H_
 
-#include <sick_scan/SickScanConfig.h>
-#include <sensor_msgs/LaserScan.h>
+#include <sick_scan/sick_ros_wrapper.h>
 
 namespace sick_scan
 {
@@ -56,7 +55,7 @@ enum ExitCode
     virtual ~AbstractParser();
 
     virtual int parse_datagram(char *datagram, size_t datagram_length, SickScanConfig &config,
-                               sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask) = 0;
+                               ros_sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask) = 0;
   };
 
 } /* namespace sick_scan */

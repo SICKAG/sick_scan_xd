@@ -149,7 +149,6 @@ namespace ros
 		s = single.getVal(key);
 		return(fnd);
 	}
-
 	bool NodeHandle::getParam(const std::string& key, double& d) const
 	{
 		bool fnd = true;
@@ -161,6 +160,21 @@ namespace ros
 		{
 			s = single.getVal(key);
 			sscanf(s.c_str(), "%le", &dummy);
+			d = dummy;
+		}
+		return(fnd);
+	}
+	bool NodeHandle::getParam(const std::string& key, float& d) const
+	{
+		bool fnd = true;
+		float dummy = 0.0;
+		std::string s;
+		MapStringSingleton& single = MapStringSingleton::Instance();
+		fnd = single.hasTag(key);
+		if (fnd)
+		{
+			s = single.getVal(key);
+			sscanf(s.c_str(), "%e", &dummy);
 			d = dummy;
 		}
 		return(fnd);
