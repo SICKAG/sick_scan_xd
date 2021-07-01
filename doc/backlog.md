@@ -10,6 +10,7 @@
 * support dynamic_reconfigure for ROS2 + Native OS (Windows + Linux), enable USE_DYNAMIC_RECONFIGURE in sick_ros_wrapper.h
 * use USE_LAUNCHPARSER in sick_generic_laser.cpp for ROS2 (later: ROS2 standard parameter handling)
 * For Windows/Linux native: visualize field monitoring using https://github.com/michael1309/pgmHandling
+* Documentation (incl. table of supported sensors and features supported by Win/Linux/native/ROS1/ROS2)
 * features for the future:
    * replace boost and pthread with std C++ 14
    * ros-like services on native Windows + Linux 
