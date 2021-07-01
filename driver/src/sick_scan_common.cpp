@@ -379,9 +379,38 @@ namespace sick_scan
     rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
     rosGetParam(nh, "cloud_topic", cloud_topic_val);
 
-    std::string frame_id_val = cloud_topic_val;
-    rosDeclareParam(nh, "frame_id", frame_id_val);
-    rosGetParam(nh, "frame_id", frame_id_val);
+    rosDeclareParam(nh, "frame_id", config_.frame_id);
+    rosGetParam(nh, "frame_id", config_.frame_id);
+
+    rosDeclareParam(nh, "imu_frame_id", config_.imu_frame_id);
+    rosGetParam(nh, "imu_frame_id", config_.imu_frame_id);
+
+    rosDeclareParam(nh, "intensity", config_.intensity);
+    rosGetParam(nh, "intensity", config_.intensity);
+
+    rosDeclareParam(nh, "auto_reboot", config_.auto_reboot);
+    rosGetParam(nh, "auto_reboot", config_.auto_reboot);
+
+    rosDeclareParam(nh, "min_ang", config_.min_ang);
+    rosGetParam(nh, "min_ang", config_.min_ang);
+
+    rosDeclareParam(nh, "max_ang", config_.max_ang);
+    rosGetParam(nh, "max_ang", config_.max_ang);
+
+    rosDeclareParam(nh, "ang_res", config_.ang_res);
+    rosGetParam(nh, "ang_res", config_.ang_res);
+
+    rosDeclareParam(nh, "skip", config_.skip);
+    rosGetParam(nh, "skip", config_.skip);
+
+    rosDeclareParam(nh, "sw_pll_only_publish", config_.sw_pll_only_publish);
+    rosGetParam(nh, "sw_pll_only_publish", config_.sw_pll_only_publish);
+
+    rosDeclareParam(nh, "time_offset", config_.time_offset);
+    rosGetParam(nh, "time_offset", config_.time_offset);
+
+    rosDeclareParam(nh, "cloud_output_mode", config_.cloud_output_mode);
+    rosGetParam(nh, "cloud_output_mode", config_.cloud_output_mode);
 
     cloud_marker_ = 0;
     publish_lferec_ = false;
@@ -393,7 +422,7 @@ namespace sick_scan
       lidoutputstate_pub_ = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(nh, scannername + "/lidoutputstate", 100);
       publish_lferec_ = true;
       publish_lidoutputstate_ = true;
-      cloud_marker_ = new sick_scan::SickScanMarker(nh, scannername + "/marker", frame_id_val); // "cloud");
+      cloud_marker_ = new sick_scan::SickScanMarker(nh, scannername + "/marker", config_.frame_id); // "cloud");
     }
 
     // Pointcloud2 publisher
@@ -1409,7 +1438,7 @@ namespace sick_scan
       }
       if (result != 0)
       {
-        ROS_ERROR(sopasCmdErrMsg[cmdId]);
+        ROS_ERROR_STREAM(sopasCmdErrMsg[cmdId]);
 #ifdef USE_DIAGNOSTIC_UPDATER
         diagnostics_.broadcast(getDiagnosticErrorCode(), sopasCmdErrMsg[cmdId]);
 #endif
@@ -2581,7 +2610,7 @@ namespace sick_scan
 
       if (result != 0)
       {
-        ROS_ERROR(sopasCmdErrMsg[cmdId]);
+        ROS_ERROR_STREAM(sopasCmdErrMsg[cmdId]);
 #ifdef USE_DIAGNOSTIC_UPDATER
         diagnostics_.broadcast(getDiagnosticErrorCode(), sopasCmdErrMsg[cmdId]);
 #endif
@@ -4182,6 +4211,7 @@ namespace sick_scan
                 }
 
 #else
+                // ROS_DEBUG_STREAM("publishing cloud " << cloud_.height << " x " << cloud_.width << " data, cloud_output_mode=" << config_.cloud_output_mode);
                 if (config_.cloud_output_mode==0)
                 {
                   // standard handling of scans

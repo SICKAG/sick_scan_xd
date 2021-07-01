@@ -185,7 +185,6 @@ int main(int argc, char **argv)
 #if defined __ROS_VERSION && __ROS_VERSION == 2
   // Pass command line arguments to rclcpp.
   rclcpp::init(argc, argv);
-
   rclcpp::NodeOptions node_options;
   node_options.allow_undeclared_parameters(true);
   //node_options.automatically_declare_initial_parameters(true);

@@ -47,8 +47,7 @@ if(ROS_VERSION EQUAL 0)
 endif()
 if(WIN32)
     add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
-endif()
-if(ROS_VERSION EQUAL 0 AND NOT WIN32)
+else()
     set (pthread_LIBRARIES "pthread")
 endif()
 
@@ -167,7 +166,7 @@ if(ROS_VERSION EQUAL 2)
         "msg/ldmrs/SickLdmrsObjectArray.msg"
         DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
     )     
-    find_package(Boost REQUIRED COMPONENTS filesystem system serialization)# thread) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost ) after calling rosidl_generate_interfaces in CMakeLists.txt
+    find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost ) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
 if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)

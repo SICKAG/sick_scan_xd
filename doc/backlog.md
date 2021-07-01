@@ -38,3 +38,5 @@
 
 * commit 5287911 on Jun 24, 2021: initial version based on https://github.com/SICKAG/sick_scan commit 5287911 on Jun 24, 2021 (sick_scan_pretest release 1.10.11)
 * commit 21f5f60 on Jun 25, 2021: merge sick_scan and sick_scan_base, support for Windows, Linux and Linux-ROS1
+* commit ffde775 on Jun 30, 2021: support for ROS 2
+* commit  on Jul 01, 2021: test and minor fixes

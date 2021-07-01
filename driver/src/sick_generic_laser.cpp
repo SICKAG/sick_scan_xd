@@ -227,7 +227,16 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
       for (size_t i = 0; i < tagList.size(); i++)
       {
         printf("%-30s %-10s %-20s\n", tagList[i].c_str(), typeList[i].c_str(), valList[i].c_str());
-        rosSetParam(nhPriv, tagList[i], valList[i]);
+        if(typeList[i] == "bool" && !valList[i].empty())
+          rosSetParam(nhPriv, tagList[i], (bool)(valList[i][0] == '1' || valList[i][0] == 't' || valList[i][0] == 'T'));
+        else if(typeList[i] == "int" && !valList[i].empty())
+          rosSetParam(nhPriv, tagList[i], (int)std::stoi(valList[i]));
+        else if(typeList[i] == "float" && !valList[i].empty())
+          rosSetParam(nhPriv, tagList[i], (float)std::stof(valList[i]));
+        else if(typeList[i] == "double" && !valList[i].empty())
+          rosSetParam(nhPriv, tagList[i], (double)std::stod(valList[i]));
+        else // parameter type "string"
+          rosSetParam(nhPriv, tagList[i], valList[i]);
       }
     }
   }
@@ -263,7 +272,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
 
   rosDeclareParam(nhPriv, "hostname", "192.168.0.4");
   rosDeclareParam(nhPriv, "imu_enable", true);
-  rosDeclareParam(nhPriv, "cloud_topic", "pt_cloud");
+  rosDeclareParam(nhPriv, "cloud_topic", "cloud");
   if (doInternalDebug)
   {
 #ifdef ROSSIMU
@@ -272,7 +281,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
 #else
       rosSetParam(nhPriv, "hostname", "192.168.0.4");
       rosSetParam(nhPriv, "imu_enable", true);
-      rosSetParam(nhPriv, "cloud_topic", "pt_cloud");
+      rosSetParam(nhPriv, "cloud_topic", "cloud");
 #endif
   }
 
@@ -385,7 +394,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
 #endif
   int result = sick_scan::ExitError;
 
-  sick_scan::SickScanConfig cfg;
+  //sick_scan::SickScanConfig cfg;
 
   while (rosOk())
   {

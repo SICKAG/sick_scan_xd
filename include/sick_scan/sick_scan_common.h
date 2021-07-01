@@ -344,7 +344,7 @@ namespace sick_scan
 #ifdef USE_DIAGNOSTIC_UPDATER
     diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan> *diagnosticPub_;
 #else
-    void* diagnosticPub_; // always 0
+    uint8_t* diagnosticPub_; // always 0
 #endif
     double expectedFrequency_;
 

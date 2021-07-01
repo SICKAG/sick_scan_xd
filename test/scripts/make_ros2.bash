@@ -15,13 +15,11 @@ colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMA
 source ./install/setup.bash
 
 # Check sick_scan
-#if [ ! -f ./build/sick_lidar3d/lidar3d_mrs100_recv ] ; then
-#    echo -e "\n## ERROR building lidar3d_mrs100_recv, make lidar3d_mrs100_recv failed.\n"
-#else
-#    echo -e "\nbuild lidar3d_mrs100_recv finished.\n"
-#fi
-#ls -al ./build/sick_lidar3d/lidar3d_mrs100_recv
-#echo -e "\n"
+if [ ! -f ./build/sick_scan/sick_generic_caller                 ] ; then echo -e "\n## ERROR building sick_generic_caller\n"   ; else echo -e "\nbuild sick_generic_caller finished successfully.\n"   ; fi
+if [ ! -f ./install/sick_scan/lib/sick_scan/sick_generic_caller ] ; then echo -e "\n## ERROR installing sick_generic_caller\n" ; else echo -e "\ninstall sick_generic_caller finished successfully.\n" ; fi
+ls -al ./build/sick_scan/sick_generic_caller
+ls -al ./install/sick_scan/lib/sick_scan/sick_generic_caller
+echo -e "\n"
 
 popd
 

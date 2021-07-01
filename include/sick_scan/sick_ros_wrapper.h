@@ -107,7 +107,13 @@ public:
 };
 template <typename T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string& topic, uint32_t queue_size = 10, int qos = 10)
 {
-    ros::Publisher publisher = nh->advertise<T>(topic, queue_size);
+    std::string topic2;
+    if(topic.empty() || topic[0] != '/')
+      topic2 = std::string("/") + topic;
+    else
+      topic2 = topic;
+    ROS_INFO_STREAM("Publishing on topic \"" << topic2 << "\"");
+    ros::Publisher publisher = nh->advertise<T>(topic2, queue_size);
     return rosPublisher<T>(publisher);
 }
 template <typename T> void rosPublish(rosPublisher<T>& publisher, const T& msg) { publisher.publish(msg); }
@@ -163,8 +169,17 @@ typedef rclcpp::Node::SharedPtr rosNodePtr;
 #define ROS_DEBUG_STREAM(msg) RCLCPP_DEBUG_STREAM(RCLCPP_LOGGER,msg)
 
 template <typename T> void rosDeclareParam(rosNodePtr nh, const std::string& param_name, const T& param_value) { if(!nh->has_parameter(param_name)) nh->declare_parameter<T>(param_name, param_value); }
-template <typename T> bool rosGetParam(rosNodePtr nh, const std::string& param_name, T& param_value) { return nh->get_parameter(param_name, param_value); }
-template <typename T> void rosSetParam(rosNodePtr nh, const std::string& param_name, const T& param_value) { nh->set_parameter(rclcpp::Parameter(param_name, param_value)); }
+template <typename T> bool rosGetParam(rosNodePtr nh, const std::string& param_name, T& param_value) 
+{ 
+    bool bRet = nh->get_parameter(param_name, param_value); 
+    ROS_DEBUG_STREAM("rosGetParam(" << param_name << "): " << param_value << ", " << typeid(param_value).name()); 
+    return bRet; 
+}
+template <typename T> void rosSetParam(rosNodePtr nh, const std::string& param_name, const T& param_value) 
+{ 
+    ROS_DEBUG_STREAM("rosSetParam(" << param_name << "," << param_value << ", " << typeid(param_value).name() << ")"); 
+    nh->set_parameter(rclcpp::Parameter(param_name, param_value)); 
+}
 
 typedef rclcpp::Duration rosDuration;
 typedef rclcpp::Time rosTime; // typedef builtin_interfaces::msg::Time rosTime;
@@ -180,6 +195,7 @@ public:
 };
 template <class T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string& topic, uint32_t queue_size = 10, rclcpp::QoS qos = rclcpp::SystemDefaultsQoS())
 {
+    ROS_INFO_STREAM("Publishing on topic \"" << topic << "\"");
     auto publisher = nh->create_publisher<T>(topic, qos);
     return rosPublisher<T>(publisher);
 }
@@ -211,16 +227,14 @@ namespace sick_scan
 {
     class SickScanConfig { // sick_scan2/include/sick_scan/SickScanConfig.h
     public:
-        std::string frame_id;
-        std::string imu_frame_id;
-        bool imu_enable = true;
+        std::string frame_id = "cloud";
+        std::string imu_frame_id = "imu_link";
         bool intensity = false;
         bool auto_reboot = false;
         double min_ang = -M_PI / 2;
         double max_ang = +M_PI / 2;
         double ang_res = 0;
         int skip = 0;
-        //bool use_software_pll;
         bool sw_pll_only_publish = false;
         double time_offset = 0;
         int cloud_output_mode = 0;

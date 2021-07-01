@@ -44,7 +44,7 @@ for sick_scan_launch_file in sick_tim_7xx.launch sick_tim_7xxS.launch ; do
     # rostopic echo "/sick_tim_7xxS/lidoutputstate" &
     
     # Wait for 'q' or 'Q' to exit or until rviz is closed
-    while true ; do  
+    for i in {1..60}; do # while true ; do  
       echo -e "TiM7xx/TiM7xxS emulation running ($sick_scan_launch_file, $emulator_launch_cfg). Close rviz or press 'q' to exit..." ; read -t 1.0 -n1 -s key
       if [[ $key = "q" ]] || [[ $key = "Q" ]]; then break ; fi
       rviz_running=`(ps -elf | grep rviz | grep -v grep | wc -l)`
@@ -53,6 +53,7 @@ for sick_scan_launch_file in sick_tim_7xx.launch sick_tim_7xxS.launch ; do
     
     # Shutdown
     echo -e "Finishing TiM7xx/TiM7xxS emulation $emulator_launch_cfg, shutdown ros nodes\n"
+    pkill rviz
     rosnode kill -a ; sleep 1
     killall sick_generic_caller ; sleep 1
     killall sick_scan_emulator ; sleep 1
