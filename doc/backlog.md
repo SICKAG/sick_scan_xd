@@ -8,8 +8,8 @@
 * For Windows/Linux native and ROS-2: support / replacement for ros services, enable USE_ROSSERVICES in sick_generic_laser.cpp
 * support diagnostic_updater for ROS2 + Native OS (Windows + Linux), enable USE_DIAGNOSTIC_UPDATER in sick_ros_wrapper.h
 * support dynamic_reconfigure for ROS2 + Native OS (Windows + Linux), enable USE_DYNAMIC_RECONFIGURE in sick_ros_wrapper.h
-* use USE_LAUNCHPARSER in sick_generic_laser.cpp for ROS2 (later)
-* For Windows/Linux native: publish and visualization of field monitoring (drawing-library Michael)
+* use USE_LAUNCHPARSER in sick_generic_laser.cpp for ROS2 (later: ROS2 standard parameter handling)
+* For Windows/Linux native: visualize field monitoring using https://github.com/michael1309/pgmHandling
 * features for the future:
    * replace boost and pthread with std C++ 14
    * ros-like services on native Windows + Linux 
