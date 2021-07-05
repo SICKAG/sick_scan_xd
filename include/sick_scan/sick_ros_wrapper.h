@@ -64,6 +64,8 @@
 
 #if __ROS_VERSION == 0  // native Linux or Windows uses ros simu
 #include <sick_scan/rosconsole_simu.hpp>
+#define diagnostic_msgs_DiagnosticStatus_OK    0
+#define diagnostic_msgs_DiagnosticStatus_WARN  1
 #define diagnostic_msgs_DiagnosticStatus_ERROR 2
 #endif
 
@@ -84,6 +86,12 @@ typedef ros::NodeHandle* rosNodePtr;
 #define ros_geometry_msgs geometry_msgs
 #define ros_visualization_msgs visualization_msgs
 
+#ifndef diagnostic_msgs_DiagnosticStatus_OK
+#define diagnostic_msgs_DiagnosticStatus_OK diagnostic_msgs::DiagnosticStatus::OK
+#endif
+#ifndef diagnostic_msgs_DiagnosticStatus_WARN
+#define diagnostic_msgs_DiagnosticStatus_WARN diagnostic_msgs::DiagnosticStatus::WARN
+#endif
 #ifndef diagnostic_msgs_DiagnosticStatus_ERROR
 #define diagnostic_msgs_DiagnosticStatus_ERROR diagnostic_msgs::DiagnosticStatus::ERROR
 #endif
@@ -117,8 +125,10 @@ template <typename T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::str
     return rosPublisher<T>(publisher);
 }
 template <typename T> void rosPublish(rosPublisher<T>& publisher, const T& msg) { publisher.publish(msg); }
+template <typename T> std::string rosTopicName(rosPublisher<T>& publisher) { return publisher.getTopic(); }
 
 inline bool rosOk(void) { return ros::ok(); }
+inline void rosSpin(rosNodePtr nh) { ros::spin(); }
 inline void rosSpinOnce(rosNodePtr nh) { ros::spinOnce(); }
 inline void rosShutdown(void) { ros::shutdown(); }
 inline void rosSleep(double seconds) { ros::Duration(seconds).sleep(); }
@@ -151,6 +161,12 @@ typedef rclcpp::Node::SharedPtr rosNodePtr;
 #define ros_geometry_msgs geometry_msgs::msg
 #define ros_visualization_msgs visualization_msgs::msg
 
+#ifndef diagnostic_msgs_DiagnosticStatus_OK
+#define diagnostic_msgs_DiagnosticStatus_OK    0 //diagnostic_msgs::msg::DiagnosticStatus::OK
+#endif
+#ifndef diagnostic_msgs_DiagnosticStatus_WARN
+#define diagnostic_msgs_DiagnosticStatus_WARN  1 // diagnostic_msgs::msg::DiagnosticStatus::WARN
+#endif
 #ifndef diagnostic_msgs_DiagnosticStatus_ERROR
 #define diagnostic_msgs_DiagnosticStatus_ERROR 2 // diagnostic_msgs::msg::DiagnosticStatus::ERROR
 #endif
@@ -169,16 +185,31 @@ typedef rclcpp::Node::SharedPtr rosNodePtr;
 #define ROS_DEBUG_STREAM(msg) RCLCPP_DEBUG_STREAM(RCLCPP_LOGGER,msg)
 
 template <typename T> void rosDeclareParam(rosNodePtr nh, const std::string& param_name, const T& param_value) { if(!nh->has_parameter(param_name)) nh->declare_parameter<T>(param_name, param_value); }
-template <typename T> bool rosGetParam(rosNodePtr nh, const std::string& param_name, T& param_value) 
-{ 
-    bool bRet = nh->get_parameter(param_name, param_value); 
-    ROS_DEBUG_STREAM("rosGetParam(" << param_name << "): " << param_value << ", " << typeid(param_value).name()); 
-    return bRet; 
+template <typename T> bool rosGetParam(rosNodePtr nh, const std::string& param_name, T& param_value)
+{
+    try
+    {
+        bool bRet = nh->get_parameter(param_name, param_value);
+        ROS_DEBUG_STREAM("rosGetParam(" << param_name << "): " << param_value << ", " << typeid(param_value).name());
+        return bRet;
+    }
+    catch(const std::exception& exc)
+    {
+        ROS_WARN_STREAM("## ERROR rosGetParam(" << param_name << ", " << param_value << ", " << typeid(param_value).name() << ") failed, exception " << exc.what());
+    }
+    return false;
 }
-template <typename T> void rosSetParam(rosNodePtr nh, const std::string& param_name, const T& param_value) 
-{ 
-    ROS_DEBUG_STREAM("rosSetParam(" << param_name << "," << param_value << ", " << typeid(param_value).name() << ")"); 
-    nh->set_parameter(rclcpp::Parameter(param_name, param_value)); 
+template <typename T> void rosSetParam(rosNodePtr nh, const std::string& param_name, const T& param_value)
+{
+    try
+    {
+        ROS_DEBUG_STREAM("rosSetParam(" << param_name << "," << param_value << ", " << typeid(param_value).name() << ")");
+        nh->set_parameter(rclcpp::Parameter(param_name, param_value));
+    }
+    catch(const std::exception& exc)
+    {
+        ROS_WARN_STREAM("## ERROR rosSetParam(" << param_name << ", " << param_value << ", " << typeid(param_value).name() << ") failed, exception " << exc.what());
+    }
 }
 
 typedef rclcpp::Duration rosDuration;
@@ -200,8 +231,10 @@ template <class T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string
     return rosPublisher<T>(publisher);
 }
 template <typename T> void rosPublish(rosPublisher<T>& publisher, const T& msg) { publisher->publish(msg); }
+template <typename T> std::string rosTopicName(rosPublisher<T>& publisher) { return publisher->get_topic_name(); }
 
 inline bool rosOk(void) { return rclcpp::ok(); }
+inline void rosSpin(rosNodePtr nh) { rclcpp::spin(nh); }
 inline void rosSpinOnce(rosNodePtr nh) { rclcpp::spin_some(nh); }
 inline void rosShutdown(void) { rclcpp::shutdown(); }
 inline void rosSleep(double seconds) { rclcpp::sleep_for(std::chrono::nanoseconds((int64_t)(seconds * 1.0e9))); }
@@ -223,6 +256,11 @@ inline rosDuration rosDurationFromSec(double seconds) { return rosDuration(std::
 ** dynamic reconfiguration and diagnostic_updater currently supported on ROS-1 only, todo...
 */
 #if __ROS_VERSION == 2
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <diagnostic_updater/publisher.hpp>
+// #define USE_DIAGNOSTIC_UPDATER // todo ...
+//#include <rcl_interfaces/msg/set_parameters_result.hpp>
+#define USE_DIAGNOSTIC_UPDATER_LDMRS
 namespace sick_scan
 {
     class SickScanConfig { // sick_scan2/include/sick_scan/SickScanConfig.h

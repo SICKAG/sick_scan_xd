@@ -5,6 +5,11 @@ cmake_minimum_required(VERSION 3.5)
 
 # build options: set OFF for relese version, ON for development and test
 option(ENABLE_EMULATOR "Build emulator for offline and unittests" ON) # OFF (release) or ON (development)
+if(ROS_VERSION EQUAL 0)
+option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires PCL and libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF) # OFF (release) or ON (development)
+else()
+option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires PCL and libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" ON) # OFF (release) or ON (development)
+endif()
 option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (development)
 
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
@@ -118,6 +123,12 @@ if(ROS_VERSION EQUAL 1)
         LFErecMsg.msg
         LIDoutputstateMsg.msg
     )
+    add_message_files(
+        DIRECTORY msg/ldmrs
+        FILES
+        SickLdmrsObject.msg
+        SickLdmrsObjectArray.msg
+    )
 
     # driver services
     add_service_files(
@@ -162,14 +173,27 @@ if(ROS_VERSION EQUAL 2)
         "msg/RadarPreHeaderStatusBlock.msg"
         "msg/RadarScan.msg"
         "msg/SickImu.msg"
-        "msg/ldmrs/SickLdmrsObject.msg"
-        "msg/ldmrs/SickLdmrsObjectArray.msg"
+        "msg/ros2/ldmrs/SickLdmrsObject.msg"
+        "msg/ros2/ldmrs/SickLdmrsObjectArray.msg"
         DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
     )     
     find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost ) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
-if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
+if(BUILD_WITH_LDMRS_SUPPORT)
+    message(STATUS "Building sick_scan with LDMRS support")
+    add_compile_options(-DLDMRS_SUPPORT=1)
+    find_package(SickLDMRS REQUIRED)
+    find_package(PCL REQUIRED) # workaround https://github.com/ros2/rosidl/issues/402 : Do find_package(PCL) after calling rosidl_generate_interfaces in your CMakeLists.txt
+    set(LDMRS_INCLUDES ${SICK_LDMRS_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+    set(LDMRS_SOURCES driver/src/ldmrs/sick_ldmrs_config.cpp driver/src/ldmrs/sick_ldmrs_driver.cpp driver/src/ldmrs/sick_ldmrs_node.cpp)
+    set(LDMRS_TARGET_DEPENDENCIES SickLDMRS)
+    message(STATUS "LDMRS_INCLUDES: ${LDMRS_INCLUDES}")
+    message(STATUS "LDMRS_SOURCES: ${LDMRS_SOURCES}")
+    message(STATUS "LDMRS_TARGET_DEPENDENCIES: ${LDMRS_TARGET_DEPENDENCIES}")
+endif()
+ 
+if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1) # TODO: support for all targets
     # emulator messages
     add_message_files(
         DIRECTORY test/emulator/msg
@@ -257,7 +281,7 @@ if(ROS_VERSION EQUAL 1)
     )
 endif(ROS_VERSION EQUAL 1)
 
-include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} include/sick_scan)
+include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include)
 
 if(ROS_VERSION EQUAL 1)
     add_library(sick_scan_lib STATIC
@@ -288,9 +312,10 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_scan_marker.cpp
         driver/src/sick_scan_messages.cpp
         driver/src/sick_scan_services.cpp
-        )
+        ${LDMRS_SOURCES} 
+    )
 
-    add_dependencies(sick_scan_lib ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+    add_dependencies(sick_scan_lib ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS}) # ${LDMRS_TARGET_DEPENDENCIES})
 
     target_link_libraries(sick_scan_lib
         ${catkin_LIBRARIES})
@@ -319,7 +344,7 @@ if(ROS_VERSION EQUAL 1)
     #        ${catkin_LIBRARIES})
 
 
-    target_link_libraries(sick_generic_caller sick_scan_lib)
+    target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES})
     
     add_executable(sick_scan_test
         test/src/sick_scan_test.cpp
@@ -383,6 +408,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
 	driver/src/tcp/toolbox.cpp
 	driver/src/softwarePLL.cpp
 	driver/src/helper/angle_compensator.cpp
+        ${LDMRS_SOURCES} 
 	${SRC_ROSSIMU_FILES}
 	${SRC_WIN_FILES}
     )
@@ -391,7 +417,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/sick_generic_caller.cpp
     )
 
-    target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${pthread_LIBRARIES})
+    target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${pthread_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
 
 endif()
 
@@ -506,8 +532,6 @@ if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
         jsoncpp_lib # ${jsoncpp_LIBRARIES}
         sick_scan_lib)
 
-    target_compile_definitions(sick_scan_emulator PUBLIC __ROS_VERSION=1)
-
     target_include_directories(sick_scan_emulator PUBLIC test/emulator/include)
 
     install(TARGETS sick_scan_emulator
@@ -523,3 +547,22 @@ if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scandata)
 
 endif(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
+
+if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 2) # TODO: support for all targets
+        add_executable(test_server 
+            tools/test_server/src/test_server.cpp 
+            tools/test_server/src/test_server_cola_msg.cpp 
+            tools/test_server/src/test_server_ldmrs_msg.cpp 
+            tools/test_server/src/test_server_thread.cpp)
+        target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES})
+        if(ROS_VERSION EQUAL 2)
+            ament_target_dependencies(test_server "rclcpp")
+        endif(ROS_VERSION EQUAL 2)
+        install(TARGETS 
+            test_server
+            DESTINATION lib/${PROJECT_NAME})
+        install(DIRECTORY 
+            tools/test_server/config
+            tools/test_server/launch
+            DESTINATION share/${PROJECT_NAME})
+endif() 

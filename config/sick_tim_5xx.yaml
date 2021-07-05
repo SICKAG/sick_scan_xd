@@ -1,8 +1,0 @@
-sick_scan: # configuration for sick_scan_tim_5xx: For compatibility with ros versions previous to foxy, node and parameter name changed to sick_scan for all supported scanner. The type of scanner is configured by scanner_name only.
-  ros__parameters:
-    hostname : "192.168.0.72"
-    frame_id : "cloud"
-    scanner_name : "sick_tim_5xx"
-    port : 2112
-    min_ang : 0.0 #in lidar cordinate frame  see ../doc/3d_coordinate_system_comp.png
-    max_ang : 3.141 #in lidar cordinate frame  see ../doc/3d_coordinate_system_comp.png

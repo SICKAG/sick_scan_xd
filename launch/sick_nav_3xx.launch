@@ -10,10 +10,10 @@
     <node name="sick_nav_3xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_nav_3xx"/>
 
-        <!-- -180° -->
+        <!-- -180 deg -->
         <param name="min_ang" type="double" value="-3.14159265359"/>
 
-        <!-- 180° -->
+        <!-- 180 deg -->
         <param name="max_ang" type="double" value="+3.14159265359"/>
 
         <param name="use_binary_protocol" type="bool" value="true"/>

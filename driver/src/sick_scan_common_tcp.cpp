@@ -159,7 +159,24 @@ namespace sick_scan
       replyVector->push_back((unsigned char) reply[i]);
     }
 
-
+    /*
+    [ INFO] [1528529344.549395616]: Sending  : sMN SetAccessMode 3 F4724744
+    [ INFO] [1528529344.561586132]: Receiving: <STX>sAN SetAccessMode 1<ETX>
+    [ INFO] [1528529344.762744671]: Sending  : sWN EIHstCola 0
+    [ INFO] [1528529344.773724438]: Receiving: <STX>sWA EIHstCola<ETX>
+    [ INFO] [1528529344.974179025]: Sending  : sRN FirmwareVersion
+    [ INFO] [1528529344.984661053]: Receiving: <STX>sRA FirmwareVersion 8 1.0.0.0R<ETX>
+    [ INFO] [1528529345.185611387]: Sending  : sRN SCdevicestate
+    [ INFO] [1528529345.196674196]: Receiving: <STX>sRA SCdevicestate 0<ETX>
+    [ INFO] [1528529345.397188260]: Sending  : sRN ODoprh
+    [ INFO] [1528529345.408031755]: Receiving: <STX>sRA ODoprh 451<ETX>
+    [ INFO] [1528529345.614470312]: Sending  : sRN ODpwrc
+    [ INFO] [1528529345.625206208]: Receiving: <STX>sRA ODpwrc 20<ETX>
+    [ INFO] [1528529345.833883454]: Sending  : sRN LocationName
+    [ INFO] [1528529345.844817147]: Receiving: <STX>sRA LocationName B not defined<ETX>
+    [ INFO] [1528529345.847471777]: Sending  : sEN LMDradardata 1
+    [ INFO] [1528529345.858786921]: Receiving: <STX>sEA LMDradardata 1<ETX>
+    */
     return (true);
   }
 

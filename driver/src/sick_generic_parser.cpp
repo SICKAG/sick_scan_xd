@@ -238,6 +238,14 @@ namespace sick_scan
     this->useBinaryProtocol = _useBinary;
   }
 
+  bool ScannerBasicParam::getImuEnabled()
+  {
+    return this->imuEnabled;
+  }
+  void ScannerBasicParam::setImuEnabled(bool _imuEnabled)
+  {
+    this->imuEnabled = _imuEnabled;
+  }
   /*!
   \brief flag to mark the device as radar (instead of laser scanner)
   \param _deviceIsRadar: false for laserscanner, true for radar (like rms_3xx)
@@ -355,8 +363,9 @@ namespace sick_scan
   */
   ScannerBasicParam::ScannerBasicParam()
   : numberOfLayers(0), numberOfShots(0), numberOfMaximumEchos(0), elevationDegreeResolution(0), angleDegressResolution(0), expectedFrequency(0),
-     useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceIsRadar(false), useSafetyPasWD(false), encoderMode(0),
-     CartographerCompatibility(false), scanMirroredAndShifted(false), useEvalFields(EVAL_FIELD_UNSUPPORTED), maxEvalFields(0)
+     useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceIsRadar(false), useSafetyPasWD(false), encoderMode(0), 
+     CartographerCompatibility(false), scanMirroredAndShifted(false), useEvalFields(EVAL_FIELD_UNSUPPORTED), maxEvalFields(0),
+     imuEnabled (false), scanAngleShift(0)
   {
     this->elevationDegreeResolution = 0.0;
     this->setUseBinaryProtocol(false);
@@ -383,6 +392,16 @@ namespace sick_scan
     return (encoderMode);
   }
 
+  void ScannerBasicParam::setScanAngleShift(double _scanAngleShift)
+  {
+    this->scanAngleShift = _scanAngleShift;
+  }
+
+  double ScannerBasicParam::getScanAngleShift()
+  {
+     return this->scanAngleShift;
+  }
+
   /*!
   \brief Construction of parser object
    \param _scanType Type of the Laserscanner
@@ -405,6 +424,7 @@ namespace sick_scan
     allowedScannerNames.push_back(SICK_SCANNER_LMS_1XXX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_MRS_6XXX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LMS_4XXX_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_LRS_4XXX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_RMS_3XX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_NAV_3XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_2XX_NAME);
@@ -429,6 +449,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(true);// Activate Imu for MRS1000
+        basicParams[i].setScanAngleShift(-M_PI/2);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
@@ -446,6 +468,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(-M_PI/2);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
@@ -462,6 +486,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
@@ -478,6 +504,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(-M_PI/2);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
@@ -493,6 +521,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
@@ -508,6 +538,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(-M_PI/2);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_TIM7XX_LOGIC);
         basicParams[i].setMaxEvalFields(48);
@@ -523,6 +555,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(true); // Safety scanner
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(-M_PI/2);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_TIM7XX_LOGIC);
         basicParams[i].setMaxEvalFields(48);
@@ -538,6 +572,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(-M_PI/2);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
@@ -553,6 +589,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(-M_PI/2);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
@@ -569,10 +607,29 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
       }
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0) // LMS_5xx - 1 Layer
+      {
+        basicParams[i].setNumberOfMaximumEchos(1);// TODO validate this
+        basicParams[i].setNumberOfLayers(1);
+        basicParams[i].setNumberOfShots(7201);
+        basicParams[i].setAngularDegreeResolution(0.05);
+        basicParams[i].setExpectedFrequency(12.5);
+        basicParams[i].setUseBinaryProtocol(true);
+        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setUseSafetyPasWD(false); // Default
+        basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
+        basicParams[i].setScanMirroredAndShifted(false);
+        basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
+        basicParams[i].setMaxEvalFields(0);
+     }
 
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_3XX_NAME) == 0) // Radar
       {
@@ -586,6 +643,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(true); // Device is a radar
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
@@ -599,6 +658,10 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(55.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setUseSafetyPasWD(false); // Default
+        basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
         basicParams[i].setScanMirroredAndShifted(true);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
@@ -614,6 +677,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
@@ -629,6 +694,8 @@ namespace sick_scan
         basicParams[i].setDeviceIsRadar(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);

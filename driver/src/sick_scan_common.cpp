@@ -1939,7 +1939,18 @@ namespace sick_scan
       angleEnd10000th = (int) (std::round(10000.0 * maxAngSopas));
 
       char requestOutputAngularRange[MAX_STR_LEN];
+      // special for LMS1000
+      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
+      {
+        ROS_INFO("Angular settings for LMS 1000 not reliable.\n");
+        double askAngleStart = -137.0;
+        double askAngleEnd = +137.0;
 
+        this->config_.min_ang = askAngleStart;
+        this->config_.max_ang = askAngleEnd;
+      }
+      else
+      {
       std::vector<unsigned char> outputAngularRangeReply;
 
 
@@ -2008,6 +2019,7 @@ namespace sick_scan
       else
       {
         result = sendSopasAndCheckAnswer(requestOutputAngularRange, &outputAngularRangeReply);
+      }
       }
 
       //-----------------------------------------------------------------
@@ -2383,8 +2395,8 @@ namespace sick_scan
       {
         result = sendSopasAndCheckAnswer(requestMeanSetting, &outputFilterMeanReply);
       }
+      */
 
-*/
       // CONFIG ECHO-Filter (only for MRS1000 not available for TiM5xx
       if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() >= 4)
       {
@@ -2702,6 +2714,11 @@ namespace sick_scan
             if (scannerReady)
             {
               break;
+            }
+            if(i==(maxWaitForDeviceStateReady-1))
+            {
+              ROS_INFO_STREAM("TIMEOUT WHILE STARTING SCANNER " << i);
+              return ExitError;
             }
           }
         }
@@ -3177,7 +3194,6 @@ namespace sick_scan
                   swap_endian((unsigned char *) &elevAngleX200, 2);
 
                   elevationAngleInRad = -elevAngleX200 / 200.0 * deg2rad_const;
-                  //TODO check this ??
                   ROS_HEADER_SEQ(msg.header, elevAngleX200); // should be multiple of 0.625° starting with -2638 (corresponding to 13.19°)
 
                   memcpy(&SystemCountScan, receiveBuffer + 0x26, 4);

@@ -16,7 +16,7 @@
 *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *   See the License for the specific language governing permissions and
 *   limitations under the License.
-* 
+*
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,9 @@
 #endif
 
 #include <sick_scan/sick_ros_wrapper.h>
+#if defined LDMRS_SUPPORT && LDMRS_SUPPORT > 0
+#include <sick_scan/ldmrs/sick_ldmrs_node.h>
+#endif
 #include <sick_scan/sick_scan_common_tcp.h>
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_laser.h>
@@ -319,6 +322,29 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
   rosDeclareParam(nhPriv, "verboseLevel", verboseLevel);
   rosGetParam(nhPriv, "verboseLevel", verboseLevel);
 
+  std::string frame_id = "cloud";
+  rosDeclareParam(nhPriv, "frame_id", frame_id);
+  rosGetParam(nhPriv, "frame_id", frame_id);
+
+  if(scannerName == "sick_ldmrs")
+  {
+#if defined LDMRS_SUPPORT && LDMRS_SUPPORT > 0
+    ROS_INFO("Initializing LDMRS...");
+    sick_scan::SickLdmrsNode ldmrs;
+    int result = ldmrs.init(nhPriv, hostname, frame_id);
+    if(result != sick_scan::ExitSuccess)
+    {
+      ROS_ERROR("LDMRS initialization failed.");
+      return sick_scan::ExitError;
+    }
+    ROS_INFO("LDMRS initialized.");
+    rosSpin(nhPriv);
+    return sick_scan::ExitSuccess;
+#else
+    ROS_ERROR("LDMRS not supported. Please build sick_scan with option LDMRS_SUPPORT");
+    return sick_scan::ExitError;
+#endif
+  }
 
   sick_scan::SickGenericParser *parser = new sick_scan::SickGenericParser(scannerName);
 

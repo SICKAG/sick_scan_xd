@@ -33,7 +33,7 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 |                    |                                                                                                                                  | Scan-Rate: 50 Hz, 4x12.5 Hz            |                 |
 | LMS1104            | [1092445](https://www.sick.com/ag/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1000/c/g387151)                         | 1 layer max. range: 64 m, ang. resol. 0.25 [deg] |  ROS1: ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 150 Hz, 4x37.5 Hz   |                 |
-| TiM240             | prototype [more info here](doc/tim240/tim240.md) | 1 layer max. range: 10 m, ang. resol. 1.00 [deg], 240 [deg]| ROS1: ✔ [prototype]|
+| TiM240             | [1104981](https://www.sick.com/ag/en/detection-and-ranging-solutions/2d-lidar-sensors/tim2xx/tim240-2050300/p/p654443)           | 1 layer max. range: 10 m, ang. resol. 1.00 [deg], 240 [deg]| ✔ [prototype]|
 |                    |                                                                                                                                  | Scan-Rate: 14.5 Hz   |                 |
 | TiM433             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| Linux, Windows, Linux-ROS1: ✔ [prototype]|
 |                    |                                                                                                                                  | Scan-Rate: 15.0 Hz   |                 |
@@ -159,9 +159,11 @@ To install sick_scan_xd on Windows, follow the steps below:
    Open file `build\sick_scan_xd.sln` in Visual Studio and build all targets (shortcut F7).
 
 ## IMU Support
+
 Devices of the MRS6xxx and MRS1xxx series are available with an optionally built-in IMU.
 Further information on the implementation and use of the experimental Imu support can be found on the [Imu page](doc/IMU.md).
-##  Start Node
+
+## Run sick_scan driver
 
 Use the following command to start ROS node:
 
@@ -241,19 +243,6 @@ roslaunch sick_scan sick_rms_3xx.launch (under
 opment)
 ```
 
-### Starting Scanner with Specific Ip Address
-To start the scanner with a specific IP address, the launch command can be used for most launch files as follows.
-The hostname is the ip-address of the scanner:
-
-```bash
-roslaunch <launch-file> hostname:=<ip-address>
-```
-e.g.
-```bash
-roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71
-```
-
-
 ### Start Multiple Nodes
 
 Take the launchfile "sick_tim_5xx_twin.launch" as an example.
@@ -261,8 +250,25 @@ Rempping the scan and cloud topics is essential to distinguish the scanndata and
 
 ## Parameter
 
-The use of the parameters can be looked up in the launch files. This is also recommended as a starting point.
+In general the software starts with the following options:
+
+```console
+sick_generic_caller <launch-file> [<tag1>:=<value1>] [<tag2>:=<value>] ... [<tagn>:=<valuen>]
+```
+
 ### Common parameters
+
+For the launch-file settings and the tag/values pairs the following keywords are supported:
+
+| Keyword      |     Meaning     |  Default value |    Hint       |
+|--------------|-----------------|----------------|---------------|
+| scanner_type |  Scanner family |  ???           | see list above |
+| min_ang      |  Start scan angle in [rad] |  -2.3998277           |  |
+| max_ang      |  End scan angle in [rad] |  +2.3998277           |  |
+| intensity_resolution_16bit | Switch between 8Bit/16Bit| "false" | do not change|
+| hostname | Ip address of scanner  | 192.168.0.1 | change to scanner ip address in your network (see faq) |
+| port | port number  | 2112 | do not change, check firewall rules if there is blocking traffic  |
+| timelimit | Timelimit in [sec]   | 5 | do not change  |
 
 - `scanner_type`
   Name of the used scanner. Usually this is also the name of the launch file. This entry is used to differentiate
@@ -295,6 +301,21 @@ The use of the parameters can be looked up in the launch files. This is also rec
 - `frame_id`
   Frame id used for the published data
 
+Tag/value pairs of the commandline overwrite settings in the launch file.
+The use of the parameters can be looked up in the launch files. This is also recommended as a starting point.
+
+### Starting Scanner with Specific Ip Address
+
+To start the scanner with a specific IP address, the launch command can be used for most launch files as follows.
+The hostname is the ip-address of the scanner:
+
+```bash
+roslaunch <launch-file> hostname:=<ip-address>
+```
+e.g.
+```bash
+roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71
+```
 
 ### Further useful parameters and features
 
@@ -309,6 +330,7 @@ The use of the parameters can be looked up in the launch files. This is also rec
 - **Field monitoring**: The **LMS1xx**, **LMS5xx**, **TiM7xx** and **TiM7xxS** families have [extended settings for field monitoring](./doc/field_monitoring_extensions.md).
 
 ## Sopas Mode
+
 This driver supports both COLA-B (binary) and COLA-A (ASCII) communication with the laser scanner. Binary mode is activated by default. Since this mode generates less network traffic.
 If the communication mode set in the scanner memory is different from that used by the driver, the scanner's communication mode is changed. This requires a restart of the TCP-IP connection, which can extend the start time by up to 30 seconds.
 There are two ways to prevent this:
@@ -346,8 +368,55 @@ Overview of the tools:
   and the launch file sick_new_ip.launch to set a new IP address. If further settings are to be saved that cannot be made via ROS   parameters, we recommend using the Windows tool "Sopas ET" from SICK.
 * Unit tests: For a quick unit test after installation without the sensor hardware, a test server is provided to simulate a scanner. See [emulator](doc/emulator.md) for further details.
 
+## Simulation
+
+For unittests without sensor hardware, a LMS511 device can be simulated using the python script `test/emulator/test_server.py`. This script implements a simple tcp server for test purposes. It opens a listening tcp socket, connects to tcp clients, receives cola telegrams and sends predefined responses to the client. 
+
+Please note that this is just a simple test server for basic unittests of sick_scan_base drivers. It does not emulate any real lidar sensors!
+
+### Simulation on Windows
+
+Run script `run_simu_lms_5xx.cmd` in folder `test/scripts` or execute the following commands:
+
+```
+REM Start test server
+cd .\build
+start "testserver" python ../test/emulator/test_server.py --scandata_file=../test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112
+@timeout /t 1
+REM Run sick_generic_caller
+.\Debug\sick_generic_caller.exe ../launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
+```
+
+Open file `image_viewer.html` in folder `demo` in your browser to view a jpg-image of the current scan.
+
+Note, that python version 3 incl. runtime dlls must be accessable, f.e. by extending the PATH environment variable:
+```
+set PYTHON_DIR=%ProgramFiles(x86)%/Microsoft Visual Studio/Shared/Python37_64
+set PATH=%PYTHON_DIR%;%PYTHON_DIR%/Scripts;c:\vcpkg\installed\x64-windows\bin;%PATH%
+```
+
+### Simulation on Linux
+
+Run script `run_simu_lms_5xx.bash` in folder `test/scripts` or execute the following commands:
+
+```
+python3 ./test/emulator/test_server.py --scandata_file=./test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112 &
+sleep 1
+./build_x64/sick_generic_caller ./launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+ ```
+
+Open file `image_viewer.html` in folder `demo` in a browser (f.e. firefox) to view a jpg-image of the current scan.
+
+## FAQ
+
+* FAQ: [doc/faq.md](doc/faq.md)
 
 ## Troubleshooting
+
+The software is based on the ROS drivers sick_scan, sick_scan_base and sick_scan2. For FAQ and troubleshooting please also have a look at https://github.com/SICKAG/sick_scan , https://github.com/SICKAG/sick_scan_base and https://github.com/SICKAG/sick_scan2 .
+Common problems might be solved in closed issues.
+
+### General troubleshooting
 
 1. Check Scanner IP in the launch file.
 2. Check Ethernet connection to scanner with netcat e.g. ```nc -z -v -w5 $SCANNERIPADDRESS 2112```.
@@ -366,10 +435,6 @@ Overview of the tools:
    * List of own IP-addresses: ifconfig|grep "inet addr"
    * Try to ping scanner ip address (used in launch file)
 9. If the driver stops during init phase please stop the driver with ctrl-c and restart (could be caused due to protocol ASCII/Binary cola-dialect).
-
-## FAQ
-
-* FAQ: [doc/faq.md](doc/faq.md)
 
 ## Support
 

@@ -51,17 +51,12 @@
 #include <sick_ldmrs/tools/errorhandler.hpp>
 #include <sick_ldmrs/tools/toolbox.hpp>
 
-#define ROS_DEBUG_STREAM(msgstream) RCLCPP_DEBUG_STREAM(rclcpp::get_logger("sick_ldmrs_driver"),msgstream)
-#define ROS_INFO_STREAM(msgstream)  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_ldmrs_driver"),msgstream)
-#define ROS_WARN_STREAM(msgstream)  RCLCPP_WARN_STREAM(rclcpp::get_logger("sick_ldmrs_driver"),msgstream)
-#define ROS_ERROR_STREAM(msgstream) RCLCPP_ERROR_STREAM(rclcpp::get_logger("sick_ldmrs_driver"),msgstream)
-
-static rclcpp::Clock s_rclcpp_clock; // replacement for ros::Time::now()
+// static rclcpp::Clock s_rclcpp_clock; // replacement for ros::Time::now()
 
 namespace sick_ldmrs_driver
 {
 
-SickLDMRS::SickLDMRS(rclcpp::Node::SharedPtr nh, Manager *manager, boost::shared_ptr<diagnostic_updater::Updater> diagnostics)
+SickLDMRS::SickLDMRS(rosNodePtr nh, Manager *manager, boost::shared_ptr<diagnostic_updater::Updater> diagnostics)
   : application::BasicApplication()
   , diagnostics_(diagnostics)
   , manager_(manager)
@@ -69,18 +64,23 @@ SickLDMRS::SickLDMRS(rclcpp::Node::SharedPtr nh, Manager *manager, boost::shared
   , initialized_(false)
   , nh_(nh)
   , config_(nh)
+#if __ROS_VERSION == 2  
   , pub_(0)
   , object_pub_(0)
   , diagnosticPub_(0)
+#else
+  , pub_()
+  , object_pub_()
+  , diagnosticPub_()
+#endif  
 {
   // point cloud publisher
-  pub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>("cloud", rclcpp::SystemDefaultsQoS()); // pub_ = nh_.advertise<sensor_msgs::PointCloud2>("cloud", 100);
-  // object_pub_ = nh_->create_publisher<sick_ldmrs_msgs::msg::ObjectArray>("objects", rclcpp::SystemDefaultsQoS()); // object_pub_ = nh_.advertise<sick_ldmrs_msgs::ObjectArray>("objects", 1);
-  object_pub_ = nh_->create_publisher<sick_scan2::msg::SickLdmrsObjectArray>("objects", rclcpp::SystemDefaultsQoS()); // object_pub_ = nh_.advertise<sick_ldmrs_msgs::ObjectArray>("objects", 1);
+  pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh_, "cloud");
+  object_pub_ = rosAdvertise<sick_scan_msg::SickLdmrsObjectArray>(nh_, "objects");
 
   diagnostics_->setHardwareID("none");   // set from device after connection
   diagnostics_->add("device info", this, &SickLDMRS::produce_diagnostics);
-  diagnosticPub_ = new DiagnosedPublishAdapter<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr>(pub_, *diagnostics_, // diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::PointCloud2>(...)
+  diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::PointCloud2>>(pub_, *diagnostics_, 
       diagnostic_updater::FrequencyStatusParam(&expected_frequency_, &expected_frequency_, 0.1, 10), // frequency should be target +- 10%
       diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0 / 12.5)); // timestamp delta can be from -1 seconds to 1.3x what it ideally is at the lowest frequency
 }
@@ -99,19 +99,21 @@ void SickLDMRS::init()
   initialized_ = true;
   update_config(config_);
 
+#ifdef USE_DIAGNOSTIC_UPDATER_LDMRS  
   // dynamic_reconfigure::Server<SickLDMRSDriverConfig>::CallbackType f;
   // f = boost::bind(&SickLDMRS::update_config, this, _1, _2);
   // dynamic_reconfigure_server_.setCallback(f);
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr parameter_cb_handle =
     nh_->add_on_set_parameters_callback(std::bind(&SickLDMRS::update_config_cb, this, std::placeholders::_1));
   // nh_->set_on_parameters_set_callback(std::bind(&SickLDMRS::update_config_cb, this, std::placeholders::_1));
+#endif  
 }
 
 void SickLDMRS::produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
 {
   devices::LDMRS* ldmrs;
   ldmrs = dynamic_cast<devices::LDMRS*>(manager_->getFirstDeviceByType(Sourcetype_LDMRS));
-  stat.summary(diagnostic_msgs::msg::DiagnosticStatus::OK, "Device information.");
+  stat.summary(diagnostic_msgs_DiagnosticStatus_OK, "Device information.");
 
   // REP-138 values (http://www.ros.org/reps/rep-0138.html#diagnostic-keys)
   stat.add("IP Address", ldmrs->getIpAddress());
@@ -151,7 +153,7 @@ void SickLDMRS::setData(BasicData &data)
       PointCloud::Ptr cloud = boost::make_shared<PointCloud>();
       cloud->header.frame_id = config_.frame_id;
       // not using time stamp from scanner here, because it is delayed by up to 1.5 seconds
-      cloud->header.stamp = s_rclcpp_clock.now().nanoseconds(); // (ros::Time::now().toSec() - 1 / expected_frequency_) * 1e6;
+      cloud->header.stamp = (uint64_t)(sec(rosTimeNow()) * 1e9); // s_rclcpp_clock.now().nanoseconds(); // (ros::Time::now().toSec() - 1 / expected_frequency_) * 1e6;
 
       cloud->height = 1;
       cloud->width = scan->size();
@@ -169,7 +171,7 @@ void SickLDMRS::setData(BasicData &data)
         cloud->points.push_back(np);
       }
 
-      sensor_msgs::msg::PointCloud2 msg;
+      ros_sensor_msgs::PointCloud2 msg;
       pcl::toROSMsg(*cloud, msg);
       if(diagnosticPub_)
         diagnosticPub_->publish(msg);
@@ -191,7 +193,7 @@ void SickLDMRS::setData(BasicData &data)
     break;
   case Datatype_Msg:
     datatypeStr = "Msg (" + ((Msg&)data).toString() + ")";
-    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::WARN, ((Msg&)data).toString());
+    diagnostics_->broadcast(diagnostic_msgs_DiagnosticStatus_WARN, ((Msg&)data).toString());
     diagnostics_->force_update();
     break;
   case Datatype_MeasurementList:
@@ -277,17 +279,17 @@ void SickLDMRS::validate_flexres_start_angle(double &angle1, double &angle2)
 void SickLDMRS::pubObjects(datatypes::ObjectList &objects)
 {
   // sick_ldmrs_msgs::msg::ObjectArray oa;
-  sick_scan2::msg::SickLdmrsObjectArray oa;
+  sick_scan_msg::SickLdmrsObjectArray oa;
   oa.header.frame_id = config_.frame_id;
   // not using time stamp from scanner here, because it is delayed by up to 1.5 seconds
-  oa.header.stamp = s_rclcpp_clock.now(); // ros::Time::now();
+  oa.header.stamp = rosTimeNow(); // s_rclcpp_clock.now(); // ros::Time::now();
   oa.objects.resize(objects.size());
 
   for (int i = 0; i < objects.size(); i++)
   {
     oa.objects[i].id = objects[i].getObjectId();
-    oa.objects[i].tracking_time = s_rclcpp_clock.now() - rclcpp::Duration(objects[i].getObjectAge() / expected_frequency_); // ros::Time::now() - ros::Duration(objects[i].getObjectAge() / expected_frequency_);
-    oa.objects[i].last_seen = s_rclcpp_clock.now() - rclcpp::Duration(objects[i].getHiddenStatusAge() / expected_frequency_); // ros::Time::now() - ros::Duration(objects[i].getHiddenStatusAge() / expected_frequency_);
+    oa.objects[i].tracking_time = rosTimeNow() - rosDuration(objects[i].getObjectAge() / expected_frequency_); // s_rclcpp_clock.now() - rclcpp::Duration(objects[i].getObjectAge() / expected_frequency_); // ros::Time::now() - ros::Duration(objects[i].getObjectAge() / expected_frequency_);
+    oa.objects[i].last_seen = rosTimeNow() - rosDuration(objects[i].getHiddenStatusAge() / expected_frequency_); // s_rclcpp_clock.now() - rclcpp::Duration(objects[i].getHiddenStatusAge() / expected_frequency_); // ros::Time::now() - ros::Duration(objects[i].getHiddenStatusAge() / expected_frequency_);
     oa.objects[i].velocity.twist.linear.x = objects[i].getAbsoluteVelocity().getX();
     oa.objects[i].velocity.twist.linear.y = objects[i].getAbsoluteVelocity().getY();
     oa.objects[i].velocity.twist.linear.x = objects[i].getAbsoluteVelocity().getX();
@@ -326,7 +328,7 @@ void SickLDMRS::pubObjects(datatypes::ObjectList &objects)
     //std::cout << objects[i].toString() << std::endl;
   }
 
-  object_pub_->publish(oa); // object_pub_.publish(oa);
+  rosPublish(object_pub_, oa); // object_pub_->publish(oa); // object_pub_.publish(oa);
 }
 
 bool SickLDMRS::isUpsideDown()
@@ -360,6 +362,7 @@ void SickLDMRS::printFlexResError()
   ROS_ERROR_STREAM("FlexRes detailed error: " << msg);
 }
 
+#ifdef USE_DIAGNOSTIC_UPDATER_LDMRS  
 rcl_interfaces::msg::SetParametersResult SickLDMRS::update_config_cb(const std::vector<rclcpp::Parameter> &parameters)
 {
   rcl_interfaces::msg::SetParametersResult result;
@@ -390,6 +393,7 @@ rcl_interfaces::msg::SetParametersResult SickLDMRS::update_config_cb(const std::
   }
   return result;
 }
+#endif
 
 void SickLDMRS::update_config(SickLDMRSDriverConfig &new_config, uint32_t level)
 {

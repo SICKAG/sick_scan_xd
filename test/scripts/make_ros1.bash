@@ -7,7 +7,10 @@ rm -f ./build/catkin_make_install.log
 # build and install
 #
 
-catkin_make install --cmake-args -DROS_VERSION=1 2>&1 | tee -a ./build/catkin_make_install.log
+#catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release
+
+catkin_make_isolated --install --cmake-args -DROS_VERSION=1 2>&1 | tee -a ./build/catkin_make_install.log
+#catkin_make install --cmake-args -DROS_VERSION=1 2>&1 | tee -a ./build/catkin_make_install.log
 source ./install/setup.bash
 
 #

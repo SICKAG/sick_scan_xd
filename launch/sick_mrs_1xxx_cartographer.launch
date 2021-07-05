@@ -13,7 +13,6 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="frame_id" default="cloud"/>
     <arg name="imu_frame_id" default="imu_link"/>
     <!-- robot_description and robot_state_publisher is prepared but final STL-model is missing -->
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_scan)/urdf/example.urdf.xacro'"/>
     <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <!-- default values: -->
         <!-- Value interpretation of "filter_echos": 0 = First Echo, 1 = All Echos, 2 = Last Echo (see "sWN FREchoFilter") -->

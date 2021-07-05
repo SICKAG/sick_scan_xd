@@ -40,7 +40,7 @@
  * @brief Constructor of SICK LDMRS driver configuration.
  *        Initializes the configuration with default values.
  */
-sick_ldmrs_driver::SickLDMRSDriverConfig::SickLDMRSDriverConfig(rclcpp::Node::SharedPtr nh)
+sick_ldmrs_driver::SickLDMRSDriverConfig::SickLDMRSDriverConfig(rosNodePtr nh)
 {
     if(nh)
     {

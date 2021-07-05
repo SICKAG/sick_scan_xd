@@ -222,17 +222,48 @@ bool LaunchParser::parseFile(std::string launchFileFullName, std::vector<std::st
   TiXmlNode *node = doc.FirstChild("launch");
   if (node != NULL)
   {
+    std::map<std::string, std::string> default_args;
+    TiXmlElement *arg_node = (TiXmlElement *)node->FirstChild("arg");
+    while(arg_node)
+    {
+      if(strcmp(arg_node->Value(), "arg") == 0 && arg_node->Type() == TiXmlNode::TINYXML_ELEMENT)
+      {
+        // parse default arguments, f.e. <arg name="hostname" default="192.168.0.1"/>
+        const char* p_attr_name = arg_node->Attribute("name");
+        const char* p_attr_default = arg_node->Attribute("default");
+        if(p_attr_name && p_attr_default)
+        {
+          std::string attr_name(p_attr_name), attr_default(p_attr_default);
+          default_args[attr_name] = attr_default;
+          ROS_INFO_STREAM("LaunchParser::parseFile(" << launchFileFullName << "): default_args[\"" << attr_name << "\"]=\"" << default_args[attr_name] << "\"");
+        }
+      }
+      arg_node = (TiXmlElement *)arg_node->NextSibling();  // go to next sibling
+    }
+    // parse all node specific parameters
     node = node->FirstChild("node");
     std::vector<paramEntryAscii> paramOrgList = getParamList(node);
 
-      for (size_t j = 0; j < paramOrgList.size(); j++)
+    for (size_t j = 0; j < paramOrgList.size(); j++)
+    {
+      nameVec.push_back(paramOrgList[j].getName());
+      typeVec.push_back(paramOrgList[j].getType());
+      valVec.push_back(paramOrgList[j].getValue());
+      if(valVec.back().substr(0, 6) == "$(arg ") // overwrite with default argument, f.e. name="hostname", type="string", value="$(arg hostname)"
       {
-        nameVec.push_back(paramOrgList[j].getName());
-        typeVec.push_back(paramOrgList[j].getType());
-        valVec.push_back(paramOrgList[j].getValue());
+        std::string default_arg_name = valVec.back().substr(6, valVec.back().length() - 1 - 6);
+        std::string default_arg_val = default_args[default_arg_name];
+        if(!default_arg_val.empty())
+        {
+          ROS_INFO_STREAM("LaunchParser::parseFile(" << launchFileFullName << "): name=\"" << nameVec.back() << "\", type=\""  << typeVec.back() << "\", value=\""  << valVec.back() 
+            << "\" overwritten by default value \""  << default_arg_val << "\"");
+          valVec.back() = default_arg_val;
+        }
       }
+      ROS_INFO_STREAM("LaunchParser::parseFile(" << launchFileFullName << "): name=\"" << nameVec.back() << "\", type=\""  << typeVec.back() << "\", value=\""  << valVec.back() << "\"");
+    }
 
-      ret = true;
+    ret = true;
 
   }
 

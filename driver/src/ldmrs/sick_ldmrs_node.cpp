@@ -51,22 +51,26 @@ sick_scan::SickLdmrsNode::~SickLdmrsNode()
   delete(m_ldmrs);
 }
 
-int sick_scan::SickLdmrsNode::init(rclcpp::Node::SharedPtr nh, const std::string & hostName, const std::string & frameId)
+int sick_scan::SickLdmrsNode::init(rosNodePtr nh, const std::string & hostName, const std::string & frameId)
 {
   m_nh = nh;
+#if __ROS_VERSION == 1
+  m_diagnostics = boost::make_shared<diagnostic_updater::Updater>(*m_nh);
+#elif __ROS_VERSION == 2
   m_diagnostics = boost::make_shared<diagnostic_updater::Updater>(m_nh);
+#endif  
 
   // The MRS-App connects to an MRS, reads its configuration and receives all incoming data.
   // First, create the manager object. The manager handles devices, collects
   // device data and forwards it to the application(s).
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_ldmrs_driver"), "Creating the manager.");
+  ROS_INFO_STREAM("Creating the manager.");
   m_manager = new Manager();
 
   // Add the application. As the devices may send configuration data only once
   // at startup, the applications must be present before the devices are
   // started.
   // Sourcetype type;
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_ldmrs_driver"), "Adding the application SickLDMRS.");
+  ROS_INFO_STREAM("Adding the application SickLDMRS.");
   std::string name = "Sick LDMRS ROS Driver App";
   UINT16 id = 1356;
 
@@ -76,10 +80,10 @@ int sick_scan::SickLdmrsNode::init(rclcpp::Node::SharedPtr nh, const std::string
   bool result = m_manager->addApplication(m_app, id);
   if (result == false)
   {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("sick_ldmrs_driver"), "Failed to add application " << name << ", aborting!");
+    ROS_ERROR_STREAM("Failed to add application " << name << ", aborting!");
     return sick_scan::ExitError;
   }
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_ldmrs_driver"), "Application is running.");
+  ROS_INFO_STREAM("Application is running.");
 
   //
   // Add and run the sensor
@@ -89,45 +93,43 @@ int sick_scan::SickLdmrsNode::init(rclcpp::Node::SharedPtr nh, const std::string
   // m_weWantObjectData:        true
   // m_weWantFieldData:         false
   // m_weWantScanDataFromSopas: false
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_ldmrs_driver"), "Adding the LDMRS device.");
+  ROS_INFO_STREAM("Adding the LDMRS device.");
   m_ldmrs = new devices::LDMRS(m_manager);
   m_ldmrs->setWeWantObjectData(true);
   std::string hostname;
   sick_ldmrs_driver::param<std::string>(m_nh, "hostname", hostname, "192.168.0.1");
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_ldmrs_driver"), "Set IP address to " << hostname);
+  ROS_INFO_STREAM("Set IP address to " << hostname);
   m_ldmrs->setIpAddress(hostname);
   name = "LDMRS-1";
   id = 1;
   result = m_manager->addAndRunDevice(m_ldmrs, name, id);
   if (result == false)
   {
-    RCLCPP_ERROR_STREAM(rclcpp::get_logger("sick_ldmrs_driver"), "Failed to add device " << name << ", aborting!");
+    ROS_ERROR_STREAM("Failed to add device " << name << ", aborting!");
     return sick_scan::ExitError;
   }
 
   std::string serial_number = m_ldmrs->getSerialNumber();
-  m_diagnostics->setHardwareID(serial_number);
-  m_diagnostics->setPeriod(0.1); // publish diagnostic messages with 10 Hz
+  if(m_diagnostics)
+  {
+    m_diagnostics->setHardwareID(serial_number);
+#if __ROS_VERSION == 2  
+    m_diagnostics->setPeriod(0.1); // publish diagnostic messages with 10 Hz, not available on ROS1
+#endif  
+  }
 
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_ldmrs_driver"), "LD-MRS Firmware version is " << m_ldmrs->getFirmwareVersion());
+  ROS_INFO_STREAM("LD-MRS Firmware version is " << m_ldmrs->getFirmwareVersion());
 
   // we need to initialize the app after setting up the ldmrs device
   m_app->init();
 
-  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_ldmrs_driver"), "sick_ldmrs_driver is initialized.");
+  ROS_INFO_STREAM("sick_ldmrs_driver is initialized.");
   return sick_scan::ExitSuccess;
 }
 
 int sick_scan::SickLdmrsNode::run(void)
 {
-  // rclcpp::Rate r(std::chrono::nanoseconds((int64_t)(0.1 * 1.0e9))); // ros::Rate r(10.0);
-  // while (rclcpp::ok()) // while (ros::ok())
-  // {
-  //   rclcpp::spin_some(m_nh); // ros::spinOnce();
-  //   m_diagnostics->force_update(); // m_diagnostics->update();
-  //   r.sleep();
-  // }
-  rclcpp::spin(m_nh);
+  rosSpin(m_nh);
   return sick_scan::ExitSuccess;
 }
 

@@ -8,7 +8,6 @@
         <param name="min_ang" type="double" value="-2.35619"/>
         <param name="max_ang" type="double" value="2.35619"/>
         <param name="frame_id" type="str" value="laser"/>
-        <!-- param name="use_binary_protocol" type="bool" value="false"/ -->
         <param name="use_binary_protocol" type="bool" value="true"/>
         <param name="scanner_type" type="string" value="sick_lms_1xx"/>
         <param name="range_max" type="double" value="25.0"/>

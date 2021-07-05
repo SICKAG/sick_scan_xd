@@ -23,9 +23,6 @@
     <arg name="frame_id" default="cloud"/>
     <node name="sick_lms_4xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
 
-        <!--<param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_scan)/urdf/example.urdf.xacro'" />-->
-
-
         <!-- Default: min_angle = -135 degree, max_angle = 135 -->
         <!-- default values: -->
         <!--
@@ -43,10 +40,10 @@
         -->
         <param name="scanner_type" type="string" value="sick_lms_4xxx"/>
 
-        <!-- -135° -->
+        <!-- -135 deg -->
         <param name="min_ang" type="double" value="-0.610865238"/>
 
-        <!-- 135° -->
+        <!-- 135 deg -->
         <param name="max_ang" type="double" value="0.610865238"/>
 
         <param name="use_binary_protocol" type="bool" value="true"/>

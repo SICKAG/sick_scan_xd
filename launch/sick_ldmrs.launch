@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!-- Launch File for LDMRS -->
+<launch>
+
+    <node name="sick_ldmrs" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+
+        <!-- Common settings for LDMRS -->
+        <param name="scanner_type" type="string" value="sick_ldmrs"/>
+        <param name="hostname" type="string" value="192.168.0.1"/>
+        <param name="port" type="string" value="12002"/>
+        <param name="min_ang" type="double" value="-1.047197"/>
+        <param name="max_ang" type="double" value="+1.047197"/>
+        <param name="use_binary_protocol" type="bool" value="true"/>
+        <param name="cloud_topic" type="string" value="cloud"/>
+        <param name="frame_id" type="str" value="ldmrs"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="sw_pll_only_publish" type="bool" value="true"/>
+
+        <!-- Measurement parameters specific for LDMRS -->
+        <param name="start_angle" type="double" value="0.872664"/>            <!-- # gen.add("start_angle",           double_t, 0, "The angle of the first range measurement [rad].",                              1600 * tics2rad, -1918 * tics2rad, 1600 * tics2rad)   # 50  deg -->
+        <param name="end_angle" type="double" value="-1.047197"/>             <!-- # gen.add("end_angle",             double_t, 0, "The angle of the last range measurement [rad].",                              -1920 * tics2rad, -1920 * tics2rad, 1598 * tics2rad)   # -60 deg -->
+        <param name="scan_frequency" type="int" value="0"/>                   <!-- # gen.add("scan_frequency",        int_t,    0, "Scan frequency, 0 = 12.5Hz, 1 = 25 Hz, 2 = 50 Hz",                             0,                0,               2, edit_method=scan_freq_enum) -->
+        <param name="sync_angle_offset" type="double" value="0.000000"/>      <!-- # gen.add("sync_angle_offset",     double_t, 0, "Angle under which the LD-MRS measures at the time of the sync pulse [rad].",   0,               -5760 * tics2rad, 5759 * tics2rad)   # -180...179.96 deg -->
+        <param name="angular_resolution_type" type="int" value="2"/>          <!-- # gen.add("angular_resolution_type", int_t,  0, "Angular resolution type: 0 = focused, 1 = constant, 2 = flexible",             1,                0,               2, edit_method=angular_res_enum) -->
+        <param name="layer_range_reduction" type="int" value="0"/>            <!-- # gen.add("layer_range_reduction", int_t,    0, "0: Full range, 1: lower 4 reduced, 2: upper 4 reduced, 3: all reduced",        0,                0,               3, edit_method=range_reduction_enum) -->
+        <param name="ignore_near_range" type="bool" value="false"/>           <!-- # gen.add("ignore_near_range",     bool_t,   0, "Ignore scan points up to 15m. Requires layer_range_reduction = lower 4 reduced.", False) -->
+        <param name="sensitivity_control" type="bool" value="false"/>         <!-- # gen.add("sensitivity_control",   bool_t,   0, "Reduce the sensitivity automatically in case of extraneous light.",            False) -->
+
+        <!-- FlexRes parameters specific for LDMRS -->
+        <param name="flexres_start_angle1" type="double" value="0.872664"/>   <!-- # gen.add("flexres_start_angle1",  double_t, 0, "FlexRes: start angle of sector 1.",                                            1600 * tics2rad, -1918 * tics2rad, 1600 * tics2rad) -->
+        <param name="flexres_start_angle2" type="double" value="0.610865"/>   <!-- # gen.add("flexres_start_angle2",  double_t, 0, "FlexRes: start angle of sector 2.",                                            1120 * tics2rad, -1918 * tics2rad, 1600 * tics2rad) -->
+        <param name="flexres_start_angle3" type="double" value="0.523598"/>   <!-- # gen.add("flexres_start_angle3",  double_t, 0, "FlexRes: start angle of sector 3.",                                             960 * tics2rad, -1918 * tics2rad, 1600 * tics2rad) -->
+        <param name="flexres_start_angle4" type="double" value="0.349065"/>   <!-- # gen.add("flexres_start_angle4",  double_t, 0, "FlexRes: start angle of sector 4.",                                             640 * tics2rad, -1918 * tics2rad, 1600 * tics2rad) -->
+        <param name="flexres_start_angle5" type="double" value="0.000000"/>   <!-- # gen.add("flexres_start_angle5",  double_t, 0, "FlexRes: start angle of sector 5.",                                               0 * tics2rad, -1918 * tics2rad, 1600 * tics2rad) -->
+        <param name="flexres_start_angle6" type="double" value="-0.349065"/>  <!-- # gen.add("flexres_start_angle6",  double_t, 0, "FlexRes: start angle of sector 6.",                                            -640 * tics2rad, -1918 * tics2rad, 1600 * tics2rad) -->
+        <param name="flexres_start_angle7" type="double" value="-0.523598"/>  <!-- # gen.add("flexres_start_angle7",  double_t, 0, "FlexRes: start angle of sector 7.",                                            -960 * tics2rad, -1918 * tics2rad, 1600 * tics2rad) -->
+        <param name="flexres_start_angle8" type="double" value=" -0.698131"/> <!-- # gen.add("flexres_start_angle8",  double_t, 0, "FlexRes: start angle of sector 8.",                                           -1280 * tics2rad, -1918 * tics2rad, 1600 * tics2rad) -->
+        <param name="flexres_resolution1" type="int" value="32"/>             <!-- # gen.add("flexres_resolution1",   int_t,    0, "FlexRes: angular resolution of sector 1.",                                     32,               4,               32, edit_method=resolution_enum) -->
+        <param name="flexres_resolution2" type="int" value="16"/>             <!-- # gen.add("flexres_resolution2",   int_t,    0, "FlexRes: angular resolution of sector 2.",                                     16,               4,               32, edit_method=resolution_enum) -->
+        <param name="flexres_resolution3" type="int" value="8"/>              <!-- # gen.add("flexres_resolution3",   int_t,    0, "FlexRes: angular resolution of sector 3.",                                      8,               4,               32, edit_method=resolution_enum) -->
+        <param name="flexres_resolution4" type="int" value="4"/>              <!-- # gen.add("flexres_resolution4",   int_t,    0, "FlexRes: angular resolution of sector 4.",                                      4,               4,               32, edit_method=resolution_enum) -->
+        <param name="flexres_resolution5" type="int" value="8"/>              <!-- # gen.add("flexres_resolution5",   int_t,    0, "FlexRes: angular resolution of sector 5.",                                      8,               4,               32, edit_method=resolution_enum) -->
+        <param name="flexres_resolution6" type="int" value="16"/>             <!-- # gen.add("flexres_resolution6",   int_t,    0, "FlexRes: angular resolution of sector 6.",                                     16,               4,               32, edit_method=resolution_enum) -->
+        <param name="flexres_resolution7" type="int" value="32"/>             <!-- # gen.add("flexres_resolution7",   int_t,    0, "FlexRes: angular resolution of sector 7.",                                     32,               4,               32, edit_method=resolution_enum) -->
+        <param name="flexres_resolution8" type="int" value="16"/>             <!-- # gen.add("flexres_resolution8",   int_t,    0, "FlexRes: angular resolution of sector 8.",                                     16,               4,               32, edit_method=resolution_enum) -->
+
+        <!-- Object tracking parameters parameters specific for LDMRS -->
+        <param name="contour_point_density" type="int" value="2"/>            <!-- # gen.add("contour_point_density", int_t,    0, "Contour point density, 0: closest point only, 1: low density, 2: high density", 2,               0,               2, edit_method=contour_enum) -->
+        <param name="min_object_age" type="int" value="0"/>                   <!-- # gen.add("min_object_age",        int_t,    0, "Minimum tracking age (number of scans) of an object to be transmitted.",        0,               0,               65535) -->
+        <param name="max_prediction_age" type="int" value="0"/>               <!-- # gen.add("max_prediction_age",    int_t,    0, "Maximum prediction age (number of scans) of an object to be transmitted.",      0,               0,               65535) -->
+            
+    </node>
+</launch>

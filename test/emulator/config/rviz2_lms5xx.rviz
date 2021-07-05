@@ -61,9 +61,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 0
+      Max Intensity: 254
       Min Color: 0; 0; 0
-      Min Intensity: 0
+      Min Intensity: 187
       Name: PointCloud2
       Position Transformer: XYZ
       Selectable: true
@@ -106,7 +106,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: laser
+    Fixed Frame: cloud
     Frame Rate: 30
   Name: root
   Tools:

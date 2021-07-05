@@ -12,7 +12,6 @@ Check IP-address, if you scanner is not found after roslaunch.
     <arg name="hostname" default="192.168.0.1"/>
     <!-- launch file for the lms_5xx series -->
     <node name="sick_lms_5xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
-        <!--<param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_scan)/urdf/example.urdf.xacro'" />-->
 
         <!-- default values: -->
         <!--
@@ -29,9 +28,9 @@ Check IP-address, if you scanner is not found after roslaunch.
         -->
         <param name="frame_id" type="str" value="cloud"/>
         <param name="scanner_type" type="string" value="sick_lms_5xx"/>
-        <!-- -95° -->
+        <!-- -95 deg -->
         <param name="min_ang" type="double" value="-1.658062789"/>
-        <!-- 95° -->
+        <!-- 95 deg -->
         <param name="max_ang" type="double" value="1.658062789"/>
         <param name="range_max" type="double" value="100.0"/>
         <param name="intensity" type="bool" value="true"/>

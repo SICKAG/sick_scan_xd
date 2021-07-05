@@ -22,9 +22,9 @@
     <node name="sick_tim_240" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_tim_240"/>
         <!-- datagram shows values from -90 ... 120 (211 values) -->
-        <!-- -120° -->
+        <!-- -120 deg -->
         <param name="min_ang" type="double" value="-2.094395102"/>
-        <!-- 120° -->
+        <!-- 120 deg -->
         <param name="max_ang" type="double" value="+2.094395102"/>
         <!-- corresponds to 1.0/(14.4 * 360) -->
         <param name="time_increment" type="double" value="0.00019290123"/>

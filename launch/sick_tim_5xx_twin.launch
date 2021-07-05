@@ -22,8 +22,8 @@
     <node name="sick_tim_5xx_1" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_tim_5xx"/>
         <param name="frame_id" value="/laser_1"/>
-        <param name="min_ang" type="double" value="-2.35619449"/><!-- -135° -->
-        <param name="max_ang" type="double" value="2.35619449"/><!-- 135° -->
+        <param name="min_ang" type="double" value="-2.35619449"/><!-- -135 deg -->
+        <param name="max_ang" type="double" value="2.35619449"/><!-- 135 deg -->
         <param name="range_max" type="double" value="100.0"/>
         <param name="intensity" type="bool" value="True"/>
         <param name="hostname" type="string" value="$(arg hostname1)"/>
@@ -35,8 +35,8 @@
     <node name="sick_tim_5xx_2" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_tim_5xx"/>
         <param name="frame_id" value="/laser_2"/>
-        <param name="min_ang" type="double" value="-2.35619449"/><!-- -135° -->
-        <param name="max_ang" type="double" value="2.35619449"/><!-- 135° -->
+        <param name="min_ang" type="double" value="-2.35619449"/><!-- -135 deg -->
+        <param name="max_ang" type="double" value="2.35619449"/><!-- 135 deg -->
         <param name="range_max" type="double" value="100.0"/>
         <param name="intensity" type="bool" value="True"/>
         <param name="hostname" type="string" value="$(arg hostname2)"/>
