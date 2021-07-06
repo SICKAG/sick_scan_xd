@@ -4,8 +4,8 @@
 
 * For Windows/Linux native and ROS-2: support / replacement for ros services, enable USE_ROSSERVICES in sick_generic_laser.cpp
 * Test server support for all targets in CMakeLists.txt
-* support diagnostic_updater for ROS2 + native OS (Windows + Linux), enable USE_DIAGNOSTIC_UPDATER in sick_ros_wrapper.h
-* support dynamic_reconfigure for ROS2 + native OS (Windows + Linux), enable USE_DYNAMIC_RECONFIGURE resp. USE_DIAGNOSTIC_UPDATER_LDMRS in sick_ros_wrapper.h
+* support diagnostic_updater for ROS2 + native OS (Windows + Linux), enable USE_DIAGNOSTIC_UPDATER resp. USE_DIAGNOSTIC_UPDATER_LDMRS in sick_ros_wrapper.h
+* support dynamic_reconfigure for ROS2 + native OS (Windows + Linux), enable USE_DYNAMIC_RECONFIGURE in sick_ros_wrapper.h
 * support libsick_ldmrs for Native OS (Windows + Linux)
 * For Windows/Linux native: visualize field monitoring using https://github.com/michael1309/pgmHandling
 * Test (emualator and hardware)
