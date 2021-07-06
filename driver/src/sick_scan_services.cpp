@@ -40,14 +40,32 @@
 
 #include "sick_scan/sick_scan_services.h"
 
-sick_scan::SickScanServices::SickScanServices(ros::NodeHandle* nh, sick_scan::SickScanCommonTcp* common_tcp, bool cola_binary)
+sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScanCommonTcp* common_tcp, bool cola_binary)
 : m_common_tcp(common_tcp), m_cola_binary(cola_binary)
 {
     if(nh)
     {
-        m_srv_server_ColaMsg = nh->advertiseService("ColaMsg",&sick_scan::SickScanServices::serviceCbColaMsg, this);
-        m_srv_server_ECRChangeArr = nh->advertiseService("ECRChangeArr",&sick_scan::SickScanServices::serviceCbECRChangeArr, this);
-        m_srv_server_LIDoutputstate = nh->advertiseService("LIDoutputstate",&sick_scan::SickScanServices::serviceCbLIDoutputstate, this);
+#if __ROS_VERSION == 2
+#define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsgROS2
+#define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArrROS2
+#define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstateROS2
+#else
+#define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsg
+#define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArr
+#define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstate
+#endif
+        auto srv_server_ColaMsg = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ColaMsgSrv, "ColaMsg", &serviceCbColaMsgROS, this);
+        m_srv_server_ColaMsg = rosServiceServer<sick_scan_srv::ColaMsgSrv>(srv_server_ColaMsg);
+
+        auto srv_server_ECRChangeArr = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ECRChangeArrSrv, "ECRChangeArr", &serviceCbECRChangeArrROS, this);
+        m_srv_server_ECRChangeArr = rosServiceServer<sick_scan_srv::ECRChangeArrSrv>(srv_server_ECRChangeArr);
+        
+        auto srv_server_LIDoutputstate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::LIDoutputstateSrv, "LIDoutputstate", &serviceCbLIDoutputstateROS, this);
+        m_srv_server_LIDoutputstate = rosServiceServer<sick_scan_srv::LIDoutputstateSrv>(srv_server_LIDoutputstate);
+
+        // m_srv_server_ColaMsg = nh->advertiseService("ColaMsg",&sick_scan::SickScanServices::serviceCbColaMsg, this);
+        // m_srv_server_ECRChangeArr = nh->advertiseService("ECRChangeArr",&sick_scan::SickScanServices::serviceCbECRChangeArr, this);
+        // m_srv_server_LIDoutputstate = nh->advertiseService("LIDoutputstate",&sick_scan::SickScanServices::serviceCbLIDoutputstate, this);
     }
 }
 
@@ -102,7 +120,7 @@ bool sick_scan::SickScanServices::sendSopasAndCheckAnswer(const std::string& sop
  * @param[out] service_response service response from lidar
  * @return true on success, false in case of errors.
  */
-bool sick_scan::SickScanServices::serviceCbColaMsg(sick_scan::ColaMsgSrv::Request &service_request, sick_scan::ColaMsgSrv::Response &service_response)
+bool sick_scan::SickScanServices::serviceCbColaMsg(sick_scan_srv::ColaMsgSrv::Request &service_request, sick_scan_srv::ColaMsgSrv::Response &service_response)
 {
   std::string sopasCmd = service_request.request;
   std::vector<unsigned char> sopasReplyBin;
@@ -128,7 +146,7 @@ bool sick_scan::SickScanServices::serviceCbColaMsg(sick_scan::ColaMsgSrv::Reques
  * @param[out] service_response service response from lidar
  * @return true on success, false in case of errors.
  */
-bool sick_scan::SickScanServices::serviceCbECRChangeArr(sick_scan::ECRChangeArrSrv::Request &service_request, sick_scan::ECRChangeArrSrv::Response &service_response)
+bool sick_scan::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRChangeArrSrv::Request &service_request, sick_scan_srv::ECRChangeArrSrv::Response &service_response)
 {
   std::string sopasCmd = std::string("sEN ECRChangeArr ") + (service_request.active ? "1" : "0");
   std::vector<unsigned char> sopasReplyBin;
@@ -153,7 +171,7 @@ bool sick_scan::SickScanServices::serviceCbECRChangeArr(sick_scan::ECRChangeArrS
  * @param[out] service_response service response from lidar
  * @return true on success, false in case of errors.
  */
-bool sick_scan::SickScanServices::serviceCbLIDoutputstate(sick_scan::LIDoutputstateSrv::Request &service_request, sick_scan::LIDoutputstateSrv::Response &service_response)
+bool sick_scan::SickScanServices::serviceCbLIDoutputstate(sick_scan_srv::LIDoutputstateSrv::Request &service_request, sick_scan_srv::LIDoutputstateSrv::Response &service_response)
 {
   std::string sopasCmd = std::string("sEN LIDoutputstate ") + (service_request.active ? "1" : "0");
   std::vector<unsigned char> sopasReplyBin;

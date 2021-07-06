@@ -2,11 +2,10 @@
 
 ## Todo
 
-* For Windows/Linux native and ROS-2: support / replacement for ros services, enable USE_ROSSERVICES in sick_generic_laser.cpp
 * Test server support for all targets in CMakeLists.txt
+* Offline-Tests with all supported targets
 * support diagnostic_updater for ROS2 + native OS (Windows + Linux), enable USE_DIAGNOSTIC_UPDATER resp. USE_DIAGNOSTIC_UPDATER_LDMRS in sick_ros_wrapper.h
 * support dynamic_reconfigure for ROS2 + native OS (Windows + Linux), enable USE_DYNAMIC_RECONFIGURE in sick_ros_wrapper.h
-* support libsick_ldmrs for Native OS (Windows + Linux)
 * For Windows/Linux native: visualize field monitoring using https://github.com/michael1309/pgmHandling
 * Test (emualator and hardware)
 * Documentation (incl. table of supported sensors and features supported by Win/Linux/native/ROS1/ROS2)
@@ -18,74 +17,13 @@
 * github: folder test/emulator/scandata/ ignored (scandata files too big) -> move to Git Large File Storage
     * https://git-lfs.github.com/
     * https://docs.github.com/en/github/managing-large-files/versioning-large-files/configuring-git-large-file-storage
+* sick_scan, sick_scan_xD: #131 https://github.com/SICKAG/sick_scan/issues/131 (intensity < min_intensity: range := inf, nachf�hren in sick_scan und sick_scan_xd, wie in sick_safetyscanners-master\src\SickSafetyscannersRos.cpp):
+   ```
+   if (m_min_intensities >= static_cast<double>(scan_point.getReflectivity())) { scan.ranges[i] = std::numeric_limits<double>::infinity(); } 
+   ```
    
 ## Issues
-* Handling of scanner start/end angles different in ROS1 and ROS2 -> += 90.0 for all scanners except TiM240?
-    sick_scan_common.cpp sick_scan (ROS1):
-    ```
-      // convert to 10000th degree
-      double minAngSopas = rad2deg(this->config_.min_ang);
-      double maxAngSopas = rad2deg(this->config_.max_ang);
-      
-      minAngSopas -= getScanAngleShift();
-      maxAngSopas -= getScanAngleShift();
-      /*
-      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
-      {
-        // the TiM240 operates directly in the ros coordinate system
-      }
-      else
-      {
-        minAngSopas += 90.0;
-        maxAngSopas += 90.0;
-      }*/
-      angleStart10000th = (int) (boost::math::round(10000.0 * minAngSopas));
-      angleEnd10000th = (int) (boost::math::round(10000.0 * maxAngSopas));
-    ```
-    sick_scan_common.cpp:1549 sick_scan2 (ROS2):
-    ```
-      // convert to 10000th degree
-      double minAngSopas = rad2deg(this->config_.min_ang);
-      double maxAngSopas = rad2deg(this->config_.max_ang);
-      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
-      {
-        // the TiM240 operates directly in the ros coordinate system
-      }
-      else
-      {
-        //TODO change scanAngleShift for other scanners
-        //minAngSopas += 90.0;
-        //maxAngSopas += 90.0;
-      }
-      angleStart10000th = (int) (0.5 + 10000.0 * minAngSopas);
-      angleEnd10000th = (int) (0.5 + 10000.0 * maxAngSopas);
-    ```
-    sick_scan_common.cpp:2010 sick_scan (ROS1):
-    ```
-        double askAngleRes = askAngleRes10000th / 10000.0;
-        double askAngleStart = askAngleStart10000th / 10000.0;
-        double askAngleEnd = askAngleEnd10000th / 10000.0;
-        if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
-        {
-          // the TiM240 operates directly in the ros coordinate system
-        }
-        else
-        {
-          askAngleStart -= 90; // angle in ROS relative to y-axis
-          askAngleEnd -= 90; // angle in ROS relative to y-axis
-        }
-        this->config_.min_ang = askAngleStart / 180.0 * M_PI;
-        this->config_.max_ang = askAngleEnd / 180.0 * M_PI;
-    ```
-    sick_scan_common.cpp:1714 sick_scan2 (ROS2):
-    ```
-        double askAngleRes = askAngleRes10000th / 10000.0;
-        double askAngleStart = askAngleStart10000th / 10000.0;
-        double askAngleEnd = askAngleEnd10000th / 10000.0;
-        double angshift= this->parser_->getCurrentParamPtr()->getScanAngleShift();
-        this->config_.min_ang = (askAngleStart / 180.0 * M_PI);
-        this->config_.max_ang = (askAngleEnd / 180.0 * M_PI);
-    ```
+* support libsick_ldmrs for Windows und Linux native (?)
 * ROS1/ROS2 configuration min/max_ang for mrs_1xxx, tim_5xx:
     sick_scan2/config/sick_mrs_1xxx.yaml: 
     ```
@@ -104,8 +42,8 @@
     ```
     sick_scan/launch/sick_tim_5xx.launch:
     ```
-    <param name="min_ang" type="double" value="-2.35619449"/> <!-- -135° -->
-    <param name="max_ang" type="double" value="2.35619449"/>  <!-- +135° -->
+    <param name="min_ang" type="double" value="-2.35619449"/> <!-- -135 deg -->
+    <param name="max_ang" type="double" value="2.35619449"/>  <!-- +135 deg -->
     ```
 
 ## Overview

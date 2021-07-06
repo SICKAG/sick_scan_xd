@@ -64,15 +64,9 @@ SickLDMRS::SickLDMRS(rosNodePtr nh, Manager *manager, boost::shared_ptr<diagnost
   , initialized_(false)
   , nh_(nh)
   , config_(nh)
-#if __ROS_VERSION == 2  
-  , pub_(0)
-  , object_pub_(0)
-  , diagnosticPub_(0)
-#else
   , pub_()
   , object_pub_()
   , diagnosticPub_()
-#endif  
 {
   // point cloud publisher
   pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh_, "cloud");

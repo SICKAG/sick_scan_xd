@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.5)
 
 # build options: set OFF for relese version, ON for development and test
 option(ENABLE_EMULATOR "Build emulator for offline and unittests" ON) # OFF (release) or ON (development)
-if(ROS_VERSION EQUAL 0)
+if(WIN32 OR ROS_VERSION EQUAL 0)
 option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires PCL and libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF) # OFF (release) or ON (development)
 else()
 option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires PCL and libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" ON) # OFF (release) or ON (development)
@@ -160,6 +160,7 @@ if(ROS_VERSION EQUAL 2)
     find_package(tf2_ros REQUIRED)
     find_package(rosidl_default_generators REQUIRED)
     rosidl_generate_interfaces(${PROJECT_NAME}
+        # message files
         "msg/Encoder.msg"
         "msg/ImuExtended.msg"
         "msg/LFErecFieldMsg.msg"
@@ -175,8 +176,12 @@ if(ROS_VERSION EQUAL 2)
         "msg/SickImu.msg"
         "msg/ros2/ldmrs/SickLdmrsObject.msg"
         "msg/ros2/ldmrs/SickLdmrsObjectArray.msg"
+        # service files
+        "srv/ColaMsgSrv.srv"
+        "srv/ECRChangeArrSrv.srv"
+        "srv/LIDoutputstateSrv.srv"
         DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
-    )     
+    )   
     find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost ) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
@@ -377,40 +382,41 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     include_directories(roswrap/src/include/launchparser)
     
     add_library(sick_scan_lib STATIC
-	roswrap/src/getopt/getopt.c
+	    roswrap/src/getopt/getopt.c
         roswrap/src/toojpeg/toojpeg.cpp
         roswrap/src/launchparser/launchparser.cpp 
-        driver/src/sick_generic_field_mon.cpp
-	driver/src/sick_generic_imu.cpp
-        driver/src/sick_generic_laser.cpp
-	driver/src/sick_generic_parser.cpp
-        driver/src/sick_generic_radar.cpp
-	driver/src/sick_scan_common.cpp
-	driver/src/sick_scan_common_nw.cpp
-	driver/src/sick_scan_common_tcp.cpp
-        driver/src/sick_scan_marker.cpp
-        driver/src/sick_scan_messages.cpp
+        driver/src/binScanf.cpp
+        driver/src/dataDumper.cpp
+        driver/src/sick_generic_imu.cpp
+        driver/src/sick_generic_parser.cpp
+        driver/src/sick_scan_common.cpp
+        driver/src/sick_scan_common_nw.cpp
+        driver/src/sick_scan_common_tcp.cpp
         driver/src/abstract_parser.cpp
         driver/src/binPrintf.cpp
-	driver/src/binScanf.cpp
-	driver/src/dataDumper.cpp
+        driver/src/sick_generic_field_mon.cpp
+        driver/src/sick_generic_laser.cpp
+        driver/src/sick_generic_radar.cpp
+        driver/src/sick_scan_marker.cpp
+        driver/src/sick_scan_messages.cpp
+        driver/src/sick_scan_services.cpp
         driver/src/tinyxml/tinystr.cpp
         driver/src/tinyxml/tinyxml.cpp
         driver/src/tinyxml/tinyxmlerror.cpp
         driver/src/tinyxml/tinyxmlparser.cpp
-	driver/src/tcp/colaa.cpp
-	driver/src/tcp/colab.cpp
-	driver/src/tcp/errorhandler.cpp
-	driver/src/tcp/Mutex.cpp
-	driver/src/tcp/SickThread.cpp
-	driver/src/tcp/tcp.cpp
-	driver/src/tcp/Time.cpp
-	driver/src/tcp/toolbox.cpp
-	driver/src/softwarePLL.cpp
-	driver/src/helper/angle_compensator.cpp
+        driver/src/tcp/colaa.cpp
+        driver/src/tcp/colab.cpp
+        driver/src/tcp/errorhandler.cpp
+        driver/src/tcp/Mutex.cpp
+        driver/src/tcp/SickThread.cpp
+        driver/src/tcp/tcp.cpp
+        driver/src/tcp/Time.cpp
+        driver/src/tcp/toolbox.cpp
+        driver/src/softwarePLL.cpp
+        driver/src/helper/angle_compensator.cpp
         ${LDMRS_SOURCES} 
-	${SRC_ROSSIMU_FILES}
-	${SRC_WIN_FILES}
+        ${SRC_ROSSIMU_FILES}
+        ${SRC_WIN_FILES}
     )
 
     add_executable(sick_generic_caller

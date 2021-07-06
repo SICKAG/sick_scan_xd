@@ -72,11 +72,10 @@
 #include <sick_scan/sick_scan_common_tcp.h>
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_laser.h>
-
-#if defined __ROS_VERSION && __ROS_VERSION == 1 // ROS services currently supported on ROS-1 only, todo...
 #include <sick_scan/sick_scan_services.h>
-#define USE_ROSSERVICES
-#else
+//#define USE_ROSSERVICES
+
+#if __ROS_VERSION != 1 // launchparser for native Windows/Linux and ROS-2
 #include "launchparser.h"
 //#include "launchparser/launchparser.h"
 #define USE_LAUNCHPARSER // settings and parameter by LaunchParser
@@ -414,10 +413,10 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
     colaDialectId = 'A';
   }
 
-#ifdef USE_ROSSERVICES
+  //#ifdef USE_ROSSERVICES
   bool start_services = false;
   sick_scan::SickScanServices* services = 0;
-#endif
+  //#endif
   int result = sick_scan::ExitError;
 
   //sick_scan::SickScanConfig cfg;
@@ -447,14 +446,16 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
         }
         result = s->init(nhPriv);
 
-#ifdef USE_ROSSERVICES
+        //#ifdef USE_ROSSERVICES
         // Start ROS services
-        if (true == nhPriv->getParam("start_services", start_services) && true == start_services)
+        rosDeclareParam(nhPriv, "start_services", start_services);
+        rosGetParam(nhPriv, "start_services", start_services);
+        if (true == start_services)
         {
             services = new sick_scan::SickScanServices(nhPriv, s, parser->getCurrentParamPtr()->getUseBinaryProtocol());
             ROS_INFO("SickScanServices: ros services initialized");
         }
-#endif
+        //#endif
 
         isInitialized = true;
         signal(SIGINT, SIG_DFL); // change back to standard signal handler after initialising
@@ -492,13 +493,13 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
         break;
     }
   }
-#ifdef USE_ROSSERVICES
+  //#ifdef USE_ROSSERVICES
   if(services)
   {
     delete services;
     services = 0;
   }
-#endif
+  //#endif
   if (s != NULL)
   {
     delete s; // close connnect

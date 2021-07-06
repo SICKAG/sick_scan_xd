@@ -41,11 +41,9 @@
 #ifndef SICK_SCAN_SERVICES_H_
 #define SICK_SCAN_SERVICES_H_
 
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scan/sick_scan_common.h"
 #include "sick_scan/sick_scan_common_tcp.h"
-#include "sick_scan/ColaMsgSrv.h"
-#include "sick_scan/ECRChangeArrSrv.h"
-#include "sick_scan/LIDoutputstateSrv.h"
 
 namespace sick_scan
 {
@@ -54,7 +52,7 @@ namespace sick_scan
   {
   public:
 
-    SickScanServices(ros::NodeHandle* nh = 0, sick_scan::SickScanCommonTcp* common_tcp = 0, bool cola_binary = true);
+    SickScanServices(rosNodePtr nh = 0, sick_scan::SickScanCommonTcp* common_tcp = 0, bool cola_binary = true);
 
     virtual ~SickScanServices();
 
@@ -64,7 +62,8 @@ namespace sick_scan
      * @param[out] service_response service response from lidar
      * @return true on success, false in case of errors.
      */
-    bool serviceCbColaMsg(sick_scan::ColaMsgSrv::Request &service_request, sick_scan::ColaMsgSrv::Response &service_response);
+    bool serviceCbColaMsg(sick_scan_srv::ColaMsgSrv::Request &service_request, sick_scan_srv::ColaMsgSrv::Response &service_response);
+    bool serviceCbColaMsgROS2(std::shared_ptr<sick_scan_srv::ColaMsgSrv::Request> service_request, std::shared_ptr<sick_scan_srv::ColaMsgSrv::Response> service_response) { return serviceCbColaMsg(*service_request, *service_response); }     
 
     /*!
      * Callback for service messages (ECRChangeArr, Request status change of monitoring fields on event).
@@ -73,7 +72,8 @@ namespace sick_scan
      * @param[out] service_response service response from lidar
      * @return true on success, false in case of errors.
      */
-    bool serviceCbECRChangeArr(sick_scan::ECRChangeArrSrv::Request &service_request, sick_scan::ECRChangeArrSrv::Response &service_response);
+    bool serviceCbECRChangeArr(sick_scan_srv::ECRChangeArrSrv::Request &service_request, sick_scan_srv::ECRChangeArrSrv::Response &service_response);
+    bool serviceCbECRChangeArrROS2(std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Request> service_request, std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Response> service_response) { return serviceCbECRChangeArr(*service_request, *service_response); }     
 
     /*!
      * Callback for service messages (LIDoutputstate, Request status change of monitoring fields on event).
@@ -82,7 +82,8 @@ namespace sick_scan
      * @param[out] service_response service response from lidar
      * @return true on success, false in case of errors.
      */
-    bool serviceCbLIDoutputstate(sick_scan::LIDoutputstateSrv::Request &service_request, sick_scan::LIDoutputstateSrv::Response &service_response);
+    bool serviceCbLIDoutputstate(sick_scan_srv::LIDoutputstateSrv::Request &service_request, sick_scan_srv::LIDoutputstateSrv::Response &service_response);
+    bool serviceCbLIDoutputstateROS2(std::shared_ptr<sick_scan_srv::LIDoutputstateSrv::Request> service_request, std::shared_ptr<sick_scan_srv::LIDoutputstateSrv::Response> service_response) { return serviceCbLIDoutputstate(*service_request, *service_response); }     
 
   protected:
 
@@ -101,9 +102,9 @@ namespace sick_scan
 
     bool m_cola_binary;                             ///< cola ascii or cola binary messages
     sick_scan::SickScanCommonTcp* m_common_tcp;     ///< common tcp handler
-    ros::ServiceServer m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan::SickScanServices::serviceCbColaMsg
-    ros::ServiceServer m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan::SickScanServices::serviceCbECRChangeArr
-    ros::ServiceServer m_srv_server_LIDoutputstate; ///< service "LIDoutputstate", &sick_scan::SickScanServices::serviceCbLIDoutputstate
+    rosServiceServer<sick_scan_srv::ColaMsgSrv>/*ros::ServiceServer*/ m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan::SickScanServices::serviceCbColaMsg
+    rosServiceServer<sick_scan_srv::ECRChangeArrSrv>/*ros::ServiceServer*/ m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan::SickScanServices::serviceCbECRChangeArr
+    rosServiceServer<sick_scan_srv::LIDoutputstateSrv>/*ros::ServiceServer*/ m_srv_server_LIDoutputstate; ///< service "LIDoutputstate", &sick_scan::SickScanServices::serviceCbLIDoutputstate
 
   }; /* class SickScanServices */
 

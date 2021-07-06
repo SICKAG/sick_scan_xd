@@ -1925,15 +1925,17 @@ namespace sick_scan
       double minAngSopas = rad2deg(this->config_.min_ang);
       double maxAngSopas = rad2deg(this->config_.max_ang);
 
-      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
-      {
-        // the TiM240 operates directly in the ros coordinate system
-      }
-      else
-      {
-        minAngSopas += 90.0;
-        maxAngSopas += 90.0;
-      }
+      minAngSopas -= this->parser_->getCurrentParamPtr()->getScanAngleShift();
+      maxAngSopas -= this->parser_->getCurrentParamPtr()->getScanAngleShift();
+      // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+      // {
+      //   // the TiM240 operates directly in the ros coordinate system
+      // }
+      // else
+      // {
+      //   minAngSopas += 90.0;
+      //   maxAngSopas += 90.0;
+      // }
 
       angleStart10000th = (int) (std::round(10000.0 * minAngSopas));
       angleEnd10000th = (int) (std::round(10000.0 * maxAngSopas));
@@ -2120,15 +2122,18 @@ namespace sick_scan
         double askAngleStart = askAngleStart10000th / 10000.0;
         double askAngleEnd = askAngleEnd10000th / 10000.0;
 
-        if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
-        {
-          // the TiM240 operates directly in the ros coordinate system
-        }
-        else
-        {
-          askAngleStart -= 90; // angle in ROS relative to y-axis
-          askAngleEnd -= 90; // angle in ROS relative to y-axis
-        }
+        askAngleStart += this->parser_->getCurrentParamPtr()->getScanAngleShift();
+        askAngleEnd += this->parser_->getCurrentParamPtr()->getScanAngleShift();
+        
+        // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+        // {
+        //   // the TiM240 operates directly in the ros coordinate system
+        // }
+        // else
+        // {
+        //   askAngleStart -= 90; // angle in ROS relative to y-axis
+        //   askAngleEnd -= 90; // angle in ROS relative to y-axis
+        // }
         this->config_.min_ang = askAngleStart / 180.0 * M_PI;
         this->config_.max_ang = askAngleEnd / 180.0 * M_PI;
         
