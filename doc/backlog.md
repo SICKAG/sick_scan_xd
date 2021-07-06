@@ -1,4 +1,4 @@
-# sick_scan_xd backlog
+# sick_scan_xD backlog
 
 ## Todo
 
@@ -14,9 +14,13 @@
    * replace launchparser for ROS2 (ROS2 uses USE_LAUNCHPARSER in sick_generic_laser.cpp, switch to ROS2 standard parameter handling?)
    * replace boost and pthread with std C++ 14
    * ros-like services on native Windows + Linux 
+* Renaming from sick_scan_xd to sick_scan_xD
    
 ## Issues
 * github: folder test/emulator/scandata/ ignored (scandata files too big) -> move to a public testdata drive?
+    * Git Large File Storage
+    * https://git-lfs.github.com/
+    * https://docs.github.com/en/github/managing-large-files/versioning-large-files/configuring-git-large-file-storage
 * Handling of scanner start/end angles different in ROS1 and ROS2 -> += 90.0 for all scanners except TiM240?
     sick_scan_common.cpp sick_scan (ROS1):
     ```
@@ -97,8 +101,8 @@
     ```
     sick_scan/launch/sick_tim_5xx.launch:
     ```
-    <param name="min_ang" type="double" value="-2.35619449"/> <!-- -135° -->
-    <param name="max_ang" type="double" value="2.35619449"/>  <!-- +135° -->
+    <param name="min_ang" type="double" value="-2.35619449"/> <!-- -135Â° -->
+    <param name="max_ang" type="double" value="2.35619449"/>  <!-- +135Â° -->
     ```
 
 ## Overview
