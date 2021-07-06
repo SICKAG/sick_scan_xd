@@ -27,6 +27,10 @@
       // convert to 10000th degree
       double minAngSopas = rad2deg(this->config_.min_ang);
       double maxAngSopas = rad2deg(this->config_.max_ang);
+      
+      minAngSopas -= getScanAngleShift();
+      maxAngSopas -= getScanAngleShift();
+      /*
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
       {
         // the TiM240 operates directly in the ros coordinate system
@@ -35,7 +39,7 @@
       {
         minAngSopas += 90.0;
         maxAngSopas += 90.0;
-      }
+      }*/
       angleStart10000th = (int) (boost::math::round(10000.0 * minAngSopas));
       angleEnd10000th = (int) (boost::math::round(10000.0 * maxAngSopas));
     ```
