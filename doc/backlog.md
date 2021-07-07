@@ -1,4 +1,4 @@
-# sick_scan_xD backlog
+# sick_scan_xd backlog
 
 ## Todo
 
@@ -17,7 +17,7 @@
 * github: folder test/emulator/scandata/ ignored (scandata files too big) -> move to Git Large File Storage
     * https://git-lfs.github.com/
     * https://docs.github.com/en/github/managing-large-files/versioning-large-files/configuring-git-large-file-storage
-* sick_scan, sick_scan_xD: #131 https://github.com/SICKAG/sick_scan/issues/131 (intensity < min_intensity: range := inf, nachführen in sick_scan und sick_scan_xd, wie in sick_safetyscanners-master\src\SickSafetyscannersRos.cpp):
+* sick_scan, sick_scan_xD: #131 https://github.com/SICKAG/sick_scan/issues/131 (intensity < min_intensity: range := inf, nachfÃ¼hren in sick_scan und sick_scan_xd, wie in sick_safetyscanners-master\src\SickSafetyscannersRos.cpp):
    ```
    if (m_min_intensities >= static_cast<double>(scan_point.getReflectivity())) { scan.ranges[i] = std::numeric_limits<double>::infinity(); } 
    ```
