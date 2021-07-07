@@ -79,7 +79,7 @@ namespace sick_scan
        * @param[in] send_scan_data_rate frequency to generate and send scan data (default: 20 Hz)
        * @param[in] scan_data_payload scan data payload (without the message header)
        */
-      TestServerColaMsg(rclcpp::Node::SharedPtr nh, double send_scan_data_rate = 20.0, const std::vector<uint8_t> & scan_data_payload = std::vector<uint8_t>());
+      TestServerColaMsg(rosNodePtr nh, double send_scan_data_rate = 20.0, const std::vector<uint8_t> & scan_data_payload = std::vector<uint8_t>());
 
       /*
        * @brief Receives a cola telegram if data on a tcp socket are available.
@@ -110,7 +110,7 @@ namespace sick_scan
 
     protected:
 
-      rclcpp::Node::SharedPtr m_nh;
+      rosNodePtr m_nh;
       std::map<std::string, std::vector<uint8_t>> m_colaRequestResponseMap[2]; // ascii and binary dictonaries to map a request (f.e. "sAN SetAccessMode") to the response payload
       double m_send_scan_data_rate; // frequency to generate and send scan data (default: 20 Hz)
       bool m_send_scan_data; // true after command "start scan data", false after command "stop scan data"

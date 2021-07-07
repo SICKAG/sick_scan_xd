@@ -67,7 +67,7 @@
 #include <string>
 #include <vector>
 #include <boost/make_shared.hpp>
-#include "rclcpp/rclcpp.hpp"
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scan/sick_generic_laser.h"
 #include "sick_scan/sick_scan_common.h"
 
@@ -89,7 +89,7 @@ namespace sick_scan
       * @param[in] scanner_name scanner type, f.e. "sick_ldmrs"
       * @param[in] ip_port ip port for tcp connections, default: 2112
       */
-      TestServerThread(rclcpp::Node::SharedPtr nh = 0, const std::string & scanner_name = "undefined", int ip_port = 2112);
+      TestServerThread(rosNodePtr nh = 0, const std::string & scanner_name = "undefined", int ip_port = 2112);
 
       /*!
       * Destructor. Stops the server thread and closes all tcp connections.
@@ -115,7 +115,7 @@ namespace sick_scan
         */
       bool run(void);
 
-      rclcpp::Node::SharedPtr m_nh;     // ros node handle
+      rosNodePtr m_nh;                  // ros node handle
       std::string m_scanner_name;       // scanner type, f.e. "sick_ldmrs"
       int m_ip_port;                    // ip port for tcp connections
       std::thread* m_server_thread;     // background thread running tcp communication with clients

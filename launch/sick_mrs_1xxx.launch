@@ -11,6 +11,7 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
+    <arg name="sw_pll_only_publish" default="true"/>
     <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <!-- default values: -->
         <!-- Value interpretation of "filter_echos": 0 = First Echo, 1 = All Echos, 2 = Last Echo (see "sWN FREchoFilter") -->
@@ -36,7 +37,7 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="timelimit" type="int" value="5"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
-        <param name="sw_pll_only_publish" type="bool" value="true"/>
+        <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
 
     </node>
 </launch>

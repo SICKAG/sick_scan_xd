@@ -17,5 +17,7 @@ void setVersionInfo(std::string _versionInfo);
 
 std::string getVersionInfo();
 
+bool parseLaunchfileSetParameter(rosNodePtr nhPriv, int argc, char **argv);
+
 #endif
 

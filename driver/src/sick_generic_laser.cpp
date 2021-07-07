@@ -75,9 +75,8 @@
 #include <sick_scan/sick_scan_services.h>
 //#define USE_ROSSERVICES
 
-#if __ROS_VERSION != 1 // launchparser for native Windows/Linux and ROS-2
 #include "launchparser.h"
-//#include "launchparser/launchparser.h"
+#if __ROS_VERSION != 1 // launchparser for native Windows/Linux and ROS-2
 #define USE_LAUNCHPARSER // settings and parameter by LaunchParser
 #endif
 
@@ -110,7 +109,6 @@ enum NodeRunState
 };
 
 NodeRunState runState = scanner_init;  //
-
 
 /*!
 \brief splitting expressions like <tag>:=<value> into <tag> and <value>
@@ -167,49 +165,20 @@ inline bool ends_with(std::string const &value, std::string const &ending)
 }
 
 /*!
-\brief Internal Startup routine.
-\param argc: Number of Arguments
-\param argv: Argument variable
+\brief Parses an optional launchfile and sets all parameters. 
+       This function is used at startup to enable system independant parameter handling 
+       for native Linux/Windows, ROS-1 and ROS-2. Parameter are overwritten by optional
+       commandline arguments
+\param argc: Number of commandline arguments
+\param argv: commandline arguments
 \param nodeName name of the ROS-node
 \return exit-code
 \sa main
 */
-int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhPriv)
+bool parseLaunchfileSetParameter(rosNodePtr nhPriv, int argc, char **argv)
 {
   std::string tag;
   std::string val;
-
-
-  bool doInternalDebug = false;
-  bool emulSensor = false;
-  for (int i = 0; i < argc; i++)
-  {
-    std::string s = argv[i];
-    if (getTagVal(s, tag, val))
-    {
-      if (tag.compare("__internalDebug") == 0)
-      {
-        int debugState = 0;
-        sscanf(val.c_str(), "%d", &debugState);
-        if (debugState > 0)
-        {
-          doInternalDebug = true;
-        }
-      }
-      if (tag.compare("__emulSensor") == 0)
-      {
-        int dummyState = 0;
-        sscanf(val.c_str(), "%d", &dummyState);
-        if (dummyState > 0)
-        {
-          emulSensor = true;
-        }
-      }
-    }
-  }
-
-
-#ifdef USE_LAUNCHPARSER
   int launchArgcFileIdx = -1;
   for (int i = 1; i < argc; i++)
   {
@@ -254,11 +223,61 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
     {
       if (launchArgcFileIdx != i)
       {
-          ROS_INFO_STREAM("Tag-Value setting not valid. Use pattern: <tag>:=<value>  (e.g. hostname:=192.168.0.4) (Check the entry: " << s << ")\n");
-        exit(-1);
-
+          ROS_ERROR_STREAM("## ERROR parseLaunchfileSetParameter(): Tag-Value setting not valid. Use pattern: <tag>:=<value>  (e.g. hostname:=192.168.0.4) (Check the entry: " << s << ")\n");
+          return false;
       }
     }
+  }
+  return true;
+}
+
+/*!
+\brief Internal Startup routine.
+\param argc: Number of Arguments
+\param argv: Argument variable
+\param nodeName name of the ROS-node
+\return exit-code
+\sa main
+*/
+int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhPriv)
+{
+  std::string tag;
+  std::string val;
+
+
+  bool doInternalDebug = false;
+  bool emulSensor = false;
+  for (int i = 0; i < argc; i++)
+  {
+    std::string s = argv[i];
+    if (getTagVal(s, tag, val))
+    {
+      if (tag.compare("__internalDebug") == 0)
+      {
+        int debugState = 0;
+        sscanf(val.c_str(), "%d", &debugState);
+        if (debugState > 0)
+        {
+          doInternalDebug = true;
+        }
+      }
+      if (tag.compare("__emulSensor") == 0)
+      {
+        int dummyState = 0;
+        sscanf(val.c_str(), "%d", &dummyState);
+        if (dummyState > 0)
+        {
+          emulSensor = true;
+        }
+      }
+    }
+  }
+
+#ifdef USE_LAUNCHPARSER
+  if(!parseLaunchfileSetParameter(nhPriv, argc, argv))
+  {
+    ROS_ERROR_STREAM("## ERROR sick_generic_laser: parseLaunchfileSetParameter() failed, aborting\n");
+    exit(-1);
   }
 #endif
 

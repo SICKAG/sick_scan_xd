@@ -58,25 +58,39 @@
  *
  */
 #include <sick_scan/sick_ros_wrapper.h>
+#include <sick_scan/sick_generic_laser.h>
 #include "sick_scan/test_server/test_server_thread.h"
 
 int main(int argc, char** argv)
 {
   // Ros configuration and initialization, pass command line arguments to rclcpp.
+#if defined __ROS_VERSION && __ROS_VERSION == 2
   rclcpp::init(argc, argv);
   rclcpp::NodeOptions node_options;
   node_options.allow_undeclared_parameters(true);
   rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("sick_test_server", "", node_options);
-  // setMainNode(node);
+#else
+  ros::init(argc, argv, "sick_test_server", ros::init_options::NoSigintHandler);  // scannerName holds the node-name
+  signal(SIGINT, rosSignalHandler);
+  ros::NodeHandle nh("~");
+  rosNodePtr node = &nh;
+#endif
+
+  if(!parseLaunchfileSetParameter(node, argc, argv))
+  {
+    ROS_ERROR_STREAM("## ERROR sick_test_server: parseLaunchfileSetParameter() failed, aborting\n");
+    exit(-1);
+  }
+
   std::string scanner_name = "undefined";
   int port = 2112;
   double send_scan_data_rate = 1/20.0; // frequency to generate and send scan data (default: 20 Hz)
-  node->declare_parameter<std::string>("scanner_name", scanner_name);
-  node->declare_parameter<int>("port", port);
-  node->declare_parameter<double>("send_scan_data_rate", send_scan_data_rate);
-  node->get_parameter("scanner_name", scanner_name);
-  node->get_parameter("port", port);
-  node->get_parameter("send_scan_data_rate", send_scan_data_rate);
+  rosDeclareParam(node, "scanner_name", scanner_name);
+  rosDeclareParam(node, "port", port);
+  rosDeclareParam(node, "send_scan_data_rate", send_scan_data_rate);
+  rosGetParam(node, "scanner_name", scanner_name);
+  rosGetParam(node, "port", port);
+  rosGetParam(node, "send_scan_data_rate", send_scan_data_rate);
   ROS_INFO_STREAM("sick_scan_test_server started, simulating scanner type \"" << scanner_name << "\" on tcp port " << port);
 
   // Start a tcp test server to simulate a lidar device
@@ -85,7 +99,7 @@ int main(int argc, char** argv)
 
   // Run ros event loop
   ROS_INFO("sick_scan_test_server is running event loop");
-  rclcpp::spin(node);
+  rosSpin(node);
 
   // Cleanup and exit
   ROS_INFO("sick_scan_test_server finished.");

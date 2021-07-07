@@ -65,7 +65,7 @@
 #include <vector>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/make_shared.hpp>
-#include "rclcpp/rclcpp.hpp"
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scan/sick_generic_laser.h"
 #include "sick_scan/sick_scan_common.h"
 

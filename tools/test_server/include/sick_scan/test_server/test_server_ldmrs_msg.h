@@ -78,7 +78,7 @@ namespace sick_scan
        * @param[in] send_scan_data_rate frequency to generate and send scan data (default: 20 Hz)
        * @param[in] scan_data_payload scan data payload (without the message header)
        */
-      TestServerLDMRSMsg(rclcpp::Node::SharedPtr nh, double send_scan_data_rate = 20.0, const std::vector<uint8_t> & scan_data_payload = std::vector<uint8_t>());
+      TestServerLDMRSMsg(rosNodePtr nh, double send_scan_data_rate = 20.0, const std::vector<uint8_t> & scan_data_payload = std::vector<uint8_t>());
 
       /*
        * @brief Receives a LDMRS message if data on a tcp socket are available.
@@ -117,7 +117,7 @@ namespace sick_scan
        */
       static std::vector<uint8_t> createMessageHeader(size_t data_type, size_t payload_length);
 
-      rclcpp::Node::SharedPtr m_nh;
+      rosNodePtr m_nh;
       double m_send_scan_data_rate; // frequency to generate and send scan data (default: 20 Hz)
       bool m_send_scan_data; // true after command "start measure", false after command "stop measure"
       std::vector<uint8_t> m_scan_data_payload; // scan data payload (without the message header)

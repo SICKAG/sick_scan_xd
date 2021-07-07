@@ -2,11 +2,12 @@
 <!-- Launch File for LDMRS -->
 <launch>
 
+    <arg name="hostname" default="192.168.0.1"/> 
     <node name="sick_ldmrs" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
 
         <!-- Common settings for LDMRS -->
         <param name="scanner_type" type="string" value="sick_ldmrs"/>
-        <param name="hostname" type="string" value="192.168.0.1"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/> 
         <param name="port" type="string" value="12002"/>
         <param name="min_ang" type="double" value="-1.047197"/>
         <param name="max_ang" type="double" value="+1.047197"/>

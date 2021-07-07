@@ -286,7 +286,7 @@ if(ROS_VERSION EQUAL 1)
     )
 endif(ROS_VERSION EQUAL 1)
 
-include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include)
+include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include/launchparser)
 
 if(ROS_VERSION EQUAL 1)
     add_library(sick_scan_lib STATIC
@@ -308,15 +308,19 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_generic_imu.cpp
         driver/src/sick_generic_parser.cpp
         driver/src/sick_scan_common_nw.cpp
-        include/sick_scan/sick_scan_config_internal.h
         driver/src/sick_scan_config_internal.cpp
-        include/sick_scan/softwarePLL.h
         driver/src/softwarePLL.cpp
         driver/src/helper/angle_compensator.cpp
         driver/src/sick_generic_field_mon.cpp
         driver/src/sick_scan_marker.cpp
         driver/src/sick_scan_messages.cpp
         driver/src/sick_scan_services.cpp
+        driver/src/sick_generic_laser.cpp
+        roswrap/src/launchparser/launchparser.cpp 
+        driver/src/tinyxml/tinystr.cpp
+        driver/src/tinyxml/tinyxml.cpp
+        driver/src/tinyxml/tinyxmlerror.cpp
+        driver/src/tinyxml/tinyxmlparser.cpp
         ${LDMRS_SOURCES} 
     )
 
@@ -326,7 +330,6 @@ if(ROS_VERSION EQUAL 1)
         ${catkin_LIBRARIES})
 
     add_executable(sick_generic_caller
-        driver/src/sick_generic_laser.cpp
         driver/src/sick_generic_caller.cpp
         )
 
@@ -353,10 +356,6 @@ if(ROS_VERSION EQUAL 1)
     
     add_executable(sick_scan_test
         test/src/sick_scan_test.cpp
-        driver/src/tinyxml/tinystr.cpp
-        driver/src/tinyxml/tinyxml.cpp
-        driver/src/tinyxml/tinyxmlerror.cpp
-        driver/src/tinyxml/tinyxmlparser.cpp
         )
     target_link_libraries(sick_scan_test
         ${catkin_LIBRARIES}
@@ -379,8 +378,6 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         )
     endif()
 
-    include_directories(roswrap/src/include/launchparser)
-    
     add_library(sick_scan_lib STATIC
 	    roswrap/src/getopt/getopt.c
         roswrap/src/toojpeg/toojpeg.cpp
@@ -508,7 +505,7 @@ if(ROS_VERSION EQUAL 2)
     ament_package()        
 endif(ROS_VERSION EQUAL 2)
 
-if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
+if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)  # TODO: support for all targets
     #
     # emulator
     #
@@ -554,7 +551,7 @@ if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
 
 endif(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
 
-if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 2) # TODO: support for all targets
+if(ENABLE_EMULATOR)
         add_executable(test_server 
             tools/test_server/src/test_server.cpp 
             tools/test_server/src/test_server_cola_msg.cpp 

@@ -19,6 +19,7 @@
     <arg name="port" default="2111"/>
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
+    <arg name="sw_pll_only_publish" default="true"/>
     <node name="sick_tim_240" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_tim_240"/>
         <!-- datagram shows values from -90 ... 120 (211 values) -->
@@ -36,6 +37,6 @@
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="port" type="string" value="$(arg port)"/>
         <param name="timelimit" type="int" value="5"/>
-        <param name="sw_pll_only_publish" type="bool" value="true"/>
+        <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
     </node>
 </launch>

@@ -64,7 +64,7 @@
  * @param[in] send_scan_data_rate frequency to generate and send scan data (default: 20 Hz)
  * @param[in] scan_data_payload scan data payload (without the message header)
  */
-sick_scan::test::TestServerLDMRSMsg::TestServerLDMRSMsg(rclcpp::Node::SharedPtr nh, double send_scan_data_rate, const std::vector<uint8_t> & scan_data_payload)
+sick_scan::test::TestServerLDMRSMsg::TestServerLDMRSMsg(rosNodePtr nh, double send_scan_data_rate, const std::vector<uint8_t> & scan_data_payload)
 : m_nh(nh), m_send_scan_data_rate(send_scan_data_rate), m_send_scan_data(false), m_send_scan_data_cnt(0), m_delta_range_cm(0), m_delta_range_step(1)
 {
   m_scan_data_payload = scan_data_payload;
@@ -123,7 +123,7 @@ bool sick_scan::test::TestServerLDMRSMsg::receiveMessage(boost::asio::ip::tcp::s
     return false; // no data available or error receiving message header
   if (memcmp(&header[0], &magic_word[0], 4) != 0)
   {
-    RCLCPP_ERROR_STREAM(m_nh->get_logger(), "## ERROR sick_scan::test::TestServerLDMRSMsg::receiveMessage(): error receiving magic word 0xAFFEC0C2");
+    ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerLDMRSMsg::receiveMessage(): error receiving magic word 0xAFFEC0C2");
     return false; // error receiving magic word
   }
   
@@ -147,7 +147,7 @@ bool sick_scan::test::TestServerLDMRSMsg::receiveMessage(boost::asio::ip::tcp::s
   memcpy(message.data(), &header[0], sizeof(header));
   if (boost::asio::read(tcp_client_socket, boost::asio::buffer(message.data() + 24, payload_length), boost::asio::transfer_exactly(payload_length), errorcode) < payload_length || errorcode)
   {
-    RCLCPP_ERROR_STREAM(m_nh->get_logger(), "## ERROR sick_scan::test::TestServerLDMRSMsg::receiveMessage(): error receiving " << payload_length << " byte tcp payload");
+    ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerLDMRSMsg::receiveMessage(): error receiving " << payload_length << " byte tcp payload");
     return false; // error receiving tcp payload
   }
 
@@ -167,7 +167,7 @@ bool sick_scan::test::TestServerLDMRSMsg::createResponse(const std::vector<uint8
   response.clear();
   if(message_received.size() < 24)
   {
-    RCLCPP_ERROR_STREAM(m_nh->get_logger(), "## ERROR sick_scan::test::TestServerLDMRSMsg::createResponse(): invalid input message");
+    ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerLDMRSMsg::createResponse(): invalid input message");
     return false;
   }
 
@@ -187,7 +187,7 @@ bool sick_scan::test::TestServerLDMRSMsg::createResponse(const std::vector<uint8
   // Decode 2 byte command id (little endian)
   if(message_received.size() < 26)
   {
-    RCLCPP_ERROR_STREAM(m_nh->get_logger(), "## ERROR sick_scan::test::TestServerLDMRSMsg::createResponse(): invalid command message");
+    ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerLDMRSMsg::createResponse(): invalid command message");
     return false;
   }
   size_t command_id = (message_received[24] & 0xFF) | (message_received[25] << 8);
@@ -255,7 +255,7 @@ bool sick_scan::test::TestServerLDMRSMsg::createResponse(const std::vector<uint8
     uint32_t parameter_value = (message_received.size() >= 33) ? ((message_received[30] & 0xFF) | (message_received[31] << 8) | (message_received[32] << 16) | (message_received[33] << 24)) : 0;
     payload.resize(2); // 2 byte acknowledge with command id
     payload[0] = 0x10; // id status request
-    RCLCPP_INFO_STREAM(m_nh->get_logger(), "sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x10 \"Set Parameter\", parameter id 0x" 
+    ROS_INFO_STREAM("sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x10 \"Set Parameter\", parameter id 0x" 
      << std::hex << parameter_id << " " << parameter_id_names[parameter_id] << ", parameter value 0x" << std::hex << parameter_value);
   }
   // Command "Get Parameter", Read a single parameter from the LD-MRS
@@ -267,7 +267,7 @@ bool sick_scan::test::TestServerLDMRSMsg::createResponse(const std::vector<uint8
     payload[0] = 0x11; // id status request
     payload[2] = message_received[28];
     payload[3] = message_received[29];
-    RCLCPP_INFO_STREAM(m_nh->get_logger(), "sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x11 \"Get Parameter\", parameter id 0x" 
+    ROS_INFO_STREAM("sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x11 \"Get Parameter\", parameter id 0x" 
      << std::hex << parameter_id << parameter_id_names[parameter_id] << ", parameter value 0x" << std::hex << parameter_value);
   }
   // Start Measure
@@ -277,7 +277,7 @@ bool sick_scan::test::TestServerLDMRSMsg::createResponse(const std::vector<uint8
     m_last_scan_data = std::chrono::system_clock::now() + std::chrono::seconds(5); // start scanning in 5 seconds
     payload.resize(2); // 2 byte acknowledge with command id
     payload[0] = 0x20; // id status request
-    RCLCPP_INFO_STREAM(m_nh->get_logger(), "sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x20 -> start scanning in 5 seconds");
+    ROS_INFO_STREAM("sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x20 -> start scanning in 5 seconds");
   }
   // Stop Measure
   else if(command_id == 0x0021)
@@ -285,7 +285,7 @@ bool sick_scan::test::TestServerLDMRSMsg::createResponse(const std::vector<uint8
     m_send_scan_data = false;
     payload.resize(2); // 2 byte acknowledge with command id
     payload[0] = 0x21; // id status request
-    RCLCPP_INFO_STREAM(m_nh->get_logger(), "sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x21 -> stop scanning");
+    ROS_INFO_STREAM("sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x21 -> stop scanning");
   }
   // Default: a command will be acknowledged by the same command id without any command reply data
   else
@@ -302,7 +302,7 @@ bool sick_scan::test::TestServerLDMRSMsg::createResponse(const std::vector<uint8
   if(!payload.empty())
     response.insert(response.end(), payload.begin(), payload.end());
 
-  RCLCPP_INFO_STREAM(m_nh->get_logger(), "sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x" << std::hex << command_id << " " << command_id_names[command_id] 
+  ROS_INFO_STREAM("sick_scan::test::TestServerLDMRSMsg::createResponse(): command id 0x" << std::hex << command_id << " " << command_id_names[command_id] 
     << ", " << std::dec << response.size() << " byte response");
   return true;
 }
@@ -355,9 +355,9 @@ bool sick_scan::test::TestServerLDMRSMsg::createScandata(std::vector<uint8_t> & 
     m_delta_range_cm = 0;
     m_delta_range_step = -m_delta_range_step;
   }
-  RCLCPP_DEBUG_STREAM(m_nh->get_logger(), "sick_scan::test::TestServerLDMRSMsg::createScandata(" << m_send_scan_data_cnt << "): " << scandata.size() << " byte scan data generated");
+  ROS_DEBUG_STREAM("sick_scan::test::TestServerLDMRSMsg::createScandata(" << m_send_scan_data_cnt << "): " << scandata.size() << " byte scan data generated");
   if(m_send_scan_data_cnt <= 1)
-    RCLCPP_INFO_STREAM(m_nh->get_logger(), "sick_scan::test::TestServerLDMRSMsg::createScandata(): Generating " << scandata.size() << " byte scan data with " << m_send_scan_data_rate << " Hz");
+    ROS_INFO_STREAM("sick_scan::test::TestServerLDMRSMsg::createScandata(): Generating " << scandata.size() << " byte scan data with " << m_send_scan_data_rate << " Hz");
 
   return true;
 }

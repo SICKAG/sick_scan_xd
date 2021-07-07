@@ -28,7 +28,7 @@ source ./install/setup.bash
 # 4. Stop simulation after 20 seconds
 #
 
-sleep  1 ; ros2 run sick_scan test_server --ros-args --params-file ./src/sick_scan_xd/tools/test_server/config/test_server_ldmrs.yaml &
+sleep  1 ; ros2 run sick_scan test_server ./src/sick_scan_xd/tools/test_server/config/test_server_ldmrs.launch &
 sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_ldmrs.launch hostname:=127.0.0.1 & 
 sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/launch/rviz/sick_ldmrs.rviz &
 sleep 20 ; ros2 topic echo diagnostics > ./log/sick_ldmrs_diagnostics.log &
@@ -44,8 +44,9 @@ sleep 3
 # 4. Stop simulation after 10 seconds
 #
 
-for launch_file in sick_tim_240.launch sick_tim_5xx.launch sick_tim_7xx.launch sick_tim_7xxS.launch sick_lms_1xx.launch sick_lms_5xx.launch sick_mrs_1xxx.launch ; do
-  sleep  1 ; ros2 run sick_scan test_server --ros-args --params-file src/sick_scan_xd/tools/test_server/config/test_server_cola.yaml &
+for launch_file in sick_tim_240.launch sick_tim_5xx.launch sick_mrs_1xxx.launch ; do
+  #sleep  1 ; ros2 run sick_scan test_server --ros-args --params-file src/sick_scan_xd/tools/test_server/config/test_server_cola.yaml &
+  sleep  1 ; ros2 run sick_scan test_server ./src/sick_scan_xd/tools/test_server/config/test_server_cola.launch &
   sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/$launch_file hostname:=127.0.0.1 port:=2112 frame_id:=cloud sw_pll_only_publish:=False & 
   sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/launch/rviz/sick_cola.rviz &
   sleep 10 ; simu_ldmrs_killall
