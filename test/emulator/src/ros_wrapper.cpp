@@ -87,7 +87,7 @@ void ROS::init(int argc, char** argv, const std::string nodename)
 #endif
 
 /** ROS1-/ROS2-compatible shortcut for ros::spin(); */
-#if defined __ROS_VERSION && __ROS_VERSION == 1
+#if defined __ROS_VERSION && __ROS_VERSION <= 1
 void ROS::spin(ROS::NodePtr nh)
 {
   ros::spin();
@@ -115,7 +115,7 @@ void ROS::sleep(double seconds)
 /** Shortcut to ros::Time::now() on ROS1 resp. rclcpp::Clock::now() on ROS2 */
 ROS::Time ROS::now(void)
 {
-#if defined __ROS_VERSION && __ROS_VERSION == 1
+#if defined __ROS_VERSION && __ROS_VERSION <= 1
   return ros::Time::now();
 #elif defined __ROS_VERSION && __ROS_VERSION == 2
   return s_wrapper_clock.now();

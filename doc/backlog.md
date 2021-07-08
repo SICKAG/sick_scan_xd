@@ -2,7 +2,7 @@
 
 ## Todo
 
-* Test server support for all targets in CMakeLists.txt (incl. ros services, ROS2+TiM7xx, etc.pp.)
+* Test server support for all targets in CMakeLists.txt (incl. ros services, etc.pp.)
 * support diagnostic_updater for ROS2 + native OS (Windows + Linux), enable USE_DIAGNOSTIC_UPDATER resp. USE_DIAGNOSTIC_UPDATER_LDMRS in sick_ros_wrapper.h
 * support dynamic_reconfigure for ROS2 + native OS (Windows + Linux), enable USE_DYNAMIC_RECONFIGURE in sick_ros_wrapper.h
 * For Windows/Linux native: visualize field monitoring using https://github.com/michael1309/pgmHandling
@@ -71,3 +71,4 @@
 * commit ffde775 on Jun 30, 2021: support for ROS 2
 * commit f72f8cf on Jul 01, 2021: test and minor fixes
 * commit aed7419 on Jul 06, 2021: merge with sick_scan2, ros services
+ compatibility for targets Linux (native, ROS-1, ROS-2) and Windows (native, ROS2)

@@ -61,7 +61,11 @@
 #include <future>
 #include <memory>
 
-#if defined __ROS_VERSION && __ROS_VERSION == 1
+#if defined __ROS_VERSION && __ROS_VERSION == 0  // native Linux or Windows uses ros simu
+#include <sick_scan/rosconsole_simu.hpp>
+#endif
+
+#if defined __ROS_VERSION && __ROS_VERSION <= 1
 /*
  * Support for ROS 1 API
  */
@@ -271,7 +275,13 @@ namespace ROS
 
   template<typename T> bool param(ROS::NodePtr & node, const std::string & param_name, T& value, const T& default_value)
   {
+    #if __ROS_VERSION == 0
+    ROS_WARN_STREAM("ROS::param(" << param_name << "," << value << "," << default_value << ") not supported (__ROS_VERSION=" << __ROS_VERSION << ", ROS::param requires __ROS_VERSION > 0), set " << param_name << " to default value " << default_value);
+    value = default_value;
+    return false;
+    #else
     return ros::param::param<T>(param_name, value, default_value);
+    #endif
   }
   
   /** ROS1-/ROS2-compatible shortcut for ros::spin(); */

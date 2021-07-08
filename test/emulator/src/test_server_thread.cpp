@@ -84,7 +84,8 @@ sick_scan::TestServerThread::TestServerThread(ROS::NodePtr nh, int ip_port_resul
   m_tcp_acceptor_cola.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
   if(nh)
   {
-
+    m_scandatafiles = "/tmp/lmd_scandata.pcapng.json"; // default pcapng.json file for testing and debugging
+    m_scandatatypes = "sSN LMDscandata ,sSN LIDinputstate ,sSN LIDoutputstate ,sSN LFErec "; // default datatypes (send those datatypes when found in scandata file)
     ROS::param<std::string>(nh, "/sick_scan_emulator/scandatafiles", m_scandatafiles, m_scandatafiles); // comma separated list of jsonfiles to emulate scandata messages, f.e. "tim781s_scandata.pcapng.json,tim781s_sopas.pcapng.json"
     ROS::param<std::string>(nh, "/sick_scan_emulator/scandatatypes", m_scandatatypes, m_scandatatypes); // comma separated list of scandata message types, f.e. "sSN LMDscandata,sSN LMDscandatamon"
     ROS::param<std::string>(nh, "/sick_scan_emulator/scanner_type", m_scanner_type, m_scanner_type);    // currently supported: "sick_lms_5xx", "sick_tim_7xx"

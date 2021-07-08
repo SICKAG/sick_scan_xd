@@ -5,19 +5,17 @@ cmake_minimum_required(VERSION 3.5)
 
 # build options: set OFF for relese version, ON for development and test
 option(ENABLE_EMULATOR "Build emulator for offline and unittests" ON) # OFF (release) or ON (development)
-if(WIN32 OR ROS_VERSION EQUAL 0)
-option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires PCL and libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF) # OFF (release) or ON (development)
+if(WIN32)
+    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires PCL and libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF) # OFF (release) or ON (development)
 else()
-option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires PCL and libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" ON) # OFF (release) or ON (development)
+    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires PCL and libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" ON) # OFF (release) or ON (development)
 endif()
 option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (development)
 
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
-#
 
 # Added CMP0048 to avoid unstable warning of build process
-#
 if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
@@ -32,8 +30,6 @@ endif()
 if(BUILD_DEBUG_TARGET)
         set(CMAKE_BUILD_TYPE Debug) #uncomment to activate debug mode for lib_sick as well
         set(CMAKE_ENABLE_EXPORTS 1) #uncomment to activate debug mode for lib_sick as well
-        # https://cmake.org/cmake/help/v3.5/prop_tgt/ENABLE_EXPORTS.html
-        # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++03")
 endif(BUILD_DEBUG_TARGET)
 
 # Switch on, if you use c11-specific commands
@@ -68,10 +64,7 @@ endif()
 # For warning <catkin_workspace>/devel/include' should be placed in
 # the devel space instead of the build space
 # see: https://answers.ros.org/question/67244/qtcreator-with-catkin/
-
-
 # message(${CMAKE_BINARY_DIR})
-
 # set(CATKIN_DEVEL_PREFIX "${CMAKE_BINARY_DIR}/devel")
 # set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/devel;/opt/ros/melodic")
 
@@ -159,6 +152,70 @@ if(ROS_VERSION EQUAL 2)
     find_package(visualization_msgs REQUIRED)
     find_package(tf2_ros REQUIRED)
     find_package(rosidl_default_generators REQUIRED)
+    if(ENABLE_EMULATOR)
+        set(ROSIDL_EMULATOR_FILES
+            # emulator messages
+            "test/emulator/msg/SickLocColaTelegramMsg.msg"
+            "test/emulator/msg/SickLocDiagnosticMsg.msg"
+            "test/emulator/msg/SickLocResultPortCrcMsg.msg"
+            "test/emulator/msg/SickLocResultPortHeaderMsg.msg"
+            "test/emulator/msg/SickLocResultPortPayloadMsg.msg"
+            "test/emulator/msg/SickLocResultPortTelegramMsg.msg"
+            "test/emulator/msg/SickLocResultPortTestcaseMsg.msg"
+            # emulator services
+            "test/emulator/srv/SickLocColaTelegramSrv.srv"
+            "test/emulator/srv/SickLocRequestTimestampSrv.srv"
+            "test/emulator/srv/SickLocSetResultModeSrv.srv"
+            "test/emulator/srv/SickLocSetResultPoseIntervalSrv.srv"
+            "test/emulator/srv/SickLocIsSystemReadySrv.srv"
+            "test/emulator/srv/SickLocSetPoseSrv.srv"
+            "test/emulator/srv/SickLocSetResultPortSrv.srv"
+            "test/emulator/srv/SickLocStartLocalizingSrv.srv"
+            "test/emulator/srv/SickLocStopSrv.srv"
+            "test/emulator/srv/SickLocRequestResultDataSrv.srv"
+            "test/emulator/srv/SickLocSetResultEndiannessSrv.srv"
+            "test/emulator/srv/SickLocSetResultPoseEnabledSrv.srv"
+            "test/emulator/srv/SickLocStateSrv.srv"
+            "test/emulator/srv/SickLocTimeSyncSrv.srv"
+            "test/emulator/srv/SickDevGetLidarConfigSrv.srv"
+            "test/emulator/srv/SickDevGetLidarIdentSrv.srv"
+            "test/emulator/srv/SickDevGetLidarStateSrv.srv"
+            "test/emulator/srv/SickDevSetLidarConfigSrv.srv"
+            "test/emulator/srv/SickGetSoftwareVersionSrv.srv"
+            "test/emulator/srv/SickLocAutoStartActiveSrv.srv"
+            "test/emulator/srv/SickLocAutoStartSavePoseIntervalSrv.srv"
+            "test/emulator/srv/SickLocAutoStartSavePoseSrv.srv"
+            "test/emulator/srv/SickLocForceUpdateSrv.srv"
+            "test/emulator/srv/SickLocInitializePoseSrv.srv"
+            "test/emulator/srv/SickLocInitialPoseSrv.srv"
+            "test/emulator/srv/SickLocMapSrv.srv"
+            "test/emulator/srv/SickLocMapStateSrv.srv"
+            "test/emulator/srv/SickLocOdometryActiveSrv.srv"
+            "test/emulator/srv/SickLocOdometryPortSrv.srv"
+            "test/emulator/srv/SickLocOdometryRestrictYMotionSrv.srv"
+            "test/emulator/srv/SickLocReflectorsForSupportActiveSrv.srv"
+            "test/emulator/srv/SickLocResultEndiannessSrv.srv"
+            "test/emulator/srv/SickLocResultModeSrv.srv"
+            "test/emulator/srv/SickLocResultPortSrv.srv"
+            "test/emulator/srv/SickLocResultPoseIntervalSrv.srv"
+            "test/emulator/srv/SickLocResultStateSrv.srv"
+            "test/emulator/srv/SickLocRingBufferRecordingActiveSrv.srv"
+            "test/emulator/srv/SickLocSaveRingBufferRecordingSrv.srv"
+            "test/emulator/srv/SickLocSetAutoStartActiveSrv.srv"
+            "test/emulator/srv/SickLocSetAutoStartSavePoseIntervalSrv.srv"
+            "test/emulator/srv/SickLocSetMapSrv.srv"
+            "test/emulator/srv/SickLocSetOdometryActiveSrv.srv"
+            "test/emulator/srv/SickLocSetOdometryPortSrv.srv"
+            "test/emulator/srv/SickLocSetOdometryRestrictYMotionSrv.srv"
+            "test/emulator/srv/SickLocSetReflectorsForSupportActiveSrv.srv"
+            "test/emulator/srv/SickLocSetRingBufferRecordingActiveSrv.srv"
+            "test/emulator/srv/SickLocStartDemoMappingSrv.srv"
+            "test/emulator/srv/SickReportUserMessageSrv.srv"
+            "test/emulator/srv/SickSavePermanentSrv.srv"
+            "test/emulator/srv/SickDevSetIMUActiveSrv.srv"
+            "test/emulator/srv/SickDevIMUActiveSrv.srv"
+        )
+    endif(ENABLE_EMULATOR)
     rosidl_generate_interfaces(${PROJECT_NAME}
         # message files
         "msg/Encoder.msg"
@@ -180,9 +237,10 @@ if(ROS_VERSION EQUAL 2)
         "srv/ColaMsgSrv.srv"
         "srv/ECRChangeArrSrv.srv"
         "srv/LIDoutputstateSrv.srv"
+        ${ROSIDL_EMULATOR_FILES}
         DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
     )   
-    find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost ) after calling rosidl_generate_interfaces in CMakeLists.txt
+    find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
 if(BUILD_WITH_LDMRS_SUPPORT)
@@ -198,7 +256,7 @@ if(BUILD_WITH_LDMRS_SUPPORT)
     message(STATUS "LDMRS_TARGET_DEPENDENCIES: ${LDMRS_TARGET_DEPENDENCIES}")
 endif()
  
-if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1) # TODO: support for all targets
+if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
     # emulator messages
     add_message_files(
         DIRECTORY test/emulator/msg
@@ -371,10 +429,10 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     if(ROS_VERSION EQUAL 0)
         include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg)
         file(GLOB SRC_ROSSIMU_FILES 
-	roswrap/src/cfgsimu/sick_scan/time_modi.cpp
-	roswrap/src/rossimu/kinetic/src/rossimu.cpp
-	roswrap/src/rossimu/kinetic/src/duration.cpp
-	roswrap/src/rossimu/kinetic/src/rate.cpp
+            roswrap/src/cfgsimu/sick_scan/time_modi.cpp
+            roswrap/src/rossimu/kinetic/src/rossimu.cpp
+            roswrap/src/rossimu/kinetic/src/duration.cpp
+            roswrap/src/rossimu/kinetic/src/rate.cpp
         )
     endif()
 
@@ -505,12 +563,10 @@ if(ROS_VERSION EQUAL 2)
     ament_package()        
 endif(ROS_VERSION EQUAL 2)
 
-if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)  # TODO: support for all targets
-    #
-    # emulator
-    #
-    # message("ENABLE_EMULATOR: build with emulator...")
-
+#
+# build and install sick_scan_emulator
+#
+if(ENABLE_EMULATOR AND NOT WIN32) # sick_scan_emulator not supported on Windows
     add_executable(sick_scan_emulator
         test/emulator/src/test_server.cpp
         test/emulator/src/test_server_thread.cpp
@@ -527,45 +583,44 @@ if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)  # TODO: support for all targets
         test/emulator/src/SoftwarePLL.cpp
         test/emulator/src/testcase_generator.cpp
         test/emulator/src/utils.cpp
+        ${SRC_ROSSIMU_FILES}
+        ${SRC_WIN_FILES}
         )
-
     target_link_libraries(sick_scan_emulator
         ${catkin_LIBRARIES}
         ${roslib_LIBRARIES}
         jsoncpp_lib # ${jsoncpp_LIBRARIES}
-        sick_scan_lib)
-
+        sick_scan_lib
+        ${Boost_LIBRARIES})
     target_include_directories(sick_scan_emulator PUBLIC test/emulator/include)
-
     install(TARGETS sick_scan_emulator
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
+        RUNTIME DESTINATION lib/${PROJECT_NAME}) # ${CATKIN_PACKAGE_BIN_DESTINATION})
     install(DIRECTORY test/emulator/launch/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
-
+        DESTINATION share/${PROJECT_NAME}) # ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
     install(DIRECTORY test/emulator/yaml/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/yaml)
-
+        DESTINATION share/${PROJECT_NAME}) # ${CATKIN_PACKAGE_SHARE_DESTINATION}/yaml)
     install(DIRECTORY test/emulator/scandata/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scandata)
+        DESTINATION share/${PROJECT_NAME}) # ${CATKIN_PACKAGE_SHARE_DESTINATION}/scandata)
+endif()
 
-endif(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
-
+#
+# build and install test_server
+#
 if(ENABLE_EMULATOR)
-        add_executable(test_server 
-            tools/test_server/src/test_server.cpp 
-            tools/test_server/src/test_server_cola_msg.cpp 
-            tools/test_server/src/test_server_ldmrs_msg.cpp 
-            tools/test_server/src/test_server_thread.cpp)
-        target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES})
-        if(ROS_VERSION EQUAL 2)
-            ament_target_dependencies(test_server "rclcpp")
-        endif(ROS_VERSION EQUAL 2)
-        install(TARGETS 
-            test_server
-            DESTINATION lib/${PROJECT_NAME})
-        install(DIRECTORY 
-            tools/test_server/config
-            tools/test_server/launch
-            DESTINATION share/${PROJECT_NAME})
+    add_executable(test_server 
+        tools/test_server/src/test_server.cpp 
+        tools/test_server/src/test_server_cola_msg.cpp 
+        tools/test_server/src/test_server_ldmrs_msg.cpp 
+        tools/test_server/src/test_server_thread.cpp)
+    target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES})
+    if(ROS_VERSION EQUAL 2)
+        ament_target_dependencies(test_server "rclcpp")
+    endif(ROS_VERSION EQUAL 2)
+    install(TARGETS 
+        test_server
+        DESTINATION lib/${PROJECT_NAME})
+    install(DIRECTORY 
+        tools/test_server/config
+        tools/test_server/launch
+        DESTINATION share/${PROJECT_NAME})
 endif() 
