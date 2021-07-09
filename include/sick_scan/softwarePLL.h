@@ -5,6 +5,7 @@
 #pragma warning(disable : 4996)
 #endif
 
+#include <map>
 #include <string>
 #include <iostream>
 #include <fstream>      // std::ifstream

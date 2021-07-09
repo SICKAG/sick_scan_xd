@@ -236,28 +236,34 @@ void ros::console::initialize(void)
 {
 }
 
-void ros::console::print(class ros::console::FilterBase *, void *, enum ros::console::levels::Level, char const *, int, char const *, char const *, ...)
+void ros::console::print(class ros::console::FilterBase *, void *, enum ros::console::levels::Level, char const * src_file, int src_line, char const * fmt, char const *, ...)
 {
 }
 
-void ros::console::setLogLocationLevel(struct ros::console::LogLocation *, enum ros::console::levels::Level)
+void ros::console::setLogLocationLevel(struct ros::console::LogLocation * loc, enum ros::console::levels::Level level)
 {
-
+	if(loc)
+	    loc->level_ = level;
 }
 
-void ros::console::checkLogLocationEnabled(struct ros::console::LogLocation *)
+void ros::console::checkLogLocationEnabled(struct ros::console::LogLocation * loc)
 {
-
+	if (loc && loc->level_ >= ros::console::levels::Level::Info)
+		loc->logger_enabled_ = true;
 }
 
 void ros::spinOnce(void)
 {
-
+    usleep(100000); // sleep 100 mikroseconds
 }
 
 void ros::spin(void) // difference between spinOnce and spin?
 {
-
+	while(ros::ok())
+	{
+        ros::spinOnce();
+        usleep(100000); // sleep 100 mikroseconds
+	}
 }
 
 void ros::shutdown(void)
@@ -343,9 +349,34 @@ class ros::Publisher ros::NodeHandle::advertise(struct ros::AdvertiseOptions &op
 	return(p);
 }
 
-void ros::console::print(class ros::console::FilterBase *, void *, enum ros::console::levels::Level, class std::basic_stringstream<char, struct std::char_traits<char>, class std::allocator<char> > const &, char const *, int, char const *)
+void ros::console::print(class ros::console::FilterBase *, void *, enum ros::console::levels::Level msg_level, class std::basic_stringstream<char, struct std::char_traits<char>, class std::allocator<char> > const & msg, char const *, int, char const *)
 {
-
+	if (msg_level >= ros::console::levels::Level::Info)
+	{
+		std::string level_str;
+		switch (msg_level)
+		{
+		case ros::console::levels::Debug:
+			level_str = "[DEBUG]";
+			break;
+		case ros::console::levels::Info:
+			level_str = "[Info]";
+			break;
+		case ros::console::levels::Warn:
+			level_str = "[Warn]";
+			break;
+		case ros::console::levels::Error:
+			level_str = "[Error]";
+			break;
+		case ros::console::levels::Fatal:
+			level_str = "[Fatal]";
+			break;
+		default:
+			level_str = "[]";
+			break;
+		}
+		std::cout << level_str << ": " << msg.str() << std::endl;
+	}
 }
 
 class ros::ServiceServer ros::NodeHandle::advertiseService(struct ros::AdvertiseServiceOptions &)
@@ -362,8 +393,10 @@ class ros::ServiceServer ros::NodeHandle::advertiseService(struct ros::Advertise
 //{
 //}
 
-void ros::console::initializeLogLocation(struct ros::console::LogLocation *, class std::basic_string<char, struct std::char_traits<char>, class std::allocator<char> > const &, enum ros::console::levels::Level)
+void ros::console::initializeLogLocation(struct ros::console::LogLocation * loc, class std::basic_string<char, struct std::char_traits<char>, class std::allocator<char> > const & msg, enum ros::console::levels::Level level)
 {
+	if (loc)
+		loc->initialized_ = true;
 }
 
 bool ros::NodeHandle::hasParam(class std::basic_string<char, struct std::char_traits<char>, class std::allocator<char> > const &)const

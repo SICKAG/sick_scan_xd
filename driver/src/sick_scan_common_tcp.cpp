@@ -679,7 +679,8 @@ namespace sick_scan
 #if 0
     if (!socket_.is_open()) {
       ROS_ERROR("sendSOPASCommand: socket not open");
-      diagnostics_.broadcast(getDiagnosticErrorCode(), "sendSOPASCommand: socket not open.");
+      if(diagnostics_)
+        diagnostics_->broadcast(getDiagnosticErrorCode(), "sendSOPASCommand: socket not open.");
       return ExitError;
     }
 #endif
@@ -756,7 +757,8 @@ namespace sick_scan
       catch (boost::system::system_error &e)
       {
         ROS_ERROR("write error for command: %s", request);
-        diagnostics_.broadcast(getDiagnosticErrorCode(), "Write error for sendSOPASCommand.");
+        if(diagnostics_)
+          diagnostics_->broadcast(getDiagnosticErrorCode(), "Write error for sendSOPASCommand.");
         return ExitError;
       }
 #endif
@@ -781,7 +783,8 @@ namespace sick_scan
           ROS_WARN_STREAM("sendSOPASCommand: no full reply available for read after " << getReadTimeOutInMs() << " ms");
 #endif
 #ifdef USE_DIAGNOSTIC_UPDATER
-          diagnostics_.broadcast(getDiagnosticErrorCode(),
+          if(diagnostics_)
+            diagnostics_->broadcast(getDiagnosticErrorCode(),
                                "sendSOPASCommand: no full reply available for read after timeout.");
 #endif
         return ExitError;
@@ -879,7 +882,8 @@ namespace sick_scan
     {
       ROS_ERROR("get_datagram: socket not open");
 #ifdef USE_DIAGNOSTIC_UPDATER
-      diagnostics_.broadcast(getDiagnosticErrorCode(), "get_datagram: socket not open.");
+      if(diagnostics_)
+        diagnostics_->broadcast(getDiagnosticErrorCode(), "get_datagram: socket not open.");
 #endif
       return ExitError;
     }
@@ -904,7 +908,8 @@ namespace sick_scan
         ROS_ERROR_STREAM ("get_datagram: no data available for read after "<< timeout << " ms");
 #endif
 #ifdef USE_DIAGNOSTIC_UPDATER
-        diagnostics_.broadcast(getDiagnosticErrorCode(), "get_datagram: no data available for read after timeout.");
+        if(diagnostics_)
+          diagnostics_->broadcast(getDiagnosticErrorCode(), "get_datagram: no data available for read after timeout.");
 #endif
 
       // Attempt to reconnect when the connection was terminated

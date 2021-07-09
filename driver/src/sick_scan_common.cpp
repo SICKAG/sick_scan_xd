@@ -89,14 +89,7 @@
 #include <sick_scan/sick_scan_messages.h>
 
 #ifdef ROSSIMU
-#include "toojpeg.h"
-
-FILE *foutJpg;
-
-void jpegOutputCallback(unsigned char oneByte)
-{
-  fwrite(&oneByte, 1, 1, foutJpg);
-}
+#include <sick_scan/pointcloud_utils.h>
 #endif
 
 /*!
@@ -330,22 +323,110 @@ namespace sick_scan
     return (dest);
   }
 
+  /* void SickScanCommon::getConfigUpdateParam(SickScanConfig & cfg)
+  {
+      rosDeclareParam(m_nh, "frame_id", cfg.frame_id);
+      rosGetParam(m_nh, "frame_id", cfg.frame_id);
+
+      rosDeclareParam(m_nh, "imu_frame_id", cfg.imu_frame_id);
+      rosGetParam(m_nh, "imu_frame_id", cfg.imu_frame_id);
+
+      rosDeclareParam(m_nh, "intensity", cfg.intensity);
+      rosGetParam(m_nh, "intensity", cfg.intensity);
+
+      rosDeclareParam(m_nh, "auto_reboot", cfg.auto_reboot);
+      rosGetParam(m_nh, "auto_reboot", cfg.auto_reboot);
+
+      rosDeclareParam(m_nh, "min_ang", cfg.min_ang);
+      rosGetParam(m_nh, "min_ang", cfg.min_ang);
+
+      rosDeclareParam(m_nh, "max_ang", cfg.max_ang);
+      rosGetParam(m_nh, "max_ang", cfg.max_ang);
+
+      rosDeclareParam(m_nh, "ang_res", cfg.ang_res);
+      rosGetParam(m_nh, "ang_res", cfg.ang_res);
+
+      rosDeclareParam(m_nh, "skip", cfg.skip);
+      rosGetParam(m_nh, "skip", cfg.skip);
+
+      rosDeclareParam(m_nh, "sw_pll_only_publish", cfg.sw_pll_only_publish);
+      rosGetParam(m_nh, "sw_pll_only_publish", cfg.sw_pll_only_publish);
+
+      rosDeclareParam(m_nh, "time_offset", cfg.time_offset);
+      rosGetParam(m_nh, "time_offset", cfg.time_offset);
+
+      rosDeclareParam(m_nh, "cloud_output_mode", cfg.cloud_output_mode);
+      rosGetParam(m_nh, "cloud_output_mode", cfg.cloud_output_mode);
+  } */
+
+  /* void SickScanCommon::setConfigUpdateParam(SickScanConfig & cfg)
+  {
+      rosDeclareParam(m_nh, "frame_id", cfg.frame_id);
+      rosSetParam(m_nh, "frame_id", cfg.frame_id);
+
+      rosDeclareParam(m_nh, "imu_frame_id", cfg.imu_frame_id);
+      rosSetParam(m_nh, "imu_frame_id", cfg.imu_frame_id);
+
+      rosDeclareParam(m_nh, "intensity", cfg.intensity);
+      rosSetParam(m_nh, "intensity", cfg.intensity);
+
+      rosDeclareParam(m_nh, "auto_reboot", cfg.auto_reboot);
+      rosSetParam(m_nh, "auto_reboot", cfg.auto_reboot);
+
+      rosDeclareParam(m_nh, "min_ang", cfg.min_ang);
+      rosSetParam(m_nh, "min_ang", cfg.min_ang);
+
+      rosDeclareParam(m_nh, "max_ang", cfg.max_ang);
+      rosSetParam(m_nh, "max_ang", cfg.max_ang);
+
+      rosDeclareParam(m_nh, "ang_res", cfg.ang_res);
+      rosSetParam(m_nh, "ang_res", cfg.ang_res);
+
+      rosDeclareParam(m_nh, "skip", cfg.skip);
+      rosSetParam(m_nh, "skip", cfg.skip);
+
+      rosDeclareParam(m_nh, "sw_pll_only_publish", cfg.sw_pll_only_publish);
+      rosSetParam(m_nh, "sw_pll_only_publish", cfg.sw_pll_only_publish);
+
+      rosDeclareParam(m_nh, "time_offset", cfg.time_offset);
+      rosSetParam(m_nh, "time_offset", cfg.time_offset);
+
+      rosDeclareParam(m_nh, "cloud_output_mode", cfg.cloud_output_mode);
+      rosSetParam(m_nh, "cloud_output_mode", cfg.cloud_output_mode);
+  } */
+
   /*!
   \brief Construction of SickScanCommon
   \param parser: Corresponding parser holding specific scanner parameter
   */
-  SickScanCommon::SickScanCommon(rosNodePtr nh, SickGenericParser *parser) :
-      diagnosticPub_(NULL), parser_(parser)
+  SickScanCommon::SickScanCommon(rosNodePtr nh, SickGenericParser *parser)
   // FIXME All Tims have 15Hz
   {
+    diagnosticPub_ = 0;
+    parser_ = parser;
+    m_nh =nh;
+
+#ifdef USE_DIAGNOSTIC_UPDATER
+#if __ROS_VERSION == 1
+    diagnostics_ = boost::make_shared<diagnostic_updater::Updater>(*nh);
+#elif __ROS_VERSION == 2
+    diagnostics_ = boost::make_shared<diagnostic_updater::Updater>(nh);
+#else
+    diagnostics_ = 0;
+#endif  
+#endif  
+
     expectedFrequency_ = this->parser_->getCurrentParamPtr()->getExpectedFrequency();
 
     setSensorIsRadar(false);
     init_cmdTables();
-#ifdef USE_DYNAMIC_RECONFIGURE
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
     dynamic_reconfigure::Server<sick_scan::SickScanConfig>::CallbackType f;
     f = boost::bind(&sick_scan::SickScanCommon::update_config, this, _1, _2);
     dynamic_reconfigure_server_.setCallback(f);
+#elif defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
+    rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr parameter_cb_handle =
+      nh->add_on_set_parameters_callback(std::bind(&sick_scan::SickScanCommon::update_config_cb, this, std::placeholders::_1));
 #else
     // For simulation under MS Visual c++ the update config is switched off
     {
@@ -437,9 +518,11 @@ namespace sick_scan
     // scan publisher
     pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, "scan", 1000);
 
-#ifdef USE_DIAGNOSTIC_UPDATER
-    diagnostics_.setHardwareID("none");   // set from device after connection
-    diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>(pub_, diagnostics_,
+#if defined USE_DIAGNOSTIC_UPDATER && __ROS_VERSION == 1 // diagnosticPub_ in sick_scan_common not used anymore, obsolete in general?
+    if(diagnostics_)
+    {
+      diagnostics_->setHardwareID("none");   // set from device after connection
+      diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<ros_sensor_msgs::LaserScan>(pub_, *diagnostics_,
         // frequency should be target +- 10%.
                                                                                         diagnostic_updater::FrequencyStatusParam(
                                                                                             &expectedFrequency_,
@@ -450,7 +533,9 @@ namespace sick_scan
                                                                                             -1, 1.3 * 1.0 /
                                                                                                 expectedFrequency_ -
                                                                                                 config_.time_offset));
-    ROS_ASSERT(diagnosticPub_ != NULL);
+
+      ROS_ASSERT(diagnosticPub_ != NULL);
+    }
 #else
     config_.time_offset = 0; // to avoid uninitialized variable
 #endif
@@ -566,7 +651,8 @@ namespace sick_scan
     {
       ROS_ERROR("SOPAS - Error setting access mode");
 #ifdef USE_DIAGNOSTIC_UPDATER
-      diagnostics_.broadcast(getDiagnosticErrorCode(), "SOPAS - Error setting access mode.");
+      if(diagnostics_)
+        diagnostics_->broadcast(getDiagnosticErrorCode(), "SOPAS - Error setting access mode.");
 #endif
       return false;
     }
@@ -575,7 +661,8 @@ namespace sick_scan
     {
       ROS_ERROR_STREAM("SOPAS - Error setting access mode, unexpected response : " << access_reply_str);
 #ifdef USE_DIAGNOSTIC_UPDATER
-      diagnostics_.broadcast(getDiagnosticErrorCode(), "SOPAS - Error setting access mode.");
+      if(diagnostics_)
+        diagnostics_->broadcast(getDiagnosticErrorCode(), "SOPAS - Error setting access mode.");
 #endif
       return false;
     }
@@ -589,7 +676,8 @@ namespace sick_scan
     {
       ROS_ERROR("SOPAS - Error rebooting scanner");
 #ifdef USE_DIAGNOSTIC_UPDATER
-      diagnostics_.broadcast(getDiagnosticErrorCode(), "SOPAS - Error rebooting device.");
+      if(diagnostics_)
+        diagnostics_->broadcast(getDiagnosticErrorCode(), "SOPAS - Error rebooting device.");
 #endif
       return false;
     }
@@ -598,7 +686,8 @@ namespace sick_scan
     {
       ROS_ERROR_STREAM("SOPAS - Error rebooting scanner, unexpected response : " << reboot_reply_str);
 #ifdef USE_DIAGNOSTIC_UPDATER
-      diagnostics_.broadcast(getDiagnosticErrorCode(), "SOPAS - Error setting access mode.");
+      if(diagnostics_)
+        diagnostics_->broadcast(getDiagnosticErrorCode(), "SOPAS - Error setting access mode.");
 #endif
       return false;
     }
@@ -808,7 +897,8 @@ namespace sick_scan
       std::string tmpStr = "SOPAS Communication -" + errString;
       ROS_INFO_STREAM(tmpStr << "\n");
 #ifdef USE_DIAGNOSTIC_UPDATER
-      diagnostics_.broadcast(getDiagnosticErrorCode(), tmpStr);
+      if(diagnostics_)
+        diagnostics_->broadcast(getDiagnosticErrorCode(), tmpStr);
 #endif
     }
     else
@@ -832,7 +922,8 @@ namespace sick_scan
           std::string tmpMsg = "Error Sopas answer mismatch " + errString + "Answer= >>>" + answerStr + "<<<";
           ROS_ERROR_STREAM(tmpMsg << "\n");
 #ifdef USE_DIAGNOSTIC_UPDATER
-          diagnostics_.broadcast(getDiagnosticErrorCode(), tmpMsg);
+          if(diagnostics_)
+            diagnostics_->broadcast(getDiagnosticErrorCode(), tmpMsg);
 #endif
           result = -1;
         }
@@ -887,6 +978,7 @@ namespace sick_scan
   */
   int SickScanCommon::init(rosNodePtr nh)
   {
+    m_nh = nh;
     int result = init_device();
     if (result != 0)
     {
@@ -1440,7 +1532,8 @@ namespace sick_scan
       {
         ROS_ERROR_STREAM(sopasCmdErrMsg[cmdId]);
 #ifdef USE_DIAGNOSTIC_UPDATER
-        diagnostics_.broadcast(getDiagnosticErrorCode(), sopasCmdErrMsg[cmdId]);
+        if(diagnostics_)
+          diagnostics_->broadcast(getDiagnosticErrorCode(), sopasCmdErrMsg[cmdId]);
 #endif
       }
       else
@@ -1529,7 +1622,8 @@ namespace sick_scan
               }
             }
 #ifdef USE_DIAGNOSTIC_UPDATER
-            diagnostics_.setHardwareID(deviceIdent);
+            if(diagnostics_)
+              diagnostics_->setHardwareID(deviceIdent);
 #endif
             if (!isCompatibleDevice(deviceIdent))
             {
@@ -1563,7 +1657,8 @@ namespace sick_scan
             std::string versionStr = binScanfGetStringFromVec(&restOfReplyDummy, scanDataLen1, versionLen);
             std::string fullIdentVersionInfo = identStr + " V" + versionStr;
 #ifdef USE_DIAGNOSTIC_UPDATER
-            diagnostics_.setHardwareID(fullIdentVersionInfo);
+            if(diagnostics_)
+              diagnostics_->setHardwareID(fullIdentVersionInfo);
 #endif
             if (!isCompatibleDevice(fullIdentVersionInfo))
             {
@@ -1583,8 +1678,8 @@ namespace sick_scan
           else
           {
 #ifdef USE_DIAGNOSTIC_UPDATER
-              diagnostics_.setHardwareID(
-                sopasReplyStrVec[CMD_DEVICE_IDENT_LEGACY] + " " + sopasReplyStrVec[CMD_SERIAL_NUMBER]);
+              if(diagnostics_)
+                diagnostics_->setHardwareID(sopasReplyStrVec[CMD_DEVICE_IDENT_LEGACY] + " " + sopasReplyStrVec[CMD_SERIAL_NUMBER]);
 #endif
             if (!isCompatibleDevice(sopasReplyStrVec[CMD_DEVICE_IDENT_LEGACY]))
             {
@@ -2629,7 +2724,8 @@ namespace sick_scan
       {
         ROS_ERROR_STREAM(sopasCmdErrMsg[cmdId]);
 #ifdef USE_DIAGNOSTIC_UPDATER
-        diagnostics_.broadcast(getDiagnosticErrorCode(), sopasCmdErrMsg[cmdId]);
+        if(diagnostics_)
+          diagnostics_->broadcast(getDiagnosticErrorCode(), sopasCmdErrMsg[cmdId]);
 #endif
       }
       else
@@ -2904,7 +3000,14 @@ namespace sick_scan
   {
     static int cnt = 0;
 #ifdef USE_DIAGNOSTIC_UPDATER
-    diagnostics_.update();
+    if(diagnostics_)
+    {
+#if __ROS_VERSION == 2 // ROS 2
+      diagnostics_->force_update();
+#else
+      diagnostics_->update();
+#endif      
+    }
 #endif
 
     unsigned char receiveBuffer[65536];
@@ -2962,7 +3065,8 @@ namespace sick_scan
       {
         ROS_ERROR_STREAM("Read Error when getting datagram: " << result);
 #ifdef USE_DIAGNOSTIC_UPDATER
-        diagnostics_.broadcast(getDiagnosticErrorCode(), "Read Error when getting datagram.");
+        if(diagnostics_)
+          diagnostics_->broadcast(getDiagnosticErrorCode(), "Read Error when getting datagram.");
 #endif
         return ExitError; // return failure to exit node
       }
@@ -3881,7 +3985,7 @@ namespace sick_scan
 
                 }
 #else
-                printf("MSG received...");
+                ROS_DEBUG_STREAM("MSG received...");
 #endif
               }
             }
@@ -4060,177 +4164,7 @@ namespace sick_scan
               if (shallIFire) // shall i fire the signal???
               {
 #ifdef ROSSIMU
-                static int cnt = 0;
-                cnt++;
-
-                printf("PUBLISH_DATA:\n");
-
-                unsigned char *cloudDataPtr = &(cloud_.data[0]);
-                int w = cloud_.width;
-                int h = cloud_.height;
-
-                int numShots = w * h;
-
-                float *ptr = (float *) cloudDataPtr;
-
-                if (cnt == 25)
-                {
-				  char jpgFileName_tmp[255] = { 0 };
-#if linux				  
-				  strcpy(jpgFileName_tmp , "./demo/scan.jpg_tmp");
-#else
-				  strcpy(jpgFileName_tmp , "..\\demo\\scan.jpg_tmp");
-#endif
-                  int xic = 400;
-                  int yic = 400;
-                  int w2i = 400;
-                  int h2i = 400;
-                  int hi = h2i * 2 + 1;
-                  int wi = w2i * 2 + 1;
-                  int pixNum = hi * wi;
-                  int numColorChannel = 3;
-                  unsigned char *pixel = (unsigned char *) malloc(numColorChannel * hi * wi);
-                  memset(pixel, 0, numColorChannel * pixNum);
-                  double scaleFac = 50.0;
-
-                  for (int i = 0; i < hi; i++)
-                  {
-                    int pixAdr = numColorChannel * (i * wi + xic);
-                    pixel[pixAdr] = 0x40;
-                    pixel[pixAdr + 1] = 0x40;
-                    pixel[pixAdr + 2] = 0x40;
-                  }
-                  for (int i = 0; i < wi; i++)
-                  {
-                    int pixAdr = numColorChannel * (yic * wi + i);
-                    pixel[pixAdr] = 0x40;
-                    pixel[pixAdr + 1] = 0x40;
-                    pixel[pixAdr + 2] = 0x40;
-                  }
-
-                  scaleFac *= -1.0;
-                  for (int i = 0; i < numShots; i++)
-                  {
-                    double x, y, z, intensity;
-                    x = ptr[0];
-                    y = ptr[1];
-                    z = ptr[2];
-                    intensity = ptr[3];
-                    ptr += 4;
-                    int xi = (x * scaleFac) + xic;
-                    int yi = (y * scaleFac) + yic;
-                    if ((xi >= 0) && (xi < wi))
-                    {
-                      if ((yi >= 0) && (xi < hi))
-                      {
-                        // yi shows left (due to neg. scaleFac)
-                        // xi shows up (due to neg. scaleFac)
-                        int pixAdr = numColorChannel * (xi * wi + yi);
-                        int layer = i / w;
-                        unsigned char color[3] = {0x00};
-                        switch (layer)
-                        {
-                          case 0:
-                            color[0] = 0xFF;
-                            break;
-                          case 1:
-                            color[1] = 0xFF;
-                            break;
-                          case 2:
-                            color[2] = 0xFF;
-                            break;
-                          case 3:
-                            color[0] = 0xFF;
-                            color[1] = 0xFF;
-                            break;
-                        }
-
-                        for (int kk = 0; kk < 3; kk++)
-                        {
-                          pixel[pixAdr + kk] = color[kk];
-
-                        }
-                      }
-                    }
-
-                  }
-
-
-
-                  // Write JPEG Scan Top View
-                  foutJpg = fopen(jpgFileName_tmp, "wb");
-                  if (foutJpg == NULL)
-                  {
-                    ROS_INFO_STREAM("PANIC: Can not open " << jpgFileName_tmp << " for writing. Check existience of demo dir. or patch  code.\n");
-                  }
-                  else
-                  {
-                  TooJpeg::writeJpeg(jpegOutputCallback, pixel, wi, hi, true, 99);
-                  fclose(foutJpg);
-
-                  free(pixel);
-
-#if linux				  
-				  rename(jpgFileName_tmp, "./demo/scan.jpg");
-#else
-				  _unlink("..\\demo\\scan.jpg");
-				  rename(jpgFileName_tmp, "..\\demo\\scan.jpg");
-#endif
-
-                  }
-                  // Write CSV-File
-				  char csvFileNameTmp[255];
-#if linux				  
-				  strcpy(csvFileNameTmp, "./demo/scan.csv_tmp");
-#else
-				  strcpy(csvFileNameTmp, "..\\demo\\scan.csv_tmp");
-#endif
-                  FILE *foutCsv = fopen(csvFileNameTmp, "w");
-                  if (foutCsv)
-                  {
-                    // ZIEL: fprintf(foutCsv,"timestamp;range;elevation;azimuth;x;y;z;intensity\n");
-                    fprintf(foutCsv,"timestamp_sec;timestamp_nanosec;range;azimuth_deg;elevation_deg;x;y;z;intensity\n");
-                    unsigned char *cloudDataPtr = &(cloud_.data[0]);
-
-                    int numShots = w * h;
-
-                    float *ptr = (float *) cloudDataPtr;
-
-
-                    long timestamp_sec = cloud_.header.stamp.sec;
-                    long timestamp_nanosec = cloud_.header.stamp.nsec;
-                    for (int i = 0; i < numShots; i++)
-                    {
-                      double x, y, z, intensity;
-                      x = ptr[0];
-                      y = ptr[1];
-                      z = ptr[2];
-                      float range_xy = sqrt(x*x+y*y);
-                      float range_xyz = sqrt(x*x+y*y+z*z);
-                      float elevation = atan2(z, range_xy);
-                      float azimuth = atan2(y,x);
-                      float elevationDeg = elevation * 180.0 / M_PI;
-                      float azimuthDeg = azimuth * 180.0 / M_PI;
-
-                      intensity = ptr[3];
-                      ptr += 4;
-                      fprintf(foutCsv,"%12ld;%12ld;%8.3lf;%8.3lf;%8.3lf;%8.3f;%8.3f;%8.3f;%8.0f\n", timestamp_sec, timestamp_nanosec, range_xyz, azimuthDeg, elevationDeg, x,y,z,intensity);
-                    }
-                      fclose(foutCsv);
-#ifdef linux
-                     rename(csvFileNameTmp, "./demo/scan.csv");
-#else
-					  _unlink("..\\demo\\scan.csv");
-					  rename(csvFileNameTmp, "..\\demo\\scan.csv");
-#endif
-                  }
-                  else
-                  {
-                        ROS_INFO_STREAM("PANIC: Can not open " << csvFileNameTmp << " for writing. Check existience of demo dir. or patch  code.\n");
-                  }
-                  cnt = 0;
-                }
-
+                plotPointCloud(cloud_);
 #else
                 // ROS_DEBUG_STREAM("publishing cloud " << cloud_.height << " x " << cloud_.width << " data, cloud_output_mode=" << config_.cloud_output_mode);
                 if (config_.cloud_output_mode==0)
@@ -4373,6 +4307,49 @@ namespace sick_scan
     check_angle_range(new_config);
     config_ = new_config;
   }
+
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
+  rcl_interfaces::msg::SetParametersResult SickScanCommon::update_config_cb(const std::vector<rclcpp::Parameter> &parameters)
+  {
+    rcl_interfaces::msg::SetParametersResult result;
+    result.successful = true;
+    result.reason = "success";
+    if(!parameters.empty())
+    {
+      SickScanConfig new_config = config_;
+      // setConfigUpdateParam(new_config);
+      for (const auto &parameter : parameters)
+      {
+        ROS_DEBUG_STREAM("SickScanCommon::update_config_cb(): parameter " << parameter.get_name());
+        if(parameter.get_name() == "frame_id" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_STRING)
+          new_config.frame_id = parameter.as_string();
+        else if(parameter.get_name() == "imu_frame_id" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_STRING)
+          new_config.imu_frame_id = parameter.as_string();
+        else if(parameter.get_name() == "intensity" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_BOOL)
+          new_config.intensity = parameter.as_bool();
+        else if(parameter.get_name() == "auto_reboot" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_BOOL)
+          new_config.auto_reboot = parameter.as_bool();
+        else if(parameter.get_name() == "min_ang" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE)
+          new_config.min_ang = parameter.as_double();
+        else if(parameter.get_name() == "max_ang" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE)
+          new_config.max_ang = parameter.as_double();
+        else if(parameter.get_name() == "ang_res" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE)
+          new_config.ang_res = parameter.as_double();
+        else if(parameter.get_name() == "skip" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_INTEGER)
+          new_config.skip = parameter.as_int();
+        else if(parameter.get_name() == "sw_pll_only_publish" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_BOOL)
+          new_config.sw_pll_only_publish = parameter.as_bool();
+        else if(parameter.get_name() == "time_offset" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE)
+          new_config.time_offset = parameter.as_double();
+        else if(parameter.get_name() == "cloud_output_mode" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_INTEGER)
+          new_config.cloud_output_mode = parameter.as_int();
+      }
+      // getConfigUpdateParam(new_config);
+      update_config(new_config, 0);
+    }
+    return result;
+  }
+#endif
 
   /*!
   \brief Convert ASCII-message to Binary-message

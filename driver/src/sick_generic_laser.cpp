@@ -73,7 +73,6 @@
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_laser.h>
 #include <sick_scan/sick_scan_services.h>
-//#define USE_ROSSERVICES
 
 #include "launchparser.h"
 #if __ROS_VERSION != 1 // launchparser for native Windows/Linux and ROS-2
@@ -432,10 +431,8 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
     colaDialectId = 'A';
   }
 
-  //#ifdef USE_ROSSERVICES
   bool start_services = false;
   sick_scan::SickScanServices* services = 0;
-  //#endif
   int result = sick_scan::ExitError;
 
   //sick_scan::SickScanConfig cfg;
@@ -465,7 +462,6 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
         }
         result = s->init(nhPriv);
 
-        //#ifdef USE_ROSSERVICES
         // Start ROS services
         rosDeclareParam(nhPriv, "start_services", start_services);
         rosGetParam(nhPriv, "start_services", start_services);
@@ -474,7 +470,6 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
             services = new sick_scan::SickScanServices(nhPriv, s, parser->getCurrentParamPtr()->getUseBinaryProtocol());
             ROS_INFO("SickScanServices: ros services initialized");
         }
-        //#endif
 
         isInitialized = true;
         signal(SIGINT, SIG_DFL); // change back to standard signal handler after initialising
@@ -512,13 +507,11 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
         break;
     }
   }
-  //#ifdef USE_ROSSERVICES
   if(services)
   {
     delete services;
     services = 0;
   }
-  //#endif
   if (s != NULL)
   {
     delete s; // close connnect

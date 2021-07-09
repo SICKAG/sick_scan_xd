@@ -313,13 +313,13 @@ public:
 /*
 ** dynamic reconfiguration and diagnostic_updater currently supported on ROS-1 only, todo...
 */
-#if __ROS_VERSION == 2
+#if __ROS_VERSION == 2 // ROS 2
 #ifndef WIN32
 #include <diagnostic_updater/diagnostic_updater.hpp> // part of diagnostic_msgs of ROS2, not available on ROS2-Windows until foxy patch 4
 #include <diagnostic_updater/publisher.hpp>
-// #define USE_DIAGNOSTIC_UPDATER // todo ...
-//#include <rcl_interfaces/msg/set_parameters_result.hpp>
-#define USE_DIAGNOSTIC_UPDATER_LDMRS
+#include <rcl_interfaces/msg/set_parameters_result.hpp>
+#define USE_DYNAMIC_RECONFIGURE
+#define USE_DIAGNOSTIC_UPDATER
 #endif // WIN32
 namespace sick_scan
 {
@@ -338,13 +338,18 @@ namespace sick_scan
         int cloud_output_mode = 0;
     };
 }
-#else // ROS 1
+#elif __ROS_VERSION == 1 // ROS 1
 #include <dynamic_reconfigure/server.h>
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>
 #include <sick_scan/SickScanConfig.h>
+#include <sick_scan/SickLDMRSDriverConfig.h>
 #define USE_DYNAMIC_RECONFIGURE
 #define USE_DIAGNOSTIC_UPDATER
+#else
+#include <diagnostic_updater/diagnostic_updater.h>
+#include <diagnostic_updater/publisher.h>
+#include <sick_scan/SickScanConfig.h>
 #endif
 
 /*

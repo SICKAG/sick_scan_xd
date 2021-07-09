@@ -55,6 +55,7 @@
 #ifndef __SIM_LOC_UTILS_H_INCLUDED
 #define __SIM_LOC_UTILS_H_INCLUDED
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <string>
 #include <sstream>

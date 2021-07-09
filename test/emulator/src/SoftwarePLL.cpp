@@ -5,7 +5,11 @@ Note: SoftwarePLL intentionally copied from https://github.com/michael1309/Softw
 See https://github.com/michael1309/SoftwarePLL/blob/master/README.md for details.
 ====================================================================================================
 */
+#ifdef _MSC_VER
+#include "emulator/include/sick_scan/SoftwarePLL.h"
+#else
 #include "sick_scan/SoftwarePLL.h"
+#endif
 
 // #include "softwarePLL.h"
 #include <iostream>

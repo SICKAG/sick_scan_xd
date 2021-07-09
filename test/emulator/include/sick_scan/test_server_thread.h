@@ -246,7 +246,7 @@ namespace sick_scan
 
     typedef enum ERROR_SIMULATION_ENUM ///< enumerates testcases for simulation of communication errors
     {
-      NO_ERROR = 0,                ///< Default: run test server without simulated errors, send valid telegrams
+      SIMU_NO_ERROR = 0,           ///< Default: run test server without simulated errors, send valid telegrams
       DONT_LISTEN,                 ///< Testserver does not open listening port
       DONT_ACCECPT,                ///< Testserver does not accecpt tcp clients
       DONT_SEND,                   ///< Testserver does not send any data
@@ -254,7 +254,7 @@ namespace sick_scan
       SEND_INVALID_TELEGRAMS       ///< Testserver sends invalid telegrams (invalid data, false checksums, etc.)
     } ERROR_SIMULATION_FLAG;
   
-    sick_scan::SetGet<ERROR_SIMULATION_FLAG> m_error_simulation_flag; ///< current error simulation flag, default: NO_ERROR
+    sick_scan::SetGet<ERROR_SIMULATION_FLAG> m_error_simulation_flag; ///< current error simulation flag, default: SIMU_NO_ERROR
     bool m_error_simulation_enabled;                         ///< default: false (no error simulation), if true, test server simulates errors and communication failures of type ERROR_SIMULATION_FLAG
     thread_ptr m_error_simulation_thread;                    ///< thread to run error simulation, switches m_error_simulation_flag through the error test cases
     bool m_error_simulation_thread_running;                  ///< true: m_error_simulation_thread is running, otherwise false

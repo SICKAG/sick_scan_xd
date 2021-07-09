@@ -77,7 +77,7 @@ sick_scan::TestServerThread::TestServerThread(ROS::NodePtr nh, int ip_port_resul
   m_tcp_connection_thread_running(false), m_worker_thread_running(false), m_tcp_send_scandata_thread_running(false),
   m_tcp_acceptor_results(m_ioservice, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), m_ip_port_results)),
   m_tcp_acceptor_cola(m_ioservice, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), m_ip_port_cola)),
-  m_start_scandata_delay(1), m_result_telegram_rate(10), m_demo_move_in_circles(false), m_error_simulation_enabled(false), m_error_simulation_flag(NO_ERROR),
+  m_start_scandata_delay(1), m_result_telegram_rate(10), m_demo_move_in_circles(false), m_error_simulation_enabled(false), m_error_simulation_flag(SIMU_NO_ERROR),
   m_error_simulation_thread(0), m_error_simulation_thread_running(false)
 {
   m_tcp_acceptor_results.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
@@ -412,7 +412,7 @@ void sick_scan::TestServerThread::runWorkerThreadResultCb(boost::asio::ip::tcp::
       {
         std::stringstream error_info;
         error_info << "## ERROR TestServerThread for result telegrams: failed to send binary result port telegram, " << bytes_written << " of " << testcase.binary_data.size() << " bytes send, error code: " << error_code.message();
-        if (m_error_simulation_flag.get() == NO_ERROR)
+        if (m_error_simulation_flag.get() == SIMU_NO_ERROR)
         {
           ROS_WARN_STREAM(error_info.str() << ", close socket and leave worker thread for result telegrams");
           break;
@@ -657,7 +657,7 @@ void sick_scan::TestServerThread::runErrorSimulationThreadCb(void)
   
   // Error simulation: start normal execution
   number_testcases++;
-  m_error_simulation_flag.set(NO_ERROR);
+  m_error_simulation_flag.set(SIMU_NO_ERROR);
   ROS_INFO_STREAM("TestServerThread: 1. error simulation testcase: normal execution, expecting telegram messages from driver");
   errorSimulationWait(10);
   if(!errorSimulationWaitForTelegramReceived(10, telegram_msg))
@@ -676,7 +676,7 @@ void sick_scan::TestServerThread::runErrorSimulationThreadCb(void)
   ROS::sleep(1.0 / m_result_telegram_rate);
   closeTcpConnections(true);
   errorSimulationWait(10);
-  m_error_simulation_flag.set(NO_ERROR);
+  m_error_simulation_flag.set(SIMU_NO_ERROR);
   ROS_INFO_STREAM("TestServerThread: 2. error simulation testcase: switched to normal execution, expecting telegram messages from driver");
   errorSimulationWait(10);
   if(!errorSimulationWaitForTelegramReceived(10, telegram_msg))
@@ -695,7 +695,7 @@ void sick_scan::TestServerThread::runErrorSimulationThreadCb(void)
   ROS::sleep(1.0 / m_result_telegram_rate);
   closeTcpConnections(true);
   errorSimulationWait(10);
-  m_error_simulation_flag.set(NO_ERROR);
+  m_error_simulation_flag.set(SIMU_NO_ERROR);
   errorSimulationWait(10);
   if(!errorSimulationWaitForTelegramReceived(10, telegram_msg))
   {
@@ -710,7 +710,7 @@ void sick_scan::TestServerThread::runErrorSimulationThreadCb(void)
   m_error_simulation_flag.set(DONT_SEND);
   ROS_INFO_STREAM("TestServerThread: 4. error simulation testcase: server not sending telegrams");
   errorSimulationWait(10);
-  m_error_simulation_flag.set(NO_ERROR);
+  m_error_simulation_flag.set(SIMU_NO_ERROR);
   errorSimulationWait(10);
   if(!errorSimulationWaitForTelegramReceived(10, telegram_msg))
   {
@@ -725,7 +725,7 @@ void sick_scan::TestServerThread::runErrorSimulationThreadCb(void)
   m_error_simulation_flag.set(SEND_RANDOM_TCP);
   ROS_INFO_STREAM("TestServerThread: 5. error simulation testcase: server sending random tcp data");
   errorSimulationWait(10);
-  m_error_simulation_flag.set(NO_ERROR);
+  m_error_simulation_flag.set(SIMU_NO_ERROR);
   errorSimulationWait(10);
   if(!errorSimulationWaitForTelegramReceived(10, telegram_msg))
   {
@@ -740,7 +740,7 @@ void sick_scan::TestServerThread::runErrorSimulationThreadCb(void)
   m_error_simulation_flag.set(SEND_INVALID_TELEGRAMS);
   ROS_INFO_STREAM("TestServerThread: 6. error simulation testcase: server sending invalid telegrams");
   errorSimulationWait(10);
-  m_error_simulation_flag.set(NO_ERROR);
+  m_error_simulation_flag.set(SIMU_NO_ERROR);
   errorSimulationWait(10);
   if(!errorSimulationWaitForTelegramReceived(10, telegram_msg))
   {

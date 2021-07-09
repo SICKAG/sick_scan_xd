@@ -56,7 +56,11 @@
 #include <fstream>
 #include <sstream>
 #include <string.h>
+#ifdef _MSC_VER
+#include <json/json.h>
+#else
 #include <jsoncpp/json/json.h>
+#endif
 
 #include "sick_scan/pcapng_json_parser.h"
 #include "sick_scan/utils.h"

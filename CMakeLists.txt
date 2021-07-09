@@ -96,6 +96,7 @@ if(ROS_VERSION EQUAL 1)
 
     generate_dynamic_reconfigure_options(
         cfg/SickScan.cfg
+        cfg/SickLDMRSDriver.cfg
         cfg/tf_dyn.cfg
     )
 
@@ -427,12 +428,13 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         file(GLOB SRC_WIN_FILES roswrap/helper_win/usleep/usleep.c)
     endif()
     if(ROS_VERSION EQUAL 0)
-        include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg)
+        include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg  roswrap/src/tools)
         file(GLOB SRC_ROSSIMU_FILES 
             roswrap/src/cfgsimu/sick_scan/time_modi.cpp
             roswrap/src/rossimu/kinetic/src/rossimu.cpp
             roswrap/src/rossimu/kinetic/src/duration.cpp
             roswrap/src/rossimu/kinetic/src/rate.cpp
+            roswrap/src/tools/sick_scan/pointcloud_utils.cpp
         )
     endif()
 
@@ -566,7 +568,7 @@ endif(ROS_VERSION EQUAL 2)
 #
 # build and install sick_scan_emulator
 #
-if(ENABLE_EMULATOR AND NOT WIN32) # sick_scan_emulator not supported on Windows
+if(ENABLE_EMULATOR AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator not supported on native Windows
     add_executable(sick_scan_emulator
         test/emulator/src/test_server.cpp
         test/emulator/src/test_server_thread.cpp
@@ -592,15 +594,26 @@ if(ENABLE_EMULATOR AND NOT WIN32) # sick_scan_emulator not supported on Windows
         jsoncpp_lib # ${jsoncpp_LIBRARIES}
         sick_scan_lib
         ${Boost_LIBRARIES})
-    target_include_directories(sick_scan_emulator PUBLIC test/emulator/include)
-    install(TARGETS sick_scan_emulator
-        RUNTIME DESTINATION lib/${PROJECT_NAME}) # ${CATKIN_PACKAGE_BIN_DESTINATION})
-    install(DIRECTORY test/emulator/launch/
-        DESTINATION share/${PROJECT_NAME}) # ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
-    install(DIRECTORY test/emulator/yaml/
-        DESTINATION share/${PROJECT_NAME}) # ${CATKIN_PACKAGE_SHARE_DESTINATION}/yaml)
-    install(DIRECTORY test/emulator/scandata/
-        DESTINATION share/${PROJECT_NAME}) # ${CATKIN_PACKAGE_SHARE_DESTINATION}/scandata)
+    target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
+    if(ROS_VERSION EQUAL 1)
+        install(TARGETS sick_scan_emulator
+            RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+        install(DIRECTORY test/emulator/launch/
+            DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+        install(DIRECTORY test/emulator/yaml/
+            DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/yaml)
+        install(DIRECTORY test/emulator/scandata/
+            DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scandata)
+    else()
+        install(TARGETS sick_scan_emulator
+            RUNTIME DESTINATION lib/${PROJECT_NAME})
+        install(DIRECTORY test/emulator/launch/
+            DESTINATION share/${PROJECT_NAME})
+        install(DIRECTORY test/emulator/yaml/
+            DESTINATION share/${PROJECT_NAME})
+        install(DIRECTORY test/emulator/scandata/
+            DESTINATION share/${PROJECT_NAME})
+    endif()
 endif()
 
 #

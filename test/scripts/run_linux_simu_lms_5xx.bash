@@ -17,7 +17,7 @@ python3 ./test/emulator/test_server.py --scandata_file=./test/emulator/scandata/
 sleep 1
 ./build_linux/sick_generic_caller ./launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 
-sleep 60
+sleep 30
 
 pkill -f ./test/emulator/test_server.py
 killall sick_generic_caller

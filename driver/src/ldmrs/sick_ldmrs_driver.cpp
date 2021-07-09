@@ -50,6 +50,9 @@
 #include <sick_ldmrs/devices/LD_MRS.hpp>
 #include <sick_ldmrs/tools/errorhandler.hpp>
 #include <sick_ldmrs/tools/toolbox.hpp>
+#ifdef ROSSIMU
+#include <sick_scan/pointcloud_utils.h>
+#endif
 
 // static rclcpp::Clock s_rclcpp_clock; // replacement for ros::Time::now()
 
@@ -66,17 +69,19 @@ SickLDMRS::SickLDMRS(rosNodePtr nh, Manager *manager, boost::shared_ptr<diagnost
   , config_(nh)
   , pub_()
   , object_pub_()
-  , diagnosticPub_()
+  , diagnosticPub_(0)
 {
   // point cloud publisher
   pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh_, "cloud");
   object_pub_ = rosAdvertise<sick_scan_msg::SickLdmrsObjectArray>(nh_, "objects");
 
+  #if defined USE_DIAGNOSTIC_UPDATER
   diagnostics_->setHardwareID("none");   // set from device after connection
   diagnostics_->add("device info", this, &SickLDMRS::produce_diagnostics);
   diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::PointCloud2>>(pub_, *diagnostics_, 
       diagnostic_updater::FrequencyStatusParam(&expected_frequency_, &expected_frequency_, 0.1, 10), // frequency should be target +- 10%
       diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0 / 12.5)); // timestamp delta can be from -1 seconds to 1.3x what it ideally is at the lowest frequency
+  #endif      
 }
 
 SickLDMRS::~SickLDMRS()
@@ -93,13 +98,13 @@ void SickLDMRS::init()
   initialized_ = true;
   update_config(config_);
 
-#ifdef USE_DIAGNOSTIC_UPDATER_LDMRS  
-  // dynamic_reconfigure::Server<SickLDMRSDriverConfig>::CallbackType f;
-  // f = boost::bind(&SickLDMRS::update_config, this, _1, _2);
-  // dynamic_reconfigure_server_.setCallback(f);
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
+  dynamic_reconfigure::Server<sick_scan::SickLDMRSDriverConfig>::CallbackType f;
+  f = boost::bind(&SickLDMRS::update_config_cb, this, _1, _2);
+  dynamic_reconfigure_server_.setCallback(f);
+#elif defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr parameter_cb_handle =
     nh_->add_on_set_parameters_callback(std::bind(&SickLDMRS::update_config_cb, this, std::placeholders::_1));
-  // nh_->set_on_parameters_set_callback(std::bind(&SickLDMRS::update_config_cb, this, std::placeholders::_1));
 #endif  
 }
 
@@ -169,6 +174,11 @@ void SickLDMRS::setData(BasicData &data)
       pcl::toROSMsg(*cloud, msg);
       if(diagnosticPub_)
         diagnosticPub_->publish(msg);
+      else
+        rosPublish(pub_, msg);
+#ifdef ROSSIMU
+        plotPointCloud(msg);
+#endif
     }
     break;
   case Datatype_Objects:
@@ -356,7 +366,43 @@ void SickLDMRS::printFlexResError()
   ROS_ERROR_STREAM("FlexRes detailed error: " << msg);
 }
 
-#ifdef USE_DIAGNOSTIC_UPDATER_LDMRS  
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
+void SickLDMRS::update_config_cb(sick_scan::SickLDMRSDriverConfig &new_config, uint32_t level)
+{
+  sick_ldmrs_driver::SickLDMRSDriverConfig cfg;
+  cfg.frame_id = new_config.frame_id;
+  cfg.start_angle = new_config.start_angle;
+  cfg.end_angle = new_config.end_angle;
+  cfg.scan_frequency = new_config.scan_frequency;
+  cfg.sync_angle_offset = new_config.sync_angle_offset;
+  cfg.angular_resolution_type = new_config.angular_resolution_type;
+  cfg.layer_range_reduction = new_config.layer_range_reduction;
+  cfg.ignore_near_range = new_config.ignore_near_range;   
+  cfg.sensitivity_control = new_config.sensitivity_control; 
+  cfg.flexres_start_angle1 = new_config.flexres_start_angle1;
+  cfg.flexres_start_angle2 = new_config.flexres_start_angle2;
+  cfg.flexres_start_angle3 = new_config.flexres_start_angle3;
+  cfg.flexres_start_angle4 = new_config.flexres_start_angle4;
+  cfg.flexres_start_angle5 = new_config.flexres_start_angle5;
+  cfg.flexres_start_angle6 = new_config.flexres_start_angle6;
+  cfg.flexres_start_angle7 = new_config.flexres_start_angle7;
+  cfg.flexres_start_angle8 = new_config.flexres_start_angle8;
+  cfg.flexres_resolution1 = new_config.flexres_resolution1;
+  cfg.flexres_resolution2 = new_config.flexres_resolution2;
+  cfg.flexres_resolution3 = new_config.flexres_resolution3;
+  cfg.flexres_resolution4 = new_config.flexres_resolution4;
+  cfg.flexres_resolution5 = new_config.flexres_resolution5;
+  cfg.flexres_resolution6 = new_config.flexres_resolution6;
+  cfg.flexres_resolution7 = new_config.flexres_resolution7;
+  cfg.flexres_resolution8 = new_config.flexres_resolution8;
+  cfg.contour_point_density = new_config.contour_point_density;
+  cfg.min_object_age = new_config.min_object_age;
+  cfg.max_prediction_age = new_config.max_prediction_age;
+  update_config(cfg, level);
+}
+#endif
+
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
 rcl_interfaces::msg::SetParametersResult SickLDMRS::update_config_cb(const std::vector<rclcpp::Parameter> &parameters)
 {
   rcl_interfaces::msg::SetParametersResult result;

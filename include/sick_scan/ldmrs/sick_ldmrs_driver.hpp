@@ -108,7 +108,10 @@ public:
   void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
   void validate_config(SickLDMRSDriverConfig &conf);
   void update_config(SickLDMRSDriverConfig &new_config, uint32_t level = 0);
-#ifdef USE_DIAGNOSTIC_UPDATER_LDMRS  
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
+  void update_config_cb(sick_scan::SickLDMRSDriverConfig &new_config, uint32_t level = 0);
+#endif
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
   rcl_interfaces::msg::SetParametersResult update_config_cb(const std::vector<rclcpp::Parameter> &parameters);
 #endif
   void pubObjects(datatypes::ObjectList &objects);
@@ -132,7 +135,9 @@ private:
   DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::PointCloud2>>* diagnosticPub_;
   // Dynamic Reconfigure
   SickLDMRSDriverConfig config_;
-  // dynamic_reconfigure::Server<SickLDMRSDriverConfig> dynamic_reconfigure_server_;
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
+  dynamic_reconfigure::Server<sick_scan::SickLDMRSDriverConfig> dynamic_reconfigure_server_;
+#endif
 
   // sick_ldmrs library objects
   Manager* manager_;

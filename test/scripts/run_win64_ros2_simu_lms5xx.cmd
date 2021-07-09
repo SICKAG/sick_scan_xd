@@ -25,7 +25,7 @@ REM
 REM Run sick_scan on ROS-2 Windows
 REM 
 
-ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1
+ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
 
 @pause
 popd

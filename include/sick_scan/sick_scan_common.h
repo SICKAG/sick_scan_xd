@@ -216,6 +216,10 @@ namespace sick_scan
 
     void update_config(sick_scan::SickScanConfig &new_config, uint32_t level = 0);
 
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
+    rcl_interfaces::msg::SetParametersResult update_config_cb(const std::vector<rclcpp::Parameter> &parameters);
+#endif
+
     double get_expected_frequency() const
     { return expectedFrequency_; }
 
@@ -324,7 +328,7 @@ namespace sick_scan
     bool dumpDatagramForDebugging(unsigned char *buffer, int bufLen);
 
 #ifdef USE_DIAGNOSTIC_UPDATER
-    diagnostic_updater::Updater diagnostics_;
+    boost::shared_ptr<diagnostic_updater::Updater> diagnostics_;
 #endif
 
   private:
@@ -341,15 +345,15 @@ namespace sick_scan
     SickScanMarker* cloud_marker_;
 
     // Diagnostics
-#ifdef USE_DIAGNOSTIC_UPDATER
-    diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan> *diagnosticPub_;
+#if defined USE_DIAGNOSTIC_UPDATER && __ROS_VERSION == 1 // diagnosticPub_ in sick_scan_common obsolete in general?
+    diagnostic_updater::DiagnosedPublisher<ros_sensor_msgs::LaserScan> *diagnosticPub_;
 #else
     uint8_t* diagnosticPub_; // always 0
 #endif
     double expectedFrequency_;
 
 
-#ifdef USE_DYNAMIC_RECONFIGURE
+#if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
     dynamic_reconfigure::Server<sick_scan::SickScanConfig> dynamic_reconfigure_server_;
 #endif
     // Parser
@@ -382,6 +386,11 @@ namespace sick_scan
     bool sensorIsRadar;
 
     AngleCompensator *angleCompensator = NULL;
+
+    //void getConfigUpdateParam(SickScanConfig & cfg);
+    //void setConfigUpdateParam(SickScanConfig & cfg);
+
+    rosNodePtr m_nh;
   };
 
 } /* namespace sick_scan */

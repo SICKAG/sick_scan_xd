@@ -100,7 +100,6 @@ int main(int argc, char** argv)
   // Run ros event loop
   ROS_INFO("sick_scan_test_server is running event loop");
   rosSpin(node);
-
   // Cleanup and exit
   ROS_INFO("sick_scan_test_server finished.");
   test_server_thread.stop();

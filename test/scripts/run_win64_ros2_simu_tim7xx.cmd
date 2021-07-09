@@ -14,14 +14,16 @@ REM
 REM Run test server
 REM 
 
-start "test_server" ros2 run sick_scan test_server ./src/sick_scan_xd/tools/test_server/config/test_server_cola.launch
+copy /b/y .\src\sick_scan_xd\test\emulator\scandata\sopas_et_field_test_1_2_both_010.pcapng.json \tmp\lmd_scandata.pcapng.json 
+start "test_server" ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch
+
 @timeout /t 1
 
 REM 
 REM Run sick_scan on ROS-2 Windows
 REM 
 
-ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_240.launch hostname:=127.0.0.1 port:=2112 sw_pll_only_publish:=False
+ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
 
 @pause
 popd
