@@ -3,15 +3,8 @@
 ## Todo
 
 * Test ros services on Windows-ROS2
-* Documentation (incl. table of supported sensors and features supported by Windows/Linux/native/ROS1/ROS2)
 * Test with all supported targets
 * For Windows/Linux native: visualize field monitoring using https://github.com/michael1309/pgmHandling
-* features for the future:
-   * replace launchparser for ROS2 (ROS2 uses USE_LAUNCHPARSER in sick_generic_laser.cpp, switch to ROS2 standard parameter handling?)
-   * adapt libsick_ldmrs and support LDMRS on Windows
-   * support ros-like services for cola commands on native Windows and native Linux
-   * REST-API
-   * replace boost and pthread with std C++ 14
 * github: folder test/emulator/scandata/ ignored (scandata files too big) -> move to Git Large File Storage
     * https://git-lfs.github.com/
     * https://docs.github.com/en/github/managing-large-files/versioning-large-files/configuring-git-large-file-storage
@@ -19,6 +12,12 @@
    ```
    if (m_min_intensities >= static_cast<double>(scan_point.getReflectivity())) { scan.ranges[i] = std::numeric_limits<double>::infinity(); } 
    ```
+* features for future releases:
+   * replace launchparser for ROS2 (ROS2 uses USE_LAUNCHPARSER in sick_generic_laser.cpp, switch to ROS2 standard parameter handling?)
+   * adapt libsick_ldmrs and support LDMRS on Windows
+   * support ros-like services for cola commands on native Windows and native Linux
+   * REST-API
+   * replace boost and pthread with std C++ 14
    
 ## Issues
 * ROS1/ROS2 configuration min/max_ang for mrs_1xxx, tim_5xx:
