@@ -387,6 +387,8 @@ namespace sick_scan
 
     AngleCompensator *angleCompensator = NULL;
 
+    double m_min_intensity; // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
+
     //void getConfigUpdateParam(SickScanConfig & cfg);
     //void setConfigUpdateParam(SickScanConfig & cfg);
 

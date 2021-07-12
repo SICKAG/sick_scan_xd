@@ -9,9 +9,8 @@
     * https://git-lfs.github.com/
     * https://docs.github.com/en/github/managing-large-files/versioning-large-files/configuring-git-large-file-storage
 * sick_scan, sick_scan_xd: #131 https://github.com/SICKAG/sick_scan/issues/131 (intensity < min_intensity: range := inf, nachführen in sick_scan und sick_scan_xd, wie in sick_safetyscanners-master\src\SickSafetyscannersRos.cpp):
-   ```
-   if (m_min_intensities >= static_cast<double>(scan_point.getReflectivity())) { scan.ranges[i] = std::numeric_limits<double>::infinity(); } 
-   ```
+   * eingecheckt in sick_scan_pretest und sick_scan_xd
+   * [todo]: update repo https://github.com/SICKAG/sick_scan
 * features for future releases:
    * replace launchparser for ROS2 (ROS2 uses USE_LAUNCHPARSER in sick_generic_laser.cpp, switch to ROS2 standard parameter handling?)
    * adapt libsick_ldmrs and support LDMRS on Windows

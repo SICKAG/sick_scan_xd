@@ -26,5 +26,6 @@
         <param name="transmit_raw_targets" type="bool" value="true"/>
         <param name="transmit_objects" type="bool" value="true"/>
         <param name="emul_sensor" type="bool" value="$(arg emul_sensor)"/>
+        <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
     </node>
 </launch>

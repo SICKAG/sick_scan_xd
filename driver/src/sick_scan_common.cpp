@@ -417,6 +417,7 @@ namespace sick_scan
 #endif  
 
     expectedFrequency_ = this->parser_->getCurrentParamPtr()->getExpectedFrequency();
+    m_min_intensity = 0.0; // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
 
     setSensorIsRadar(false);
     init_cmdTables();
@@ -1321,6 +1322,7 @@ namespace sick_scan
     rosGetParam(nh, "intensity", rssiFlag);
     rosDeclareParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
     rosGetParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
+    rosGetParam(nh, "min_intensity", m_min_intensity); // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
     //check new ip adress and add cmds to write ip to comand chain
     std::string sNewIPAddr = "";
     boost::asio::ip::address_v4 ipNewIPAddr;
@@ -3964,6 +3966,18 @@ namespace sick_scan
                     else
                     {
                       sendMsg = false;
+                    }
+                  }
+                  // If msg.intensities[j] < min_intensity, then set msg.ranges[j] to inf according to https://github.com/SICKAG/sick_scan/issues/131
+                  if(m_min_intensity > 0) // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
+                  {
+                    for (int j = 0, j_max = (int)std::min(msg.ranges.size(), msg.intensities.size()); j < j_max; j++)
+                    {
+                      if(msg.intensities[j] < m_min_intensity)
+                      {
+                        msg.ranges[j] = std::numeric_limits<float>::infinity();
+                        // ROS_DEBUG_STREAM("msg.intensities[" << j << "]=" << msg.intensities[j] << " < " << m_min_intensity << ", set msg.ranges[" << j << "]=" << msg.ranges[j] << " to infinity.");
+                      }
                     }
                   }
 

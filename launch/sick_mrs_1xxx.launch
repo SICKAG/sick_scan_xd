@@ -38,6 +38,7 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
+        <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
 
     </node>
 </launch>

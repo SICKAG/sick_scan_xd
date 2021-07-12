@@ -31,6 +31,7 @@
         <param name="max_ang" type="double" value="+1.047"/>
         <param name="use_binary_protocol" type="bool" value="True"/>
         <param name="sw_pll_only_publish" type="bool" value="False"/>
+        <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
 
 
     </node>

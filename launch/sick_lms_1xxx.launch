@@ -27,5 +27,6 @@
         <param name="intensity_resolution_16bit" type="bool" value="false"/>
         <param name="min_ang" type="double" value="-2.391"/>
         <param name="max_ang" type="double" value="2.391"/>
+        <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
     </node>
 </launch>
