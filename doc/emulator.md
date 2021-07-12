@@ -99,7 +99,6 @@ killall sick_scan_emulator ; sleep 1
 
 ## Examples
 
-
 rviz example screenshots using sick_scan with LMS1xx and LMS5xx test server:
 
 ![emulator_lms1xx_screenshot.png](emulator_lms1xx_screenshot.png)
@@ -107,3 +106,5 @@ rviz example screenshots using sick_scan with LMS1xx and LMS5xx test server:
 rviz example screenshots using sick_scan with LMS7xx and LMS7xxS test server:
 
 ![emulator_lms1xx_screenshot.png](emulator_lms7xx_screenshot.png)
+
+Further examples are provided in folder `test/scripts`.

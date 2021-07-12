@@ -1,19 +1,24 @@
 # sick_scan_xd
 
-This project provides a driver for the SICK lidar and radar sensors mentioned in the following list.
+This project provides the driver for the SICK lidar and radar sensors mentioned in the following list.
 
-Based on sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_scan2 and sick_scan_base. It supports both Linux (standard, ROS1, ROS2) and Windows (standard and ROS2).
-
-**CURRENTLY UNDER DEVELOPMENT**
+Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_scan2 and sick_scan_base repositories. The driver supports both Linux (native, ROS1, ROS2) and Windows (native and ROS2).
 
 ## Table of Contents
 
 - [Supported Hardware](#supported-hardware)
-- [Start node](#start-node)
+- [Supported Hardware](#supported-hardware)
+- [Build on Linux](#build-on-linux)
+- [Build on Linux ROS1](#build-on-linux-ros1)
+- [Build on Linux ROS2](#build-on-linux-ros2)
+- [Build on Windows](#build-on-windows)
+- [Build on Windows ROS2](#build-on-windows-ros2)
+- [Run sick_scan driver](#run-sick_scan-driver)
 - [Bugs and feature requests](#bugs-and-feature-requests)
 - [Tools](#tools)
 - [Troubleshooting](#troubleshooting)
 - [SLAM-Support](doc/slam.md)
+- [IMU-Support](#imu-Support)
 - [Radar](doc/radar.md)
 - [Profiling](doc/profiling.md)
 - [Testing](#testing)
@@ -27,41 +32,53 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 
 | **device name**    |  **part no.**                                                                                                                | **description**                                | **tested?**     |
 |--------------------|------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|:---------------:|
-| MRS6124            | [6065086](https://www.sick.com/de/en/detection-and-ranging-solutions/3d-lidar-sensors/mrs6000/c/g448151)                         | 24 layer max. range: 200 m, ang. resol. 0.13 [deg] hor., 0.0625 [deg] ver. The SICK MRS6124 is a multi-layer, multi-echo 3D laser scanner that is geared towards rough outdoor environments. | ROS1: ✔ [stable]|
+| MRS6124            | [6065086](https://www.sick.com/de/en/detection-and-ranging-solutions/3d-lidar-sensors/mrs6000/c/g448151)                         | 24 layer max. range: 200 m, ang. resol. 0.13 [deg] hor., 0.0625 [deg] ver. The SICK MRS6124 is a multi-layer, multi-echo 3D laser scanner that is geared towards rough outdoor environments. | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 10 Hz                       |                 |
-| MRS1104            | [1081208](https://www.sick.com/sg/en/detection-and-ranging-solutions/3d-lidar-sensors/mrs1000/mrs1104c-111011/p/p495044)         | 4 layer max. range: 64 m, ang. resol. 0.25 [deg] hor., 2.50 [deg] ver.                                         | Linux, Windows, Linux-ROS1: ✔ [stable]|
+| MRS1104            | [1081208](https://www.sick.com/sg/en/detection-and-ranging-solutions/3d-lidar-sensors/mrs1000/mrs1104c-111011/p/p495044)         | 4 layer max. range: 64 m, ang. resol. 0.25 [deg] hor., 2.50 [deg] ver.                                         | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 50 Hz, 4x12.5 Hz            |                 |
-| LMS1104            | [1092445](https://www.sick.com/ag/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1000/c/g387151)                         | 1 layer max. range: 64 m, ang. resol. 0.25 [deg] |  ROS1: ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 150 Hz, 4x37.5 Hz   |                 |
 | TiM240             | [1104981](https://www.sick.com/ag/en/detection-and-ranging-solutions/2d-lidar-sensors/tim2xx/tim240-2050300/p/p654443)           | 1 layer max. range: 10 m, ang. resol. 1.00 [deg], 240 [deg]| ✔ [prototype]|
 |                    |                                                                                                                                  | Scan-Rate: 14.5 Hz   |                 |
-| TiM433             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| Linux, Windows, Linux-ROS1: ✔ [prototype]|
+| TiM433             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [prototype]|
 |                    |                                                                                                                                  | Scan-Rate: 15.0 Hz   |                 |
-| TiM443             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| Linux, Windows, Linux-ROS1: ✔ [prototype]|
+| TiM443             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [prototype]|
 |                    |                                                                                                                                  | Scan-Rate: 15.0 Hz   |                 |
-| TiM551             | [1060445](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim551-2050001/p/p343045)                 | 1 layer max. range: 10 m, ang. resol. 1.00[deg] | Linux, Windows, Linux-ROS1: ✔ [stable]|
+| TiM551             | [1060445](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim551-2050001/p/p343045)                 | 1 layer max. range: 10 m, ang. resol. 1.00[deg] | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
-| TiM561             | [1071419](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim561-2050101/p/p369446)                 | 1 layer max. range: 10 m, ang. resol. 0.33 [deg]| Linux, Windows, Linux-ROS1: ✔ [stable]|
+| TiM561             | [1071419](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim561-2050101/p/p369446)                 | 1 layer max. range: 10 m, ang. resol. 0.33 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
-| TiM571             | [1079742](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim571-2050101/p/p412444)                 | 1 layer max. range: 25 m, ang. resol. 0.33 [deg]| Linux, Windows, Linux-ROS1: ✔ [stable]|
+| TiM571             | [1079742](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim571-2050101/p/p412444)                 | 1 layer max. range: 25 m, ang. resol. 0.33 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
-| TiM771S            | [1105052](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/tim7xx/tim771s-2174104/p/p660929)                  | 1 layer max. range: 25 m, ang. resol. 0.33 [deg]| ROS1: ✔ [stable]|
+| TiM771S            | [1105052](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/tim7xx/tim771s-2174104/p/p660929)                  | 1 layer max. range: 25 m, ang. resol. 0.33 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
-| TiM781             | [1096807](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/tim7xx/tim781-2174101/p/p594148)                   | 1 layer max. range: 25 m, ang. resol. 0.33 [deg]| Linux, Windows, Linux-ROS1: ✔ [stable]|
+| TiM781             | [1096807](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/tim7xx/tim781-2174101/p/p594148)                   | 1 layer max. range: 25 m, ang. resol. 0.33 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
-| TiM781S            | [1096363](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/tim7xx/tim781s-2174104/p/p594149)                  | 1 layer max. range: 25 m, ang. resol. 0.33 [deg]| Linux, Windows, Linux-ROS1: ✔ [stable]|
+| TiM781S            | [1096363](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/tim7xx/tim781s-2174104/p/p594149)                  | 1 layer max. range: 25 m, ang. resol. 0.33 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
-| LMS511-10100 PRO   | [e.g. 1046135](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/lms5xx/c/g179651)     | 1 layer max. range: 80 m, ang. resol. 0.167 [deg]| Linux, Windows, Linux-ROS1: ✔ [stable]|
+| LMS511-10100 PRO   | [e.g. 1046135](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/lms5xx/c/g179651)     | 1 layer max. range: 80 m, ang. resol. 0.167 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 100 Hz   |                 |
-| LMS1xx-Family      | [e.g. 1041114](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1xx/c/g91901) | 1 layer max. range: 28 m, ang. resol. 0.25 [deg]| ROS1: ✔ [stable]|
+| LMS1104            | [1092445](https://www.sick.com/ag/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1000/c/g387151)                         | 1 layer max. range: 64 m, ang. resol. 0.25 [deg] |  ✔ [stable]|
+|                    |                                                                                                                                  | Scan-Rate: 150 Hz, 4x37.5 Hz   | 
+| LMS1xx-Family      | [e.g. 1041114](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1xx/c/g91901) | 1 layer max. range: 28 m, ang. resol. 0.25 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
-| NAV310     | [e.g. 1052928](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav3xx/nav350-3232/p/p256041) | 1 layer max. range: 250 m, ang. resol. 0.125 [deg] | ROS1: ✔ [stable]|
-|                    |                                                                                                                                  | Scan-Rate: 8 Hz   |                 |
-| NAV210+NAV245      | [e.g. 	1074308](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav2xx/c/g356151) | 1 layer max. range: 100 m, ang. resol. 0.25 [deg]| ROS1: ✔ [stable]|
-|                    |                                                                                                                                  | Scan-Rate: 25 Hz   |                 |
-| LMS4xxx-Family     | [e.g. 1091423](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/lms4000/lms4111r-13000/p/p578044?ff_data) | 1 layer max. range: 3 m, ang. resol. 0,0833 [deg], opening angle: +/- 50 [deg] | Linux, Windows, Linux-ROS1: ✔ [stable]|
+| LMS4xxx-Family     | [e.g. 1091423](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/lms4000/lms4111r-13000/p/p578044?ff_data) | 1 layer max. range: 3 m, ang. resol. 0,0833 [deg], opening angle: +/- 50 [deg] | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 600 Hz   |                 |
-| RMS3xx             | [8021530](https://cdn.sick.com/media/docs/4/04/504/Operating_instructions_RMS3xx_en_IM0075504.PDF)| Radar Sensor | ROS1: ✔ [stable]|
+| LDMRS |   | 4 or 8 layer, max. range: 50/320 m, ang. resol. 0.025°/.../0.25 [deg] | ✔ [development]|
+|       |   | Scan-Rate: 12.5-50 Hz | |
+| LRS4000 |   | 1 layer, max. range: 130 m, ang. resol. 0.125/0.25/0.5 [deg]  | ✔ [development]|
+|       |   | Scan-Rate: 12.5-25 Hz | |
+| NAV310     | [e.g. 1052928](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav3xx/nav350-3232/p/p256041) | 1 layer max. range: 250 m, ang. resol. 0.125 [deg] | ✔ [stable]|
+|                    |                                                                                                                                  | Scan-Rate: 8 Hz   |                 |
+| NAV210+NAV245      | [e.g. 	1074308](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav2xx/c/g356151) | 1 layer max. range: 100 m, ang. resol. 0.25 [deg]| ✔ [stable]|
+|                    |                                                                                                                                  | Scan-Rate: 25 Hz   |                 |
+| RMS3xx             | [8021530](https://cdn.sick.com/media/docs/4/04/504/Operating_instructions_RMS3xx_en_IM0075504.PDF)| Radar Sensor | ✔ [stable]|
+
+Note:
+* LDMRS family is currently not supported on Windows.
+* ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.
+* ROS services are currently not available for LDMRS.
+* dynamic reconfiguration of sick_scan parameter is supported on ROS-1 or ROS-2 only, not on native Linux or Windows.
+* Publishing pointcloud data requires ROS-1 or ROS-2. On native Linux resp. native Windows, pointcloud data are currently saved to jpg- and csv-files for demonstration purposes. A REST-API is planned for a future release.
 
 ## Build on Linux
 
@@ -72,12 +89,24 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    sudo apt-get install libjsoncpp-dev
    ```
 
-2. Clone repository https://github.com/SICKAG/sick_scan_xd:
+2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
+   git clone https://github.com/SICKAG/libsick_ldmrs.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-3. Build sick_generic_caller:
+3. Build libsick_ldmrs:
+   ```
+   cd libsick_ldmrs
+   mkdir -p ./build
+   pushd ./build
+   cmake -G "Unix Makefiles" ..
+   make -j4
+   sudo make -j4 install    
+   popd
+   ```
+
+4. Build sick_generic_caller:
    ```
    cd sick_scan_xd
    mkdir -p ./build_linux
@@ -87,7 +116,9 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-## Build on Linux-ROS1
+Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
+
+## Build on Linux ROS1
 
 Run the following steps to build sick_scan_xd on Linux with ROS 1:
 
@@ -96,10 +127,11 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
    sudo apt-get install libjsoncpp-dev
    ```
 
-2. Clone repository https://github.com/SICKAG/sick_scan_xd:
+2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
+   git clone https://github.com/SICKAG/libsick_ldmrs.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
@@ -107,9 +139,50 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
 3. Build sick_generic_caller:
    ```
    source /opt/ros/melodic/setup.bash
-   catkin_make install --cmake-args -DROS_VERSION=1
+   cp -f ./src/sick_scan_xd/package_ros1.xml ./src/sick_scan_xd/package.xml
+   catkin_make_isolated --install --cmake-args -DROS_VERSION=1
    source ./install/setup.bash 
    ```
+   For other ROS versions than melodic, please replace `source /opt/ros/melodic/setup.bash` with your ros distribution.
+
+Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
+
+The driver is released at longer intervals as a binary package and can therefore be installed via the package manager. To install sick_scan from the latest binary distribution, replace `<rosdistro>` with the name of your ROS distro (e.g., `melodic`) and run the following command:
+`sudo apt-get install ros-<rosdistro>-sick-scan`
+
+## Build on Linux ROS2
+
+Run the following steps to build sick_scan_xd on Linux with ROS 2:
+
+1. Install jsoncpp:
+   ```
+   sudo apt-get install libjsoncpp-dev
+   ```
+
+2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
+   ```
+   mkdir ./src
+   pushd ./src
+   git clone https://github.com/SICKAG/libsick_ldmrs.git
+   git clone https://github.com/SICKAG/sick_scan_xd.git
+   popd
+   ```
+
+3. Build sick_generic_caller:
+   ```
+   source /opt/ros/eloquent/setup.bash
+   cp -f ./src/sick_scan_xd/package_ros2.xml ./src/sick_scan_xd/package.xml 
+   colcon build --packages-select libsick_ldmrs --cmake-args " --event-handlers console_direct+
+   source ./install/setup.bash
+   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
+   source ./install/setup.bash 
+   ```
+   For other ROS versions than eloquent, please replace `source /opt/ros/eloquent/setup.bash` with your ros distribution.
+
+Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
+
+The driver is released at longer intervals as a binary package and can therefore be installed via the package manager. To install sick_scan from the latest binary distribution, replace `<rosdistro>` with the name of your ROS distro (e.g., `eloquent`) and run the following command:
+`sudo apt-get install ros-<rosdistro>-sick-scan`
 
 ## Build on Windows
 
@@ -117,7 +190,7 @@ To install sick_scan_xd on Windows, follow the steps below:
 
 1. If not yet done, install Visual Studio. Visual Studio 2019 Community or Professional Edition is recommended.
 
-2. If not yet done, install boost and pthread using Visual Studios package manager vcpkg:
+2. If not yet done, install boost, pthread and jsoncpp using Visual Studios package manager vcpkg:
    * Install vcpkg:
       * Download vcpkg-master.zip from https://github.com/microsoft/vcpkg/archive/master.zip and unzip to `c:\vcpkg`. Alternatively, run "git clone https://github.com/microsoft/vcpkg"
       * Install vcpkg by running the following commands:
@@ -158,6 +231,26 @@ To install sick_scan_xd on Windows, follow the steps below:
    ```
    Open file `build\sick_scan_xd.sln` in Visual Studio and build all targets (shortcut F7).
 
+Note: LDMRS sensors are currently not supported on Windows. 
+
+## Build on Windows ROS2
+
+To install sick_scan_xd on Windows with ROS-2, follow the steps below:
+
+1. If not yet done, install Visual Studio 2019, vcpkg, boost, pthread and jsoncpp as described in [Build on Windows](#build-on-windows).
+
+2. Clone repository https://github.com/SICKAG/sick_scan_xd:
+   ```
+   git clone https://github.com/SICKAG/sick_scan_xd.git
+   ```
+
+3. Build sick_generic_caller:
+   ```
+   copy /b/y .\src\sick_scan_xd\package_ros2.xml .\src\sick_scan_xd\package.xml
+   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
+   call .\install\setup.bat
+   ```
+
 ## IMU Support
 
 Devices of the MRS6xxx and MRS1xxx series are available with an optionally built-in IMU.
@@ -165,96 +258,169 @@ Further information on the implementation and use of the experimental Imu suppor
 
 ## Run sick_scan driver
 
-Use the following command to start ROS node:
+The sick_scan driver can be started on the command line by `sick_generic_caller <launchfile> [hostname:=<ip-address>]`. The start process varies slightly depending on the target OS:
+
+- On native Linux  without ROS, call 
+
+    ```sick_generic_caller <launchfile>```
+
+- On Linux with ROS-1, call 
+
+    ```roslaunch sick_scan <launchfile>```
+
+- On Linux with ROS-2, call 
+
+    ```ros2 run sick_scan sick_generic_caller <launchfile>```
+
+- On native Windows without ROS, call 
+
+    ```sick_generic_caller <launchfile>```
+
+- On Windows with ROS-2, call 
+
+    ```ros2 run sick_scan sick_generic_caller <launchfile>```
+
+Use the following commands to run the sick_scan driver for a specific scanner type:
 
 - For MRS6124:
-```bash
-roslaunch sick_scan sick_mrs_6xxx.launch
-```
-
+    ```
+    sick_generic_caller sick_mrs_6xxx.launch                     # Linux native
+    roslaunch sick_scan sick_mrs_6xxx.launch                     # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_mrs_6xxx.launch  # Linux ROS-2
+    sick_generic_caller sick_mrs_6xxx.launch                     # Windows native
+    ros2 run sick_scan sick_generic_caller sick_mrs_6xxx.launch  # Windows ROS-2
+    ```
 - For MRS1104:
-```bash
-roslaunch sick_scan sick_mrs_1xxx.launch
-```
-
+    ```
+    sick_generic_caller sick_mrs_1xxx.launch                     # Linux native
+    roslaunch sick_scan sick_mrs_1xxx.launch                     # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_mrs_1xxx.launch  # Linux ROS-2
+    sick_generic_caller sick_mrs_1xxx.launch                     # Windows native
+    ros2 run sick_scan sick_generic_caller sick_mrs_1xxx.launch  # Windows ROS-2
+    ```
 - For LMS1104:
-```bash
-roslaunch sick_scan sick_lms_1xxx.launch
-```
-
+    ```
+    sick_generic_caller sick_lms_1xxx.launch                     # Linux native
+    roslaunch sick_scan sick_lms_1xxx.launch                     # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_lms_1xxx.launch  # Linux ROS-2
+    sick_generic_caller sick_lms_1xxx.launch                     # Windows native
+    ros2 run sick_scan sick_generic_caller sick_lms_1xxx.launch  # Windows ROS-2
+    ```
 - For TiM240-prototype:
-```bash
-roslaunch sick_scan sick_tim_240.launch
-```
-
+    ```
+    sick_generic_caller sick_tim_240.launch                      # Linux native
+    roslaunch sick_scan sick_tim_240.launch                      # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_tim_240.launch   # Linux ROS-2
+    sick_generic_caller sick_tim_240.launch                      # Windows native
+    ros2 run sick_scan sick_generic_caller sick_tim_240.launch   # Windows ROS-2
+    ```
 - For TiM4xx-family:
-```bash
-roslaunch sick_scan sick_tim_4xx.launch
-```
-
+    ```
+    sick_generic_caller sick_tim_4xx.launch                      # Linux native
+    roslaunch sick_scan sick_tim_4xx.launch                      # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_tim_4xx.launch   # Linux ROS-2
+    sick_generic_caller sick_tim_4xx.launch                      # Windows native
+    ros2 run sick_scan sick_generic_caller sick_tim_4xx.launch   # Windows ROS-2
+    ```
 - For TiM5xx-family:
-```bash
-roslaunch sick_scan sick_tim_5xx.launch
-```
-
+    ```
+    sick_generic_caller sick_tim_5xx.launch                               # Linux native
+    roslaunch sick_scan sick_tim_5xx.launch                               # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch            # Linux ROS-2
+    sick_generic_caller sick_tim_5xx.launch                               # Windows native
+    ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch            # Windows ROS-2
 - For TiM7xx-family (no safety scanner):
-```bash
-roslaunch sick_scan sick_tim_7xx.launch
-```
-
+    ```
+    sick_generic_caller sick_tim_7xx.launch                      # Linux native
+    roslaunch sick_scan sick_tim_7xx.launch                      # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_tim_7xx.launch   # Linux ROS-2
+    sick_generic_caller sick_tim_7xx.launch                      # Windows native
+    ros2 run sick_scan sick_generic_caller sick_tim_7xx.launch   # Windows ROS-2
+    ```
 - For TiM7xxS-family (safety scanner):
-```bash
-roslaunch sick_scan sick_tim_7xxS.launch
-```
-
+    ```
+    sick_generic_caller sick_tim_7xxS.launch                     # Linux native
+    roslaunch sick_scan sick_tim_7xxS.launch                     # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_tim_7xxS.launch  # Linux ROS-2
+    sick_generic_caller sick_tim_7xxS.launch                     # Windows native
+    ros2 run sick_scan sick_generic_caller sick_tim_7xxS.launch  # Windows ROS-2
+    ```
 - For LMS1xx-family:
-```bash
-roslaunch sick_scan sick_lms_1xx.launch
-```
-
+    ```
+    sick_generic_caller sick_lms_1xx.launch                      # Linux native
+    roslaunch sick_scan sick_lms_1xx.launch                      # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_lms_1xx.launch   # Linux ROS-2
+    sick_generic_caller sick_lms_1xx.launch                      # Windows native
+    ros2 run sick_scan sick_generic_caller sick_lms_1xx.launch   # Windows ROS-2
+    ```
 - For LMS5xx-family:
-```bash
-roslaunch sick_scan sick_lms_5xx.launch
-```
-
+    ```
+    sick_generic_caller sick_lms_5xx.launch                      # Linux native
+    roslaunch sick_scan sick_lms_5xx.launch                      # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_lms_5xx.launch   # Linux ROS-2
+    sick_generic_caller sick_lms_5xx.launch                      # Windows native
+    ros2 run sick_scan sick_generic_caller sick_lms_5xx.launch   # Windows ROS-2
+    ```
 - For LMS4xxx-family:
-```bash
-roslaunch sick_scan sick_lms_4xxx.launch
-```
-
-- For NAV210:
-```bash
-roslaunch sick_scan sick_nav_2xx.launch
-```
-
-- For NAV245:
-```bash
-roslaunch sick_scan sick_nav_2xx.launch
-```
-
+    ```
+    sick_generic_caller sick_lms_4xxx.launch                     # Linux native
+    roslaunch sick_scan sick_lms_4xxx.launch                     # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_lms_4xxx.launch  # Linux ROS-2
+    sick_generic_caller sick_lms_4xxx.launch                     # Windows native
+    ros2 run sick_scan sick_generic_caller sick_lms_4xxx.launch  # Windows ROS-2
+    ```
+- For LRS4000:
+    ```
+    sick_generic_caller sick_lrs_4xxx.launch                     # Linux native
+    roslaunch sick_scan sick_lrs_4xxx.launch                     # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_lrs_4xxx.launch  # Linux ROS-2
+    sick_generic_caller sick_lrs_4xxx.launch                     # Windows native
+    ros2 run sick_scan sick_generic_caller sick_lrs_4xxx.launch  # Windows ROS-2
+    ```
+- For LDMRS-family:
+    ```
+    sick_generic_caller sick_ldmrs.launch                        # Linux native
+    roslaunch sick_scan sick_ldmrs.launch                        # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_ldmrs.launch     # Linux ROS-2
+    ```
+    Note that LDMRS are currently not supported on Windows
+- For NAV210 and NAV245:
+    ```
+    sick_generic_caller sick_nav_2xx.launch                      # Linux native
+    roslaunch sick_scan sick_nav_2xx.launch                      # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_nav_2xx.launch   # Linux ROS-2
+    sick_generic_caller sick_nav_2xx.launch                      # Windows native
+    ros2 run sick_scan sick_generic_caller sick_nav_2xx.launch   # Windows ROS-2
+    ```
 - For NAV310:
-```bash
-roslaunch sick_scan sick_nav_3xx.launch
-```
-
+    ```
+    sick_generic_caller sick_nav_3xx.launch                      # Linux native
+    roslaunch sick_scan sick_nav_3xx.launch                      # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_nav_3xx.launch   # Linux ROS-2
+    sick_generic_caller sick_nav_3xx.launch                      # Windows native
+    ros2 run sick_scan sick_generic_caller sick_nav_3xx.launch   # Windows ROS-2
+    ```
 - For RMS3xx-family:
-```bash
-roslaunch sick_scan sick_rms_3xx.launch (under
-opment)
-```
+    ```
+    sick_generic_caller sick_rms_3xx.launch                      # Linux native
+    roslaunch sick_scan sick_rms_3xx.launch                      # Linux ROS-1
+    ros2 run sick_scan sick_generic_caller sick_rms_3xx.launch   # Linux ROS-2
+    sick_generic_caller sick_rms_3xx.launch                      # Windows native
+    ros2 run sick_scan sick_generic_caller sick_rms_3xx.launch   # Windows ROS-2
+    ```
+
+Common commandline options are
+
+- `hostname:=<ip-address>` to connect to a sensor with a given IP address. Default value is always the factory default IP address of the scanner.
+
+Further (scanner specific) options can be set via launchfile, see 
+
 
 ### Start Multiple Nodes
 
+On Linux with ROS-1, multiple nodes to support multiple sensors can be started by one launch file. 
 Take the launchfile "sick_tim_5xx_twin.launch" as an example.
 Rempping the scan and cloud topics is essential to distinguish the scanndata and provide TF information.
-
-## Parameter
-
-In general the software starts with the following options:
-
-```console
-sick_generic_caller <launch-file> [<tag1>:=<value1>] [<tag2>:=<value>] ... [<tagn>:=<valuen>]
-```
 
 ### Common parameters
 
@@ -306,15 +472,14 @@ The use of the parameters can be looked up in the launch files. This is also rec
 
 ### Starting Scanner with Specific Ip Address
 
-To start the scanner with a specific IP address, the launch command can be used for most launch files as follows.
-The hostname is the ip-address of the scanner:
-
-```bash
-roslaunch <launch-file> hostname:=<ip-address>
+To start the scanner with a specific IP address, option `hostname:=<ip-address>` can be used.
+The hostname is the ip-address of the scanner, e.g.
 ```
-e.g.
-```bash
-roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71
+sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71                      # Linux native
+roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71                      # Linux ROS-1
+ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71   # Linux ROS-2
+sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71                      # Windows native
+ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71   # Windows ROS-2
 ```
 
 ### Further useful parameters and features
@@ -329,6 +494,34 @@ roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71
 
 - **Field monitoring**: The **LMS1xx**, **LMS5xx**, **TiM7xx** and **TiM7xxS** families have [extended settings for field monitoring](./doc/field_monitoring_extensions.md).
 
+### ROS services
+
+On ROS-1 and ROS-2, services can be used to send COLA commands to the sensor. This can be very helpfull for diagnosis, f.e. by querying the device status or its id.
+
+Use the following examples to run a cola commond on ROS-1:
+```
+rosservice call /sick_lms_5xx/ColaMsg "{request: 'sMN IsSystemReady'}"
+rosservice call /sick_lms_5xx/ColaMsg "{request: 'sRN SCdevicestate'}"
+rosservice call /sick_lms_5xx/ColaMsg "{request: 'sEN LIDinputstate 1'}"
+rosservice call /sick_lms_5xx/ColaMsg "{request: 'sEN LIDoutputstate 1'}"
+rosservice call /sick_lms_5xx/ColaMsg "{request: 'sMN LMCstartmeas'}" 
+```
+
+Use the following examples to run a cola commond on ROS-2:
+```
+ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN IsSystemReady'}"
+ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sRN SCdevicestate'}"
+ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sEN LIDinputstate 1'}"
+ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sEN LIDoutputstate 1'}"
+ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN LMCstartmeas'}" 
+```
+
+Note:
+* The COLA commands are sensor specific. See the user manual and telegram listing for further details.
+* ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.
+* ROS services are currently not available for LDMRS.
+
+
 ## Sopas Mode
 
 This driver supports both COLA-B (binary) and COLA-A (ASCII) communication with the laser scanner. Binary mode is activated by default. Since this mode generates less network traffic.
@@ -338,14 +531,12 @@ There are two ways to prevent this:
 2. Use the parameter "use_binary_protocol" to overwrite the default settings of the driver.
 3. Setting "use_binary_protocol" to "False" activates COLA-A and disables COLA-B (default)
 
-
 ## Bugs and Feature Requests
 
 - Stability issues: Driver is experimental for the RMS3xx
 - Sopas protocol mapping:
 -- All scanners: COLA-B (Binary)
 - Software should be further tested, documented and beautified
-- Setting of "topic" should not be hardcoded to /cloud in the future. This allows the simultaneous operation of several scanners. Each point cloud can then be converted using its own TF transformation.
 
 ## Tools
 
@@ -367,27 +558,37 @@ Overview of the tools:
   it is recommended to use the two tools "sick_generic_device_finder.py" to find the scanner in the network
   and the launch file sick_new_ip.launch to set a new IP address. If further settings are to be saved that cannot be made via ROS   parameters, we recommend using the Windows tool "Sopas ET" from SICK.
 * Unit tests: For a quick unit test after installation without the sensor hardware, a test server is provided to simulate a scanner. See [emulator](doc/emulator.md) for further details.
+* Testing: The sick_scan_test program was developed for testing the driver. See [test/sick_scan_test.md](test/sick_scan_test.md) for details.
 
 ## Simulation
 
-For unittests without sensor hardware, a LMS511 device can be simulated using the python script `test/emulator/test_server.py`. This script implements a simple tcp server for test purposes. It opens a listening tcp socket, connects to tcp clients, receives cola telegrams and sends predefined responses to the client. 
+For unittests without sensor hardware, a simple test server is provided. To build the test server, activate cmake option `ENABLE_EMULATOR` in CMakeLists.txt and rebuild sick_scan. By default, option `ENABLE_EMULATOR` is switched off.
 
-Please note that this is just a simple test server for basic unittests of sick_scan_base drivers. It does not emulate any real lidar sensors!
+Please note that this just builds a simple test server for basic unittests of sick_scan drivers. Its purpose is to run basic tests and to help with diagnosis in case of issues. It does not emulate a real scanner!
+
+You can find examples to test and run sick_scan in offline mode in folder `test/scripts`. Their purpose is to demonstrate the usage of the sick_scan driver. Please feel free to customize the scripts or use them as a starting point for own projects.
 
 ### Simulation on Windows
 
 Run script `run_simu_lms_5xx.cmd` in folder `test/scripts` or execute the following commands:
 
-```
-REM Start test server
-cd .\build
-start "testserver" python ../test/emulator/test_server.py --scandata_file=../test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112
-@timeout /t 1
-REM Run sick_generic_caller
-.\Debug\sick_generic_caller.exe ../launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
-```
+1. Start the test server:
+    ```
+    cd .\build
+    start "testserver" cmd /k python ../test/emulator/test_server.py --scandata_file=../test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112
+    @timeout /t 1
+    ```
 
-Open file `image_viewer.html` in folder `demo` in your browser to view a jpg-image of the current scan.
+2. Run sick_generic_caller. On native Windows:
+    ```
+    .\Debug\sick_generic_caller.exe ../launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
+    ```
+    On Windows with ROS-2:
+    ```
+    ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
+    ```
+
+3. Open file `image_viewer.html` in folder `demo` in your browser to view a jpg-image of the current scan.
 
 Note, that python version 3 incl. runtime dlls must be accessable, f.e. by extending the PATH environment variable:
 ```
@@ -395,17 +596,45 @@ set PYTHON_DIR=%ProgramFiles(x86)%/Microsoft Visual Studio/Shared/Python37_64
 set PATH=%PYTHON_DIR%;%PYTHON_DIR%/Scripts;c:\vcpkg\installed\x64-windows\bin;%PATH%
 ```
 
+Further examples are provided in folder `test/scripts`.
+
 ### Simulation on Linux
 
 Run script `run_simu_lms_5xx.bash` in folder `test/scripts` or execute the following commands:
 
-```
-python3 ./test/emulator/test_server.py --scandata_file=./test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112 &
-sleep 1
-./build_x64/sick_generic_caller ./launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
- ```
+1. Start the test server:
+    ```
+    python3 ./test/emulator/test_server.py --scandata_file=./test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112 &
+    sleep 1
+    ```
 
-Open file `image_viewer.html` in folder `demo` in a browser (f.e. firefox) to view a jpg-image of the current scan.
+2. Run sick_generic_caller. 
+    - On native Linux:
+         ```
+        ./build/sick_generic_caller ./launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+        ```
+    - On Linux with ROS-1:
+         ```
+        roslaunch sick_scan sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+        ```
+    - On Linux with ROS-2:
+         ```
+        ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+        ```
+
+3. View the point cloud.
+    - On native Linux:<br> 
+         Open file `image_viewer.html` in folder `demo` in a browser (f.e. firefox) to view a jpg-image of the current scan.
+    - On Linux with ROS-1:
+         ```
+        rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_lms5xx.rviz &
+        ```
+    - On Linux with ROS-2:
+         ```
+        rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_lms5xx.rviz &
+        ```
+
+Further examples are provided in folder `test/scripts`.
 
 ## FAQ
 
@@ -447,62 +676,6 @@ Common problems might be solved in closed issues.
 * Issue Handling: Issues, for which no reply was received from the questioner for more than 7 days,						
   are closed by us because we assume that the user has solved the problem.
 
-
-## Installation
-
-In the following instructions, replace `<rosdistro>` with the name of your ROS distro (e.g., `indigo`).
-
-### From Binaries
-
-The driver is released at longer intervals as a binary package and can therefore be installed via the package manager. To be able to use all new functions of the driver, the driver should be built from the sources published in this reposity:
-
-`sudo apt-get install ros-<rosdistro>-sick-scan`
-
-### From Source
-
-```bash
-source /opt/ros/<rosdistro>/setup.bash
-mkdir -p ~/ros_catkin_ws/src/
-cd ~/ros_catkin_ws/src/
-git clone git://github.com/SICKAG/sick_scan.git
-cd ..
-catkin_make install
-source ~/ros_catkin_ws/install/setup.bash
-```
-
-#### Development branch
-
-A "devel" branch is also maintained for the very latest developments and tests. Add-ons and support for brand new scanners are usually first tested in this branch and can be checked out as needed as follows:
-```bash
-source /opt/ros/<rosdistro>/setup.bash
-mkdir -p ~/ros_catkin_ws/src/
-cd ~/ros_catkin_ws/src/
-git clone -b devel --single-branch git://github.com/SICKAG/sick_scan.git
-cd ..
-catkin_make install
-source ~/ros_catkin_ws/install/setup.bash
-```
-
-## Quick Start
-
-```bash
-roslaunch sick_scan sick_mrs6xxx.launch
-rosrun rviz rviz
-publish to point cloud
-```
-## Testing
-The sick_scan_test program was developed for testing the driver. This program checks elementary properties of the scanner. In a first implementation stage, the shots per scan are checked. The test program works according to the following principle:
-1. The parameters from an original launch file are read.
-2. These parameters are modified according to the instructions in the test control file.
-3. The modified parameters including all other parameter settings from the original launch file are copied to a test launch file.
-4. The test launch file is started.
-5. The parameters are checked.
-6. The result of the check is transferred to a result file.
-The basic procedure can be seen in the following figure:
-![Alt text](./sick_scan_test.png?raw=true "princile of test program")
-More information about the structure of the individual files in the test run can be found [here](test/sick_scan_test.md):
-
-
 ## Keywords
 
 MRS1000
@@ -533,8 +706,8 @@ LMS511
 NAV210
 NAV245
 NAV310
-
-
+LDMRS
+LRS4000
 
 ## Creators
 

@@ -29,6 +29,7 @@ REM
 REM Call service examples
 REM 
 
+echo PYTHONPATH = %PYTHONPATH%
 ros2 service list
 @timeout /t 2
 ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN IsSystemReady'}"

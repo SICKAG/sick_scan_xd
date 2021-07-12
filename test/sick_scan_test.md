@@ -6,6 +6,19 @@
 - [Structure Test Result File](#structure-test-result-file)
 - [Creators](#creators)
 
+## Overview
+
+The sick_scan_test program was developed for testing the driver. This program checks elementary properties of the scanner. In a first implementation stage, the shots per scan are checked. The test program works according to the following principle:
+1. The parameters from an original launch file are read.
+2. These parameters are modified according to the instructions in the test control file.
+3. The modified parameters including all other parameter settings from the original launch file are copied to a test launch file.
+4. The test launch file is started.
+5. The parameters are checked.
+6. The result of the check is transferred to a result file.
+The basic procedure can be seen in the following figure:
+![Alt text](../sick_scan_test.png?raw=true "principle of test program")
+
+
 ## Structure Test Control File
 The following XML is an example of a test control file:
 

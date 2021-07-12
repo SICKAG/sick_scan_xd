@@ -76,7 +76,6 @@ ifconfig|grep 192.168.0.22
 ```
 ## IP Address of Laser Scanner
 
-
 :question: Question:
 My scanner does not use the default ip address. What shall I do?
 
@@ -114,8 +113,34 @@ For a long-term solution, we recommend switching from ASCII to binary communicat
 :question: Question:
 I would like to process data with my own methods.
 
-
 :white_check_mark: Answer:
 Search for keyword "PUBLISH_DATA:" in the code and replace the code for writing
 jpeg-files and CSV-files with your own source code.
 
+## Occasionally missing scan data
+
+:question: Question:
+Occasionally, no scan data appear, but the scanner is still reachable using `ping <ip-address>` or `nc -z -v <ip-address> <port>`
+
+:white_check_mark: Answer:
+This is likely to be a data capture issue. In any case it's recommend (if not already set) to use SOPAS-Binary instead of SOPAS-ASCII, because here the data rate is lower.
+
+In addition, the following measures can help to determine the source of the problems:
+a) Exchange the cables to the lidar(s) incl. the network cables
+b) Exchange the power supply to the lidar(s)
+c) avoidance of interconnection of other components (like switch etc.)
+d) upgrade hardware and firmware of devices (if new versions available)
+
+If it is not a hardware problem (e.g. cable), check if there are other software components using the network interface.
+
+If there are still problems, use Wireshark to see if there are any communication problems reported. Wireshark can export the recorded network traffic as text (see screenshot). Search for entries like "LMDscandata" in the generated text file. This marks the beginning of a new scan message. You can then compare the order of the timestamps of these packets to see if there were any failures.
+
+![Wireshark screenshot](https://user-images.githubusercontent.com/33296049/124088216-01aa2280-da53-11eb-91ae-2b88b37e08eb.png)
+
+## python_d.exe not found
+
+:question: Question:
+On Windows with ROS, cmake complains "python_d.exe not found" when running rosidl generator
+
+:white_check_mark: Answer:
+Workaround: Copy python.exe to python_d.exe in the python folder.
