@@ -88,10 +88,9 @@ tools/sick_generic_device_finder/venv
 
 tools/sick_generic_device_finder/.idea
 
-doc/angle_compensation/ampl_phase_offset\.png
+tools/git_lfs
 
-test/emulator/scandata/
-test/emulator/scandata/20210126-tim781s-test-fieldsets.pcapng.json
+doc/angle_compensation/ampl_phase_offset\.png
 
 demo/scan.jpg_tmp
 doc/20210712_sick_scan_xd.pptx

@@ -571,6 +571,8 @@ Please note that this just builds a simple test server for basic unittests of si
 
 You can find examples to test and run sick_scan in offline mode in folder `test/scripts`. Their purpose is to demonstrate the usage of the sick_scan driver. Please feel free to customize the scripts or use them as a starting point for own projects.
 
+Note: Some larger scandata for test and development are provided in folder `test/emulator/scandata`. These files are versioned using "Git Large File Storage". Follow the description [doc/git_lfs.md](doc/git_lfs.md) to install and use git lfs extension.
+
 ### Simulation on Windows
 
 Run script `run_simu_lms_5xx.cmd` in folder `test/scripts` or execute the following commands:
