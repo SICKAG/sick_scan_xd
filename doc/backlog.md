@@ -28,4 +28,4 @@
 * Release 0.1.0, commit 5568f73 on Jul 08, 2021: compatibility for targets Linux (native, ROS-1, ROS-2) and Windows (native, ROS2)
 * Release 0.2.0, commit 343e88b on Jul 09, 2021: unittests
 * Release 0.3.0, commit 267232a on Jul 13, 2021: Scandata files using Git Large File Storage
-* Release 1.0.0, commit  on Jul 14, 2021: Offline tests, RC1
+* Release 1.0.0, commit 335c043 on Jul 14, 2021: RC1 for online and offline tests
