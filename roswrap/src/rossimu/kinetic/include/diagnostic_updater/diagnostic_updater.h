@@ -370,7 +370,8 @@ namespace diagnostic_updater
        * \param h Node handle from which to get the diagnostic_period
        * parameter.
        */
-    Updater(ros::NodeHandle h = ros::NodeHandle(), ros::NodeHandle ph = ros::NodeHandle("~"), std::string node_name = ros::this_node::getName()) : private_node_handle_(ph), node_handle_(h), node_name_(node_name)
+    Updater(ros::NodeHandle h = ros::NodeHandle(), ros::NodeHandle ph = ros::NodeHandle("~"), std::string node_name = ros::this_node::getName()) : 
+      private_node_handle_(ph), node_handle_(h), node_name_(node_name), hwid_("none")
     {
       setup();
     }

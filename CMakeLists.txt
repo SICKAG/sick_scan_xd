@@ -428,7 +428,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         file(GLOB SRC_WIN_FILES roswrap/helper_win/usleep/usleep.c)
     endif()
     if(ROS_VERSION EQUAL 0)
-        include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg  roswrap/src/tools)
+        include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg roswrap/src/tools)
         file(GLOB SRC_ROSSIMU_FILES 
             roswrap/src/cfgsimu/sick_scan/time_modi.cpp
             roswrap/src/rossimu/kinetic/src/rossimu.cpp

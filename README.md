@@ -84,9 +84,11 @@ Note:
 
 Run the following steps to build sick_scan_xd on Linux (no ROS required):
 
-1. Install jsoncpp:
+1. Install boost, jsoncpp and pcl:
    ```
+   sudo apt-get install libboost-all-dev
    sudo apt-get install libjsoncpp-dev
+   sudo apt-get install libpcl-dev
    ```
 
 2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
@@ -97,9 +99,9 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
 
 3. Build libsick_ldmrs:
    ```
-   cd libsick_ldmrs
+   pushd libsick_ldmrs
    mkdir -p ./build
-   pushd ./build
+   cd ./build
    cmake -G "Unix Makefiles" ..
    make -j4
    sudo make -j4 install    
@@ -108,23 +110,25 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
 
 4. Build sick_generic_caller:
    ```
-   cd sick_scan_xd
+   pushd sick_scan_xd
    mkdir -p ./build_linux
-   pushd ./build_linux
+   cd ./build_linux
    cmake -DROS_VERSION=0 -G "Unix Makefiles" ..
    make -j4
    popd
    ```
 
-Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
+Note: libsick_ldmrs and pcl are only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
 
 ## Build on Linux ROS1
 
 Run the following steps to build sick_scan_xd on Linux with ROS 1:
 
-1. Install jsoncpp:
+1. Install boost, jsoncpp and pcl:
    ```
+   sudo apt-get install libboost-all-dev
    sudo apt-get install libjsoncpp-dev
+   sudo apt-get install libpcl-dev
    ```
 
 2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
@@ -143,20 +147,19 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1
    source ./install/setup.bash 
    ```
-   For other ROS versions than melodic, please replace `source /opt/ros/melodic/setup.bash` with your ros distribution.
+   For ROS versions other than melodic, please replace `source /opt/ros/melodic/setup.bash` with your ros distribution.
 
-Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
-
-The driver is released at longer intervals as a binary package and can therefore be installed via the package manager. To install sick_scan from the latest binary distribution, replace `<rosdistro>` with the name of your ROS distro (e.g., `melodic`) and run the following command:
-`sudo apt-get install ros-<rosdistro>-sick-scan`
+Note: libsick_ldmrs and pcl are only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
 
 ## Build on Linux ROS2
 
 Run the following steps to build sick_scan_xd on Linux with ROS 2:
 
-1. Install jsoncpp:
+1. Install boost, jsoncpp and pcl:
    ```
+   sudo apt-get install libboost-all-dev
    sudo apt-get install libjsoncpp-dev
+   sudo apt-get install libpcl-dev
    ```
 
 2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
@@ -177,12 +180,9 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    source ./install/setup.bash 
    ```
-   For other ROS versions than eloquent, please replace `source /opt/ros/eloquent/setup.bash` with your ros distribution.
+   For ROS versions other than eloquent, please replace `source /opt/ros/eloquent/setup.bash` with your ros distribution.
 
-Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
-
-The driver is released at longer intervals as a binary package and can therefore be installed via the package manager. To install sick_scan from the latest binary distribution, replace `<rosdistro>` with the name of your ROS distro (e.g., `eloquent`) and run the following command:
-`sudo apt-get install ros-<rosdistro>-sick-scan`
+Note: libsick_ldmrs and pcl are only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
 
 ## Build on Windows
 
@@ -413,14 +413,13 @@ Common commandline options are
 
 - `hostname:=<ip-address>` to connect to a sensor with a given IP address. Default value is always the factory default IP address of the scanner.
 
-Further (scanner specific) options can be set via launchfile, see 
-
+Further (common and scanner specific) options can be set via launchfile, see [Common parameters](#common-parameters) and configure the settings in the launchfile corresponding to the scanner type.
 
 ### Start Multiple Nodes
 
 On Linux with ROS-1, multiple nodes to support multiple sensors can be started by one launch file. 
-Take the launchfile "sick_tim_5xx_twin.launch" as an example.
-Rempping the scan and cloud topics is essential to distinguish the scanndata and provide TF information.
+Take the launchfile [sick_tim_5xx_twin.launch](launch/sick_tim_5xx_twin.launch) as an example.
+Remapping the scan and cloud topics is essential to distinguish the scanndata and provide TF information.
 
 ### Common parameters
 
@@ -522,7 +521,7 @@ ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN LMCstartmeas
 Note:
 * The COLA commands are sensor specific. See the user manual and telegram listing for further details.
 * ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.
-* ROS services are currently not available for LDMRS.
+* ROS services are currently not available for the LDMRS.
 
 
 ## Sopas Mode
@@ -571,7 +570,7 @@ Please note that this just builds a simple test server for basic unittests of si
 
 You can find examples to test and run sick_scan in offline mode in folder `test/scripts`. Their purpose is to demonstrate the usage of the sick_scan driver. Please feel free to customize the scripts or use them as a starting point for own projects.
 
-Note: Some larger scandata for test and development are provided in folder `test/emulator/scandata`. These files are versioned using "Git Large File Storage". Follow the description [doc/git_lfs.md](doc/git_lfs.md) to install and use git lfs extension.
+Note: Some larger scandata files for testing and development are provided in folder `test/emulator/scandata`. These files are versioned using "Git Large File Storage". Follow the description [doc/git_lfs.md](doc/git_lfs.md) to install and use git lfs extension.
 
 ### Simulation on Windows
 
@@ -644,6 +643,7 @@ Further examples are provided in folder `test/scripts`.
 ## FAQ
 
 * FAQ: [doc/faq.md](doc/faq.md)
+* ROS installation: [doc/InstallROS2.md](doc/InstallROS2.md)
 
 ## Troubleshooting
 

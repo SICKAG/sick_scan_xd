@@ -4,56 +4,19 @@
 
 * Test ros services on Windows-ROS2
 * Test with all supported targets
-* For Windows/Linux native: visualize field monitoring using https://github.com/michael1309/pgmHandling
-* github: folder test/emulator/scandata/ ignored (scandata files too big) -> move to Git Large File Storage
-    * https://git-lfs.github.com/
-    * https://docs.github.com/en/github/managing-large-files/versioning-large-files/configuring-git-large-file-storage
-* sick_scan, sick_scan_xd: #131 https://github.com/SICKAG/sick_scan/issues/131 (intensity < min_intensity: range := inf, nachführen in sick_scan und sick_scan_xd, wie in sick_safetyscanners-master\src\SickSafetyscannersRos.cpp):
-   * eingecheckt in sick_scan_pretest und sick_scan_xd
-   * [todo]: update repo https://github.com/SICKAG/sick_scan
 * features for future releases:
-   * replace launchparser for ROS2 (ROS2 uses USE_LAUNCHPARSER in sick_generic_laser.cpp, switch to ROS2 standard parameter handling?)
+   * REST-API
    * adapt libsick_ldmrs and support LDMRS on Windows
    * support ros-like services for cola commands on native Windows and native Linux
-   * REST-API
-   * replace boost and pthread with std C++ 14
+   * [optional: replace launchparser for ROS2 (ROS2 uses USE_LAUNCHPARSER in sick_generic_laser.cpp, switch to ROS2 standard parameter handling?)]
+   * replace boost and pthread with std C++ 14, remove pcl-dependencies for LDMRS support
    
-## Issues
-* ROS1/ROS2 configuration min/max_ang for mrs_1xxx, tim_5xx:
-    sick_scan2/config/sick_mrs_1xxx.yaml: 
-    ```
-    min_ang : -2.35619449 #in lidar cordinate frame  see ../doc/3d_coordinate_system_comp.png
-    max_ang : 2.35619449 #in lidar cordinate frame  see ../doc/3d_coordinate_system_comp.png
-    ```
-    sick_scan/launch/sick_mrs_1xxx.launch:
-    ```
-    <param name="min_ang" type="double" value="-2.3998277"/>
-    <param name="max_ang" type="double" value="+2.3998277"/>
-    ```
-    sick_scan2/config/sick_tim_5xx.yaml: 
-    ```
-    min_ang : 0.0 #in lidar cordinate frame  see ../doc/3d_coordinate_system_comp.png
-    max_ang : 3.141 #in lidar cordinate frame  see ../doc/3d_coordinate_system_comp.png
-    ```
-    sick_scan/launch/sick_tim_5xx.launch:
-    ```
-    <param name="min_ang" type="double" value="-2.35619449"/> <!-- -135 deg -->
-    <param name="max_ang" type="double" value="2.35619449"/>  <!-- +135 deg -->
-    ```
-
 ## Overview
 
 ### Targets
 
 * Merge sick_scan, sick_scan_base and sick_scan2
 * Support Linux (native, ROS1, ROS2) and Windows (native and ROS2)
-
-### Modules
-
-* Core: systemindependant core functions and communication with Lidar devices
-* Core api: communication with core via C++ and event callbacks
-* Subscriber: Systemdependant callback implementations, f.e. scandata-callback: publish on ROS, logging on non-ROS
-* Configuration: yaml-files plus get/set-functions
 
 ## Version history
 
@@ -64,3 +27,5 @@
 * commit aed7419 on Jul 06, 2021: merge with sick_scan2, ros services
 * Release 0.1.0, commit 5568f73 on Jul 08, 2021: compatibility for targets Linux (native, ROS-1, ROS-2) and Windows (native, ROS2)
 * Release 0.2.0, commit 343e88b on Jul 09, 2021: unittests
+* Release 0.3.0, commit 267232a on Jul 13, 2021: Scandata files using Git Large File Storage
+* Release 1.0.0, commit  on Jul 14, 2021: Offline tests, RC1

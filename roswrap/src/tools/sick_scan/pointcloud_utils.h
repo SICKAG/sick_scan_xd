@@ -47,6 +47,8 @@
 #define ROSSIMU_DEMO_FOLDER "./demo"
 #endif
 
+void setVisualizationMarkerArray(const std::vector<ros_visualization_msgs::Marker> & marker_array);
+
 void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall = 25, const std::string& outputfolder = ROSSIMU_DEMO_FOLDER);
 
 #endif // __SICK_ROS_SIMU_POINTCLOUD_UTILS_H_INCLUDED

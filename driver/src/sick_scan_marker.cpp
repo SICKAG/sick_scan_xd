@@ -41,6 +41,10 @@
 
 #include "sick_scan/sick_scan_marker.h"
 
+#ifdef ROSSIMU
+#include <sick_scan/pointcloud_utils.h>
+#endif
+
 static ros_std_msgs::ColorRGBA color(float r, float g, float b, float a = 0.5f)
 {
     ros_std_msgs::ColorRGBA color;
@@ -213,6 +217,9 @@ void sick_scan::SickScanMarker::publishMarker(void)
     for(int n = 0; n < m_scan_fieldset_legend.size(); n++)
         marker_array.markers.push_back(m_scan_fieldset_legend[n]);
     rosPublish(m_marker_publisher, marker_array);
+#ifdef ROSSIMU
+    setVisualizationMarkerArray(marker_array.markers); // update ros simu output image
+#endif
 }
 
 static void appendTrianglePoints(int point_count, const std::vector<float>& points_x, const std::vector<float>& points_y, 
