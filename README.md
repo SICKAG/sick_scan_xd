@@ -175,7 +175,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    ```
    source /opt/ros/eloquent/setup.bash
    cp -f ./src/sick_scan_xd/package_ros2.xml ./src/sick_scan_xd/package.xml 
-   colcon build --packages-select libsick_ldmrs --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
+   colcon build --packages-select libsick_ldmrs --event-handlers console_direct+
    source ./install/setup.bash
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    source ./install/setup.bash 
