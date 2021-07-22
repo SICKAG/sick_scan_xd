@@ -480,6 +480,9 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/sick_generic_caller.cpp
     )
 
+    #message("Boost_LIBRARIES= ${Boost_LIBRARIES}")
+    #message("pthread_LIBRARIES= ${pthread_LIBRARIES}")
+    target_link_libraries(sick_scan_lib pthread boost_thread ${Boost_LIBRARIES} ${pthread_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
     target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${pthread_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
 
 endif()
@@ -593,8 +596,10 @@ if(ENABLE_EMULATOR AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator 
         ${roslib_LIBRARIES}
         jsoncpp_lib # ${jsoncpp_LIBRARIES}
         sick_scan_lib
-        ${Boost_LIBRARIES})
+        ${Boost_LIBRARIES}
+        ${pthread_LIBRARIES})
     target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
+    
     if(ROS_VERSION EQUAL 1)
         install(TARGETS sick_scan_emulator
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
@@ -625,9 +630,9 @@ if(ENABLE_EMULATOR)
         tools/test_server/src/test_server_cola_msg.cpp 
         tools/test_server/src/test_server_ldmrs_msg.cpp 
         tools/test_server/src/test_server_thread.cpp)
-    target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES})
+    target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES} ${pthread_LIBRARIES})
     if(ROS_VERSION EQUAL 2)
-        ament_target_dependencies(test_server "rclcpp")
+        ament_target_dependencies(test_server "rclcpp" "Boost")
     endif(ROS_VERSION EQUAL 2)
     install(TARGETS 
         test_server
