@@ -145,7 +145,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
    source /opt/ros/melodic/setup.bash
    cp -f ./src/sick_scan_xd/package_ros1.xml ./src/sick_scan_xd/package.xml
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1
-   source ./install/setup.bash 
+   source ./install_isolated/setup.bash
    ```
    For ROS versions other than melodic, please replace `source /opt/ros/melodic/setup.bash` with your ros distribution.
 
