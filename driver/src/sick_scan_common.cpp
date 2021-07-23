@@ -721,7 +721,7 @@ namespace sick_scan
   std::string SickScanCommon::generateExpectedAnswerString(const std::vector<unsigned char> requestStr)
   {
     std::string expectedAnswer = "";
-    int i = 0;
+    //int i = 0;
     char cntWhiteCharacter = 0;
     int initalTokenCnt = 2; // number of initial token to identify command
     std::map<std::string, int> specialTokenLen;
@@ -1368,9 +1368,9 @@ namespace sick_scan
     ROS_INFO_STREAM("Parameter setting for <active_echo: " << activeEchos << "d>\n");
     std::vector<bool> outputChannelFlag;
     outputChannelFlag.resize(maxNumberOfEchos);
-    int i;
+    //int i;
     int numOfFlags = 0;
-    for (i = 0; i < outputChannelFlag.size(); i++)
+    for (int i = 0; i < outputChannelFlag.size(); i++)
     {
       /*
       After consultation with the company SICK,
@@ -1486,12 +1486,12 @@ namespace sick_scan
       std::vector<unsigned char> replyDummy;
       std::vector<unsigned char> reqBinary;
 
-      std::vector<unsigned char> sopasCmdVec;
+      std::vector<unsigned char> sopasCmdVecTmp;
       for (size_t j = 0; j < sopasCmd.length(); j++)
       {
-        sopasCmdVec.push_back(sopasCmd[j]);
+        sopasCmdVecTmp.push_back(sopasCmd[j]);
       }
-      ROS_DEBUG_STREAM("Command: " << stripControl(sopasCmdVec));
+      ROS_DEBUG_STREAM("Command: " << stripControl(sopasCmdVecTmp));
 
         // switch to either binary or ascii after switching the command mode
       // via ... command
@@ -1602,7 +1602,7 @@ namespace sick_scan
             if (ptr2 != NULL)
             {
               ptr2++;
-              for (int i = 0; i < idLen; i++)
+              for (int j = 0; j < idLen; j++)
               {
                 deviceIdent += *ptr2;
                 ptr2++;
@@ -1617,7 +1617,7 @@ namespace sick_scan
             {
               ptr2++;
               deviceIdent += " V";
-              for (int i = 0; i < versionLen; i++)
+              for (int j = 0; j < versionLen; j++)
               {
                 deviceIdent += *ptr2;
                 ptr2++;
@@ -1859,9 +1859,9 @@ namespace sick_scan
 
             if (useBinaryCmd == false)
             {
-              for (int i = 0; i < s.length(); i++)
+              for (int j = 0; j < s.length(); j++)
               {
-                tmpVec.push_back((unsigned char)s[i]);
+                tmpVec.push_back((unsigned char)s[j]);
               }
             }
             else
@@ -2766,26 +2766,26 @@ namespace sick_scan
           for (int i = 0; i < maxWaitForDeviceStateReady; i++)
           {
             double shortSleepTime = 1.0;
-            std::string sopasCmd = sopasCmdVec[CMD_DEVICE_STATE];
-            std::vector<unsigned char> replyDummy;
+            std::string sopasDeviceStateCmd = sopasCmdVec[CMD_DEVICE_STATE];
+            std::vector<unsigned char> replyDummyDeviceState;
 
             int iRetVal = 0;
             int deviceState = 0;
 
-            std::vector<unsigned char> reqBinary;
-            std::vector<unsigned char> sopasVec;
-            sopasVec = stringToVector(sopasCmd);
-            ROS_DEBUG_STREAM("Command: " << stripControl(sopasVec));
+            std::vector<unsigned char> reqBinaryDeviceState;
+            std::vector<unsigned char> sopasVecDeviceState;
+            sopasVecDeviceState = stringToVector(sopasDeviceStateCmd);
+            ROS_DEBUG_STREAM("Command: " << stripControl(sopasVecDeviceState));
             if (useBinaryCmd)
             {
-              this->convertAscii2BinaryCmd(sopasCmd.c_str(), &reqBinary);
-              result = sendSopasAndCheckAnswer(reqBinary, &replyDummy);
-              sopasReplyBinVec[CMD_DEVICE_STATE] = replyDummy;
+              this->convertAscii2BinaryCmd(sopasDeviceStateCmd.c_str(), &reqBinaryDeviceState);
+              result = sendSopasAndCheckAnswer(reqBinaryDeviceState, &replyDummyDeviceState);
+              sopasReplyBinVec[CMD_DEVICE_STATE] = replyDummyDeviceState;
             }
             else
             {
-              result = sendSopasAndCheckAnswer(sopasCmd.c_str(), &replyDummy);
-              sopasReplyStrVec[CMD_DEVICE_STATE] = replyToString(replyDummy);
+              result = sendSopasAndCheckAnswer(sopasDeviceStateCmd.c_str(), &replyDummyDeviceState);
+              sopasReplyStrVec[CMD_DEVICE_STATE] = replyToString(replyDummyDeviceState);
             }
 
 
@@ -3000,7 +3000,7 @@ namespace sick_scan
   */
   int SickScanCommon::loopOnce(rosNodePtr nh)
   {
-    static int cnt = 0;
+    //static int cnt = 0;
 #ifdef USE_DIAGNOSTIC_UPDATER
     if(diagnostics_)
     {
@@ -3288,7 +3288,7 @@ namespace sick_scan
                 // binary message
                 if (lenVal < actual_length)
                 {
-                  short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
+                  elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
                   // F5B2h -> -2638/200= -13.19°
                   int scanFrequencyX100 = 0;
                   double elevAngle = 0.00;
@@ -3426,8 +3426,8 @@ namespace sick_scan
                   double sizeOfSingleAngularStep = 0.0;
                   short numberOfItems = 0;
 
-                  static int cnt = 0;
-                  cnt++;
+                  //static int cnt = 0;
+                  //cnt++;
                   // get number of 8 bit channels
                   // we must jump of the 16 bit data blocks including header ...
                   for (int i = 0; i < numberOf16BitChannels; i++)
@@ -4109,6 +4109,8 @@ namespace sick_scan
                       alpha = layer * elevationAngleDegree; // for MRS1104
                     }
                   }
+                  // ROS_DEBUG_STREAM("alpha:" << alpha << " elevPreCalc:" << std::to_string(elevationPreCalculated) << " layer:" << layer << " elevDeg:" << elevationAngleDegree
+                  //   << " numOfLayers:" << numOfLayers << " elevAngleX200:" << elevAngleX200);
 
                   if (iEcho == 0)
                   {
@@ -4144,7 +4146,7 @@ namespace sick_scan
                   angle += msg.angle_increment;
                 }
                 // Publish
-                static int cnt = 0;
+                //static int cnt = 0;
                 int layerOff = (layer - baseLayer);
 
               }

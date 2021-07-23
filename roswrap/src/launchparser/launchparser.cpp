@@ -134,9 +134,9 @@ std::vector<paramEntryAscii> getParamList(TiXmlNode *paramList)
     bool maxValFnd = false;
     // is this a param-node?
     // if this is valid than process attributes
-    const char *val = paramEntry->Value();
+    const char *entryVal = paramEntry->Value();
     bool searchAttributes = true;
-    if (strcmp(val,"param") == 0)
+    if (strcmp(entryVal,"param") == 0)
     {
       // expected value
     }

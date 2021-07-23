@@ -320,7 +320,7 @@ void SoftwarePLL::testbed()
   std::vector<uint32_t> tickVec;
   std::vector<uint32_t> secVec;
   std::vector<uint32_t> nanoSecVec;
-  bool bRet = false;
+  //bool bRet = false;
 
   bool testWithDataFile = true;
   if (testWithDataFile)

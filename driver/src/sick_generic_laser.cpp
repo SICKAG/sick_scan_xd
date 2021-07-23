@@ -88,7 +88,7 @@
 #include <signal.h>
 
 static bool isInitialized = false;
-static sick_scan::SickScanCommonTcp *s = NULL;
+static sick_scan::SickScanCommonTcp *s_scanner = NULL;
 static std::string versionInfo = "???";
 
 void setVersionInfo(std::string _versionInfo)
@@ -144,11 +144,11 @@ void rosSignalHandler(int signalRecv)
   ROS_INFO_STREAM("good bye\n");
   ROS_INFO_STREAM("You are leaving the following version of this node:\n");
   ROS_INFO_STREAM(getVersionInfo() << "\n");
-  if (s != NULL)
+  if (s_scanner != NULL)
   {
     if (isInitialized)
     {
-      s->stopScanData();
+      s_scanner->stopScanData();
     }
 
     runState = scanner_finalize;
@@ -179,19 +179,19 @@ bool parseLaunchfileSetParameter(rosNodePtr nhPriv, int argc, char **argv)
   std::string tag;
   std::string val;
   int launchArgcFileIdx = -1;
-  for (int i = 1; i < argc; i++)
+  for (int n = 1; n < argc; n++)
   {
     std::string extKey = ".launch";
-    std::string s = argv[i];
-    if (ends_with(s, extKey))
+    std::string argv_str = argv[n];
+    if (ends_with(argv_str, extKey))
     {
-      launchArgcFileIdx = i;
+      launchArgcFileIdx = n;
       std::vector<std::string> tagList, typeList, valList;
       LaunchParser launchParser;
-      bool ret = launchParser.parseFile(s, tagList, typeList, valList);
+      bool ret = launchParser.parseFile(argv_str, tagList, typeList, valList);
       if (ret == false)
       {
-        ROS_INFO_STREAM("Cannot parse launch file (check existence and content): >>>" << s << "<<<\n");
+        ROS_INFO_STREAM("Cannot parse launch file (check existence and content): >>>" << argv_str << "<<<\n");
         exit(-1);
       }
       for (size_t i = 0; i < tagList.size(); i++)
@@ -211,18 +211,18 @@ bool parseLaunchfileSetParameter(rosNodePtr nhPriv, int argc, char **argv)
     }
   }
 
-  for (int i = 1; i < argc; i++)
+  for (int n = 1; n < argc; n++)
   {
-    std::string s = argv[i];
-    if (getTagVal(s, tag, val))
+    std::string argv_str = argv[n];
+    if (getTagVal(argv_str, tag, val))
     {
         rosSetParam(nhPriv, tag, val);
     }
     else
     {
-      if (launchArgcFileIdx != i)
+      if (launchArgcFileIdx != n)
       {
-          ROS_ERROR_STREAM("## ERROR parseLaunchfileSetParameter(): Tag-Value setting not valid. Use pattern: <tag>:=<value>  (e.g. hostname:=192.168.0.4) (Check the entry: " << s << ")\n");
+          ROS_ERROR_STREAM("## ERROR parseLaunchfileSetParameter(): Tag-Value setting not valid. Use pattern: <tag>:=<value>  (e.g. hostname:=192.168.0.4) (Check the entry: " << argv_str << ")\n");
           return false;
       }
     }
@@ -248,8 +248,8 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
   bool emulSensor = false;
   for (int i = 0; i < argc; i++)
   {
-    std::string s = argv[i];
-    if (getTagVal(s, tag, val))
+    std::string argv_str = argv[i];
+    if (getTagVal(argv_str, tag, val))
     {
       if (tag.compare("__internalDebug") == 0)
       {
@@ -444,10 +444,10 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
       case scanner_init:
         ROS_INFO_STREAM("Start initialising scanner [Ip: " << hostname  << "] [Port:" << port << "]");
         // attempt to connect/reconnect
-        delete s;  // disconnect scanner
+        delete s_scanner;  // disconnect scanner
         if (useTCP)
         {
-          s = new sick_scan::SickScanCommonTcp(hostname, port, timelimit, nhPriv, parser, colaDialectId);
+          s_scanner = new sick_scan::SickScanCommonTcp(hostname, port, timelimit, nhPriv, parser, colaDialectId);
         }
         else
         {
@@ -458,16 +458,16 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
 
         if (emulSensor)
         {
-          s->setEmulSensor(true);
+          s_scanner->setEmulSensor(true);
         }
-        result = s->init(nhPriv);
+        result = s_scanner->init(nhPriv);
 
         // Start ROS services
         rosDeclareParam(nhPriv, "start_services", start_services);
         rosGetParam(nhPriv, "start_services", start_services);
         if (true == start_services)
         {
-            services = new sick_scan::SickScanServices(nhPriv, s, parser->getCurrentParamPtr()->getUseBinaryProtocol());
+            services = new sick_scan::SickScanServices(nhPriv, s_scanner, parser->getCurrentParamPtr()->getUseBinaryProtocol());
             ROS_INFO("SickScanServices: ros services initialized");
         }
 
@@ -494,7 +494,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
         if (result == sick_scan::ExitSuccess) // OK -> loop again
         {
             rosSpinOnce(nhPriv);
-          result = s->loopOnce(nhPriv);
+          result = s_scanner->loopOnce(nhPriv);
         }
         else
         {
@@ -512,13 +512,15 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
     delete services;
     services = 0;
   }
-  if (s != NULL)
+  if (s_scanner != NULL)
   {
-    delete s; // close connnect
+    delete s_scanner; // close connnect
+    s_scanner = 0;
   }
   if (parser != NULL)
   {
     delete parser; // close parser
+    parser = 0;
   }
   return result;
 

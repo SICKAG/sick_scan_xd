@@ -720,8 +720,8 @@ namespace sick_scan
     int channel8BitCnt = channel8BitID.size();
     int objectChannel16BitCnt = 5;
     channel16BitCnt = channel16BitID.size();
-    float x = 20.0;
-    float speed = 50.0; // [m/s]
+    //float x = 20.0;
+    //float speed = 50.0; // [m/s]
     std::vector<SickScanRadarRawTarget> rawTargetList;
 
 #if 0 // simulate railway crossing
@@ -755,7 +755,7 @@ namespace sick_scan
         float yp[2] = {0};
         float vehicleWidth = 1.8f;
         y = iY * 2.0;
-        float speed = y * 10.0f;
+        float speed = y * 10.0f; // [m/s]
         vehicle.V3Dx(speed); // +/- 20 m/s
         vehicle.V3Dy(0.1f); // just for testing
 

@@ -14,6 +14,9 @@ option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (develo
 
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
+# if(NOT WIN32) # Note: compiler option -Wshadow generates lots of warnings in ros header files. Therefore it's deactivated by default, but can be usefull for development and testing.
+#     add_compile_options(-Wall -Wshadow -Wno-reorder -Wno-sign-compare -Wno-unused-local-typedefs -Wno-unused-parameter -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable)
+# endif()
 
 # Added CMP0048 to avoid unstable warning of build process
 if (POLICY CMP0048)

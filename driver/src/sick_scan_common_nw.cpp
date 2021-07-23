@@ -395,9 +395,9 @@ SopasEventMessage SickScanCommonNw::findFrameInReceiveBuffer()
     checkSum = colab::getIntegerFromBuffer<UINT8>(m_receiveBuffer, pos);
 
     // Erzeuge die Pruefsumme zum Vergleich
-    for (UINT16 i = 8; i < (frameLen - 1); i++)
+    for (UINT16 j = 8; j < (frameLen - 1); j++)
     {
-      pos = i;
+      pos = j;
       temp = colab::getIntegerFromBuffer<UINT8>(m_receiveBuffer, pos);
       temp_xor = temp_xor ^ temp;
     }

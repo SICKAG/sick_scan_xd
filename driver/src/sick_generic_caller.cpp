@@ -78,46 +78,9 @@
 
 #define MAX_NAME_LEN (1024)
 
-// 001.001.000 Switch to multithreaded processing of data
-// 001.001.001: Documentation added
-// 001.002.001: Bug in bin_scanf fixed (number of counted arguments was always 1)
-// 001.002.002: MRS1xxx/LMS1xxx - legacy device ident cmd. changed to new device ident cmd
-// 001.002.003: MRS1xxx/LMS1xxx - support of hector_slam integrated
-// 001.002.004: RMS3xx - profiling and radar support optimized
-// 001.002.005: Startup process changed to state machine
-// 001.002.006: Signal handler for ctrl-c added
-// 001.002.007: Fix for multi echo handling with lookup table
-// 001.002.008: IMU Parser structure added
-// 001.002.009: Application setting modified for MRS1104
-// 001.002.010: First version of IMU parser
-// 001.002.011: Ip Address change added, bugfixing
-// 001.003.000: Jan 2019  release 0.0.14
-// 001.003.001: Jan 2019  release 0.0.14 address handling for ip v4 parsing fixed
-// 001.003.002: Feb 2019 Fixing and optimizing console output
-// 001.003.016: Feb 2019 Profiling+instructions, Caching of Ros-Params
-// 001.003.017: May 2019 stability issues, scan rate and angular resolution settings added
-// 001.003.018: May 2019 LMS1000 Min/Max angel settings added and tested
-// 001.003.020: May 2019 Bloom process prepared
-// 001.003.022: Sep 2019 LMS 4xxx added
-// 001.004.000: Oct 2019 ENCODER Support added
-// 001.004.001: Nov 2019 IMU Timestamp Fix
-// 1.5.0: 2019-11-20: Radar implementation moved to a singleton
-// 1.5.1: 2020-03-04: First support of TiM240 prototype
-// 1.5.3: 2020-03-19: Fixes for LMS1xx
-// 1.5.4: 2020-03-26: Fixes for 16 bit resolution flag
-// 1.5.5: 2020-04-01: MRS6xxx check
-// 1.5.5: 2020-05-14: NAV 2xx support
-// 1.7.0: 2020-06-01: TiM443 added
-// 1.7.1: 2020-06-04: NAV 2xx angle correction added
-// 1.7.2: 2020-06-09: TiM433 added and launch file info for TiM4xx added
-// 1.7.3: 2020-06-10: NAV 3xx angle correction added
-// 1.7.4: 2020-06-10: NAV 3xx angle correction improved
-// 1.7.5: 2020-06-25: Preparing for Release Noetic
-// 1.7.6: 2020-07-14: NAV310 handling optimized (angle calculation and compensation), barebone quaterion to euler
-// 1.7.7: 2020-07-21: barebone quaterion to euler
-#define SICK_GENERIC_MAJOR_VER "1"
-#define SICK_GENERIC_MINOR_VER "10"
-#define SICK_GENERIC_PATCH_LEVEL "1"
+#define SICK_GENERIC_MAJOR_VER "2"
+#define SICK_GENERIC_MINOR_VER "0"
+#define SICK_GENERIC_PATCH_LEVEL "0"
 
 #include <algorithm> // for std::min
 

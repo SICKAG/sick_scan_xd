@@ -334,13 +334,24 @@ sick_scan::SickLocColaTelegramMsg sick_scan::TestcaseGenerator::createColaRespon
       {"ODoprh", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "ODoprh", {"00000161"})},
       {"ODpwrc", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "ODpwrc", {"00000017"})},
       {"LMDscandatacfg", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LMDscandatacfg", {"01000101000000000000010001"})},
-      {"SCdevicestate", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "SCdevicestate", {"00"})}
+      // Sending  : <STX><STX><STX><STX><Len=0017>sRN SCdevicestate CRC:<0x30>  Receiving: <STX>sRA SCdevicestate \x01<ETX> // devicestate = 1: device ready
+      {"SCdevicestate", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "SCdevicestate", {"01"})}
     };
     s_mapped_responses[sick_scan::ColaParser::sWN] = { // static responses for sWN requests
       {"EIHstCola", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sWA"), "EIHstCola", {""})},
       {"LMDscandatacfg", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sWA"), "LMDscandatacfg", {""})},
-      {"LMPoutputRange", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sWA"), "LMPoutputRange", {""})}
+      {"LMPoutputRange", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sWA"), "LMPoutputRange", {""})},
+      {"SetActiveApplications", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sWA"), "SetActiveApplications", {""})}
     };
+    if(scanner_type == "sick_mrs_1xxx") // overwrite for MRS1104
+    {
+      // Sending: <STX><STX><STX><STX><Len=0015>sRN DeviceIdent CRC:<0x25>  Receiving: <STX>sRA DeviceIdent \x00\x08\x4d\x52\x53\x31\x78\x78\x78\x78\x00\x08\x31\x2e\x30\x2e\x30\x2e\x30\x52<ETX> 
+      s_mapped_responses[sick_scan::ColaParser::sRN]["DeviceIdent"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "DeviceIdent", {"00084d525331787878780008312e302e302e3052"});
+      // Sending: <STX><STX><STX><STX><Len=0016>sRN SerialNumber CRC:<0x4c>  Receiving: <STX>sRA SerialNumber \x00\x08\x31\x37\x31\x30\x30\x30\x30\x31<ETX>
+      s_mapped_responses[sick_scan::ColaParser::sRN]["SerialNumber"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "SerialNumber", {"00083137313030303031"});
+      // Sending: <STX><STX><STX><STX><Len=0018>sWN FREchoFilter 0x00 CRC:<0x7f>  Receiving: <STX>sWA FREchoFilter<ETX>
+      s_mapped_responses[sick_scan::ColaParser::sWN]["FREchoFilter"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sWA"), "FREchoFilter", {""});
+    }
     if(scanner_type == "sick_lms_5xx") // overwrite for LMS5xx
     {
       s_mapped_responses[sick_scan::ColaParser::sRN]["field000"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field000", {"400000000000000000000683ffff3cb0020100010003012cffff016201d2ffff01a301e6ffff00ce0000000000000001000b7365676d656e7465645f310000"});

@@ -182,8 +182,8 @@ double AngleCompensator::compensateAngleInDeg(double angleInDeg)
   double angleCompInDeg;
   double deg2radFactor = 0.01745329252; // pi/180 deg - see for example: https://www.rapidtables.com/convert/number/degrees-to-radians.html
   double angleRawInRad = deg2radFactor * angleInDeg;
-  double phaseCorrInRad= deg2radFactor * phaseCorrInDeg;
-  angleCompInDeg = angleInDeg - sign * amplCorr * sin(angleRawInRad + sign * phaseCorrInRad) - sign * offsetCorrInDeg;
+  double curPhaseCorrInRad= deg2radFactor * phaseCorrInDeg;
+  angleCompInDeg = angleInDeg - sign * amplCorr * sin(angleRawInRad + sign * curPhaseCorrInRad) - sign * offsetCorrInDeg;
   return(angleCompInDeg);
 }
 

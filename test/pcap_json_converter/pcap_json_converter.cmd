@@ -13,6 +13,11 @@ echo PYTHON_DIR=%PYTHON_DIR%
 python --version
 @echo.
 
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20210722_102600_tim_781_sick_scan_xd.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20210722_103100_tim_781_sick_scan.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20210722_112100_ldmrs_sick_scan_xd.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20210722_143600_ros2_mrs1104_sick_scan_xd.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20210722_145212_ros2_tim7xxx_sick_scan_xd.pcapng
 python pcap_json_converter.py --pcap_filename=q:/tmp/pa0350_sick_field_monitoring/10_info_material/LMS511_fields/20210302_lms111.pcapng
 python pcap_json_converter.py --pcap_filename=q:/tmp/pa0350_sick_field_monitoring/10_info_material/LMS511_fields/20210302_lms511.pcapng
 python pcap_json_converter.py --pcap_filename=q:/tmp/pa0350_sick_field_monitoring/10_info_material/LMS511_fields/ascii_sopaslog_fields_lms511.pcapng
