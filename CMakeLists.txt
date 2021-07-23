@@ -18,6 +18,10 @@ option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (develo
 #     add_compile_options(-Wall -Wshadow -Wno-reorder -Wno-sign-compare -Wno-unused-local-typedefs -Wno-unused-parameter -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable)
 # endif()
 
+if(NOT WIN32)
+     add_compile_options(-O3)
+endif()
+
 # Added CMP0048 to avoid unstable warning of build process
 if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
@@ -485,7 +489,9 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
 
     #message("Boost_LIBRARIES= ${Boost_LIBRARIES}")
     #message("pthread_LIBRARIES= ${pthread_LIBRARIES}")
-    target_link_libraries(sick_scan_lib pthread boost_thread ${Boost_LIBRARIES} ${pthread_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
+    if(NOT WIN32)
+        target_link_libraries(sick_scan_lib pthread boost_thread ${Boost_LIBRARIES} ${pthread_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
+    endif()
     target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${pthread_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
 
 endif()

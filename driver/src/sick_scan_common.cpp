@@ -1349,6 +1349,8 @@ namespace sick_scan
     bool setUseNTP = false;
     rosDeclareParam(nh, "ntp_server_address", sNTPIpAdress);
     setUseNTP = rosGetParam(nh, "ntp_server_address", sNTPIpAdress);
+    if (sNTPIpAdress.empty())
+      setUseNTP = false;
     if (setUseNTP)
     {
       boost::system::error_code ec;
@@ -2022,8 +2024,8 @@ namespace sick_scan
       double minAngSopas = rad2deg(this->config_.min_ang);
       double maxAngSopas = rad2deg(this->config_.max_ang);
 
-      minAngSopas -= this->parser_->getCurrentParamPtr()->getScanAngleShift();
-      maxAngSopas -= this->parser_->getCurrentParamPtr()->getScanAngleShift();
+      minAngSopas -= rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
+      maxAngSopas -= rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
       // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
       // {
       //   // the TiM240 operates directly in the ros coordinate system
@@ -2219,8 +2221,8 @@ namespace sick_scan
         double askAngleStart = askAngleStart10000th / 10000.0;
         double askAngleEnd = askAngleEnd10000th / 10000.0;
 
-        askAngleStart += this->parser_->getCurrentParamPtr()->getScanAngleShift();
-        askAngleEnd += this->parser_->getCurrentParamPtr()->getScanAngleShift();
+        askAngleStart += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
+        askAngleEnd += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
         
         // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
         // {
@@ -3330,24 +3332,36 @@ namespace sick_scan
                   double DeltaTime = timestampfloat - timestampfloat_coor;
                   //ROS_INFO("%F,%F,%u,%u,%F",timestampfloat,timestampfloat_coor,SystemCountTransmit,SystemCountScan,DeltaTime);
                   //TODO Handle return values
-                  if (config_.sw_pll_only_publish == true && bRet == false)
+                  if (config_.sw_pll_only_publish == true)
                   {
-                    int packets_expected_to_drop = SoftwarePLL::instance().fifoSize - 1;
-                    SoftwarePLL::instance().packeds_droped++;
-                    ROS_INFO_STREAM("" << SoftwarePLL::instance().packeds_droped<< " / " << packets_expected_to_drop << " Packet dropped Software PLL not yet locked.");
-                    if (SoftwarePLL::instance().packeds_droped == packets_expected_to_drop)
+                    SoftwarePLL::instance().packets_received++;
+                    if (bRet == false)
                     {
-                      ROS_INFO("Software PLL is expected to be ready now!");
+                      int packets_expected_to_drop = SoftwarePLL::instance().fifoSize - 1;
+                      SoftwarePLL::instance().packets_dropped++;
+                      size_t packets_dropped = SoftwarePLL::instance().packets_dropped;
+                      size_t packets_received = SoftwarePLL::instance().packets_received;
+                      if (packets_dropped < packets_expected_to_drop)
+                      {
+                        ROS_INFO_STREAM("" << packets_dropped << " / " << packets_expected_to_drop << " packets dropped. Software PLL not yet locked.");
+                      }
+                      else if (packets_dropped == packets_expected_to_drop)
+                      {
+                        ROS_INFO("Software PLL is expected to be ready now!");
+                      }
+                      else if (packets_dropped > packets_expected_to_drop && packets_received > 0)
+                      {
+                        double drop_rate = (double)packets_dropped / (double)packets_received;
+                        ROS_WARN_STREAM("" << SoftwarePLL::instance().packets_dropped << " of " << SoftwarePLL::instance().packets_received << " packets dropped (" 
+                          << std::fixed << std::setprecision(1) << (100*drop_rate) << " perc.), maxAbsDeltaTime=" << std::fixed << std::setprecision(3) << SoftwarePLL::instance().max_abs_delta_time);
+                        ROS_WARN_STREAM("More packages than expected were dropped!!\n"
+                                "Check the network connection.\n"
+                                "Check if the system time has been changed in a leap.\n"
+                                "If the problems can persist, disable the software PLL with the option sw_pll_only_publish=False  !");
+                      }
+                      dataToProcess = false;
+                      break;
                     }
-                    if (SoftwarePLL::instance().packeds_droped > packets_expected_to_drop)
-                    {
-                      ROS_WARN("More packages than expected were dropped!!\n"
-                               "Check the network connection.\n"
-                               "Check if the system time has been changed in a leap.\n"
-                               "If the problems can persist, disable the software PLL with the option sw_pll_only_publish=False  !");
-                    }
-                    dataToProcess = false;
-                    break;
                   }
 
 #ifdef DEBUG_DUMP_ENABLED

@@ -21,7 +21,7 @@ namespace sick_scan
     SickLdmrsNode();
     ~SickLdmrsNode();
 
-    virtual int init(rosNodePtr node, const std::string & hostName = "192.168.0.1", const std::string & frameId = "ldmrs");
+    virtual int init(rosNodePtr node, const std::string & hostName = "192.168.0.1", const std::string & frameId = "cloud");
 
     virtual int run();
 

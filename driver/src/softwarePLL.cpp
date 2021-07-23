@@ -4,6 +4,7 @@ File: softwarePLL.cpp
 ====================================================================================================
 */
 #include "softwarePLL.h"
+#include <algorithm>
 #include <iostream>
 // #include <chrono>
 // #include <thread>
@@ -149,7 +150,8 @@ bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtick)
     double cmpTimeStamp = start - this->FirstTimeStamp();
 
     bool timeStampVerified = false;
-    if (nearSameTimeStamp(relTimeStamp, cmpTimeStamp) == true)// if timestamp matches prediction update FIFO
+    double delta_time_abs = 0;
+    if (nearSameTimeStamp(relTimeStamp, cmpTimeStamp, delta_time_abs) == true)// if timestamp matches prediction update FIFO
     {
       timeStampVerified = true;
       pushIntoFifo(start, curtick);
@@ -195,10 +197,10 @@ bool SoftwarePLL::getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint32
   return (true);
 }
 
-bool SoftwarePLL::nearSameTimeStamp(double relTimeStamp1, double relTimeStamp2)
+bool SoftwarePLL::nearSameTimeStamp(double relTimeStamp1, double relTimeStamp2, double& delta_time_abs)
 {
-  double dTAbs = fabs(relTimeStamp1 - relTimeStamp2);
-  if (dTAbs < AllowedTimeDeviation())
+  delta_time_abs = fabs(relTimeStamp1 - relTimeStamp2);
+  if (delta_time_abs < AllowedTimeDeviation())
   {
     return (true);
   }
@@ -255,13 +257,17 @@ bool SoftwarePLL::updateInterpolationSlope() // fifo already updated
   double m = (fifoSize * sum_xy - sum_x * sum_y) / (fifoSize * sum_xx - sum_x * sum_x);
 
   int matchCnt = 0;
+  max_abs_delta_time = 0;
   for (int i = 0; i < fifoSize; i++)
   {
     double yesti = m * tickFifoUnwrap[i];
-    if (this->nearSameTimeStamp(yesti, clockFifoUnwrap[i]))
+    double abs_delta_time = 0;
+    if (this->nearSameTimeStamp(yesti, clockFifoUnwrap[i], abs_delta_time))
     {
       matchCnt++;
     }
+    max_abs_delta_time = std::max(max_abs_delta_time, abs_delta_time);
+    // std::cout << "SoftwarePLL::updateInterpolationSlope(): matchCnt=" << matchCnt << "/" << fifoSize << ", yesti=" << yesti << ", clockFifoUnwrap=" << clockFifoUnwrap[i] << ", tickFifoUnwrap=" << tickFifoUnwrap[i] << std::endl;
   }
 
   bool retVal = false;
@@ -270,6 +276,10 @@ bool SoftwarePLL::updateInterpolationSlope() // fifo already updated
     InterpolationSlope(m);
     retVal = true;
   }
+  // else
+  // {
+  //   std::cerr << "SoftwarePLL::updateInterpolationSlope(): matchCnt=" << matchCnt << "/" << fifoSize << ", max_abs_delta_time=" << max_abs_delta_time << " sec." << std::endl;
+  // }
 
   return (retVal);
 }

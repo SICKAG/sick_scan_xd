@@ -45,7 +45,7 @@ sick_ldmrs_driver::SickLDMRSDriverConfig::SickLDMRSDriverConfig(rosNodePtr nh)
     if(nh)
     {
         // ROS parameters
-        sick_ldmrs_driver::param<std::string>(nh, "frame_id", frame_id, "ldmrs");                            // gen.add("frame_id",              str_t,    0, "The TF frame in which point clouds will be returned.",                         "ldmrs")
+        sick_ldmrs_driver::param<std::string>(nh, "frame_id", frame_id, "cloud");                            // gen.add("frame_id",              str_t,    0, "The TF frame in which point clouds will be returned.",                         "cloud")
         // Measurement parameters
         sick_ldmrs_driver::param<double>(nh, "start_angle",             start_angle,              0.872664); // gen.add("start_angle",           double_t, 0, "The angle of the first range measurement [rad].",                              1600 * tics2rad, -1918 * tics2rad, 1600 * tics2rad)   # 50  deg
         sick_ldmrs_driver::param<double>(nh, "end_angle",               end_angle,               -1.047197); // gen.add("end_angle",             double_t, 0, "The angle of the last range measurement [rad].",                              -1920 * tics2rad, -1920 * tics2rad, 1598 * tics2rad)   # -60 deg

@@ -129,7 +129,7 @@ namespace sick_ldmrs_driver
         bool set_parameter(const std::string & name, const std::string & value);
 
         // ROS parameters
-        std::string frame_id;        // gen.add("frame_id",              str_t,    0, "The TF frame in which point clouds will be returned.",                         "ldmrs")
+        std::string frame_id;        // gen.add("frame_id",              str_t,    0, "The TF frame in which point clouds will be returned.",                         "cloud")
         // Measurement parameters
         double start_angle;          // gen.add("start_angle",           double_t, 0, "The angle of the first range measurement [rad].",                              1600 * tics2rad, -1918 * tics2rad, 1600 * tics2rad)   # 50  deg
         double end_angle;            // gen.add("end_angle",             double_t, 0, "The angle of the last range measurement [rad].",                              -1920 * tics2rad, -1920 * tics2rad, 1598 * tics2rad)   # -60 deg

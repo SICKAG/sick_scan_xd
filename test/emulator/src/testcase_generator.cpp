@@ -343,7 +343,7 @@ sick_scan::SickLocColaTelegramMsg sick_scan::TestcaseGenerator::createColaRespon
       {"LMPoutputRange", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sWA"), "LMPoutputRange", {""})},
       {"SetActiveApplications", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sWA"), "SetActiveApplications", {""})}
     };
-    if(scanner_type == "sick_mrs_1xxx") // overwrite for MRS1104
+    // if(scanner_type == "sick_mrs_1xxx") // overwrite for MRS1104
     {
       // Sending: <STX><STX><STX><STX><Len=0015>sRN DeviceIdent CRC:<0x25>  Receiving: <STX>sRA DeviceIdent \x00\x08\x4d\x52\x53\x31\x78\x78\x78\x78\x00\x08\x31\x2e\x30\x2e\x30\x2e\x30\x52<ETX> 
       s_mapped_responses[sick_scan::ColaParser::sRN]["DeviceIdent"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "DeviceIdent", {"00084d525331787878780008312e302e302e3052"});

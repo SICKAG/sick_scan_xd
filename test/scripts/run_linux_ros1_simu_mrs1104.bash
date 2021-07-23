@@ -27,10 +27,14 @@ sleep 1
 # Start sick_scan driver for mrs1104
 echo -e "Launching sick_scan sick_mrs_1xxx.launch\n"
 # roslaunch sick_scan sick_mrs_1xxx.launch hostname:=192.168.0.151 &
-roslaunch sick_scan sick_mrs_1xxx.launch hostname:=127.0.0.1 &
+roslaunch sick_scan sick_mrs_1xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 sleep 1
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed
+for n in $(seq 25 -1 1) ; do
+  echo -e "mrs1104 emulation running. Up to $n seconds until scan data become available..."
+  sleep 1
+done
 while true ; do  
   echo -e "mrs1104 emulation running. Close rviz or press 'q' to exit..." ; read -t 1.0 -n1 -s key
   if [[ $key = "q" ]] || [[ $key = "Q" ]]; then break ; fi
