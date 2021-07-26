@@ -270,7 +270,7 @@ The sick_scan driver can be started on the command line by `sick_generic_caller 
 
 - On Linux with ROS-2, call 
 
-    ```ros2 run sick_scan sick_generic_caller <launchfile>```
+    ```ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/<launchfile>```
 
 - On native Windows without ROS, call 
 
@@ -278,136 +278,105 @@ The sick_scan driver can be started on the command line by `sick_generic_caller 
 
 - On Windows with ROS-2, call 
 
-    ```ros2 run sick_scan sick_generic_caller <launchfile>```
+    ```ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/<launchfile>```
 
 Use the following commands to run the sick_scan driver for a specific scanner type:
 
 - For MRS6124:
-    ```
-    sick_generic_caller sick_mrs_6xxx.launch                     # Linux native
-    roslaunch sick_scan sick_mrs_6xxx.launch                     # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_mrs_6xxx.launch  # Linux ROS-2
-    sick_generic_caller sick_mrs_6xxx.launch                     # Windows native
-    ros2 run sick_scan sick_generic_caller sick_mrs_6xxx.launch  # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_mrs_6xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_mrs_6xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_6xxx.launch`
+    * Windows native: `sick_generic_caller sick_mrs_6xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_6xxx.launch`
 - For MRS1104:
-    ```
-    sick_generic_caller sick_mrs_1xxx.launch                     # Linux native
-    roslaunch sick_scan sick_mrs_1xxx.launch                     # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_mrs_1xxx.launch  # Linux ROS-2
-    sick_generic_caller sick_mrs_1xxx.launch                     # Windows native
-    ros2 run sick_scan sick_generic_caller sick_mrs_1xxx.launch  # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_mrs_1xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_mrs_1xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch`
+    * Windows native: `sick_generic_caller sick_mrs_1xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch`
 - For LMS1104:
-    ```
-    sick_generic_caller sick_lms_1xxx.launch                     # Linux native
-    roslaunch sick_scan sick_lms_1xxx.launch                     # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_lms_1xxx.launch  # Linux ROS-2
-    sick_generic_caller sick_lms_1xxx.launch                     # Windows native
-    ros2 run sick_scan sick_generic_caller sick_lms_1xxx.launch  # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_lms_1xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lms_1xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx.launch`
+    * Windows native: `sick_generic_caller sick_lms_1xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx.launch`
 - For TiM240-prototype:
-    ```
-    sick_generic_caller sick_tim_240.launch                      # Linux native
-    roslaunch sick_scan sick_tim_240.launch                      # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_tim_240.launch   # Linux ROS-2
-    sick_generic_caller sick_tim_240.launch                      # Windows native
-    ros2 run sick_scan sick_generic_caller sick_tim_240.launch   # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_tim_240.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_tim_240.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_240.launch`
+    * Windows native: `sick_generic_caller sick_tim_240.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_240.launch`
 - For TiM4xx-family:
-    ```
-    sick_generic_caller sick_tim_4xx.launch                      # Linux native
-    roslaunch sick_scan sick_tim_4xx.launch                      # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_tim_4xx.launch   # Linux ROS-2
-    sick_generic_caller sick_tim_4xx.launch                      # Windows native
-    ros2 run sick_scan sick_generic_caller sick_tim_4xx.launch   # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_tim_4xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_tim_4xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_4xx.launch`
+    * Windows native: `sick_generic_caller sick_tim_4xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_4xx.launch`
 - For TiM5xx-family:
-    ```
-    sick_generic_caller sick_tim_5xx.launch                               # Linux native
-    roslaunch sick_scan sick_tim_5xx.launch                               # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch            # Linux ROS-2
-    sick_generic_caller sick_tim_5xx.launch                               # Windows native
-    ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch            # Windows ROS-2
+    * Linux native:   `sick_generic_caller sick_tim_5xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_tim_5xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_5xx.launch`
+    * Windows native: `sick_generic_caller sick_tim_5xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_5xx.launch`
 - For TiM7xx-family (no safety scanner):
-    ```
-    sick_generic_caller sick_tim_7xx.launch                      # Linux native
-    roslaunch sick_scan sick_tim_7xx.launch                      # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_tim_7xx.launch   # Linux ROS-2
-    sick_generic_caller sick_tim_7xx.launch                      # Windows native
-    ros2 run sick_scan sick_generic_caller sick_tim_7xx.launch   # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_tim_7xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_tim_7xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch`
+    * Windows native: `sick_generic_caller sick_tim_7xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch`
 - For TiM7xxS-family (safety scanner):
-    ```
-    sick_generic_caller sick_tim_7xxS.launch                     # Linux native
-    roslaunch sick_scan sick_tim_7xxS.launch                     # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_tim_7xxS.launch  # Linux ROS-2
-    sick_generic_caller sick_tim_7xxS.launch                     # Windows native
-    ros2 run sick_scan sick_generic_caller sick_tim_7xxS.launch  # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_tim_7xxS.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_tim_7xxS.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xxS.launch`
+    * Windows native: `sick_generic_caller sick_tim_7xxS.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xxS.launch`
 - For LMS1xx-family:
-    ```
-    sick_generic_caller sick_lms_1xx.launch                      # Linux native
-    roslaunch sick_scan sick_lms_1xx.launch                      # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_lms_1xx.launch   # Linux ROS-2
-    sick_generic_caller sick_lms_1xx.launch                      # Windows native
-    ros2 run sick_scan sick_generic_caller sick_lms_1xx.launch   # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_lms_1xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lms_1xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xx.launch`
+    * Windows native: `sick_generic_caller sick_lms_1xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xx.launch`
 - For LMS5xx-family:
-    ```
-    sick_generic_caller sick_lms_5xx.launch                      # Linux native
-    roslaunch sick_scan sick_lms_5xx.launch                      # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_lms_5xx.launch   # Linux ROS-2
-    sick_generic_caller sick_lms_5xx.launch                      # Windows native
-    ros2 run sick_scan sick_generic_caller sick_lms_5xx.launch   # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_lms_5xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lms_5xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch`
+    * Windows native: `sick_generic_caller sick_lms_5xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch`
 - For LMS4xxx-family:
-    ```
-    sick_generic_caller sick_lms_4xxx.launch                     # Linux native
-    roslaunch sick_scan sick_lms_4xxx.launch                     # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_lms_4xxx.launch  # Linux ROS-2
-    sick_generic_caller sick_lms_4xxx.launch                     # Windows native
-    ros2 run sick_scan sick_generic_caller sick_lms_4xxx.launch  # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_lms_4xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lms_4xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_4xxx.launch`
+    * Windows native: `sick_generic_caller sick_lms_4xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_4xxx.launch`
 - For LRS4000:
-    ```
-    sick_generic_caller sick_lrs_4xxx.launch                     # Linux native
-    roslaunch sick_scan sick_lrs_4xxx.launch                     # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_lrs_4xxx.launch  # Linux ROS-2
-    sick_generic_caller sick_lrs_4xxx.launch                     # Windows native
-    ros2 run sick_scan sick_generic_caller sick_lrs_4xxx.launch  # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_lrs_4xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_4xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_4xxx.launch`
+    * Windows native: `sick_generic_caller sick_lrs_4xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_4xxx.launch`
 - For LDMRS-family:
-    ```
-    sick_generic_caller sick_ldmrs.launch                        # Linux native
-    roslaunch sick_scan sick_ldmrs.launch                        # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_ldmrs.launch     # Linux ROS-2
-    ```
-    Note that LDMRS are currently not supported on Windows
+    * Linux native:   `sick_generic_caller sick_ldmrs.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_ldmrs.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_ldmrs.launch`
+    * Note that LDMRS are currently not supported on Windows
 - For NAV210 and NAV245:
-    ```
-    sick_generic_caller sick_nav_2xx.launch                      # Linux native
-    roslaunch sick_scan sick_nav_2xx.launch                      # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_nav_2xx.launch   # Linux ROS-2
-    sick_generic_caller sick_nav_2xx.launch                      # Windows native
-    ros2 run sick_scan sick_generic_caller sick_nav_2xx.launch   # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_nav_2xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_nav_2xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_2xx.launch`
+    * Windows native: `sick_generic_caller sick_nav_2xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_2xx.launch`
 - For NAV310:
-    ```
-    sick_generic_caller sick_nav_3xx.launch                      # Linux native
-    roslaunch sick_scan sick_nav_3xx.launch                      # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_nav_3xx.launch   # Linux ROS-2
-    sick_generic_caller sick_nav_3xx.launch                      # Windows native
-    ros2 run sick_scan sick_generic_caller sick_nav_3xx.launch   # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_nav_3xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_nav_3xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
+    * Windows native: `sick_generic_caller sick_nav_3xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
 - For RMS3xx-family:
-    ```
-    sick_generic_caller sick_rms_3xx.launch                      # Linux native
-    roslaunch sick_scan sick_rms_3xx.launch                      # Linux ROS-1
-    ros2 run sick_scan sick_generic_caller sick_rms_3xx.launch   # Linux ROS-2
-    sick_generic_caller sick_rms_3xx.launch                      # Windows native
-    ros2 run sick_scan sick_generic_caller sick_rms_3xx.launch   # Windows ROS-2
-    ```
+    * Linux native:   `sick_generic_caller sick_rms_3xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_rms_3xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
+    * Windows native: `sick_generic_caller sick_rms_3xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
 
 Common commandline options are
 
