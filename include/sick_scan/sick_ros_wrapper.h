@@ -122,8 +122,8 @@ template <typename T> void rosSetParam(rosNodePtr nh, const std::string& param_n
 typedef ros::Duration rosDuration;
 typedef ros::Time rosTime;
 inline rosTime rosTimeNow(void) { return ros::Time::now(); }
-inline uint32_t sec(const rosTime& time) { return time.sec; }
-inline uint32_t nsec(const rosTime& time) { return time.nsec; }
+inline uint32_t sec(const rosTime& time) { return time.sec; }   // return seconds part of ros::Time
+inline uint32_t nsec(const rosTime& time) { return time.nsec; } // return nanoseconds part of ros::Time
 
 template <class T> class rosPublisher : public ros::Publisher
 {
@@ -253,8 +253,8 @@ template <typename T> void rosSetParam(rosNodePtr nh, const std::string& param_n
 typedef rclcpp::Duration rosDuration;
 typedef rclcpp::Time rosTime; // typedef builtin_interfaces::msg::Time rosTime;
 inline rosTime rosTimeNow(void) { return rclcpp::Clock().now(); }
-inline double sec(const rosTime& time) { return time.seconds(); }
-inline double nsec(const rosTime& time) { return (double)time.nanoseconds(); }
+inline uint32_t sec(const rosTime& time) { return (uint32_t)(time.nanoseconds() / 1000000000); }              // return seconds part of rclcpp::Time
+inline uint32_t nsec(const rosTime& time) { return (uint32_t)(time.nanoseconds() - 1000000000 * sec(time)); } // return nanoseconds part of rclcpp::Time
 
 template <class T> class rosPublisher : public rclcpp::Publisher<T>::SharedPtr
 {
