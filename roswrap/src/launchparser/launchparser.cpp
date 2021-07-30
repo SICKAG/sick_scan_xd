@@ -216,7 +216,7 @@ bool LaunchParser::parseFile(std::string launchFileFullName, std::vector<std::st
 
   if (doc.Error() == true)
   {
-    ROS_INFO_STREAM("ERROR parsing launch file " << doc.ErrorDesc() << "\nRow: " << doc.ErrorRow() << "\nCol: " << doc.ErrorCol() << "");
+    ROS_ERROR_STREAM("## ERROR parsing launch file " << doc.ErrorDesc() << "\nRow: " << doc.ErrorRow() << "\nCol: " << doc.ErrorCol() << "");
     return(ret);
   }
   TiXmlNode *node = doc.FirstChild("launch");
@@ -252,10 +252,10 @@ bool LaunchParser::parseFile(std::string launchFileFullName, std::vector<std::st
       if(valVec.back().substr(0, 6) == "$(arg ") // overwrite with default argument, f.e. name="hostname", type="string", value="$(arg hostname)"
       {
         std::string default_arg_name = valVec.back().substr(6, valVec.back().length() - 1 - 6);
-        std::string default_arg_val = default_args[default_arg_name];
-        if(!default_arg_val.empty())
+        if (default_args.find(default_arg_name) != default_args.end())
         {
-          ROS_INFO_STREAM("LaunchParser::parseFile(" << launchFileFullName << "): name=\"" << nameVec.back() << "\", type=\""  << typeVec.back() << "\", value=\""  << valVec.back() 
+          std::string default_arg_val = default_args[default_arg_name];
+          ROS_INFO_STREAM("LaunchParser::parseFile(" << launchFileFullName << "): name=\"" << nameVec.back() << "\", type=\""  << typeVec.back() << "\", value=\""  << valVec.back()
             << "\" overwritten by default value \""  << default_arg_val << "\"");
           valVec.back() = default_arg_val;
         }
