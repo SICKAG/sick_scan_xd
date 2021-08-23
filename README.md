@@ -77,8 +77,8 @@ Note:
 * LDMRS family is currently not supported on Windows.
 * ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.
 * ROS services are currently not available for LDMRS.
-* dynamic reconfiguration of sick_scan parameter is supported on ROS-1 or ROS-2 only, not on native Linux or Windows.
-* Publishing pointcloud data requires ROS-1 or ROS-2. On native Linux resp. native Windows, pointcloud data are currently saved to jpg- and csv-files for demonstration purposes. A REST-API is planned for a future release.
+* dynamic reconfiguration of sick_scan parameter is supported on ROS-1 or ROS-2 only, neither under Linux nor under Windows.
+* Publishing pointcloud data requires ROS-1 or ROS-2. On native Linux resp. native Windows, pointcloud data are currently saved to jpg- and csv-files for demonstration purposes. 
 
 ## Build on Linux
 
@@ -260,7 +260,7 @@ Further information on the implementation and use of the experimental Imu suppor
 
 The sick_scan driver can be started on the command line by `sick_generic_caller <launchfile> [hostname:=<ip-address>]`. The start process varies slightly depending on the target OS:
 
-- On native Linux  without ROS, call 
+- On native Linux without ROS, call 
 
     ```sick_generic_caller <launchfile>```
 
@@ -467,7 +467,7 @@ ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.7
 
 ### ROS services
 
-On ROS-1 and ROS-2, services can be used to send COLA commands to the sensor. This can be very helpfull for diagnosis, f.e. by querying the device status or its id.
+On ROS-1 and ROS-2, services can be used to send COLA commands to the sensor. This can be very helpful for diagnosis, e.g. by querying the device status or its id.
 
 Use the following examples to run a cola commond on ROS-1:
 ```
@@ -504,7 +504,6 @@ There are two ways to prevent this:
 
 ## Bugs and Feature Requests
 
-- Stability issues: Driver is experimental for the RMS3xx
 - Sopas protocol mapping:
 -- All scanners: COLA-B (Binary)
 - Software should be further tested, documented and beautified
