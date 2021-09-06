@@ -76,6 +76,14 @@ int main(int argc, char** argv)
   int tcp_port_cola = 2111;    // For requests and to transmit settings to the localization controller: IP port number 2111 and 2112 to send telegrams and to request data, SOPAS CoLa-A or CoLa-B protocols
   ROS::param<int>(nh, "/sick_scan/test_server/result_telegrams_tcp_port", tcp_port_results, tcp_port_results);
   ROS::param<int>(nh, "/sick_scan/test_server/cola_telegrams_tcp_port", tcp_port_cola, tcp_port_cola);
+  for(int n = 1; n < argc; n++)
+  {
+    ROS_INFO_STREAM("sick_scan_emulator: " << std::string(argv[n]));
+    if (strncmp(argv[n], "result_telegrams_tcp_port:=", 27) == 0)
+      tcp_port_results = atoi(argv[n] + 27);
+    if (strncmp(argv[n], "cola_telegrams_tcp_port:=", 25) == 0)
+      tcp_port_cola = atoi(argv[n] + 25);
+  }
   sick_scan::TestServerThread test_server_thread(nh, tcp_port_results, tcp_port_cola);
   
   // Subscribe to sim_loc_driver messages to monitor sim_loc_driver in error simulation mode

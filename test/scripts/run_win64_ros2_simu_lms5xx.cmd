@@ -3,6 +3,7 @@ REM Run sick_scan on ROS-2 Windows with lms5xx emulator
 REM 
 
 if exist "c:\dev\ros2_foxy\local_setup.bat" ( call C:\dev\ros2_foxy\local_setup.bat )
+if exist "c:\opt\ros\foxy\x64\setup.bat" ( call c:\opt\ros\foxy\x64\setup.bat )
 if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python36_64" set PYTHON_DIR=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python36_64
 if exist "%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python37_64" set PYTHON_DIR=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python37_64
 set PATH=%PYTHON_DIR%;%PYTHON_DIR%\DLLs;%PYTHON_DIR%\Lib;%PYTHON_DIR%\Scripts;%PATH%
@@ -10,8 +11,9 @@ set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 
 pushd ..\..\..\..
 call .\install\setup.bat
-start "ros2 echo cloud" ros2 topic echo /cloud
-rem start "rviz2" rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_lms5xx.rviz
+rem start "ros2 echo cloud" ros2 topic echo /cloud
+start "rviz2" rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_lms5xx.rviz
+@timeout /t 5
 
 REM 
 REM Run lms5xx emulator

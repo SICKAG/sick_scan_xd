@@ -1,29 +1,32 @@
 <?xml version="1.0"?>
 <!--
      **********************************************
-     Launch File for TIM 5xx scanner
+     Launch File for TIM 7xx scanner
      **********************************************
      Start and stop angle is given in [rad]
 
      Default min_angle is  -135 degree.
      Default max_angle is +135 degree.
 
-     Check IP-address, if you scanner is not found after roslaunch.
+     Check IP-address, if your scanner is not found after roslaunch.
 -->
 
-<!-- You can launch a TIM_5xx-scanner on a specific ip address (e.g. 192.68.0.71) using the following example call:
+<!-- You can launch a TIM_7xx-scanner on a specific ip address (e.g. 192.68.0.71) using the following example call:
 
-     roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71
+     roslaunch sick_scan sick_tim_7xx.launch hostname:=192.168.0.71
 
 -->
 
 <launch>
+    <arg name="nodename" default="sick_tim_7xx"/>
     <arg name="hostname" default="192.168.0.1"/>
+    <arg name="port" default="2112"/>
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
-    <node name="sick_tim_7xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_tim_7xx"/>
+        <param name="nodename" type="string" value="$(arg nodename)"/>
         <param name="min_ang" type="double" value="-2.35619449"/>  <!-- -135 deg -->
         <param name="max_ang" type="double" value="2.35619449"/>   <!-- +135 deg -->
         <param name="use_binary_protocol" type="bool" value="True"/>
@@ -32,7 +35,7 @@
         <param name="hostname" type="string" value="$(arg hostname)"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
-        <param name="port" type="string" value="2112"/>
+        <param name="port" type="string" value="$(arg port)"/>
         <param name="timelimit" type="int" value="5"/>
         <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
         <param name="start_services" type="bool" value="True"/> <!-- start ros service for cola commands -->

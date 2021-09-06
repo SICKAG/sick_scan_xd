@@ -66,6 +66,16 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
         // m_srv_server_ColaMsg = nh->advertiseService("ColaMsg",&sick_scan::SickScanServices::serviceCbColaMsg, this);
         // m_srv_server_ECRChangeArr = nh->advertiseService("ECRChangeArr",&sick_scan::SickScanServices::serviceCbECRChangeArr, this);
         // m_srv_server_LIDoutputstate = nh->advertiseService("LIDoutputstate",&sick_scan::SickScanServices::serviceCbLIDoutputstate, this);
+
+#if __ROS_VERSION == 1
+        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_ColaMsg.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_ECRChangeArr.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_LIDoutputstate.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
+#elif __ROS_VERSION == 2
+        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_ColaMsg->get_service_name()) << "\" created (\"" << std::string(m_srv_server_ColaMsg->get_service_name()) << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_ECRChangeArr->get_service_name()) << "\" created (\"" << std::string(m_srv_server_ECRChangeArr->get_service_name()) << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_LIDoutputstate->get_service_name()) << "\" created (\"" << std::string(m_srv_server_LIDoutputstate->get_service_name()) << "\")");
+#endif
     }
 }
 

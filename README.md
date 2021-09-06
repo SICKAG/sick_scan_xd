@@ -386,9 +386,23 @@ Further (common and scanner specific) options can be set via launchfile, see [Co
 
 ### Start Multiple Nodes
 
-On Linux with ROS-1, multiple nodes to support multiple sensors can be started by one launch file. 
+Multiple nodes can be started to support multiple sensors. In this case, multiple instances of sick_scan have to be started, each node with different name and topic. ROS-1 example to run two TiM 7xx devices with ip address `192.168.0.1` and `192.168.0.2`:
+
+```
+roslaunch sick_scan sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1 &
+roslaunch sick_scan sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2 &
+```
+
+On Linux with ROS-1, multiple nodes to support multiple sensors can be started by one launch file, too. 
 Take the launchfile [sick_tim_5xx_twin.launch](launch/sick_tim_5xx_twin.launch) as an example.
-Remapping the scan and cloud topics is essential to distinguish the scanndata and provide TF information.
+Remapping the scan and cloud topics is essential to distinguish the scandata and provide TF information.
+
+ROS-2 example to run two TiM 7xx devices with ip address `192.168.0.1` and `192.168.0.2`:
+
+```
+ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1 &
+ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2 &
+```
 
 ### Common parameters
 
@@ -491,7 +505,7 @@ Note:
 * The COLA commands are sensor specific. See the user manual and telegram listing for further details.
 * ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.
 * ROS services are currently not available for the LDMRS.
-
+* ROS services under ROS-2 Windows are currently still experimental.
 
 ## Sopas Mode
 

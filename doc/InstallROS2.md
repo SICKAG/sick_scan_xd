@@ -217,59 +217,15 @@ if `ros2 topic list` crashes, downgrade numpy from 1.19.4 to 1.19.3 by using the
 pip install numpy==1.19.3
 ```
 
-13. Download https://github.com/git-for-windows/git/releases/download/v2.27.0.windows.1/Git-2.27.0-64-bit.exe (or any later release) and install git. Optionally install a git gui client like gitkraken.
+### Update ROS2 on Windows 10
 
-14. Build and test a basic ros2 example using colcon:
-```console
-cd \dev
-md .\ros2_example_ws\src
-cd .\ros2_example_ws
-git clone https://github.com/ros2/examples src/examples
-call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
-call C:\dev\ros2_foxy\local_setup.bat
-set PATH=C:\opencv\x64\vc16\bin;%ProgramFiles%\CMake\bin;%ProgramFiles%\OpenSSL-Win64\bin;%ProgramFiles(x86)%\Graphviz2.38\bin;%PATH%
-colcon build
-call .\install\setup.bat
-colcon test
-start "ros2 example subscriber" ros2 run examples_rclcpp_minimal_subscriber subscriber_member_function
-start "ros2 example publisher"  ros2 run examples_rclcpp_minimal_publisher publisher_member_function
-```
-
-15. Use `ros2 pkg create <package_name>` to create a new ROS2 test package:
-```console
-cd \dev
-mkdir .\ros2_tmp_test_ws
-cd .\ros2_tmp_test_ws
-ros2 pkg create ros2_tmp_test
-```console
-
-16. Download prebuild boost libraries from https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.zip (or any later release) and unzip to folder `\boost_1_73_0`
-
-17. Checkout, build and run sick_lidar3d:
-```console
-cd \dev
-mkdir .\sick_lidar3d_ws
-cd .\sick_lidar3d_ws
-
-rem get msgpack library
-git clone https://github.com/ar90n/msgpack11.git
-
-rem get sick_lidar3d
-rem git clone https://github.com/michael1309/sick_lidar3d_pretest.git ./sick_lidar3d # sick_lidar3d pretest (development)
-rem git clone https://github.com/michael1309/sick_lidar3d.git                        # sick_lidar3d prerelease
-git clone https://github.com/SICKAG/sick_lidar3d.git
-
-call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
-call C:\dev\ros2_foxy\local_setup.bat
-set PATH=C:\opencv\x64\vc16\bin;%ProgramFiles%\CMake\bin;%ProgramFiles%\OpenSSL-Win64\bin;%ProgramFiles(x86)%\Graphviz2.38\bin;%PATH%
-
-rem build all packages
-rem colcon build
-colcon build --packages-select msgpack
-colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" " -DCMAKE_C_FLAGS_DEBUG=/MT" " -DCMAKE_CXX_FLAGS_DEBUG=/MT" " -DCMAKE_C_FLAGS_RELEASE=/MT" " -DCMAKE_CXX_FLAGS_RELEASE=/MT"
-colcon build --packages-select sick_lidar3d --cmake-args " -DROS_VERSION=2"
-
-rem Open sick_lidar3d projectfile in Visual Studio
-call .\install\setup.bat
-start "sick_lidar3d.sln" .\build\sick_lidar3d\sick_lidar3d.sln
-```console
+1. Follow the steps on https://ms-iot.github.io/ROSOnWindows/GettingStarted/SetupRos2.html:
+    
+    Run cmd as admin and enter
+    ```console
+    choco --version
+    choco upgrade all -y
+    choco source add -n=ros-win -s="https://aka.ms/ros/public" --priority=1
+    choco upgrade ros-foxy-desktop -y --execution-timeout=0 --pre
+    call c:\opt\ros\foxy\x64\setup.bat
+    ```

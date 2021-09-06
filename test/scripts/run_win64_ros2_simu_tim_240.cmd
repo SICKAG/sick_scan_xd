@@ -3,12 +3,14 @@ REM Run sick_scan on ROS-2 Windows with simple test server
 REM 
 
 if exist "c:\dev\ros2_foxy\local_setup.bat" ( call C:\dev\ros2_foxy\local_setup.bat )
+if exist "c:\opt\ros\foxy\x64\setup.bat" ( call c:\opt\ros\foxy\x64\setup.bat )
 set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 
 pushd ..\..\..\..
 call .\install\setup.bat
-start "ros2 echo cloud" ros2 topic echo /cloud
-rem start "rviz2" rviz2
+rem start "ros2 echo cloud" ros2 topic echo /cloud
+start "rviz2" rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2.rviz
+@timeout /t 5
 
 REM 
 REM Run test server

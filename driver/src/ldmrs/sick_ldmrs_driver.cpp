@@ -71,9 +71,15 @@ SickLDMRS::SickLDMRS(rosNodePtr nh, Manager *manager, boost::shared_ptr<diagnost
   , object_pub_()
   , diagnosticPub_(0)
 {
+  std::string nodename;
+  rosDeclareParam(nh, "nodename", nodename);
+  rosGetParam(nh, "nodename", nodename);
+  std::string cloud_topic_val = "cloud";
+  rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
+  rosGetParam(nh, "cloud_topic", cloud_topic_val);
   // point cloud publisher
-  pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh_, "cloud");
-  object_pub_ = rosAdvertise<sick_scan_msg::SickLdmrsObjectArray>(nh_, "objects");
+  pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh_, cloud_topic_val);
+  object_pub_ = rosAdvertise<sick_scan_msg::SickLdmrsObjectArray>(nh_, nodename + "/objects");
 
   #if defined USE_DIAGNOSTIC_UPDATER
   diagnostics_->setHardwareID("none");   // set from device after connection

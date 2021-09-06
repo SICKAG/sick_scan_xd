@@ -10,7 +10,8 @@ for %%i in ( .\install\sick_scan\lib .\install\sick_scan\lib\sick_scan .\build\s
 )
 
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
-call c:\dev\ros2_foxy\local_setup.bat
+if exist c:\dev\ros2_foxy\local_setup.bat call c:\dev\ros2_foxy\local_setup.bat
+if exist c:\opt\ros\foxy\x64\setup.bat call c:\opt\ros\foxy\x64\setup.bat
 set PATH=%ProgramFiles%\CMake\bin;%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python36_64;%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python37_64;%PATH%
 set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 

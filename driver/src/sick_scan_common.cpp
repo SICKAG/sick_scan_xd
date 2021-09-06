@@ -450,12 +450,17 @@ namespace sick_scan
     }
 #endif
 
+    std::string nodename = parser_->getCurrentParamPtr()->getScannerName();
+    rosDeclareParam(nh, "nodename", nodename);
+    rosGetParam(nh, "nodename", nodename);
+
+
     // datagram publisher (only for debug)
     rosDeclareParam(nh, "publish_datagram", false);
     if(rosGetParam(nh, "publish_datagram", publish_datagram_))
     if (publish_datagram_)
     {
-        datagram_pub_ = rosAdvertise<ros_std_msgs::String>(nh, "datagram", 1000);
+        datagram_pub_ = rosAdvertise<ros_std_msgs::String>(nh, nodename + "/datagram", 1000);
     }
     std::string cloud_topic_val = "cloud";
     rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
@@ -497,14 +502,13 @@ namespace sick_scan
     cloud_marker_ = 0;
     publish_lferec_ = false;
     publish_lidoutputstate_ = false;
-    const std::string scannername = parser_->getCurrentParamPtr()->getScannerName();
     if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
     {
-      lferec_pub_ = rosAdvertise<sick_scan_msg::LFErecMsg>(nh, scannername + "/lferec", 100);
-      lidoutputstate_pub_ = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(nh, scannername + "/lidoutputstate", 100);
+      lferec_pub_ = rosAdvertise<sick_scan_msg::LFErecMsg>(nh, nodename + "/lferec", 100);
+      lidoutputstate_pub_ = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(nh, nodename + "/lidoutputstate", 100);
       publish_lferec_ = true;
       publish_lidoutputstate_ = true;
-      cloud_marker_ = new sick_scan::SickScanMarker(nh, scannername + "/marker", config_.frame_id); // "cloud");
+      cloud_marker_ = new sick_scan::SickScanMarker(nh, nodename + "/marker", config_.frame_id); // "cloud");
     }
 
     // Pointcloud2 publisher
@@ -512,12 +516,12 @@ namespace sick_scan
     ROS_INFO_STREAM("Publishing laserscan-pointcloud2 to " << cloud_topic_val);
     cloud_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, cloud_topic_val, 100);
 
-    imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, "imu", 100);
+    imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, nodename + "/imu", 100);
 
 
-    Encoder_pub = rosAdvertise<sick_scan_msg::Encoder>(nh, "encoder", 100);
+    Encoder_pub = rosAdvertise<sick_scan_msg::Encoder>(nh, nodename + "/encoder", 100);
     // scan publisher
-    pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, "scan", 1000);
+    pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, nodename + "/scan", 1000);
 
 #if defined USE_DIAGNOSTIC_UPDATER && __ROS_VERSION == 1 // diagnosticPub_ in sick_scan_common not used anymore, obsolete in general?
     if(diagnostics_)

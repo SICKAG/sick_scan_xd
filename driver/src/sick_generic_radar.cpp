@@ -81,11 +81,15 @@ namespace sick_scan
 
   SickScanRadarSingleton::SickScanRadarSingleton(rosNodePtr nh)
   {
-    // just for debugging, but very helpful for the start
-    cloud_radar_rawtarget_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, "cloud_radar_rawtarget", 100);
-    cloud_radar_track_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, "cloud_radar_track", 100);
+    std::string nodename;
+    rosDeclareParam(nh, "nodename", nodename);
+    rosGetParam(nh, "nodename", nodename);
 
-    radarScan_pub_ = rosAdvertise<sick_scan_msg::RadarScan>(nh, "radar", 100);
+    // just for debugging, but very helpful for the start
+    cloud_radar_rawtarget_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, nodename + "/cloud_radar_rawtarget", 100);
+    cloud_radar_track_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, nodename + "/cloud_radar_track", 100);
+
+    radarScan_pub_ = rosAdvertise<sick_scan_msg::RadarScan>(nh, nodename + "/radar", 100);
 
   }
 

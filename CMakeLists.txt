@@ -525,6 +525,7 @@ if(ROS_VERSION EQUAL 2)
     )
 
     rosidl_target_interfaces(sick_scan_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
+    # rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_cpp")
         
 endif(ROS_VERSION EQUAL 2)
 
