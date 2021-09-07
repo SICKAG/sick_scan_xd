@@ -44,15 +44,15 @@ struct IntParameter_
 
 
 
-  typedef boost::shared_ptr< ::dynamic_reconfigure::IntParameter_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::dynamic_reconfigure::IntParameter_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::IntParameter_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::IntParameter_<ContainerAllocator> const> ConstPtr;
 
 }; // struct IntParameter_
 
 typedef ::dynamic_reconfigure::IntParameter_<std::allocator<void> > IntParameter;
 
-typedef boost::shared_ptr< ::dynamic_reconfigure::IntParameter > IntParameterPtr;
-typedef boost::shared_ptr< ::dynamic_reconfigure::IntParameter const> IntParameterConstPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::IntParameter > IntParameterPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::IntParameter const> IntParameterConstPtr;
 
 // constants requiring out of line definition
 

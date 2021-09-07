@@ -56,15 +56,15 @@ struct SickLocColaTelegramMsg_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocColaTelegramMsg_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocColaTelegramMsg_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocColaTelegramMsg_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocColaTelegramMsg_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocColaTelegramMsg_
 
 typedef ::sick_scan::SickLocColaTelegramMsg_<std::allocator<void> > SickLocColaTelegramMsg;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocColaTelegramMsg > SickLocColaTelegramMsgPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocColaTelegramMsg const> SickLocColaTelegramMsgConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocColaTelegramMsg > SickLocColaTelegramMsgPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocColaTelegramMsg const> SickLocColaTelegramMsgConstPtr;
 
 // constants requiring out of line definition
 

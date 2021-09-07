@@ -33,32 +33,32 @@
 
 #include <ros/serialized_message.h>
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/shared_array.hpp>
 
 namespace ros
 {
 
 class SubscriptionCallbackHelper;
-typedef boost::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
+typedef std::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
 
 class ROSCPP_DECL MessageDeserializer
 {
 public:
-  MessageDeserializer(const SubscriptionCallbackHelperPtr& helper, const SerializedMessage& m, const boost::shared_ptr<M_string>& connection_header);
+  MessageDeserializer(const SubscriptionCallbackHelperPtr& helper, const SerializedMessage& m, const std::shared_ptr<M_string>& connection_header);
 
   VoidConstPtr deserialize();
-  const boost::shared_ptr<M_string>& getConnectionHeader() { return connection_header_; }
+  const std::shared_ptr<M_string>& getConnectionHeader() { return connection_header_; }
 
 private:
   SubscriptionCallbackHelperPtr helper_;
   SerializedMessage serialized_message_;
-  boost::shared_ptr<M_string> connection_header_;
+  std::shared_ptr<M_string> connection_header_;
 
-  boost::mutex mutex_;
+  std::mutex mutex_;
   VoidConstPtr msg_;
 };
-typedef boost::shared_ptr<MessageDeserializer> MessageDeserializerPtr;
+typedef std::shared_ptr<MessageDeserializer> MessageDeserializerPtr;
 
 }
 

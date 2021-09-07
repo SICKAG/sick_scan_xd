@@ -45,7 +45,7 @@
 #include "diagnostic_msgs/DiagnosticArray.h"
 #include "diagnostic_updater/DiagnosticStatusWrapper.h"
 
-#include <boost/thread.hpp>
+#include <thread>
 
 namespace diagnostic_updater
 {
@@ -230,7 +230,7 @@ namespace diagnostic_updater
           TaskFunction fn_;
       };
 
-      boost::mutex lock_;
+      std::mutex lock_;
 
       /**
        * \brief Returns the vector of tasks.
@@ -307,7 +307,7 @@ namespace diagnostic_updater
          
          bool removeByName(const std::string name)
          {
-           boost::mutex::scoped_lock lock(lock_); 
+           std::lock_guard<std::mutex> lock(lock_); 
            for (std::vector<DiagnosticTaskInternal>::iterator iter = tasks_.begin();
                iter != tasks_.end(); iter++)
            {
@@ -338,7 +338,7 @@ namespace diagnostic_updater
        */
       void addInternal(DiagnosticTaskInternal &task)
       {
-        boost::mutex::scoped_lock lock(lock_);
+        std::lock_guard<std::mutex> lock(lock_);
         tasks_.push_back(task); 
         addedTaskCallback(task);
       }
@@ -409,7 +409,7 @@ namespace diagnostic_updater
           
           std::vector<diagnostic_msgs::DiagnosticStatus> status_vec;
 
-          boost::mutex::scoped_lock lock(lock_); // Make sure no adds happen while we are processing here.
+          std::lock_guard<std::mutex> lock(lock_); // Make sure no adds happen while we are processing here.
           const std::vector<DiagnosticTaskInternal> &tasks = getTasks();
           for (std::vector<DiagnosticTaskInternal>::const_iterator iter = tasks.begin();
               iter != tasks.end(); iter++)

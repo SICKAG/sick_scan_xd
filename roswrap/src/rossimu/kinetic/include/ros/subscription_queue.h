@@ -34,20 +34,20 @@
 #include "callback_queue_interface.h"
 
 #include <boost/thread/recursive_mutex.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <mutex>
+#include <memory>
 #include <deque>
 
 namespace ros
 {
 
 class MessageDeserializer;
-typedef boost::shared_ptr<MessageDeserializer> MessageDeserializerPtr;
+typedef std::shared_ptr<MessageDeserializer> MessageDeserializerPtr;
 
 class SubscriptionCallbackHelper;
-typedef boost::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
+typedef std::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
 
-class ROSCPP_DECL SubscriptionQueue : public CallbackInterface, public boost::enable_shared_from_this<SubscriptionQueue>
+class ROSCPP_DECL SubscriptionQueue : public CallbackInterface, public std::enable_shared_from_this<SubscriptionQueue>
 {
 private:
   struct Item
@@ -82,7 +82,7 @@ private:
   int32_t size_;
   bool full_;
 
-  boost::mutex queue_mutex_;
+  std::mutex queue_mutex_;
   D_Item queue_;
   uint32_t queue_size_;
   bool allow_concurrent_callbacks_;

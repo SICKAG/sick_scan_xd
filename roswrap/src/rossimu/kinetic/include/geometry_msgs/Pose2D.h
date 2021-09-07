@@ -49,15 +49,15 @@ struct Pose2D_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::Pose2D_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::Pose2D_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::Pose2D_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::Pose2D_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Pose2D_
 
 typedef ::geometry_msgs::Pose2D_<std::allocator<void> > Pose2D;
 
-typedef boost::shared_ptr< ::geometry_msgs::Pose2D > Pose2DPtr;
-typedef boost::shared_ptr< ::geometry_msgs::Pose2D const> Pose2DConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::Pose2D > Pose2DPtr;
+typedef std::shared_ptr< ::geometry_msgs::Pose2D const> Pose2DConstPtr;
 
 // constants requiring out of line definition
 

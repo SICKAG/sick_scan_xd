@@ -69,10 +69,10 @@ private:
   boost::signals2::connection dropped_conn_;
 
   std::queue<SerializedMessage> outbox_;
-  boost::mutex outbox_mutex_;
+  std::mutex outbox_mutex_;
   bool queue_full_;
 };
-typedef boost::shared_ptr<TransportSubscriberLink> TransportSubscriberLinkPtr;
+typedef std::shared_ptr<TransportSubscriberLink> TransportSubscriberLinkPtr;
 
 } // namespace ros
 

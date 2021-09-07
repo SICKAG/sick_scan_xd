@@ -60,7 +60,7 @@ namespace ros
      *
      */
     template <typename M>
-      void publish(const boost::shared_ptr<M>& message) const
+      void publish(const std::shared_ptr<M>& message) const
     {
       using namespace serialization;
 
@@ -190,8 +190,8 @@ namespace ros
       SubscriberCallbacksPtr callbacks_;
       bool unadvertised_;
     };
-    typedef boost::shared_ptr<Impl> ImplPtr;
-    typedef boost::weak_ptr<Impl> ImplWPtr;
+    typedef std::shared_ptr<Impl> ImplPtr;
+    typedef std::weak_ptr<Impl> ImplWPtr;
 
     ImplPtr impl_;
 

@@ -55,7 +55,7 @@
 #ifndef __SIM_LOC_FIFO_H_INCLUDED
 #define __SIM_LOC_FIFO_H_INCLUDED
 
-#include <boost/thread.hpp>
+#include <thread>
 #include <list>
 
 namespace sick_scan
@@ -63,7 +63,7 @@ namespace sick_scan
   /*!
    * Class FifoBuffer implements a threadsafe fifo-buffer ("first in, first out").
    */
-  template<typename ElementType, typename MutexType = boost::mutex> class FifoBuffer
+  template<typename ElementType, typename MutexType = std::mutex> class FifoBuffer
   {
   public:
     
@@ -85,7 +85,7 @@ namespace sick_scan
      */
     bool empty(void)
     {
-      boost::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
+      std::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
       return m_fifo_buffer.empty();
     }
   
@@ -94,7 +94,7 @@ namespace sick_scan
      */
     size_t size(void)
     {
-      boost::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
+      std::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
       return m_fifo_buffer.size();
     }
   
@@ -113,7 +113,7 @@ namespace sick_scan
      */
     ElementType pop(void)
     {
-      boost::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
+      std::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
       if(!m_fifo_buffer.empty())
       {
         ElementType elem(m_fifo_buffer.front());
@@ -172,7 +172,7 @@ namespace sick_scan
      */
     ElementType findFirstIf(UnaryConditionIf & condition_impl, bool erase_if_found = false)
     {
-      boost::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
+      std::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
       for(auto iter = m_fifo_buffer.begin(); iter != m_fifo_buffer.end(); iter++)
       {
         if(condition_impl.condition(*iter))
@@ -193,7 +193,7 @@ namespace sick_scan
     /*! Pushes an element to the end of the fifo buffer. */
     void push_back(const ElementType & elem)
     {
-      boost::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
+      std::lock_guard<MutexType> message_lockguard(m_fifo_mutex);
       m_fifo_buffer.push_back(elem);
     }
   
@@ -206,7 +206,7 @@ namespace sick_scan
     /*! Wait until notification signalled. */
     void waitForNotify(void)
     {
-      boost::mutex::scoped_lock lock(m_condition_mutex);
+      std::unique_lock<std::mutex> lock(m_condition_mutex);
       m_buffer_condition.wait(lock);
     }
 
@@ -216,8 +216,8 @@ namespace sick_scan
     
     std::list<ElementType> m_fifo_buffer;          ///< list of all elements of the fifo buffer
     MutexType m_fifo_mutex;                        ///< mutex to lock m_fifo_buffer
-    boost::mutex m_condition_mutex;                ///< mutex to lock m_buffer_condition
-    boost::condition_variable m_buffer_condition;  ///< condition variable to signal changes in buffer size
+    std::mutex m_condition_mutex;                ///< mutex to lock m_buffer_condition
+    std::condition_variable m_buffer_condition;  ///< condition variable to signal changes in buffer size
     
   }; // class FifoBuffer
   

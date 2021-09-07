@@ -45,15 +45,15 @@ struct SickGetSoftwareVersionSrvResponse_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickGetSoftwareVersionSrvResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickGetSoftwareVersionSrvResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickGetSoftwareVersionSrvResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickGetSoftwareVersionSrvResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickGetSoftwareVersionSrvResponse_
 
 typedef ::sick_scan::SickGetSoftwareVersionSrvResponse_<std::allocator<void> > SickGetSoftwareVersionSrvResponse;
 
-typedef boost::shared_ptr< ::sick_scan::SickGetSoftwareVersionSrvResponse > SickGetSoftwareVersionSrvResponsePtr;
-typedef boost::shared_ptr< ::sick_scan::SickGetSoftwareVersionSrvResponse const> SickGetSoftwareVersionSrvResponseConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickGetSoftwareVersionSrvResponse > SickGetSoftwareVersionSrvResponsePtr;
+typedef std::shared_ptr< ::sick_scan::SickGetSoftwareVersionSrvResponse const> SickGetSoftwareVersionSrvResponseConstPtr;
 
 // constants requiring out of line definition
 

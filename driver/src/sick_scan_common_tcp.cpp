@@ -663,7 +663,7 @@ namespace sick_scan
       ROS_ERROR_STREAM("no answer received after " << timeout_ms << " ms. Maybe sopas mode is wrong.\n");
       return (ExitError);
     }
-    boost::condition_variable cond_;
+    std::condition_variable cond_;
     DatagramWithTimeStamp datagramWithTimeStamp = this->recvQueue.pop();
 
     *bytes_read = datagramWithTimeStamp.datagram.size();

@@ -83,15 +83,15 @@ struct Imu_
 
 
 
-  typedef boost::shared_ptr< ::sensor_msgs::Imu_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sensor_msgs::Imu_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sensor_msgs::Imu_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sensor_msgs::Imu_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Imu_
 
 typedef ::sensor_msgs::Imu_<std::allocator<void> > Imu;
 
-typedef boost::shared_ptr< ::sensor_msgs::Imu > ImuPtr;
-typedef boost::shared_ptr< ::sensor_msgs::Imu const> ImuConstPtr;
+typedef std::shared_ptr< ::sensor_msgs::Imu > ImuPtr;
+typedef std::shared_ptr< ::sensor_msgs::Imu const> ImuConstPtr;
 
 // constants requiring out of line definition
 

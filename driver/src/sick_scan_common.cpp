@@ -408,9 +408,9 @@ namespace sick_scan
 
 #ifdef USE_DIAGNOSTIC_UPDATER
 #if __ROS_VERSION == 1
-    diagnostics_ = boost::make_shared<diagnostic_updater::Updater>(*nh);
+    diagnostics_ = std::make_shared<diagnostic_updater::Updater>(*nh);
 #elif __ROS_VERSION == 2
-    diagnostics_ = boost::make_shared<diagnostic_updater::Updater>(nh);
+    diagnostics_ = std::make_shared<diagnostic_updater::Updater>(nh);
 #else
     diagnostics_ = 0;
 #endif  

@@ -37,32 +37,32 @@
 #include "ros/statistics.h"
 #include "xmlrpcpp/XmlRpc.h"
 
-#include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <thread>
+#include <memory>
+#include <memory>
 
 namespace ros
 {
 
 class PublisherLink;
-typedef boost::shared_ptr<PublisherLink> PublisherLinkPtr;
+typedef std::shared_ptr<PublisherLink> PublisherLinkPtr;
 
 class SubscriptionCallback;
-typedef boost::shared_ptr<SubscriptionCallback> SubscriptionCallbackPtr;
+typedef std::shared_ptr<SubscriptionCallback> SubscriptionCallbackPtr;
 
 class SubscriptionQueue;
-typedef boost::shared_ptr<SubscriptionQueue> SubscriptionQueuePtr;
+typedef std::shared_ptr<SubscriptionQueue> SubscriptionQueuePtr;
 
 class MessageDeserializer;
-typedef boost::shared_ptr<MessageDeserializer> MessageDeserializerPtr;
+typedef std::shared_ptr<MessageDeserializer> MessageDeserializerPtr;
 
 class SubscriptionCallbackHelper;
-typedef boost::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
+typedef std::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
 
 /**
  * \brief Manages a subscription on a single topic.
  */
-class ROSCPP_DECL Subscription : public boost::enable_shared_from_this<Subscription>
+class ROSCPP_DECL Subscription : public std::enable_shared_from_this<Subscription>
 {
 public:
   Subscription(const std::string &name, const std::string& md5sum, const std::string& datatype, const TransportHints& transport_hints);
@@ -105,7 +105,7 @@ public:
    * \brief Called to notify that a new message has arrived from a publisher.
    * Schedules the callback for invokation with the callback queue
    */
-  uint32_t handleMessage(const SerializedMessage& m, bool ser, bool nocopy, const boost::shared_ptr<M_string>& connection_header, const PublisherLinkPtr& link);
+  uint32_t handleMessage(const SerializedMessage& m, bool ser, bool nocopy, const std::shared_ptr<M_string>& connection_header, const PublisherLinkPtr& link);
 
   const std::string datatype();
   const std::string md5sum();
@@ -160,7 +160,7 @@ public:
         XmlRpc::XmlRpcValue result;
         if (client_->executeCheckDone(result))
         {
-          parent->pendingConnectionDone(boost::dynamic_pointer_cast<PendingConnection>(shared_from_this()), result);
+          parent->pendingConnectionDone(std::dynamic_pointer_cast<PendingConnection>(shared_from_this()), result);
           return true;
         }
 
@@ -175,7 +175,7 @@ public:
       SubscriptionWPtr parent_;
       std::string remote_uri_;
   };
-  typedef boost::shared_ptr<PendingConnection> PendingConnectionPtr;
+  typedef std::shared_ptr<PendingConnection> PendingConnectionPtr;
 
   void pendingConnectionDone(const PendingConnectionPtr& pending_conn, XmlRpc::XmlRpcValue& result);
 
@@ -201,28 +201,28 @@ private:
     bool has_tracked_object_;
     VoidConstWPtr tracked_object_;
   };
-  typedef boost::shared_ptr<CallbackInfo> CallbackInfoPtr;
+  typedef std::shared_ptr<CallbackInfo> CallbackInfoPtr;
   typedef std::vector<CallbackInfoPtr> V_CallbackInfo;
 
   std::string name_;
-  boost::mutex md5sum_mutex_;
+  std::mutex md5sum_mutex_;
   std::string md5sum_;
   std::string datatype_;
-  boost::mutex callbacks_mutex_;
+  std::mutex callbacks_mutex_;
   V_CallbackInfo callbacks_;
   uint32_t nonconst_callbacks_;
 
   bool dropped_;
   bool shutting_down_;
-  boost::mutex shutdown_mutex_;
+  std::mutex shutdown_mutex_;
 
   typedef std::set<PendingConnectionPtr> S_PendingConnection;
   S_PendingConnection pending_connections_;
-  boost::mutex pending_connections_mutex_;
+  std::mutex pending_connections_mutex_;
 
   typedef std::vector<PublisherLinkPtr> V_PublisherLink;
   V_PublisherLink publisher_links_;
-  boost::mutex publisher_links_mutex_;
+  std::mutex publisher_links_mutex_;
 
   TransportHints transport_hints_;
 
@@ -232,7 +232,7 @@ private:
   {
     SerializedMessage message;
     PublisherLinkPtr link;
-    boost::shared_ptr<std::map<std::string, std::string> > connection_header;
+    std::shared_ptr<std::map<std::string, std::string> > connection_header;
     ros::Time receipt_time;
   };
 

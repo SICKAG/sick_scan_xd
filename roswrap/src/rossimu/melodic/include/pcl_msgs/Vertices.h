@@ -40,15 +40,15 @@ struct Vertices_
 
 
 
-  typedef boost::shared_ptr< ::pcl_msgs::Vertices_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::pcl_msgs::Vertices_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::pcl_msgs::Vertices_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::pcl_msgs::Vertices_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Vertices_
 
 typedef ::pcl_msgs::Vertices_<std::allocator<void> > Vertices;
 
-typedef boost::shared_ptr< ::pcl_msgs::Vertices > VerticesPtr;
-typedef boost::shared_ptr< ::pcl_msgs::Vertices const> VerticesConstPtr;
+typedef std::shared_ptr< ::pcl_msgs::Vertices > VerticesPtr;
+typedef std::shared_ptr< ::pcl_msgs::Vertices const> VerticesConstPtr;
 
 // constants requiring out of line definition
 

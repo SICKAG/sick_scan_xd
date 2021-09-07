@@ -51,15 +51,15 @@ struct Encoder_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::Encoder_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::Encoder_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::Encoder_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::Encoder_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Encoder_
 
 typedef ::sick_scan::Encoder_<std::allocator<void> > Encoder;
 
-typedef boost::shared_ptr< ::sick_scan::Encoder > EncoderPtr;
-typedef boost::shared_ptr< ::sick_scan::Encoder const> EncoderConstPtr;
+typedef std::shared_ptr< ::sick_scan::Encoder > EncoderPtr;
+typedef std::shared_ptr< ::sick_scan::Encoder const> EncoderConstPtr;
 
 // constants requiring out of line definition
 

@@ -37,22 +37,22 @@
 
 #include <ros/types.h>
 #include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <memory>
+#include <memory>
 #include <vector>
 
 namespace ros
 {
 
 class Transport;
-typedef boost::shared_ptr<Transport> TransportPtr;
+typedef std::shared_ptr<Transport> TransportPtr;
 
 class Header;
 
 /**
  * \brief Abstract base class that allows abstraction of the transport type, eg. TCP, shared memory, UDP...
  */
-class Transport : public boost::enable_shared_from_this<Transport>
+class Transport : public std::enable_shared_from_this<Transport>
 {
 public:
   Transport();

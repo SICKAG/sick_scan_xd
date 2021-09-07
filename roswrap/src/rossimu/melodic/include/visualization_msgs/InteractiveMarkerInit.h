@@ -51,15 +51,15 @@ struct InteractiveMarkerInit_
 
 
 
-  typedef boost::shared_ptr< ::visualization_msgs::InteractiveMarkerInit_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::visualization_msgs::InteractiveMarkerInit_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::visualization_msgs::InteractiveMarkerInit_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::visualization_msgs::InteractiveMarkerInit_<ContainerAllocator> const> ConstPtr;
 
 }; // struct InteractiveMarkerInit_
 
 typedef ::visualization_msgs::InteractiveMarkerInit_<std::allocator<void> > InteractiveMarkerInit;
 
-typedef boost::shared_ptr< ::visualization_msgs::InteractiveMarkerInit > InteractiveMarkerInitPtr;
-typedef boost::shared_ptr< ::visualization_msgs::InteractiveMarkerInit const> InteractiveMarkerInitConstPtr;
+typedef std::shared_ptr< ::visualization_msgs::InteractiveMarkerInit > InteractiveMarkerInitPtr;
+typedef std::shared_ptr< ::visualization_msgs::InteractiveMarkerInit const> InteractiveMarkerInitConstPtr;
 
 // constants requiring out of line definition
 

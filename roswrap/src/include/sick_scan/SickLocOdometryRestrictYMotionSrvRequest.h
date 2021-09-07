@@ -37,15 +37,15 @@ struct SickLocOdometryRestrictYMotionSrvRequest_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocOdometryRestrictYMotionSrvRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocOdometryRestrictYMotionSrvRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocOdometryRestrictYMotionSrvRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocOdometryRestrictYMotionSrvRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocOdometryRestrictYMotionSrvRequest_
 
 typedef ::sick_scan::SickLocOdometryRestrictYMotionSrvRequest_<std::allocator<void> > SickLocOdometryRestrictYMotionSrvRequest;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocOdometryRestrictYMotionSrvRequest > SickLocOdometryRestrictYMotionSrvRequestPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocOdometryRestrictYMotionSrvRequest const> SickLocOdometryRestrictYMotionSrvRequestConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocOdometryRestrictYMotionSrvRequest > SickLocOdometryRestrictYMotionSrvRequestPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocOdometryRestrictYMotionSrvRequest const> SickLocOdometryRestrictYMotionSrvRequestConstPtr;
 
 // constants requiring out of line definition
 

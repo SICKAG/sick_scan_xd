@@ -39,15 +39,15 @@ struct Float64_
 
 
 
-  typedef boost::shared_ptr< ::std_msgs::Float64_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::std_msgs::Float64_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::std_msgs::Float64_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::std_msgs::Float64_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Float64_
 
 typedef ::std_msgs::Float64_<std::allocator<void> > Float64;
 
-typedef boost::shared_ptr< ::std_msgs::Float64 > Float64Ptr;
-typedef boost::shared_ptr< ::std_msgs::Float64 const> Float64ConstPtr;
+typedef std::shared_ptr< ::std_msgs::Float64 > Float64Ptr;
+typedef std::shared_ptr< ::std_msgs::Float64 const> Float64ConstPtr;
 
 // constants requiring out of line definition
 

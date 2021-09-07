@@ -59,15 +59,15 @@ struct RadarScan_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::RadarScan_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::RadarScan_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::RadarScan_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::RadarScan_<ContainerAllocator> const> ConstPtr;
 
 }; // struct RadarScan_
 
 typedef ::sick_scan::RadarScan_<std::allocator<void> > RadarScan;
 
-typedef boost::shared_ptr< ::sick_scan::RadarScan > RadarScanPtr;
-typedef boost::shared_ptr< ::sick_scan::RadarScan const> RadarScanConstPtr;
+typedef std::shared_ptr< ::sick_scan::RadarScan > RadarScanPtr;
+typedef std::shared_ptr< ::sick_scan::RadarScan const> RadarScanConstPtr;
 
 // constants requiring out of line definition
 

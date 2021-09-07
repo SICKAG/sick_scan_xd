@@ -77,15 +77,15 @@ struct NavSatFix_
      enum { COVARIANCE_TYPE_KNOWN = 3u };
  
 
-  typedef boost::shared_ptr< ::sensor_msgs::NavSatFix_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sensor_msgs::NavSatFix_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sensor_msgs::NavSatFix_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sensor_msgs::NavSatFix_<ContainerAllocator> const> ConstPtr;
 
 }; // struct NavSatFix_
 
 typedef ::sensor_msgs::NavSatFix_<std::allocator<void> > NavSatFix;
 
-typedef boost::shared_ptr< ::sensor_msgs::NavSatFix > NavSatFixPtr;
-typedef boost::shared_ptr< ::sensor_msgs::NavSatFix const> NavSatFixConstPtr;
+typedef std::shared_ptr< ::sensor_msgs::NavSatFix > NavSatFixPtr;
+typedef std::shared_ptr< ::sensor_msgs::NavSatFix const> NavSatFixConstPtr;
 
 // constants requiring out of line definition
 

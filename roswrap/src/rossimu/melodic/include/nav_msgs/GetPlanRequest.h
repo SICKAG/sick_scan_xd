@@ -52,15 +52,15 @@ struct GetPlanRequest_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::GetPlanRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::GetPlanRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::GetPlanRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::GetPlanRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct GetPlanRequest_
 
 typedef ::nav_msgs::GetPlanRequest_<std::allocator<void> > GetPlanRequest;
 
-typedef boost::shared_ptr< ::nav_msgs::GetPlanRequest > GetPlanRequestPtr;
-typedef boost::shared_ptr< ::nav_msgs::GetPlanRequest const> GetPlanRequestConstPtr;
+typedef std::shared_ptr< ::nav_msgs::GetPlanRequest > GetPlanRequestPtr;
+typedef std::shared_ptr< ::nav_msgs::GetPlanRequest const> GetPlanRequestConstPtr;
 
 // constants requiring out of line definition
 

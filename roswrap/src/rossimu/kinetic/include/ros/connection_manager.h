@@ -29,17 +29,17 @@
 #include "connection.h"
 #include "common.h"
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/signals2/connection.hpp>
 
 namespace ros
 {
 
 class PollManager;
-typedef boost::shared_ptr<PollManager> PollManagerPtr;
+typedef std::shared_ptr<PollManager> PollManagerPtr;
 
 class ConnectionManager;
-typedef boost::shared_ptr<ConnectionManager> ConnectionManagerPtr;
+typedef std::shared_ptr<ConnectionManager> ConnectionManagerPtr;
 
 class ROSCPP_DECL ConnectionManager
 {
@@ -86,13 +86,13 @@ private:
 
   S_Connection connections_;
   V_Connection dropped_connections_;
-  boost::mutex connections_mutex_;
-  boost::mutex dropped_connections_mutex_;
+  std::mutex connections_mutex_;
+  std::mutex dropped_connections_mutex_;
 
   // The connection ID counter, used to assign unique ID to each inbound or
   // outbound connection.  Access via getNewConnectionID()
   uint32_t connection_id_counter_;
-  boost::mutex connection_id_counter_mutex_;
+  std::mutex connection_id_counter_mutex_;
 
   boost::signals2::connection poll_conn_;
 

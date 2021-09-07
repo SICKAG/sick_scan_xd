@@ -55,7 +55,7 @@ public:
    *
    */
   template<class M>
-  void publish(const boost::shared_ptr<M const>& message) const
+  void publish(const std::shared_ptr<M const>& message) const
   {
     publish(*message);
   }
@@ -69,7 +69,7 @@ public:
    *
    */
   template<class M>
-  void publish(const boost::shared_ptr<M>& message) const
+  void publish(const std::shared_ptr<M>& message) const
   {
     publish(*message);
   }

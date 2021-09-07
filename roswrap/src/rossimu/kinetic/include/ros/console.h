@@ -121,7 +121,7 @@ struct Token
    */
   virtual std::string getString(void*, ::ros::console::Level, const char*, const char*, const char*, int) = 0;
 };
-typedef boost::shared_ptr<Token> TokenPtr;
+typedef std::shared_ptr<Token> TokenPtr;
 typedef std::vector<TokenPtr> V_Token;
 
 struct Formatter

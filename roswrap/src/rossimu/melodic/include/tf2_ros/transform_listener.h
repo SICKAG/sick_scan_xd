@@ -39,7 +39,7 @@
 
 #include "tf2_ros/buffer.h"
 
-#include "boost/thread.hpp"
+#include "thread"
 
 namespace tf2_ros{
 
@@ -67,7 +67,7 @@ private:
   void subscription_callback_impl(const ros::MessageEvent<tf2_msgs::TFMessage const>& msg_evt, bool is_static);
 
   ros::CallbackQueue tf_message_callback_queue_;
-  boost::thread* dedicated_listener_thread_;
+  std::thread* dedicated_listener_thread_;
   ros::NodeHandle node_;
   ros::Subscriber message_subscriber_tf_;
   ros::Subscriber message_subscriber_tf_static_;

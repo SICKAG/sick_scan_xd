@@ -53,15 +53,15 @@ struct PolygonMesh_
 
 
 
-  typedef boost::shared_ptr< ::pcl_msgs::PolygonMesh_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::pcl_msgs::PolygonMesh_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::pcl_msgs::PolygonMesh_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::pcl_msgs::PolygonMesh_<ContainerAllocator> const> ConstPtr;
 
 }; // struct PolygonMesh_
 
 typedef ::pcl_msgs::PolygonMesh_<std::allocator<void> > PolygonMesh;
 
-typedef boost::shared_ptr< ::pcl_msgs::PolygonMesh > PolygonMeshPtr;
-typedef boost::shared_ptr< ::pcl_msgs::PolygonMesh const> PolygonMeshConstPtr;
+typedef std::shared_ptr< ::pcl_msgs::PolygonMesh > PolygonMeshPtr;
+typedef std::shared_ptr< ::pcl_msgs::PolygonMesh const> PolygonMeshConstPtr;
 
 // constants requiring out of line definition
 

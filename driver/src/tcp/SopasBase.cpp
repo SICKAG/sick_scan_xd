@@ -1216,7 +1216,7 @@ void SopasBase::processFrame_CoLa_A(SopasEventMessage& frame)
 	else
 	{
 		// Copy frame to response buffer. Old contents are destroyed
-		// boost::mutex::scoped_lock lock(m_receiveDataMutex);
+		// std::lock_guard<std::mutex> lock(m_receiveDataMutex);
 		copyFrameToResposeBuffer(frame.size());
 	}
 

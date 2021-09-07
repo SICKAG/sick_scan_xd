@@ -37,15 +37,15 @@ struct SickLocStateSrvRequest_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocStateSrvRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocStateSrvRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocStateSrvRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocStateSrvRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocStateSrvRequest_
 
 typedef ::sick_scan::SickLocStateSrvRequest_<std::allocator<void> > SickLocStateSrvRequest;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocStateSrvRequest > SickLocStateSrvRequestPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocStateSrvRequest const> SickLocStateSrvRequestConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocStateSrvRequest > SickLocStateSrvRequestPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocStateSrvRequest const> SickLocStateSrvRequestConstPtr;
 
 // constants requiring out of line definition
 

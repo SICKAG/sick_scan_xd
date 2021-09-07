@@ -44,15 +44,15 @@ struct BoolParameter_
 
 
 
-  typedef boost::shared_ptr< ::dynamic_reconfigure::BoolParameter_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::dynamic_reconfigure::BoolParameter_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::BoolParameter_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::BoolParameter_<ContainerAllocator> const> ConstPtr;
 
 }; // struct BoolParameter_
 
 typedef ::dynamic_reconfigure::BoolParameter_<std::allocator<void> > BoolParameter;
 
-typedef boost::shared_ptr< ::dynamic_reconfigure::BoolParameter > BoolParameterPtr;
-typedef boost::shared_ptr< ::dynamic_reconfigure::BoolParameter const> BoolParameterConstPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::BoolParameter > BoolParameterPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::BoolParameter const> BoolParameterConstPtr;
 
 // constants requiring out of line definition
 

@@ -46,15 +46,15 @@ struct Vector3Stamped_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::Vector3Stamped_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::Vector3Stamped_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::Vector3Stamped_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::Vector3Stamped_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Vector3Stamped_
 
 typedef ::geometry_msgs::Vector3Stamped_<std::allocator<void> > Vector3Stamped;
 
-typedef boost::shared_ptr< ::geometry_msgs::Vector3Stamped > Vector3StampedPtr;
-typedef boost::shared_ptr< ::geometry_msgs::Vector3Stamped const> Vector3StampedConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::Vector3Stamped > Vector3StampedPtr;
+typedef std::shared_ptr< ::geometry_msgs::Vector3Stamped const> Vector3StampedConstPtr;
 
 // constants requiring out of line definition
 

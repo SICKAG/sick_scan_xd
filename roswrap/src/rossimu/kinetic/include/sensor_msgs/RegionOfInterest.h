@@ -59,15 +59,15 @@ struct RegionOfInterest_
 
 
 
-  typedef boost::shared_ptr< ::sensor_msgs::RegionOfInterest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sensor_msgs::RegionOfInterest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sensor_msgs::RegionOfInterest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sensor_msgs::RegionOfInterest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct RegionOfInterest_
 
 typedef ::sensor_msgs::RegionOfInterest_<std::allocator<void> > RegionOfInterest;
 
-typedef boost::shared_ptr< ::sensor_msgs::RegionOfInterest > RegionOfInterestPtr;
-typedef boost::shared_ptr< ::sensor_msgs::RegionOfInterest const> RegionOfInterestConstPtr;
+typedef std::shared_ptr< ::sensor_msgs::RegionOfInterest > RegionOfInterestPtr;
+typedef std::shared_ptr< ::sensor_msgs::RegionOfInterest const> RegionOfInterestConstPtr;
 
 // constants requiring out of line definition
 

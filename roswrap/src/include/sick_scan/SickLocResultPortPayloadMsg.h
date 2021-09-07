@@ -105,15 +105,15 @@ struct SickLocResultPortPayloadMsg_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultPortPayloadMsg_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultPortPayloadMsg_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultPortPayloadMsg_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultPortPayloadMsg_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocResultPortPayloadMsg_
 
 typedef ::sick_scan::SickLocResultPortPayloadMsg_<std::allocator<void> > SickLocResultPortPayloadMsg;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocResultPortPayloadMsg > SickLocResultPortPayloadMsgPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocResultPortPayloadMsg const> SickLocResultPortPayloadMsgConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultPortPayloadMsg > SickLocResultPortPayloadMsgPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultPortPayloadMsg const> SickLocResultPortPayloadMsgConstPtr;
 
 // constants requiring out of line definition
 

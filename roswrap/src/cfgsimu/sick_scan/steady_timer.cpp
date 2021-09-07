@@ -53,12 +53,12 @@ void TimerManager<SteadyTime, WallDuration, SteadyTimerEvent>::threadFunc()
   {
     SteadyTime sleep_end;
 
-    boost::mutex::scoped_lock lock(timers_mutex_);
+    std::lock_guard<std::mutex> lock(timers_mutex_);
 
     current = SteadyTime::now();
 
     {
-      boost::mutex::scoped_lock waitlock(waiting_mutex_);
+      std::lock_guard<std::mutex> waitlock(waiting_mutex_);
 
       if (waiting_.empty())
       {
@@ -73,7 +73,7 @@ void TimerManager<SteadyTime, WallDuration, SteadyTimerEvent>::threadFunc()
           current = SteadyTime::now();
 
           //ROS_DEBUG("Scheduling timer callback for timer [%d] of period [%f], [%f] off expected", info->handle, info->period.toSec(), (current - info->next_expected).toSec());
-          CallbackInterfacePtr cb(boost::make_shared<TimerQueueCallback>(this, info, info->last_expected, info->last_real, info->next_expected));
+          CallbackInterfacePtr cb(std::make_shared<TimerQueueCallback>(this, info, info->last_expected, info->last_real, info->next_expected));
           info->callback_queue->addCallback(cb, (uint64_t)info.get());
 
           waiting_.pop_front();

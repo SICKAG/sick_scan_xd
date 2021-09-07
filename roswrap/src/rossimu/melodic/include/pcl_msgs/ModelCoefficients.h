@@ -46,15 +46,15 @@ struct ModelCoefficients_
 
 
 
-  typedef boost::shared_ptr< ::pcl_msgs::ModelCoefficients_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::pcl_msgs::ModelCoefficients_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::pcl_msgs::ModelCoefficients_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::pcl_msgs::ModelCoefficients_<ContainerAllocator> const> ConstPtr;
 
 }; // struct ModelCoefficients_
 
 typedef ::pcl_msgs::ModelCoefficients_<std::allocator<void> > ModelCoefficients;
 
-typedef boost::shared_ptr< ::pcl_msgs::ModelCoefficients > ModelCoefficientsPtr;
-typedef boost::shared_ptr< ::pcl_msgs::ModelCoefficients const> ModelCoefficientsConstPtr;
+typedef std::shared_ptr< ::pcl_msgs::ModelCoefficients > ModelCoefficientsPtr;
+typedef std::shared_ptr< ::pcl_msgs::ModelCoefficients const> ModelCoefficientsConstPtr;
 
 // constants requiring out of line definition
 

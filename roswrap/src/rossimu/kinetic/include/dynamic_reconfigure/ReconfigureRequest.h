@@ -40,15 +40,15 @@ struct ReconfigureRequest_
 
 
 
-  typedef boost::shared_ptr< ::dynamic_reconfigure::ReconfigureRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::dynamic_reconfigure::ReconfigureRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::ReconfigureRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::ReconfigureRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct ReconfigureRequest_
 
 typedef ::dynamic_reconfigure::ReconfigureRequest_<std::allocator<void> > ReconfigureRequest;
 
-typedef boost::shared_ptr< ::dynamic_reconfigure::ReconfigureRequest > ReconfigureRequestPtr;
-typedef boost::shared_ptr< ::dynamic_reconfigure::ReconfigureRequest const> ReconfigureRequestConstPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::ReconfigureRequest > ReconfigureRequestPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::ReconfigureRequest const> ReconfigureRequestConstPtr;
 
 // constants requiring out of line definition
 

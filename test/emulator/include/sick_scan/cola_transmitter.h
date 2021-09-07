@@ -193,8 +193,8 @@ namespace sick_scan
     sick_scan::ClientSocket m_tcp_socket; ///< tcp socket connected to the localization controller
     double m_receive_timeout;                           ///< default timeout in seconds for receive functions
     bool m_receiver_thread_running;                     ///< true: m_receiver_thread is running, otherwise false
-    boost::thread* m_receiver_thread;                   ///< thread to receive responses from localization server
-    sick_scan::FifoBuffer<ColaResponseContainer, boost::mutex> m_response_fifo; ///< fifo buffer for receiver thread for responses from localization server
+    std::thread* m_receiver_thread;                   ///< thread to receive responses from localization server
+    sick_scan::FifoBuffer<ColaResponseContainer, std::mutex> m_response_fifo; ///< fifo buffer for receiver thread for responses from localization server
   
   }; // class ColaTransmitter
   

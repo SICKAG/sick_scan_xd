@@ -58,15 +58,15 @@ struct Odometry_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::Odometry_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::Odometry_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::Odometry_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::Odometry_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Odometry_
 
 typedef ::nav_msgs::Odometry_<std::allocator<void> > Odometry;
 
-typedef boost::shared_ptr< ::nav_msgs::Odometry > OdometryPtr;
-typedef boost::shared_ptr< ::nav_msgs::Odometry const> OdometryConstPtr;
+typedef std::shared_ptr< ::nav_msgs::Odometry > OdometryPtr;
+typedef std::shared_ptr< ::nav_msgs::Odometry const> OdometryConstPtr;
 
 // constants requiring out of line definition
 

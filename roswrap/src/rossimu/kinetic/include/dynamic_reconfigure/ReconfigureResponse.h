@@ -40,15 +40,15 @@ struct ReconfigureResponse_
 
 
 
-  typedef boost::shared_ptr< ::dynamic_reconfigure::ReconfigureResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::dynamic_reconfigure::ReconfigureResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::ReconfigureResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::ReconfigureResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct ReconfigureResponse_
 
 typedef ::dynamic_reconfigure::ReconfigureResponse_<std::allocator<void> > ReconfigureResponse;
 
-typedef boost::shared_ptr< ::dynamic_reconfigure::ReconfigureResponse > ReconfigureResponsePtr;
-typedef boost::shared_ptr< ::dynamic_reconfigure::ReconfigureResponse const> ReconfigureResponseConstPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::ReconfigureResponse > ReconfigureResponsePtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::ReconfigureResponse const> ReconfigureResponseConstPtr;
 
 // constants requiring out of line definition
 

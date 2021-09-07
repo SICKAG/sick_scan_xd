@@ -39,15 +39,15 @@ struct AddDiagnosticsRequest_
 
 
 
-  typedef boost::shared_ptr< ::diagnostic_msgs::AddDiagnosticsRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::diagnostic_msgs::AddDiagnosticsRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::diagnostic_msgs::AddDiagnosticsRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::diagnostic_msgs::AddDiagnosticsRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct AddDiagnosticsRequest_
 
 typedef ::diagnostic_msgs::AddDiagnosticsRequest_<std::allocator<void> > AddDiagnosticsRequest;
 
-typedef boost::shared_ptr< ::diagnostic_msgs::AddDiagnosticsRequest > AddDiagnosticsRequestPtr;
-typedef boost::shared_ptr< ::diagnostic_msgs::AddDiagnosticsRequest const> AddDiagnosticsRequestConstPtr;
+typedef std::shared_ptr< ::diagnostic_msgs::AddDiagnosticsRequest > AddDiagnosticsRequestPtr;
+typedef std::shared_ptr< ::diagnostic_msgs::AddDiagnosticsRequest const> AddDiagnosticsRequestConstPtr;
 
 // constants requiring out of line definition
 

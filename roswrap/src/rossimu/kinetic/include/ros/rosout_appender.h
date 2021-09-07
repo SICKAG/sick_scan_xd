@@ -38,10 +38,10 @@
 #include <ros/message_forward.h>
 #include "common.h"
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/weak_ptr.hpp>
 
-#include <boost/thread.hpp>
+#include <thread>
 
 namespace rosgraph_msgs
 {
@@ -52,8 +52,8 @@ namespace ros
 {
 
 class Publication;
-typedef boost::shared_ptr<Publication> PublicationPtr;
-typedef boost::weak_ptr<Publication> PublicationWPtr;
+typedef std::shared_ptr<Publication> PublicationPtr;
+typedef std::weak_ptr<Publication> PublicationWPtr;
 
 class ROSCPP_DECL ROSOutAppender : public ros::console::LogAppender
 {
@@ -72,11 +72,11 @@ protected:
 
   typedef std::vector<rosgraph_msgs::LogPtr> V_Log;
   V_Log log_queue_;
-  boost::mutex queue_mutex_;
-  boost::condition_variable queue_condition_;
+  std::mutex queue_mutex_;
+  std::condition_variable queue_condition_;
   bool shutting_down_;
 
-  boost::thread publish_thread_;
+  std::thread publish_thread_;
 };
 
 } // namespace ros

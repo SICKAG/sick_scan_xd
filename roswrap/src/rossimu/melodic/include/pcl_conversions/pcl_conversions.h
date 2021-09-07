@@ -722,9 +722,9 @@ namespace ros
   template<>
   struct DefaultMessageCreator<pcl::PCLPointCloud2>
   {
-    boost::shared_ptr<pcl::PCLPointCloud2> operator() ()
+    std::shared_ptr<pcl::PCLPointCloud2> operator() ()
     {
-      boost::shared_ptr<pcl::PCLPointCloud2> msg(new pcl::PCLPointCloud2());
+      std::shared_ptr<pcl::PCLPointCloud2> msg(new pcl::PCLPointCloud2());
       return msg;
     }
   };

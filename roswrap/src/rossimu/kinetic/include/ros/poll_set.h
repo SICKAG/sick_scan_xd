@@ -38,15 +38,15 @@
 #include <vector>
 #include "io.h"
 #include "common.h"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/function.hpp>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 namespace ros
 {
 
 class Transport;
-typedef boost::shared_ptr<Transport> TransportPtr;
+typedef std::shared_ptr<Transport> TransportPtr;
 
 /**
  * \brief Manages a set of sockets being polled through the poll() function call.
@@ -136,16 +136,16 @@ private:
   };
   typedef std::map<int, SocketInfo> M_SocketInfo;
   M_SocketInfo socket_info_;
-  boost::mutex socket_info_mutex_;
+  std::mutex socket_info_mutex_;
   bool sockets_changed_;
 
-  boost::mutex just_deleted_mutex_;
+  std::mutex just_deleted_mutex_;
   typedef std::vector<int> V_int;
   V_int just_deleted_;
 
   std::vector<socket_pollfd> ufds_;
 
-  boost::mutex signal_mutex_;
+  std::mutex signal_mutex_;
   signal_fd_t signal_pipe_[2];
 };
 

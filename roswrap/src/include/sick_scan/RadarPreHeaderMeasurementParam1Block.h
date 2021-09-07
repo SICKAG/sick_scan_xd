@@ -45,15 +45,15 @@ struct RadarPreHeaderMeasurementParam1Block_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator> const> ConstPtr;
 
 }; // struct RadarPreHeaderMeasurementParam1Block_
 
 typedef ::sick_scan::RadarPreHeaderMeasurementParam1Block_<std::allocator<void> > RadarPreHeaderMeasurementParam1Block;
 
-typedef boost::shared_ptr< ::sick_scan::RadarPreHeaderMeasurementParam1Block > RadarPreHeaderMeasurementParam1BlockPtr;
-typedef boost::shared_ptr< ::sick_scan::RadarPreHeaderMeasurementParam1Block const> RadarPreHeaderMeasurementParam1BlockConstPtr;
+typedef std::shared_ptr< ::sick_scan::RadarPreHeaderMeasurementParam1Block > RadarPreHeaderMeasurementParam1BlockPtr;
+typedef std::shared_ptr< ::sick_scan::RadarPreHeaderMeasurementParam1Block const> RadarPreHeaderMeasurementParam1BlockConstPtr;
 
 // constants requiring out of line definition
 

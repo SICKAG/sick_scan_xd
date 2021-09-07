@@ -46,15 +46,15 @@ struct Wrench_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::Wrench_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::Wrench_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::Wrench_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::Wrench_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Wrench_
 
 typedef ::geometry_msgs::Wrench_<std::allocator<void> > Wrench;
 
-typedef boost::shared_ptr< ::geometry_msgs::Wrench > WrenchPtr;
-typedef boost::shared_ptr< ::geometry_msgs::Wrench const> WrenchConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::Wrench > WrenchPtr;
+typedef std::shared_ptr< ::geometry_msgs::Wrench const> WrenchConstPtr;
 
 // constants requiring out of line definition
 

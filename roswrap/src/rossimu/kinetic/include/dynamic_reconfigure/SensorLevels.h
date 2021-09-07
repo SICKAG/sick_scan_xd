@@ -39,15 +39,15 @@ struct SensorLevels_
      enum { RECONFIGURE_RUNNING = 0 };
  
 
-  typedef boost::shared_ptr< ::dynamic_reconfigure::SensorLevels_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::dynamic_reconfigure::SensorLevels_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::SensorLevels_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::SensorLevels_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SensorLevels_
 
 typedef ::dynamic_reconfigure::SensorLevels_<std::allocator<void> > SensorLevels;
 
-typedef boost::shared_ptr< ::dynamic_reconfigure::SensorLevels > SensorLevelsPtr;
-typedef boost::shared_ptr< ::dynamic_reconfigure::SensorLevels const> SensorLevelsConstPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::SensorLevels > SensorLevelsPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::SensorLevels const> SensorLevelsConstPtr;
 
 // constants requiring out of line definition
 

@@ -54,8 +54,8 @@ namespace sick_scan
       virtual void getValue(const SickScanConfig &config, boost::any &val) const = 0;
     };
 
-    typedef boost::shared_ptr<AbstractParamDescription> AbstractParamDescriptionPtr;
-    typedef boost::shared_ptr<const AbstractParamDescription> AbstractParamDescriptionConstPtr;
+    typedef std::shared_ptr<AbstractParamDescription> AbstractParamDescriptionPtr;
+    typedef std::shared_ptr<const AbstractParamDescription> AbstractParamDescriptionConstPtr;
 
     // Final keyword added to class because it has virtual methods and inherits
     // from a class with a non-virtual destructor.
@@ -142,8 +142,8 @@ namespace sick_scan
       }
     };
 
-    typedef boost::shared_ptr<AbstractGroupDescription> AbstractGroupDescriptionPtr;
-    typedef boost::shared_ptr<const AbstractGroupDescription> AbstractGroupDescriptionConstPtr;
+    typedef std::shared_ptr<AbstractGroupDescription> AbstractGroupDescriptionPtr;
+    typedef std::shared_ptr<const AbstractGroupDescription> AbstractGroupDescriptionConstPtr;
 
     // Final keyword added to class because it has virtual methods and inherits
     // from a class with a non-virtual destructor.
@@ -722,7 +722,7 @@ SickScanConfig::GroupDescription<SickScanConfig::DEFAULT, SickScanConfig> Defaul
     if (statics) // Common case
       return statics;
 #ifndef ROSSIMU
-    boost::mutex::scoped_lock lock(dynamic_reconfigure::__init_mutex__);
+    std::lock_guard<std::mutex> lock(dynamic_reconfigure::__init_mutex__);
 #endif
     if (statics) // In case we lost a race.
       return statics;

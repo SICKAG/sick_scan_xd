@@ -36,6 +36,7 @@
  */
 
 #include <iostream>
+#include <memory>
 #include <pcl_conversions/pcl_conversions.h>
 #include <tf2/LinearMath/Quaternion.h>
 
@@ -59,7 +60,7 @@
 namespace sick_ldmrs_driver
 {
 
-SickLDMRS::SickLDMRS(rosNodePtr nh, Manager *manager, boost::shared_ptr<diagnostic_updater::Updater> diagnostics)
+SickLDMRS::SickLDMRS(rosNodePtr nh, Manager *manager, std::shared_ptr<diagnostic_updater::Updater> diagnostics)
   : application::BasicApplication()
   , diagnostics_(diagnostics)
   , manager_(manager)
@@ -155,11 +156,11 @@ void SickLDMRS::setData(BasicData &data)
                 time.toString() << " (" <<
                 time.toLongString() << ")");
 
-      PointCloud::Ptr cloud = boost::make_shared<PointCloud>();
+      std::shared_ptr<sick_ldmrs_driver::PointCloud> cloud = std::make_shared<sick_ldmrs_driver::PointCloud>();
       cloud->header.frame_id = config_.frame_id;
-      // not using time stamp from scanner here, because it is delayed by up to 1.5 seconds
-      cloud->header.stamp = (uint64_t)(sec(rosTimeNow()) * 1e9); // s_rclcpp_clock.now().nanoseconds(); // (ros::Time::now().toSec() - 1 / expected_frequency_) * 1e6;
-
+      // Note: not using time stamp from scanner here, because it is delayed by up to 1.5 seconds
+      // Note: cloud->header is a PCLHeader with stamp := timestamp in microseconds since 1970-01-01 00:00:00 (the UNIX epoch).
+      cloud->header.stamp = (uint64_t)(sec(rosTimeNow()) * 1e6); // (uint64_t)(s_rclcpp_clock.now().nanoseconds() * 1e-3); // (ros::Time::now().toSec() - 1 / expected_frequency_) * 1e6;
       cloud->height = 1;
       cloud->width = scan->size();
       for (size_t i = 0; i < scan->size(); ++i)

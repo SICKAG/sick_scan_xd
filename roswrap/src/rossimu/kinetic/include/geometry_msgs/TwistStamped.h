@@ -46,15 +46,15 @@ struct TwistStamped_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::TwistStamped_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::TwistStamped_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::TwistStamped_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::TwistStamped_<ContainerAllocator> const> ConstPtr;
 
 }; // struct TwistStamped_
 
 typedef ::geometry_msgs::TwistStamped_<std::allocator<void> > TwistStamped;
 
-typedef boost::shared_ptr< ::geometry_msgs::TwistStamped > TwistStampedPtr;
-typedef boost::shared_ptr< ::geometry_msgs::TwistStamped const> TwistStampedConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::TwistStamped > TwistStampedPtr;
+typedef std::shared_ptr< ::geometry_msgs::TwistStamped const> TwistStampedConstPtr;
 
 // constants requiring out of line definition
 

@@ -1,12 +1,12 @@
 //
 // SickThread.hpp
 //
-
 #ifndef SICKTHREAD_HPP
 #define SICKTHREAD_HPP
 
+#include <thread>
 #include "sick_scan/tcp/BasicDatatypes.hpp"
-#include <pthread.h>
+//#include <pthread.h>
 #ifdef linux
 #include <unistd.h>
 #else
@@ -17,7 +17,8 @@
 extern "C" void* wrapper_prerun(void*);
 class ThreadWrapperBase
 {
-    pthread_t t_id;
+    //pthread_t t_id;
+    std::thread* t_id = 0;
     friend void* wrapper_prerun(void*);
     virtual void thread_entry() = 0;
   protected:
@@ -25,14 +26,15 @@ class ThreadWrapperBase
   public:
 	
 	ThreadWrapperBase() {pthis = NULL;};
-	virtual ~ThreadWrapperBase() {};
+	virtual ~ThreadWrapperBase() { delete t_id; };
 	  
     void run(void* classptr)
 	{
 		if (pthis == NULL)
 		{
 			pthis = classptr;
-			pthread_create(&t_id, NULL, wrapper_prerun, this);
+			// pthread_create(&t_id, NULL, wrapper_prerun, this);
+			t_id = new std::thread(&wrapper_prerun, this); 
 		}
     }
     
@@ -48,14 +50,15 @@ class ThreadWrapperBase
 	
     void join()
 	{
-		pthread_join(t_id, NULL);
+		// pthread_join(t_id, NULL);
+		if(t_id)
+		    t_id->join();
 		pthis = NULL;
     }
     
-    pthread_t* get_thread_id()
-	{
-      return &t_id;
-    }
+    // pthread_t* get_thread_id() { return &t_id; }
+    std::thread* get_thread_id() { return t_id; }
+
 };
 
 
@@ -196,7 +199,7 @@ public:
 // 	static void* thread(void* ptr);			// The thread function
 // 	void thread2();							// The member thread function
 // 
-// //	typedef boost::mutex Mutex;
+// //	typedef std::mutex Mutex;
 // 
 // 	pthread_mutex_t m_mutex;	//  = PTHREAD_MUTEX_INITIALIZER;
 // //	mutable Mutex m_threadMutex;
@@ -204,7 +207,7 @@ public:
 // 	ThreadFunction m_function;
 // //	ThreadFunctionSimple m_functionSimple;
 // 
-// //	boost::scoped_ptr<boost::thread> m_threadPtr;
+// //	boost::scoped_ptr<std::thread> m_threadPtr;
 // 	bool m_threadShouldRun;
 // 	bool m_threadIsRunning;
 // 	bool m_beVerbose;

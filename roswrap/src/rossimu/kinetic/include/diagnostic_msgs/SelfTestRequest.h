@@ -36,15 +36,15 @@ struct SelfTestRequest_
 
 
 
-  typedef boost::shared_ptr< ::diagnostic_msgs::SelfTestRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::diagnostic_msgs::SelfTestRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::diagnostic_msgs::SelfTestRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::diagnostic_msgs::SelfTestRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SelfTestRequest_
 
 typedef ::diagnostic_msgs::SelfTestRequest_<std::allocator<void> > SelfTestRequest;
 
-typedef boost::shared_ptr< ::diagnostic_msgs::SelfTestRequest > SelfTestRequestPtr;
-typedef boost::shared_ptr< ::diagnostic_msgs::SelfTestRequest const> SelfTestRequestConstPtr;
+typedef std::shared_ptr< ::diagnostic_msgs::SelfTestRequest > SelfTestRequestPtr;
+typedef std::shared_ptr< ::diagnostic_msgs::SelfTestRequest const> SelfTestRequestConstPtr;
 
 // constants requiring out of line definition
 

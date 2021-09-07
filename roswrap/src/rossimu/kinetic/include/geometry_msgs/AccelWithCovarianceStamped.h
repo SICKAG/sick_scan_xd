@@ -46,15 +46,15 @@ struct AccelWithCovarianceStamped_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::AccelWithCovarianceStamped_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::AccelWithCovarianceStamped_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::AccelWithCovarianceStamped_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::AccelWithCovarianceStamped_<ContainerAllocator> const> ConstPtr;
 
 }; // struct AccelWithCovarianceStamped_
 
 typedef ::geometry_msgs::AccelWithCovarianceStamped_<std::allocator<void> > AccelWithCovarianceStamped;
 
-typedef boost::shared_ptr< ::geometry_msgs::AccelWithCovarianceStamped > AccelWithCovarianceStampedPtr;
-typedef boost::shared_ptr< ::geometry_msgs::AccelWithCovarianceStamped const> AccelWithCovarianceStampedConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::AccelWithCovarianceStamped > AccelWithCovarianceStampedPtr;
+typedef std::shared_ptr< ::geometry_msgs::AccelWithCovarianceStamped const> AccelWithCovarianceStampedConstPtr;
 
 // constants requiring out of line definition
 

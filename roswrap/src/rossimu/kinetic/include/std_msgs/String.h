@@ -39,15 +39,15 @@ struct String_
 
 
 
-  typedef boost::shared_ptr< ::std_msgs::String_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::std_msgs::String_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::std_msgs::String_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::std_msgs::String_<ContainerAllocator> const> ConstPtr;
 
 }; // struct String_
 
 typedef ::std_msgs::String_<std::allocator<void> > String;
 
-typedef boost::shared_ptr< ::std_msgs::String > StringPtr;
-typedef boost::shared_ptr< ::std_msgs::String const> StringConstPtr;
+typedef std::shared_ptr< ::std_msgs::String > StringPtr;
+typedef std::shared_ptr< ::std_msgs::String const> StringConstPtr;
 
 // constants requiring out of line definition
 

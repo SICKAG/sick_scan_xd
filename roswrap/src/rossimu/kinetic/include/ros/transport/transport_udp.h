@@ -38,7 +38,7 @@
 #include <ros/types.h>
 #include <ros/transport/transport.h>
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include "ros/io.h"
 #include <ros/common.h>
 
@@ -46,7 +46,7 @@ namespace ros
 {
 
 class TransportUDP;
-typedef boost::shared_ptr<TransportUDP> TransportUDPPtr;
+typedef std::shared_ptr<TransportUDP> TransportUDPPtr;
 
 class PollSet;
 
@@ -138,7 +138,7 @@ private:
 
   socket_fd_t sock_;
   bool closed_;
-  boost::mutex close_mutex_;
+  std::mutex close_mutex_;
 
   bool expecting_read_;
   bool expecting_write_;

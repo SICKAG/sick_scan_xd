@@ -60,15 +60,15 @@ struct Group_
 
 
 
-  typedef boost::shared_ptr< ::dynamic_reconfigure::Group_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::dynamic_reconfigure::Group_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::Group_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::Group_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Group_
 
 typedef ::dynamic_reconfigure::Group_<std::allocator<void> > Group;
 
-typedef boost::shared_ptr< ::dynamic_reconfigure::Group > GroupPtr;
-typedef boost::shared_ptr< ::dynamic_reconfigure::Group const> GroupConstPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::Group > GroupPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::Group const> GroupConstPtr;
 
 // constants requiring out of line definition
 

@@ -32,10 +32,10 @@
 #include "ros/transport_hints.h"
 #include "ros/header.h"
 #include "common.h"
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/shared_array.hpp>
 #include <boost/weak_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <memory>
 
 #include <queue>
 
@@ -44,16 +44,16 @@ namespace ros
 class Header;
 class Message;
 class Subscription;
-typedef boost::shared_ptr<Subscription> SubscriptionPtr;
-typedef boost::weak_ptr<Subscription> SubscriptionWPtr;
+typedef std::shared_ptr<Subscription> SubscriptionPtr;
+typedef std::weak_ptr<Subscription> SubscriptionWPtr;
 class Connection;
-typedef boost::shared_ptr<Connection> ConnectionPtr;
+typedef std::shared_ptr<Connection> ConnectionPtr;
 
 /**
  * \brief Handles a connection to a single publisher on a given topic.  Receives messages from a publisher
  * and hands them off to its parent Subscription
  */
-class ROSCPP_DECL PublisherLink : public boost::enable_shared_from_this<PublisherLink>
+class ROSCPP_DECL PublisherLink : public std::enable_shared_from_this<PublisherLink>
 {
 public:
   class Stats

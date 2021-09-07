@@ -39,8 +39,8 @@
 #include "ros/time.h"
 #include "common.h"
 
-#include <boost/shared_ptr.hpp>
-#include <boost/thread/mutex.hpp>
+#include <memory>
+#include <mutex>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/tss.hpp>
@@ -143,7 +143,7 @@ protected:
     uint64_t id;
     boost::shared_mutex calling_rw_mutex;
   };
-  typedef boost::shared_ptr<IDInfo> IDInfoPtr;
+  typedef std::shared_ptr<IDInfo> IDInfoPtr;
   typedef std::map<uint64_t, IDInfoPtr> M_IDInfo;
 
   IDInfoPtr getIDInfo(uint64_t id);
@@ -162,10 +162,10 @@ protected:
   typedef std::deque<CallbackInfo> D_CallbackInfo;
   D_CallbackInfo callbacks_;
   size_t calling_;
-  boost::mutex mutex_;
-  boost::condition_variable condition_;
+  std::mutex mutex_;
+  std::condition_variable condition_;
 
-  boost::mutex id_info_mutex_;
+  std::mutex id_info_mutex_;
   M_IDInfo id_info_;
 
   struct TLS
@@ -182,7 +182,7 @@ protected:
 
   bool enabled_;
 };
-typedef boost::shared_ptr<CallbackQueue> CallbackQueuePtr;
+typedef std::shared_ptr<CallbackQueue> CallbackQueuePtr;
 
 }
 

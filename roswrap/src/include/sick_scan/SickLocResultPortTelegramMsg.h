@@ -74,15 +74,15 @@ struct SickLocResultPortTelegramMsg_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultPortTelegramMsg_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultPortTelegramMsg_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultPortTelegramMsg_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultPortTelegramMsg_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocResultPortTelegramMsg_
 
 typedef ::sick_scan::SickLocResultPortTelegramMsg_<std::allocator<void> > SickLocResultPortTelegramMsg;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocResultPortTelegramMsg > SickLocResultPortTelegramMsgPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocResultPortTelegramMsg const> SickLocResultPortTelegramMsgConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultPortTelegramMsg > SickLocResultPortTelegramMsgPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultPortTelegramMsg const> SickLocResultPortTelegramMsgConstPtr;
 
 // constants requiring out of line definition
 

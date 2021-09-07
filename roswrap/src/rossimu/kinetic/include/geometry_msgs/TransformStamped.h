@@ -51,15 +51,15 @@ struct TransformStamped_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::TransformStamped_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::TransformStamped_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::TransformStamped_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::TransformStamped_<ContainerAllocator> const> ConstPtr;
 
 }; // struct TransformStamped_
 
 typedef ::geometry_msgs::TransformStamped_<std::allocator<void> > TransformStamped;
 
-typedef boost::shared_ptr< ::geometry_msgs::TransformStamped > TransformStampedPtr;
-typedef boost::shared_ptr< ::geometry_msgs::TransformStamped const> TransformStampedConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::TransformStamped > TransformStampedPtr;
+typedef std::shared_ptr< ::geometry_msgs::TransformStamped const> TransformStampedConstPtr;
 
 // constants requiring out of line definition
 

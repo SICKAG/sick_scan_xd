@@ -53,15 +53,15 @@ struct GetMapAction_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::GetMapAction_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::GetMapAction_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::GetMapAction_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::GetMapAction_<ContainerAllocator> const> ConstPtr;
 
 }; // struct GetMapAction_
 
 typedef ::nav_msgs::GetMapAction_<std::allocator<void> > GetMapAction;
 
-typedef boost::shared_ptr< ::nav_msgs::GetMapAction > GetMapActionPtr;
-typedef boost::shared_ptr< ::nav_msgs::GetMapAction const> GetMapActionConstPtr;
+typedef std::shared_ptr< ::nav_msgs::GetMapAction > GetMapActionPtr;
+typedef std::shared_ptr< ::nav_msgs::GetMapAction const> GetMapActionConstPtr;
 
 // constants requiring out of line definition
 

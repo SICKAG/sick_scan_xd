@@ -34,7 +34,7 @@
 #include "ros/assert.h"
 #include <string>
 #include <string.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/array.hpp>
 #include <stdint.h>
 
@@ -53,8 +53,8 @@ typedef std::map<std::string, std::string> M_string;
 class Message
 {
 public:
-  typedef boost::shared_ptr<Message> Ptr;
-  typedef boost::shared_ptr<Message const> ConstPtr;
+  typedef std::shared_ptr<Message> Ptr;
+  typedef std::shared_ptr<Message const> ConstPtr;
   Message()
   {
   }
@@ -73,8 +73,8 @@ public:
   uint32_t __serialized_length;
 };
 
-typedef boost::shared_ptr<Message> MessagePtr;
-typedef boost::shared_ptr<Message const> MessageConstPtr;
+typedef std::shared_ptr<Message> MessagePtr;
+typedef std::shared_ptr<Message const> MessageConstPtr;
 #endif
 
 #define SROS_SERIALIZE_PRIMITIVE(ptr, data) { memcpy(ptr, &data, sizeof(data)); ptr += sizeof(data); }

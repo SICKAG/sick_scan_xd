@@ -255,7 +255,7 @@ bool sick_scan::ColaTransmitter::startReceiverThread(void)
 {
   stopReceiverThread();
   m_receiver_thread_running = true;
-  m_receiver_thread = new boost::thread(&sick_scan::ColaTransmitter::runReceiverThreadCb, this);
+  m_receiver_thread = new std::thread(&sick_scan::ColaTransmitter::runReceiverThreadCb, this);
   return true;
 }
 

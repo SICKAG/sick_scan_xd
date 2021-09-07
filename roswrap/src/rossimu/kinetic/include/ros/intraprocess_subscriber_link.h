@@ -36,7 +36,7 @@ namespace ros
 {
 
 class IntraProcessPublisherLink;
-typedef boost::shared_ptr<IntraProcessPublisherLink> IntraProcessPublisherLinkPtr;
+typedef std::shared_ptr<IntraProcessPublisherLink> IntraProcessPublisherLinkPtr;
 
 /**
  * \brief SubscriberLink handles broadcasting messages to a single subscriber on a single topic
@@ -62,7 +62,7 @@ private:
   bool dropped_;
   boost::recursive_mutex drop_mutex_;
 };
-typedef boost::shared_ptr<IntraProcessSubscriberLink> IntraProcessSubscriberLinkPtr;
+typedef std::shared_ptr<IntraProcessSubscriberLink> IntraProcessSubscriberLinkPtr;
 
 } // namespace ros
 

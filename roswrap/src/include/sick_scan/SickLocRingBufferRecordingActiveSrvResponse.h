@@ -45,15 +45,15 @@ struct SickLocRingBufferRecordingActiveSrvResponse_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocRingBufferRecordingActiveSrvResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocRingBufferRecordingActiveSrvResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocRingBufferRecordingActiveSrvResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocRingBufferRecordingActiveSrvResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocRingBufferRecordingActiveSrvResponse_
 
 typedef ::sick_scan::SickLocRingBufferRecordingActiveSrvResponse_<std::allocator<void> > SickLocRingBufferRecordingActiveSrvResponse;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocRingBufferRecordingActiveSrvResponse > SickLocRingBufferRecordingActiveSrvResponsePtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocRingBufferRecordingActiveSrvResponse const> SickLocRingBufferRecordingActiveSrvResponseConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocRingBufferRecordingActiveSrvResponse > SickLocRingBufferRecordingActiveSrvResponsePtr;
+typedef std::shared_ptr< ::sick_scan::SickLocRingBufferRecordingActiveSrvResponse const> SickLocRingBufferRecordingActiveSrvResponseConstPtr;
 
 // constants requiring out of line definition
 

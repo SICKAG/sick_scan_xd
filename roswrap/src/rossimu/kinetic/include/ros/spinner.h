@@ -31,7 +31,7 @@
 #include "ros/types.h"
 #include "common.h"
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace ros
 {
@@ -80,7 +80,7 @@ private:
 };
 
 class AsyncSpinnerImpl;
-typedef boost::shared_ptr<AsyncSpinnerImpl> AsyncSpinnerImplPtr;
+typedef std::shared_ptr<AsyncSpinnerImpl> AsyncSpinnerImplPtr;
 
 /**
  * \brief AsyncSpinner is a spinner that does not conform to the abstract Spinner interface.  Instead,

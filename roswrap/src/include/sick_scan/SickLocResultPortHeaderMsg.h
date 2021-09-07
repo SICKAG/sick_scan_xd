@@ -80,15 +80,15 @@ struct SickLocResultPortHeaderMsg_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultPortHeaderMsg_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultPortHeaderMsg_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultPortHeaderMsg_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultPortHeaderMsg_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocResultPortHeaderMsg_
 
 typedef ::sick_scan::SickLocResultPortHeaderMsg_<std::allocator<void> > SickLocResultPortHeaderMsg;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocResultPortHeaderMsg > SickLocResultPortHeaderMsgPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocResultPortHeaderMsg const> SickLocResultPortHeaderMsgConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultPortHeaderMsg > SickLocResultPortHeaderMsgPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultPortHeaderMsg const> SickLocResultPortHeaderMsgConstPtr;
 
 // constants requiring out of line definition
 

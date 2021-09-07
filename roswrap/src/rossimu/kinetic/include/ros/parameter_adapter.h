@@ -55,10 +55,10 @@ namespace ros
  *
  *  ParameterAdapter is specialized to allow callbacks of any of the forms:
 \verbatim
-void callback(const boost::shared_ptr<M const>&);
-void callback(const boost::shared_ptr<M>&);
-void callback(boost::shared_ptr<M const>);
-void callback(boost::shared_ptr<M>);
+void callback(const std::shared_ptr<M const>&);
+void callback(const std::shared_ptr<M>&);
+void callback(std::shared_ptr<M const>);
+void callback(std::shared_ptr<M>);
 void callback(const M&);
 void callback(M);
 void callback(const MessageEvent<M const>&);
@@ -80,11 +80,11 @@ struct ParameterAdapter
 };
 
 template<typename M>
-struct ParameterAdapter<const boost::shared_ptr<M const>& >
+struct ParameterAdapter<const std::shared_ptr<M const>& >
 {
   typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
-  typedef const boost::shared_ptr<Message const> Parameter;
+  typedef const std::shared_ptr<Message const> Parameter;
   static const bool is_const = true;
 
   static Parameter getParameter(const Event& event)
@@ -94,11 +94,11 @@ struct ParameterAdapter<const boost::shared_ptr<M const>& >
 };
 
 template<typename M>
-struct ParameterAdapter<const boost::shared_ptr<M>& >
+struct ParameterAdapter<const std::shared_ptr<M>& >
 {
   typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
-  typedef boost::shared_ptr<Message> Parameter;
+  typedef std::shared_ptr<Message> Parameter;
   static const bool is_const = false;
 
   static Parameter getParameter(const Event& event)
@@ -122,11 +122,11 @@ struct ParameterAdapter<const M&>
 };
 
 template<typename M>
-struct ParameterAdapter<boost::shared_ptr<M const> >
+struct ParameterAdapter<std::shared_ptr<M const> >
 {
   typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
-  typedef boost::shared_ptr<Message const> Parameter;
+  typedef std::shared_ptr<Message const> Parameter;
   static const bool is_const = true;
 
   static Parameter getParameter(const Event& event)
@@ -136,11 +136,11 @@ struct ParameterAdapter<boost::shared_ptr<M const> >
 };
 
 template<typename M>
-struct ParameterAdapter<boost::shared_ptr<M> >
+struct ParameterAdapter<std::shared_ptr<M> >
 {
   typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
-  typedef boost::shared_ptr<Message> Parameter;
+  typedef std::shared_ptr<Message> Parameter;
   static const bool is_const = false;
 
   static Parameter getParameter(const Event& event)

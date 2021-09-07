@@ -64,15 +64,15 @@ namespace diagnostic_msgs
 		enum { ERROR = 2 };  // Achtung: Unter Windows bereits in wingdi.h vorbelegt.
 		enum { STALE = 3 };
 #endif
-		typedef boost::shared_ptr< ::diagnostic_msgs::DiagnosticStatus_<ContainerAllocator> > Ptr;
-		typedef boost::shared_ptr< ::diagnostic_msgs::DiagnosticStatus_<ContainerAllocator> const> ConstPtr;
+		typedef std::shared_ptr< ::diagnostic_msgs::DiagnosticStatus_<ContainerAllocator> > Ptr;
+		typedef std::shared_ptr< ::diagnostic_msgs::DiagnosticStatus_<ContainerAllocator> const> ConstPtr;
 
 	}; // struct DiagnosticStatus_
 
 	typedef ::diagnostic_msgs::DiagnosticStatus_<std::allocator<void> > DiagnosticStatus;
 
-	typedef boost::shared_ptr< ::diagnostic_msgs::DiagnosticStatus > DiagnosticStatusPtr;
-	typedef boost::shared_ptr< ::diagnostic_msgs::DiagnosticStatus const> DiagnosticStatusConstPtr;
+	typedef std::shared_ptr< ::diagnostic_msgs::DiagnosticStatus > DiagnosticStatusPtr;
+	typedef std::shared_ptr< ::diagnostic_msgs::DiagnosticStatus const> DiagnosticStatusConstPtr;
 
 	// constants requiring out of line definition
 

@@ -138,15 +138,15 @@ struct ImageMarker_
   };
 
 
-  typedef boost::shared_ptr< ::visualization_msgs::ImageMarker_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::visualization_msgs::ImageMarker_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::visualization_msgs::ImageMarker_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::visualization_msgs::ImageMarker_<ContainerAllocator> const> ConstPtr;
 
 }; // struct ImageMarker_
 
 typedef ::visualization_msgs::ImageMarker_<std::allocator<void> > ImageMarker;
 
-typedef boost::shared_ptr< ::visualization_msgs::ImageMarker > ImageMarkerPtr;
-typedef boost::shared_ptr< ::visualization_msgs::ImageMarker const> ImageMarkerConstPtr;
+typedef std::shared_ptr< ::visualization_msgs::ImageMarker > ImageMarkerPtr;
+typedef std::shared_ptr< ::visualization_msgs::ImageMarker const> ImageMarkerConstPtr;
 
 // constants requiring out of line definition
 

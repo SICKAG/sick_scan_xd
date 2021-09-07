@@ -76,15 +76,15 @@ struct MenuEntry_
   };
 
 
-  typedef boost::shared_ptr< ::visualization_msgs::MenuEntry_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::visualization_msgs::MenuEntry_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::visualization_msgs::MenuEntry_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::visualization_msgs::MenuEntry_<ContainerAllocator> const> ConstPtr;
 
 }; // struct MenuEntry_
 
 typedef ::visualization_msgs::MenuEntry_<std::allocator<void> > MenuEntry;
 
-typedef boost::shared_ptr< ::visualization_msgs::MenuEntry > MenuEntryPtr;
-typedef boost::shared_ptr< ::visualization_msgs::MenuEntry const> MenuEntryConstPtr;
+typedef std::shared_ptr< ::visualization_msgs::MenuEntry > MenuEntryPtr;
+typedef std::shared_ptr< ::visualization_msgs::MenuEntry const> MenuEntryConstPtr;
 
 // constants requiring out of line definition
 

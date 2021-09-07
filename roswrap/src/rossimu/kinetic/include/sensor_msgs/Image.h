@@ -70,15 +70,15 @@ struct Image_
 
 
 
-  typedef boost::shared_ptr< ::sensor_msgs::Image_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sensor_msgs::Image_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sensor_msgs::Image_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sensor_msgs::Image_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Image_
 
 typedef ::sensor_msgs::Image_<std::allocator<void> > Image;
 
-typedef boost::shared_ptr< ::sensor_msgs::Image > ImagePtr;
-typedef boost::shared_ptr< ::sensor_msgs::Image const> ImageConstPtr;
+typedef std::shared_ptr< ::sensor_msgs::Image > ImagePtr;
+typedef std::shared_ptr< ::sensor_msgs::Image const> ImageConstPtr;
 
 // constants requiring out of line definition
 

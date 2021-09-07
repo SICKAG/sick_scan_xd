@@ -33,7 +33,7 @@
 #include "ros/file_log.h"
 
 #include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/condition_variable.hpp>
 
@@ -71,7 +71,7 @@ private:
     bool has_tracked_object;
 
     // TODO: atomicize
-    boost::mutex waiting_mutex;
+    std::mutex waiting_mutex;
     uint32_t waiting_callbacks;
 
     bool oneshot;
@@ -79,8 +79,8 @@ private:
     // debugging info
     uint32_t total_calls;
   };
-  typedef boost::shared_ptr<TimerInfo> TimerInfoPtr;
-  typedef boost::weak_ptr<TimerInfo> TimerInfoWPtr;
+  typedef std::shared_ptr<TimerInfo> TimerInfoPtr;
+  typedef std::weak_ptr<TimerInfo> TimerInfoWPtr;
   typedef std::vector<TimerInfoPtr> V_TimerInfo;
 
   typedef std::list<int32_t> L_int32;
@@ -110,19 +110,19 @@ private:
   void updateNext(const TimerInfoPtr& info, const T& current_time);
 
   V_TimerInfo timers_;
-  boost::mutex timers_mutex_;
-  boost::condition_variable timers_cond_;
+  std::mutex timers_mutex_;
+  std::condition_variable timers_cond_;
   volatile bool new_timer_;
 
-  boost::mutex waiting_mutex_;
+  std::mutex waiting_mutex_;
   L_int32 waiting_;
 
   uint32_t id_counter_;
-  boost::mutex id_mutex_;
+  std::mutex id_mutex_;
 
   bool thread_started_;
 
-  boost::thread thread_;
+  std::thread thread_;
 
   bool quit_;
 
@@ -137,7 +137,7 @@ private:
     , current_expected_(current_expected)
     , called_(false)
     {
-      boost::mutex::scoped_lock lock(info->waiting_mutex);
+      std::lock_guard<std::mutex> lock(info->waiting_mutex);
       ++info->waiting_callbacks;
     }
 
@@ -146,7 +146,7 @@ private:
       TimerInfoPtr info = info_.lock();
       if (info)
       {
-        boost::mutex::scoped_lock lock(info->waiting_mutex);
+        std::lock_guard<std::mutex> lock(info->waiting_mutex);
         --info->waiting_callbacks;
       }
     }
@@ -216,7 +216,7 @@ TimerManager<T, D, E>::~TimerManager()
 {
   quit_ = true;
   {
-    boost::mutex::scoped_lock lock(timers_mutex_);
+    std::lock_guard<std::mutex> lock(timers_mutex_);
     timers_cond_.notify_all();
   }
   if (thread_started_)
@@ -257,7 +257,7 @@ typename TimerManager<T, D, E>::TimerInfoPtr TimerManager<T, D, E>::findTimer(in
 template<class T, class D, class E>
 bool TimerManager<T, D, E>::hasPending(int32_t handle)
 {
-  boost::mutex::scoped_lock lock(timers_mutex_);
+  std::lock_guard<std::mutex> lock(timers_mutex_);
   TimerInfoPtr info = findTimer(handle);
 
   if (!info)
@@ -274,7 +274,7 @@ bool TimerManager<T, D, E>::hasPending(int32_t handle)
     }
   }
 
-  boost::mutex::scoped_lock lock2(info->waiting_mutex);
+  std::lock_guard<std::mutex> lock2(info->waiting_mutex);
   return info->next_expected <= T::now() || info->waiting_callbacks != 0;
 }
 
@@ -282,7 +282,7 @@ template<class T, class D, class E>
 int32_t TimerManager<T, D, E>::add(const D& period, const boost::function<void(const E&)>& callback, CallbackQueueInterface* callback_queue,
                                    const VoidConstPtr& tracked_object, bool oneshot)
 {
-  TimerInfoPtr info(boost::make_shared<TimerInfo>());
+  TimerInfoPtr info(std::make_shared<TimerInfo>());
   info->period = period;
   info->callback = callback;
   info->callback_queue = callback_queue;
@@ -300,22 +300,22 @@ int32_t TimerManager<T, D, E>::add(const D& period, const boost::function<void(c
   }
 
   {
-    boost::mutex::scoped_lock lock(id_mutex_);
+    std::lock_guard<std::mutex> lock(id_mutex_);
     info->handle = id_counter_++;
   }
 
   {
-    boost::mutex::scoped_lock lock(timers_mutex_);
+    std::lock_guard<std::mutex> lock(timers_mutex_);
     timers_.push_back(info);
 
     if (!thread_started_)
     {
-      thread_ = boost::thread(boost::bind(&TimerManager::threadFunc, this));
+      thread_ = std::thread(boost::bind(&TimerManager::threadFunc, this));
       thread_started_ = true;
     }
 
     {
-      boost::mutex::scoped_lock lock(waiting_mutex_);
+      std::lock_guard<std::mutex> lock(waiting_mutex_);
       waiting_.push_back(info->handle);
       waiting_.sort(boost::bind(&TimerManager::waitingCompare, this, _1, _2));
     }
@@ -334,7 +334,7 @@ void TimerManager<T, D, E>::remove(int32_t handle)
   uint64_t remove_id = 0;
 
   {
-    boost::mutex::scoped_lock lock(timers_mutex_);
+    std::lock_guard<std::mutex> lock(timers_mutex_);
 
     typename V_TimerInfo::iterator it = timers_.begin();
     typename V_TimerInfo::iterator end = timers_.end();
@@ -352,7 +352,7 @@ void TimerManager<T, D, E>::remove(int32_t handle)
     }
 
     {
-      boost::mutex::scoped_lock lock2(waiting_mutex_);
+      std::lock_guard<std::mutex> lock2(waiting_mutex_);
       // Remove from the waiting list if it's in it
       L_int32::iterator it = std::find(waiting_.begin(), waiting_.end(), handle);
       if (it != waiting_.end())
@@ -371,7 +371,7 @@ void TimerManager<T, D, E>::remove(int32_t handle)
 template<class T, class D, class E>
 void TimerManager<T, D, E>::schedule(const TimerInfoPtr& info)
 {
-  boost::mutex::scoped_lock lock(timers_mutex_);
+  std::lock_guard<std::mutex> lock(timers_mutex_);
 
   if (info->removed)
   {
@@ -380,7 +380,7 @@ void TimerManager<T, D, E>::schedule(const TimerInfoPtr& info)
 
   updateNext(info, T::now());
   {
-    boost::mutex::scoped_lock lock(waiting_mutex_);
+    std::lock_guard<std::mutex> lock(waiting_mutex_);
 
     waiting_.push_back(info->handle);
     // waitingCompare requires a lock on the timers_mutex_
@@ -421,7 +421,7 @@ void TimerManager<T, D, E>::updateNext(const TimerInfoPtr& info, const T& curren
 template<class T, class D, class E>
 void TimerManager<T, D, E>::setPeriod(int32_t handle, const D& period, bool reset)
 {
-  boost::mutex::scoped_lock lock(timers_mutex_);
+  std::lock_guard<std::mutex> lock(timers_mutex_);
   TimerInfoPtr info = findTimer(handle);
 
   if (!info)
@@ -430,7 +430,7 @@ void TimerManager<T, D, E>::setPeriod(int32_t handle, const D& period, bool rese
   }
 
   {
-    boost::mutex::scoped_lock lock(waiting_mutex_);
+    std::lock_guard<std::mutex> lock(waiting_mutex_);
   
     if(reset)
     {
@@ -473,7 +473,7 @@ void TimerManager<T, D, E>::threadFunc()
   {
     T sleep_end;
 
-    boost::mutex::scoped_lock lock(timers_mutex_);
+    std::lock_guard<std::mutex> lock(timers_mutex_);
 
     // detect time jumping backwards
     if (T::now() < current)
@@ -500,7 +500,7 @@ void TimerManager<T, D, E>::threadFunc()
     current = T::now();
 
     {
-      boost::mutex::scoped_lock waitlock(waiting_mutex_);
+      std::lock_guard<std::mutex> waitlock(waiting_mutex_);
 
       if (waiting_.empty())
       {
@@ -515,7 +515,7 @@ void TimerManager<T, D, E>::threadFunc()
           current = T::now();
 
           //ROS_DEBUG("Scheduling timer callback for timer [%d] of period [%f], [%f] off expected", info->handle, info->period.toSec(), (current - info->next_expected).toSec());
-          CallbackInterfacePtr cb(boost::make_shared<TimerQueueCallback>(this, info, info->last_expected, info->last_real, info->next_expected));
+          CallbackInterfacePtr cb(std::make_shared<TimerQueueCallback>(this, info, info->last_expected, info->last_real, info->next_expected));
           info->callback_queue->addCallback(cb, (uint64_t)info.get());
 
           waiting_.pop_front();

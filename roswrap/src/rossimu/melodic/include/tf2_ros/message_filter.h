@@ -39,8 +39,8 @@
 #include <vector>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
+#include <memory>
+#include <thread>
 
 #include <message_filters/connection.h>
 #include <message_filters/simple_filter.h>
@@ -104,7 +104,7 @@ template<class M>
 class MessageFilter : public MessageFilterBase, public message_filters::SimpleFilter<M>
 {
 public:
-  typedef boost::shared_ptr<M const> MConstPtr;
+  typedef std::shared_ptr<M const> MConstPtr;
   typedef ros::MessageEvent<M const> MEvent;
   typedef boost::function<void(const MConstPtr&, FilterFailureReason)> FailureCallback;
   typedef boost::signals2::signal<void(const MConstPtr&, FilterFailureReason)> FailureSignal;
@@ -240,7 +240,7 @@ public:
    */
   void setTargetFrames(const V_string& target_frames)
   {
-    boost::mutex::scoped_lock frames_lock(target_frames_mutex_);
+    std::lock_guard<std::mutex> frames_lock(target_frames_mutex_);
 
     target_frames_.resize(target_frames.size());
     std::transform(target_frames.begin(), target_frames.end(), target_frames_.begin(), this->stripSlash);
@@ -258,7 +258,7 @@ public:
    */
   std::string getTargetFramesString()
   {
-    boost::mutex::scoped_lock lock(target_frames_mutex_);
+    std::lock_guard<std::mutex> lock(target_frames_mutex_);
     return target_frames_string_;
   };
 
@@ -267,7 +267,7 @@ public:
    */
   void setTolerance(const ros::Duration& tolerance)
   {
-    boost::mutex::scoped_lock lock(target_frames_mutex_);
+    std::lock_guard<std::mutex> lock(target_frames_mutex_);
     time_tolerance_ = tolerance;
     expected_success_count_ = target_frames_.size() * (time_tolerance_.isZero() ? 1 : 2);
   }
@@ -315,7 +315,7 @@ public:
       V_string target_frames_copy;
       // Copy target_frames_ to avoid deadlock from #79
       {
-        boost::mutex::scoped_lock frames_lock(target_frames_mutex_);
+        std::lock_guard<std::mutex> frames_lock(target_frames_mutex_);
         target_frames_copy = target_frames_;
       }
 
@@ -407,7 +407,7 @@ public:
    */
   void add(const MConstPtr& message)
   {
-    boost::shared_ptr<std::map<std::string, std::string> > header(new std::map<std::string, std::string>);
+    std::shared_ptr<std::map<std::string, std::string> > header(new std::map<std::string, std::string>);
     (*header)["callerid"] = "unknown";
     ros::WallTime n = ros::WallTime::now();
     ros::Time t(n.sec, n.nsec);
@@ -420,7 +420,7 @@ public:
    */
   message_filters::Connection registerFailureCallback(const FailureCallback& callback)
   {
-    boost::mutex::scoped_lock lock(failure_signal_mutex_);
+    std::lock_guard<std::mutex> lock(failure_signal_mutex_);
     return message_filters::Connection(boost::bind(&MessageFilter::disconnectFailure, this, _1), failure_signal_.connect(callback));
   }
 
@@ -492,7 +492,7 @@ private:
 
     if (result == tf2::TransformAvailable)
     {
-      boost::mutex::scoped_lock frames_lock(target_frames_mutex_);
+      std::lock_guard<std::mutex> frames_lock(target_frames_mutex_);
       // make sure we can still perform all the necessary transforms
       typename V_string::iterator it = target_frames_.begin();
       typename V_string::iterator end = target_frames_.end();
@@ -638,13 +638,13 @@ private:
 
   void disconnectFailure(const message_filters::Connection& c)
   {
-    boost::mutex::scoped_lock lock(failure_signal_mutex_);
+    std::lock_guard<std::mutex> lock(failure_signal_mutex_);
     c.getBoostConnection().disconnect();
   }
 
   void signalFailure(const MEvent& evt, FilterFailureReason reason)
   {
-    boost::mutex::scoped_lock lock(failure_signal_mutex_);
+    std::lock_guard<std::mutex> lock(failure_signal_mutex_);
     failure_signal_(evt.getMessage(), reason);
   }
 
@@ -663,7 +663,7 @@ private:
   tf2::BufferCore& bc_; ///< The Transformer used to determine if transformation data is available
   V_string target_frames_; ///< The frames we need to be able to transform to before a message is ready
   std::string target_frames_string_;
-  boost::mutex target_frames_mutex_; ///< A mutex to protect access to the target_frames_ list and target_frames_string.
+  std::mutex target_frames_mutex_; ///< A mutex to protect access to the target_frames_ list and target_frames_string.
   uint32_t queue_size_; ///< The maximum number of messages we queue up
   tf2::TransformableCallbackHandle callback_handle_;
 
@@ -702,7 +702,7 @@ private:
   message_filters::Connection message_connection_;
 
   FailureSignal failure_signal_;
-  boost::mutex failure_signal_mutex_;
+  std::mutex failure_signal_mutex_;
 
   ros::CallbackQueueInterface* callback_queue_;
 };

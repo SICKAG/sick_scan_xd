@@ -32,12 +32,12 @@
 #include "common.h"
 #include "xmlrpcpp/XmlRpc.h"
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/shared_array.hpp>
-#include <boost/thread.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <thread>
+#include <memory>
 
 #include <vector>
 #include <queue>
@@ -46,7 +46,7 @@ namespace ros
 {
 
 class ServiceClientLink;
-typedef boost::shared_ptr<ServiceClientLink> ServiceClientLinkPtr;
+typedef std::shared_ptr<ServiceClientLink> ServiceClientLinkPtr;
 typedef std::vector<ServiceClientLinkPtr> V_ServiceClientLink;
 class CallbackQueueInterface;
 
@@ -58,7 +58,7 @@ class Message;
  * ServicePublication manages all incoming service requests.  If its thread pool size is not 0, it will queue the requests
  * into a number of threads, calling the callback from within those threads.  Otherwise it immediately calls the callback
  */
-class ROSCPP_DECL ServicePublication : public boost::enable_shared_from_this<ServicePublication>
+class ROSCPP_DECL ServicePublication : public std::enable_shared_from_this<ServicePublication>
 {
 public:
   ServicePublication(const std::string& name, const std::string &md5sum, const std::string& data_type, const std::string& request_data_type,
@@ -106,7 +106,7 @@ private:
   ServiceCallbackHelperPtr helper_;
 
   V_ServiceClientLink client_links_;
-  boost::mutex client_links_mutex_;
+  std::mutex client_links_mutex_;
 
   bool dropped_;
 
@@ -114,7 +114,7 @@ private:
   bool has_tracked_object_;
   VoidConstWPtr tracked_object_;
 };
-typedef boost::shared_ptr<ServicePublication> ServicePublicationPtr;
+typedef std::shared_ptr<ServicePublication> ServicePublicationPtr;
 
 }
 

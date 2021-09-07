@@ -37,7 +37,7 @@ ScopedLock::~ScopedLock()
 // ****************************************************************************
 Mutex::Mutex()
 {
-	pthread_mutex_init (&m_mutex, NULL);
+	//pthread_mutex_init (&m_mutex, NULL);
 }
 
 Mutex::~Mutex()
@@ -46,10 +46,12 @@ Mutex::~Mutex()
 
 void Mutex::lock()
 {
-	pthread_mutex_lock(&m_mutex);
+	m_mutex.lock();
+	//pthread_mutex_lock(&m_mutex);
 }
 
 void Mutex::unlock()
 {
-	pthread_mutex_unlock(&m_mutex);
+	m_mutex.unlock();
+	// pthread_mutex_unlock(&m_mutex);
 }

@@ -46,15 +46,15 @@ struct DiagnosticArray_
 
 
 
-  typedef boost::shared_ptr< ::diagnostic_msgs::DiagnosticArray_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::diagnostic_msgs::DiagnosticArray_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::diagnostic_msgs::DiagnosticArray_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::diagnostic_msgs::DiagnosticArray_<ContainerAllocator> const> ConstPtr;
 
 }; // struct DiagnosticArray_
 
 typedef ::diagnostic_msgs::DiagnosticArray_<std::allocator<void> > DiagnosticArray;
 
-typedef boost::shared_ptr< ::diagnostic_msgs::DiagnosticArray > DiagnosticArrayPtr;
-typedef boost::shared_ptr< ::diagnostic_msgs::DiagnosticArray const> DiagnosticArrayConstPtr;
+typedef std::shared_ptr< ::diagnostic_msgs::DiagnosticArray > DiagnosticArrayPtr;
+typedef std::shared_ptr< ::diagnostic_msgs::DiagnosticArray const> DiagnosticArrayConstPtr;
 
 // constants requiring out of line definition
 

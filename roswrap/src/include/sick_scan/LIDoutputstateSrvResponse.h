@@ -40,15 +40,15 @@ struct LIDoutputstateSrvResponse_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::LIDoutputstateSrvResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::LIDoutputstateSrvResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::LIDoutputstateSrvResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::LIDoutputstateSrvResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct LIDoutputstateSrvResponse_
 
 typedef ::sick_scan::LIDoutputstateSrvResponse_<std::allocator<void> > LIDoutputstateSrvResponse;
 
-typedef boost::shared_ptr< ::sick_scan::LIDoutputstateSrvResponse > LIDoutputstateSrvResponsePtr;
-typedef boost::shared_ptr< ::sick_scan::LIDoutputstateSrvResponse const> LIDoutputstateSrvResponseConstPtr;
+typedef std::shared_ptr< ::sick_scan::LIDoutputstateSrvResponse > LIDoutputstateSrvResponsePtr;
+typedef std::shared_ptr< ::sick_scan::LIDoutputstateSrvResponse const> LIDoutputstateSrvResponseConstPtr;
 
 // constants requiring out of line definition
 

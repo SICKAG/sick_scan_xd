@@ -53,15 +53,15 @@ struct GetMapActionFeedback_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::GetMapActionFeedback_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::GetMapActionFeedback_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::GetMapActionFeedback_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::GetMapActionFeedback_<ContainerAllocator> const> ConstPtr;
 
 }; // struct GetMapActionFeedback_
 
 typedef ::nav_msgs::GetMapActionFeedback_<std::allocator<void> > GetMapActionFeedback;
 
-typedef boost::shared_ptr< ::nav_msgs::GetMapActionFeedback > GetMapActionFeedbackPtr;
-typedef boost::shared_ptr< ::nav_msgs::GetMapActionFeedback const> GetMapActionFeedbackConstPtr;
+typedef std::shared_ptr< ::nav_msgs::GetMapActionFeedback > GetMapActionFeedbackPtr;
+typedef std::shared_ptr< ::nav_msgs::GetMapActionFeedback const> GetMapActionFeedbackConstPtr;
 
 // constants requiring out of line definition
 

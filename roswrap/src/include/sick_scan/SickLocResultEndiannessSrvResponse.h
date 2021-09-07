@@ -45,15 +45,15 @@ struct SickLocResultEndiannessSrvResponse_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultEndiannessSrvResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultEndiannessSrvResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultEndiannessSrvResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultEndiannessSrvResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocResultEndiannessSrvResponse_
 
 typedef ::sick_scan::SickLocResultEndiannessSrvResponse_<std::allocator<void> > SickLocResultEndiannessSrvResponse;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocResultEndiannessSrvResponse > SickLocResultEndiannessSrvResponsePtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocResultEndiannessSrvResponse const> SickLocResultEndiannessSrvResponseConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultEndiannessSrvResponse > SickLocResultEndiannessSrvResponsePtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultEndiannessSrvResponse const> SickLocResultEndiannessSrvResponseConstPtr;
 
 // constants requiring out of line definition
 

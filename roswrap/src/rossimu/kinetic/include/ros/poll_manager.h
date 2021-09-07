@@ -41,7 +41,7 @@ namespace ros
 {
 
 class PollManager;
-typedef boost::shared_ptr<PollManager> PollManagerPtr;
+typedef std::shared_ptr<PollManager> PollManagerPtr;
 typedef boost::signals2::signal<void(void)> VoidSignal;
 typedef boost::function<void(void)> VoidFunc;
 
@@ -69,7 +69,7 @@ private:
   VoidSignal poll_signal_;
   boost::recursive_mutex signal_mutex_;
 
-  boost::thread thread_;
+  std::thread thread_;
 };
 
 }

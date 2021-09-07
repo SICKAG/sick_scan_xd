@@ -33,23 +33,23 @@
 #include "advertise_service_options.h"
 #include "service_client_options.h"
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/thread/recursive_mutex.hpp>
 
 namespace ros
 {
 
 class ServiceManager;
-typedef boost::shared_ptr<ServiceManager> ServiceManagerPtr;
+typedef std::shared_ptr<ServiceManager> ServiceManagerPtr;
 
 class PollManager;
-typedef boost::shared_ptr<PollManager> PollManagerPtr;
+typedef std::shared_ptr<PollManager> PollManagerPtr;
 
 class XMLRPCManager;
-typedef boost::shared_ptr<XMLRPCManager> XMLRPCManagerPtr;
+typedef std::shared_ptr<XMLRPCManager> XMLRPCManagerPtr;
 
 class ConnectionManager;
-typedef boost::shared_ptr<ConnectionManager> ConnectionManagerPtr;
+typedef std::shared_ptr<ConnectionManager> ConnectionManagerPtr;
 
 class ROSCPP_DECL ServiceManager
 {
@@ -127,10 +127,10 @@ private:
   bool isShuttingDown() { return shutting_down_; }
 
   L_ServicePublication service_publications_;
-  boost::mutex service_publications_mutex_;
+  std::mutex service_publications_mutex_;
 
   L_ServiceServerLink service_server_links_;
-  boost::mutex service_server_links_mutex_;
+  std::mutex service_server_links_mutex_;
 
   volatile bool shutting_down_;
   boost::recursive_mutex shutting_down_mutex_;

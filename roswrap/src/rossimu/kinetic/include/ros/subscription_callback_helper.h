@@ -53,7 +53,7 @@ struct SubscriptionCallbackHelperDeserializeParams
 {
   uint8_t* buffer;
   uint32_t length;
-  boost::shared_ptr<M_string> connection_header;
+  std::shared_ptr<M_string> connection_header;
 };
 
 struct ROSCPP_DECL SubscriptionCallbackHelperCallParams
@@ -76,7 +76,7 @@ public:
   virtual bool isConst() = 0;
   virtual bool hasHeader() = 0;
 };
-typedef boost::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
+typedef std::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
 
 /**
  * \brief Concrete generic implementation of
@@ -91,8 +91,8 @@ public:
   typedef typename ParameterAdapter<P>::Message NonConstType;
   typedef typename ParameterAdapter<P>::Event Event;
   typedef typename boost::add_const<NonConstType>::type ConstType;
-  typedef boost::shared_ptr<NonConstType> NonConstTypePtr;
-  typedef boost::shared_ptr<ConstType> ConstTypePtr;
+  typedef std::shared_ptr<NonConstType> NonConstTypePtr;
+  typedef std::shared_ptr<ConstType> ConstTypePtr;
 
   static const bool is_const = ParameterAdapter<P>::is_const;
 

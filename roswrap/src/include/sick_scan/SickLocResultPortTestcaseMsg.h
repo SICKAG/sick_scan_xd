@@ -52,15 +52,15 @@ struct SickLocResultPortTestcaseMsg_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultPortTestcaseMsg_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocResultPortTestcaseMsg_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultPortTestcaseMsg_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocResultPortTestcaseMsg_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocResultPortTestcaseMsg_
 
 typedef ::sick_scan::SickLocResultPortTestcaseMsg_<std::allocator<void> > SickLocResultPortTestcaseMsg;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocResultPortTestcaseMsg > SickLocResultPortTestcaseMsgPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocResultPortTestcaseMsg const> SickLocResultPortTestcaseMsgConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultPortTestcaseMsg > SickLocResultPortTestcaseMsgPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocResultPortTestcaseMsg const> SickLocResultPortTestcaseMsgConstPtr;
 
 // constants requiring out of line definition
 

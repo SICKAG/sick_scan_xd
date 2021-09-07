@@ -48,8 +48,8 @@ namespace dynamic_reconfigure_test
       virtual void getValue(const TestConfig &config, boost::any &val) const = 0;
     };
 
-    typedef boost::shared_ptr<AbstractParamDescription> AbstractParamDescriptionPtr;
-    typedef boost::shared_ptr<const AbstractParamDescription> AbstractParamDescriptionConstPtr;
+    typedef std::shared_ptr<AbstractParamDescription> AbstractParamDescriptionPtr;
+    typedef std::shared_ptr<const AbstractParamDescription> AbstractParamDescriptionConstPtr;
     
     template <class T>
     class ParamDescription : public AbstractParamDescription
@@ -134,8 +134,8 @@ namespace dynamic_reconfigure_test
       }
     };
 
-    typedef boost::shared_ptr<AbstractGroupDescription> AbstractGroupDescriptionPtr;
-    typedef boost::shared_ptr<const AbstractGroupDescription> AbstractGroupDescriptionConstPtr;
+    typedef std::shared_ptr<AbstractGroupDescription> AbstractGroupDescriptionPtr;
+    typedef std::shared_ptr<const AbstractGroupDescription> AbstractGroupDescriptionConstPtr;
 
     template<class T, class PT>
     class GroupDescription : public AbstractGroupDescription
@@ -854,7 +854,7 @@ TestConfig::GroupDescription<TestConfig::DEFAULT::UPPER_GROUP_2, TestConfig::DEF
     if (statics) // Common case
       return statics;
 
-    boost::mutex::scoped_lock lock(dynamic_reconfigure::__init_mutex__);
+    std::lock_guard<std::mutex> lock(dynamic_reconfigure::__init_mutex__);
 
     if (statics) // In case we lost a race.
       return statics;

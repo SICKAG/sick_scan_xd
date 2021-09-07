@@ -47,15 +47,15 @@ struct PoseWithCovariance_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::PoseWithCovariance_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::PoseWithCovariance_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::PoseWithCovariance_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::PoseWithCovariance_<ContainerAllocator> const> ConstPtr;
 
 }; // struct PoseWithCovariance_
 
 typedef ::geometry_msgs::PoseWithCovariance_<std::allocator<void> > PoseWithCovariance;
 
-typedef boost::shared_ptr< ::geometry_msgs::PoseWithCovariance > PoseWithCovariancePtr;
-typedef boost::shared_ptr< ::geometry_msgs::PoseWithCovariance const> PoseWithCovarianceConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::PoseWithCovariance > PoseWithCovariancePtr;
+typedef std::shared_ptr< ::geometry_msgs::PoseWithCovariance const> PoseWithCovarianceConstPtr;
 
 // constants requiring out of line definition
 

@@ -46,15 +46,15 @@ struct PointIndices_
 
 
 
-  typedef boost::shared_ptr< ::pcl_msgs::PointIndices_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::pcl_msgs::PointIndices_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::pcl_msgs::PointIndices_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::pcl_msgs::PointIndices_<ContainerAllocator> const> ConstPtr;
 
 }; // struct PointIndices_
 
 typedef ::pcl_msgs::PointIndices_<std::allocator<void> > PointIndices;
 
-typedef boost::shared_ptr< ::pcl_msgs::PointIndices > PointIndicesPtr;
-typedef boost::shared_ptr< ::pcl_msgs::PointIndices const> PointIndicesConstPtr;
+typedef std::shared_ptr< ::pcl_msgs::PointIndices > PointIndicesPtr;
+typedef std::shared_ptr< ::pcl_msgs::PointIndices const> PointIndicesConstPtr;
 
 // constants requiring out of line definition
 

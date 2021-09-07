@@ -50,15 +50,15 @@ struct TimeReference_
 
 
 
-  typedef boost::shared_ptr< ::sensor_msgs::TimeReference_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sensor_msgs::TimeReference_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sensor_msgs::TimeReference_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sensor_msgs::TimeReference_<ContainerAllocator> const> ConstPtr;
 
 }; // struct TimeReference_
 
 typedef ::sensor_msgs::TimeReference_<std::allocator<void> > TimeReference;
 
-typedef boost::shared_ptr< ::sensor_msgs::TimeReference > TimeReferencePtr;
-typedef boost::shared_ptr< ::sensor_msgs::TimeReference const> TimeReferenceConstPtr;
+typedef std::shared_ptr< ::sensor_msgs::TimeReference > TimeReferencePtr;
+typedef std::shared_ptr< ::sensor_msgs::TimeReference const> TimeReferenceConstPtr;
 
 // constants requiring out of line definition
 

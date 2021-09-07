@@ -1,4 +1,5 @@
 #!/bin/bash
+printf "\033c"
 pushd ../../../..
 source /opt/ros/melodic/setup.bash
 

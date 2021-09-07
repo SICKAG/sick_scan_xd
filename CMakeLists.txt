@@ -55,8 +55,6 @@ if(ROS_VERSION EQUAL 0)
 endif()
 if(WIN32)
     add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
-else()
-    set (pthread_LIBRARIES "pthread")
 endif()
 
 # By uncommenting the following lines you can list all variable names ...
@@ -76,7 +74,7 @@ endif()
 # set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/devel;/opt/ros/melodic")
 
 if(ROS_VERSION LESS 2)
-    find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread)
+    find_package(Boost REQUIRED COMPONENTS filesystem system serialization)
 endif(ROS_VERSION LESS 2)
 
 if(ENABLE_EMULATOR)
@@ -248,7 +246,7 @@ if(ROS_VERSION EQUAL 2)
         ${ROSIDL_EMULATOR_FILES}
         DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
     )   
-    find_package(Boost REQUIRED COMPONENTS filesystem system serialization thread) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
+    find_package(Boost REQUIRED COMPONENTS filesystem system serialization) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
 if(BUILD_WITH_LDMRS_SUPPORT)
@@ -488,11 +486,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     )
 
     #message("Boost_LIBRARIES= ${Boost_LIBRARIES}")
-    #message("pthread_LIBRARIES= ${pthread_LIBRARIES}")
-    if(NOT WIN32)
-        target_link_libraries(sick_scan_lib pthread boost_thread ${Boost_LIBRARIES} ${pthread_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
-    endif()
-    target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${pthread_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
+    target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
 
 endif()
 
@@ -606,8 +600,7 @@ if(ENABLE_EMULATOR AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator 
         ${roslib_LIBRARIES}
         jsoncpp_lib # ${jsoncpp_LIBRARIES}
         sick_scan_lib
-        ${Boost_LIBRARIES}
-        ${pthread_LIBRARIES})
+        ${Boost_LIBRARIES})
     target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
     
     if(ROS_VERSION EQUAL 1)
@@ -640,7 +633,7 @@ if(ENABLE_EMULATOR)
         tools/test_server/src/test_server_cola_msg.cpp 
         tools/test_server/src/test_server_ldmrs_msg.cpp 
         tools/test_server/src/test_server_thread.cpp)
-    target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES} ${pthread_LIBRARIES})
+    target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES})
     if(ROS_VERSION EQUAL 2)
         ament_target_dependencies(test_server "rclcpp" "Boost")
     endif(ROS_VERSION EQUAL 2)

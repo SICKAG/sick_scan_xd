@@ -37,15 +37,15 @@ struct SickLocInitialPoseSrvRequest_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocInitialPoseSrvRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocInitialPoseSrvRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocInitialPoseSrvRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocInitialPoseSrvRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocInitialPoseSrvRequest_
 
 typedef ::sick_scan::SickLocInitialPoseSrvRequest_<std::allocator<void> > SickLocInitialPoseSrvRequest;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocInitialPoseSrvRequest > SickLocInitialPoseSrvRequestPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocInitialPoseSrvRequest const> SickLocInitialPoseSrvRequestConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocInitialPoseSrvRequest > SickLocInitialPoseSrvRequestPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocInitialPoseSrvRequest const> SickLocInitialPoseSrvRequestConstPtr;
 
 // constants requiring out of line definition
 

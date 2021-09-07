@@ -81,18 +81,18 @@ struct ROSCPP_DECL SubscribeOptions
   template<class P>
   void initByFullCallbackType(const std::string& _topic, uint32_t _queue_size,
        const boost::function<void (P)>& _callback,
-       const boost::function<boost::shared_ptr<typename ParameterAdapter<P>::Message>(void)>& factory_fn = DefaultMessageCreator<typename ParameterAdapter<P>::Message>())
+       const boost::function<std::shared_ptr<typename ParameterAdapter<P>::Message>(void)>& factory_fn = DefaultMessageCreator<typename ParameterAdapter<P>::Message>())
   {
     typedef typename ParameterAdapter<P>::Message MessageType;
     topic = _topic;
     queue_size = _queue_size;
     md5sum = message_traits::md5sum<MessageType>();
     datatype = message_traits::datatype<MessageType>();
-    helper = boost::make_shared<SubscriptionCallbackHelperT<P> >(_callback, factory_fn);
+    helper = std::make_shared<SubscriptionCallbackHelperT<P> >(_callback, factory_fn);
   }
 
   /**
-   * \brief Templated initialization, templated on message type.  Only supports "const boost::shared_ptr<M const>&" callback types
+   * \brief Templated initialization, templated on message type.  Only supports "const std::shared_ptr<M const>&" callback types
    * \param _topic Topic to subscribe on
    * \param _queue_size Number of incoming messages to queue up for
    *        processing (messages in excess of this queue capacity will be
@@ -101,15 +101,15 @@ struct ROSCPP_DECL SubscribeOptions
    */
   template<class M>
   void init(const std::string& _topic, uint32_t _queue_size,
-       const boost::function<void (const boost::shared_ptr<M const>&)>& _callback,
-       const boost::function<boost::shared_ptr<M>(void)>& factory_fn = DefaultMessageCreator<M>())
+       const boost::function<void (const std::shared_ptr<M const>&)>& _callback,
+       const boost::function<std::shared_ptr<M>(void)>& factory_fn = DefaultMessageCreator<M>())
   {
     typedef typename ParameterAdapter<M>::Message MessageType;
     topic = _topic;
     queue_size = _queue_size;
     md5sum = message_traits::md5sum<MessageType>();
     datatype = message_traits::datatype<MessageType>();
-    helper = boost::make_shared<SubscriptionCallbackHelperT<const boost::shared_ptr<MessageType const>&> >(_callback, factory_fn);
+    helper = std::make_shared<SubscriptionCallbackHelperT<const std::shared_ptr<MessageType const>&> >(_callback, factory_fn);
   }
 
   std::string topic;                                                ///< Topic to subscribe to
@@ -152,7 +152,7 @@ struct ROSCPP_DECL SubscribeOptions
    */
   template<class M>
   static SubscribeOptions create(const std::string& topic, uint32_t queue_size,
-                                 const boost::function<void (const boost::shared_ptr<M const>&)>& callback,
+                                 const boost::function<void (const std::shared_ptr<M const>&)>& callback,
                                  const VoidConstPtr& tracked_object, CallbackQueueInterface* queue)
   {
     SubscribeOptions ops;

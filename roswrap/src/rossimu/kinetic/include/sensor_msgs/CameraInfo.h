@@ -101,15 +101,15 @@ struct CameraInfo_
 
 
 
-  typedef boost::shared_ptr< ::sensor_msgs::CameraInfo_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sensor_msgs::CameraInfo_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sensor_msgs::CameraInfo_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sensor_msgs::CameraInfo_<ContainerAllocator> const> ConstPtr;
 
 }; // struct CameraInfo_
 
 typedef ::sensor_msgs::CameraInfo_<std::allocator<void> > CameraInfo;
 
-typedef boost::shared_ptr< ::sensor_msgs::CameraInfo > CameraInfoPtr;
-typedef boost::shared_ptr< ::sensor_msgs::CameraInfo const> CameraInfoConstPtr;
+typedef std::shared_ptr< ::sensor_msgs::CameraInfo > CameraInfoPtr;
+typedef std::shared_ptr< ::sensor_msgs::CameraInfo const> CameraInfoConstPtr;
 
 // constants requiring out of line definition
 

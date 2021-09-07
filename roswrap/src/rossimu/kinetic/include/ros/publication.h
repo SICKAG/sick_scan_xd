@@ -33,9 +33,9 @@
 #include "common.h"
 #include "xmlrpcpp/XmlRpc.h"
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/shared_array.hpp>
 
 #include <vector>
@@ -44,7 +44,7 @@ namespace ros
 {
 
 class SubscriberLink;
-typedef boost::shared_ptr<SubscriberLink> SubscriberLinkPtr;
+typedef std::shared_ptr<SubscriberLink> SubscriberLinkPtr;
 typedef std::vector<SubscriberLinkPtr> V_SubscriberLink;
 
 /**
@@ -164,15 +164,15 @@ private:
   std::string message_definition_;
   size_t max_queue_;
   uint32_t seq_;
-  boost::mutex seq_mutex_;
+  std::mutex seq_mutex_;
 
   typedef std::vector<SubscriberCallbacksPtr> V_Callback;
   V_Callback callbacks_;
-  boost::mutex callbacks_mutex_;
+  std::mutex callbacks_mutex_;
 
   V_SubscriberLink subscriber_links_;
   // We use a recursive mutex here for the rare case that a publish call causes another one (like in the case of a rosconsole call)
-  boost::mutex subscriber_links_mutex_;
+  std::mutex subscriber_links_mutex_;
 
   bool dropped_;
 
@@ -184,7 +184,7 @@ private:
 
   typedef std::vector<SerializedMessage> V_SerializedMessage;
   V_SerializedMessage publish_queue_;
-  boost::mutex publish_queue_mutex_;
+  std::mutex publish_queue_mutex_;
 };
 
 }

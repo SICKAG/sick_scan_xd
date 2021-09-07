@@ -200,15 +200,15 @@ private:
     std::string service_md5sum_;
     bool is_shutdown_;
   };
-  typedef boost::shared_ptr<Impl> ImplPtr;
-  typedef boost::weak_ptr<Impl> ImplWPtr;
+  typedef std::shared_ptr<Impl> ImplPtr;
+  typedef std::weak_ptr<Impl> ImplWPtr;
 
   ImplPtr impl_;
 
   friend class NodeHandle;
   friend class NodeHandleBackingCollection;
 };
-typedef boost::shared_ptr<ServiceClient> ServiceClientPtr;
+typedef std::shared_ptr<ServiceClient> ServiceClientPtr;
 
 }
 

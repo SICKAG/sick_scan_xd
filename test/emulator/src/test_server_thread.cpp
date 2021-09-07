@@ -129,7 +129,7 @@ bool sick_scan::TestServerThread::start(void)
     ROS_WARN_STREAM("Test server will intentionally react incorrect and will send false data and produce communication errors.");
     ROS_WARN_STREAM("Running test server in error simulation mode is for test purposes only. Do not expect typical results.");
     m_error_simulation_thread_running = true;
-    m_error_simulation_thread =  new boost::thread(&sick_scan::TestServerThread::runErrorSimulationThreadCb, this);
+    m_error_simulation_thread =  new std::thread(&sick_scan::TestServerThread::runErrorSimulationThreadCb, this);
   }
   else if(m_demo_move_in_circles)
   {
@@ -141,8 +141,8 @@ bool sick_scan::TestServerThread::start(void)
   }
   // Start and run 3 threads to create sockets for new tcp clients on ip ports 2201 (results), 2111 (requests) and 2112 (responses)
   m_tcp_connection_thread_running = true;
-  m_tcp_connection_thread_results = new boost::thread(&sick_scan::TestServerThread::runConnectionThreadResultCb, this);
-  m_tcp_connection_thread_cola = new boost::thread(&sick_scan::TestServerThread::runConnectionThreadColaCb, this);
+  m_tcp_connection_thread_results = new std::thread(&sick_scan::TestServerThread::runConnectionThreadResultCb, this);
+  m_tcp_connection_thread_cola = new std::thread(&sick_scan::TestServerThread::runConnectionThreadColaCb, this);
   return true;
 }
 
@@ -239,7 +239,7 @@ void sick_scan::TestServerThread::closeTcpConnections(bool force_shutdown)
  */
 void sick_scan::TestServerThread::closeSocket(socket_ptr & p_socket)
 {
-  boost::lock_guard<boost::mutex> worker_thread_lockguard(m_tcp_worker_threads_mutex);
+  std::lock_guard<std::mutex> worker_thread_lockguard(m_tcp_worker_threads_mutex);
   try
   {
     if(p_socket && p_socket->is_open())
@@ -271,10 +271,10 @@ void sick_scan::TestServerThread::closeSocket(socket_ptr & p_socket)
 void sick_scan::TestServerThread::closeWorkerThreads(void)
 {
   m_worker_thread_running = false;
-  boost::lock_guard<boost::mutex> worker_thread_lockguard(m_tcp_worker_threads_mutex);
+  std::lock_guard<std::mutex> worker_thread_lockguard(m_tcp_worker_threads_mutex);
   for(std::list<thread_ptr>::iterator thread_iter = m_tcp_worker_threads.begin(); thread_iter != m_tcp_worker_threads.end(); thread_iter++)
   {
-    boost::thread *p_thread = *thread_iter;
+    std::thread *p_thread = *thread_iter;
     p_thread->join();
     delete(p_thread);
   }
@@ -349,10 +349,10 @@ template<typename Callable>void sick_scan::TestServerThread::runConnectionThread
     {
       // tcp client connected, start worker thread
       ROS_INFO_STREAM("TestServerThread: established new tcp client connection");
-      boost::lock_guard<boost::mutex> worker_thread_lockguard(m_tcp_worker_threads_mutex);
+      std::lock_guard<std::mutex> worker_thread_lockguard(m_tcp_worker_threads_mutex);
       m_tcp_sockets.push_back(tcp_client_socket);
       m_worker_thread_running = true;
-      m_tcp_worker_threads.push_back(new boost::thread(thread_function_cb, this, tcp_client_socket));
+      m_tcp_worker_threads.push_back(new std::thread(thread_function_cb, this, tcp_client_socket));
     }
   }
   closeTcpConnections();
@@ -513,7 +513,7 @@ void sick_scan::TestServerThread::runWorkerThreadColaCb(boost::asio::ip::tcp::so
       {
         // Start scandata thread
         m_tcp_send_scandata_thread_running = true;
-        m_tcp_send_scandata_thread = new boost::thread(&sick_scan::TestServerThread::runWorkerThreadScandataCb, this, p_socket);
+        m_tcp_send_scandata_thread = new std::thread(&sick_scan::TestServerThread::runWorkerThreadScandataCb, this, p_socket);
       }
       else if(sick_scan::TestcaseGenerator::SendScandataEnabled() == false && m_tcp_send_scandata_thread != 0)
       {

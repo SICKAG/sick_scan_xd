@@ -49,15 +49,15 @@ struct Header_
 
 
 
-  typedef boost::shared_ptr< ::std_msgs::Header_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::std_msgs::Header_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::std_msgs::Header_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::std_msgs::Header_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Header_
 
 typedef ::std_msgs::Header_<std::allocator<void> > Header;
 
-typedef boost::shared_ptr< ::std_msgs::Header > HeaderPtr;
-typedef boost::shared_ptr< ::std_msgs::Header const> HeaderConstPtr;
+typedef std::shared_ptr< ::std_msgs::Header > HeaderPtr;
+typedef std::shared_ptr< ::std_msgs::Header const> HeaderConstPtr;
 
 // constants requiring out of line definition
 

@@ -30,10 +30,10 @@
 
 #include "ros/common.h"
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/shared_array.hpp>
 #include <boost/weak_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <memory>
 
 #include <queue>
 
@@ -42,12 +42,12 @@ namespace ros
 class Header;
 class Message;
 class Publication;
-typedef boost::shared_ptr<Publication> PublicationPtr;
-typedef boost::weak_ptr<Publication> PublicationWPtr;
+typedef std::shared_ptr<Publication> PublicationPtr;
+typedef std::weak_ptr<Publication> PublicationWPtr;
 class Connection;
-typedef boost::shared_ptr<Connection> ConnectionPtr;
+typedef std::shared_ptr<Connection> ConnectionPtr;
 
-class ROSCPP_DECL SubscriberLink : public boost::enable_shared_from_this<SubscriberLink>
+class ROSCPP_DECL SubscriberLink : public std::enable_shared_from_this<SubscriberLink>
 {
 public:
   class Stats

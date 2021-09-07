@@ -41,7 +41,7 @@
 #include <ros/message_forward.h>
 #include <ros/time.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace geometry_msgs
 {
@@ -85,7 +85,7 @@ public:
   virtual ros::Time getOldestTimestamp()=0;
 };
 
-typedef boost::shared_ptr<TimeCacheInterface> TimeCacheInterfacePtr;
+typedef std::shared_ptr<TimeCacheInterface> TimeCacheInterfacePtr;
 
 /** \brief A class to keep a sorted linked list in time
  * This builds and maintains a list of timestamped

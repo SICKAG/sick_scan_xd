@@ -206,7 +206,7 @@ public:
 	 * The timestamp to be used by the TimeStampStatus class will be
 	 * extracted from message.header.stamp.
 	 */
-	virtual void publish(const boost::shared_ptr<T>& message) {
+	virtual void publish(const std::shared_ptr<T>& message) {
 		tick(message->header.stamp); publisher_.publish(message); }
  
   /**

@@ -47,15 +47,15 @@ struct SetMapRequest_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::SetMapRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::SetMapRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::SetMapRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::SetMapRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SetMapRequest_
 
 typedef ::nav_msgs::SetMapRequest_<std::allocator<void> > SetMapRequest;
 
-typedef boost::shared_ptr< ::nav_msgs::SetMapRequest > SetMapRequestPtr;
-typedef boost::shared_ptr< ::nav_msgs::SetMapRequest const> SetMapRequestConstPtr;
+typedef std::shared_ptr< ::nav_msgs::SetMapRequest > SetMapRequestPtr;
+typedef std::shared_ptr< ::nav_msgs::SetMapRequest const> SetMapRequestConstPtr;
 
 // constants requiring out of line definition
 

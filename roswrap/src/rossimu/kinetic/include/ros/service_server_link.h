@@ -37,10 +37,10 @@
 
 #include "ros/common.h"
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/shared_array.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/thread.hpp>
+#include <memory>
+#include <thread>
 
 #include <queue>
 
@@ -49,13 +49,13 @@ namespace ros
 class Header;
 class Message;
 class Connection;
-typedef boost::shared_ptr<Connection> ConnectionPtr;
+typedef std::shared_ptr<Connection> ConnectionPtr;
 
 /**
  * \brief Handles a connection to a service.  If it's a non-persistent client, automatically disconnects
  * when its first service call has finished.
  */
-class ROSCPP_DECL ServiceServerLink : public boost::enable_shared_from_this<ServiceServerLink>
+class ROSCPP_DECL ServiceServerLink : public std::enable_shared_from_this<ServiceServerLink>
 {
 private:
   struct CallInfo
@@ -64,16 +64,16 @@ private:
     SerializedMessage* resp_;
 
     bool finished_;
-    boost::condition_variable finished_condition_;
-    boost::mutex finished_mutex_;
-    boost::thread::id caller_thread_id_;
+    std::condition_variable finished_condition_;
+    std::mutex finished_mutex_;
+    std::thread::id caller_thread_id_;
 
     bool success_;
     bool call_finished_;
 
     std::string exception_string_;
   };
-  typedef boost::shared_ptr<CallInfo> CallInfoPtr;
+  typedef std::shared_ptr<CallInfo> CallInfoPtr;
   typedef std::queue<CallInfoPtr> Q_CallInfo;
 
 public:
@@ -146,13 +146,13 @@ private:
   bool header_read_;
 
   Q_CallInfo call_queue_;
-  boost::mutex call_queue_mutex_;
+  std::mutex call_queue_mutex_;
 
   CallInfoPtr current_call_;
 
   bool dropped_;
 };
-typedef boost::shared_ptr<ServiceServerLink> ServiceServerLinkPtr;
+typedef std::shared_ptr<ServiceServerLink> ServiceServerLinkPtr;
 
 } // namespace ros
 

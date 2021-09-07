@@ -46,8 +46,11 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <sstream>
+#include <thread>
 #include <vector>
 
 #if !defined __ROS_VERSION

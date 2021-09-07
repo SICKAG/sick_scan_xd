@@ -70,15 +70,15 @@ struct LoadMapResponse_
   };
 
 
-  typedef boost::shared_ptr< ::nav_msgs::LoadMapResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::LoadMapResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::LoadMapResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::LoadMapResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct LoadMapResponse_
 
 typedef ::nav_msgs::LoadMapResponse_<std::allocator<void> > LoadMapResponse;
 
-typedef boost::shared_ptr< ::nav_msgs::LoadMapResponse > LoadMapResponsePtr;
-typedef boost::shared_ptr< ::nav_msgs::LoadMapResponse const> LoadMapResponseConstPtr;
+typedef std::shared_ptr< ::nav_msgs::LoadMapResponse > LoadMapResponsePtr;
+typedef std::shared_ptr< ::nav_msgs::LoadMapResponse const> LoadMapResponseConstPtr;
 
 // constants requiring out of line definition
 

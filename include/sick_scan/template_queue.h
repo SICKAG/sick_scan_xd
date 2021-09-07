@@ -2,11 +2,13 @@
 #define TEMPLATE_QUEUE_H
 
 #include <queue>
-#include <boost/thread.hpp>
+#include <thread>
 #include <boost/chrono.hpp>
-#include <boost/thread.hpp>
+#include <thread>
 #include <boost/chrono.hpp>
 #include <iostream>
+#include <mutex>
+#include <condition_variable>
 
 template<typename T>
 class Queue
@@ -21,7 +23,7 @@ public:
   int getNumberOfEntriesInQueue()
   {
     int retVal = 0;
-    boost::mutex::scoped_lock mlock(mutex_);
+    std::unique_lock<std::mutex> mlock(mutex_);
     retVal = queue_.size();
     return (retVal);
   }
@@ -30,26 +32,25 @@ public:
   bool isQueueEmpty()
   {
     bool retVal = false;
-    boost::mutex::scoped_lock mlock(mutex_);
+    std::unique_lock<std::mutex> mlock(mutex_);
     retVal = queue_.empty();
     return (retVal);
   }
 
   bool waitForIncomingObject(int timeOutInMs)
   {
-    boost::mutex::scoped_lock mlock(mutex_);
+    std::unique_lock<std::mutex> mlock(mutex_);
     bool ret = true;
-    boost::posix_time::time_duration td = boost::posix_time::millisec(timeOutInMs);
     while (queue_.empty() && (ret == true))
     {
-      ret = cond_.timed_wait(mlock, td);
+      ret = (cond_.wait_for(mlock, std::chrono::milliseconds(timeOutInMs)) == std::cv_status::no_timeout);
     }
     return (ret);
   }
 
   T pop()
   {
-    boost::mutex::scoped_lock mlock(mutex_);
+    std::unique_lock<std::mutex> mlock(mutex_);
     while (queue_.empty())
     {
       cond_.wait(mlock);
@@ -61,7 +62,7 @@ public:
 
   void pop(T &item)
   {
-    boost::mutex::scoped_lock mlock(mutex_);
+    std::unique_lock<std::mutex> mlock(mutex_);
     while (queue_.empty())
     {
       cond_.wait(mlock);
@@ -72,24 +73,26 @@ public:
 
   void push(const T &item)
   {
-    boost::mutex::scoped_lock mlock(mutex_);
+    {
+    std::unique_lock<std::mutex> mlock(mutex_);
     queue_.push(item);
-    mlock.unlock();
+    }
     cond_.notify_one();
   }
 
   void push(T &item)
   {
-    boost::mutex::scoped_lock mlock(mutex_);
+    {
+    std::unique_lock<std::mutex> mlock(mutex_);
     queue_.push(item);
-    mlock.unlock();
+    }
     cond_.notify_one();
   }
 
 private:
   std::queue<T> queue_;
-  boost::mutex mutex_;
-  boost::condition_variable cond_;
+  std::mutex mutex_;
+  std::condition_variable cond_;
 };
 
 #endif

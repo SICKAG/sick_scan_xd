@@ -63,8 +63,8 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/thread.hpp>
-#include <boost/thread/mutex.hpp>
+#include <thread>
+#include <mutex>
 #include <boost/thread/recursive_mutex.hpp>
 #include <list>
 
@@ -128,7 +128,7 @@ namespace sick_scan
       std::vector<uint8_t> telegram_data; ///< received telegram_data (Cola-Ascii or Cola-Binary)
     };
   
-    typedef boost::thread* thread_ptr;                ///< shortcut for pointer to boost::thread
+    typedef std::thread* thread_ptr;                ///< shortcut for pointer to std::thread
     typedef boost::asio::ip::tcp::socket* socket_ptr; ///< shortcut for pointer to boost::asio::ip::tcp::socket
     
     /*!
@@ -231,7 +231,7 @@ namespace sick_scan
     boost::asio::ip::tcp::acceptor m_tcp_acceptor_cola;      ///< boost acceptor for tcp clients for command requests and responses
     std::list<boost::asio::ip::tcp::socket*> m_tcp_sockets;  ///< list of tcp sockets (one socket for each tcp client)
     std::list<thread_ptr> m_tcp_worker_threads;              ///< list of tcp worker thread (one thread for each tcp client, generating telegrams)
-    boost::mutex m_tcp_worker_threads_mutex;                 ///< mutex to protect m_tcp_worker_threads
+    std::mutex m_tcp_worker_threads_mutex;                 ///< mutex to protect m_tcp_worker_threads
     bool m_worker_thread_running;                            ///< true: worker threads started, otherwise false
     sick_scan::SickLocResultPortTestcaseMsgPublisher m_result_testcases_publisher;  ///< ros publisher for testcases with result port telegrams (type SickLocResultPortTestcaseMsg)
     std::string m_result_testcases_frame_id;                 ///< ros frame id of testcase messages (type SickLocResultPortTestcaseMsg), default: "result_testcases"

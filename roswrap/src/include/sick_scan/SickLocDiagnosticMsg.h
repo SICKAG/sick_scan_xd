@@ -51,15 +51,15 @@ struct SickLocDiagnosticMsg_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocDiagnosticMsg_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocDiagnosticMsg_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocDiagnosticMsg_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocDiagnosticMsg_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocDiagnosticMsg_
 
 typedef ::sick_scan::SickLocDiagnosticMsg_<std::allocator<void> > SickLocDiagnosticMsg;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocDiagnosticMsg > SickLocDiagnosticMsgPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocDiagnosticMsg const> SickLocDiagnosticMsgConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocDiagnosticMsg > SickLocDiagnosticMsgPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocDiagnosticMsg const> SickLocDiagnosticMsgConstPtr;
 
 // constants requiring out of line definition
 

@@ -40,15 +40,15 @@ struct SickLocInitializePoseSrvResponse_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocInitializePoseSrvResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocInitializePoseSrvResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocInitializePoseSrvResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocInitializePoseSrvResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocInitializePoseSrvResponse_
 
 typedef ::sick_scan::SickLocInitializePoseSrvResponse_<std::allocator<void> > SickLocInitializePoseSrvResponse;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocInitializePoseSrvResponse > SickLocInitializePoseSrvResponsePtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocInitializePoseSrvResponse const> SickLocInitializePoseSrvResponseConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocInitializePoseSrvResponse > SickLocInitializePoseSrvResponsePtr;
+typedef std::shared_ptr< ::sick_scan::SickLocInitializePoseSrvResponse const> SickLocInitializePoseSrvResponseConstPtr;
 
 // constants requiring out of line definition
 

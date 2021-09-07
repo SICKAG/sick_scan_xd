@@ -46,7 +46,7 @@ namespace ros
 {
 
 class TransportTCP;
-typedef boost::shared_ptr<TransportTCP> TransportTCPPtr;
+typedef std::shared_ptr<TransportTCP> TransportTCPPtr;
 
 class PollSet;
 

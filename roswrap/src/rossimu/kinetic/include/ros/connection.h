@@ -41,10 +41,10 @@
 #include <boost/signals2.hpp>
 
 #include <boost/function.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/shared_array.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/thread/mutex.hpp>
+#include <memory>
+#include <mutex>
 #include <boost/thread/recursive_mutex.hpp>
 
 #define READ_BUFFER_SIZE (1024*64)
@@ -53,9 +53,9 @@ namespace ros
 {
 
 class Transport;
-typedef boost::shared_ptr<Transport> TransportPtr;
+typedef std::shared_ptr<Transport> TransportPtr;
 class Connection;
-typedef boost::shared_ptr<Connection> ConnectionPtr;
+typedef std::shared_ptr<Connection> ConnectionPtr;
 typedef boost::function<void(const ConnectionPtr&, const boost::shared_array<uint8_t>&, uint32_t, bool)> ReadFinishedFunc;
 typedef boost::function<void(const ConnectionPtr&)> WriteFinishedFunc;
 
@@ -67,7 +67,7 @@ typedef boost::function<bool(const ConnectionPtr&, const Header&)> HeaderReceive
  * Connection provides automatic header negotiation, as well as easy ways of reading and writing
  * arbitrary amounts of data without having to set up your own state machines.
  */
-class ROSCPP_DECL Connection : public boost::enable_shared_from_this<Connection>
+class ROSCPP_DECL Connection : public std::enable_shared_from_this<Connection>
 {
 public:
   enum DropReason
@@ -242,7 +242,7 @@ private:
   uint32_t write_size_;
   /// Function to call when the current write is finished
   WriteFinishedFunc write_callback_;
-  boost::mutex write_callback_mutex_;
+  std::mutex write_callback_mutex_;
   /// Mutex used for protecting writing.  Recursive because a write can immediately cause another write through the callback
   boost::recursive_mutex write_mutex_;
   /// Flag telling us if we're in the middle of a write (mostly used to avoid recursive deadlocking)
@@ -264,7 +264,7 @@ private:
   /// If we're sending a header error we disable most other calls
   bool sending_header_error_;
 };
-typedef boost::shared_ptr<Connection> ConnectionPtr;
+typedef std::shared_ptr<Connection> ConnectionPtr;
 
 } // namespace ros
 

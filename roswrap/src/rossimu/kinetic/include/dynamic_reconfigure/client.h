@@ -46,7 +46,7 @@
 
 #include <boost/chrono.hpp>
 #include <boost/function.hpp>
-#include <boost/thread.hpp>
+#include <thread>
 #include <ros/node_handle.h>
 #include <dynamic_reconfigure/ConfigDescription.h>
 #include <dynamic_reconfigure/Reconfigure.h>
@@ -175,14 +175,14 @@ class Client {
       const ros::Duration& timeout = ros::Duration(0)) {
     if (timeout == ros::Duration(0)) {
       ROS_INFO_ONCE("Waiting for configuration...");
-      boost::mutex::scoped_lock lock(mutex_);
+      std::lock_guard<std::mutex> lock(mutex_);
       while (!received_configuration_) {
         if (!ros::ok()) return false;
         cv_.wait(lock);
       }
     } else {
       ros::Time start_time = ros::Time::now();
-      boost::mutex::scoped_lock lock(mutex_);
+      std::lock_guard<std::mutex> lock(mutex_);
       while (!received_configuration_) {
         if (!ros::ok()) return false;
         ros::Duration time_left = timeout - (ros::Time::now() - start_time);
@@ -256,7 +256,7 @@ class Client {
 
  private:
   void configurationCallback(const dynamic_reconfigure::Config& configuration) {
-    boost::mutex::scoped_lock lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     dynamic_reconfigure::Config temp_config = configuration;
     received_configuration_ = true;
     latest_configuration_.__fromMessage__(temp_config);
@@ -279,7 +279,7 @@ class Client {
 
   void descriptionCallback(
       const dynamic_reconfigure::ConfigDescription& description) {
-    boost::mutex::scoped_lock lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     received_description_ = true;
     latest_description_ = description;
     cv_.notify_all();
@@ -303,14 +303,14 @@ class Client {
                       const ros::Duration& timeout) {
     if (timeout == ros::Duration(0)) {
       ROS_INFO_ONCE("Waiting for configuration...");
-      boost::mutex::scoped_lock lock(mutex_);
+      std::lock_guard<std::mutex> lock(mutex_);
       while (!received_description_) {
         if (!ros::ok()) return false;
         cv_.wait(lock);
       }
     } else {
       ros::Time start_time = ros::Time::now();
-      boost::mutex::scoped_lock lock(mutex_);
+      std::lock_guard<std::mutex> lock(mutex_);
       while (!received_description_) {
         if (!ros::ok()) return false;
         ros::Duration time_left = timeout - (ros::Time::now() - start_time);
@@ -327,8 +327,8 @@ class Client {
   ConfigType latest_configuration_;
   bool received_description_;
   dynamic_reconfigure::ConfigDescription latest_description_;
-  boost::condition_variable cv_;
-  boost::mutex mutex_;
+  std::condition_variable cv_;
+  std::mutex mutex_;
   ros::NodeHandle nh_;
   ros::ServiceClient set_service_;
   ros::Subscriber descr_sub_;

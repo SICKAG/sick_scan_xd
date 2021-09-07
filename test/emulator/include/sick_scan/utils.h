@@ -60,7 +60,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include <boost/thread.hpp>
+#include <thread>
 
 #include "sick_scan/ros_wrapper.h"
 
@@ -69,7 +69,7 @@ namespace sick_scan
   /*!
    * class SetGet implements setter and getter template functions for thread-protected set and get of a value.
    */
-  template<typename ElementType, typename MutexType = boost::mutex> class SetGet
+  template<typename ElementType, typename MutexType = std::mutex> class SetGet
   {
   public:
   
@@ -79,14 +79,14 @@ namespace sick_scan
     /*! Sets the value threadsafe */
     void set(const ElementType & value)
     {
-      boost::lock_guard<MutexType> value_lockguard(m_value_mutex);
+      std::lock_guard<MutexType> value_lockguard(m_value_mutex);
       m_value = value;
     }
   
     /*! Returns the value threadsafe */
     ElementType get(void)
     {
-      boost::lock_guard<MutexType> value_lockguard(m_value_mutex);
+      std::lock_guard<MutexType> value_lockguard(m_value_mutex);
       return m_value;
     }
 
@@ -104,11 +104,11 @@ namespace sick_scan
   {
   public:
     /*! Constructor with optional initialization of  value */
-    SetGet32(const uint32_t & value = 0) : SetGet<uint32_t,boost::mutex>(value) {}
+    SetGet32(const uint32_t & value = 0) : SetGet<uint32_t,std::mutex>(value) {}
     /*! Increments and returns the value */
     uint32_t inc(void)
     {
-      boost::lock_guard<boost::mutex> value_lockguard(m_value_mutex);
+      std::lock_guard<std::mutex> value_lockguard(m_value_mutex);
       return ++m_value;
     }
   };

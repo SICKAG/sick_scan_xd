@@ -36,13 +36,13 @@
 #include "ros/service_traits.h"
 #include "ros/names.h"
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace ros
 {
 
 class ServiceServerLink;
-typedef boost::shared_ptr<ServiceServerLink> ServiceServerLinkPtr;
+typedef std::shared_ptr<ServiceServerLink> ServiceServerLinkPtr;
 
 /**
  * \brief Contains functions for querying information about and calling a service

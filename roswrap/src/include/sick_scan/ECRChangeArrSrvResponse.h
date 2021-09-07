@@ -40,15 +40,15 @@ struct ECRChangeArrSrvResponse_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::ECRChangeArrSrvResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::ECRChangeArrSrvResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::ECRChangeArrSrvResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::ECRChangeArrSrvResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct ECRChangeArrSrvResponse_
 
 typedef ::sick_scan::ECRChangeArrSrvResponse_<std::allocator<void> > ECRChangeArrSrvResponse;
 
-typedef boost::shared_ptr< ::sick_scan::ECRChangeArrSrvResponse > ECRChangeArrSrvResponsePtr;
-typedef boost::shared_ptr< ::sick_scan::ECRChangeArrSrvResponse const> ECRChangeArrSrvResponseConstPtr;
+typedef std::shared_ptr< ::sick_scan::ECRChangeArrSrvResponse > ECRChangeArrSrvResponsePtr;
+typedef std::shared_ptr< ::sick_scan::ECRChangeArrSrvResponse const> ECRChangeArrSrvResponseConstPtr;
 
 // constants requiring out of line definition
 

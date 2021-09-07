@@ -41,15 +41,15 @@ struct MarkerArray_
 
 
 
-  typedef boost::shared_ptr< ::visualization_msgs::MarkerArray_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::visualization_msgs::MarkerArray_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::visualization_msgs::MarkerArray_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::visualization_msgs::MarkerArray_<ContainerAllocator> const> ConstPtr;
 
 }; // struct MarkerArray_
 
 typedef ::visualization_msgs::MarkerArray_<std::allocator<void> > MarkerArray;
 
-typedef boost::shared_ptr< ::visualization_msgs::MarkerArray > MarkerArrayPtr;
-typedef boost::shared_ptr< ::visualization_msgs::MarkerArray const> MarkerArrayConstPtr;
+typedef std::shared_ptr< ::visualization_msgs::MarkerArray > MarkerArrayPtr;
+typedef std::shared_ptr< ::visualization_msgs::MarkerArray const> MarkerArrayConstPtr;
 
 // constants requiring out of line definition
 

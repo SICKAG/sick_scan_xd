@@ -55,9 +55,9 @@ int sick_scan::SickLdmrsNode::init(rosNodePtr nh, const std::string & hostName, 
 {
   m_nh = nh;
 #if __ROS_VERSION == 1
-  m_diagnostics = boost::make_shared<diagnostic_updater::Updater>(*m_nh);
+  m_diagnostics = std::make_shared<diagnostic_updater::Updater>(*m_nh);
 #elif __ROS_VERSION == 2
-  m_diagnostics = boost::make_shared<diagnostic_updater::Updater>(m_nh);
+  m_diagnostics = std::make_shared<diagnostic_updater::Updater>(m_nh);
 #endif  
 
   // The MRS-App connects to an MRS, reads its configuration and receives all incoming data.

@@ -6,13 +6,15 @@
 #include <stdlib.h>     // for atoi() and exit()
 // #include <string.h>     // for memset()
 //#include <backward/iostream.h>	// fuer cout()
-#include "pthread.h"
+// #include "pthread.h"
+#include "mutex"
 #include "sick_scan/tcp/errorhandler.hpp"
 #ifndef ROSSIMU
 #include "sick_scan/tcp/Time.hpp"
 #endif
 // Print mutex to print thread-safe
-pthread_mutex_t m_printMutex = PTHREAD_MUTEX_INITIALIZER;
+// pthread_mutex_t m_printMutex = PTHREAD_MUTEX_INITIALIZER;
+std::mutex m_printMutex;
 
 /**
  * Der Name ist Programm...
@@ -27,14 +29,18 @@ void doNothing()
  */
 void dieWithError(std::string errorMessage)
 {
+	{
+	std::lock_guard<std::mutex> printGuard(m_printMutex);
+
 	// Mutex setzen
-	pthread_mutex_lock(&m_printMutex);
+	// pthread_mutex_lock(&m_printMutex);
 	
 	// Nachricht schreiben
     printError(errorMessage.c_str());
 	
 	// Mutex wieder freigeben
-	pthread_mutex_unlock(&m_printMutex);
+	// pthread_mutex_unlock(&m_printMutex);
+	}
 
 	// Programm abbrechen
     exit(1);
@@ -50,8 +56,9 @@ void infoMessage(std::string message, bool print)
 #ifndef ROSSIMU
 		Time t = Time::now();
 #endif	
+    	std::lock_guard<std::mutex> printGuard(m_printMutex);
 		// Mutex setzen
-		pthread_mutex_lock(&m_printMutex);
+		// pthread_mutex_lock(&m_printMutex);
 		
 		// Nachricht schreiben
 #ifndef ROSSIMU
@@ -61,7 +68,7 @@ void infoMessage(std::string message, bool print)
 		fflush(0);
 
 		// Mutex wieder freigeben
-		pthread_mutex_unlock(&m_printMutex);
+		// pthread_mutex_unlock(&m_printMutex);
 	}
 }
 
@@ -75,8 +82,9 @@ void printWarning(std::string message)
 #ifndef ROSSIMU
 	Time t = Time::now();
 #endif	
+	std::lock_guard<std::mutex> printGuard(m_printMutex);
 	// Mutex setzen
-	pthread_mutex_lock(&m_printMutex);
+	// pthread_mutex_lock(&m_printMutex);
 		
 #ifndef ROSSIMU
 	printf ("%s ", t.toString().c_str());
@@ -85,7 +93,7 @@ void printWarning(std::string message)
 	fflush(0);
 		
 	// Mutex wieder freigeben
-	pthread_mutex_unlock(&m_printMutex);
+	// pthread_mutex_unlock(&m_printMutex);
 }
 
 //
@@ -97,8 +105,9 @@ void printError(std::string message)
 	Time t = Time::now();
 #endif	
 	
+	std::lock_guard<std::mutex> printGuard(m_printMutex);
 	// Mutex setzen
-	pthread_mutex_lock(&m_printMutex);
+	// pthread_mutex_lock(&m_printMutex);
 		
 #ifndef ROSSIMU
 	printf("%s ", t.toString().c_str());
@@ -107,5 +116,5 @@ void printError(std::string message)
 	fflush(0);
 	
 	// Mutex wieder freigeben
-	pthread_mutex_unlock(&m_printMutex);
+	// pthread_mutex_unlock(&m_printMutex);
 }

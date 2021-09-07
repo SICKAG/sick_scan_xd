@@ -47,15 +47,15 @@ struct Path_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::Path_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::Path_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::Path_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::Path_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Path_
 
 typedef ::nav_msgs::Path_<std::allocator<void> > Path;
 
-typedef boost::shared_ptr< ::nav_msgs::Path > PathPtr;
-typedef boost::shared_ptr< ::nav_msgs::Path const> PathConstPtr;
+typedef std::shared_ptr< ::nav_msgs::Path > PathPtr;
+typedef std::shared_ptr< ::nav_msgs::Path const> PathConstPtr;
 
 // constants requiring out of line definition
 

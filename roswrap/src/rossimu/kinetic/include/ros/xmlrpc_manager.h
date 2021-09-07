@@ -31,9 +31,9 @@
 #include <string>
 #include <set>
 #include <boost/function.hpp>
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/thread/thread.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <memory>
 
 #include "common.h"
 #include "xmlrpcpp/XmlRpc.h"
@@ -55,9 +55,9 @@ XmlRpc::XmlRpcValue responseBool(int code, const std::string& msg, bool response
 }
 
 class XMLRPCCallWrapper;
-typedef boost::shared_ptr<XMLRPCCallWrapper> XMLRPCCallWrapperPtr;
+typedef std::shared_ptr<XMLRPCCallWrapper> XMLRPCCallWrapperPtr;
 
-class ROSCPP_DECL ASyncXMLRPCConnection : public boost::enable_shared_from_this<ASyncXMLRPCConnection>
+class ROSCPP_DECL ASyncXMLRPCConnection : public std::enable_shared_from_this<ASyncXMLRPCConnection>
 {
 public:
   virtual ~ASyncXMLRPCConnection() {}
@@ -67,7 +67,7 @@ public:
 
   virtual bool check() = 0;
 };
-typedef boost::shared_ptr<ASyncXMLRPCConnection> ASyncXMLRPCConnectionPtr;
+typedef std::shared_ptr<ASyncXMLRPCConnection> ASyncXMLRPCConnectionPtr;
 typedef std::set<ASyncXMLRPCConnectionPtr> S_ASyncXMLRPCConnection;
 
 class ROSCPP_DECL CachedXmlRpcClient
@@ -87,7 +87,7 @@ public:
 };
 
 class XMLRPCManager;
-typedef boost::shared_ptr<XMLRPCManager> XMLRPCManagerPtr;
+typedef std::shared_ptr<XMLRPCManager> XMLRPCManagerPtr;
 
 typedef boost::function<void(XmlRpc::XmlRpcValue&, XmlRpc::XmlRpcValue&)> XMLRPCFunc;
 
@@ -137,25 +137,25 @@ private:
 
   std::string uri_;
   int port_;
-  boost::thread server_thread_;
+  std::thread server_thread_;
 
 #if defined(__APPLE__)
   // OSX has problems with lots of concurrent xmlrpc calls
-  boost::mutex xmlrpc_call_mutex_;
+  std::mutex xmlrpc_call_mutex_;
 #endif
   XmlRpc::XmlRpcServer server_;
   typedef std::vector<CachedXmlRpcClient> V_CachedXmlRpcClient;
   V_CachedXmlRpcClient clients_;
-  boost::mutex clients_mutex_;
+  std::mutex clients_mutex_;
 
   bool shutting_down_;
 
   ros::WallDuration master_retry_timeout_;
 
   S_ASyncXMLRPCConnection added_connections_;
-  boost::mutex added_connections_mutex_;
+  std::mutex added_connections_mutex_;
   S_ASyncXMLRPCConnection removed_connections_;
-  boost::mutex removed_connections_mutex_;
+  std::mutex removed_connections_mutex_;
 
   S_ASyncXMLRPCConnection connections_;
 
@@ -167,7 +167,7 @@ private:
     XMLRPCCallWrapperPtr wrapper;
   };
   typedef std::map<std::string, FunctionInfo> M_StringToFuncInfo;
-  boost::mutex functions_mutex_;
+  std::mutex functions_mutex_;
   M_StringToFuncInfo functions_;
 
   volatile bool unbind_requested_;

@@ -5,8 +5,11 @@
 #ifndef MUTEX_HPP
 #define MUTEX_HPP
 
+#include <mutex>
+#include <thread>
+
 #include "sick_scan/tcp/BasicDatatypes.hpp"
-#include <pthread.h>
+// #include <pthread.h>
 
 
 //
@@ -22,7 +25,8 @@ public:
 	void unlock();
 
 private:
-	pthread_mutex_t m_mutex;
+    std::mutex m_mutex;
+	// pthread_mutex_t m_mutex;
 };
 
 

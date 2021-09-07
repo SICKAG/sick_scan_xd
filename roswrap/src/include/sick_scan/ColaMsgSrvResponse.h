@@ -40,15 +40,15 @@ struct ColaMsgSrvResponse_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::ColaMsgSrvResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::ColaMsgSrvResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::ColaMsgSrvResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::ColaMsgSrvResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct ColaMsgSrvResponse_
 
 typedef ::sick_scan::ColaMsgSrvResponse_<std::allocator<void> > ColaMsgSrvResponse;
 
-typedef boost::shared_ptr< ::sick_scan::ColaMsgSrvResponse > ColaMsgSrvResponsePtr;
-typedef boost::shared_ptr< ::sick_scan::ColaMsgSrvResponse const> ColaMsgSrvResponseConstPtr;
+typedef std::shared_ptr< ::sick_scan::ColaMsgSrvResponse > ColaMsgSrvResponsePtr;
+typedef std::shared_ptr< ::sick_scan::ColaMsgSrvResponse const> ColaMsgSrvResponseConstPtr;
 
 // constants requiring out of line definition
 

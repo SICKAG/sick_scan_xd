@@ -37,10 +37,10 @@ namespace ros
 class Header;
 class Message;
 class Subscription;
-typedef boost::shared_ptr<Subscription> SubscriptionPtr;
-typedef boost::weak_ptr<Subscription> SubscriptionWPtr;
+typedef std::shared_ptr<Subscription> SubscriptionPtr;
+typedef std::weak_ptr<Subscription> SubscriptionWPtr;
 class Connection;
-typedef boost::shared_ptr<Connection> ConnectionPtr;
+typedef std::shared_ptr<Connection> ConnectionPtr;
 
 struct WallTimerEvent;
 
@@ -86,7 +86,7 @@ private:
   WallTime next_retry_;
   bool dropping_;
 };
-typedef boost::shared_ptr<TransportPublisherLink> TransportPublisherLinkPtr;
+typedef std::shared_ptr<TransportPublisherLink> TransportPublisherLinkPtr;
 
 } // namespace ros
 

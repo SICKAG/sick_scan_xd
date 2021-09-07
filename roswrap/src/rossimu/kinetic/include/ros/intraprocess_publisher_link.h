@@ -36,11 +36,11 @@
 namespace ros
 {
 class Subscription;
-typedef boost::shared_ptr<Subscription> SubscriptionPtr;
-typedef boost::weak_ptr<Subscription> SubscriptionWPtr;
+typedef std::shared_ptr<Subscription> SubscriptionPtr;
+typedef std::weak_ptr<Subscription> SubscriptionWPtr;
 
 class IntraProcessSubscriberLink;
-typedef boost::shared_ptr<IntraProcessSubscriberLink> IntraProcessSubscriberLinkPtr;
+typedef std::shared_ptr<IntraProcessSubscriberLink> IntraProcessSubscriberLinkPtr;
 
 /**
  * \brief Handles a connection to a single publisher on a given topic.  Receives messages from a publisher
@@ -70,7 +70,7 @@ private:
   bool dropped_;
   boost::recursive_mutex drop_mutex_;
 };
-typedef boost::shared_ptr<IntraProcessPublisherLink> IntraProcessPublisherLinkPtr;
+typedef std::shared_ptr<IntraProcessPublisherLink> IntraProcessPublisherLinkPtr;
 
 } // namespace ros
 

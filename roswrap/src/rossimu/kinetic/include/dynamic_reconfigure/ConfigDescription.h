@@ -54,15 +54,15 @@ struct ConfigDescription_
 
 
 
-  typedef boost::shared_ptr< ::dynamic_reconfigure::ConfigDescription_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::dynamic_reconfigure::ConfigDescription_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::ConfigDescription_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::ConfigDescription_<ContainerAllocator> const> ConstPtr;
 
 }; // struct ConfigDescription_
 
 typedef ::dynamic_reconfigure::ConfigDescription_<std::allocator<void> > ConfigDescription;
 
-typedef boost::shared_ptr< ::dynamic_reconfigure::ConfigDescription > ConfigDescriptionPtr;
-typedef boost::shared_ptr< ::dynamic_reconfigure::ConfigDescription const> ConfigDescriptionConstPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::ConfigDescription > ConfigDescriptionPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::ConfigDescription const> ConfigDescriptionConstPtr;
 
 // constants requiring out of line definition
 

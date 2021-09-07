@@ -46,15 +46,15 @@ struct TwistWithCovarianceStamped_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::TwistWithCovarianceStamped_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::TwistWithCovarianceStamped_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::TwistWithCovarianceStamped_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::TwistWithCovarianceStamped_<ContainerAllocator> const> ConstPtr;
 
 }; // struct TwistWithCovarianceStamped_
 
 typedef ::geometry_msgs::TwistWithCovarianceStamped_<std::allocator<void> > TwistWithCovarianceStamped;
 
-typedef boost::shared_ptr< ::geometry_msgs::TwistWithCovarianceStamped > TwistWithCovarianceStampedPtr;
-typedef boost::shared_ptr< ::geometry_msgs::TwistWithCovarianceStamped const> TwistWithCovarianceStampedConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::TwistWithCovarianceStamped > TwistWithCovarianceStampedPtr;
+typedef std::shared_ptr< ::geometry_msgs::TwistWithCovarianceStamped const> TwistWithCovarianceStampedConstPtr;
 
 // constants requiring out of line definition
 

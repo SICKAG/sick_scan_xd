@@ -52,15 +52,15 @@ struct OccupancyGrid_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::OccupancyGrid_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::OccupancyGrid_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::OccupancyGrid_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::OccupancyGrid_<ContainerAllocator> const> ConstPtr;
 
 }; // struct OccupancyGrid_
 
 typedef ::nav_msgs::OccupancyGrid_<std::allocator<void> > OccupancyGrid;
 
-typedef boost::shared_ptr< ::nav_msgs::OccupancyGrid > OccupancyGridPtr;
-typedef boost::shared_ptr< ::nav_msgs::OccupancyGrid const> OccupancyGridConstPtr;
+typedef std::shared_ptr< ::nav_msgs::OccupancyGrid > OccupancyGridPtr;
+typedef std::shared_ptr< ::nav_msgs::OccupancyGrid const> OccupancyGridConstPtr;
 
 // constants requiring out of line definition
 

@@ -109,7 +109,7 @@ namespace diagnostic_updater
       std::vector <ros::Time> times_;
       std::vector <int> seq_nums_;
       int hist_indx_;
-      boost::mutex lock_;
+      std::mutex lock_;
 
     public:
       /**
@@ -129,7 +129,7 @@ namespace diagnostic_updater
 
       void clear()
       {
-        boost::mutex::scoped_lock lock(lock_);
+        std::lock_guard<std::mutex> lock(lock_);
         ros::Time curtime = ros::Time::now();
         count_ = 0;
 
@@ -147,14 +147,14 @@ namespace diagnostic_updater
        */
       void tick()
       {
-        boost::mutex::scoped_lock lock(lock_);
+        std::lock_guard<std::mutex> lock(lock_);
         //ROS_DEBUG("TICK %i", count_);
         count_++;
       }
 
       virtual void run(diagnostic_updater::DiagnosticStatusWrapper &stat)
       {
-        boost::mutex::scoped_lock lock(lock_);
+        std::lock_guard<std::mutex> lock(lock_);
         ros::Time curtime = ros::Time::now();
         int curseq = count_;
         int events = curseq - seq_nums_[hist_indx_];
@@ -290,7 +290,7 @@ namespace diagnostic_updater
 
       void tick(double stamp)
       {
-        boost::mutex::scoped_lock lock(lock_);
+        std::lock_guard<std::mutex> lock(lock_);
 
         if (stamp == 0)
         {
@@ -324,7 +324,7 @@ namespace diagnostic_updater
 
       virtual void run(diagnostic_updater::DiagnosticStatusWrapper &stat)
       {
-        boost::mutex::scoped_lock lock(lock_);
+        std::lock_guard<std::mutex> lock(lock_);
 
         stat.summary(0, "Timestamps are reasonable.");
         if (!deltas_valid_)
@@ -375,7 +375,7 @@ namespace diagnostic_updater
       double max_delta_;
       double min_delta_;
       bool deltas_valid_;
-      boost::mutex lock_;
+      std::mutex lock_;
   };
 
 };

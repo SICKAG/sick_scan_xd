@@ -40,15 +40,15 @@ struct SickLocSetOdometryPortSrvRequest_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocSetOdometryPortSrvRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocSetOdometryPortSrvRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocSetOdometryPortSrvRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocSetOdometryPortSrvRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocSetOdometryPortSrvRequest_
 
 typedef ::sick_scan::SickLocSetOdometryPortSrvRequest_<std::allocator<void> > SickLocSetOdometryPortSrvRequest;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocSetOdometryPortSrvRequest > SickLocSetOdometryPortSrvRequestPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocSetOdometryPortSrvRequest const> SickLocSetOdometryPortSrvRequestConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocSetOdometryPortSrvRequest > SickLocSetOdometryPortSrvRequestPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocSetOdometryPortSrvRequest const> SickLocSetOdometryPortSrvRequestConstPtr;
 
 // constants requiring out of line definition
 

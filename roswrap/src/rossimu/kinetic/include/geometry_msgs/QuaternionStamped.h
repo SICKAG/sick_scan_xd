@@ -46,15 +46,15 @@ struct QuaternionStamped_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::QuaternionStamped_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::QuaternionStamped_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::QuaternionStamped_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::QuaternionStamped_<ContainerAllocator> const> ConstPtr;
 
 }; // struct QuaternionStamped_
 
 typedef ::geometry_msgs::QuaternionStamped_<std::allocator<void> > QuaternionStamped;
 
-typedef boost::shared_ptr< ::geometry_msgs::QuaternionStamped > QuaternionStampedPtr;
-typedef boost::shared_ptr< ::geometry_msgs::QuaternionStamped const> QuaternionStampedConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::QuaternionStamped > QuaternionStampedPtr;
+typedef std::shared_ptr< ::geometry_msgs::QuaternionStamped const> QuaternionStampedConstPtr;
 
 // constants requiring out of line definition
 

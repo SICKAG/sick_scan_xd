@@ -6,7 +6,6 @@
 
 #if defined LDMRS_SUPPORT && LDMRS_SUPPORT > 0
 
-#include <boost/make_shared.hpp>
 #include <sick_scan/sick_ros_wrapper.h>
 
 #include <sick_scan/ldmrs/sick_ldmrs_driver.hpp>
@@ -28,7 +27,7 @@ namespace sick_scan
   protected:
 
     rosNodePtr m_nh;
-    boost::shared_ptr<diagnostic_updater::Updater> m_diagnostics;
+    std::shared_ptr<diagnostic_updater::Updater> m_diagnostics;
     Manager* m_manager;
     sick_ldmrs_driver::SickLDMRS* m_app;
     devices::LDMRS* m_ldmrs;

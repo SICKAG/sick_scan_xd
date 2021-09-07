@@ -44,15 +44,15 @@ struct KeyValue_
 
 
 
-  typedef boost::shared_ptr< ::diagnostic_msgs::KeyValue_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::diagnostic_msgs::KeyValue_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::diagnostic_msgs::KeyValue_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::diagnostic_msgs::KeyValue_<ContainerAllocator> const> ConstPtr;
 
 }; // struct KeyValue_
 
 typedef ::diagnostic_msgs::KeyValue_<std::allocator<void> > KeyValue;
 
-typedef boost::shared_ptr< ::diagnostic_msgs::KeyValue > KeyValuePtr;
-typedef boost::shared_ptr< ::diagnostic_msgs::KeyValue const> KeyValueConstPtr;
+typedef std::shared_ptr< ::diagnostic_msgs::KeyValue > KeyValuePtr;
+typedef std::shared_ptr< ::diagnostic_msgs::KeyValue const> KeyValueConstPtr;
 
 // constants requiring out of line definition
 

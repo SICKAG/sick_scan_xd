@@ -61,15 +61,15 @@ struct MapMetaData_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::MapMetaData_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::MapMetaData_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::MapMetaData_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::MapMetaData_<ContainerAllocator> const> ConstPtr;
 
 }; // struct MapMetaData_
 
 typedef ::nav_msgs::MapMetaData_<std::allocator<void> > MapMetaData;
 
-typedef boost::shared_ptr< ::nav_msgs::MapMetaData > MapMetaDataPtr;
-typedef boost::shared_ptr< ::nav_msgs::MapMetaData const> MapMetaDataConstPtr;
+typedef std::shared_ptr< ::nav_msgs::MapMetaData > MapMetaDataPtr;
+typedef std::shared_ptr< ::nav_msgs::MapMetaData const> MapMetaDataConstPtr;
 
 // constants requiring out of line definition
 

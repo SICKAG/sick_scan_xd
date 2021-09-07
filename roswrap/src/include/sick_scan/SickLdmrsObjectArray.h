@@ -47,15 +47,15 @@ struct SickLdmrsObjectArray_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLdmrsObjectArray_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLdmrsObjectArray_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLdmrsObjectArray_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLdmrsObjectArray_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLdmrsObjectArray_
 
 typedef ::sick_scan::SickLdmrsObjectArray_<std::allocator<void> > SickLdmrsObjectArray;
 
-typedef boost::shared_ptr< ::sick_scan::SickLdmrsObjectArray > SickLdmrsObjectArrayPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLdmrsObjectArray const> SickLdmrsObjectArrayConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLdmrsObjectArray > SickLdmrsObjectArrayPtr;
+typedef std::shared_ptr< ::sick_scan::SickLdmrsObjectArray const> SickLdmrsObjectArrayConstPtr;
 
 // constants requiring out of line definition
 

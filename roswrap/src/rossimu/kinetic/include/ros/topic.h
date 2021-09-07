@@ -37,7 +37,7 @@
 
 #include "common.h"
 #include "node_handle.h"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace ros
 {
@@ -53,7 +53,7 @@ template<class M>
 class SubscribeHelper
 {
 public:
-  typedef boost::shared_ptr<M const> MConstPtr;
+  typedef std::shared_ptr<M const> MConstPtr;
   void callback(const MConstPtr& message)
   {
     message_ = message;
@@ -80,10 +80,10 @@ private:
  * \param topic The topic to subscribe on
  * \param nh The NodeHandle to use to do the subscription
  * \param timeout The amount of time to wait before returning if no message is received
- * \return The message.  Empty boost::shared_ptr if waitForMessage is interrupted by the node shutting down
+ * \return The message.  Empty std::shared_ptr if waitForMessage is interrupted by the node shutting down
  */
 template<class M>
-boost::shared_ptr<M const> waitForMessage(const std::string& topic, NodeHandle& nh, ros::Duration timeout)
+std::shared_ptr<M const> waitForMessage(const std::string& topic, NodeHandle& nh, ros::Duration timeout)
 {
   SubscribeHelper<M> helper;
   SubscribeOptions ops;
@@ -99,10 +99,10 @@ boost::shared_ptr<M const> waitForMessage(const std::string& topic, NodeHandle& 
  *
  * \param M <template> The message type
  * \param topic The topic to subscribe on
- * \return The message.  Empty boost::shared_ptr if waitForMessage is interrupted by the node shutting down
+ * \return The message.  Empty std::shared_ptr if waitForMessage is interrupted by the node shutting down
  */
 template<class M>
-boost::shared_ptr<M const> waitForMessage(const std::string& topic)
+std::shared_ptr<M const> waitForMessage(const std::string& topic)
 {
   ros::NodeHandle nh;
   return waitForMessage<M>(topic, nh, ros::Duration());
@@ -114,10 +114,10 @@ boost::shared_ptr<M const> waitForMessage(const std::string& topic)
  * \param M <template> The message type
  * \param topic The topic to subscribe on
  * \param timeout The amount of time to wait before returning if no message is received
- * \return The message.  Empty boost::shared_ptr if waitForMessage is interrupted by the node shutting down
+ * \return The message.  Empty std::shared_ptr if waitForMessage is interrupted by the node shutting down
  */
 template<class M>
-boost::shared_ptr<M const> waitForMessage(const std::string& topic, ros::Duration timeout)
+std::shared_ptr<M const> waitForMessage(const std::string& topic, ros::Duration timeout)
 {
   ros::NodeHandle nh;
   return waitForMessage<M>(topic, nh, timeout);
@@ -129,10 +129,10 @@ boost::shared_ptr<M const> waitForMessage(const std::string& topic, ros::Duratio
  * \param M <template> The message type
  * \param topic The topic to subscribe on
  * \param nh The NodeHandle to use to do the subscription
- * \return The message.  Empty boost::shared_ptr if waitForMessage is interrupted by the node shutting down
+ * \return The message.  Empty std::shared_ptr if waitForMessage is interrupted by the node shutting down
  */
 template<class M>
-boost::shared_ptr<M const> waitForMessage(const std::string& topic, ros::NodeHandle& nh)
+std::shared_ptr<M const> waitForMessage(const std::string& topic, ros::NodeHandle& nh)
 {
   return waitForMessage<M>(topic, nh, ros::Duration());
 }

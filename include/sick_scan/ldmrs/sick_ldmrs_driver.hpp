@@ -102,7 +102,7 @@ protected:
 class SickLDMRS : public application::BasicApplication
 {
 public:
-  SickLDMRS(rosNodePtr nh, Manager* manager, boost::shared_ptr<diagnostic_updater::Updater> diagnostics);
+  SickLDMRS(rosNodePtr nh, Manager* manager, std::shared_ptr<diagnostic_updater::Updater> diagnostics);
   virtual ~SickLDMRS();
   void init();
   void produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
@@ -117,7 +117,7 @@ public:
   void pubObjects(datatypes::ObjectList &objects);
 
 protected:
-  boost::shared_ptr<diagnostic_updater::Updater> diagnostics_;
+  std::shared_ptr<diagnostic_updater::Updater> diagnostics_;
   void setData(BasicData& data);  // Callback for new data from the manager (scans etc.)
   void validate_flexres_resolution(int &res);
   void validate_flexres_start_angle(double &angle1, double &angle2);

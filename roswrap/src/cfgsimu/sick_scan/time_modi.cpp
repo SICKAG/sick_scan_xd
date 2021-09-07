@@ -53,7 +53,7 @@
 #include <mach/mach.h>
 #endif  // defined(__APPLE__)
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/io/ios_state.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 
@@ -87,8 +87,8 @@ namespace ros
 	static bool g_stopped(false);
 
 	// I assume that this is declared here, instead of time.h, to keep users
-	// of time.h from including boost/thread/mutex.hpp
-	static boost::mutex g_sim_time_mutex;
+	// of time.h from including mutex
+	static std::mutex g_sim_time_mutex;
 
 	static bool g_initialized(true); // 
 	static bool g_use_sim_time(true);
@@ -305,7 +305,7 @@ namespace ros
 
 		if (g_use_sim_time)
 		{
-			boost::mutex::scoped_lock lock(g_sim_time_mutex);
+			std::lock_guard<std::mutex> lock(g_sim_time_mutex);
 			Time t = g_sim_time;
 			return t;
 		}
@@ -318,7 +318,7 @@ namespace ros
 
 	void Time::setNow(const Time& new_now)
 	{
-		boost::mutex::scoped_lock lock(g_sim_time_mutex);
+		std::lock_guard<std::mutex> lock(g_sim_time_mutex);
 
 		g_sim_time = new_now;
 		g_use_sim_time = true;
@@ -562,7 +562,7 @@ namespace ros
 		uint64_t sec_part = nsec / 1000000000UL;
 
 		if (sec + sec_part > UINT_MAX)
-			throw std::runtime_error("Time is out of dual 32-bit range");
+			throw std::runtime_error(std::string("normalizeSecNSec: time (") + std::to_string(sec) + "," + std::to_string(nsec) + ") is out of dual 32-bit range");
 
 		sec += sec_part;
 		nsec = nsec_part;
@@ -590,7 +590,7 @@ namespace ros
 		}
 
 		if (sec_part < 0 || sec_part > UINT_MAX)
-			throw std::runtime_error("Time is out of dual 32-bit range");
+			throw std::runtime_error(std::string("normalizeSecNSecUnsigned: time (") + std::to_string(sec) + "," + std::to_string(nsec) + ") is out of dual 32-bit range");
 
 		sec = sec_part;
 		nsec = nsec_part;

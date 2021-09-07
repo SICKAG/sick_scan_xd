@@ -50,15 +50,15 @@ struct CompressedImage_
 
 
 
-  typedef boost::shared_ptr< ::sensor_msgs::CompressedImage_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sensor_msgs::CompressedImage_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sensor_msgs::CompressedImage_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sensor_msgs::CompressedImage_<ContainerAllocator> const> ConstPtr;
 
 }; // struct CompressedImage_
 
 typedef ::sensor_msgs::CompressedImage_<std::allocator<void> > CompressedImage;
 
-typedef boost::shared_ptr< ::sensor_msgs::CompressedImage > CompressedImagePtr;
-typedef boost::shared_ptr< ::sensor_msgs::CompressedImage const> CompressedImageConstPtr;
+typedef std::shared_ptr< ::sensor_msgs::CompressedImage > CompressedImagePtr;
+typedef std::shared_ptr< ::sensor_msgs::CompressedImage const> CompressedImageConstPtr;
 
 // constants requiring out of line definition
 

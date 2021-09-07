@@ -35,7 +35,7 @@
 
 #include "xmlrpcpp/XmlRpcValue.h"
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/thread/recursive_mutex.hpp>
 
 namespace ros
@@ -46,19 +46,19 @@ struct SubscribeOptions;
 struct AdvertiseOptions;
 
 class TopicManager;
-typedef boost::shared_ptr<TopicManager> TopicManagerPtr;
+typedef std::shared_ptr<TopicManager> TopicManagerPtr;
 
 class PollManager;
-typedef boost::shared_ptr<PollManager> PollManagerPtr;
+typedef std::shared_ptr<PollManager> PollManagerPtr;
 
 class XMLRPCManager;
-typedef boost::shared_ptr<XMLRPCManager> XMLRPCManagerPtr;
+typedef std::shared_ptr<XMLRPCManager> XMLRPCManagerPtr;
 
 class ConnectionManager;
-typedef boost::shared_ptr<ConnectionManager> ConnectionManagerPtr;
+typedef std::shared_ptr<ConnectionManager> ConnectionManagerPtr;
 
 class SubscriptionCallbackHelper;
-typedef boost::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
+typedef std::shared_ptr<SubscriptionCallbackHelper> SubscriptionCallbackHelperPtr;
 
 class ROSCPP_DECL TopicManager
 {
@@ -218,16 +218,16 @@ private:
 
   bool isShuttingDown() { return shutting_down_; }
 
-  boost::mutex subs_mutex_;
+  std::mutex subs_mutex_;
   L_Subscription subscriptions_;
 
   boost::recursive_mutex advertised_topics_mutex_;
   V_Publication advertised_topics_;
   std::list<std::string> advertised_topic_names_;
-  boost::mutex advertised_topic_names_mutex_;
+  std::mutex advertised_topic_names_mutex_;
 
   volatile bool shutting_down_;
-  boost::mutex shutting_down_mutex_;
+  std::mutex shutting_down_mutex_;
 
   PollManagerPtr poll_manager_;
   ConnectionManagerPtr connection_manager_;

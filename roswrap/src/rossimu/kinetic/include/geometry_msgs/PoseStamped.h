@@ -46,15 +46,15 @@ struct PoseStamped_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::PoseStamped_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::PoseStamped_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::PoseStamped_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::PoseStamped_<ContainerAllocator> const> ConstPtr;
 
 }; // struct PoseStamped_
 
 typedef ::geometry_msgs::PoseStamped_<std::allocator<void> > PoseStamped;
 
-typedef boost::shared_ptr< ::geometry_msgs::PoseStamped > PoseStampedPtr;
-typedef boost::shared_ptr< ::geometry_msgs::PoseStamped const> PoseStampedConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::PoseStamped > PoseStampedPtr;
+typedef std::shared_ptr< ::geometry_msgs::PoseStamped const> PoseStampedConstPtr;
 
 // constants requiring out of line definition
 

@@ -40,15 +40,15 @@ struct SickDevGetLidarIdentSrvRequest_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickDevGetLidarIdentSrvRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickDevGetLidarIdentSrvRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickDevGetLidarIdentSrvRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickDevGetLidarIdentSrvRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickDevGetLidarIdentSrvRequest_
 
 typedef ::sick_scan::SickDevGetLidarIdentSrvRequest_<std::allocator<void> > SickDevGetLidarIdentSrvRequest;
 
-typedef boost::shared_ptr< ::sick_scan::SickDevGetLidarIdentSrvRequest > SickDevGetLidarIdentSrvRequestPtr;
-typedef boost::shared_ptr< ::sick_scan::SickDevGetLidarIdentSrvRequest const> SickDevGetLidarIdentSrvRequestConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickDevGetLidarIdentSrvRequest > SickDevGetLidarIdentSrvRequestPtr;
+typedef std::shared_ptr< ::sick_scan::SickDevGetLidarIdentSrvRequest const> SickDevGetLidarIdentSrvRequestConstPtr;
 
 // constants requiring out of line definition
 

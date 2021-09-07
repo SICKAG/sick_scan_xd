@@ -40,15 +40,15 @@ struct SickLocSetAutoStartSavePoseIntervalSrvRequest_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocSetAutoStartSavePoseIntervalSrvRequest_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocSetAutoStartSavePoseIntervalSrvRequest_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocSetAutoStartSavePoseIntervalSrvRequest_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocSetAutoStartSavePoseIntervalSrvRequest_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocSetAutoStartSavePoseIntervalSrvRequest_
 
 typedef ::sick_scan::SickLocSetAutoStartSavePoseIntervalSrvRequest_<std::allocator<void> > SickLocSetAutoStartSavePoseIntervalSrvRequest;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocSetAutoStartSavePoseIntervalSrvRequest > SickLocSetAutoStartSavePoseIntervalSrvRequestPtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocSetAutoStartSavePoseIntervalSrvRequest const> SickLocSetAutoStartSavePoseIntervalSrvRequestConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocSetAutoStartSavePoseIntervalSrvRequest > SickLocSetAutoStartSavePoseIntervalSrvRequestPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocSetAutoStartSavePoseIntervalSrvRequest const> SickLocSetAutoStartSavePoseIntervalSrvRequestConstPtr;
 
 // constants requiring out of line definition
 

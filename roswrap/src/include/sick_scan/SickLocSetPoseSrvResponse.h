@@ -40,15 +40,15 @@ struct SickLocSetPoseSrvResponse_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickLocSetPoseSrvResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickLocSetPoseSrvResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickLocSetPoseSrvResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickLocSetPoseSrvResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickLocSetPoseSrvResponse_
 
 typedef ::sick_scan::SickLocSetPoseSrvResponse_<std::allocator<void> > SickLocSetPoseSrvResponse;
 
-typedef boost::shared_ptr< ::sick_scan::SickLocSetPoseSrvResponse > SickLocSetPoseSrvResponsePtr;
-typedef boost::shared_ptr< ::sick_scan::SickLocSetPoseSrvResponse const> SickLocSetPoseSrvResponseConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickLocSetPoseSrvResponse > SickLocSetPoseSrvResponsePtr;
+typedef std::shared_ptr< ::sick_scan::SickLocSetPoseSrvResponse const> SickLocSetPoseSrvResponseConstPtr;
 
 // constants requiring out of line definition
 

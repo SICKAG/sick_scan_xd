@@ -41,15 +41,15 @@ struct GetMapResponse_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::GetMapResponse_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::GetMapResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::GetMapResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::GetMapResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct GetMapResponse_
 
 typedef ::nav_msgs::GetMapResponse_<std::allocator<void> > GetMapResponse;
 
-typedef boost::shared_ptr< ::nav_msgs::GetMapResponse > GetMapResponsePtr;
-typedef boost::shared_ptr< ::nav_msgs::GetMapResponse const> GetMapResponseConstPtr;
+typedef std::shared_ptr< ::nav_msgs::GetMapResponse > GetMapResponsePtr;
+typedef std::shared_ptr< ::nav_msgs::GetMapResponse const> GetMapResponseConstPtr;
 
 // constants requiring out of line definition
 

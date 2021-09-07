@@ -67,15 +67,15 @@ struct SickImu_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::SickImu_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::SickImu_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::SickImu_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::SickImu_<ContainerAllocator> const> ConstPtr;
 
 }; // struct SickImu_
 
 typedef ::sick_scan::SickImu_<std::allocator<void> > SickImu;
 
-typedef boost::shared_ptr< ::sick_scan::SickImu > SickImuPtr;
-typedef boost::shared_ptr< ::sick_scan::SickImu const> SickImuConstPtr;
+typedef std::shared_ptr< ::sick_scan::SickImu > SickImuPtr;
+typedef std::shared_ptr< ::sick_scan::SickImu const> SickImuConstPtr;
 
 // constants requiring out of line definition
 

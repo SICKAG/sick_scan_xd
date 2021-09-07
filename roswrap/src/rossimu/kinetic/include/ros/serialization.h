@@ -906,8 +906,8 @@ inline void deserializeMessage(const SerializedMessage& m, M& message)
 template<typename M>
 struct PreDeserializeParams
 {
-  boost::shared_ptr<M> message;
-  boost::shared_ptr<std::map<std::string, std::string> > connection_header;
+  std::shared_ptr<M> message;
+  std::shared_ptr<std::map<std::string, std::string> > connection_header;
 };
 
 /**

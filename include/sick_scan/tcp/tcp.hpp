@@ -85,34 +85,6 @@ private:
 	DisconnectFunction m_disconnectFunction;
 	void* m_disconnectFunctionObjPtr;	// Object of the Disconect callback
 
-
-/*	
-	bool m_beVerbose;	///< Enable *very* verbose debug output
-	asio::io_service m_io_service;
-	asio::ip::tcp::socket* m_socket;
-
-	boost::thread* m_readThreadPtr;
-	bool m_readThreadIsRunning;
-	bool m_readThreadShouldRun;
-	boost::condition m_readThreadCondition;	///< Condition to wait for the spawned thread to be started
-	boost::mutex m_readThreadMutex;			///< Mutex to wait for the spawned thread to be started
-	void readThread();						///< Receive-thread for incoming scans.
-	INT32 readInputData();
-
-	/// Notification on disconnected socket: If non-NULL, the event
-	/// monitor to which the m_disconnectedEventMask will be signalled
-	/// if this connection was terminated.
-	EventMonitor* m_disconnectedEventMonitor;
-
-	/// Notification on disconnected socket: Event mask which will be
-	/// signalled to the m_disconnectedEventMonitor if this connection
-	/// was terminated.
-	EventMonitor::Mask m_disconnectedEventMask;
-
-	BoundedBuffer<UINT8> m_rxBuffer;		///< Main input buffer
-	std::string m_rxString;					///< Eingangspuffer fuer Strings
-	bool m_longStringWarningPrinted;
-*/
 };
 
 #endif // TCP_HPP

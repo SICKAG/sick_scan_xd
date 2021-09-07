@@ -49,15 +49,15 @@ struct Point32_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::Point32_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::Point32_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::Point32_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::Point32_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Point32_
 
 typedef ::geometry_msgs::Point32_<std::allocator<void> > Point32;
 
-typedef boost::shared_ptr< ::geometry_msgs::Point32 > Point32Ptr;
-typedef boost::shared_ptr< ::geometry_msgs::Point32 const> Point32ConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::Point32 > Point32Ptr;
+typedef std::shared_ptr< ::geometry_msgs::Point32 const> Point32ConstPtr;
 
 // constants requiring out of line definition
 

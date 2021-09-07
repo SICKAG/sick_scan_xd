@@ -328,7 +328,7 @@ namespace sick_scan
     bool dumpDatagramForDebugging(unsigned char *buffer, int bufLen);
 
 #ifdef USE_DIAGNOSTIC_UPDATER
-    boost::shared_ptr<diagnostic_updater::Updater> diagnostics_;
+    std::shared_ptr<diagnostic_updater::Updater> diagnostics_;
 #endif
 
   private:

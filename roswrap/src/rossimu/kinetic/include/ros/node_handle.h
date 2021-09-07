@@ -374,7 +374,7 @@ Foo foo_object;
 ros::Subscriber sub = handle.subscribe("my_topic", 1, &Foo::callback, &foo_object);
 \endverbatim
    *
-   * \param M [template] M here is the callback parameter type (e.g. const boost::shared_ptr<M const>& or const M&), \b not the message type, and should almost always be deduced
+   * \param M [template] M here is the callback parameter type (e.g. const std::shared_ptr<M const>& or const M&), \b not the message type, and should almost always be deduced
    * \param topic Topic to subscribe to
    * \param queue_size Number of incoming messages to queue up for
    * processing (messages in excess of this queue capacity will be
@@ -387,7 +387,7 @@ ros::Subscriber sub = handle.subscribe("my_topic", 1, &Foo::callback, &foo_objec
 \verbatim
 ros::NodeHandle nodeHandle;
 void Foo::callback(const std_msgs::Empty::ConstPtr& message) {}
-boost::shared_ptr<Foo> foo_object(boost::make_shared<Foo>());
+std::shared_ptr<Foo> foo_object(std::make_shared<Foo>());
 ros::Subscriber sub = nodeHandle.subscribe("my_topic", 1, &Foo::callback, foo_object);
 if (sub)  // Enter if subscriber is valid
 {
@@ -450,7 +450,7 @@ ros::Subscriber sub = handle.subscribe("my_topic", 1, &Foo::callback, &foo_objec
 \verbatim
 ros::NodeHandle nodeHandle;
 void Foo::callback(const std_msgs::Empty::ConstPtr& message) {}
-boost::shared_ptr<Foo> foo_object(boost::make_shared<Foo>());
+std::shared_ptr<Foo> foo_object(std::make_shared<Foo>());
 ros::Subscriber sub = nodeHandle.subscribe("my_topic", 1, &Foo::callback, foo_object);
 if (sub)  // Enter if subscriber is valid
 {
@@ -462,7 +462,7 @@ if (sub)  // Enter if subscriber is valid
    */
   template<class M, class T>
   Subscriber subscribe(const std::string& topic, uint32_t queue_size, 
-                       void(T::*fp)(const boost::shared_ptr<M const>&), T* obj, 
+                       void(T::*fp)(const std::shared_ptr<M const>&), T* obj, 
                        const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
@@ -472,7 +472,7 @@ if (sub)  // Enter if subscriber is valid
   }
   template<class M, class T>
   Subscriber subscribe(const std::string& topic, uint32_t queue_size, 
-                       void(T::*fp)(const boost::shared_ptr<M const>&) const, T* obj, 
+                       void(T::*fp)(const std::shared_ptr<M const>&) const, T* obj, 
                        const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
@@ -496,11 +496,11 @@ void Foo::callback(const std_msgs::Empty::ConstPtr& message)
 {
 }
 
-boost::shared_ptr<Foo> foo_object(boost::make_shared<Foo>());
+std::shared_ptr<Foo> foo_object(std::make_shared<Foo>());
 ros::Subscriber sub = handle.subscribe("my_topic", 1, &Foo::callback, foo_object);
 \endverbatim
    *
-   * \param M [template] M here is the callback parameter type (e.g. const boost::shared_ptr<M const>& or const M&), \b not the message type, and should almost always be deduced
+   * \param M [template] M here is the callback parameter type (e.g. const std::shared_ptr<M const>& or const M&), \b not the message type, and should almost always be deduced
    * \param topic Topic to subscribe to
    * \param queue_size Number of incoming messages to queue up for
    * processing (messages in excess of this queue capacity will be
@@ -514,7 +514,7 @@ ros::Subscriber sub = handle.subscribe("my_topic", 1, &Foo::callback, foo_object
 \verbatim
 ros::NodeHandle nodeHandle;
 void Foo::callback(const std_msgs::Empty::ConstPtr& message) {}
-boost::shared_ptr<Foo> foo_object(boost::make_shared<Foo>());
+std::shared_ptr<Foo> foo_object(std::make_shared<Foo>());
 ros::Subscriber sub = nodeHandle.subscribe("my_topic", 1, &Foo::callback, foo_object);
 if (sub)  // Enter if subscriber is valid
 {
@@ -526,7 +526,7 @@ if (sub)  // Enter if subscriber is valid
    */
   template<class M, class T>
   Subscriber subscribe(const std::string& topic, uint32_t queue_size, void(T::*fp)(M), 
-                       const boost::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
+                       const std::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
     ops.template initByFullCallbackType<M>(topic, queue_size, boost::bind(fp, obj.get(), _1));
@@ -537,7 +537,7 @@ if (sub)  // Enter if subscriber is valid
 
   template<class M, class T>
   Subscriber subscribe(const std::string& topic, uint32_t queue_size, void(T::*fp)(M) const, 
-                       const boost::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
+                       const std::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
     ops.template initByFullCallbackType<M>(topic, queue_size, boost::bind(fp, obj.get(), _1));
@@ -561,7 +561,7 @@ void Foo::callback(const std_msgs::Empty::ConstPtr& message)
 {
 }
 
-boost::shared_ptr<Foo> foo_object(boost::make_shared<Foo>());
+std::shared_ptr<Foo> foo_object(std::make_shared<Foo>());
 ros::Subscriber sub = handle.subscribe("my_topic", 1, &Foo::callback, foo_object);
 \endverbatim
    *
@@ -579,7 +579,7 @@ ros::Subscriber sub = handle.subscribe("my_topic", 1, &Foo::callback, foo_object
 \verbatim
 ros::NodeHandle nodeHandle;
 void Foo::callback(const std_msgs::Empty::ConstPtr& message) {}
-boost::shared_ptr<Foo> foo_object(boost::make_shared<Foo>());
+std::shared_ptr<Foo> foo_object(std::make_shared<Foo>());
 ros::Subscriber sub = nodeHandle.subscribe("my_topic", 1, &Foo::callback, foo_object);
 if (sub)  // Enter if subscriber is valid
 {
@@ -591,8 +591,8 @@ if (sub)  // Enter if subscriber is valid
    */
   template<class M, class T>
   Subscriber subscribe(const std::string& topic, uint32_t queue_size, 
-                       void(T::*fp)(const boost::shared_ptr<M const>&), 
-                       const boost::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
+                       void(T::*fp)(const std::shared_ptr<M const>&), 
+                       const std::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
     ops.template init<M>(topic, queue_size, boost::bind(fp, obj.get(), _1));
@@ -602,8 +602,8 @@ if (sub)  // Enter if subscriber is valid
   }
   template<class M, class T>
   Subscriber subscribe(const std::string& topic, uint32_t queue_size, 
-                       void(T::*fp)(const boost::shared_ptr<M const>&) const, 
-                       const boost::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
+                       void(T::*fp)(const std::shared_ptr<M const>&) const, 
+                       const std::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
     ops.template init<M>(topic, queue_size, boost::bind(fp, obj.get(), _1));
@@ -630,7 +630,7 @@ void callback(const std_msgs::Empty::ConstPtr& message)
 ros::Subscriber sub = handle.subscribe("my_topic", 1, callback);
 \endverbatim
    *
-   * \param M [template] M here is the callback parameter type (e.g. const boost::shared_ptr<M const>& or const M&), \b not the message type, and should almost always be deduced
+   * \param M [template] M here is the callback parameter type (e.g. const std::shared_ptr<M const>& or const M&), \b not the message type, and should almost always be deduced
    * \param topic Topic to subscribe to
    * \param queue_size Number of incoming messages to queue up for
    * processing (messages in excess of this queue capacity will be
@@ -700,7 +700,7 @@ if (sub)  // Enter if subscriber is valid
    *  \throws ConflictingSubscriptionException If this node is already subscribed to the same topic with a different datatype
    */
   template<class M>
-  Subscriber subscribe(const std::string& topic, uint32_t queue_size, void(*fp)(const boost::shared_ptr<M const>&), const TransportHints& transport_hints = TransportHints())
+  Subscriber subscribe(const std::string& topic, uint32_t queue_size, void(*fp)(const std::shared_ptr<M const>&), const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
     ops.template init<M>(topic, queue_size, fp);
@@ -746,7 +746,7 @@ if (sub)  // Enter if subscriber is valid
    *  \throws ConflictingSubscriptionException If this node is already subscribed to the same topic with a different datatype
    */
   template<class M>
-  Subscriber subscribe(const std::string& topic, uint32_t queue_size, const boost::function<void (const boost::shared_ptr<M const>&)>& callback,
+  Subscriber subscribe(const std::string& topic, uint32_t queue_size, const boost::function<void (const std::shared_ptr<M const>&)>& callback,
                              const VoidConstPtr& tracked_object = VoidConstPtr(), const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
@@ -768,7 +768,7 @@ if (sub)  // Enter if subscriber is valid
    * This version of subscribe allows anything bindable to a boost::function object
    *
    * \param M [template] the message type
-   * \param C [template] the callback parameter type (e.g. const boost::shared_ptr<M const>& or const M&)
+   * \param C [template] the callback parameter type (e.g. const std::shared_ptr<M const>& or const M&)
    * \param topic Topic to subscribe to
    * \param queue_size Number of incoming messages to queue up for
    * processing (messages in excess of this queue capacity will be
@@ -940,7 +940,7 @@ bool Foo::callback(std_srvs::Empty& request, std_srvs::Empty& response)
   return true;
 }
 
-boost::shared_ptr<Foo> foo_object(boost::make_shared<Foo>());
+std::shared_ptr<Foo> foo_object(std::make_shared<Foo>());
 ros::ServiceServer service = handle.advertiseService("my_service", &Foo::callback, foo_object);
 \endverbatim
    *
@@ -966,7 +966,7 @@ if (service)  // Enter if advertised service is valid
    * \throws InvalidNameException If the service name begins with a tilde, or is an otherwise invalid graph resource name
    */
   template<class T, class MReq, class MRes>
-  ServiceServer advertiseService(const std::string& service, bool(T::*srv_func)(MReq &, MRes &), const boost::shared_ptr<T>& obj)
+  ServiceServer advertiseService(const std::string& service, bool(T::*srv_func)(MReq &, MRes &), const std::shared_ptr<T>& obj)
   {
     AdvertiseServiceOptions ops;
     ops.template init<MReq, MRes>(service, boost::bind(srv_func, obj.get(), _1, _2));
@@ -987,7 +987,7 @@ bool Foo::callback(ros::ServiceEvent<std_srvs::Empty, std_srvs::Empty>& event)
   return true;
 }
 
-boost::shared_ptr<Foo> foo_object(boost::make_shared<Foo>());
+std::shared_ptr<Foo> foo_object(std::make_shared<Foo>());
 ros::ServiceServer service = handle.advertiseService("my_service", &Foo::callback, foo_object);
 \endverbatim
    *
@@ -1013,7 +1013,7 @@ if (service)  // Enter if advertised service is valid
    * \throws InvalidNameException If the service name begins with a tilde, or is an otherwise invalid graph resource name
    */
   template<class T, class MReq, class MRes>
-  ServiceServer advertiseService(const std::string& service, bool(T::*srv_func)(ServiceEvent<MReq, MRes>&), const boost::shared_ptr<T>& obj)
+  ServiceServer advertiseService(const std::string& service, bool(T::*srv_func)(ServiceEvent<MReq, MRes>&), const std::shared_ptr<T>& obj)
   {
     AdvertiseServiceOptions ops;
     ops.template initBySpecType<ServiceEvent<MReq, MRes> >(service, boost::bind(srv_func, obj.get(), _1));
@@ -1351,7 +1351,7 @@ if (service)  // Enter if advertised service is valid
    * \param autostart If true (default), return timer that is already started
    */
   template<class T>
-  Timer createTimer(Duration period, void(T::*callback)(const TimerEvent&), const boost::shared_ptr<T>& obj, 
+  Timer createTimer(Duration period, void(T::*callback)(const TimerEvent&), const std::shared_ptr<T>& obj, 
                     bool oneshot = false, bool autostart = true) const
   {
     TimerOptions ops(period, boost::bind(callback, obj.get(), _1), 0);
@@ -1429,7 +1429,7 @@ if (service)  // Enter if advertised service is valid
    */
   template<class T>
   WallTimer createWallTimer(WallDuration period, void(T::*callback)(const WallTimerEvent&), 
-                            const boost::shared_ptr<T>& obj, 
+                            const std::shared_ptr<T>& obj, 
                             bool oneshot = false, bool autostart = true) const
   {
     WallTimerOptions ops(period, boost::bind(callback, obj.get(), _1), 0);

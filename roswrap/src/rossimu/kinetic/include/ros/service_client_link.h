@@ -30,9 +30,9 @@
 
 #include "ros/common.h"
 
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 #include <boost/shared_array.hpp>
-#include <boost/enable_shared_from_this.hpp>
+#include <memory>
 #include <boost/signals2/connection.hpp>
 
 #include <queue>
@@ -41,15 +41,15 @@ namespace ros
 {
 class Header;
 class ServicePublication;
-typedef boost::weak_ptr<ServicePublication> ServicePublicationWPtr;
-typedef boost::shared_ptr<ServicePublication> ServicePublicationPtr;
+typedef std::weak_ptr<ServicePublication> ServicePublicationWPtr;
+typedef std::shared_ptr<ServicePublication> ServicePublicationPtr;
 class Connection;
-typedef boost::shared_ptr<Connection> ConnectionPtr;
+typedef std::shared_ptr<Connection> ConnectionPtr;
 
 /**
  * \brief Handles a connection to a single incoming service client.
  */
-class ROSCPP_DECL ServiceClientLink : public boost::enable_shared_from_this<ServiceClientLink>
+class ROSCPP_DECL ServiceClientLink : public std::enable_shared_from_this<ServiceClientLink>
 {
 public:
   ServiceClientLink();
@@ -81,7 +81,7 @@ private:
   bool persistent_;
   boost::signals2::connection dropped_conn_;
 };
-typedef boost::shared_ptr<ServiceClientLink> ServiceClientLinkPtr;
+typedef std::shared_ptr<ServiceClientLink> ServiceClientLinkPtr;
 
 } // namespace ros
 

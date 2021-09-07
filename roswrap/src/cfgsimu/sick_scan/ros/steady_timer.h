@@ -114,8 +114,8 @@ private:
     bool has_tracked_object_;
     bool oneshot_;
   };
-  typedef boost::shared_ptr<Impl> ImplPtr;
-  typedef boost::weak_ptr<Impl> ImplWPtr;
+  typedef std::shared_ptr<Impl> ImplPtr;
+  typedef std::weak_ptr<Impl> ImplWPtr;
 
   ImplPtr impl_;
 

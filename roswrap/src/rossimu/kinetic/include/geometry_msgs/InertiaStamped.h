@@ -46,15 +46,15 @@ struct InertiaStamped_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::InertiaStamped_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::InertiaStamped_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::InertiaStamped_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::InertiaStamped_<ContainerAllocator> const> ConstPtr;
 
 }; // struct InertiaStamped_
 
 typedef ::geometry_msgs::InertiaStamped_<std::allocator<void> > InertiaStamped;
 
-typedef boost::shared_ptr< ::geometry_msgs::InertiaStamped > InertiaStampedPtr;
-typedef boost::shared_ptr< ::geometry_msgs::InertiaStamped const> InertiaStampedConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::InertiaStamped > InertiaStampedPtr;
+typedef std::shared_ptr< ::geometry_msgs::InertiaStamped const> InertiaStampedConstPtr;
 
 // constants requiring out of line definition
 

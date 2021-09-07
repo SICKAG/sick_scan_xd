@@ -46,15 +46,15 @@ struct PolygonStamped_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::PolygonStamped_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::PolygonStamped_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::PolygonStamped_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::PolygonStamped_<ContainerAllocator> const> ConstPtr;
 
 }; // struct PolygonStamped_
 
 typedef ::geometry_msgs::PolygonStamped_<std::allocator<void> > PolygonStamped;
 
-typedef boost::shared_ptr< ::geometry_msgs::PolygonStamped > PolygonStampedPtr;
-typedef boost::shared_ptr< ::geometry_msgs::PolygonStamped const> PolygonStampedConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::PolygonStamped > PolygonStampedPtr;
+typedef std::shared_ptr< ::geometry_msgs::PolygonStamped const> PolygonStampedConstPtr;
 
 // constants requiring out of line definition
 

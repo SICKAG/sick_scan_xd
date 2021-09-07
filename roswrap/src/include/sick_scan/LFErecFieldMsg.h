@@ -115,15 +115,15 @@ struct LFErecFieldMsg_
 
 
 
-  typedef boost::shared_ptr< ::sick_scan::LFErecFieldMsg_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::sick_scan::LFErecFieldMsg_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan::LFErecFieldMsg_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan::LFErecFieldMsg_<ContainerAllocator> const> ConstPtr;
 
 }; // struct LFErecFieldMsg_
 
 typedef ::sick_scan::LFErecFieldMsg_<std::allocator<void> > LFErecFieldMsg;
 
-typedef boost::shared_ptr< ::sick_scan::LFErecFieldMsg > LFErecFieldMsgPtr;
-typedef boost::shared_ptr< ::sick_scan::LFErecFieldMsg const> LFErecFieldMsgConstPtr;
+typedef std::shared_ptr< ::sick_scan::LFErecFieldMsg > LFErecFieldMsgPtr;
+typedef std::shared_ptr< ::sick_scan::LFErecFieldMsg const> LFErecFieldMsgConstPtr;
 
 // constants requiring out of line definition
 

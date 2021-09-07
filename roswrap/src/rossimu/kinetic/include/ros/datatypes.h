@@ -34,7 +34,7 @@
 #include <set>
 #include <list>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 
 namespace ros {
@@ -45,7 +45,7 @@ typedef std::set<std::string> S_string;
 typedef std::map<std::string, std::string> M_string;
 typedef std::pair<std::string, std::string> StringPair;
 
-typedef boost::shared_ptr<M_string> M_stringPtr;
+typedef std::shared_ptr<M_string> M_stringPtr;
 
 }
 

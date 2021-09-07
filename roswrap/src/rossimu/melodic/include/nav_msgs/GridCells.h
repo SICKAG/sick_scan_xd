@@ -57,15 +57,15 @@ struct GridCells_
 
 
 
-  typedef boost::shared_ptr< ::nav_msgs::GridCells_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::nav_msgs::GridCells_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::nav_msgs::GridCells_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::nav_msgs::GridCells_<ContainerAllocator> const> ConstPtr;
 
 }; // struct GridCells_
 
 typedef ::nav_msgs::GridCells_<std::allocator<void> > GridCells;
 
-typedef boost::shared_ptr< ::nav_msgs::GridCells > GridCellsPtr;
-typedef boost::shared_ptr< ::nav_msgs::GridCells const> GridCellsConstPtr;
+typedef std::shared_ptr< ::nav_msgs::GridCells > GridCellsPtr;
+typedef std::shared_ptr< ::nav_msgs::GridCells const> GridCellsConstPtr;
 
 // constants requiring out of line definition
 

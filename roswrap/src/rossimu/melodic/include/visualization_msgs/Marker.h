@@ -184,15 +184,15 @@ struct Marker_
   };
 
 
-  typedef boost::shared_ptr< ::visualization_msgs::Marker_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::visualization_msgs::Marker_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::visualization_msgs::Marker_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::visualization_msgs::Marker_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Marker_
 
 typedef ::visualization_msgs::Marker_<std::allocator<void> > Marker;
 
-typedef boost::shared_ptr< ::visualization_msgs::Marker > MarkerPtr;
-typedef boost::shared_ptr< ::visualization_msgs::Marker const> MarkerConstPtr;
+typedef std::shared_ptr< ::visualization_msgs::Marker > MarkerPtr;
+typedef std::shared_ptr< ::visualization_msgs::Marker const> MarkerConstPtr;
 
 // constants requiring out of line definition
 

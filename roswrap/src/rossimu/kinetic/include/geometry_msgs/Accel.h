@@ -46,15 +46,15 @@ struct Accel_
 
 
 
-  typedef boost::shared_ptr< ::geometry_msgs::Accel_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::geometry_msgs::Accel_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::geometry_msgs::Accel_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::geometry_msgs::Accel_<ContainerAllocator> const> ConstPtr;
 
 }; // struct Accel_
 
 typedef ::geometry_msgs::Accel_<std::allocator<void> > Accel;
 
-typedef boost::shared_ptr< ::geometry_msgs::Accel > AccelPtr;
-typedef boost::shared_ptr< ::geometry_msgs::Accel const> AccelConstPtr;
+typedef std::shared_ptr< ::geometry_msgs::Accel > AccelPtr;
+typedef std::shared_ptr< ::geometry_msgs::Accel const> AccelConstPtr;
 
 // constants requiring out of line definition
 

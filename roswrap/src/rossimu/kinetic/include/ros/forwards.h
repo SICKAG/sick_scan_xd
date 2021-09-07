@@ -34,7 +34,7 @@
 #include <set>
 #include <list>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/make_shared.hpp>
 #include <boost/weak_ptr.hpp>
 #include <boost/function.hpp>
@@ -47,48 +47,48 @@
 namespace ros
 {
 
-typedef boost::shared_ptr<void> VoidPtr;
-typedef boost::weak_ptr<void> VoidWPtr;
-typedef boost::shared_ptr<void const> VoidConstPtr;
-typedef boost::weak_ptr<void const> VoidConstWPtr;
+typedef std::shared_ptr<void> VoidPtr;
+typedef std::weak_ptr<void> VoidWPtr;
+typedef std::shared_ptr<void const> VoidConstPtr;
+typedef std::weak_ptr<void const> VoidConstWPtr;
 
 class Header;
 class Transport;
-typedef boost::shared_ptr<Transport> TransportPtr;
+typedef std::shared_ptr<Transport> TransportPtr;
 class TransportTCP;
-typedef boost::shared_ptr<TransportTCP> TransportTCPPtr;
+typedef std::shared_ptr<TransportTCP> TransportTCPPtr;
 class TransportUDP;
-typedef boost::shared_ptr<TransportUDP> TransportUDPPtr;
+typedef std::shared_ptr<TransportUDP> TransportUDPPtr;
 class Connection;
-typedef boost::shared_ptr<Connection> ConnectionPtr;
+typedef std::shared_ptr<Connection> ConnectionPtr;
 typedef std::set<ConnectionPtr> S_Connection;
 typedef std::vector<ConnectionPtr> V_Connection;
 class Publication;
-typedef boost::shared_ptr<Publication> PublicationPtr;
+typedef std::shared_ptr<Publication> PublicationPtr;
 typedef std::vector<PublicationPtr> V_Publication;
 class SubscriberLink;
-typedef boost::shared_ptr<SubscriberLink> SubscriberLinkPtr;
+typedef std::shared_ptr<SubscriberLink> SubscriberLinkPtr;
 typedef std::vector<SubscriberLinkPtr> V_SubscriberLink;
 class Subscription;
-typedef boost::shared_ptr<Subscription> SubscriptionPtr;
-typedef boost::weak_ptr<Subscription> SubscriptionWPtr;
+typedef std::shared_ptr<Subscription> SubscriptionPtr;
+typedef std::weak_ptr<Subscription> SubscriptionWPtr;
 typedef std::list<SubscriptionPtr> L_Subscription;
 typedef std::vector<SubscriptionPtr> V_Subscription;
 typedef std::set<SubscriptionPtr> S_Subscription;
 class PublisherLink;
-typedef boost::shared_ptr<PublisherLink> PublisherLinkPtr;
+typedef std::shared_ptr<PublisherLink> PublisherLinkPtr;
 typedef std::vector<PublisherLinkPtr> V_PublisherLink;
 class ServicePublication;
-typedef boost::shared_ptr<ServicePublication> ServicePublicationPtr;
+typedef std::shared_ptr<ServicePublication> ServicePublicationPtr;
 typedef std::list<ServicePublicationPtr> L_ServicePublication;
 typedef std::vector<ServicePublicationPtr> V_ServicePublication;
 class ServiceServerLink;
-typedef boost::shared_ptr<ServiceServerLink> ServiceServerLinkPtr;
+typedef std::shared_ptr<ServiceServerLink> ServiceServerLinkPtr;
 typedef std::list<ServiceServerLinkPtr> L_ServiceServerLink;
 class Transport;
-typedef boost::shared_ptr<Transport> TransportPtr;
+typedef std::shared_ptr<Transport> TransportPtr;
 class NodeHandle;
-typedef boost::shared_ptr<NodeHandle> NodeHandlePtr;
+typedef std::shared_ptr<NodeHandle> NodeHandlePtr;
 
 
 class SingleSubscriberPublisher;
@@ -97,7 +97,7 @@ typedef boost::function<void(const SingleSubscriberPublisher&)> SubscriberStatus
 class CallbackQueue;
 class CallbackQueueInterface;
 class CallbackInterface;
-typedef boost::shared_ptr<CallbackInterface> CallbackInterfacePtr;
+typedef std::shared_ptr<CallbackInterface> CallbackInterfacePtr;
 
 struct SubscriberCallbacks
 {
@@ -123,7 +123,7 @@ struct SubscriberCallbacks
   VoidConstWPtr tracked_object_;
   CallbackQueueInterface* callback_queue_;
 };
-typedef boost::shared_ptr<SubscriberCallbacks> SubscriberCallbacksPtr;
+typedef std::shared_ptr<SubscriberCallbacks> SubscriberCallbacksPtr;
 
 /**
  * \brief Structure passed as a parameter to the callback invoked by a ros::Timer
@@ -162,15 +162,15 @@ struct WallTimerEvent
 typedef boost::function<void(const WallTimerEvent&)> WallTimerCallback;
 
 class ServiceManager;
-typedef boost::shared_ptr<ServiceManager> ServiceManagerPtr;
+typedef std::shared_ptr<ServiceManager> ServiceManagerPtr;
 class TopicManager;
-typedef boost::shared_ptr<TopicManager> TopicManagerPtr;
+typedef std::shared_ptr<TopicManager> TopicManagerPtr;
 class ConnectionManager;
-typedef boost::shared_ptr<ConnectionManager> ConnectionManagerPtr;
+typedef std::shared_ptr<ConnectionManager> ConnectionManagerPtr;
 class XMLRPCManager;
-typedef boost::shared_ptr<XMLRPCManager> XMLRPCManagerPtr;
+typedef std::shared_ptr<XMLRPCManager> XMLRPCManagerPtr;
 class PollManager;
-typedef boost::shared_ptr<PollManager> PollManagerPtr;
+typedef std::shared_ptr<PollManager> PollManagerPtr;
 
 }
 

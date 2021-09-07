@@ -44,21 +44,21 @@ struct ROSCPP_DECL ServiceCallbackHelperCallParams
 {
   SerializedMessage request;
   SerializedMessage response;
-  boost::shared_ptr<M_string> connection_header;
+  std::shared_ptr<M_string> connection_header;
 };
 
 template<typename M>
-inline boost::shared_ptr<M> defaultServiceCreateFunction()
+inline std::shared_ptr<M> defaultServiceCreateFunction()
 {
-  return boost::make_shared<M>();
+  return std::make_shared<M>();
 }
 
 template<typename MReq, typename MRes>
 struct ServiceSpecCallParams
 {
-  boost::shared_ptr<MReq> request;
-  boost::shared_ptr<MRes> response;
-  boost::shared_ptr<M_string> connection_header;
+  std::shared_ptr<MReq> request;
+  std::shared_ptr<MRes> response;
+  std::shared_ptr<M_string> connection_header;
 };
 
 /**
@@ -72,8 +72,8 @@ class ServiceEvent
 public:
   typedef MReq RequestType;
   typedef MRes ResponseType;
-  typedef boost::shared_ptr<RequestType> RequestPtr;
-  typedef boost::shared_ptr<ResponseType> ResponsePtr;
+  typedef std::shared_ptr<RequestType> RequestPtr;
+  typedef std::shared_ptr<ResponseType> ResponsePtr;
   typedef boost::function<bool(ServiceEvent<RequestType, ResponseType>&)> CallbackType;
 
   static bool call(const CallbackType& cb, ServiceSpecCallParams<RequestType, ResponseType>& params)
@@ -82,7 +82,7 @@ public:
     return cb(event);
   }
 
-  ServiceEvent(const boost::shared_ptr<MReq const>& req, const boost::shared_ptr<MRes>& res, const boost::shared_ptr<M_string>& connection_header)
+  ServiceEvent(const std::shared_ptr<MReq const>& req, const std::shared_ptr<MRes>& res, const std::shared_ptr<M_string>& connection_header)
   : request_(req)
   , response_(res)
   , connection_header_(connection_header)
@@ -106,9 +106,9 @@ public:
    */
   const std::string& getCallerName() const { return (*connection_header_)["callerid"]; }
 private:
-  boost::shared_ptr<RequestType const> request_;
-  boost::shared_ptr<ResponseType> response_;
-  boost::shared_ptr<M_string> connection_header_;
+  std::shared_ptr<RequestType const> request_;
+  std::shared_ptr<ResponseType> response_;
+  std::shared_ptr<M_string> connection_header_;
 };
 
 template<typename MReq, typename MRes>
@@ -116,8 +116,8 @@ struct ServiceSpec
 {
   typedef MReq RequestType;
   typedef MRes ResponseType;
-  typedef boost::shared_ptr<RequestType> RequestPtr;
-  typedef boost::shared_ptr<ResponseType> ResponsePtr;
+  typedef std::shared_ptr<RequestType> RequestPtr;
+  typedef std::shared_ptr<ResponseType> ResponsePtr;
   typedef boost::function<bool(RequestType&, ResponseType&)> CallbackType;
 
   static bool call(const CallbackType& cb, ServiceSpecCallParams<RequestType, ResponseType>& params)
@@ -137,7 +137,7 @@ public:
   virtual ~ServiceCallbackHelper() {}
   virtual bool call(ServiceCallbackHelperCallParams& params) = 0;
 };
-typedef boost::shared_ptr<ServiceCallbackHelper> ServiceCallbackHelperPtr;
+typedef std::shared_ptr<ServiceCallbackHelper> ServiceCallbackHelperPtr;
 
 /**
  * \brief Concrete generic implementation of ServiceCallbackHelper for any normal service type

@@ -59,15 +59,15 @@ struct ParamDescription_
 
 
 
-  typedef boost::shared_ptr< ::dynamic_reconfigure::ParamDescription_<ContainerAllocator> > Ptr;
-  typedef boost::shared_ptr< ::dynamic_reconfigure::ParamDescription_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::ParamDescription_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::dynamic_reconfigure::ParamDescription_<ContainerAllocator> const> ConstPtr;
 
 }; // struct ParamDescription_
 
 typedef ::dynamic_reconfigure::ParamDescription_<std::allocator<void> > ParamDescription;
 
-typedef boost::shared_ptr< ::dynamic_reconfigure::ParamDescription > ParamDescriptionPtr;
-typedef boost::shared_ptr< ::dynamic_reconfigure::ParamDescription const> ParamDescriptionConstPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::ParamDescription > ParamDescriptionPtr;
+typedef std::shared_ptr< ::dynamic_reconfigure::ParamDescription const> ParamDescriptionConstPtr;
 
 // constants requiring out of line definition
 
