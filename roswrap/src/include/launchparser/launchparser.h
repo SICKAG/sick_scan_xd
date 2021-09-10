@@ -5,31 +5,6 @@
 #ifndef SICK_SCAN_BASE_LAUNCHPARSER_H
 #define SICK_SCAN_BASE_LAUNCHPARSER_H
 
-/*
-#include "boost/filesystem.hpp"
-#include <boost/regex.hpp>
-#include <boost/algorithm/string.hpp>
-#include <algorithm> // for std::min
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <iostream>
-#ifndef _MSC_VER
-#include <sys/wait.h>
-#endif
-#include <unistd.h>
-#include <cstdio>
-#include <cstdlib>
-
-#include <string>
-#include <map>
-
-#include "tinystr.h"
-#include "tinyxml.h"
-*/
 #include <string>
 #include <vector>
 

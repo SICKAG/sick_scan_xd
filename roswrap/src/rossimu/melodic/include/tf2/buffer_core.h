@@ -34,7 +34,7 @@
 
 #include "transform_storage.h"
 
-#include <boost/signals2.hpp>
+//#include <boost/signals2.hpp>
 
 #include <string>
 
@@ -46,9 +46,9 @@
 //////////////////////////backwards startup for porting
 //#include "tf/tf.h"
 
-#include <boost/unordered_map.hpp>
+//#include <boost/unordered_map.hpp>
 #include <mutex>
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 #include <memory>
 
 namespace tf2
@@ -223,7 +223,7 @@ public:
    */
   std::string allFramesAsString() const;
   
-  typedef boost::function<void(TransformableRequestHandle request_handle, const std::string& target_frame, const std::string& source_frame,
+  typedef std::function<void(TransformableRequestHandle request_handle, const std::string& target_frame, const std::string& source_frame,
                                ros::Time time, TransformableResult result)> TransformableCallback;
 
   /// \brief Internal use only
@@ -257,7 +257,7 @@ public:
    * \return A boost::signals2::connection object that can be used to remove this
    * listener
    */
-  boost::signals2::connection _addTransformsChangedListener(boost::function<void(void)> callback);
+  boost::signals2::connection _addTransformsChangedListener(std::function<void(void)> callback);
   void _removeTransformsChangedListener(boost::signals2::connection c);
 
 

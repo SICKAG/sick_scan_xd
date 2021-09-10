@@ -71,6 +71,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
 #include "sick_scan/sick_generic_laser.h"
 #include "sick_scan/dataDumper.h"

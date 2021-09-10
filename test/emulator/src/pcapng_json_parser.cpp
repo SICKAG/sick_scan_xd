@@ -56,6 +56,7 @@
 #include <fstream>
 #include <sstream>
 #include <string.h>
+#include <iomanip>
 #ifdef _MSC_VER
 #include <json/json.h>
 #else

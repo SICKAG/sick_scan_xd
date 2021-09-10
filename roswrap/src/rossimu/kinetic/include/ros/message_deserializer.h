@@ -34,7 +34,7 @@
 #include <ros/serialized_message.h>
 
 #include <mutex>
-#include <boost/shared_array.hpp>
+//#include <boost/shared_array.hpp>
 
 namespace ros
 {

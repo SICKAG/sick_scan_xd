@@ -158,7 +158,7 @@ public:
 // 	 * continuously call this function (after potentially some waiting
 // 	 * time). False if this thread should end now.
 // 	 */
-// //	typedef boost::function < bool (void) > ThreadFunctionSimple;
+// //	typedef std::function < bool (void) > ThreadFunctionSimple;
 // 
 // 	/// Default constructor.
 // 	SickThread();

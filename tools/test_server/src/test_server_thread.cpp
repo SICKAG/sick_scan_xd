@@ -62,11 +62,11 @@
 #include <chrono>
 #include <thread>
 
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/read.hpp>
-#include <boost/asio/write.hpp>
+//#include <boost/asio/buffer.hpp>
+//#include <boost/asio/io_service.hpp>
+//#include <boost/asio/ip/tcp.hpp>
+//#include <boost/asio/read.hpp>
+//#include <boost/asio/write.hpp>
 
 #include "sick_scan/binPrintf.hpp"
 #include "sick_scan/test_server/test_server_thread.h"
@@ -147,16 +147,17 @@ bool sick_scan::test::TestServerThread::run(void)
   }
 
   // Create listening socket and wait for connection from a client
-  boost::system::error_code error_code;
-  boost::asio::io_service ioservice;
-  boost::asio::ip::tcp::acceptor tcp_acceptor(ioservice, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), m_ip_port));
-  tcp_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-  boost::asio::ip::tcp::socket tcp_client_socket(ioservice);
-  ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): waiting for tcp connection on port " << m_ip_port);
-  tcp_acceptor.listen();
-  tcp_acceptor.accept(tcp_client_socket, error_code);
-  if(tcp_client_socket.is_open())
+  sick_scan::ServerSocket tcp_socket;
+  if (tcp_socket.open(m_ip_port)
+    && tcp_socket.connect()
+    && tcp_socket.is_open())
+  {
     ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): tcp connection established");
+  }
+  else
+  {
+    ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerThread::run(" << m_scanner_name << "): tcp connection port " << m_ip_port << " failed");
+  }
 
   // Create device specific message handler
   sick_scan::test::TestServerLidarMsg* msg_handler = 0;
@@ -173,11 +174,11 @@ bool sick_scan::test::TestServerThread::run(void)
   message_received.reserve(64 * 1024);
   message_response.reserve(64 * 1024);
   bool message_is_binary = false;
-  while(rosOk() && m_run_server_thread && tcp_client_socket.is_open())
+  while(rosOk() && m_run_server_thread && tcp_socket.is_open())
   {
     // ROS_DEBUG_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): tcp connection established, running event loop...");
     // Receive message
-    if(msg_handler->receiveMessage(tcp_client_socket, message_received, message_is_binary))
+    if(msg_handler->receiveMessage(tcp_socket, message_received, message_is_binary))
     {
       ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): received " << message_received.size() 
         << " byte " << (message_is_binary?"binary":"text") << " message \"" << binDumpVecToString(&message_received, !message_is_binary) << "\"");
@@ -187,8 +188,7 @@ bool sick_scan::test::TestServerThread::run(void)
         ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): sending " << message_response.size() 
           << " byte response \"" << binDumpVecToString(&message_response, !message_is_binary) << "\"");
         // Send response
-        size_t bytes_written = boost::asio::write(tcp_client_socket, boost::asio::buffer(message_response.data(), message_response.size()), boost::asio::transfer_exactly(message_response.size()), error_code);
-        if(error_code || bytes_written < message_response.size())
+        if(!tcp_socket.write(message_response.data(), message_response.size()))
         {
           ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerThread::run(" << m_scanner_name << "): failed to send " << message_response.size() 
             << " byte response \"" << binDumpVecToString(&message_received, !message_is_binary) << "\"");
@@ -201,8 +201,7 @@ bool sick_scan::test::TestServerThread::run(void)
       if(msg_handler->createScandata(scandata_message))
       {
         // Send scan data
-        size_t bytes_written = boost::asio::write(tcp_client_socket, boost::asio::buffer(scandata_message.data(), scandata_message.size()), boost::asio::transfer_exactly(scandata_message.size()), error_code);
-        if(error_code || bytes_written < message_response.size())
+        if(!tcp_socket.write(scandata_message.data(), scandata_message.size()))
         {
           ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerThread::run(" << m_scanner_name << "): failed to send " << scandata_message.size() 
             << " byte scan data \"" << binDumpVecToString(&message_received) << "\"");
@@ -214,15 +213,9 @@ bool sick_scan::test::TestServerThread::run(void)
 
   // Close tcp connection
   ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): closing tcp connection");
-  ioservice.stop();
-  if(tcp_acceptor.is_open())
+  if(tcp_socket.is_open())
   {
-    tcp_acceptor.close();
-  }
-  if(tcp_client_socket.is_open())
-  {
-    tcp_client_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-    tcp_client_socket.close();
+    tcp_socket.close();
   }
   ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): exiting tcp communication thread");
   m_run_server_thread = false;

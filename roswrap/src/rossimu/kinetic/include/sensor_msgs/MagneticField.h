@@ -29,14 +29,14 @@ struct MagneticField_
     : header()
     , magnetic_field()
     , magnetic_field_covariance()  {
-      magnetic_field_covariance.assign(0.0);
+      magnetic_field_covariance.fill(0.0);
   }
   MagneticField_(const ContainerAllocator& _alloc)
     : header(_alloc)
     , magnetic_field(_alloc)
     , magnetic_field_covariance()  {
   (void)_alloc;
-      magnetic_field_covariance.assign(0.0);
+      magnetic_field_covariance.fill(0.0);
   }
 
 
@@ -47,7 +47,7 @@ struct MagneticField_
    typedef  ::geometry_msgs::Vector3_<ContainerAllocator>  _magnetic_field_type;
   _magnetic_field_type magnetic_field;
 
-   typedef boost::array<double, 9>  _magnetic_field_covariance_type;
+   typedef std::array<double, 9>  _magnetic_field_covariance_type;
   _magnetic_field_covariance_type magnetic_field_covariance;
 
 

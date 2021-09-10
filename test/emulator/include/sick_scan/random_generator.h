@@ -55,7 +55,8 @@
 #ifndef __SIM_LOC_RANDOM_H_INCLUDED
 #define __SIM_LOC_RANDOM_H_INCLUDED
 
-#include <boost/random.hpp>
+#include <random>
+// #include <boost/random.hpp>
 
 namespace sick_scan
 {
@@ -92,9 +93,14 @@ namespace sick_scan
      * member data
      */
 
-    boost::mt19937 m_random_engine; ///< mersenne twister engine
-    boost::uniform_int<> m_uniform_distribution; ///< uniform integer distribution
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > m_random_generator; ///< random number generator (glues mersenne engine and distribution)
+    int m_lower_bound; // min. value of random distribution
+    int m_upper_bound; // max. value of random distribution
+    std::random_device m_random_device; ///< random device
+    std::mt19937 m_random_engine; ///< mersenne twister engine
+    std::uniform_int_distribution<int> m_uniform_distribution; ///< uniform integer distribution
+    // boost::mt19937 m_random_engine; ///< mersenne twister engine
+    // boost::uniform_int<> m_uniform_distribution; ///< uniform integer distribution
+    // boost::variate_generator<boost::mt19937&, boost::uniform_int<> > m_random_generator; ///< random number generator (glues mersenne engine and distribution)
   
   }; // class UniformIntegerRandom
   

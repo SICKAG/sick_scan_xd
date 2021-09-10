@@ -57,6 +57,7 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
+#include <signal.h>
 #include <sick_scan/sick_ros_wrapper.h>
 #include <sick_scan/sick_generic_laser.h>
 #include "sick_scan/test_server/test_server_thread.h"

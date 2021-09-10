@@ -65,7 +65,8 @@ int main (int argc, char** argv)
     // dynamic reconfigure
     dynamic_reconfigure::Server<sick_scan_fusion::tf_dynConfig> server;
     dynamic_reconfigure::Server<sick_scan_fusion::tf_dynConfig>::CallbackType f;
-    f = boost::bind(&callback, _1, _2);
+    // f = std::bind(&callback, _1, _2);
+    f = std::bind(&callback, std::placeholders::_1, std::placeholders::_2);
     server.setCallback(f);
 
 

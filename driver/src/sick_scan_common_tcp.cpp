@@ -59,11 +59,8 @@
 #include <sick_scan/tcp/colaa.hpp>
 #include <sick_scan/tcp/colab.hpp>
 
-#include <boost/asio.hpp>
-#include <boost/lambda/lambda.hpp>
 #include <algorithm>
 #include <iterator>
-#include <boost/lexical_cast.hpp>
 #include <vector>
 #include <sick_scan/sick_generic_radar.h>
 
@@ -185,8 +182,7 @@ namespace sick_scan
       rosNodePtr nh, SickGenericParser *parser, char cola_dialect_id)
       :
       SickScanCommon(nh, parser),
-      socket_(io_service_),
-      deadline_(io_service_),
+      //deadline_(io_service_),
       hostname_(hostname),
       port_(port),
       timelimit_(timelimit)
@@ -213,8 +209,8 @@ namespace sick_scan
     // Set up the deadline actor to implement timeouts.
     // Based on blocking TCP example on:
     // http://www.boost.org/doc/libs/1_46_0/doc/html/boost_asio/example/timeouts/blocking_tcp_client.cpp
-    deadline_.expires_at(boost::posix_time::pos_infin);
-    checkDeadline();
+    //deadline_.expires_at(boost::posix_time::pos_infin);
+    //checkDeadline();
 
   }
 
@@ -224,9 +220,9 @@ namespace sick_scan
     close_device();
   }
 
-  using boost::asio::ip::tcp;
-  using boost::lambda::var;
-  using boost::lambda::_1;
+  //using boost::asio::ip::tcp;
+  //using boost::lambda::var;
+  //using boost::lambda::_1;
 
 
   void SickScanCommonTcp::disconnectFunction()
@@ -605,26 +601,25 @@ namespace sick_scan
     return (true);
   }
 
-  void SickScanCommonTcp::handleRead(boost::system::error_code error, size_t bytes_transfered)
-  {
-    ec_ = error;
-    bytes_transfered_ += bytes_transfered;
-  }
+  // void SickScanCommonTcp::handleRead(boost::system::error_code error, size_t bytes_transfered)
+  // {
+  //   ec_ = error;
+  //   bytes_transfered_ += bytes_transfered;
+  // }
 
 
-  void SickScanCommonTcp::checkDeadline()
-  {
-    if (deadline_.expires_at() <= boost::asio::deadline_timer::traits_type::now())
-    {
-      // The reason the function is called is that the deadline expired. Close
-      // the socket to return all IO operations and reset the deadline
-      socket_.close();
-      deadline_.expires_at(boost::posix_time::pos_infin);
-    }
+  // void SickScanCommonTcp::checkDeadline()
+  // {
+  //   if (deadline_.expires_at() <= boost::asio::deadline_timer::traits_type::now())
+  //   {
+  //     // The reason the function is called is that the deadline expired. Close
+  //     // the socket to return all IO operations and reset the deadline
+  //     deadline_.expires_at(boost::posix_time::pos_infin);
+  //   }
 
-    // Nothing bad happened, go back to sleep
-    deadline_.async_wait(boost::bind(&SickScanCommonTcp::checkDeadline, this));
-  }
+  //   // Nothing bad happened, go back to sleep
+  //   deadline_.async_wait(boost::bind(&SickScanCommonTcp::checkDeadline, this));
+  // }
 
 
   int SickScanCommonTcp::numberOfDatagramInInputFifo()
@@ -638,10 +633,10 @@ namespace sick_scan
                                          bool *exception_occured, bool isBinary)
   {
     // Set up the deadline to the proper timeout, error and delimiters
-    deadline_.expires_from_now(boost::posix_time::milliseconds(timeout_ms));
+    //deadline_.expires_from_now(boost::posix_time::milliseconds(timeout_ms));
     const char end_delim = static_cast<char>(0x03);
     int dataLen = 0;
-    ec_ = boost::asio::error::would_block;
+    //ec_ = boost::asio::error::would_block;
     bytes_transfered_ = 0;
 
     size_t to_read;
@@ -656,7 +651,8 @@ namespace sick_scan
       {
         break;
       }
-      boost::this_thread::sleep(boost::posix_time::milliseconds(waitingTimeInMs));
+      //boost::this_thread::sleep(boost::posix_time::milliseconds(waitingTimeInMs));
+      std::this_thread::sleep_for(std::chrono::milliseconds(waitingTimeInMs));
     }
     if (i >= timeout_ms)
     {
@@ -676,14 +672,6 @@ namespace sick_scan
    */
   int SickScanCommonTcp::sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen)
   {
-#if 0
-    if (!socket_.is_open()) {
-      ROS_ERROR("sendSOPASCommand: socket not open");
-      if(diagnostics_)
-        diagnostics_->broadcast(getDiagnosticErrorCode(), "sendSOPASCommand: socket not open.");
-      return ExitError;
-    }
-#endif
     int sLen = 0;
     int preambelCnt = 0;
     bool cmdIsBinary = false;
@@ -725,7 +713,6 @@ namespace sick_scan
         }
         msgLen = 8 + dataLen + 1; // 8 Msg. Header + Packet +
       }
-#if 1
       if (getEmulSensor())
       {
         emulateReply((UINT8 *) request, msgLen, reply);
@@ -745,23 +732,6 @@ namespace sick_scan
         }
         m_nw.sendCommandBuffer((UINT8 *) request, msgLen);
       }
-#else
-
-      /*
-       * Write a SOPAS variable read request to the device.
-       */
-      try
-      {
-        boost::asio::write(socket_, boost::asio::buffer(request, msgLen));
-      }
-      catch (boost::system::system_error &e)
-      {
-        ROS_ERROR("write error for command: %s", request);
-        if(diagnostics_)
-          diagnostics_->broadcast(getDiagnosticErrorCode(), "Write error for sendSOPASCommand.");
-        return ExitError;
-      }
-#endif
     }
 
     // Set timeout in 5 seconds
@@ -862,35 +832,12 @@ namespace sick_scan
       *actual_length = size;
     }
 
-#if 0
-    static int cnt = 0;
-    char szFileName[255];
-    sprintf(szFileName, "/tmp/dg%06d.bin", cnt++);
-
-    FILE *fout;
-
-    fout = fopen(szFileName, "wb");
-    if (fout != NULL)
-    {
-      fwrite(receiveBuffer, *actual_length, 1, fout);
-      fclose(fout);
-    }
-#endif
     return ExitSuccess;
-
-    if (!socket_.is_open())
-    {
-      ROS_ERROR("get_datagram: socket not open");
-#ifdef USE_DIAGNOSTIC_UPDATER
-      if(diagnostics_)
-        diagnostics_->broadcast(getDiagnosticErrorCode(), "get_datagram: socket not open.");
-#endif
-      return ExitError;
-    }
 
     /*
      * Write a SOPAS variable read request to the device.
      */
+    /* unreachable ...
     std::vector<unsigned char> reply;
 
     // Wait at most 5000ms for a new scan
@@ -912,22 +859,11 @@ namespace sick_scan
           diagnostics_->broadcast(getDiagnosticErrorCode(), "get_datagram: no data available for read after timeout.");
 #endif
 
-      // Attempt to reconnect when the connection was terminated
-      if (!socket_.is_open())
-      {
-#ifdef _MSC_VER
-        Sleep(1000);
-#else
-        sleep(1);
-#endif
-        ROS_INFO("Failure - attempting to reconnect");
-        return init(nh);
-      }
-
       return exception_occured ? ExitError : ExitSuccess;    // keep on trying
     }
 
     return ExitSuccess;
+    */
   }
 
 } /* namespace sick_scan */

@@ -35,7 +35,7 @@
 #include <mutex>
 
 #include <memory>
-#include <boost/shared_array.hpp>
+//#include <boost/shared_array.hpp>
 #include <thread>
 #include <memory>
 

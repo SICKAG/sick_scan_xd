@@ -37,7 +37,7 @@
 #include "ros/forwards.h"
 #include "ros/serialized_message.h"
 
-#include <boost/shared_array.hpp>
+//#include <boost/shared_array.hpp>
 
 #define ROS_VERSION_MAJOR @roscpp_VERSION_MAJOR@
 #define ROS_VERSION_MINOR @roscpp_VERSION_MINOR@

@@ -32,7 +32,7 @@
 #include "ros/common.h"
 #include "ros/message.h"
 #include "ros/serialization.h"
-#include <boost/bind.hpp>
+//#include <boost/bind.hpp>
 
 namespace ros
 {
@@ -85,7 +85,7 @@ namespace ros
       m.type_info = &typeid(M);
       m.message = message;
 
-      publish(boost::bind(serializeMessage<M>, boost::ref(*message)), m);
+      publish(std::bind(serializeMessage<M>, std::ref(*message)), m);
     }
 
     /**
@@ -118,7 +118,7 @@ namespace ros
                      impl_->datatype_.c_str(), impl_->md5sum_.c_str());
 
       SerializedMessage m;
-      publish(boost::bind(serializeMessage<M>, boost::ref(message)), m);
+      publish(std::bind(serializeMessage<M>, std::ref(message)), m);
     }
 
     /**
@@ -171,7 +171,7 @@ namespace ros
               const std::string& datatype, const NodeHandle& node_handle, 
               const SubscriberCallbacksPtr& callbacks);
 
-    void publish(const boost::function<SerializedMessage(void)>& serfunc, SerializedMessage& m) const;
+    void publish(const std::function<SerializedMessage(void)>& serfunc, SerializedMessage& m) const;
     void incrementSequence() const;
 
     class ROSCPP_DECL Impl

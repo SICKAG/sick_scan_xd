@@ -31,7 +31,7 @@
 #include "publisher_link.h"
 #include "common.h"
 
-#include <boost/thread/recursive_mutex.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
 
 namespace ros
 {

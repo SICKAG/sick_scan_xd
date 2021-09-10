@@ -37,11 +37,11 @@ struct CameraInfo_
     , binning_x(0)
     , binning_y(0)
     , roi()  {
-      K.assign(0.0);
+      K.fill(0.0);
 
-      R.assign(0.0);
+      R.fill(0.0);
 
-      P.assign(0.0);
+      P.fill(0.0);
   }
   CameraInfo_(const ContainerAllocator& _alloc)
     : header(_alloc)
@@ -56,11 +56,11 @@ struct CameraInfo_
     , binning_y(0)
     , roi(_alloc)  {
   (void)_alloc;
-      K.assign(0.0);
+      K.fill(0.0);
 
-      R.assign(0.0);
+      R.fill(0.0);
 
-      P.assign(0.0);
+      P.fill(0.0);
   }
 
 
@@ -80,13 +80,13 @@ struct CameraInfo_
    typedef std::vector<double, typename ContainerAllocator::template rebind<double>::other >  _D_type;
   _D_type D;
 
-   typedef boost::array<double, 9>  _K_type;
+   typedef std::array<double, 9>  _K_type;
   _K_type K;
 
-   typedef boost::array<double, 9>  _R_type;
+   typedef std::array<double, 9>  _R_type;
   _R_type R;
 
-   typedef boost::array<double, 12>  _P_type;
+   typedef std::array<double, 12>  _P_type;
   _P_type P;
 
    typedef uint32_t _binning_x_type;

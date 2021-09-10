@@ -33,9 +33,9 @@
 #include <ros/time.h>
 
 #include <string>
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/remove_const.hpp>
-#include <boost/type_traits/remove_reference.hpp>
+//#include <boost/utility/enable_if.hpp>
+//#include <boost/type_traits/remove_const.hpp>
+//#include <boost/type_traits/remove_reference.hpp>
 
 namespace std_msgs
 {
@@ -173,7 +173,7 @@ struct Header
 };
 
 template<typename M>
-struct Header<M, typename boost::enable_if<HasHeader<M> >::type >
+struct Header<M, typename std::enable_if<HasHeader<M>::value >::type >
 {
   static std_msgs::Header* pointer(M& m) { return &m.header; }
   static std_msgs::Header const* pointer(const M& m) { return &m.header; }
@@ -192,7 +192,7 @@ struct FrameId
 };
 
 template<typename M>
-struct FrameId<M, typename boost::enable_if<HasHeader<M> >::type >
+struct FrameId<M, typename std::enable_if<HasHeader<M>::value >::type >
 {
   static std::string* pointer(M& m) { return &m.header.frame_id; }
   static std::string const* pointer(const M& m) { return &m.header.frame_id; }
@@ -212,9 +212,9 @@ struct TimeStamp
 };
 
 template<typename M>
-struct TimeStamp<M, typename boost::enable_if<HasHeader<M> >::type >
+struct TimeStamp<M, typename std::enable_if<HasHeader<M>::value >::type >
 {
-  static ros::Time* pointer(typename boost::remove_const<M>::type &m) { return &m.header.stamp; }
+  static ros::Time* pointer(typename std::remove_const<M>::type &m) { return &m.header.stamp; }
   static ros::Time const* pointer(const M& m) { return &m.header.stamp; }
   static ros::Time value(const M& m) { return m.header.stamp; }
 };
@@ -225,7 +225,7 @@ struct TimeStamp<M, typename boost::enable_if<HasHeader<M> >::type >
 template<typename M>
 inline const char* md5sum()
 {
-  return MD5Sum<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::value();
+  return MD5Sum<typename std::remove_reference<typename std::remove_const<M>::type>::type>::value();
 }
 
 /**
@@ -234,7 +234,7 @@ inline const char* md5sum()
 template<typename M>
 inline const char* datatype()
 {
-  return DataType<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::value();
+  return DataType<typename std::remove_reference<typename std::remove_const<M>::type>::type>::value();
 }
 
 /**
@@ -243,7 +243,7 @@ inline const char* datatype()
 template<typename M>
 inline const char* definition()
 {
-  return Definition<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::value();
+  return Definition<typename std::remove_reference<typename std::remove_const<M>::type>::type>::value();
 }
 
 /**
@@ -252,7 +252,7 @@ inline const char* definition()
 template<typename M>
 inline const char* md5sum(const M& m)
 {
-  return MD5Sum<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::value(m);
+  return MD5Sum<typename std::remove_reference<typename std::remove_const<M>::type>::type>::value(m);
 }
 
 /**
@@ -261,7 +261,7 @@ inline const char* md5sum(const M& m)
 template<typename M>
 inline const char* datatype(const M& m)
 {
-  return DataType<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::value(m);
+  return DataType<typename std::remove_reference<typename std::remove_const<M>::type>::type>::value(m);
 }
 
 /**
@@ -270,7 +270,7 @@ inline const char* datatype(const M& m)
 template<typename M>
 inline const char* definition(const M& m)
 {
-  return Definition<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::value(m);
+  return Definition<typename std::remove_reference<typename std::remove_const<M>::type>::type>::value(m);
 }
 
 /**
@@ -279,7 +279,7 @@ inline const char* definition(const M& m)
 template<typename M>
 inline std_msgs::Header* header(M& m)
 {
-  return Header<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::pointer(m);
+  return Header<typename std::remove_reference<typename std::remove_const<M>::type>::type>::pointer(m);
 }
 
 /**
@@ -288,7 +288,7 @@ inline std_msgs::Header* header(M& m)
 template<typename M>
 inline std_msgs::Header const* header(const M& m)
 {
-  return Header<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::pointer(m);
+  return Header<typename std::remove_reference<typename std::remove_const<M>::type>::type>::pointer(m);
 }
 
 /**
@@ -297,7 +297,7 @@ inline std_msgs::Header const* header(const M& m)
 template<typename M>
 inline std::string* frameId(M& m)
 {
-  return FrameId<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::pointer(m);
+  return FrameId<typename std::remove_reference<typename std::remove_const<M>::type>::type>::pointer(m);
 }
 
 /**
@@ -306,7 +306,7 @@ inline std::string* frameId(M& m)
 template<typename M>
 inline std::string const* frameId(const M& m)
 {
-  return FrameId<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::pointer(m);
+  return FrameId<typename std::remove_reference<typename std::remove_const<M>::type>::type>::pointer(m);
 }
 
 /**
@@ -315,7 +315,7 @@ inline std::string const* frameId(const M& m)
 template<typename M>
 inline ros::Time* timeStamp(M& m)
 {
-  return TimeStamp<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::pointer(m);
+  return TimeStamp<typename std::remove_reference<typename std::remove_const<M>::type>::type>::pointer(m);
 }
 
 /**
@@ -324,7 +324,7 @@ inline ros::Time* timeStamp(M& m)
 template<typename M>
 inline ros::Time const* timeStamp(const M& m)
 {
-  return TimeStamp<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::pointer(m);
+  return TimeStamp<typename std::remove_reference<typename std::remove_const<M>::type>::type>::pointer(m);
 }
 
 /**
@@ -333,7 +333,7 @@ inline ros::Time const* timeStamp(const M& m)
 template<typename M>
 inline bool isSimple()
 {
-  return IsSimple<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::value;
+  return IsSimple<typename std::remove_reference<typename std::remove_const<M>::type>::type>::value;
 }
 
 /**
@@ -342,7 +342,7 @@ inline bool isSimple()
 template<typename M>
 inline bool isFixedSize()
 {
-  return IsFixedSize<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::value;
+  return IsFixedSize<typename std::remove_reference<typename std::remove_const<M>::type>::type>::value;
 }
 
 /**
@@ -351,7 +351,7 @@ inline bool isFixedSize()
 template<typename M>
 inline bool hasHeader()
 {
-  return HasHeader<typename boost::remove_reference<typename boost::remove_const<M>::type>::type>::value;
+  return HasHeader<typename std::remove_reference<typename std::remove_const<M>::type>::type>::value;
 }
 
 } // namespace message_traits

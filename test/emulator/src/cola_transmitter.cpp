@@ -72,7 +72,7 @@ static std::mutex s_ColaTransmitterSendMutex; // mutex to lock ColaTransmitter::
  * @param[in] default_receive_timeout default timeout in seconds for receive functions
  */
 sick_scan::ColaTransmitter::ColaTransmitter(const std::string & server_adress, int tcp_port, double default_receive_timeout)
-: m_server_adress(server_adress), m_tcp_port(tcp_port), m_ioservice(), m_tcp_socket(m_ioservice),
+: m_server_adress(server_adress), m_tcp_port(tcp_port), 
   m_receive_timeout(default_receive_timeout), m_receiver_thread_running(false), m_receiver_thread(0)
 {
 
@@ -94,7 +94,7 @@ sick_scan::ColaTransmitter::~ColaTransmitter()
  */
 bool sick_scan::ColaTransmitter::connect(void)
 {
-  return m_tcp_socket.connect(m_ioservice, m_server_adress, m_tcp_port);
+  return m_tcp_socket.connect(m_server_adress, m_tcp_port);
 }
 
 /*!
@@ -106,7 +106,6 @@ bool sick_scan::ColaTransmitter::close(void)
   try
   {
     m_tcp_socket.close();
-    m_ioservice.stop();
     return true;
   }
   catch(std::exception & exc)
@@ -134,19 +133,18 @@ bool sick_scan::ColaTransmitter::send(const std::vector<uint8_t> & data, ROS::Ti
  * @param[out] send_timestamp send timestamp in seconds (ros timestamp immediately before tcp send)
  * @return true on success, false on failure
  */
-bool sick_scan::ColaTransmitter::send(boost::asio::ip::tcp::socket & socket, const std::vector<uint8_t> & data, ROS::Time & send_timestamp)
+bool sick_scan::ColaTransmitter::send(socket_t & socket, const std::vector<uint8_t> & data, ROS::Time & send_timestamp)
 {
   std::lock_guard<std::mutex> send_lock_guard(s_ColaTransmitterSendMutex);
   try
   {
-    if (ROS::ok() && socket.is_open())
+    if (ROS::ok() && socket != INVALID_SOCKET)
     {
-      boost::system::error_code errorcode;
       send_timestamp = ROS::now();
-      size_t bytes_written = boost::asio::write(socket, boost::asio::buffer(data.data(), data.size()), boost::asio::transfer_exactly(data.size()), errorcode);
-      if (!errorcode && bytes_written == data.size())
+      size_t bytes_written = ::send(socket, (char*)data.data(), data.size(), 0);
+      if (bytes_written == data.size())
         return true;
-      ROS_WARN_STREAM("## ERROR ColaTransmitter::send: tcp socket write error, " << bytes_written << " of " << data.size() << " bytes written, errorcode " << errorcode.value() << " \"" << errorcode.message() << "\"");
+      ROS_WARN_STREAM("## ERROR ColaTransmitter::send: tcp socket write error, " << bytes_written << " of " << data.size() << " bytes written");
     }
   }
   catch(std::exception & exc)
@@ -176,7 +174,7 @@ bool sick_scan::ColaTransmitter::receive(std::vector<uint8_t> & telegram, double
  * @param[out] receive_timestamp receive timestamp in seconds (ros timestamp immediately after first response byte received)
  * @return true on success, false on failure
  */
-bool sick_scan::ColaTransmitter::receive(boost::asio::ip::tcp::socket & socket, std::vector<uint8_t> & telegram, double timeout, ROS::Time & receive_timestamp)
+bool sick_scan::ColaTransmitter::receive(socket_t & socket, std::vector<uint8_t> & telegram, double timeout, ROS::Time & receive_timestamp)
 {
   telegram.clear();
   telegram.reserve(1024);
@@ -184,35 +182,35 @@ bool sick_scan::ColaTransmitter::receive(boost::asio::ip::tcp::socket & socket, 
   {
     std::vector<uint8_t> binETX = sick_scan::ColaParser::binaryETX();
     ROS::Time start_time = ROS::now();
-    while (ROS::ok() && socket.is_open())
+    while (ROS::ok() && socket != INVALID_SOCKET)
     {
       // Read 1 byte
       uint8_t byte_received = 0;
-      boost::system::error_code errorcode;
+      int recv_flags = MSG_DONTWAIT; // read non-blocking
       // Possibly better than receiving byte for byte: use boost::asio::read_until to read until <ETX> received
-      if (socket.available() > 0 && boost::asio::read(socket, boost::asio::buffer(&byte_received, 1), boost::asio::transfer_exactly(1), errorcode) > 0 && !errorcode)
+      if (::recv(socket, (char*)&byte_received, 1, recv_flags) == 1)
       {
         if (telegram.empty())
           receive_timestamp = ROS::now(); // timestamp after first byte received
         telegram.push_back(byte_received);
+        // Check for "<ETX>" (message completed) and return if received data ends with "<ETX>"
+        bool is_binary_cola = sick_scan::ColaAsciiBinaryConverter::IsColaBinary(telegram);
+        if(is_binary_cola)
+        {
+          // Cola-Binary: Check telegram length and return if all bytes received
+          uint32_t telegram_length = sick_scan::ColaAsciiBinaryConverter::ColaBinaryTelegramLength(telegram);
+          if(telegram_length > 0 && telegram.size() >= telegram_length)
+            return true; // all bytes received, telegram completed
+        }
+        else
+        {
+          // Cola-ASCII: Check for "<ETX>" (message completed) and return if received data ends with "<ETX>"
+          if (dataEndWithETX(telegram, binETX))
+            return true; // <ETX> received, telegram completed
+        }
       }
       else
         ROS::sleep(0.0001);
-      // Check for "<ETX>" (message completed) and return if received data ends with "<ETX>"
-      bool is_binary_cola = sick_scan::ColaAsciiBinaryConverter::IsColaBinary(telegram);
-      if(is_binary_cola)
-      {
-        // Cola-Binary: Check telegram length and return if all bytes received
-        uint32_t telegram_length = sick_scan::ColaAsciiBinaryConverter::ColaBinaryTelegramLength(telegram);
-        if(telegram_length > 0 && telegram.size() >= telegram_length)
-          return true; // all bytes received, telegram completed
-      }
-      else
-      {
-        // Cola-ASCII: Check for "<ETX>" (message completed) and return if received data ends with "<ETX>"
-        if (dataEndWithETX(telegram, binETX))
-          return true; // <ETX> received, telegram completed
-      }
       // Check for timeout
       if (ROS::seconds(ROS::now() - start_time) >= timeout)
       {

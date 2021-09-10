@@ -60,6 +60,7 @@
 #define __SICK_SCAN_TEST_SERVER_LDMRS_MESSAGE_H_INCLUDED
 
 #include <sick_scan/sick_ros_wrapper.h>
+#include "sick_scan/server_socket.h"
 #include "sick_scan/test_server/test_server_lidar_msg.h"
 
 namespace sick_scan
@@ -89,7 +90,7 @@ namespace sick_scan
        * @param[out] is_binary always true for LDMRS
        * @return true, if a message has been received, false otherwise
        */
-      virtual bool receiveMessage(boost::asio::ip::tcp::socket & tcp_client_socket, std::vector<uint8_t> & message, bool & is_binary);
+      virtual bool receiveMessage(sick_scan::ServerSocket & tcp_client_socket, std::vector<uint8_t> & message, bool & is_binary);
 
       /*
        * @brief Generate a response to a message received from client.

@@ -30,9 +30,9 @@
 
 #include <string>
 #include <set>
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 #include <mutex>
-#include <boost/thread/thread.hpp>
+//#include <boost/thread/thread.hpp>
 #include <memory>
 
 #include "common.h"
@@ -89,7 +89,7 @@ public:
 class XMLRPCManager;
 typedef std::shared_ptr<XMLRPCManager> XMLRPCManagerPtr;
 
-typedef boost::function<void(XmlRpc::XmlRpcValue&, XmlRpc::XmlRpcValue&)> XMLRPCFunc;
+typedef std::function<void(XmlRpc::XmlRpcValue&, XmlRpc::XmlRpcValue&)> XMLRPCFunc;
 
 class ROSCPP_DECL XMLRPCManager
 {

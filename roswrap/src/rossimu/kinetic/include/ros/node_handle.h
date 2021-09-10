@@ -46,7 +46,7 @@
 #include "ros/init.h"
 #include "common.h"
 
-#include <boost/bind.hpp>
+//#include <boost/bind.hpp>
 
 #include <xmlrpcpp/XmlRpcValue.h>
 
@@ -271,7 +271,7 @@ namespace ros
      handle.advertise<std_msgs::Empty>("my_topic", 1, (ros::SubscriberStatusCallback)connectCallback);
      \endverbatim
      *
-     * With class member functions it can be used with boost::bind:
+     * With class member functions it can be used with std::bind:
      \verbatim
      void MyClass::connectCallback(const ros::SingleSubscriberPublisher& pub)
      {
@@ -280,7 +280,7 @@ namespace ros
 
      MyClass my_class;
      ros::Publisher pub = handle.advertise<std_msgs::Empty>("my_topic", 1, 
-                                                            boost::bind(&MyClass::connectCallback, my_class, _1));
+                                                            std::bind(&MyClass::connectCallback, my_class, std::placeholders::_1));
      \endverbatim
      *
    *
@@ -402,7 +402,7 @@ if (sub)  // Enter if subscriber is valid
                        const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
-    ops.template initByFullCallbackType<M>(topic, queue_size, boost::bind(fp, obj, _1));
+    ops.template initByFullCallbackType<M>(topic, queue_size, std::bind(fp, obj, std::placeholders::_1));
     ops.transport_hints = transport_hints;
     return subscribe(ops);
   }
@@ -413,7 +413,7 @@ if (sub)  // Enter if subscriber is valid
                        const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
-    ops.template initByFullCallbackType<M>(topic, queue_size, boost::bind(fp, obj, _1));
+    ops.template initByFullCallbackType<M>(topic, queue_size, std::bind(fp, obj, std::placeholders::_1));
     ops.transport_hints = transport_hints;
     return subscribe(ops);
   }
@@ -466,7 +466,7 @@ if (sub)  // Enter if subscriber is valid
                        const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
-    ops.template init<M>(topic, queue_size, boost::bind(fp, obj, _1));
+    ops.template init<M>(topic, queue_size, std::bind(fp, obj, std::placeholders::_1));
     ops.transport_hints = transport_hints;
     return subscribe(ops);
   }
@@ -476,7 +476,7 @@ if (sub)  // Enter if subscriber is valid
                        const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
-    ops.template init<M>(topic, queue_size, boost::bind(fp, obj, _1));
+    ops.template init<M>(topic, queue_size, std::bind(fp, obj, std::placeholders::_1));
     ops.transport_hints = transport_hints;
     return subscribe(ops);
   }
@@ -529,7 +529,7 @@ if (sub)  // Enter if subscriber is valid
                        const std::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
-    ops.template initByFullCallbackType<M>(topic, queue_size, boost::bind(fp, obj.get(), _1));
+    ops.template initByFullCallbackType<M>(topic, queue_size, std::bind(fp, obj.get(), std::placeholders::_1));
     ops.tracked_object = obj;
     ops.transport_hints = transport_hints;
     return subscribe(ops);
@@ -540,7 +540,7 @@ if (sub)  // Enter if subscriber is valid
                        const std::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
-    ops.template initByFullCallbackType<M>(topic, queue_size, boost::bind(fp, obj.get(), _1));
+    ops.template initByFullCallbackType<M>(topic, queue_size, std::bind(fp, obj.get(), std::placeholders::_1));
     ops.tracked_object = obj;
     ops.transport_hints = transport_hints;
     return subscribe(ops);
@@ -595,7 +595,7 @@ if (sub)  // Enter if subscriber is valid
                        const std::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
-    ops.template init<M>(topic, queue_size, boost::bind(fp, obj.get(), _1));
+    ops.template init<M>(topic, queue_size, std::bind(fp, obj.get(), std::placeholders::_1));
     ops.tracked_object = obj;
     ops.transport_hints = transport_hints;
     return subscribe(ops);
@@ -606,7 +606,7 @@ if (sub)  // Enter if subscriber is valid
                        const std::shared_ptr<T>& obj, const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
-    ops.template init<M>(topic, queue_size, boost::bind(fp, obj.get(), _1));
+    ops.template init<M>(topic, queue_size, std::bind(fp, obj.get(), std::placeholders::_1));
     ops.tracked_object = obj;
     ops.transport_hints = transport_hints;
     return subscribe(ops);
@@ -709,7 +709,7 @@ if (sub)  // Enter if subscriber is valid
   }
 
   /**
-   * \brief Subscribe to a topic, version for arbitrary boost::function object
+   * \brief Subscribe to a topic, version for arbitrary std::function object
    *
    * This method connects to the master to register interest in a given
    * topic.  The node will automatically be connected with publishers on
@@ -717,7 +717,7 @@ if (sub)  // Enter if subscriber is valid
    * to the message received.  This message should \b not be changed in place, as it
    * is shared with any other subscriptions to this topic.
    *
-   * This version of subscribe allows anything bindable to a boost::function object
+   * This version of subscribe allows anything bindable to a std::function object
    *
    * \param M [template] M here is the message type
    * \param topic Topic to subscribe to
@@ -746,7 +746,7 @@ if (sub)  // Enter if subscriber is valid
    *  \throws ConflictingSubscriptionException If this node is already subscribed to the same topic with a different datatype
    */
   template<class M>
-  Subscriber subscribe(const std::string& topic, uint32_t queue_size, const boost::function<void (const std::shared_ptr<M const>&)>& callback,
+  Subscriber subscribe(const std::string& topic, uint32_t queue_size, const std::function<void (const std::shared_ptr<M const>&)>& callback,
                              const VoidConstPtr& tracked_object = VoidConstPtr(), const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
@@ -757,7 +757,7 @@ if (sub)  // Enter if subscriber is valid
   }
 
   /**
-   * \brief Subscribe to a topic, version for arbitrary boost::function object
+   * \brief Subscribe to a topic, version for arbitrary std::function object
    *
    * This method connects to the master to register interest in a given
    * topic.  The node will automatically be connected with publishers on
@@ -765,7 +765,7 @@ if (sub)  // Enter if subscriber is valid
    * to the message received.  This message should \b not be changed in place, as it
    * is shared with any other subscriptions to this topic.
    *
-   * This version of subscribe allows anything bindable to a boost::function object
+   * This version of subscribe allows anything bindable to a std::function object
    *
    * \param M [template] the message type
    * \param C [template] the callback parameter type (e.g. const std::shared_ptr<M const>& or const M&)
@@ -795,7 +795,7 @@ if (sub)  // Enter if subscriber is valid
    *  \throws ConflictingSubscriptionException If this node is already subscribed to the same topic with a different datatype
    */
   template<class M, class C>
-  Subscriber subscribe(const std::string& topic, uint32_t queue_size, const boost::function<void (C)>& callback,
+  Subscriber subscribe(const std::string& topic, uint32_t queue_size, const std::function<void (C)>& callback,
                              const VoidConstPtr& tracked_object = VoidConstPtr(), const TransportHints& transport_hints = TransportHints())
   {
     SubscribeOptions ops;
@@ -878,7 +878,7 @@ if (service)  // Enter if advertised service is valid
   ServiceServer advertiseService(const std::string& service, bool(T::*srv_func)(MReq &, MRes &), T *obj)
   {
     AdvertiseServiceOptions ops;
-    ops.template init<MReq, MRes>(service, boost::bind(srv_func, obj, _1, _2));
+    ops.template init<MReq, MRes>(service, std::bind(srv_func, obj, std::placeholders::_1, std::placeholders::_2));
     return advertiseService(ops);
   }
 
@@ -923,7 +923,7 @@ if (service)  // Enter if advertised service is valid
   ServiceServer advertiseService(const std::string& service, bool(T::*srv_func)(ServiceEvent<MReq, MRes>&), T *obj)
   {
     AdvertiseServiceOptions ops;
-    ops.template initBySpecType<ServiceEvent<MReq, MRes> >(service, boost::bind(srv_func, obj, _1));
+    ops.template initBySpecType<ServiceEvent<MReq, MRes> >(service, std::bind(srv_func, obj, std::placeholders::_1));
     return advertiseService(ops);
   }
 
@@ -969,7 +969,7 @@ if (service)  // Enter if advertised service is valid
   ServiceServer advertiseService(const std::string& service, bool(T::*srv_func)(MReq &, MRes &), const std::shared_ptr<T>& obj)
   {
     AdvertiseServiceOptions ops;
-    ops.template init<MReq, MRes>(service, boost::bind(srv_func, obj.get(), _1, _2));
+    ops.template init<MReq, MRes>(service, std::bind(srv_func, obj.get(), std::placeholders::_1, std::placeholders::_2));
     ops.tracked_object = obj;
     return advertiseService(ops);
   }
@@ -1016,7 +1016,7 @@ if (service)  // Enter if advertised service is valid
   ServiceServer advertiseService(const std::string& service, bool(T::*srv_func)(ServiceEvent<MReq, MRes>&), const std::shared_ptr<T>& obj)
   {
     AdvertiseServiceOptions ops;
-    ops.template initBySpecType<ServiceEvent<MReq, MRes> >(service, boost::bind(srv_func, obj.get(), _1));
+    ops.template initBySpecType<ServiceEvent<MReq, MRes> >(service, std::bind(srv_func, obj.get(), std::placeholders::_1));
     ops.tracked_object = obj;
     return advertiseService(ops);
   }
@@ -1108,13 +1108,13 @@ if (service)  // Enter if advertised service is valid
   }
 
   /**
-   * \brief Advertise a service, version for arbitrary boost::function object
+   * \brief Advertise a service, version for arbitrary std::function object
    *
    * This call connects to the master to publicize that the node will be
    * offering an RPC service with the given name.
    *
-   * This version of advertiseService allows non-class functions, as well as functor objects and boost::bind (along with anything
-   * else boost::function supports).
+   * This version of advertiseService allows non-class functions, as well as functor objects and std::bind (along with anything
+   * else std::function supports).
    *
    * \param service Service name to advertise on
    * \param callback Callback to call when the service is called
@@ -1141,7 +1141,7 @@ if (service)  // Enter if advertised service is valid
    * \throws InvalidNameException If the service name begins with a tilde, or is an otherwise invalid graph resource name
    */
   template<class MReq, class MRes>
-  ServiceServer advertiseService(const std::string& service, const boost::function<bool(MReq&, MRes&)>& callback, 
+  ServiceServer advertiseService(const std::string& service, const std::function<bool(MReq&, MRes&)>& callback, 
                                  const VoidConstPtr& tracked_object = VoidConstPtr())
   {
     AdvertiseServiceOptions ops;
@@ -1151,15 +1151,15 @@ if (service)  // Enter if advertised service is valid
   }
 
   /**
-   * \brief Advertise a service, version for arbitrary boost::function object using ros::ServiceEvent as the callback parameter type
+   * \brief Advertise a service, version for arbitrary std::function object using ros::ServiceEvent as the callback parameter type
    *
    * Note that the template parameter S is the full event type, e.g. ros::ServiceEvent<Req, Res>
    *
    * This call connects to the master to publicize that the node will be
    * offering an RPC service with the given name.
    *
-   * This version of advertiseService allows non-class functions, as well as functor objects and boost::bind (along with anything
-   * else boost::function supports).
+   * This version of advertiseService allows non-class functions, as well as functor objects and std::bind (along with anything
+   * else std::function supports).
    *
    * \param service Service name to advertise on
    * \param callback Callback to call when the service is called
@@ -1186,7 +1186,7 @@ if (service)  // Enter if advertised service is valid
    * \throws InvalidNameException If the service name begins with a tilde, or is an otherwise invalid graph resource name
    */
   template<class S>
-  ServiceServer advertiseService(const std::string& service, const boost::function<bool(S&)>& callback, 
+  ServiceServer advertiseService(const std::string& service, const std::function<bool(S&)>& callback, 
                                  const VoidConstPtr& tracked_object = VoidConstPtr())
   {
     AdvertiseServiceOptions ops;
@@ -1312,7 +1312,7 @@ if (service)  // Enter if advertised service is valid
   Timer createTimer(Duration period, void(T::*callback)(const TimerEvent&) const, T* obj, 
                     bool oneshot = false, bool autostart = true) const
   {
-    return createTimer(period, boost::bind(callback, obj, _1), oneshot, autostart);
+    return createTimer(period, std::bind(callback, obj, std::placeholders::_1), oneshot, autostart);
   }
 
   /**
@@ -1332,7 +1332,7 @@ if (service)  // Enter if advertised service is valid
   Timer createTimer(Duration period, void(T::*callback)(const TimerEvent&), T* obj, 
                     bool oneshot = false, bool autostart = true) const
   {
-    return createTimer(period, boost::bind(callback, obj, _1), oneshot, autostart);
+    return createTimer(period, std::bind(callback, obj, std::placeholders::_1), oneshot, autostart);
   }
 
   /**
@@ -1354,7 +1354,7 @@ if (service)  // Enter if advertised service is valid
   Timer createTimer(Duration period, void(T::*callback)(const TimerEvent&), const std::shared_ptr<T>& obj, 
                     bool oneshot = false, bool autostart = true) const
   {
-    TimerOptions ops(period, boost::bind(callback, obj.get(), _1), 0);
+    TimerOptions ops(period, std::bind(callback, obj.get(), std::placeholders::_1), 0);
     ops.tracked_object = obj;
     ops.oneshot = oneshot;
     ops.autostart = autostart;
@@ -1409,7 +1409,7 @@ if (service)  // Enter if advertised service is valid
   WallTimer createWallTimer(WallDuration period, void(T::*callback)(const WallTimerEvent&), T* obj, 
                             bool oneshot = false, bool autostart = true) const
   {
-    return createWallTimer(period, boost::bind(callback, obj, _1), oneshot, autostart);
+    return createWallTimer(period, std::bind(callback, obj, std::placeholders::_1), oneshot, autostart);
   }
 
   /**
@@ -1432,7 +1432,7 @@ if (service)  // Enter if advertised service is valid
                             const std::shared_ptr<T>& obj, 
                             bool oneshot = false, bool autostart = true) const
   {
-    WallTimerOptions ops(period, boost::bind(callback, obj.get(), _1), 0);
+    WallTimerOptions ops(period, std::bind(callback, obj.get(), std::placeholders::_1), 0);
     ops.tracked_object = obj;
     ops.oneshot = oneshot;
     ops.autostart = autostart;

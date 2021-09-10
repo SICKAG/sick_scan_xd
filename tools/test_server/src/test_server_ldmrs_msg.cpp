@@ -102,12 +102,9 @@ std::vector<uint8_t> sick_scan::test::TestServerLDMRSMsg::createMessageHeader(si
  * @param[out] is_binary always true for LDMRS
  * @return true, if a message has been received, false otherwise
  */
-bool sick_scan::test::TestServerLDMRSMsg::receiveMessage(boost::asio::ip::tcp::socket & tcp_client_socket, std::vector<uint8_t> & message, bool & is_binary)
+bool sick_scan::test::TestServerLDMRSMsg::receiveMessage(sick_scan::ServerSocket & tcp_client_socket, std::vector<uint8_t> & message, bool & is_binary)
 {
   is_binary = true;
-  if (tcp_client_socket.available() <= 24)
-    return false; // no data available
-  boost::system::error_code errorcode;
   message.clear();
   assert(m_nh);
 
@@ -119,8 +116,10 @@ bool sick_scan::test::TestServerLDMRSMsg::receiveMessage(boost::asio::ip::tcp::s
   // Receive 24 byte message header
   uint8_t magic_word[4] = { 0xaf, 0xfe, 0xc0, 0xc2 };
   uint8_t header[24] = {0};
-  if (boost::asio::read(tcp_client_socket, boost::asio::buffer(&header[0], sizeof(header)), boost::asio::transfer_exactly(sizeof(header)), errorcode) < sizeof(header) || errorcode)
+  if (!tcp_client_socket.read(sizeof(header), &header[0], false))
+  {
     return false; // no data available or error receiving message header
+  }
   if (memcmp(&header[0], &magic_word[0], 4) != 0)
   {
     ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerLDMRSMsg::receiveMessage(): error receiving magic word 0xAFFEC0C2");
@@ -145,7 +144,7 @@ bool sick_scan::test::TestServerLDMRSMsg::receiveMessage(boost::asio::ip::tcp::s
   // Read payload
   message.resize(24 + payload_length);
   memcpy(message.data(), &header[0], sizeof(header));
-  if (boost::asio::read(tcp_client_socket, boost::asio::buffer(message.data() + 24, payload_length), boost::asio::transfer_exactly(payload_length), errorcode) < payload_length || errorcode)
+  if (!tcp_client_socket.read(payload_length, message.data() + 24))
   {
     ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerLDMRSMsg::receiveMessage(): error receiving " << payload_length << " byte tcp payload");
     return false; // error receiving tcp payload
@@ -355,7 +354,7 @@ bool sick_scan::test::TestServerLDMRSMsg::createScandata(std::vector<uint8_t> & 
     m_delta_range_cm = 0;
     m_delta_range_step = -m_delta_range_step;
   }
-  ROS_DEBUG_STREAM("sick_scan::test::TestServerLDMRSMsg::createScandata(" << m_send_scan_data_cnt << "): " << scandata.size() << " byte scan data generated");
+  ROS_INFO_STREAM("sick_scan::test::TestServerLDMRSMsg::createScandata(" << m_send_scan_data_cnt << "): " << scandata.size() << " byte scan data generated");
   if(m_send_scan_data_cnt <= 1)
     ROS_INFO_STREAM("sick_scan::test::TestServerLDMRSMsg::createScandata(): Generating " << scandata.size() << " byte scan data with " << m_send_scan_data_rate << " Hz");
 

@@ -24,7 +24,7 @@
 #include "ros/init.h"
 
 
-#include <boost/bind.hpp>
+//#include <boost/bind.hpp>
 
 #include <xmlrpcpp/XmlRpcValue.h>
 
@@ -312,7 +312,7 @@ bool ros::Publisher::Impl::isValid(void)const
 	return(true);
 }
 
-void ros::Publisher::publish(class boost::function<class ros::SerializedMessage __cdecl(void)> const &, class ros::SerializedMessage &)const
+void ros::Publisher::publish(class std::function<class ros::SerializedMessage __cdecl(void)> const &, class ros::SerializedMessage &)const
 {
 
 }

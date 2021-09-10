@@ -33,7 +33,7 @@ struct NavSatFix_
     , altitude(0.0)
     , position_covariance()
     , position_covariance_type(0)  {
-      position_covariance.assign(0.0);
+      position_covariance.fill(0.0);
   }
   NavSatFix_(const ContainerAllocator& _alloc)
     : header(_alloc)
@@ -44,7 +44,7 @@ struct NavSatFix_
     , position_covariance()
     , position_covariance_type(0)  {
   (void)_alloc;
-      position_covariance.assign(0.0);
+      position_covariance.fill(0.0);
   }
 
 
@@ -64,7 +64,7 @@ struct NavSatFix_
    typedef double _altitude_type;
   _altitude_type altitude;
 
-   typedef boost::array<double, 9>  _position_covariance_type;
+   typedef std::array<double, 9>  _position_covariance_type;
   _position_covariance_type position_covariance;
 
    typedef uint8_t _position_covariance_type_type;

@@ -138,6 +138,17 @@ namespace sick_scan
      * Shortcut to replace linefeeds by colon-separators
      */
     static void flattenString(std::string & s);
+
+    /*!
+     * Replaces all substrings of a string by another string.
+     * https://stackoverflow.com/questions/3418231/replace-part-of-a-string-with-another-string/3418285
+     */
+    static void replaceAll(std::string& str, const std::string& from, const std::string& to);
+
+    /*!
+     * Splits a string into its space separated substrings
+     */
+    static std::vector<std::string> splitSpaces(const std::string & s);
     
     /*!
      * Shortcut to print a type in flatten format, replacing linefeeds by colon-separators

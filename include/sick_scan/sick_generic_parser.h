@@ -35,6 +35,8 @@
 #ifndef SICK_GENERIC_PARSER_H_
 #define SICK_GENERIC_PARSER_H_
 
+#include <string>
+
 // List of supported laser scanner and radar scanner
 #define SICK_SCANNER_LMS_1XXX_NAME "sick_lms_1xxx"
 #define SICK_SCANNER_MRS_1XXX_NAME "sick_mrs_1xxx"

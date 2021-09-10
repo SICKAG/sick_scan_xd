@@ -52,8 +52,7 @@
  *  Copyright 2019 Ing.-Buero Dr. Michael Lehning
  *
  */
-#include <time.h>
-
+// #include <time.h>
 #include "sick_scan/random_generator.h"
 
 const std::string sick_scan::UniformRandomAsciiString::s_ascii_chars = " !\"#$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_abcdefghijklmnopqrstuvwxyz{|}~";  ///< static list of ascii chars
@@ -65,7 +64,8 @@ const std::string sick_scan::UniformRandomAsciiString::s_ascii_chars = " !\"#$%&
  * @param[in] upper_bound max. value of random distribution, random numbers will be generated within the range lower_bound up to upper_bound
  */
 sick_scan::UniformRandomInteger::UniformRandomInteger(int lower_bound, int upper_bound)
-: m_random_engine(time(0)), m_uniform_distribution(lower_bound, upper_bound), m_random_generator(m_random_engine, m_uniform_distribution)
+: m_lower_bound(lower_bound), m_upper_bound(upper_bound), m_random_engine(m_random_device()), m_uniform_distribution(lower_bound, upper_bound)
+  // m_random_engine(time(0)), m_uniform_distribution(lower_bound, upper_bound), m_random_generator(m_random_engine, m_uniform_distribution)
 {
 }
 
@@ -74,7 +74,7 @@ sick_scan::UniformRandomInteger::UniformRandomInteger(int lower_bound, int upper
  */
 int sick_scan::UniformRandomInteger::generate(void)
 {
-  return m_random_generator();
+  return m_uniform_distribution(m_random_engine);
 }
 
 /*!
@@ -87,7 +87,7 @@ std::vector<uint8_t> sick_scan::UniformRandomInteger::generate(int data_size)
   std::vector<uint8_t> data(data_size, 0);
   for(int n = 0; n < data_size; n++)
   {
-    data[n] = (uint8_t)(m_random_generator() & 0xFF);
+    data[n] = (uint8_t)(generate() & 0xFF);
   }
   return data;
 }

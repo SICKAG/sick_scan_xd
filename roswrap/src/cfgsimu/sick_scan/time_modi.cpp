@@ -53,9 +53,10 @@
 #include <mach/mach.h>
 #endif  // defined(__APPLE__)
 
+#include <thread>
 #include <mutex>
-#include <boost/io/ios_state.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+//#include <boost/io/ios_state.hpp>
+//#include <boost/date_time/posix_time/ptime.hpp>
 
 /*********************************************************************
  ** Preprocessor
@@ -167,7 +168,7 @@ namespace ros
 		// also, think about clock wraparound. seems extremely unlikey, but possible
 		double d_delta_cpu_time = delta_cpu_time.QuadPart / (double)cpu_freq.QuadPart;
 		uint32_t delta_sec = (uint32_t)floor(d_delta_cpu_time);
-		uint32_t delta_nsec = (uint32_t)boost::math::round((d_delta_cpu_time - delta_sec) * 1e9);
+		uint32_t delta_nsec = (uint32_t)std::round((d_delta_cpu_time - delta_sec) * 1e9);
 
 		int64_t sec_sum = (int64_t)start_sec + (int64_t)delta_sec;
 		int64_t nsec_sum = (int64_t)start_nsec + (int64_t)delta_nsec;
@@ -213,7 +214,7 @@ namespace ros
 		QueryPerformanceCounter(&performance_count);
 		double steady_time = performance_count.QuadPart / (double)cpu_frequency.QuadPart;
 		int64_t steady_sec = floor(steady_time);
-		int64_t steady_nsec = boost::math::round((steady_time - steady_sec) * 1e9);
+		int64_t steady_nsec = std::round((steady_time - steady_sec) * 1e9);
 
 		// Throws an exception if we go out of 32-bit range
 		normalizeSecNSecUnsigned(steady_sec, steady_nsec);
@@ -366,46 +367,49 @@ namespace ros
 
 		return true;
 	}
+	// 	Time Time::fromBoost(const boost::posix_time::ptime& t)
+	// 	{
+	// 		boost::posix_time::time_duration diff = t - boost::posix_time::from_time_t(0);
+	// 		return Time::fromBoost(diff);
+	// 	}
 
-	Time Time::fromBoost(const boost::posix_time::ptime& t)
-	{
-		boost::posix_time::time_duration diff = t - boost::posix_time::from_time_t(0);
-		return Time::fromBoost(diff);
-	}
-
-	Time Time::fromBoost(const boost::posix_time::time_duration& d)
-	{
-		Time t;
-		int64_t sec64 = d.total_seconds();
-		if (sec64 < 0 || sec64 > UINT_MAX)
-			throw std::runtime_error("time_duration is out of dual 32-bit range");
-		t.sec = (uint32_t)sec64;
-#if defined(BOOST_DATE_TIME_HAS_NANOSECONDS)
-		t.nsec = d.fractional_seconds();
-#else
-		t.nsec = d.fractional_seconds() * 1000;
-#endif
-		return t;
-	}
+	// 	Time Time::fromBoost(const boost::posix_time::time_duration& d)
+	// 	{
+	// 		Time t;
+	// 		int64_t sec64 = d.total_seconds();
+	// 		if (sec64 < 0 || sec64 > UINT_MAX)
+	// 			throw std::runtime_error("time_duration is out of dual 32-bit range");
+	// 		t.sec = (uint32_t)sec64;
+	// #if defined(BOOST_DATE_TIME_HAS_NANOSECONDS)
+	// 		t.nsec = d.fractional_seconds();
+	// #else
+	// 		t.nsec = d.fractional_seconds() * 1000;
+	// #endif
+	// 		return t;
+	// 	}
 
 	std::ostream& operator<<(std::ostream& os, const Time &rhs)
 	{
-		boost::io::ios_all_saver s(os);
-		os << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
+		// boost::io::ios_all_saver s(os);
+		std::stringstream s;
+		s << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
+		os << s.str();
 		return os;
 	}
 
 	std::ostream& operator<<(std::ostream& os, const Duration& rhs)
 	{
-		boost::io::ios_all_saver s(os);
+		// boost::io::ios_all_saver s(os);
+		std::stringstream s;
 		if (rhs.sec >= 0 || rhs.nsec == 0)
 		{
-			os << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
+			s << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
 		}
 		else
 		{
-			os << (rhs.sec == -1 ? "-" : "") << (rhs.sec + 1) << "." << std::setw(9) << std::setfill('0') << (1000000000 - rhs.nsec);
+			s << (rhs.sec == -1 ? "-" : "") << (rhs.sec + 1) << "." << std::setw(9) << std::setfill('0') << (1000000000 - rhs.nsec);
 		}
+		os << s.str();
 		return os;
 	}
 
@@ -463,7 +467,8 @@ namespace ros
 	{
 		//TODO check this
 #ifdef ROSSIMU
-		usleep(sec * 1000000+nsec/1000);
+		// usleep(sec * 1000000+nsec/1000);
+        std::this_thread::sleep_for(std::chrono::microseconds(sec * 1000000+nsec/1000));
 		return(true);
 #else
 
@@ -508,8 +513,10 @@ namespace ros
 
 	std::ostream &operator<<(std::ostream& os, const WallTime &rhs)
 	{
-		boost::io::ios_all_saver s(os);
-		os << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
+		// boost::io::ios_all_saver s(os);
+		std::stringstream s;
+		s << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
+		os << s.str();
 		return os;
 	}
 
@@ -539,15 +546,17 @@ namespace ros
 #endif
 	std::ostream &operator<<(std::ostream& os, const WallDuration& rhs)
 	{
-		boost::io::ios_all_saver s(os);
+		// boost::io::ios_all_saver s(os);
+		std::stringstream s;
 		if (rhs.sec >= 0 || rhs.nsec == 0)
 		{
-			os << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
+			s << rhs.sec << "." << std::setw(9) << std::setfill('0') << rhs.nsec;
 		}
 		else
 		{
-			os << (rhs.sec == -1 ? "-" : "") << (rhs.sec + 1) << "." << std::setw(9) << std::setfill('0') << (1000000000 - rhs.nsec);
+			s << (rhs.sec == -1 ? "-" : "") << (rhs.sec + 1) << "." << std::setw(9) << std::setfill('0') << (1000000000 - rhs.nsec);
 		}
+		os << s.str();
 		return os;
 	}
 

@@ -48,10 +48,6 @@
 #include <future>
 #include <memory>
 
-#include <sick_scan/sick_ros_wrapper.h>
-
-#include <sick_scan/ldmrs/sick_ldmrs_point_type.h>
-
 // #include <dynamic_reconfigure/server.h>
 // #include <sick_ldmrs_driver/SickLDMRSDriverConfig.h>
 #include "sick_scan/ldmrs/sick_ldmrs_config.hpp"
@@ -68,8 +64,6 @@
 
 namespace sick_ldmrs_driver
 {
-
-typedef pcl::PointCloud<sick_ldmrs_msgs::SICK_LDMRS_Point> PointCloud;
 
 // Adapter to combine publisher for sensor_msgs::msg::PointCloud2 and diagnostic_msgs::msg::DiagnosticArray.
 // see https://github.com/ros/diagnostics/blob/eloquent/diagnostic_updater/include/diagnostic_updater/publisher.hpp

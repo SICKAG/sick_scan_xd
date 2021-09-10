@@ -35,9 +35,10 @@
 #include <list>
 
 #include <memory>
-#include <boost/make_shared.hpp>
-#include <boost/weak_ptr.hpp>
-#include <boost/function.hpp>
+#include <functional>
+//#include <boost/make_shared.hpp>
+//#include <boost/weak_ptr.hpp>
+//#include <boost/function.hpp>
 
 #include <ros/time.h>
 #include <ros/macros.h>
@@ -92,7 +93,7 @@ typedef std::shared_ptr<NodeHandle> NodeHandlePtr;
 
 
 class SingleSubscriberPublisher;
-typedef boost::function<void(const SingleSubscriberPublisher&)> SubscriberStatusCallback;
+typedef std::function<void(const SingleSubscriberPublisher&)> SubscriberStatusCallback;
 
 class CallbackQueue;
 class CallbackQueueInterface;
@@ -141,7 +142,7 @@ struct TimerEvent
     WallDuration last_duration;           ///< How long the last callback ran for
   } profile;
 };
-typedef boost::function<void(const TimerEvent&)> TimerCallback;
+typedef std::function<void(const TimerEvent&)> TimerCallback;
 
 /**
  * \brief Structure passed as a parameter to the callback invoked by a ros::WallTimer
@@ -159,7 +160,7 @@ struct WallTimerEvent
     WallDuration last_duration;           ///< How long the last callback ran for
   } profile;
 };
-typedef boost::function<void(const WallTimerEvent&)> WallTimerCallback;
+typedef std::function<void(const WallTimerEvent&)> WallTimerCallback;
 
 class ServiceManager;
 typedef std::shared_ptr<ServiceManager> ServiceManagerPtr;

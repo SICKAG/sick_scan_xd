@@ -54,7 +54,10 @@ if(ROS_VERSION EQUAL 0)
     add_compile_options(-DROSSIMU)
 endif()
 if(WIN32)
-    add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
+    # add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
+    add_compile_options(-D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
+else()
+    link_libraries(pthread) # std::thread requires pthread on linux
 endif()
 
 # By uncommenting the following lines you can list all variable names ...
@@ -74,7 +77,7 @@ endif()
 # set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/devel;/opt/ros/melodic")
 
 if(ROS_VERSION LESS 2)
-    find_package(Boost REQUIRED COMPONENTS filesystem system serialization)
+    # find_package(Boost REQUIRED COMPONENTS filesystem system serialization)
 endif(ROS_VERSION LESS 2)
 
 if(ENABLE_EMULATOR)
@@ -246,20 +249,23 @@ if(ROS_VERSION EQUAL 2)
         ${ROSIDL_EMULATOR_FILES}
         DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
     )   
-    find_package(Boost REQUIRED COMPONENTS filesystem system serialization) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
+    # find_package(Boost REQUIRED COMPONENTS filesystem system serialization) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
 if(BUILD_WITH_LDMRS_SUPPORT)
     message(STATUS "Building sick_scan with LDMRS support")
     add_compile_options(-DLDMRS_SUPPORT=1)
     find_package(SickLDMRS REQUIRED)
-    find_package(PCL REQUIRED) # workaround https://github.com/ros2/rosidl/issues/402 : Do find_package(PCL) after calling rosidl_generate_interfaces in your CMakeLists.txt
+    # find_package(Boost REQUIRED COMPONENTS filesystem system serialization)
+    # find_package(PCL REQUIRED) # workaround https://github.com/ros2/rosidl/issues/402 : Do find_package(PCL) after calling rosidl_generate_interfaces in your CMakeLists.txt
     set(LDMRS_INCLUDES ${SICK_LDMRS_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
     set(LDMRS_SOURCES driver/src/ldmrs/sick_ldmrs_config.cpp driver/src/ldmrs/sick_ldmrs_driver.cpp driver/src/ldmrs/sick_ldmrs_node.cpp)
     set(LDMRS_TARGET_DEPENDENCIES SickLDMRS)
+    # set(SICK_LDMRS_LIBRARIES ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES})
     message(STATUS "LDMRS_INCLUDES: ${LDMRS_INCLUDES}")
     message(STATUS "LDMRS_SOURCES: ${LDMRS_SOURCES}")
     message(STATUS "LDMRS_TARGET_DEPENDENCIES: ${LDMRS_TARGET_DEPENDENCIES}")
+    message(STATUS "SICK_LDMRS_LIBRARIES: ${SICK_LDMRS_LIBRARIES}")
 endif()
  
 if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
@@ -346,11 +352,11 @@ if(ROS_VERSION EQUAL 1)
         CATKIN_DEPENDS message_runtime roscpp sensor_msgs diagnostic_updater dynamic_reconfigure pcl_conversions pcl_ros tf tf2
         LIBRARIES sick_scan_lib
         INCLUDE_DIRS include
-        DEPENDS Boost
+        # DEPENDS Boost
     )
 endif(ROS_VERSION EQUAL 1)
 
-include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include/launchparser)
+include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser) # ${Boost_INCLUDE_DIR} 
 
 if(ROS_VERSION EQUAL 1)
     add_library(sick_scan_lib STATIC
@@ -396,35 +402,26 @@ if(ROS_VERSION EQUAL 1)
     add_executable(sick_generic_caller
         driver/src/sick_generic_caller.cpp
         )
-
+    
+    target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES})
+    
     #
     #  radar_object_marker (receives radar msg. and publishes marker array for rviz or similar
     #
-    add_executable(radar_object_marker
-        tools/radar_object_marker/src/radar_object_marker.cpp
-        tools/pcl_converter/src/gnuplotPaletteReader.cpp
-        include/radar_object_marker/radar_object_marker.h)
-
-    target_link_libraries(radar_object_marker sick_scan_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+    # add_executable(radar_object_marker
+    #     tools/radar_object_marker/src/radar_object_marker.cpp
+    #     tools/pcl_converter/src/gnuplotPaletteReader.cpp
+    #     include/radar_object_marker/radar_object_marker.h)
+    # target_link_libraries(radar_object_marker sick_scan_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
     #
     # pcl_converter disabled to avoid dependency to pcl
     #
     # add_executable(pcl_converter tools/pcl_converter/src/pcl_converter.cpp tools/pcl_converter/src/gnuplotPaletteReader.cpp)
-    #
-    # target_link_libraries(pcl_converter
-    #        ${catkin_LIBRARIES})
+    # target_link_libraries(pcl_converter ${catkin_LIBRARIES})
 
-
-    target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES})
-    
-    add_executable(sick_scan_test
-        test/src/sick_scan_test.cpp
-        )
-    target_link_libraries(sick_scan_test
-        ${catkin_LIBRARIES}
-        ${roslib_LIBRARIES}
-        sick_scan_lib)
+    # add_executable(sick_scan_test test/src/sick_scan_test.cpp)
+    # target_link_libraries(sick_scan_test ${catkin_LIBRARIES} ${roslib_LIBRARIES} sick_scan_lib ${Boost_LIBRARIES})
 
 else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
 
@@ -485,8 +482,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/sick_generic_caller.cpp
     )
 
-    #message("Boost_LIBRARIES= ${Boost_LIBRARIES}")
-    target_link_libraries(sick_generic_caller sick_scan_lib ${Boost_LIBRARIES} ${SICK_LDMRS_LIBRARIES})
+    target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES})
 
 endif()
 
@@ -494,7 +490,7 @@ if(ROS_VERSION EQUAL 2)
 
     ament_target_dependencies(
         sick_scan_lib
-        "Boost"
+        # "Boost"
         "rclcpp"
         "sensor_msgs"
         "std_msgs"
@@ -507,7 +503,7 @@ if(ROS_VERSION EQUAL 2)
 
     ament_target_dependencies(
         sick_generic_caller
-        "Boost"
+        # "Boost"
         "rclcpp"
         "sensor_msgs"
         "std_msgs"
@@ -532,10 +528,7 @@ if(ROS_VERSION EQUAL 1)
         sick_generic_caller
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-    install(
-        TARGETS
-        sick_scan_test
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+    # install(TARGETS sick_scan_test RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
     install(FILES include/${PROJECT_NAME}/abstract_parser.h
         include/${PROJECT_NAME}/sick_scan_common.h
@@ -589,6 +582,7 @@ if(ENABLE_EMULATOR AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator 
         test/emulator/src/random_generator.cpp
         test/emulator/src/result_port_parser.cpp
         test/emulator/src/ros_wrapper.cpp
+        test/emulator/src/server_socket.cpp
         test/emulator/src/SoftwarePLL.cpp
         test/emulator/src/testcase_generator.cpp
         test/emulator/src/utils.cpp
@@ -599,8 +593,7 @@ if(ENABLE_EMULATOR AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator 
         ${catkin_LIBRARIES}
         ${roslib_LIBRARIES}
         jsoncpp_lib # ${jsoncpp_LIBRARIES}
-        sick_scan_lib
-        ${Boost_LIBRARIES})
+        sick_scan_lib)
     target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
     
     if(ROS_VERSION EQUAL 1)
@@ -632,10 +625,12 @@ if(ENABLE_EMULATOR)
         tools/test_server/src/test_server.cpp 
         tools/test_server/src/test_server_cola_msg.cpp 
         tools/test_server/src/test_server_ldmrs_msg.cpp 
-        tools/test_server/src/test_server_thread.cpp)
-    target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES})
+        tools/test_server/src/test_server_thread.cpp
+        test/emulator/src/server_socket.cpp)
+    target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES})
+    target_include_directories(test_server PUBLIC test test/emulator/include)
     if(ROS_VERSION EQUAL 2)
-        ament_target_dependencies(test_server "rclcpp" "Boost")
+        ament_target_dependencies(test_server "rclcpp" ) # "Boost")
     endif(ROS_VERSION EQUAL 2)
     install(TARGETS 
         test_server

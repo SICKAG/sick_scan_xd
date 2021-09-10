@@ -72,16 +72,12 @@
  * @param[in] ip_port_cola ip port for command requests and responses, default: 2111
  */
 sick_scan::TestServerThread::TestServerThread(ROS::NodePtr nh, int ip_port_results, int ip_port_cola)
-: m_ip_port_results(ip_port_results), m_ip_port_cola(ip_port_cola), m_ioservice(),
+: m_ip_port_results(ip_port_results), m_ip_port_cola(ip_port_cola), 
   m_tcp_connection_thread_results(0), m_tcp_connection_thread_cola(0), m_tcp_send_scandata_thread(0),
   m_tcp_connection_thread_running(false), m_worker_thread_running(false), m_tcp_send_scandata_thread_running(false),
-  m_tcp_acceptor_results(m_ioservice, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), m_ip_port_results)),
-  m_tcp_acceptor_cola(m_ioservice, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), m_ip_port_cola)),
   m_start_scandata_delay(1), m_result_telegram_rate(10), m_demo_move_in_circles(false), m_error_simulation_enabled(false), m_error_simulation_flag(SIMU_NO_ERROR),
   m_error_simulation_thread(0), m_error_simulation_thread_running(false)
 {
-  m_tcp_acceptor_results.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-  m_tcp_acceptor_cola.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
   m_scandatafiles = "/tmp/lmd_scandata.pcapng.json"; // default pcapng.json file for testing and debugging
   m_scandatatypes = "sSN LMDscandata ,sSN LIDinputstate ,sSN LIDoutputstate ,sSN LFErec "; // default datatypes (send those datatypes when found in scandata file)
   if(nh)
@@ -161,17 +157,6 @@ bool sick_scan::TestServerThread::stop(void)
     delete(m_error_simulation_thread);
     m_error_simulation_thread = 0;
   }
-  m_ioservice.stop();
-  // close both tcp acceptors for ip ports 2201 (results), 2111 (cola command requests)
-  std::vector<boost::asio::ip::tcp::acceptor*> tcp_acceptors = { &m_tcp_acceptor_results, & m_tcp_acceptor_cola };
-  for(std::vector<boost::asio::ip::tcp::acceptor*>::iterator iter_acceptor = tcp_acceptors.begin(); iter_acceptor != tcp_acceptors.end(); iter_acceptor++)
-  {
-    if((*iter_acceptor)->is_open())
-    {
-      (*iter_acceptor)->cancel(); // cancel possibly blocking calls of m_tcp_acceptor_results.listen() in the connection thread
-      (*iter_acceptor)->close();  // close tcp acceptor
-    }
-  }
   // close 2 threads creating sockets for new tcp clients on ip ports 2201 (results), 2111 (cola command requests)
   std::vector<thread_ptr*> tcp_connection_threads = { &m_tcp_connection_thread_results, &m_tcp_connection_thread_cola };
   for(std::vector<thread_ptr*>::iterator iter_connection_thread = tcp_connection_threads.begin(); iter_connection_thread != tcp_connection_threads.end(); iter_connection_thread++)
@@ -213,16 +198,11 @@ void sick_scan::TestServerThread::closeScandataThread(void)
  */
 void sick_scan::TestServerThread::closeTcpConnections(bool force_shutdown)
 {
-  for(std::list<boost::asio::ip::tcp::socket*>::iterator socket_iter = m_tcp_sockets.begin(); socket_iter != m_tcp_sockets.end(); socket_iter++)
+  for(std::list<sick_scan::ServerSocket*>::iterator socket_iter = m_tcp_sockets.begin(); socket_iter != m_tcp_sockets.end(); socket_iter++)
   {
-    boost::asio::ip::tcp::socket* p_socket = *socket_iter;
     try
     {
-      if(p_socket && (force_shutdown || p_socket->is_open()))
-      {
-        p_socket->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-        p_socket->close();
-      }
+      (*socket_iter)->close();
     }
     catch(std::exception & exc)
     {
@@ -242,17 +222,15 @@ void sick_scan::TestServerThread::closeSocket(socket_ptr & p_socket)
   std::lock_guard<std::mutex> worker_thread_lockguard(m_tcp_worker_threads_mutex);
   try
   {
-    if(p_socket && p_socket->is_open())
-    {
-      p_socket->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-      p_socket->close();
-    }
     if(p_socket)
     {
-      for(std::list<boost::asio::ip::tcp::socket*>::iterator socket_iter = m_tcp_sockets.begin(); socket_iter != m_tcp_sockets.end(); )
+      for(std::list<sick_scan::ServerSocket*>::iterator socket_iter = m_tcp_sockets.begin(); socket_iter != m_tcp_sockets.end(); )
       {
-        if(p_socket == *socket_iter)
+        if(p_socket == (*socket_iter))
+        {
+          (*socket_iter)->close();
           socket_iter = m_tcp_sockets.erase(socket_iter);
+        }
         else
           socket_iter++;
       }
@@ -297,7 +275,7 @@ void sick_scan::TestServerThread::messageCbResultPortTelegrams(const sick_scan::
  */
 void sick_scan::TestServerThread::runConnectionThreadResultCb(void)
 {
-  runConnectionThreadGenericCb(m_tcp_acceptor_results, m_ip_port_results, &sick_scan::TestServerThread::runWorkerThreadResultCb);
+  runConnectionThreadGenericCb(m_ip_port_results, &sick_scan::TestServerThread::runWorkerThreadResultCb);
 }
 
 /*!
@@ -306,54 +284,67 @@ void sick_scan::TestServerThread::runConnectionThreadResultCb(void)
  */
 void sick_scan::TestServerThread::runConnectionThreadColaCb(void)
 {
-  runConnectionThreadGenericCb(m_tcp_acceptor_cola, m_ip_port_cola, &sick_scan::TestServerThread::runWorkerThreadColaCb);
+  runConnectionThreadGenericCb(m_ip_port_cola, &sick_scan::TestServerThread::runWorkerThreadColaCb);
 }
 
 /*!
  * Thread callback, listens and accept tcp connections from clients.
  * Starts a worker thread for each tcp client.
  */
-template<typename Callable>void sick_scan::TestServerThread::runConnectionThreadGenericCb(boost::asio::ip::tcp::acceptor & tcp_acceptor_results, int ip_port_results, Callable thread_function_cb)
+template<typename Callable>void sick_scan::TestServerThread::runConnectionThreadGenericCb(int ip_port_results, Callable thread_function_cb)
 {
   ROS_INFO_STREAM("TestServerThread: connection thread started");
-  while(ROS::ok() && m_tcp_connection_thread_running && tcp_acceptor_results.is_open())
+  while(ROS::ok() && m_tcp_connection_thread_running)
   {
     if(m_error_simulation_flag.get() == DONT_LISTEN) // error simulation: testserver does not open listening port
     {
       ROS::sleep(0.1);
       continue;
     }
+    
     // normal mode: listen to tcp port, accept and connect to new tcp clients
-    boost::asio::ip::tcp::socket* tcp_client_socket = new boost::asio::ip::tcp::socket(m_ioservice);
-    boost::system::error_code errorcode;
-    if(m_error_simulation_flag.get() != DONT_LISTEN && m_error_simulation_flag.get() != DONT_ACCECPT)
+    sick_scan::ServerSocket* tcp_client_socket = new sick_scan::ServerSocket();
+    
+    // Accecpt tcp connection
+    if(tcp_client_socket->open(ip_port_results))
+    {
       ROS_INFO_STREAM("TestServerThread: listening to tcp connections on port " << ip_port_results);
-    tcp_acceptor_results.listen();
-    if(m_error_simulation_flag.get() == DONT_LISTEN || m_error_simulation_flag.get() == DONT_ACCECPT) // error simulation: testserver does not does not accecpt tcp clients
+    }
+    else
+    {
+      ROS_ERROR_STREAM("## ERROR TestServerThread: can't open port " << ip_port_results);
+      tcp_client_socket->close();
+      ROS::sleep(0.1);
+      continue; 
+    }
+    if(m_error_simulation_flag.get() == DONT_ACCECPT) // error simulation: testserver does not does not accecpt tcp clients
     {
       ROS::sleep(0.1);
       continue;
     }
-    tcp_acceptor_results.accept(*tcp_client_socket, errorcode); // normal mode: accept new tcp client
-    if(m_error_simulation_flag.get() == DONT_LISTEN || m_error_simulation_flag.get() == DONT_ACCECPT) // error simulation: testserver does not does not accecpt tcp clients
+
+    // Connect to tcp client
+    if(tcp_client_socket->connect())
     {
-      if(tcp_client_socket->is_open())
-      {
-        tcp_client_socket->shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-        tcp_client_socket->close();
-  
-      }
-      continue;
+      ROS_INFO_STREAM("TestServerThread: connected to client");
     }
-    if (!errorcode && tcp_client_socket->is_open())
+    else
     {
-      // tcp client connected, start worker thread
-      ROS_INFO_STREAM("TestServerThread: established new tcp client connection");
-      std::lock_guard<std::mutex> worker_thread_lockguard(m_tcp_worker_threads_mutex);
-      m_tcp_sockets.push_back(tcp_client_socket);
-      m_worker_thread_running = true;
-      m_tcp_worker_threads.push_back(new std::thread(thread_function_cb, this, tcp_client_socket));
+      ROS_ERROR_STREAM("## ERROR TestServerThread: can't connect (port " << ip_port_results << ")");
+      tcp_client_socket->close();
+      ROS::sleep(0.1);
+      continue; 
     }
+
+    // tcp client connected, start worker thread
+    ROS_INFO_STREAM("TestServerThread: established new tcp client connection");
+    std::lock_guard<std::mutex> worker_thread_lockguard(m_tcp_worker_threads_mutex);
+    m_tcp_sockets.push_back(tcp_client_socket);
+    m_worker_thread_running = true;
+    std::thread* worker_thread = new std::thread(thread_function_cb, this, tcp_client_socket);
+    m_tcp_worker_threads.push_back(worker_thread);
+    worker_thread->join();
+    tcp_client_socket->close();
   }
   closeTcpConnections();
   m_tcp_connection_thread_running = false;
@@ -365,7 +356,7 @@ template<typename Callable>void sick_scan::TestServerThread::runConnectionThread
  * There's one result worker thread for each tcp client.
  * @param[in] p_socket socket to send result telegrams to the tcp client
  */
-void sick_scan::TestServerThread::runWorkerThreadResultCb(boost::asio::ip::tcp::socket* p_socket)
+void sick_scan::TestServerThread::runWorkerThreadResultCb(socket_ptr p_socket)
 {
   ROS_INFO_STREAM("TestServerThread: worker thread for result telegrams started");
   sick_scan::UniformRandomInteger random_generator(0,255);
@@ -375,7 +366,6 @@ void sick_scan::TestServerThread::runWorkerThreadResultCb(boost::asio::ip::tcp::
   while(ROS::ok() && m_worker_thread_running && p_socket && p_socket->is_open())
   {
     ROS::sleep((double)sick_scan::TestcaseGenerator::ResultPoseInterval() / m_result_telegram_rate);
-    boost::system::error_code error_code;
     if (m_error_simulation_flag.get() == DONT_SEND) // error simulation: testserver does not send any telegrams
     {
       ROS_DEBUG_STREAM("TestServerThread for cresult telegrams: error simulation, server not sending any telegrams");
@@ -384,8 +374,10 @@ void sick_scan::TestServerThread::runWorkerThreadResultCb(boost::asio::ip::tcp::
     if (m_error_simulation_flag.get() == SEND_RANDOM_TCP) // error simulation: testserver sends invalid random tcp packets
     {
       std::vector<uint8_t> random_data = random_generator.generate(random_length.generate()); // binary random data of random size
-      boost::asio::write(*p_socket, boost::asio::buffer(random_data.data(), random_data.size()), boost::asio::transfer_exactly(random_data.size()), error_code);
-      ROS_DEBUG_STREAM("TestServerThread for result telegrams: send random data " << sick_scan::Utils::toHexString(random_data));
+      if(!p_socket->write(random_data.data(), random_data.size()))
+        ROS_ERROR_STREAM("## ERROR TestServerThread: failed to send " << random_data.size() << "byte random data " << sick_scan::Utils::toHexString(random_data));
+      else
+        ROS_DEBUG_STREAM("TestServerThread for result telegrams: send random data " << sick_scan::Utils::toHexString(random_data));
       continue;
     }
     // create testcase is a result port telegram with random based sythetical data
@@ -408,11 +400,10 @@ void sick_scan::TestServerThread::runWorkerThreadResultCb(boost::asio::ip::tcp::
     // send binary result port telegram to tcp client (if localization is "on")
     if(sick_scan::TestcaseGenerator::LocalizationEnabled() && sick_scan::TestcaseGenerator::ResultTelegramsEnabled())
     {
-      size_t bytes_written = boost::asio::write(*p_socket, boost::asio::buffer(testcase.binary_data.data(), testcase.binary_data.size()), boost::asio::transfer_exactly(testcase.binary_data.size()), error_code);
-      if (error_code || bytes_written != testcase.binary_data.size())
+      if(!p_socket->write(testcase.binary_data.data(), testcase.binary_data.size()))
       {
         std::stringstream error_info;
-        error_info << "## ERROR TestServerThread for result telegrams: failed to send binary result port telegram, " << bytes_written << " of " << testcase.binary_data.size() << " bytes send, error code: " << error_code.message();
+        error_info << "## ERROR TestServerThread for result telegrams: failed to send " << testcase.binary_data.size() << " bytes binary result port telegram";
         if (m_error_simulation_flag.get() == SIMU_NO_ERROR)
         {
           ROS_WARN_STREAM(error_info.str() << ", close socket and leave worker thread for result telegrams");
@@ -440,7 +431,7 @@ void sick_scan::TestServerThread::runWorkerThreadResultCb(boost::asio::ip::tcp::
  * There's one request worker thread for each tcp client.
  * @param[in] p_socket socket to receive command requests from the tcp client
  */
-void sick_scan::TestServerThread::runWorkerThreadColaCb(boost::asio::ip::tcp::socket* p_socket)
+void sick_scan::TestServerThread::runWorkerThreadColaCb(socket_ptr p_socket)
 {
   ROS_INFO_STREAM("TestServerThread: worker thread for command requests started");
   int iTransmitErrorCnt = 0;
@@ -452,7 +443,7 @@ void sick_scan::TestServerThread::runWorkerThreadColaCb(boost::asio::ip::tcp::so
     // Read command request from tcp client
     ServerColaRequest request;
     ROS::Time receive_timestamp;
-    if(sick_scan::ColaTransmitter::receive(*p_socket, request.telegram_data, 1, receive_timestamp))
+    if(sick_scan::ColaTransmitter::receive(p_socket->connectedSocket(), request.telegram_data, 1, receive_timestamp))
     {
       if (m_error_simulation_flag.get() == DONT_SEND) // error simulation: testserver does not send any telegrams
       {
@@ -461,10 +452,11 @@ void sick_scan::TestServerThread::runWorkerThreadColaCb(boost::asio::ip::tcp::so
       }
       if (m_error_simulation_flag.get() == SEND_RANDOM_TCP) // error simulation: testserver sends invalid random tcp packets
       {
-        boost::system::error_code error_code;
         std::vector<uint8_t> random_data = random_generator.generate(random_length.generate()); // binary random data of random size
-        boost::asio::write(*p_socket, boost::asio::buffer(random_data.data(), random_data.size()), boost::asio::transfer_exactly(random_data.size()), error_code);
-        ROS_DEBUG_STREAM("TestServerThread for command requests: send random data " << sick_scan::Utils::toHexString(random_data));
+        if(!p_socket->write(random_data.data(), random_data.size()))
+          ROS_ERROR_STREAM("## ERROR TestServerThread for command requests: send random data " << sick_scan::Utils::toHexString(random_data) << " failed.");
+        else
+          ROS_DEBUG_STREAM("TestServerThread for command requests: send random data " << sick_scan::Utils::toHexString(random_data));
         continue;
       }
       // command requests received, generate and send a synthetical response
@@ -493,7 +485,7 @@ void sick_scan::TestServerThread::runWorkerThreadColaCb(boost::asio::ip::tcp::so
       if(cola_binary)
         ROS_DEBUG_STREAM("TestServerThread: sending cola hex response " << sick_scan::Utils::toHexString(binary_response));
       ROS::Time send_timestamp;
-      if (!sick_scan::ColaTransmitter::send(*p_socket, binary_response, send_timestamp))
+      if (!sick_scan::ColaTransmitter::send(p_socket->connectedSocket(), binary_response, send_timestamp))
       {
         ROS_WARN_STREAM("## ERROR TestServerThread: failed to send cola response, ColaTransmitter::send() returned false, data hexdump: " << sick_scan::Utils::toHexString(binary_response));
         iTransmitErrorCnt++;
@@ -534,7 +526,7 @@ void sick_scan::TestServerThread::runWorkerThreadColaCb(boost::asio::ip::tcp::so
  * while m_tcp_send_scandata_thread_running is true.
  * @param[in] p_socket socket to sends scandata and scandatamon messages the tcp client
  */
-void sick_scan::TestServerThread::runWorkerThreadScandataCb(boost::asio::ip::tcp::socket* p_socket)
+void sick_scan::TestServerThread::runWorkerThreadScandataCb(socket_ptr p_socket)
 {
   std::vector<sick_scan::JsonScanData> binary_messages;
   ROS_INFO_STREAM("TestServerThread: worker thread sending scandata and scandatamon messages started.");
@@ -572,7 +564,7 @@ void sick_scan::TestServerThread::runWorkerThreadScandataCb(boost::asio::ip::tcp
   ROS::sleep(m_start_scandata_delay); // delay between scandata activation ("LMCstartmeas" request) and first scandata message, default: 1 second
   double last_msg_timestamp = 0;
   int iTransmitErrorCnt = 0;
-  for(int msg_cnt = 0, msg_cnt_delta = 1; ROS::ok() && m_tcp_send_scandata_thread_running && p_socket; msg_cnt+=msg_cnt_delta)
+  for(int msg_cnt = 0, msg_cnt_delta = 1; ROS::ok() && m_tcp_send_scandata_thread_running && p_socket && p_socket->is_open(); msg_cnt+=msg_cnt_delta)
   {
     if(msg_cnt >= (int)binary_messages.size()) // revert messages
     {
@@ -591,7 +583,7 @@ void sick_scan::TestServerThread::runWorkerThreadScandataCb(boost::asio::ip::tcp
     ROS_INFO_STREAM("TestServerThread: sending " << binary_message.data.size() << " byte scan data " 
       << sick_scan::Utils::toAsciiString(&binary_message.data[0], std::min(32, (int)binary_message.data.size())) << " ... ");
     ROS::Time send_timestamp = ROS::now();
-    if (!sick_scan::ColaTransmitter::send(*p_socket, binary_message.data, send_timestamp))
+    if (!sick_scan::ColaTransmitter::send(p_socket->connectedSocket(), binary_message.data, send_timestamp))
     {
       ROS_WARN_STREAM("## ERROR TestServerThread: failed to send cola response, ColaTransmitter::send() returned false, data hexdump: " << sick_scan::Utils::toHexString(binary_message.data));
       iTransmitErrorCnt++;

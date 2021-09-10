@@ -54,11 +54,11 @@
  */
 
 #include "sick_scan/ros_wrapper.h"
+#include <iomanip>
 #include <string>
 #include <vector>
-#include <boost/algorithm/hex.hpp>
-#include <boost/algorithm/string.hpp>
-
+//#include <boost/algorithm/hex.hpp>
+//#include <boost/algorithm/string.hpp>
 #include "sick_scan/utils.h"
 
 /*
@@ -68,10 +68,14 @@
  */
 std::string sick_scan::Utils::toHexString(const std::vector<uint8_t> & binary_data)
 {
-  std::string hex_string;
-  hex_string.reserve(binary_data.size() * 2);
-  boost::algorithm::hex(binary_data.begin(), binary_data.end(), std::back_inserter(hex_string));
-  return hex_string;
+  //std::string hex_string;
+  //hex_string.reserve(binary_data.size() * 2);
+  //boost::algorithm::hex(binary_data.begin(), binary_data.end(), std::back_inserter(hex_string));
+  //return hex_string;
+  std::stringstream hex_string;
+  for(int n = 0; n < binary_data.size(); n++)
+    hex_string << std::setfill('0') << std::setw(2) << std::hex << (int)(binary_data[n]);
+  return hex_string.str();
 }
 
 /*!
@@ -100,13 +104,61 @@ std::string sick_scan::Utils::toAsciiString(const uint8_t* binary_data, int leng
   return out.str();
 }
 
+/*!
+ * Replaces all substrings of a string by another string.
+ * https://stackoverflow.com/questions/3418231/replace-part-of-a-string-with-another-string/3418285
+ */
+void sick_scan::Utils::replaceAll(std::string& str, const std::string& from, const std::string& to) 
+{
+  // boost::replace_all(str, from, to);
+  if(!str.empty() && !from.empty())
+  {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) 
+    {
+      str.replace(start_pos, from.length(), to);
+      start_pos += to.length();
+    }
+  }
+}
+
 /*
  * Shortcut to replace linefeeds by colon-separators
  */
 void sick_scan::Utils::flattenString(std::string & s)
 {
-  boost::replace_all(s, "\n", ", ");
-  boost::replace_all(s, ": , ", ": ");
+  replaceAll(s, "\n", ", ");
+  replaceAll(s, ": , ", ": ");
   while(s.find("  ") != std::string::npos)
-    boost::replace_all(s, "  ", " ");
+    replaceAll(s, "  ", " ");
+}
+
+/*!
+ * Splits a string into its space separated substrings
+ */
+std::vector<std::string> sick_scan::Utils::splitSpaces(const std::string & s)
+{
+  std::vector<std::string> parts;
+  parts.push_back("");
+  for(int n = 0; n < s.size(); n++)
+  {
+    if(isspace(s[n]))
+    {
+      if(!parts.back().empty())
+      {
+        parts.push_back("");
+        parts.back().reserve(s.size() + 1 - n);
+      }
+    }
+    else
+    {
+      parts.back().push_back(s[n]);
+    }
+  }
+  // std::vector<std::string> boost_parts;
+  // boost::split(boost_parts, s, boost::algorithm::is_space());
+  // assert(parts.size() == boost_parts.size());
+  // for(int n = 0; n < parts.size() && n < boost_parts.size(); n++)
+  //   assert(parts[n] == boost_parts[n]);
+  return parts;
 }

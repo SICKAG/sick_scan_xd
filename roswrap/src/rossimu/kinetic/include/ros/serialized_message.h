@@ -30,7 +30,7 @@
 
 #include "roscpp_serialization_macros.h"
 
-#include <boost/shared_array.hpp>
+#include <boost_wrap/shared_array.hpp>
 #include <memory>
 
 namespace ros

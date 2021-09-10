@@ -35,8 +35,8 @@
 #include "ros/service_traits.h"
 #include "ros/serialization.h"
 
-#include <boost/type_traits/is_base_of.hpp>
-#include <boost/utility/enable_if.hpp>
+//#include <boost/type_traits/is_base_of.hpp>
+//#include <boost/utility/enable_if.hpp>
 
 namespace ros
 {
@@ -74,7 +74,7 @@ public:
   typedef MRes ResponseType;
   typedef std::shared_ptr<RequestType> RequestPtr;
   typedef std::shared_ptr<ResponseType> ResponsePtr;
-  typedef boost::function<bool(ServiceEvent<RequestType, ResponseType>&)> CallbackType;
+  typedef std::function<bool(ServiceEvent<RequestType, ResponseType>&)> CallbackType;
 
   static bool call(const CallbackType& cb, ServiceSpecCallParams<RequestType, ResponseType>& params)
   {
@@ -118,7 +118,7 @@ struct ServiceSpec
   typedef MRes ResponseType;
   typedef std::shared_ptr<RequestType> RequestPtr;
   typedef std::shared_ptr<ResponseType> ResponsePtr;
-  typedef boost::function<bool(RequestType&, ResponseType&)> CallbackType;
+  typedef std::function<bool(RequestType&, ResponseType&)> CallbackType;
 
   static bool call(const CallbackType& cb, ServiceSpecCallParams<RequestType, ResponseType>& params)
   {
@@ -151,8 +151,8 @@ public:
   typedef typename Spec::RequestPtr RequestPtr;
   typedef typename Spec::ResponsePtr ResponsePtr;
   typedef typename Spec::CallbackType Callback;
-  typedef boost::function<RequestPtr()> ReqCreateFunction;
-  typedef boost::function<ResponsePtr()> ResCreateFunction;
+  typedef std::function<RequestPtr()> ReqCreateFunction;
+  typedef std::function<ResponsePtr()> ResCreateFunction;
 
   ServiceCallbackHelperT(const Callback& callback, 
                          const ReqCreateFunction& create_req = 

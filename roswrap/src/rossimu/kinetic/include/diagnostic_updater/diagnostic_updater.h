@@ -50,8 +50,8 @@
 namespace diagnostic_updater
 {
 
-  typedef boost::function<void(DiagnosticStatusWrapper&)> TaskFunction;
-  typedef boost::function<void(diagnostic_msgs::DiagnosticStatus&)> UnwrappedTaskFunction;
+  typedef std::function<void(DiagnosticStatusWrapper&)> TaskFunction;
+  typedef std::function<void(diagnostic_msgs::DiagnosticStatus&)> UnwrappedTaskFunction;
 
   /**
    * \brief DiagnosticTask is an abstract base class for collecting diagnostic data.
@@ -95,7 +95,7 @@ namespace diagnostic_updater
   };
 
   /**
-   * \brief a DiagnosticTask based on a boost::function.
+   * \brief a DiagnosticTask based on a std::function.
    *
    * The GenericFunctionDiagnosticTask calls the function when it updates. The function 
    * updates the DiagnosticStatusWrapper and collects data. 
@@ -115,7 +115,7 @@ namespace diagnostic_updater
        *
        * \param fn Function to be called when DiagnosticTask::run is called.
        */
-      GenericFunctionDiagnosticTask(const std::string &name, boost::function<void(T&)> fn) : 
+      GenericFunctionDiagnosticTask(const std::string &name, std::function<void(T&)> fn) : 
         DiagnosticTask(name), fn_(fn)
       {}
 
@@ -269,7 +269,7 @@ namespace diagnostic_updater
 
       void add(DiagnosticTask &task)
       {
-        TaskFunction f = boost::bind(&DiagnosticTask::run, &task, _1);
+        TaskFunction f = std::bind(&DiagnosticTask::run, &task, std::placeholders::_1);
         add(task.getName(), f);
       }
 
@@ -289,7 +289,7 @@ namespace diagnostic_updater
       template <class T>
         void add(const std::string name, T *c, void (T::*f)(diagnostic_updater::DiagnosticStatusWrapper&))
         {
-          DiagnosticTaskInternal int_task(name, boost::bind(f, c, _1));
+          DiagnosticTaskInternal int_task(name, std::bind(f, c, std::placeholders::_1));
           addInternal(int_task);
         }
 

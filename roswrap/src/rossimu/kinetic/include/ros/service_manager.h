@@ -34,7 +34,7 @@
 #include "service_client_options.h"
 
 #include <mutex>
-#include <boost/thread/recursive_mutex.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
 
 namespace ros
 {

@@ -42,7 +42,7 @@
 #include <sick_scan/RadarScan.h>
 #include "radar_object_marker/radar_object_marker.h"
 #include "pcl_converter/gnuplotPaletteReader.h"
-#include <boost/serialization/singleton.hpp>
+//#include <boost/serialization/singleton.hpp>
 
 float ballRadius = 0.1;
 float objectArrowScale = 1.0;

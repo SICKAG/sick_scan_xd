@@ -95,7 +95,7 @@ public:
   T& fromSec(double t);
   T& fromNSec(int64_t t);
   bool isZero() const;
-  boost::posix_time::time_duration toBoost() const;
+  //boost::posix_time::time_duration toBoost() const;
 };
 
 class Rate;

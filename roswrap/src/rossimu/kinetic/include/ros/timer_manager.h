@@ -32,10 +32,10 @@
 #include "ros/time.h"
 #include "ros/file_log.h"
 
-#include <boost/thread/thread.hpp>
+//#include <boost/thread/thread.hpp>
 #include <mutex>
-#include <boost/thread/recursive_mutex.hpp>
-#include <boost/thread/condition_variable.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
+//#include <boost/thread/condition_variable.hpp>
 
 #include "ros/assert.h"
 #include "ros/callback_queue_interface.h"
@@ -55,7 +55,7 @@ private:
     int32_t handle;
     D period;
 
-    boost::function<void(const E&)> callback;
+    std::function<void(const E&)> callback;
     CallbackQueueInterface* callback_queue;
 
     WallDuration last_cb_duration;
@@ -89,7 +89,7 @@ public:
   TimerManager();
   ~TimerManager();
 
-  int32_t add(const D& period, const boost::function<void(const E&)>& callback, CallbackQueueInterface* callback_queue, const VoidConstPtr& tracked_object, bool oneshot);
+  int32_t add(const D& period, const std::function<void(const E&)>& callback, CallbackQueueInterface* callback_queue, const VoidConstPtr& tracked_object, bool oneshot);
   void remove(int32_t handle);
 
   bool hasPending(int32_t handle);
@@ -279,7 +279,7 @@ bool TimerManager<T, D, E>::hasPending(int32_t handle)
 }
 
 template<class T, class D, class E>
-int32_t TimerManager<T, D, E>::add(const D& period, const boost::function<void(const E&)>& callback, CallbackQueueInterface* callback_queue,
+int32_t TimerManager<T, D, E>::add(const D& period, const std::function<void(const E&)>& callback, CallbackQueueInterface* callback_queue,
                                    const VoidConstPtr& tracked_object, bool oneshot)
 {
   TimerInfoPtr info(std::make_shared<TimerInfo>());
@@ -310,14 +310,14 @@ int32_t TimerManager<T, D, E>::add(const D& period, const boost::function<void(c
 
     if (!thread_started_)
     {
-      thread_ = std::thread(boost::bind(&TimerManager::threadFunc, this));
+      thread_ = std::thread(std::bind(&TimerManager::threadFunc, this));
       thread_started_ = true;
     }
 
     {
       std::lock_guard<std::mutex> lock(waiting_mutex_);
       waiting_.push_back(info->handle);
-      waiting_.sort(boost::bind(&TimerManager::waitingCompare, this, _1, _2));
+      waiting_.sort(std::bind(&TimerManager::waitingCompare, this, std::placeholders::_1, std::placeholders::_2));
     }
 
     new_timer_ = true;
@@ -384,7 +384,7 @@ void TimerManager<T, D, E>::schedule(const TimerInfoPtr& info)
 
     waiting_.push_back(info->handle);
     // waitingCompare requires a lock on the timers_mutex_
-    waiting_.sort(boost::bind(&TimerManager::waitingCompare, this, _1, _2));
+    waiting_.sort(std::bind(&TimerManager::waitingCompare, this, std::placeholders::_1, std::placeholders::_2));
   }
 
   new_timer_ = true;
@@ -458,7 +458,7 @@ void TimerManager<T, D, E>::setPeriod(int32_t handle, const D& period, bool rese
     // In this case, let next_expected be updated only in updateNext
     
     info->period = period;
-    waiting_.sort(boost::bind(&TimerManager::waitingCompare, this, _1, _2));
+    waiting_.sort(std::bind(&TimerManager::waitingCompare, this, std::placeholders::_1, std::placeholders::_2));
   }
 
   new_timer_ = true;
@@ -556,14 +556,14 @@ void TimerManager<T, D, E>::threadFunc()
       // since simulation time may be running faster than real time.
       if (!T::isSystemTime())
       {
-        timers_cond_.timed_wait(lock, boost::posix_time::milliseconds(1));
+        timers_cond_.timed_wait(lock, std::chrono::milliseconds(1)); // boost::posix_time::milliseconds(1));
       }
       else
       {
         // On system time we can simply sleep for the rest of the wait time, since anything else requiring processing will
         // signal the condition variable
         int32_t remaining_time = std::max((int32_t)((sleep_end - current).toSec() * 1000.0f), 1);
-        timers_cond_.timed_wait(lock, boost::posix_time::milliseconds(remaining_time));
+        timers_cond_.timed_wait(lock, std::chrono::milliseconds(remaining_time)); // boost::posix_time::milliseconds(remaining_time));
       }
     }
 

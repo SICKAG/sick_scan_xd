@@ -80,8 +80,8 @@ struct ROSCPP_DECL SubscribeOptions
    */
   template<class P>
   void initByFullCallbackType(const std::string& _topic, uint32_t _queue_size,
-       const boost::function<void (P)>& _callback,
-       const boost::function<std::shared_ptr<typename ParameterAdapter<P>::Message>(void)>& factory_fn = DefaultMessageCreator<typename ParameterAdapter<P>::Message>())
+       const std::function<void (P)>& _callback,
+       const std::function<std::shared_ptr<typename ParameterAdapter<P>::Message>(void)>& factory_fn = DefaultMessageCreator<typename ParameterAdapter<P>::Message>())
   {
     typedef typename ParameterAdapter<P>::Message MessageType;
     topic = _topic;
@@ -101,8 +101,8 @@ struct ROSCPP_DECL SubscribeOptions
    */
   template<class M>
   void init(const std::string& _topic, uint32_t _queue_size,
-       const boost::function<void (const std::shared_ptr<M const>&)>& _callback,
-       const boost::function<std::shared_ptr<M>(void)>& factory_fn = DefaultMessageCreator<M>())
+       const std::function<void (const std::shared_ptr<M const>&)>& _callback,
+       const std::function<std::shared_ptr<M>(void)>& factory_fn = DefaultMessageCreator<M>())
   {
     typedef typename ParameterAdapter<M>::Message MessageType;
     topic = _topic;
@@ -152,7 +152,7 @@ struct ROSCPP_DECL SubscribeOptions
    */
   template<class M>
   static SubscribeOptions create(const std::string& topic, uint32_t queue_size,
-                                 const boost::function<void (const std::shared_ptr<M const>&)>& callback,
+                                 const std::function<void (const std::shared_ptr<M const>&)>& callback,
                                  const VoidConstPtr& tracked_object, CallbackQueueInterface* queue)
   {
     SubscribeOptions ops;

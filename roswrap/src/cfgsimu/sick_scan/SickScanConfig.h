@@ -17,7 +17,7 @@
 #include <dynamic_reconfigure/ParamDescription.h>
 #include <dynamic_reconfigure/Group.h>
 #include <dynamic_reconfigure/config_init_mutex.h>
-#include <boost/any.hpp>
+//#include <boost/any.hpp>
 
 namespace sick_scan
 {

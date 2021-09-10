@@ -39,7 +39,7 @@
 #include "io.h"
 #include "common.h"
 #include <memory>
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 #include <mutex>
 
 namespace ros
@@ -60,7 +60,7 @@ public:
   PollSet();
   ~PollSet();
 
-  typedef boost::function<void(int)> SocketUpdateFunc;
+  typedef std::function<void(int)> SocketUpdateFunc;
   /**
    * \brief Add a socket.
    *

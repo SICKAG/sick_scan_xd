@@ -53,7 +53,7 @@ struct ROSCPP_DECL AdvertiseServiceOptions
    * \param _callback Callback to call when this service is called
    */
   template<class MReq, class MRes>
-  void init(const std::string& _service, const boost::function<bool(MReq&, MRes&)>& _callback)
+  void init(const std::string& _service, const std::function<bool(MReq&, MRes&)>& _callback)
   {
     namespace st = service_traits;
     namespace mt = message_traits;
@@ -81,7 +81,7 @@ struct ROSCPP_DECL AdvertiseServiceOptions
    * \param _callback Callback to call when this service is called
    */
   template<class Service>
-  void init(const std::string& _service, const boost::function<bool(typename Service::Request&, typename Service::Response&)>& _callback)
+  void init(const std::string& _service, const std::function<bool(typename Service::Request&, typename Service::Response&)>& _callback)
   {
     namespace st = service_traits;
     namespace mt = message_traits;
@@ -146,7 +146,7 @@ struct ROSCPP_DECL AdvertiseServiceOptions
    */
   template<class Service>
   static AdvertiseServiceOptions create(const std::string& service,
-                                 const boost::function<bool(typename Service::Request&, typename Service::Response&)>& callback,
+                                 const std::function<bool(typename Service::Request&, typename Service::Response&)>& callback,
                                  const VoidConstPtr& tracked_object,
                                  CallbackQueueInterface* queue)
   {

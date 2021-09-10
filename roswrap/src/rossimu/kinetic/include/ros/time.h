@@ -55,7 +55,7 @@
 #include <cmath>
 #include <ros/exception.h>
 #include "duration.h"
-#include <boost/math/special_functions/round.hpp>
+//#include <boost/math/special_functions/round.hpp>
 #include "rostime_decl.h"
 
 /*********************************************************************
@@ -152,7 +152,7 @@ namespace ros
     double toSec()  const { return (double)sec + 1e-9*(double)nsec; };
     T& fromSec(double t) {
       sec = (uint32_t)floor(t);
-      nsec = (uint32_t)boost::math::round((t-sec) * 1e9);
+      nsec = (uint32_t)std::round((t-sec) * 1e9);
       // avoid rounding errors
       sec += (nsec / 1000000000ul);
       nsec %= 1000000000ul;
@@ -164,7 +164,7 @@ namespace ros
 
     inline bool isZero() const { return sec == 0 && nsec == 0; }
     inline bool is_zero() const { return isZero(); }
-    boost::posix_time::ptime toBoost() const;
+    //boost::posix_time::ptime toBoost() const;
 
   };
 
@@ -217,8 +217,8 @@ namespace ros
      */
     static bool waitForValid(const ros::WallDuration& timeout);
 
-    static Time fromBoost(const boost::posix_time::ptime& t);
-    static Time fromBoost(const boost::posix_time::time_duration& d);
+    //static Time fromBoost(const boost::posix_time::ptime& t);
+    //static Time fromBoost(const boost::posix_time::time_duration& d);
   };
 
   extern ROSTIME_DECL const Time TIME_MAX;

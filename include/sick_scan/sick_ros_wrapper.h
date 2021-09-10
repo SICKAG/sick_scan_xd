@@ -324,6 +324,19 @@ public:
 #define USE_DYNAMIC_RECONFIGURE
 #define USE_DIAGNOSTIC_UPDATER
 #endif // WIN32
+#elif __ROS_VERSION == 1 // ROS 1
+#include <dynamic_reconfigure/server.h>
+#include <diagnostic_updater/diagnostic_updater.h>
+#include <diagnostic_updater/publisher.h>
+#include <sick_scan/SickScanConfig.h>
+#include <sick_scan/SickLDMRSDriverConfig.h>
+#define USE_DYNAMIC_RECONFIGURE
+#define USE_DIAGNOSTIC_UPDATER
+#else
+#include <diagnostic_updater/diagnostic_updater.h>
+#include <diagnostic_updater/publisher.h>
+#endif
+#if __ROS_VERSION != 1
 namespace sick_scan
 {
     class SickScanConfig { // sick_scan2/include/sick_scan/SickScanConfig.h
@@ -341,18 +354,6 @@ namespace sick_scan
         int cloud_output_mode = 0;
     };
 }
-#elif __ROS_VERSION == 1 // ROS 1
-#include <dynamic_reconfigure/server.h>
-#include <diagnostic_updater/diagnostic_updater.h>
-#include <diagnostic_updater/publisher.h>
-#include <sick_scan/SickScanConfig.h>
-#include <sick_scan/SickLDMRSDriverConfig.h>
-#define USE_DYNAMIC_RECONFIGURE
-#define USE_DIAGNOSTIC_UPDATER
-#else
-#include <diagnostic_updater/diagnostic_updater.h>
-#include <diagnostic_updater/publisher.h>
-#include <sick_scan/SickScanConfig.h>
 #endif
 
 /*

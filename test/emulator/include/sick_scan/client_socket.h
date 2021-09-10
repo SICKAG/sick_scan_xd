@@ -1,6 +1,6 @@
 /*
  * @brief client_socket encapsulates connecting, closing and setting socket options
- * for tcp client sockets using boost::asio::ip::tcp::socket and boost::asio::io_service.
+ * for tcp client sockets.
  *
  * Copyright (C) 2019 Ing.-Buero Dr. Michael Lehning, Hildesheim
  * Copyright (C) 2019 SICK AG, Waldkirch
@@ -56,11 +56,7 @@
 #ifndef __SIM_LOC_CLIENT_SOCKET_H_INCLUDED
 #define __SIM_LOC_CLIENT_SOCKET_H_INCLUDED
 
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/read.hpp>
-#include <boost/asio/write.hpp>
+#include "sick_scan/server_socket.h"
 
 namespace sick_scan
 {
@@ -74,9 +70,8 @@ namespace sick_scan
   
     /*!
      * Constructor.
-     * @param[in] io_service boost io service for tcp connections (several sockets may share one io_service)
      */
-    ClientSocket(boost::asio::io_service & io_service);
+    ClientSocket();
   
     /*!
      * Destructor, closes all tcp connections.
@@ -85,12 +80,11 @@ namespace sick_scan
   
     /*!
      * Connects to a server.
-     * @param[in] io_service boost io service for tcp connections (several sockets may share one io_service)
      * @param[in] server_adress ip adress of the localization controller, default: 192.168.0.1
      * @param[in] tcp_port tcp port for command requests, default: 2111 for command requests and 2112 for  command responses
      * @return true on success, false on failure (server unknown or unreachable)
      */
-    virtual bool connect(boost::asio::io_service & io_service, const std::string & server_adress, int tcp_port);
+    virtual bool connect(const std::string & server_adress, int tcp_port);
   
     /*!
      * Closes the tcp connection to the server.
@@ -104,11 +98,11 @@ namespace sick_scan
      * Returns the tcp client socket implementation
      * @return tcp client socket implementation
      */
-    virtual boost::asio::ip::tcp::socket & socket(void) { return m_tcp_socket; }
+    virtual socket_t & socket(void) { return m_tcp_socket; }
     
   protected:
   
-    boost::asio::ip::tcp::socket m_tcp_socket; ///< tcp client socket implementation
+    socket_t m_tcp_socket; ///< tcp client socket (int32 or SOCKET)
     
   }; // class ClientSocket
   

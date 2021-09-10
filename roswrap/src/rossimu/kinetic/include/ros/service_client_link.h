@@ -31,9 +31,9 @@
 #include "ros/common.h"
 
 #include <mutex>
-#include <boost/shared_array.hpp>
+//#include <boost/shared_array.hpp>
 #include <memory>
-#include <boost/signals2/connection.hpp>
+//#include <boost/signals2/connection.hpp>
 
 #include <queue>
 

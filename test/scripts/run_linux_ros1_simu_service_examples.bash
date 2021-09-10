@@ -14,6 +14,7 @@ if [ $roscore_running -lt 1 ] ; then
 fi
 
 # Start sick_scan emulator
+# roslaunch sick_scan emulator_lms5xx.launch &
 roslaunch sick_scan emulator_lms5xx.launch > /dev/null &
 sleep 1
 

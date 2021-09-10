@@ -8,7 +8,6 @@
 #define COLAA_HPP
 
 #include "sick_scan/tcp/BasicDatatypes.hpp"
-// #include <boost/tokenizer.hpp>
 
 /**
  * Parser functions for a partly implementation of the CoLa-A

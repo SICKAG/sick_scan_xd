@@ -39,7 +39,7 @@
 #include "common.h"
 
 #include <memory>
-#include <boost/weak_ptr.hpp>
+//#include <boost/weak_ptr.hpp>
 
 #include <thread>
 

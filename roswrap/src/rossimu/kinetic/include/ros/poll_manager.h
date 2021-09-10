@@ -32,10 +32,10 @@
 #include "poll_set.h"
 #include "common.h"
 
-#include <boost/signals2.hpp>
+//#include <boost/signals2.hpp>
 
-#include <boost/thread/recursive_mutex.hpp>
-#include <boost/thread/thread.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
+//#include <boost/thread/thread.hpp>
 
 namespace ros
 {
@@ -43,7 +43,7 @@ namespace ros
 class PollManager;
 typedef std::shared_ptr<PollManager> PollManagerPtr;
 typedef boost::signals2::signal<void(void)> VoidSignal;
-typedef boost::function<void(void)> VoidFunc;
+typedef std::function<void(void)> VoidFunc;
 
 class ROSCPP_DECL PollManager
 {

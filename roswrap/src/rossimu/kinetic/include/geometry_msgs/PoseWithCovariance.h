@@ -27,13 +27,13 @@ struct PoseWithCovariance_
   PoseWithCovariance_()
     : pose()
     , covariance()  {
-      covariance.assign(0.0);
+      covariance.fill(0.0);
   }
   PoseWithCovariance_(const ContainerAllocator& _alloc)
     : pose(_alloc)
     , covariance()  {
   (void)_alloc;
-      covariance.assign(0.0);
+      covariance.fill(0.0);
   }
 
 
@@ -41,7 +41,7 @@ struct PoseWithCovariance_
    typedef  ::geometry_msgs::Pose_<ContainerAllocator>  _pose_type;
   _pose_type pose;
 
-   typedef boost::array<double, 36>  _covariance_type;
+   typedef std::array<double, 36>  _covariance_type;
   _covariance_type covariance;
 
 

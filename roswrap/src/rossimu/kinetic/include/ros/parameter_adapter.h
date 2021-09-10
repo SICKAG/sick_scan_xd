@@ -32,9 +32,9 @@
 #include "ros/message_event.h"
 #include <ros/static_assert.h>
 
-#include <boost/type_traits/add_const.hpp>
-#include <boost/type_traits/remove_const.hpp>
-#include <boost/type_traits/remove_reference.hpp>
+//#include <boost/type_traits/add_const.hpp>
+//#include <boost/type_traits/remove_const.hpp>
+//#include <boost/type_traits/remove_reference.hpp>
 
 namespace ros
 {
@@ -68,7 +68,7 @@ void callback(const MessageEvent<M>&);
 template<typename M>
 struct ParameterAdapter
 {
-  typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
+  typedef typename std::remove_reference<typename std::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
   typedef M Parameter;
   static const bool is_const = true;
@@ -82,7 +82,7 @@ struct ParameterAdapter
 template<typename M>
 struct ParameterAdapter<const std::shared_ptr<M const>& >
 {
-  typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
+  typedef typename std::remove_reference<typename std::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
   typedef const std::shared_ptr<Message const> Parameter;
   static const bool is_const = true;
@@ -96,7 +96,7 @@ struct ParameterAdapter<const std::shared_ptr<M const>& >
 template<typename M>
 struct ParameterAdapter<const std::shared_ptr<M>& >
 {
-  typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
+  typedef typename std::remove_reference<typename std::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
   typedef std::shared_ptr<Message> Parameter;
   static const bool is_const = false;
@@ -110,7 +110,7 @@ struct ParameterAdapter<const std::shared_ptr<M>& >
 template<typename M>
 struct ParameterAdapter<const M&>
 {
-  typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
+  typedef typename std::remove_reference<typename std::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
   typedef const M& Parameter;
   static const bool is_const = true;
@@ -124,7 +124,7 @@ struct ParameterAdapter<const M&>
 template<typename M>
 struct ParameterAdapter<std::shared_ptr<M const> >
 {
-  typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
+  typedef typename std::remove_reference<typename std::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
   typedef std::shared_ptr<Message const> Parameter;
   static const bool is_const = true;
@@ -138,7 +138,7 @@ struct ParameterAdapter<std::shared_ptr<M const> >
 template<typename M>
 struct ParameterAdapter<std::shared_ptr<M> >
 {
-  typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
+  typedef typename std::remove_reference<typename std::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
   typedef std::shared_ptr<Message> Parameter;
   static const bool is_const = false;
@@ -152,7 +152,7 @@ struct ParameterAdapter<std::shared_ptr<M> >
 template<typename M>
 struct ParameterAdapter<const ros::MessageEvent<M const>& >
 {
-  typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
+  typedef typename std::remove_reference<typename std::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
   typedef const ros::MessageEvent<Message const>& Parameter;
   static const bool is_const = true;
@@ -166,7 +166,7 @@ struct ParameterAdapter<const ros::MessageEvent<M const>& >
 template<typename M>
 struct ParameterAdapter<const ros::MessageEvent<M>& >
 {
-  typedef typename boost::remove_reference<typename boost::remove_const<M>::type>::type Message;
+  typedef typename std::remove_reference<typename std::remove_const<M>::type>::type Message;
   typedef ros::MessageEvent<Message const> Event;
   typedef ros::MessageEvent<Message> Parameter;
   static const bool is_const = false;

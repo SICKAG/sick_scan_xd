@@ -37,8 +37,8 @@
 #include <string>
 #include <list>
 #include <vector>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
+//#include <boost/function.hpp>
+//#include <boost/bind.hpp>
 #include <memory>
 #include <thread>
 
@@ -106,7 +106,7 @@ class MessageFilter : public MessageFilterBase, public message_filters::SimpleFi
 public:
   typedef std::shared_ptr<M const> MConstPtr;
   typedef ros::MessageEvent<M const> MEvent;
-  typedef boost::function<void(const MConstPtr&, FilterFailureReason)> FailureCallback;
+  typedef std::function<void(const MConstPtr&, FilterFailureReason)> FailureCallback;
   typedef boost::signals2::signal<void(const MConstPtr&, FilterFailureReason)> FailureSignal;
 
   // If you hit this assert your message does not have a header, or does not have the HasHeader trait defined for it
@@ -282,7 +282,7 @@ public:
     TF2_ROS_MESSAGEFILTER_DEBUG("%s", "Cleared");
 
     bc_.removeTransformableCallback(callback_handle_);
-    callback_handle_ = bc_.addTransformableCallback(boost::bind(&MessageFilter::transformable, this, _1, _2, _3, _4, _5));
+    callback_handle_ = bc_.addTransformableCallback(std::bind(&MessageFilter::transformable, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
 
     messages_.clear();
     message_count_ = 0;
@@ -421,7 +421,7 @@ public:
   message_filters::Connection registerFailureCallback(const FailureCallback& callback)
   {
     std::lock_guard<std::mutex> lock(failure_signal_mutex_);
-    return message_filters::Connection(boost::bind(&MessageFilter::disconnectFailure, this, _1), failure_signal_.connect(callback));
+    return message_filters::Connection(std::bind(&MessageFilter::disconnectFailure, this, std::placeholders::_1), failure_signal_.connect(callback));
   }
 
   virtual void setQueueSize( uint32_t new_queue_size )
@@ -449,7 +449,7 @@ private:
     warned_about_empty_frame_id_ = false;
     expected_success_count_ = 1;
 
-    callback_handle_ = bc_.addTransformableCallback(boost::bind(&MessageFilter::transformable, this, _1, _2, _3, _4, _5));
+    callback_handle_ = bc_.addTransformableCallback(std::bind(&MessageFilter::transformable, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
   }
 
   void transformable(tf2::TransformableRequestHandle request_handle, const std::string& target_frame, const std::string& source_frame,

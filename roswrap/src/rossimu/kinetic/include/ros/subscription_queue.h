@@ -33,7 +33,7 @@
 #include "ros/message_event.h"
 #include "callback_queue_interface.h"
 
-#include <boost/thread/recursive_mutex.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
 #include <mutex>
 #include <memory>
 #include <deque>

@@ -58,17 +58,12 @@
 #ifndef __SIM_LOC_TEST_SERVER_THREAD_H_INCLUDED
 #define __SIM_LOC_TEST_SERVER_THREAD_H_INCLUDED
 
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/read.hpp>
-#include <boost/asio/write.hpp>
 #include <thread>
 #include <mutex>
-#include <boost/thread/recursive_mutex.hpp>
 #include <list>
 
 #include "sick_scan/fifo_buffer.h"
+#include "sick_scan/server_socket.h"
 #include "sick_scan/utils.h"
 
 namespace sick_scan
@@ -128,8 +123,8 @@ namespace sick_scan
       std::vector<uint8_t> telegram_data; ///< received telegram_data (Cola-Ascii or Cola-Binary)
     };
   
-    typedef std::thread* thread_ptr;                ///< shortcut for pointer to std::thread
-    typedef boost::asio::ip::tcp::socket* socket_ptr; ///< shortcut for pointer to boost::asio::ip::tcp::socket
+    typedef std::thread* thread_ptr;             ///< shortcut for pointer to std::thread
+    typedef sick_scan::ServerSocket* socket_ptr; ///< shortcut for pointer to socket
     
     /*!
     * Closes the send scandata thread
@@ -169,14 +164,14 @@ namespace sick_scan
      * Generic thread callback, listens and accept tcp connections from clients.
      * Starts a worker thread running thread_function_cb for each tcp client.
      */
-    template<typename Callable> void runConnectionThreadGenericCb(boost::asio::ip::tcp::acceptor & tcp_acceptor_results, int ip_port_results, Callable thread_function_cb);
+    template<typename Callable> void runConnectionThreadGenericCb(int ip_port_results, Callable thread_function_cb);
   
     /*!
      * Worker thread callback, generates and sends result telegrams to a tcp client.
      * There's one result worker thread for each tcp client.
      * @param[in] p_socket socket to send result telegrams to the tcp client
      */
-    virtual void runWorkerThreadResultCb(boost::asio::ip::tcp::socket* p_socket);
+    virtual void runWorkerThreadResultCb(socket_ptr p_socket);
   
     /*!
      * Worker thread callback, receives command requests from a tcp client
@@ -184,7 +179,7 @@ namespace sick_scan
      * There's one request worker thread for each tcp client.
      * @param[in] p_socket socket to receive command requests from the tcp client
      */
-    virtual void runWorkerThreadColaCb(boost::asio::ip::tcp::socket* p_socket);
+    virtual void runWorkerThreadColaCb(socket_ptr p_socket);
 
     /*!
      * Worker thread callback, sends scandata and scandatamon messages to the tcp client.
@@ -192,7 +187,7 @@ namespace sick_scan
      * while m_tcp_send_scandata_thread_running is true.
      * @param[in] p_socket socket to sends scandata and scandatamon messages the tcp client
      */
-    virtual void runWorkerThreadScandataCb(boost::asio::ip::tcp::socket* p_socket);
+    virtual void runWorkerThreadScandataCb(socket_ptr p_socket);
   
     /*!
      * Thread callback, runs an error simulation and switches m_error_simulation_flag through the error test cases.
@@ -226,12 +221,9 @@ namespace sick_scan
     bool m_tcp_send_scandata_thread_running;                 ///< true: m_tcp_send_scandata_thread is running, otherwise false
     double m_start_scandata_delay;                           ///< delay between scandata activation ("LMCstartmeas" request) and first scandata message, default: 1 second
     bool m_tcp_connection_thread_running;                    ///< true: m_tcp_connection_thread is running, otherwise false
-    boost::asio::io_service m_ioservice;                     ///< boost io service for tcp connections
-    boost::asio::ip::tcp::acceptor m_tcp_acceptor_results;   ///< boost acceptor for tcp clients for result telegrams
-    boost::asio::ip::tcp::acceptor m_tcp_acceptor_cola;      ///< boost acceptor for tcp clients for command requests and responses
-    std::list<boost::asio::ip::tcp::socket*> m_tcp_sockets;  ///< list of tcp sockets (one socket for each tcp client)
+    std::list<sick_scan::ServerSocket*> m_tcp_sockets;       ///< list of tcp sockets (one socket for each tcp client)
     std::list<thread_ptr> m_tcp_worker_threads;              ///< list of tcp worker thread (one thread for each tcp client, generating telegrams)
-    std::mutex m_tcp_worker_threads_mutex;                 ///< mutex to protect m_tcp_worker_threads
+    std::mutex m_tcp_worker_threads_mutex;                   ///< mutex to protect m_tcp_worker_threads
     bool m_worker_thread_running;                            ///< true: worker threads started, otherwise false
     sick_scan::SickLocResultPortTestcaseMsgPublisher m_result_testcases_publisher;  ///< ros publisher for testcases with result port telegrams (type SickLocResultPortTestcaseMsg)
     std::string m_result_testcases_frame_id;                 ///< ros frame id of testcase messages (type SickLocResultPortTestcaseMsg), default: "result_testcases"

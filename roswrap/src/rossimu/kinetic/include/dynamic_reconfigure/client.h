@@ -44,8 +44,8 @@
 #ifndef __CLIENT_H__
 #define __CLIENT_H__
 
-#include <boost/chrono.hpp>
-#include <boost/function.hpp>
+//#include <boost/chrono.hpp>
+//#include <boost/function.hpp>
 #include <thread>
 #include <ros/node_handle.h>
 #include <dynamic_reconfigure/ConfigDescription.h>
@@ -67,8 +67,8 @@ class Client {
    */
   Client(
       const std::string& name,
-      const boost::function<void(const ConfigType&)> config_callback = 0,
-      const boost::function<void(const dynamic_reconfigure::ConfigDescription&)>
+      const std::function<void(const ConfigType&)> config_callback = 0,
+      const std::function<void(const dynamic_reconfigure::ConfigDescription&)>
           description_callback = 0)
       : name_(name),
         nh_(name),
@@ -98,8 +98,8 @@ class Client {
    */
   Client(
       const std::string& name, const ros::NodeHandle& nh,
-      const boost::function<void(const ConfigType&)> config_callback = 0,
-      const boost::function<void(const dynamic_reconfigure::ConfigDescription&)>
+      const std::function<void(const ConfigType&)> config_callback = 0,
+      const std::function<void(const dynamic_reconfigure::ConfigDescription&)>
           description_callback = 0)
       : name_(name),
         nh_(nh),
@@ -123,7 +123,7 @@ class Client {
    * @param config_callback A function pointer
    */
   void setConfigurationCallback(
-      const boost::function<void(const ConfigType&)>& config_callback) {
+      const std::function<void(const ConfigType&)>& config_callback) {
     config_callback_ = config_callback;
   }
   /**
@@ -131,7 +131,7 @@ class Client {
    * function
    * @param description_callback A function pointer
    */
-  void setDescriptionCallback(const boost::function<void(
+  void setDescriptionCallback(const std::function<void(
       const dynamic_reconfigure::ConfigDescription&)>& description_callback) {
     description_callback_ = description_callback;
   }
@@ -334,8 +334,8 @@ class Client {
   ros::Subscriber descr_sub_;
   ros::Subscriber config_sub_;
 
-  boost::function<void(const ConfigType&)> config_callback_;
-  boost::function<void(const dynamic_reconfigure::ConfigDescription&)>
+  std::function<void(const ConfigType&)> config_callback_;
+  std::function<void(const dynamic_reconfigure::ConfigDescription&)>
       description_callback_;
 };
 }

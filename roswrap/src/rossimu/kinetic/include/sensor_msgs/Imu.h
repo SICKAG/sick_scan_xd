@@ -35,11 +35,11 @@ struct Imu_
     , angular_velocity_covariance()
     , linear_acceleration()
     , linear_acceleration_covariance()  {
-      orientation_covariance.assign(0.0);
+      orientation_covariance.fill(0.0);
 
-      angular_velocity_covariance.assign(0.0);
+      angular_velocity_covariance.fill(0.0);
 
-      linear_acceleration_covariance.assign(0.0);
+      linear_acceleration_covariance.fill(0.0);
   }
   Imu_(const ContainerAllocator& _alloc)
     : header(_alloc)
@@ -50,11 +50,11 @@ struct Imu_
     , linear_acceleration(_alloc)
     , linear_acceleration_covariance()  {
   (void)_alloc;
-      orientation_covariance.assign(0.0);
+      orientation_covariance.fill(0.0);
 
-      angular_velocity_covariance.assign(0.0);
+      angular_velocity_covariance.fill(0.0);
 
-      linear_acceleration_covariance.assign(0.0);
+      linear_acceleration_covariance.fill(0.0);
   }
 
 
@@ -65,19 +65,19 @@ struct Imu_
    typedef  ::geometry_msgs::Quaternion_<ContainerAllocator>  _orientation_type;
   _orientation_type orientation;
 
-   typedef boost::array<double, 9>  _orientation_covariance_type;
+   typedef std::array<double, 9>  _orientation_covariance_type;
   _orientation_covariance_type orientation_covariance;
 
    typedef  ::geometry_msgs::Vector3_<ContainerAllocator>  _angular_velocity_type;
   _angular_velocity_type angular_velocity;
 
-   typedef boost::array<double, 9>  _angular_velocity_covariance_type;
+   typedef std::array<double, 9>  _angular_velocity_covariance_type;
   _angular_velocity_covariance_type angular_velocity_covariance;
 
    typedef  ::geometry_msgs::Vector3_<ContainerAllocator>  _linear_acceleration_type;
   _linear_acceleration_type linear_acceleration;
 
-   typedef boost::array<double, 9>  _linear_acceleration_covariance_type;
+   typedef std::array<double, 9>  _linear_acceleration_covariance_type;
   _linear_acceleration_covariance_type linear_acceleration_covariance;
 
 

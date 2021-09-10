@@ -38,7 +38,7 @@
 #include <ros/types.h>
 #include <ros/transport/transport.h>
 
-#include <boost/thread/recursive_mutex.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
 #include "ros/io.h"
 #include <ros/common.h>
 
@@ -81,7 +81,7 @@ public:
    */
   std::string getClientURI();
 
-  typedef boost::function<void(const TransportTCPPtr&)> AcceptCallback;
+  typedef std::function<void(const TransportTCPPtr&)> AcceptCallback;
   /**
    * \brief Start a server socket and listen on a port
    * \param port The port to listen on

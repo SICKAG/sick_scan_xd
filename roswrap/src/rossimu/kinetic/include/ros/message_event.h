@@ -33,14 +33,14 @@
 #include <ros/datatypes.h>
 #include <ros/message_traits.h>
 
-#include <boost/type_traits/is_void.hpp>
-#include <boost/type_traits/is_base_of.hpp>
-#include <boost/type_traits/is_const.hpp>
-#include <boost/type_traits/add_const.hpp>
-#include <boost/type_traits/remove_const.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/function.hpp>
-#include <boost/make_shared.hpp>
+//#include <boost/type_traits/is_void.hpp>
+//#include <boost/type_traits/is_base_of.hpp>
+//#include <boost/type_traits/is_const.hpp>
+//#include <boost/type_traits/add_const.hpp>
+//#include <boost/type_traits/remove_const.hpp>
+//#include <boost/utility/enable_if.hpp>
+//#include <boost/function.hpp>
+//#include <boost/make_shared.hpp>
 
 namespace ros
 {
@@ -69,11 +69,11 @@ template<typename M>
 class MessageEvent
 {
 public:
-  typedef typename boost::add_const<M>::type ConstMessage;
-  typedef typename boost::remove_const<M>::type Message;
+  typedef typename std::add_const<M>::type ConstMessage;
+  typedef typename std::remove_const<M>::type Message;
   typedef std::shared_ptr<Message> MessagePtr;
   typedef std::shared_ptr<ConstMessage> ConstMessagePtr;
-  typedef boost::function<MessagePtr()> CreateFunction;
+  typedef std::function<MessagePtr()> CreateFunction;
 
   MessageEvent()
   : nonconst_need_copy_(true)
@@ -103,7 +103,7 @@ public:
 
   MessageEvent(const MessageEvent<void const>& rhs, const CreateFunction& create)
   {
-    init(boost::const_pointer_cast<Message>(boost::static_pointer_cast<ConstMessage>(rhs.getMessage())), rhs.getConnectionHeaderPtr(), rhs.getReceiptTime(), rhs.nonConstWillCopy(), create);
+    init(std::const_pointer_cast<Message>(std::static_pointer_cast<ConstMessage>(rhs.getMessage())), rhs.getConnectionHeaderPtr(), rhs.getReceiptTime(), rhs.nonConstWillCopy(), create);
   }
 
   /**
@@ -140,13 +140,13 @@ public:
 
   void operator=(const MessageEvent<Message>& rhs)
   {
-    init(boost::static_pointer_cast<Message>(rhs.getMessage()), rhs.getConnectionHeaderPtr(), rhs.getReceiptTime(), rhs.nonConstWillCopy(), rhs.getMessageFactory());
+    init(std::static_pointer_cast<Message>(rhs.getMessage()), rhs.getConnectionHeaderPtr(), rhs.getReceiptTime(), rhs.nonConstWillCopy(), rhs.getMessageFactory());
     message_copy_.reset();
   }
 
   void operator=(const MessageEvent<ConstMessage>& rhs)
   {
-    init(boost::const_pointer_cast<Message>(boost::static_pointer_cast<ConstMessage>(rhs.getMessage())), rhs.getConnectionHeaderPtr(), rhs.getReceiptTime(), rhs.nonConstWillCopy(), rhs.getMessageFactory());
+    init(std::const_pointer_cast<Message>(std::static_pointer_cast<ConstMessage>(rhs.getMessage())), rhs.getConnectionHeaderPtr(), rhs.getReceiptTime(), rhs.nonConstWillCopy(), rhs.getMessageFactory());
     message_copy_.reset();
   }
 
@@ -181,7 +181,7 @@ public:
   ros::Time getReceiptTime() const { return receipt_time_; }
 
   bool nonConstWillCopy() const { return nonconst_need_copy_; }
-  bool getMessageWillCopy() const { return !boost::is_const<M>::value && nonconst_need_copy_; }
+  bool getMessageWillCopy() const { return !std::is_const<M>::value && nonconst_need_copy_; }
 
   bool operator<(const MessageEvent<M>& rhs)
   {
@@ -212,11 +212,11 @@ public:
 
 private:
   template<typename M2>
-  typename boost::disable_if<boost::is_void<M2>, std::shared_ptr<M> >::type copyMessageIfNecessary() const
+  typename std::enable_if<!std::is_void<M2>::value, std::shared_ptr<M> >::type copyMessageIfNecessary() const
   {
-    if (boost::is_const<M>::value || !nonconst_need_copy_)
+    if (std::is_const<M>::value || !nonconst_need_copy_)
     {
-      return boost::const_pointer_cast<Message>(message_);
+      return std::const_pointer_cast<Message>(message_);
     }
 
     if (message_copy_)
@@ -232,9 +232,9 @@ private:
   }
 
   template<typename M2>
-  typename boost::enable_if<boost::is_void<M2>, std::shared_ptr<M> >::type copyMessageIfNecessary() const
+  typename std::enable_if<std::is_void<M2>::value, std::shared_ptr<M> >::type copyMessageIfNecessary() const
   {
-    return boost::const_pointer_cast<Message>(message_);
+    return std::const_pointer_cast<Message>(message_);
   }
 
   ConstMessagePtr message_;

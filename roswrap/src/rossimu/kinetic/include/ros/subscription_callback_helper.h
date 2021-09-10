@@ -39,12 +39,12 @@
 #include "ros/message_event.h"
 #include <ros/static_assert.h>
 
-#include <boost/type_traits/add_const.hpp>
-#include <boost/type_traits/remove_const.hpp>
-#include <boost/type_traits/remove_reference.hpp>
-#include <boost/type_traits/is_base_of.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/make_shared.hpp>
+//#include <boost/type_traits/add_const.hpp>
+//#include <boost/type_traits/remove_const.hpp>
+//#include <boost/type_traits/remove_reference.hpp>
+//#include <boost/type_traits/is_base_of.hpp>
+//#include <boost/utility/enable_if.hpp>
+//#include <boost/make_shared.hpp>
 
 namespace ros
 {
@@ -90,14 +90,14 @@ public:
   typedef ParameterAdapter<P> Adapter;
   typedef typename ParameterAdapter<P>::Message NonConstType;
   typedef typename ParameterAdapter<P>::Event Event;
-  typedef typename boost::add_const<NonConstType>::type ConstType;
+  typedef typename std::add_const<NonConstType>::type ConstType;
   typedef std::shared_ptr<NonConstType> NonConstTypePtr;
   typedef std::shared_ptr<ConstType> ConstTypePtr;
 
   static const bool is_const = ParameterAdapter<P>::is_const;
 
-  typedef boost::function<void(typename Adapter::Parameter)> Callback;
-  typedef boost::function<NonConstTypePtr()> CreateFunction;
+  typedef std::function<void(typename Adapter::Parameter)> Callback;
+  typedef std::function<NonConstTypePtr()> CreateFunction;
 
   SubscriptionCallbackHelperT(const Callback& callback, 
 			      const CreateFunction& create = DefaultMessageCreator<NonConstType>())

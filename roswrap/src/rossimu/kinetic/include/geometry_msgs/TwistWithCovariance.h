@@ -27,13 +27,13 @@ struct TwistWithCovariance_
   TwistWithCovariance_()
     : twist()
     , covariance()  {
-      covariance.assign(0.0);
+      covariance.fill(0.0);
   }
   TwistWithCovariance_(const ContainerAllocator& _alloc)
     : twist(_alloc)
     , covariance()  {
   (void)_alloc;
-      covariance.assign(0.0);
+      covariance.fill(0.0);
   }
 
 
@@ -41,7 +41,7 @@ struct TwistWithCovariance_
    typedef  ::geometry_msgs::Twist_<ContainerAllocator>  _twist_type;
   _twist_type twist;
 
-   typedef boost::array<double, 36>  _covariance_type;
+   typedef std::array<double, 36>  _covariance_type;
   _covariance_type covariance;
 
 

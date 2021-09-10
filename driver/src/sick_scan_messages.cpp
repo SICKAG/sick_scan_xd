@@ -37,7 +37,7 @@
  * Based on the TiM communication example by SICK AG.
  *
  */
-
+#include <iomanip>
 #include "sick_scan/sick_scan_messages.h"
 
 typedef uint8_t* byte_ptr;

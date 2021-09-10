@@ -7,9 +7,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
+// #define ROSCPP_ROS_H
+// #define ROSCPP_NODE_HANDLE_H
+// #define ROSCPP_THIS_NODE_H
+// #define ROSCPP_PUBLISHER_HANDLE_H
+// #define ROSCPP_SUBSCRIPTION_H
 #include <ros/ros.h>
 
-int fork();
+//int fork();
 void sleep(int secs);
 
 namespace ros
@@ -37,6 +43,13 @@ namespace ros
 //#undef ROS_DEBUG_STREAM
 //#define ROS_DEBUG_STREAM(message) { std::stringstream _msg; _msg << message; ROS_DEBUG(_msg.str().c_str()); }
 	}
+
+	// class NodeHandle
+	// {
+	// public:
+	// 	template <typename T> bool getParam(const std::string& param_name, T& param_value) { return false; }
+	// 	template <typename T> void setParam(const std::string& param_name, const T& param_value) { }
+	// };
 }
 
 int rossimu_error(const char *format, ...);

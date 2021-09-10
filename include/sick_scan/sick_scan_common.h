@@ -48,8 +48,6 @@
 #include <string.h>
 #include <vector>
 
-#include <boost/asio.hpp>
-
 #include <sick_scan/sick_ros_wrapper.h>
 
 #include <thread>
@@ -238,7 +236,7 @@ namespace sick_scan
      * \param IpAdress new IP adress
      * \returns true if ip was changed and scanner is rebooting
      */
-    bool changeIPandreboot(boost::asio::ip::address_v4 IpAdress);
+    bool changeIPandreboot(const std::string& IpAdress);
 
     SickScanCommonNw m_nw;
 
@@ -374,9 +372,9 @@ namespace sick_scan
 
     bool getSensorIsRadar(void);
 
-    bool setNewIpAddress(boost::asio::ip::address_v4 ipNewIPAddr, bool useBinaryCmd);
+    bool setNewIpAddress(const std::string& ipNewIPAddr, bool useBinaryCmd);
 
-    bool setNTPServerAndStart(boost::asio::ip::address_v4 ipNewIPAddr, bool useBinaryCmd);
+    bool setNTPServerAndStart(const std::string& ipNewIPAddr, bool useBinaryCmd);
 
     int readTimeOutInMs;
 

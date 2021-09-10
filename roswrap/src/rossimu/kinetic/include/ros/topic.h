@@ -47,7 +47,7 @@ namespace topic
 /**
  * \brief Internal method, do not use
  */
-ROSCPP_DECL void waitForMessageImpl(SubscribeOptions& ops, const boost::function<bool(void)>& ready_pred, NodeHandle& nh, ros::Duration timeout);
+ROSCPP_DECL void waitForMessageImpl(SubscribeOptions& ops, const std::function<bool(void)>& ready_pred, NodeHandle& nh, ros::Duration timeout);
 
 template<class M>
 class SubscribeHelper
@@ -87,9 +87,9 @@ std::shared_ptr<M const> waitForMessage(const std::string& topic, NodeHandle& nh
 {
   SubscribeHelper<M> helper;
   SubscribeOptions ops;
-  ops.template init<M>(topic, 1, boost::bind(&SubscribeHelper<M>::callback, &helper, _1));
+  ops.template init<M>(topic, 1, std::bind(&SubscribeHelper<M>::callback, &helper, std::placeholders::_1));
 
-  waitForMessageImpl(ops, boost::bind(&SubscribeHelper<M>::hasMessage, &helper), nh, timeout);
+  waitForMessageImpl(ops, std::bind(&SubscribeHelper<M>::hasMessage, &helper), nh, timeout);
 
   return helper.getMessage();
 }

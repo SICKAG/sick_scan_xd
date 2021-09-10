@@ -139,7 +139,7 @@ void XMLRPCManager::start()
   ss << "http://" << network::getHost() << ":" << port_ << "/";
   uri_ = ss.str();
 
-  server_thread_ = std::thread(boost::bind(&XMLRPCManager::serverThreadFunc, this));
+  server_thread_ = std::thread(std::bind(&XMLRPCManager::serverThreadFunc, this));
 }
 
 void XMLRPCManager::shutdown()

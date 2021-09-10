@@ -27,13 +27,13 @@ struct AccelWithCovariance_
   AccelWithCovariance_()
     : accel()
     , covariance()  {
-      covariance.assign(0.0);
+      covariance.fill(0.0);
   }
   AccelWithCovariance_(const ContainerAllocator& _alloc)
     : accel(_alloc)
     , covariance()  {
   (void)_alloc;
-      covariance.assign(0.0);
+      covariance.fill(0.0);
   }
 
 
@@ -41,7 +41,7 @@ struct AccelWithCovariance_
    typedef  ::geometry_msgs::Accel_<ContainerAllocator>  _accel_type;
   _accel_type accel;
 
-   typedef boost::array<double, 36>  _covariance_type;
+   typedef std::array<double, 36>  _covariance_type;
   _covariance_type covariance;
 
 

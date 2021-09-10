@@ -164,21 +164,20 @@ static std::vector<uint8_t> encodeColaTelegram(const std::string & command, cons
   return telegram;
 }
 
-static bool receive(boost::asio::ip::tcp::socket & tcp_client_socket, size_t nr_bytes, bool little_endian, std::vector<uint8_t> & value)
+static bool receive(sick_scan::ServerSocket & tcp_client_socket, size_t nr_bytes, bool little_endian, std::vector<uint8_t> & value, bool read_blocking = true)
 {
-  boost::system::error_code errorcode;
   value.clear();
   value.resize(nr_bytes);
-  if (boost::asio::read(tcp_client_socket, boost::asio::buffer(value.data(), nr_bytes), boost::asio::transfer_exactly(nr_bytes), errorcode) < nr_bytes || errorcode)
+  if (!tcp_client_socket.read(nr_bytes, value.data(), read_blocking))
     return false; // no data available
   return true;
 }
 
-static bool receive(boost::asio::ip::tcp::socket & tcp_client_socket, size_t nr_bytes, bool little_endian, size_t & value)
+static bool receive(sick_scan::ServerSocket & tcp_client_socket, size_t nr_bytes, bool little_endian, size_t & value, bool read_blocking = true)
 {
   value = 0;
   std::vector<uint8_t> buffer;
-  if(!receive(tcp_client_socket, nr_bytes, little_endian, buffer) || buffer.size() < nr_bytes)
+  if(!receive(tcp_client_socket, nr_bytes, little_endian, buffer, read_blocking) || buffer.size() < nr_bytes)
     return false; // no data available or communication error
   if(little_endian)
   {
@@ -315,16 +314,13 @@ sick_scan::test::TestServerColaMsg::TestServerColaMsg(rosNodePtr nh, double send
  * @param[out] is_binary always true for LDMRS
  * @return true, if a cola telegram has been received, false otherwise
  */
-bool sick_scan::test::TestServerColaMsg::receiveMessage(boost::asio::ip::tcp::socket & tcp_client_socket, std::vector<uint8_t> & cola_telegram, bool & is_binary)
+bool sick_scan::test::TestServerColaMsg::receiveMessage(sick_scan::ServerSocket & tcp_client_socket, std::vector<uint8_t> & cola_telegram, bool & is_binary)
 {
   is_binary = false;
-  if (tcp_client_socket.available() <= 4)
-    return false; // no data available
-  boost::system::error_code errorcode;
   cola_telegram.clear();
   // Receive <STX>
   size_t stx_received = 0, payload_length = 0;
-  if (!receive(tcp_client_socket, 4, false, stx_received))
+  if (!receive(tcp_client_socket, 4, false, stx_received, false))
     return false; // no data available
   if(stx_received == 0x02020202) // i.e. binary Cola-B
   {
@@ -346,7 +342,7 @@ bool sick_scan::test::TestServerColaMsg::receiveMessage(boost::asio::ip::tcp::so
     cola_telegram.push_back((stx_received) & 0xFF);
     // Read until "<ETX>" := 0x03
     uint8_t byte = 0;
-    while(boost::asio::read(tcp_client_socket, boost::asio::buffer(&byte, 1), boost::asio::transfer_exactly(1), errorcode) > 0 && !errorcode)
+    while(tcp_client_socket.read(1, &byte))
     {
       if(byte == 0x03)
         break;

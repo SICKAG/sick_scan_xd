@@ -34,7 +34,7 @@
 
 // boost's static assert provides better errors messages in the failure case when using
 // in templated situations
-#include <boost/static_assert.hpp>
+//#include <boost/static_assert.hpp>
 
 /**
  * \def ROS_COMPILE_ASSERT(cond)

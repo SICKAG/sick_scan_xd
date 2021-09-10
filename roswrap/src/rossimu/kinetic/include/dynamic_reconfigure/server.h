@@ -45,8 +45,8 @@
 #ifndef __SERVER_H__
 #define __SERVER_H__
 
-#include <boost/function.hpp>
-#include <boost/thread/recursive_mutex.hpp>
+//#include <boost/function.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
 #include <ros/node_handle.h>
 #include <dynamic_reconfigure/ConfigDescription.h>
 #include <dynamic_reconfigure/Reconfigure.h>
@@ -80,7 +80,7 @@ public:
     init();
   }
 
-  typedef boost::function<void(ConfigType &, uint32_t level)> CallbackType;
+  typedef std::function<void(ConfigType &, uint32_t level)> CallbackType;
   
   void setCallback(const CallbackType &callback)
   {

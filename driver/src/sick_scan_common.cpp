@@ -423,7 +423,8 @@ namespace sick_scan
     init_cmdTables();
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
     dynamic_reconfigure::Server<sick_scan::SickScanConfig>::CallbackType f;
-    f = boost::bind(&sick_scan::SickScanCommon::update_config, this, _1, _2);
+    // f = boost::bind(&sick_scan::SickScanCommon::update_config, this, _1, _2);
+    f = std::bind(&sick_scan::SickScanCommon::update_config, this, std::placeholders::_1, std::placeholders::_2);
     dynamic_reconfigure_server_.setCallback(f);
 #elif defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr parameter_cb_handle =
@@ -1329,27 +1330,17 @@ namespace sick_scan
     rosGetParam(nh, "min_intensity", m_min_intensity); // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
     //check new ip adress and add cmds to write ip to comand chain
     std::string sNewIPAddr = "";
-    boost::asio::ip::address_v4 ipNewIPAddr;
+    std::string ipNewIPAddr;
     bool setNewIPAddr = false;
     rosDeclareParam(nh, "new_IP_address", sNewIPAddr);
     if(rosGetParam(nh, "new_IP_address", sNewIPAddr) && !sNewIPAddr.empty())
     {
-      boost::system::error_code ec;
-      ipNewIPAddr = boost::asio::ip::address_v4::from_string(sNewIPAddr, ec);
-      if (ec == boost::system::errc::success)
-      {
-        sopasCmdChain.clear();
-        sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3);
-      }
-      else
-      {
-        setNewIPAddr = false;
-        ROS_ERROR_STREAM("ERROR: IP ADDRESS could not be parsed Boost Error " << ec.category().name() << ":" << ec.value());
-      }
-
+      ipNewIPAddr = sNewIPAddr;
+      sopasCmdChain.clear();
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3);
     }
     std::string sNTPIpAdress = "";
-    boost::asio::ip::address_v4 NTPIpAdress;
+    std::string NTPIpAdress;
     bool setUseNTP = false;
     rosDeclareParam(nh, "ntp_server_address", sNTPIpAdress);
     setUseNTP = rosGetParam(nh, "ntp_server_address", sNTPIpAdress);
@@ -1357,13 +1348,7 @@ namespace sick_scan
       setUseNTP = false;
     if (setUseNTP)
     {
-      boost::system::error_code ec;
-      NTPIpAdress = boost::asio::ip::address_v4::from_string(sNTPIpAdress, ec);
-      if (ec != boost::system::errc::success)
-      {
-        setUseNTP = false;
-        ROS_ERROR_STREAM("ERROR: NTP Server IP ADDRESS could not be parsed Boost Error " << ec.category().name() << ":" << ec.value());
-      }
+      NTPIpAdress = sNTPIpAdress;
     }
 
     this->parser_->getCurrentParamPtr()->setIntensityResolutionIs16Bit(rssiResolutionIs16Bit);
@@ -4812,14 +4797,14 @@ namespace sick_scan
   }
 
 
-  bool SickScanCommon::setNewIpAddress(boost::asio::ip::address_v4 ipNewIPAddr, bool useBinaryCmd)
+  bool SickScanCommon::setNewIpAddress(const std::string& ipNewIPAddr, bool useBinaryCmd)
   {
     int eepwritetTimeOut = 1;
     bool result = false;
 
 
     unsigned long adrBytesLong[4];
-    std::string s = ipNewIPAddr.to_string();  // convert to string, to_bytes not applicable for older linux version
+    std::string s = ipNewIPAddr;  // convert to string, to_bytes not applicable for older linux version
     const char *ptr = s.c_str(); // char * to address
     // decompose pattern like aaa.bbb.ccc.ddd
     sscanf(ptr, "%lu.%lu.%lu.%lu", &(adrBytesLong[0]), &(adrBytesLong[1]), &(adrBytesLong[2]), &(adrBytesLong[3]));
@@ -4870,13 +4855,13 @@ namespace sick_scan
     return (result);
   }
 
-  bool SickScanCommon::setNTPServerAndStart(boost::asio::ip::address_v4 ipNewIPAddr, bool useBinaryCmd)
+  bool SickScanCommon::setNTPServerAndStart(const std::string& ipNewIPAddr, bool useBinaryCmd)
   {
     bool result = false;
 
 
     unsigned long adrBytesLong[4];
-    std::string s = ipNewIPAddr.to_string();  // convert to string, to_bytes not applicable for older linux version
+    std::string s = ipNewIPAddr;  // convert to string, to_bytes not applicable for older linux version
     const char *ptr = s.c_str(); // char * to address
     // decompose pattern like aaa.bbb.ccc.ddd
     sscanf(ptr, "%lu.%lu.%lu.%lu", &(adrBytesLong[0]), &(adrBytesLong[1]), &(adrBytesLong[2]), &(adrBytesLong[3]));

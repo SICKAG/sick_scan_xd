@@ -36,7 +36,6 @@
 
 #include <ros/duration.h>
 #include <ros/rate.h>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 namespace ros {
   //
@@ -165,16 +164,16 @@ namespace ros {
     return sec == 0 && nsec == 0;
   }
 
-  template <class T>
-  boost::posix_time::time_duration
-  DurationBase<T>::toBoost() const
-  {
-    namespace bt = boost::posix_time;
-#if defined(BOOST_DATE_TIME_HAS_NANOSECONDS)
-    return bt::seconds(sec) + bt::nanoseconds(nsec);
-#else
-    return bt::seconds(sec) + bt::microseconds((int)(nsec/1000.0));
-#endif
-  }
+//  template <class T>
+//   boost::posix_time::time_duration
+//   DurationBase<T>::toBoost() const
+//   {
+//     namespace bt = boost::posix_time;
+// #if defined(BOOST_DATE_TIME_HAS_NANOSECONDS)
+//     return bt::seconds(sec) + bt::nanoseconds(nsec);
+// #else
+//     return bt::seconds(sec) + bt::microseconds((int)(nsec/1000.0));
+// #endif
+//   }
 }
 #endif

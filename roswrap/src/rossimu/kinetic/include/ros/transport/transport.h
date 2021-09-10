@@ -36,7 +36,7 @@
 #define ROSCPP_TRANSPORT_H
 
 #include <ros/types.h>
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 #include <memory>
 #include <memory>
 #include <vector>
@@ -102,7 +102,7 @@ public:
    */
   virtual const char* getType() = 0;
 
-  typedef boost::function<void(const TransportPtr&)> Callback;
+  typedef std::function<void(const TransportPtr&)> Callback;
   /**
    * \brief Set the function to call when this transport has disconnected, either through a call to close(). Or a disconnect from the remote host.
    */

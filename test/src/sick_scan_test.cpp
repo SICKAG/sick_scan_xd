@@ -41,9 +41,9 @@
 */
 
 #define WIN32_LEAN_AND_MEAN
-#include "boost/filesystem.hpp"
-#include <boost/regex.hpp>
-#include <boost/algorithm/string.hpp>
+//#include "boost/filesystem.hpp"
+//#include <boost/regex.hpp>
+//#include <boost/algorithm/string.hpp>
 #include <algorithm> // for std::min
 
 

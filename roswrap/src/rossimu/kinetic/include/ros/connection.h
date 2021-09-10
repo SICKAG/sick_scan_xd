@@ -38,14 +38,14 @@
 #include "ros/header.h"
 #include "common.h"
 
-#include <boost/signals2.hpp>
+//#include <boost/signals2.hpp>
 
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 #include <memory>
-#include <boost/shared_array.hpp>
+//#include <boost/shared_array.hpp>
 #include <memory>
 #include <mutex>
-#include <boost/thread/recursive_mutex.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
 
 #define READ_BUFFER_SIZE (1024*64)
 
@@ -56,10 +56,10 @@ class Transport;
 typedef std::shared_ptr<Transport> TransportPtr;
 class Connection;
 typedef std::shared_ptr<Connection> ConnectionPtr;
-typedef boost::function<void(const ConnectionPtr&, const boost::shared_array<uint8_t>&, uint32_t, bool)> ReadFinishedFunc;
-typedef boost::function<void(const ConnectionPtr&)> WriteFinishedFunc;
+typedef std::function<void(const ConnectionPtr&, const boost::shared_array<uint8_t>&, uint32_t, bool)> ReadFinishedFunc;
+typedef std::function<void(const ConnectionPtr&)> WriteFinishedFunc;
 
-typedef boost::function<bool(const ConnectionPtr&, const Header&)> HeaderReceivedFunc;
+typedef std::function<bool(const ConnectionPtr&, const Header&)> HeaderReceivedFunc;
 
 /**
  * \brief Encapsulates a connection to a remote host, independent of the transport type
@@ -145,7 +145,7 @@ public:
   void write(const boost::shared_array<uint8_t>& buffer, uint32_t size, const WriteFinishedFunc& finished_callback, bool immedate = true);
 
   typedef boost::signals2::signal<void(const ConnectionPtr&, DropReason reason)> DropSignal;
-  typedef boost::function<void(const ConnectionPtr&, DropReason reason)> DropFunc;
+  typedef std::function<void(const ConnectionPtr&, DropReason reason)> DropFunc;
   /**
    * \brief Add a callback to be called when this connection has dropped
    */

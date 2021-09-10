@@ -30,7 +30,7 @@
 #include "common.h"
 
 #include <mutex>
-#include <boost/signals2/connection.hpp>
+//#include <boost/signals2/connection.hpp>
 
 namespace ros
 {

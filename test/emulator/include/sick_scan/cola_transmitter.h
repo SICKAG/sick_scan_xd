@@ -58,6 +58,7 @@
 
 #include "sick_scan/client_socket.h"
 #include "sick_scan/fifo_buffer.h"
+#include "sick_scan/server_socket.h"
 
 namespace sick_scan
 {
@@ -109,7 +110,7 @@ namespace sick_scan
      * @param[out] send_timestamp send timestamp in seconds (ros timestamp immediately before tcp send)
      * @return true on success, false on failure
      */
-    static bool send(boost::asio::ip::tcp::socket & socket, const std::vector<uint8_t> & data, ROS::Time & send_timestamp);
+    static bool send(socket_t & socket, const std::vector<uint8_t> & data, ROS::Time & send_timestamp);
     
     /*!
      * Receive a cola telegram from the localization server.
@@ -128,7 +129,7 @@ namespace sick_scan
      * @param[out] receive_timestamp receive timestamp in seconds (ros timestamp immediately after first response byte received)
      * @return true on success, false on failure (connection error or timeout)
      */
-    static bool receive(boost::asio::ip::tcp::socket & socket, std::vector<uint8_t> & telegram, double timeout,ROS::Time & receive_timestamp);
+    static bool receive(socket_t & socket, std::vector<uint8_t> & telegram, double timeout,ROS::Time & receive_timestamp);
   
     /*!
      * Starts a thread to receive response telegrams from the localization server.
@@ -189,11 +190,10 @@ namespace sick_scan
 
     std::string m_server_adress;                        ///< ip adress of the localization controller, default: 192.168.0.1
     int m_tcp_port;                                     ///< tcp port of the localization controller, default: 2111 for command requests and 2112 for  command responses
-    boost::asio::io_service m_ioservice;                ///< boost io service for tcp connections
-    sick_scan::ClientSocket m_tcp_socket; ///< tcp socket connected to the localization controller
+    sick_scan::ClientSocket m_tcp_socket;               ///< tcp socket connected to the localization controller
     double m_receive_timeout;                           ///< default timeout in seconds for receive functions
     bool m_receiver_thread_running;                     ///< true: m_receiver_thread is running, otherwise false
-    std::thread* m_receiver_thread;                   ///< thread to receive responses from localization server
+    std::thread* m_receiver_thread;                     ///< thread to receive responses from localization server
     sick_scan::FifoBuffer<ColaResponseContainer, std::mutex> m_response_fifo; ///< fifo buffer for receiver thread for responses from localization server
   
   }; // class ColaTransmitter

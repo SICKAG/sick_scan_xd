@@ -32,7 +32,8 @@
 #include "ros/serialization.h"
 #include "common.h"
 
-#include <boost/utility.hpp>
+//#include <boost/utility.hpp>
+#include <boost_wrap/noncopyable.hpp>
 
 namespace ros
 {

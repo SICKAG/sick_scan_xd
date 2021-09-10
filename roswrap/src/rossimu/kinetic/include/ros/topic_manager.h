@@ -36,7 +36,7 @@
 #include "xmlrpcpp/XmlRpcValue.h"
 
 #include <mutex>
-#include <boost/thread/recursive_mutex.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
 
 namespace ros
 {
@@ -124,10 +124,10 @@ public:
     using namespace serialization;
 
     SerializedMessage m;
-    publish(topic, boost::bind(serializeMessage<M>, boost::ref(message)), m);
+    publish(topic, std::bind(serializeMessage<M>, std::ref(message)), m);
   }
 
-  void publish(const std::string &_topic, const boost::function<SerializedMessage(void)>& serfunc, SerializedMessage& m);
+  void publish(const std::string &_topic, const std::function<SerializedMessage(void)>& serfunc, SerializedMessage& m);
 
   void incrementSequence(const std::string &_topic);
   bool isLatched(const std::string& topic);

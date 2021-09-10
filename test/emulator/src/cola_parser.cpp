@@ -60,9 +60,8 @@
  */
 #include "sick_scan/ros_wrapper.h"
 #include <cassert>
-#include <boost/algorithm/string.hpp>
-
 #include "sick_scan/cola_parser.h"
+#include "sick_scan/utils.h"
 
 /*!
  * @brief static table to convert COLA_SOPAS_COMMAND to string, f.e. s_command_type_string[sRN]:="sRN", s_command_type_string[sRA]:="sRA" and so on
@@ -142,8 +141,7 @@ sick_scan::SickLocColaTelegramMsg sick_scan::ColaParser::decodeColaTelegram(cons
     cola_ascii_cmd = cola_ascii;
   }
   // Split in command_type, command_name and optional parameter by spaces
-  std::vector<std::string> cola_parts;
-  boost::split(cola_parts, cola_ascii_cmd, boost::algorithm::is_space());
+  std::vector<std::string> cola_parts = sick_scan::Utils::splitSpaces(cola_ascii_cmd);
   if(cola_parts.size() < 2) // at least command_type and command_name required
   {
     ROS_WARN_STREAM("## ERROR Parse error in ColaParser::decodeColaTelegram(\"" << cola_ascii_cmd << "\"): to few arguments, at least command_type and command_name required");

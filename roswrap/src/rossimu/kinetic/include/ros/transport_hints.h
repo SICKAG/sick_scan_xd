@@ -31,7 +31,7 @@
 #include "common.h"
 #include "ros/forwards.h"
 
-#include <boost/lexical_cast.hpp>
+//#include <boost/lexical_cast.hpp>
 
 namespace ros
 {
@@ -112,7 +112,7 @@ public:
    */
   TransportHints& maxDatagramSize(int size)
   {
-    options_["max_datagram_size"] = boost::lexical_cast<std::string>(size);
+    options_["max_datagram_size"] = std::to_string(size); // boost::lexical_cast<std::string>(size);
     return *this;
   }
 
@@ -128,7 +128,7 @@ public:
       return 0;
     }
 
-    return boost::lexical_cast<int>(it->second);
+    return std::stoi(it->second); // boost::lexical_cast<int>(it->second);
   }
 
   /**

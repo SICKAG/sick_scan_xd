@@ -57,10 +57,11 @@
  *  Copyright 2019 Ing.-Buero Dr. Michael Lehning
  *
  */
-#include "sick_scan/ros_wrapper.h"
 #include <string>
 #include <vector>
+#include <signal.h>
 
+#include "sick_scan/ros_wrapper.h"
 #include "sick_scan/test_server_thread.h"
 #include "sick_scan/utils.h"
 

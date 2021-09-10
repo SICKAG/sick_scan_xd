@@ -34,7 +34,6 @@
 #include <ros/console.h>
 
 #include <mutex>
-#include <boost/lexical_cast.hpp>
 
 #include <vector>
 #include <map>
@@ -824,9 +823,8 @@ void init(const M_string& remappings)
     if (name[0] == '_' && name[1] != '_')
     {
       std::string local_name = "~" + name.substr(1);
-
+      /*
       bool success = false;
-
       try
       {
         int32_t i = boost::lexical_cast<int32_t>(param);
@@ -835,14 +833,11 @@ void init(const M_string& remappings)
       }
       catch (boost::bad_lexical_cast&)
       {
-
       }
-
       if (success)
       {
         continue;
       }
-
       try
       {
         double d = boost::lexical_cast<double>(param);
@@ -851,15 +846,23 @@ void init(const M_string& remappings)
       }
       catch (boost::bad_lexical_cast&)
       {
-
       }
-
       if (success)
       {
         continue;
       }
-
-      if (param == "true" || param == "True" || param == "TRUE")
+      */
+      int32_t i = 0;
+      double d = 0;
+      if(sscanf(param.c_str(),"%d", &i) == 1)
+      {
+        ros::param::set(names::resolve(local_name), i);
+      }
+      else if(sscanf(param.c_str(),"%lf", &d) == 1)
+      {
+        ros::param::set(names::resolve(local_name), d);
+      }
+      else if (param == "true" || param == "True" || param == "TRUE")
       {
         ros::param::set(names::resolve(local_name), true);
       }

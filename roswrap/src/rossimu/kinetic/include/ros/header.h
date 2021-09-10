@@ -38,7 +38,7 @@
 
 #include <stdint.h>
 
-#include <boost/shared_array.hpp>
+//#include <boost/shared_array.hpp>
 
 #include "ros/datatypes.h"
 #include "cpp_common_decl.h"

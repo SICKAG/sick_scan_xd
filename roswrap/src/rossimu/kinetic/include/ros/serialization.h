@@ -42,12 +42,12 @@
 #include <vector>
 #include <map>
 
-#include <boost/array.hpp>
-#include <boost/call_traits.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/or.hpp>
-#include <boost/mpl/not.hpp>
+//#include <boost/array.hpp>
+//#include <boost/call_traits.hpp>
+//#include <boost/utility/enable_if.hpp>
+//#include <boost/mpl/and.hpp>
+//#include <boost/mpl/or.hpp>
+//#include <boost/mpl/not.hpp>
 
 #include <cstring>
 
@@ -96,7 +96,7 @@ namespace ros
 namespace serialization
 {
 namespace mt = message_traits;
-namespace mpl = boost::mpl;
+// namespace mpl = boost::mpl;
 
 class ROSCPP_SERIALIZATION_DECL StreamOverrunException : public ros::Exception
 {
@@ -122,7 +122,7 @@ struct Serializer
    * \brief Write an object to the stream.  Normally the stream passed in here will be a ros::serialization::OStream
    */
   template<typename Stream>
-  inline static void write(Stream& stream, typename boost::call_traits<T>::param_type t)
+  inline static void write(Stream& stream, /*typename boost::call_traits<T>::param_type*/ T& t)
   {
     t.serialize(stream.getData(), 0);
   }
@@ -131,7 +131,7 @@ struct Serializer
    * \brief Read an object from the stream.  Normally the stream passed in here will be a ros::serialization::IStream
    */
   template<typename Stream>
-  inline static void read(Stream& stream, typename boost::call_traits<T>::reference t)
+  inline static void read(Stream& stream, /*typename boost::call_traits<T>::reference*/ T& t)
   {
     t.deserialize(stream.getData());
   }
@@ -139,7 +139,7 @@ struct Serializer
   /**
    * \brief Determine the serialized length of an object.
    */
-  inline static uint32_t serializedLength(typename boost::call_traits<T>::param_type t)
+  inline static uint32_t serializedLength(/*typename boost::call_traits<T>::param_type*/ T& t)
   {
     return t.serializationLength();
   }
@@ -370,7 +370,7 @@ struct VectorSerializer
  * \brief Vector serializer, specialized for non-fixed-size, non-simple types
  */
 template<typename T, class ContainerAllocator>
-struct VectorSerializer<T, ContainerAllocator, typename boost::disable_if<mt::IsFixedSize<T> >::type >
+struct VectorSerializer<T, ContainerAllocator, typename std::enable_if<!mt::IsFixedSize<T>::value >::type >
 {
   typedef std::vector<T, typename ContainerAllocator::template rebind<T>::other> VecType;
   typedef typename VecType::iterator IteratorType;
@@ -420,7 +420,7 @@ struct VectorSerializer<T, ContainerAllocator, typename boost::disable_if<mt::Is
  * \brief Vector serializer, specialized for fixed-size simple types
  */
 template<typename T, class ContainerAllocator>
-struct VectorSerializer<T, ContainerAllocator, typename boost::enable_if<mt::IsSimple<T> >::type >
+struct VectorSerializer<T, ContainerAllocator, typename std::enable_if<mt::IsSimple<T>::value >::type >
 {
   typedef std::vector<T, typename ContainerAllocator::template rebind<T>::other> VecType;
   typedef typename VecType::iterator IteratorType;
@@ -462,7 +462,8 @@ struct VectorSerializer<T, ContainerAllocator, typename boost::enable_if<mt::IsS
  * \brief Vector serializer, specialized for fixed-size non-simple types
  */
 template<typename T, class ContainerAllocator>
-struct VectorSerializer<T, ContainerAllocator, typename boost::enable_if<mpl::and_<mt::IsFixedSize<T>, mpl::not_<mt::IsSimple<T> > > >::type >
+struct VectorSerializer<T, ContainerAllocator, typename std::enable_if<mt::IsFixedSize<T>::value && !mt::IsSimple<T>::value >::type > 
+// typename std::enable_if<std::__and_<mt::IsFixedSize<T>::value, std::__not_<mt::IsSimple<T>::value > > >::type >
 {
   typedef std::vector<T, typename ContainerAllocator::template rebind<T>::other> VecType;
   typedef typename VecType::iterator IteratorType;
@@ -545,9 +546,9 @@ struct ArraySerializer
  * \brief Array serializer, specialized for non-fixed-size, non-simple types
  */
 template<typename T, size_t N>
-struct ArraySerializer<T, N, typename boost::disable_if<mt::IsFixedSize<T> >::type>
+struct ArraySerializer<T, N, typename std::enable_if<!mt::IsFixedSize<T>::value >::type>
 {
-  typedef boost::array<T, N > ArrayType;
+  typedef std::array<T, N > ArrayType;
   typedef typename ArrayType::iterator IteratorType;
   typedef typename ArrayType::const_iterator ConstIteratorType;
 
@@ -591,9 +592,9 @@ struct ArraySerializer<T, N, typename boost::disable_if<mt::IsFixedSize<T> >::ty
  * \brief Array serializer, specialized for fixed-size, simple types
  */
 template<typename T, size_t N>
-struct ArraySerializer<T, N, typename boost::enable_if<mt::IsSimple<T> >::type>
+struct ArraySerializer<T, N, typename std::enable_if<mt::IsSimple<T>::value >::type>
 {
-  typedef boost::array<T, N > ArrayType;
+  typedef std::array<T, N > ArrayType;
   typedef typename ArrayType::iterator IteratorType;
   typedef typename ArrayType::const_iterator ConstIteratorType;
 
@@ -621,9 +622,10 @@ struct ArraySerializer<T, N, typename boost::enable_if<mt::IsSimple<T> >::type>
  * \brief Array serializer, specialized for fixed-size, non-simple types
  */
 template<typename T, size_t N>
-struct ArraySerializer<T, N, typename boost::enable_if<mpl::and_<mt::IsFixedSize<T>, mpl::not_<mt::IsSimple<T> > > >::type>
+struct ArraySerializer<T, N, typename std::enable_if<mt::IsFixedSize<T>::value && !mt::IsSimple<T>::value >::type > 
+// typename std::enable_if<std::__and_<mt::IsFixedSize<T>::value, std::__not_<mt::IsSimple<T>::value > > >::type>
 {
-  typedef boost::array<T, N > ArrayType;
+  typedef std::array<T, N > ArrayType;
   typedef typename ArrayType::iterator IteratorType;
   typedef typename ArrayType::const_iterator ConstIteratorType;
 
@@ -656,28 +658,28 @@ struct ArraySerializer<T, N, typename boost::enable_if<mpl::and_<mt::IsFixedSize
 };
 
 /**
- * \brief serialize version for boost::array
+ * \brief serialize version for std::array
  */
 template<typename T, size_t N, typename Stream>
-inline void serialize(Stream& stream, const boost::array<T, N>& t)
+inline void serialize(Stream& stream, const std::array<T, N>& t)
 {
   ArraySerializer<T, N>::write(stream, t);
 }
 
 /**
- * \brief deserialize version for boost::array
+ * \brief deserialize version for std::array
  */
 template<typename T, size_t N, typename Stream>
-inline void deserialize(Stream& stream, boost::array<T, N>& t)
+inline void deserialize(Stream& stream, std::array<T, N>& t)
 {
   ArraySerializer<T, N>::read(stream, t);
 }
 
 /**
- * \brief serializationLength version for boost::array
+ * \brief serializationLength version for std::array
  */
 template<typename T, size_t N>
-inline uint32_t serializationLength(const boost::array<T, N>& t)
+inline uint32_t serializationLength(const std::array<T, N>& t)
 {
   return ArraySerializer<T, N>::serializedLength(t);
 }
