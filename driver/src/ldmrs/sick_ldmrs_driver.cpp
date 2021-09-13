@@ -605,7 +605,7 @@ void ldmrsScanToPointCloud2(const datatypes::Scan* scan, bool isRearMirrorSide, 
   } SICK_LDMRS_Point;
 
   msg.header.frame_id = frame_id;
-  msg.header.stamp = ros::Time::now(); // Note: not using time stamp from scanner here, because it is delayed by up to 1.5 seconds
+  msg.header.stamp = rosTimeNow(); // Note: not using time stamp from scanner here, because it is delayed by up to 1.5 seconds
 
   msg.height = 1;
   msg.width = scan->size();

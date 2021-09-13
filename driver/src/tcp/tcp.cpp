@@ -23,6 +23,35 @@
 #include <poll.h>
 #endif
 
+class WSA_AUTO_INIT
+{
+public:
+	WSA_AUTO_INIT() : m_wsastartup(0) {}
+	~WSA_AUTO_INIT()
+	{
+#if defined _MSC_VER && __ROS_VERSION == 0
+		if (m_wsastartup > 0)
+		{
+			WSACleanup();
+			m_wsastartup = 0;
+		}
+#endif
+	}
+	void init()
+	{
+#if defined _MSC_VER && __ROS_VERSION == 0
+		if (m_wsastartup == 0)
+		{
+			WSADATA wsaData;
+			WSAStartup(MAKEWORD(2, 2), &wsaData);
+		}
+#endif
+	}
+protected:
+	int m_wsastartup;
+};
+static WSA_AUTO_INIT s_wsa_auto_init_singleton;
+
 Tcp::Tcp()
 {
 	m_beVerbose = false;
@@ -146,7 +175,8 @@ bool Tcp::open(std::string ipAddress, UINT16 port, bool enableVerboseDebugOutput
 //	m_inBuffer.init(requiredInputBufferSize, m_beVerbose);
 	
 	printInfoMessage("Tcp::open: Opening connection.", m_beVerbose);
-	
+	s_wsa_auto_init_singleton.init();
+
 	// Socket erzeugen
 	m_connectionSocket = -1;	// Keine Verbindung
 	{
@@ -163,21 +193,38 @@ bool Tcp::open(std::string ipAddress, UINT16 port, bool enableVerboseDebugOutput
 	printInfoMessage("Tcp::open: Connecting. Target address is " + ipAddress + ":" + toString(port) + ".", m_beVerbose);
 	
 	struct sockaddr_in addr;
-	struct hostent *server;
+	struct hostent *server = 0;
 	server = gethostbyname(ipAddress.c_str());
 	memset(&addr, 0, sizeof(addr));     		// Zero out structure
 	addr.sin_family = AF_INET;
+	if (server != 0 && server->h_addr != 0)
+	{
 #ifdef _MSC_VER
-	memcpy((char *)&addr.sin_addr.s_addr, (char *)server->h_addr,  server->h_length);
+		memcpy((char*)&addr.sin_addr.s_addr, (char*)server->h_addr, server->h_length);
 #else
-	bcopy((char *)server->h_addr, (char *)&addr.sin_addr.s_addr, server->h_length);
+		bcopy((char*)server->h_addr, (char*)&addr.sin_addr.s_addr, server->h_length);
 #endif
+	}
+	else
+	{
+		addr.sin_addr.s_addr = inet_addr(ipAddress.c_str());
+	}
 	addr.sin_port = htons(port);				// Host-2-Network byte order
+#ifdef _MSC_VER
+	result = connect(m_connectionSocket, (SOCKADDR*)(&addr), sizeof(addr));
+#else
 	result = connect(m_connectionSocket, (sockaddr*)(&addr), sizeof(addr));
+#endif
 	if (result < 0)
 	{
 		// Verbindungsversuch ist fehlgeschlagen
-		std::string text = "Tcp::open: Failed to open TCP connection to " + ipAddress + ", aborting.";
+		std::string text = "Tcp::open: Failed to open TCP connection to " + ipAddress + ":" + toString(port) + ", aborting.";
+#ifdef _MSC_VER
+		char msgbuf[256] = "";
+		int err = WSAGetLastError();
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),	msgbuf,	sizeof(msgbuf), NULL);
+		text = text + " Connect error " + toString(WSAGetLastError()) + std::string(msgbuf);
+#endif
 		printError(text);
 		return false;
 	}

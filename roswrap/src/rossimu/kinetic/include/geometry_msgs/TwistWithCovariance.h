@@ -5,7 +5,7 @@
 #ifndef GEOMETRY_MSGS_MESSAGE_TWISTWITHCOVARIANCE_H
 #define GEOMETRY_MSGS_MESSAGE_TWISTWITHCOVARIANCE_H
 
-
+#include <array>
 #include <string>
 #include <vector>
 #include <map>

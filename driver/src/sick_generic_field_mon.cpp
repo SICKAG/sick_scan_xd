@@ -251,7 +251,7 @@ namespace sick_scan
         swap_endian((unsigned char *) &angIDX, 2);
         swap_endian((unsigned char *) &startDist, 2);
         swap_endian((unsigned char *) &stopDist, 2);
-        float angRad=(angIDX*angScaleFactor/1e4+angScaleFactorOffset/1e4)*deg2rad;
+        float angRad= (float)((angIDX*angScaleFactor/1e4+angScaleFactorOffset/1e4)*deg2rad);
         float distMeter=(stopDist*distScaleFactor+distScaleFactorOffset)/1000.0f;
         float point_x = 0, point_y = 0;
         SickScanMonFieldConverter::segmentedFieldPointToCarthesian(distMeter, angRad, point_x, point_y);
@@ -279,9 +279,9 @@ namespace sick_scan
       swap_endian((unsigned char *) &rotAngle, 4);
       swap_endian((unsigned char *) &rectWidth, 4);
       swap_endian((unsigned char *) &rectLength, 4);
-      float angleRefPointRad=(angleRefPoint/1e4+angScaleFactorOffset/1e4)*deg2rad;
+      float angleRefPointRad= (float)((angleRefPoint/1e4+angScaleFactorOffset/1e4)*deg2rad);
       float distRefPointMeter=(distRefPoint*distScaleFactor+distScaleFactorOffset)/1000.0f;
-      float rotAngleRad=(rotAngle/1e4)*deg2rad;
+      float rotAngleRad= (float)((rotAngle/1e4)*deg2rad);
       float rectWidthMeter=(rectWidth)/1000.0f;
       float rectLengthMeter=(rectLength)/1000.0f;
       float points_x[4] = {0}, points_y[4] = {0};
@@ -316,9 +316,9 @@ namespace sick_scan
       swap_endian((unsigned char *) &rectLength, 4);
       swap_endian((unsigned char *) &maxSpeed, 2);
       swap_endian((unsigned char *) &maxLength, 4);
-      float angleRefPointRad=(angleRefPoint/1e4+angScaleFactorOffset/1e4)*deg2rad;
+      float angleRefPointRad= (float)((angleRefPoint/1e4+angScaleFactorOffset/1e4)*deg2rad);
       float distRefPointMeter=(distRefPoint*distScaleFactor+distScaleFactorOffset)/1000.0f;
-      float rotAngleRad=(rotAngle/1e4)*deg2rad;
+      float rotAngleRad= (float)((rotAngle/1e4)*deg2rad);
       float rectWidthMeter=(rectWidth)/1000.0f;
       float rectLengthMeter=(rectLength)/1000.0f;
       float maxSpeedMeterPerSec=(maxSpeed)/1000.0f;

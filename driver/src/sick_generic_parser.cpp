@@ -830,7 +830,7 @@ namespace sick_scan
             unsigned short iRange;
             float range;
             sscanf(fields[offset + i], "%hx", &iRange);
-            range = iRange / 1000.0;
+            range = iRange / 1000.0f;
             distVal.push_back(range);
           }
           else
@@ -859,7 +859,7 @@ namespace sick_scan
       return;
     }
 
-    float expected_time_increment =
+    float expected_time_increment = (float)
         fabs(this->getCurrentParamPtr()->getNumberOfLayers() * scan_time * angle_increment / (2.0 * M_PI));//If the direction of rotation is reversed, i.e. negative angle increment, a negative scan time results. This does not makes sense, therefore the absolute value is calculated.
     if (fabs(expected_time_increment - time_increment) > 0.00001)
     {
@@ -1115,13 +1115,13 @@ namespace sick_scan
     // 16: Scanning Frequency (5DC)
     unsigned short scanning_freq = -1;
     sscanf(fields[16], "%hx", &scanning_freq);
-    msg.scan_time = 1.0 / (scanning_freq / 100.0);
+    msg.scan_time = 1.0f / (scanning_freq / 100.0f);
     // ROS_DEBUG("hex: %s, scanning_freq: %d, scan_time: %f", fields[16], scanning_freq, msg.scan_time);
 
     // 17: Measurement Frequency (36)
     unsigned short measurement_freq = -1;
     sscanf(fields[17], "%hx", &measurement_freq);
-    msg.time_increment = 1.0 / (measurement_freq * 100.0);
+    msg.time_increment = 1.0f / (measurement_freq * 100.0f);
     if (override_time_increment_ > 0.0)
     {
       // Some lasers may report incorrect measurement frequency
@@ -1145,14 +1145,14 @@ namespace sick_scan
     // 23: Starting angle (FFF92230)
     int starting_angle = -1;
     sscanf(fields[23], "%x", &starting_angle);
-    msg.angle_min = (starting_angle / 10000.0) / 180.0 * M_PI - M_PI / 2;
+    msg.angle_min = (float)((starting_angle / 10000.0) / 180.0 * M_PI - M_PI / 2);
     // ROS_DEBUG("starting_angle: %d, angle_min: %f", starting_angle, msg.angle_min);
 
     // 24: Angular step width (2710)
     unsigned short angular_step_width = -1;
     sscanf(fields[24], "%hx", &angular_step_width);
     msg.angle_increment = (angular_step_width / 10000.0) / 180.0 * M_PI;
-    msg.angle_max = msg.angle_min + (number_of_data - 1) * msg.angle_increment;
+    msg.angle_max = (float)(msg.angle_min + (number_of_data - 1) * msg.angle_increment);
 
     // 25: Number of data (<= 10F)
     // This is already determined above in number_of_data

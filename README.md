@@ -80,24 +80,39 @@ Note:
 * dynamic reconfiguration of sick_scan parameter is supported on ROS-1 or ROS-2 only, neither under Linux nor under Windows.
 * Publishing pointcloud data requires ROS-1 or ROS-2. On native Linux resp. native Windows, pointcloud data are currently saved to jpg- and csv-files for demonstration purposes. 
 
+## Build targets
+
+sick_scan_xd can be build on Linux and Windows, with and without ROS, with and without LDMRS. The following table shows the allowed combinations and how to build.
+
+| **target** | **cmake settings** | **build script** |
+|------------|--------------------|------------------|
+| Linux, native, LDMRS      | BUILD_WITH_LDMRS_SUPPORT ON  | cd test/scripts && makeall_linux.bash | 
+| Linux, native, no LDMRS   | BUILD_WITH_LDMRS_SUPPORT OFF | cd test/scripts && makeall_linux_no_ldmrs.bash | 
+| Linux, ROS-1, LDMRS       | BUILD_WITH_LDMRS_SUPPORT ON  | cd test/scripts && makeall_ros1.bash           | 
+| Linux, ROS-1, no LDMRS    | BUILD_WITH_LDMRS_SUPPORT OFF | cd test/scripts && makeall_ros1_no_ldmrs.bash  | 
+| Linux, ROS-2, LDMRS       | BUILD_WITH_LDMRS_SUPPORT ON  | cd test/scripts && makeall_ros2.bash           | 
+| Linux, ROS-2, no LDMRS    | BUILD_WITH_LDMRS_SUPPORT OFF | cd test/scripts && makeall_ros2_no_ldmrs.bash  | 
+| Windows, native, no LDMRS | BUILD_WITH_LDMRS_SUPPORT OFF | cd test\\scripts && make_win64.cmd             | 
+| Windows, ROS-2, no LDMRS  | BUILD_WITH_LDMRS_SUPPORT OFF | cd test\\scripts && make_ros2.cmd              | 
+
+If you're using ROS, set your ROS-environment before running one of these scripts, f.e.
+* `source /opt/ros/melodic/setup.bash` for ROS-1 melodic, or
+* `source /opt/ros/eloquent/setup.bash` for ROS-2 eloquent, or
+* `source /opt/ros/foxy/setup.bash` for ROS-2 fox.
+
+See the build descriptions below for more details.
+
 ## Build on Linux
 
 Run the following steps to build sick_scan_xd on Linux (no ROS required):
 
-1. Install boost, jsoncpp and pcl:
-   ```
-   sudo apt-get install libboost-all-dev
-   sudo apt-get install libjsoncpp-dev
-   sudo apt-get install libpcl-dev
-   ```
-
-2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
+1. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
    git clone https://github.com/SICKAG/libsick_ldmrs.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-3. Build libsick_ldmrs:
+2. Build libsick_ldmrs (only required for LDMRS sensors):
    ```
    pushd libsick_ldmrs
    mkdir -p ./build
@@ -108,7 +123,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-4. Build sick_generic_caller:
+3. Build sick_generic_caller:
    ```
    pushd sick_scan_xd
    mkdir -p ./build_linux
@@ -118,29 +133,25 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-Note: libsick_ldmrs and pcl are only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
+Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DLDMRS=0`: 
+   ```
+   cmake -DROS_VERSION=0 -DLDMRS=0 -G "Unix Makefiles" ..
+   ```
 
 ## Build on Linux ROS1
 
 Run the following steps to build sick_scan_xd on Linux with ROS 1:
 
-1. Install boost, jsoncpp and pcl:
-   ```
-   sudo apt-get install libboost-all-dev
-   sudo apt-get install libjsoncpp-dev
-   sudo apt-get install libpcl-dev
-   ```
-
-2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
+1. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
-   git clone https://github.com/SICKAG/libsick_ldmrs.git
+   git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
 
-3. Build sick_generic_caller:
+2. Build sick_generic_caller:
    ```
    source /opt/ros/melodic/setup.bash
    cp -f ./src/sick_scan_xd/package_ros1.xml ./src/sick_scan_xd/package.xml
@@ -149,29 +160,25 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
    ```
    For ROS versions other than melodic, please replace `source /opt/ros/melodic/setup.bash` with your ros distribution.
 
-Note: libsick_ldmrs and pcl are only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
+Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call catkin_make_isolated with option `-DLDMRS=0`: 
+   ```
+   catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0
+   ```
 
 ## Build on Linux ROS2
 
 Run the following steps to build sick_scan_xd on Linux with ROS 2:
 
-1. Install boost, jsoncpp and pcl:
-   ```
-   sudo apt-get install libboost-all-dev
-   sudo apt-get install libjsoncpp-dev
-   sudo apt-get install libpcl-dev
-   ```
-
-2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
+1. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
-   git clone https://github.com/SICKAG/libsick_ldmrs.git
+   git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
 
-3. Build sick_generic_caller:
+2. Build sick_generic_caller:
    ```
    source /opt/ros/eloquent/setup.bash
    cp -f ./src/sick_scan_xd/package_ros2.xml ./src/sick_scan_xd/package.xml 
@@ -182,7 +189,10 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    ```
    For ROS versions other than eloquent, please replace `source /opt/ros/eloquent/setup.bash` with your ros distribution.
 
-Note: libsick_ldmrs and pcl are only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, please switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt).
+Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call colcon with option `-DLDMRS=0`: 
+   ```
+   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
+   ```
 
 ## Build on Windows
 
@@ -190,7 +200,7 @@ To install sick_scan_xd on Windows, follow the steps below:
 
 1. If not yet done, install Visual Studio. Visual Studio 2019 Community or Professional Edition is recommended.
 
-2. If not yet done, install boost, pthread and jsoncpp using Visual Studios package manager vcpkg:
+2. If not yet done, install Visual Studios package manager vcpkg:
    * Install vcpkg:
       * Download vcpkg-master.zip from https://github.com/microsoft/vcpkg/archive/master.zip and unzip to `c:\vcpkg`. Alternatively, run "git clone https://github.com/microsoft/vcpkg"
       * Install vcpkg by running the following commands:
@@ -199,14 +209,6 @@ To install sick_scan_xd on Windows, follow the steps below:
         bootstrap-vcpkg.bat
         vcpkg integrate install
         ```
-   * Install required packages:
-      ```
-     vcpkg install pthread:x86-windows
-     vcpkg install pthread:x64-windows
-     vcpkg install boost:x64-windows
-     vcpkg install jsoncpp
-     vcpkg install jsoncpp:x64-windows
-     ```
    * Include vcpkg in your path:
       ```
      set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
@@ -237,7 +239,7 @@ Note: LDMRS sensors are currently not supported on Windows.
 
 To install sick_scan_xd on Windows with ROS-2, follow the steps below:
 
-1. If not yet done, install Visual Studio 2019, vcpkg, boost, pthread and jsoncpp as described in [Build on Windows](#build-on-windows).
+1. If not yet done, install Visual Studio 2019 and vcpkg as described in [Build on Windows](#build-on-windows).
 
 2. Clone repository https://github.com/SICKAG/sick_scan_xd:
    ```
@@ -549,6 +551,8 @@ Overview of the tools:
 For unittests without sensor hardware, a simple test server is provided. To build the test server, activate cmake option `ENABLE_EMULATOR` in CMakeLists.txt and rebuild sick_scan. By default, option `ENABLE_EMULATOR` is switched off.
 
 Please note that this just builds a simple test server for basic unittests of sick_scan drivers. Its purpose is to run basic tests and to help with diagnosis in case of issues. It does not emulate a real scanner!
+
+Simulation requires jsoncpp. Install with `sudo apt-get install libjsoncpp-dev` on Linux and with `vcpkg install jsoncpp:x64-windows` on Windows.
 
 You can find examples to test and run sick_scan in offline mode in folder `test/scripts`. Their purpose is to demonstrate the usage of the sick_scan driver. Please feel free to customize the scripts or use them as a starting point for own projects.
 

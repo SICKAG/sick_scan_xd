@@ -65,7 +65,7 @@ namespace sick_scan
     { return timeStamp; }
 
     void TimeStamp(UINT64 val)
-    { timeStamp = val; }
+    { timeStamp = (UINT32)val; }
 
     float QuaternionX() const
     { return quaternionX; }

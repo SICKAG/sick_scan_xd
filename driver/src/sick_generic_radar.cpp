@@ -578,7 +578,7 @@ namespace sick_scan
                 if (token.compare(DIST1_KEYWORD) == 0)
                 {
                   int distRaw = getHexValue(fields[dataRowIdx]);
-                  dist = convertScaledIntValue(distRaw, keyWordScale[j], keyWordScaleOffset[j]) * 0.001;
+                  dist = convertScaledIntValue(distRaw, keyWordScale[j], keyWordScaleOffset[j]) * 0.001f;
                 }
                 if (token.compare(AZMT1_KEYWORD) == 0)
                 {

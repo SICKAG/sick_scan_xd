@@ -69,8 +69,9 @@
 	typedef int32_t socket_t;
   #define INVALID_SOCKET (-1)
 #else
-  #include <windows.h>
-	typedef SOCKET socket_t;
+  //#include <windows.h>
+  #include <winsock2.h>
+  typedef SOCKET socket_t;
 #endif
 
 namespace sick_scan

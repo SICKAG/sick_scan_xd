@@ -55,6 +55,7 @@
  *  Copyright 2019 Ing.-Buero Dr. Michael Lehning
  *
  */
+#include <limits.h>
 #include "sick_scan/ros_wrapper.h"
 
 #include "sick_scan/cola_parser.h"
@@ -64,6 +65,13 @@
 #include "sick_scan/test_server_thread.h"
 #include "sick_scan/testcase_generator.h"
 #include "sick_scan/utils.h"
+
+#if defined _MSC_VER && defined min
+#undef min
+#endif
+#if defined _MSC_VER && defined max
+#undef max
+#endif
 
 /*!
  * Constructor. The server thread does not start automatically, call start() and stop() to start and stop the server.

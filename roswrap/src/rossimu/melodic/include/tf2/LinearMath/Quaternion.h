@@ -47,7 +47,7 @@ public:
    * @param yaw Angle around Y unless TF2_EULER_DEFAULT_ZYX defined then Z
    * @param pitch Angle around X unless TF2_EULER_DEFAULT_ZYX defined then Y
    * @param roll Angle around Z unless TF2_EULER_DEFAULT_ZYX defined then X */
-  Quaternion(const tf2Scalar& yaw, const tf2Scalar& pitch, const tf2Scalar& roll) __attribute__((deprecated))
+  Quaternion(const tf2Scalar& yaw, const tf2Scalar& pitch, const tf2Scalar& roll) // __attribute__((deprecated))
 	{ 
 #ifndef TF2_EULER_DEFAULT_ZYX
 		setEuler(yaw, pitch, roll); 
@@ -110,7 +110,7 @@ public:
    * @param yaw Angle around Z
    * @param pitch Angle around Y
    * @param roll Angle around X */
-  void setEulerZYX(const tf2Scalar& yaw, const tf2Scalar& pitch, const tf2Scalar& roll) __attribute__((deprecated))
+  void setEulerZYX(const tf2Scalar& yaw, const tf2Scalar& pitch, const tf2Scalar& roll) // __attribute__((deprecated))
 	{
           setRPY(roll, pitch, yaw);
 	}

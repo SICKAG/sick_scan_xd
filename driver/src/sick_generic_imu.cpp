@@ -226,7 +226,7 @@ namespace sick_scan
     imuValue->LinearAccelerationZ(tmpArr[2]);
 
 
-    double angleVelMultiplier = 1.0;
+    float angleVelMultiplier = 1.0f;
     imuValue->AngularVelocityX(angleVelMultiplier * tmpArr[3]);
     imuValue->AngularVelocityY(angleVelMultiplier * tmpArr[4]);
     imuValue->AngularVelocityZ(angleVelMultiplier * tmpArr[5]);

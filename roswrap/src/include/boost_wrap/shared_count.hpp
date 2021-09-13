@@ -33,7 +33,7 @@
 
 #include <boost_wrap/checked_delete.hpp>
 
-#if defined( BOOST_SP_DISABLE_DEPRECATED )
+#if !defined _MSC_VER && defined( BOOST_SP_DISABLE_DEPRECATED )
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
@@ -639,7 +639,7 @@ inline shared_count::shared_count( weak_count const & r, sp_nothrow_tag ): pi_( 
 
 } // namespace boost
 
-#if defined( BOOST_SP_DISABLE_DEPRECATED )
+#if !defined _MSC_VER && defined( BOOST_SP_DISABLE_DEPRECATED )
 #pragma GCC diagnostic pop
 #endif
 

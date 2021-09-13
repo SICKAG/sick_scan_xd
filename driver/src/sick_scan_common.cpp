@@ -3952,7 +3952,7 @@ namespace sick_scan
                         strcpy(szTmp, echoForSlam.c_str());  //
                         if (elevationAngleInRad != 0.0)
                         {
-                          float cosVal = cos(elevationAngleInRad);
+                          float cosVal = (float)cos(elevationAngleInRad);
                           int rangeNum = msg.ranges.size();
                           for (int j = 0; j < rangeNum; j++)
                           {
@@ -4061,7 +4061,7 @@ namespace sick_scan
               for (size_t iEcho = 0; iEcho < numValidEchos; iEcho++)
               {
 
-                float angle = config_.min_ang;
+                float angle = (float)config_.min_ang;
 
 
                 float *cosAlphaTablePtr = &cosAlphaTable[0];
@@ -4105,11 +4105,11 @@ namespace sick_scan
                   {
                     if (elevationPreCalculated) // FOR MRS6124 without VANGL
                     {
-                      alpha = elevationAngleInRad;
+                      alpha = (float)elevationAngleInRad;
                     }
                     else
                     {
-                      alpha = layer * elevationAngleDegree; // for MRS1104
+                      alpha = (float)(layer * elevationAngleDegree); // for MRS1104
                     }
                   }
                   // ROS_DEBUG_STREAM("alpha:" << alpha << " elevPreCalc:" << std::to_string(elevationPreCalculated) << " layer:" << layer << " elevDeg:" << elevationAngleDegree
@@ -4132,8 +4132,8 @@ namespace sick_scan
                   {
                     phi_used = angleCompensator->compensateAngleInRadFromRos(phi_used);
                   }
-                  fptr[idx_x] = rangeCos * cos(phi_used);  // copy x value in pointcloud
-                  fptr[idx_y] = rangeCos * sin(phi_used);  // copy y value in pointcloud
+                  fptr[idx_x] = rangeCos * (float)cos(phi_used);  // copy x value in pointcloud
+                  fptr[idx_y] = rangeCos * (float)sin(phi_used);  // copy y value in pointcloud
                   fptr[idx_z] = range_meter * sinAlphaTablePtr[i] * mirror_factor;// copy z value in pointcloud
 
                   fptr[idx_intensity] = 0.0;

@@ -76,6 +76,13 @@
 #define TCP_SELECT_BEFORE_READ   0
 #define TCP_SELECT_BEFORE_WRITE  0
 
+#if defined _MSC_VER && defined min
+#undef min
+#endif
+#if defined _MSC_VER && defined max
+#undef max
+#endif
+
 /*!
  * Constructor.
  */
@@ -209,9 +216,16 @@ int sick_scan::ServerSocket::read(int num_bytes, std::vector<uint8_t>& out_buffe
   }
 # endif
 
+  // set socket to nonblocking mode
   int recv_flags = 0;
+# ifdef _MSC_VER
+  u_long recv_mode = (read_blocking ? 0 : 1); // FIONBIO enables or disables the blocking mode for the socket. If iMode = 0, blocking is enabled, if iMode != 0, non-blocking mode is enabled.
+  ioctlsocket(m_tConnectedSocket, FIONBIO, &recv_mode); 
+# else
   if(!read_blocking)
     recv_flags |= MSG_DONTWAIT;
+# endif
+
   std::vector<uint8_t> buffer(num_bytes);
   int nrbytes = 0;
   while (ROS::ok() && nrbytes < num_bytes && m_tListenSocket != INVALID_SOCKET && m_tConnectedSocket != INVALID_SOCKET)

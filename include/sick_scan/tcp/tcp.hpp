@@ -74,7 +74,6 @@ private:
 	INT32 m_connectionSocket;	// Socket, wenn wir der Client sind (z.B. Verbindung zum Scanner)
 #else
 	SOCKET m_connectionSocket;	// Socket, wenn wir der Client sind (z.B. Verbindung zum Scanner)
-
 #endif
 	void readThreadFunction(bool& endThread, UINT16& waitTimeMs);
 	SickThread<Tcp, &Tcp::readThreadFunction> m_readThread;

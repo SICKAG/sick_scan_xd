@@ -186,7 +186,15 @@ bool sick_scan::ColaTransmitter::receive(socket_t & socket, std::vector<uint8_t>
     {
       // Read 1 byte
       uint8_t byte_received = 0;
-      int recv_flags = MSG_DONTWAIT; // read non-blocking
+      // set socket to nonblocking mode
+      int recv_flags = 0;
+# ifdef _MSC_VER
+      u_long recv_mode = 1; // FIONBIO enables or disables the blocking mode for the socket. If iMode = 0, blocking is enabled, if iMode != 0, non-blocking mode is enabled.
+      ioctlsocket(socket, FIONBIO, &recv_mode);
+# else
+      recv_flags |= MSG_DONTWAIT;
+# endif
+
       // Possibly better than receiving byte for byte: use boost::asio::read_until to read until <ETX> received
       if (::recv(socket, (char*)&byte_received, 1, recv_flags) == 1)
       {

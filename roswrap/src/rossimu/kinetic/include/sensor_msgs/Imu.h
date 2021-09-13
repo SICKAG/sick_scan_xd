@@ -6,6 +6,7 @@
 #define SENSOR_MSGS_MESSAGE_IMU_H
 
 
+#include <array>
 #include <string>
 #include <vector>
 #include <map>
