@@ -453,12 +453,24 @@ namespace sick_scan
 #define OBJLEN_KEYWORD "OBLE1"
 #define OBJID_KEYWORD "OBID1"
 
+#define RADAR_1D_DEVICE "sick_rms_1xxx" // this is a little bit redundant to parameter setting,
+#define RADAR_3D_DEVICE "sick_rms_5xx"  // but avoid "back-pointering" to overall calling instance
+
     const int RAWTARGET_LOOP = 0;
     const int OBJECT_LOOP = 1;
 
+    // std::string nodename = parser_->getCurrentParamPtr()->getScannerName();
     // std::vector<SickScanRadarRawTarget> rawTargets;
     // std::vector<SickScanRadarObject> objectList;
 
+    //printf("%s\n", this->getNameOfRadar().c_str());
+
+    enum RADAR_TYPE_ENUM {RADAR_1D_ENUM, RADAR_3D_ENUM, RADAR_NUM};
+    RADAR_TYPE_ENUM enumRadarType = RADAR_3D_ENUM;
+    if (this->getNameOfRadar().compare(RADAR_1D_DEVICE) == 0)
+    {
+      enumRadarType = RADAR_1D_ENUM;
+    }
     for (int iLoop = 0; iLoop < 2; iLoop++)
     {
       keyWordList.clear();
@@ -472,12 +484,27 @@ namespace sick_scan
           keyWordList.push_back(MODE1_KEYWORD);
           break;
         case OBJECT_LOOP:
-          keyWordList.push_back(P3DX1_KEYWORD);
-          keyWordList.push_back(P3DY1_KEYWORD);
-          keyWordList.push_back(V3DX1_KEYWORD);
-          keyWordList.push_back(V3DY1_KEYWORD);
-          keyWordList.push_back(OBJLEN_KEYWORD);
-          keyWordList.push_back(OBJID_KEYWORD);
+          switch(enumRadarType)
+          {
+            case RADAR_1D_ENUM:
+              keyWordList.push_back(P3DX1_KEYWORD);
+              keyWordList.push_back(V3DX1_KEYWORD);
+              keyWordList.push_back(OBJLEN_KEYWORD);
+              keyWordList.push_back(OBJID_KEYWORD);
+              break;
+            case RADAR_3D_ENUM:
+              keyWordList.push_back(P3DX1_KEYWORD);
+              keyWordList.push_back(P3DY1_KEYWORD);
+              keyWordList.push_back(V3DX1_KEYWORD);
+              keyWordList.push_back(V3DY1_KEYWORD);
+              keyWordList.push_back(OBJLEN_KEYWORD);
+              keyWordList.push_back(OBJID_KEYWORD);
+              break;
+            default: // unsupported
+            assert(0);
+            break;
+          }
+
           break;
       }
       std::vector<int> keyWordPos;

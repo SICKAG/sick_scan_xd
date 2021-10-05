@@ -49,6 +49,7 @@
 #define SICK_SCANNER_MRS_6XXX_NAME "sick_mrs_6xxx"
 #define SICK_SCANNER_LMS_4XXX_NAME "sick_lms_4xxx"
 #define SICK_SCANNER_RMS_3XX_NAME "sick_rms_3xx"
+#define SICK_SCANNER_RMS_1XXX_NAME "sick_rms_1xxx"
 #define SICK_SCANNER_NAV_3XX_NAME "sick_nav_3xx"
 #define SICK_SCANNER_NAV_2XX_NAME "sick_nav_2xx"
 #define SICK_SCANNER_TIM_4XX_NAME "sick_tim_4xx"

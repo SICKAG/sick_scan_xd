@@ -61,8 +61,8 @@
 *
 *
 *
-*  Copyright 2018/2019 SICK AG
-*  Copyright 2018/2019 Ing.-Büro Dr. Michael Lehning
+*  Copyright 2018/2019/2020/2021 SICK AG
+*  Copyright 2018/2019/2020/2021 Ing.-Büro Dr. Michael Lehning
 
 
 

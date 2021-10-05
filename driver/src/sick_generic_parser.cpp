@@ -426,6 +426,7 @@ namespace sick_scan
     allowedScannerNames.push_back(SICK_SCANNER_LMS_4XXX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LRS_4XXX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_RMS_3XX_NAME); // Radar scanner
+    allowedScannerNames.push_back(SICK_SCANNER_RMS_1XXX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_NAV_3XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_2XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_TIM_4XX_NAME);
@@ -632,6 +633,24 @@ namespace sick_scan
      }
 
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_3XX_NAME) == 0) // Radar
+      {
+        basicParams[i].setNumberOfMaximumEchos(1);
+        basicParams[i].setNumberOfLayers(0); // for radar scanner
+        basicParams[i].setNumberOfShots(65);
+        basicParams[i].setAngularDegreeResolution(0.00);
+        basicParams[i].setElevationDegreeResolution(0.00); // in [degree]
+        basicParams[i].setExpectedFrequency(0.00);
+        basicParams[i].setUseBinaryProtocol(false); // use ASCII-Protocol
+        basicParams[i].setDeviceIsRadar(true); // Device is a radar
+        basicParams[i].setUseSafetyPasWD(false); // Default
+        basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
+        basicParams[i].setScanMirroredAndShifted(false);
+        basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
+        basicParams[i].setMaxEvalFields(0);
+      }
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_1XXX_NAME) == 0) // Radar
       {
         basicParams[i].setNumberOfMaximumEchos(1);
         basicParams[i].setNumberOfLayers(0); // for radar scanner

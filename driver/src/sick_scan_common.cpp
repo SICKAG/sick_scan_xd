@@ -3094,12 +3094,14 @@ namespace sick_scan
 
       if (this->parser_->getCurrentParamPtr()->getDeviceIsRadar() == true)
       {
+
         deviceIsRadar = true;
       }
 
       if (true == deviceIsRadar)
       {
         SickScanRadarSingleton *radar = SickScanRadarSingleton::getInstance(nh);
+        radar->setNameOfRadar(this->parser_->getCurrentParamPtr()->getScannerName());
         int errorCode = ExitSuccess;
         // parse radar telegram and send pointcloud2-debug messages
         errorCode = radar->parseDatagram(recvTimeStamp, (unsigned char *) receiveBuffer, actual_length,
