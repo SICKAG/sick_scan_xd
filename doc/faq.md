@@ -144,3 +144,11 @@ On Windows with ROS, cmake complains "python_d.exe not found" when running rosid
 
 :white_check_mark: Answer:
 Workaround: Copy python.exe to python_d.exe in the python folder.
+
+## Debugging
+
+:question: Question:
+How can I debug sick_generic_caller on ROS-1?
+
+:white_check_mark: Answer:
+Build with compiler option `-g` and run sick_generic_caller as described using a launchfile. Stop sick_generic_caller (Ctrl-C or kill) and save the current ros parameter using `rosparam dump <dumpfile>.yaml`. Load these parameter with `rosparam load <dumpfile>.yaml` and restart sick_generic_caller in gdb or in your IDE. 
