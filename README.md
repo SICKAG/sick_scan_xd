@@ -6,6 +6,7 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 
 ## Table of Contents
 
+- [Executive Summary](#executive-summary)
 - [Supported Hardware](#supported-hardware)
 - [Supported Hardware](#supported-hardware)
 - [Build on Linux](#build-on-linux)
@@ -23,6 +24,26 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 - [Profiling](doc/profiling.md)
 - [Testing](#testing)
 - [Creators](#creators)
+
+## Executive Summary
+
+* sick_scan_xd supports
+    * generic use (Linux and Windows native)
+    * Linux-ROS1
+    * ROS2 (Linux and Windows)
+  
+  for the devices listed below.
+
+* sick_scan_xd improves quality and consistency
+* All features are available on all targets.
+* The sick_scan_xd repository supports and maintains generic use, ROS1 and ROS2:
+    * sick_scan_xd merges projects  sick_scan, sick_scan2 and sick_scan_base
+    * Simplifies the use of devices, as there is only one github entry point for the supported devices
+    * Simplifies integration of new devices
+    * Avoids inconsistencies between different platforms
+    * Simplifies and centralizes integration of new features, improvements, issues and bugfixes
+* Identical sources for all targets are more transparent and clearer for developer and user
+* sick_scan_xd has no dependencies to 3rd party libraries like boost or pthread
 
 ## Supported Hardware
 
