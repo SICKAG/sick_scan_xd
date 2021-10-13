@@ -164,8 +164,8 @@ inline bool ends_with(std::string const &value, std::string const &ending)
 }
 
 /*!
-\brief Parses an optional launchfile and sets all parameters. 
-       This function is used at startup to enable system independant parameter handling 
+\brief Parses an optional launchfile and sets all parameters.
+       This function is used at startup to enable system independant parameter handling
        for native Linux/Windows, ROS-1 and ROS-2. Parameter are overwritten by optional
        commandline arguments
 \param argc: Number of commandline arguments
@@ -461,6 +461,11 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
           s_scanner->setEmulSensor(true);
         }
         result = s_scanner->init(nhPriv);
+        if (result == sick_scan::ExitError || result == sick_scan::ExitFatal)
+        {
+		    ROS_ERROR("init failed, shutting down");
+            return result;
+        }
 
         // Start ROS services
         rosDeclareParam(nhPriv, "start_services", start_services);
@@ -473,6 +478,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
 
         isInitialized = true;
         signal(SIGINT, SIG_DFL); // change back to standard signal handler after initialising
+
         if (result == sick_scan::ExitSuccess) // OK -> loop again
         {
           if (changeIP)
