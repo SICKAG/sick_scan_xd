@@ -1,8 +1,8 @@
 /*
  * Software License Agreement (BSD License)
  *
- * Robot Operating System code by the University of Osnabrück
- * Copyright (c) 2015, University of Osnabrück
+ * Robot Operating System code by the University of Osnabrueck
+ * Copyright (c) 2015, University of Osnabrueck
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

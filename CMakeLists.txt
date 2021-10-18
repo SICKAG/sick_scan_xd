@@ -355,7 +355,7 @@ if(ROS_VERSION EQUAL 1)
 
     catkin_package(
         CATKIN_DEPENDS message_runtime roscpp sensor_msgs diagnostic_updater dynamic_reconfigure pcl_conversions pcl_ros tf tf2
-        LIBRARIES sick_scan_lib
+        LIBRARIES sick_scan_lib sick_scan_shared_lib
         INCLUDE_DIRS include
         # DEPENDS Boost
     )
@@ -364,7 +364,7 @@ endif(ROS_VERSION EQUAL 1)
 include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser) # ${Boost_INCLUDE_DIR} 
 
 if(ROS_VERSION EQUAL 1)
-    add_library(sick_scan_lib STATIC
+    set(SICK_SCAN_LIB_SRC
         driver/src/dataDumper.cpp
         driver/src/sick_scan_common.cpp
         driver/src/abstract_parser.cpp
@@ -398,15 +398,16 @@ if(ROS_VERSION EQUAL 1)
         driver/src/tinyxml/tinyxmlparser.cpp
         ${LDMRS_SOURCES} 
     )
+    add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
+    add_library(sick_scan_shared_lib SHARED ${SICK_SCAN_LIB_SRC})
 
     add_dependencies(sick_scan_lib ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS}) # ${LDMRS_TARGET_DEPENDENCIES})
+    add_dependencies(sick_scan_shared_lib ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS}) # ${LDMRS_TARGET_DEPENDENCIES})
 
-    target_link_libraries(sick_scan_lib
-        ${catkin_LIBRARIES})
+    target_link_libraries(sick_scan_lib ${catkin_LIBRARIES})
+    target_link_libraries(sick_scan_shared_lib ${catkin_LIBRARIES})
 
-    add_executable(sick_generic_caller
-        driver/src/sick_generic_caller.cpp
-        )
+    add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
     
     target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES})
     
@@ -445,7 +446,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         )
     endif()
 
-    add_library(sick_scan_lib STATIC
+    set(SICK_SCAN_LIB_SRC
 	    roswrap/src/getopt/getopt.c
         roswrap/src/toojpeg/toojpeg.cpp
         roswrap/src/launchparser/launchparser.cpp 
@@ -482,10 +483,10 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         ${SRC_ROSSIMU_FILES}
         ${SRC_WIN_FILES}
     )
+    add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
+    add_library(sick_scan_shared_lib SHARED ${SICK_SCAN_LIB_SRC})
 
-    add_executable(sick_generic_caller
-        driver/src/sick_generic_caller.cpp
-    )
+    add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
 
     target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES})
 
@@ -495,6 +496,19 @@ if(ROS_VERSION EQUAL 2)
 
     ament_target_dependencies(
         sick_scan_lib
+        # "Boost"
+        "rclcpp"
+        "sensor_msgs"
+        "std_msgs"
+        "geometry_msgs"
+        "diagnostic_msgs" 
+        "visualization_msgs"
+        "tf2_ros" 
+        ${LDMRS_TARGET_DEPENDENCIES}
+    )
+
+    ament_target_dependencies(
+        sick_scan_shared_lib
         # "Boost"
         "rclcpp"
         "sensor_msgs"
@@ -520,12 +534,13 @@ if(ROS_VERSION EQUAL 2)
     )
 
     rosidl_target_interfaces(sick_scan_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
+    rosidl_target_interfaces(sick_scan_shared_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
     # rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_cpp")
         
 endif(ROS_VERSION EQUAL 2)
 
 if(ROS_VERSION EQUAL 1)
-    install(TARGETS sick_scan_lib
+    install(TARGETS sick_scan_lib sick_scan_shared_lib
         DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
     install(
@@ -560,7 +575,7 @@ if(ROS_VERSION EQUAL 2)
         DESTINATION lib/${PROJECT_NAME})
 
     install(TARGETS
-        sick_scan_lib
+        sick_scan_lib sick_scan_shared_lib
         DESTINATION lib)
 
     install(DIRECTORY

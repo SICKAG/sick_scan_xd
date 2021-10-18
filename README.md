@@ -45,6 +45,9 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 * Identical sources for all targets are more transparent and clearer for developer and user
 * sick_scan_xd has no dependencies to 3rd party libraries like boost or pthread
 
+We recommend using sick_scan_xd instead of sick_scan, sick_scan2 or sick_scan_base for all new projects using one or multiple devices listed below. 
+In the medium term, it's generally recommended to migrate to sick_scan_xd.
+
 ## Supported Hardware
 
 This driver should work with all of the following products.

@@ -2,9 +2,24 @@
 * \file
 * \brief Laser Scanner communication main routine
 *
-* Copyright (C) 2013, Osnabrück University
+* Copyright (C) 2013, Osnabrueck University
 * Copyright (C) 2017-2019, Ing.-Buero Dr. Michael Lehning, Hildesheim
 * Copyright (C) 2017-2019, SICK AG, Waldkirch
+*
+* All rights reserved.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*       http://www.apache.org/licenses/LICENSE-2.0
+*
+*   Unless required by applicable law or agreed to in writing, software
+*   distributed under the License is distributed on an "AS IS" BASIS,
+*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*   See the License for the specific language governing permissions and
+*   limitations under the License.
+*
 *
 * All rights reserved.
 *
@@ -16,7 +31,7 @@
 *     * Redistributions in binary form must reproduce the above copyright
 *       notice, this list of conditions and the following disclaimer in the
 *       documentation and/or other materials provided with the distribution.
-*     * Neither the name of Osnabrück University nor the names of its
+*     * Neither the name of Osnabrueck University nor the names of its
 *       contributors may be used to endorse or promote products derived from
 *       this software without specific prior written permission.
 *     * Neither the name of SICK AG nor the names of its
@@ -500,6 +515,10 @@ namespace sick_scan
     rosDeclareParam(nh, "cloud_output_mode", config_.cloud_output_mode);
     rosGetParam(nh, "cloud_output_mode", config_.cloud_output_mode);
 
+    double expected_frequency_tolerance = 0.1; // frequency should be target +- 10%
+    rosDeclareParam(nh, "expected_frequency_tolerance", expected_frequency_tolerance);
+    rosGetParam(nh, "expected_frequency_tolerance", expected_frequency_tolerance);
+
     cloud_marker_ = 0;
     publish_lferec_ = false;
     publish_lidoutputstate_ = false;
@@ -524,27 +543,28 @@ namespace sick_scan
     // scan publisher
     pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, nodename + "/scan", 1000);
 
-#if defined USE_DIAGNOSTIC_UPDATER && __ROS_VERSION == 1 // diagnosticPub_ in sick_scan_common not used anymore, obsolete in general?
+#if defined USE_DIAGNOSTIC_UPDATER
     if(diagnostics_)
     {
       diagnostics_->setHardwareID("none");   // set from device after connection
+#if __ROS_VERSION == 1
       diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<ros_sensor_msgs::LaserScan>(pub_, *diagnostics_,
         // frequency should be target +- 10%.
-                                                                                        diagnostic_updater::FrequencyStatusParam(
-                                                                                            &expectedFrequency_,
-                                                                                            &expectedFrequency_, 0.1,
-                                                                                            10),
+        diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10),
         // timestamp delta can be from 0.0 to 1.3x what it ideally is.
-                                                                                        diagnostic_updater::TimeStampStatusParam(
-                                                                                            -1, 1.3 * 1.0 /
-                                                                                                expectedFrequency_ -
-                                                                                                config_.time_offset));
-
+        diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0 / expectedFrequency_ - config_.time_offset));
       ROS_ASSERT(diagnosticPub_ != NULL);
+#elif __ROS_VERSION == 2
+      diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>>(pub_, *diagnostics_, 
+        diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10), // frequency should be target +- 10%
+        diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0 / expectedFrequency_ - config_.time_offset));
+      assert(diagnosticPub_ != NULL);
+#endif      
     }
 #else
     config_.time_offset = 0; // to avoid uninitialized variable
 #endif
+
   }
 
   /*!
@@ -4001,6 +4021,13 @@ namespace sick_scan
                 {
 
                   rosPublish(pub_, msg);
+
+#if defined USE_DIAGNOSTIC_UPDATER // && __ROS_VERSION == 1
+                  // if(diagnostics_)
+                  //   diagnostics_->broadcast(diagnostic_msgs_DiagnosticStatus_OK, "SickScanCommon running, no error");
+                  if(diagnosticPub_)
+                    diagnosticPub_->publish(msg);
+#endif
 
                 }
 #else
