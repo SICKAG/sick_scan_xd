@@ -1,0 +1,19 @@
+# Definition of ROS service SickLocAutoStartSavePose for sick localization
+# Saves the current pose. If no further pose writing occurs the system will reinitialize itself at this position on restart if LocAutoStart is enabled.
+# Example call (ROS1):
+# rosservice call SickLocAutoStartSavePose "{}"
+# Example call (ROS2):
+# ros2 service call SickLocAutoStartSavePose sick_scan/srv/SickLocAutoStartSavePoseSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

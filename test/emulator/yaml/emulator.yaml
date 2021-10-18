@@ -1,0 +1,14 @@
+# Configuration of sick_scan_emulator
+# sick_scan_emulator implements a simple tcp server, simulating a Tim875S for unittests.
+# It implements a simple tcp server, accepting tcp connections from clients and generating telegrams to test the ros driver for sim localization.
+sick_scan:
+
+  # Server configuration. See Operation-Instruction-v1.1.0.241R.pdf, page 51, "IP port number and protocol" for default tcp ports.
+  test_server:
+    result_telegrams_tcp_port:       2201  # Default tcp port for sim_loc_test_server is 2201 (ip port number of the localization controller sending localization results)
+    cola_telegrams_tcp_port:         2112  # For requests and to transmit settings to the localization controller: IP port number 2111 and 2112 to send telegrams and to request data, SOPAS CoLa-A or CoLa-B protocols
+    start_scandata_delay:               1  # Delay between scandata activation ("LMCstartmeas" request) and first scandata message, default: 1 second
+    result_telegrams_rate:             10  # Rate to generate and send result port telegrams
+    result_testcases_topic:          "/sick_scan/emulator/result_testcases"  # ROS topic to publish testcases with result port telegrams (type SickLocResultPortTestcaseMsg)
+    result_testcases_frame_id:       "result_testcases" # ROS frame id of testcase messages (type SickLocResultPortTestcaseMsg)
+

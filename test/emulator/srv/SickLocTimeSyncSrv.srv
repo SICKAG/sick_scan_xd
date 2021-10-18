@@ -1,0 +1,23 @@
+# Definition of ROS service SickLocTimeSync for sick localization.
+#
+# ROS service SickLocTimeSync returns the system time of a vehicle pose from lidar ticks in ms.
+# SickLocTimeSync uses a software pll to calculate the system time from ticks. Therefore at least
+# 7 LocRequestTimestamp measurements are required before time sync becomes valid (default fifo
+# size of the software pll is 7 measurements). Depending on time_sync_rate configured in the
+# launch-file, this initial phase can take several seconds (up to 70 seconds).
+
+#
+# Request (input): Timestamp in ticks
+#
+
+uint32 timestamp_lidar_ms  # Lidar timestamp in milliseconds from LocRequestTimestamp response
+
+---
+
+#
+# Response (output): System time calculated by software pll
+#
+
+bool   vehicle_time_valid  # true: vehicle_time_sec and vehicle_time_nsec valid, false: software pll still in initial phase
+uint32 vehicle_time_sec    # Time of vehicles pose calculated by software pll (seconds part of the system time)
+uint32 vehicle_time_nsec   # Time of vehicles pose calculated by software pll (nano seconds part of the system time)

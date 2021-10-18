@@ -1,0 +1,19 @@
+# Definition of ROS service SickSavePermanent for sick localization
+# Saves the parameters permanently on the device. They will be reloaded on reboot.
+# Example call (ROS1):
+# rosservice call SickSavePermanent "{}"
+# Example call (ROS2):
+# ros2 service call SickSavePermanent sick_scan/srv/SickSavePermanentSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

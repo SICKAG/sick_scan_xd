@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocRingBufferRecordingActive for sick localization
+# Returns whether rolling buffer recording on error reporting is active. {0 (false), 1 (true)} 
+# Example call (ROS1):
+# rosservice call SickLocRingBufferRecordingActive "{}"
+# Example call (ROS2):
+# ros2 service call SickLocRingBufferRecordingActive sick_scan/srv/SickLocRingBufferRecordingActiveSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool active # Whether rolling buffer recording on error reporting is active. {0 (false), 1 (true)} 
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

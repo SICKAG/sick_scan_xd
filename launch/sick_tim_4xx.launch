@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!--
+     **********************************************
+     Launch File for TiM 4xx lidar family
+     
+     Family covers TiM 433 and TiM 443.
+     **********************************************
+     Start and stop angle is given in [rad]
+
+     Default min_angle is  -120 degree (-2.09439510 rad).
+     Default max_angle is  +120 degree (+2.09439510 rad).
+
+     Axis orientation is given in ROS standard notation.
+
+                  X
+                  .
+                  .
+                  .
+                  .
+       Y .........+  (Z-Axis upwards to you - right hand rule)
+
+           +............+
+           |            |
+           | Top View   |      
+           | Device     |      
+           |            |
+           +............+
+              .      .     
+              .      .
+              .      .
+           Power   Ethernet
+           Cable   Cacle
+
+
+     Check IP-address, if you scanner is not found after roslaunch.
+-->
+
+<!-- You can launch the lidar on a specific ip address (e.g. 192.68.0.71) using the following example call:
+
+     roslaunch sick_scan sick_tim_443.launch hostname:=192.168.0.71
+
+-->
+
+<launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <arg name="cloud_topic" default="cloud"/>
+    <arg name="frame_id" default="cloud"/>
+    <arg name="nodename" default="sick_tim_443"/>
+    <arg name="port" default="2112"/>
+    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+        <param name="scanner_type" type="string" value="sick_tim_4xx"/>
+        <param name="nodename" type="string" value="$(arg nodename)"/>
+        <!-- -120 deg -->
+        <param name="min_ang" type="double" value="-2.094395102"/>
+        <!-- 120 deg -->
+        <param name="max_ang" type="double" value="2.094395102"/>
+        <param name="use_binary_protocol" type="bool" value="True"/>
+        <param name="range_max" type="double" value="100.0"/>
+        <param name="intensity" type="bool" value="True"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="frame_id" type="str" value="$(arg frame_id)"/>
+        <param name="port" type="string" value="$(arg port)"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="sw_pll_only_publish" type="bool" value="false"/>
+        <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
+    </node>
+</launch>
+
+

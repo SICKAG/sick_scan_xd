@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocResultEndianness for sick localization
+# Returns the endianness of the result port: 0 BIG_ENDIAN (default), 1 LITTLE_ENDIAN
+# Example call (ROS1):
+# rosservice call SickLocResultEndianness "{}"
+# Example call (ROS2):
+# ros2 service call SickLocResultEndianness sick_scan/srv/SickLocResultEndiannessSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+int32 endianness # The endianness of the result port. 0 BIG_ENDIAN (default), 1 LITTLE_ENDIAN
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

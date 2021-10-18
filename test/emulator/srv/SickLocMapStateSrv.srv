@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocMapState for sick localization
+# Returns the current state of the map. 0: not active, 1: active.
+# Example call (ROS1):
+# rosservice call SickLocMapState "{}"
+# Example call (ROS2):
+# ros2 service call SickLocMapState sick_scan/srv/SickLocMapStateSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool mapstate # the current state of the map. 0: not active, 1: active.
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

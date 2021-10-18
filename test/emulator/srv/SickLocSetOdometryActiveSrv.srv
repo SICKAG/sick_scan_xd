@@ -1,0 +1,22 @@
+# Definition of ROS service SickLocSetOdometryActive for sick localization
+# Enables or disables usage of odometry data in Scan Matching
+# Example call (ROS1):
+# rosservice call SickLocSetOdometryActive "{active: 1}"
+# Example call (ROS2):
+# ros2 service call SickLocSetOdometryActive sick_scan/srv/SickLocSetOdometryActiveSrv "{active: 1}"
+# 
+
+# 
+# Request (input)
+# 
+
+bool active # Whether data from an odometry sensor is considered in Scan Matching {0 (false), 1 (true)} 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool set # Whether the odometry configuration is set. {0 (false), 1 (true)} 
+bool executed # Whether the odometry configuration is fine and the UDP socket could be started. {0 (false), 1 (true)} 

@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocMap for sick localization
+# Returns the filename of the configured map or an empty string if no map is defined.
+# Example call (ROS1):
+# rosservice call SickLocMap "}"
+# Example call (ROS2):
+# ros2 service call SickLocMap sick_scan/srv/SickLocMapSrv "}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+string map # filename of the configured map or an empty string if no map is defined.
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

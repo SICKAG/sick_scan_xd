@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocStop for sick localization.
+#
+# ROS service SickLocStop stops localization
+# by sending cola command ("sMN LocStop").
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
+

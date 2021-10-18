@@ -1,0 +1,30 @@
+# Definition of ROS service SickLocSetPose for sick localization.
+#
+# ROS service SickLocSetPose initializes the vehicle pose
+# by sending cola command ("sMN LocSetPose <posex> <posey> <yaw> <uncertainty>")
+# with parameter
+# <posex>: x coordinate in mm
+# <posey>: y coordinate in mm
+# <yaw>: yaw angle in millidegree, -180000 to +180000
+# <uncertainty>: translation uncertainty in mm
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+int32 posex       # x coordinate in mm
+int32 posey       # y coordinate in mm
+int32 yaw         # yaw angle in millidegree, -180000 to +180000
+int32 uncertainty # translation uncertainty in mm
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
+

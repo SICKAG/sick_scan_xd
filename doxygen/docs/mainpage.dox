@@ -1,0 +1,9 @@
+/**
+@brief Documentation for sick_scan
+@author Michael Lehning
+@file Mainpage.dox
+*/
+/**
+@mainpage sick_scan API
+This contains the source code documentation for the sick_scan driver
+*/

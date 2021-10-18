@@ -1,0 +1,23 @@
+# Definition of ROS service SickLocInitialPose for sick localization
+# Returns the initial pose
+# Example call (ROS1):
+# rosservice call SickLocInitialPose "{}"
+# Example call (ROS2):
+# ros2 service call SickLocInitialPose sick_scan/srv/SickLocInitialPoseSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+int32 x # Vehicle x position relative to map origin. [<min>, <max>] in [mm] 
+int32 y # Vehicle y position relative to map origin. [<min>, <max>] in [mm] 
+int32 yaw # Vehicle yaw angle relative to map origin. [-180000, 180000] in [mdeg] 
+uint32 sigmatranslation # Standard deviation of the initial position describing the uncertainty. [300, 5000] in [mm] 
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

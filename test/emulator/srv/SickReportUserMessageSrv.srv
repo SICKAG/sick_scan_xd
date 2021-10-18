@@ -1,0 +1,21 @@
+# Definition of ROS service SickReportUserMessage for sick localization
+# Method to report messages to the localization system.
+# Example call (ROS1):
+# rosservice call SickReportUserMessage "{usermessage: test_message}"
+# Example call (ROS2):
+# ros2 service call SickReportUserMessage sick_scan/srv/SickReportUserMessageSrv "{usermessage: test_message}"
+# 
+
+# 
+# Request (input)
+# 
+
+string usermessage # The message transmitted to the localization system. Max length = 400 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

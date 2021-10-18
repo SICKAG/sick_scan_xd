@@ -1,0 +1,19 @@
+# Definition of ROS service ECRChangeArr for sick_scan
+# Request status change of monitoring fields on event
+# Example call (ROS1):
+# rosservice call /sick_tim_7xx/ECRChangeArr "{active: 1}"
+# 
+
+# 
+# Request (input)
+# 
+
+bool active # start/stop monitoring for status change events
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from lidar, false: service failed (timeout or error status from controller)

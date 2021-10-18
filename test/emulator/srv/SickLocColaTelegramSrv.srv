@@ -1,0 +1,26 @@
+# Definition of ROS service SickLocColaTelegram for sick localization.
+# ROS service SickLocColaTelegram encodes and sends a Cola telegram to the localization controller,
+# receives and encodes the answer from the controller.
+#
+# See Telegram-Listing-v1.1.0.241R.pdf and Technical_information_Telegram_Listing_NAV_LOC_en_IM0076556.pdf
+# for further details about Cola telgrams.
+
+#
+# Request (input)
+#
+
+string  cola_ascii_request       # Cola-ASCII telegram to send to the localization controller, f.e. "sRN SetAccessMode 3 F4724744".
+float32 wait_response_timeout    # Timeout for the controller response in secondes. Use 0.0 for Cola requests without controller response.
+# bool send_binary               # Not used (true: send binary telegram, false/default: send ASCII telegram)
+
+---
+
+#
+# Response (output)
+#
+
+string cola_ascii_response       # Response from the localization controller (empty in case of connection failures, communication errors or timeouts)
+uint32 send_timestamp_sec        # Send timestamp (seconds part of ros timestamp immediately before tcp send)
+uint32 send_timestamp_nsec       # Send timestamp (nano seconds part of ros timestamp immediately before tcp send)
+uint32 receive_timestamp_sec     # Receive timestamp (seconds part of ros timestamp immediately after first response byte received)
+uint32 receive_timestamp_nsec    # Receive timestamp (nano seconds part of ros timestamp immediately after first response byte received)

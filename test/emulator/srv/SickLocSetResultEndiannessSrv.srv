@@ -1,0 +1,24 @@
+# Definition of ROS service SickLocSetResultEndianness for sick localization.
+#
+# ROS service SickLocSetResultEndianness sets the endianness of the result output
+# by sending cola command ("sMN LocSetResultEndianness <endianness>")
+# with parameter
+# <endianness>:  0: big endian, 1: little endian, default: big endian
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+int32 endianness # 0: big endian, 1: little endian, default: big endian
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
+

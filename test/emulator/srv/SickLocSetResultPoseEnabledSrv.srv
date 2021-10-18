@@ -1,0 +1,24 @@
+# Definition of ROS service SickLocSetResultPoseEnabled for sick localization.
+#
+# ROS service SickLocSetResultPoseEnabled enables or disables result output telegrams
+# by sending cola command ("sMN LocSetResultPoseEnabled <enabled>")
+# with parameter
+# <enabled>: 0: disabled, 1: enabled, default: enabled
+#
+# See Telegram-Listing-v1.1.0.241R.pdf for further details about 
+# Cola telegrams and this command.
+
+#
+# Request (input)
+#
+
+int32 enabled # 0: result output disabled, result output 1: enabled, default: enabled
+
+---
+
+#
+# Response (output)
+#
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
+

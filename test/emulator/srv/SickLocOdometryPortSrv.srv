@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocOdometryPort for sick localization
+# Returns the port of the UDP socket for odometry measurement input.
+# Example call (ROS1):
+# rosservice call SickLocOdometryPort "{}"
+# Example call (ROS2):
+# ros2 service call SickLocOdometryPort sick_scan/srv/SickLocOdometryPortSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+uint32 port # The new UDP port of the UDP socket for odometry measurement input. [<min>, <max>] 
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

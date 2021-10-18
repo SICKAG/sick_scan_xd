@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#
+# Set environment
+#
+
+function simu_killall()
+{
+  sleep 1 ; killall -SIGINT rviz2
+  sleep 1 ; killall -SIGINT sick_generic_caller
+  sleep 1 ; killall -SIGINT sick_scan_emulator
+  sleep 1 ; killall -9 rviz2
+  sleep 1 ; killall -9 sick_generic_caller
+  sleep 1 ; killall -9 sick_scan_emulator 
+  sleep 1
+}
+
+function run_simu()
+{
+    emulator_launch_cfg=$1
+    sick_scan_launch_file=$2
+    sleep  1 ; ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/$emulator_launch_cfg &
+    # sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/$sick_scan_launch_file hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False & 
+    sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/$sick_scan_launch_file hostname:=127.0.0.1 port:=2111 &
+    sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2.rviz &
+    sleep 30 ; simu_killall
+}
+
+simu_killall
+printf "\033c"
+pushd ../../../..
+source ./install/setup.bash
+
+#
+# Run simulation:
+# 1. Start sick_scan_emulator
+# 2. Start sick_scan driver sick_generic_caller
+# 3. Run rviz
+# 4. Stop simulation after 30 seconds
+#
+
+echo -e "run_linux_ros2_simu_tim7xx_tim7xxS.bash: starting TiM7xx/TiM7xxS emulation with  $sick_scan_launch_file\n"
+cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng.json /tmp/lmd_scandata.pcapng.json
+run_simu emulator_01_default.launch sick_tim_7xx.launch
+run_simu emulator_01_default.launch sick_tim_7xxS.launch
+  
+popd
+

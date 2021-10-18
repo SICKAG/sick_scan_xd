@@ -1,0 +1,21 @@
+# Definition of ROS service SickLocSetAutoStartSavePoseInterval for sick localization
+# Set the interval in seconds for saving the pose automatically for auto start while localizing
+# Example call (ROS1):
+# rosservice call SickLocSetAutoStartSavePoseInterval "{interval: 1}"
+# Example call (ROS2):
+# ros2 service call SickLocSetAutoStartSavePoseInterval sick_scan/srv/SickLocSetAutoStartSavePoseIntervalSrv "{interval: 1}"
+# 
+
+# 
+# Request (input)
+# 
+
+uint32 interval # Interval between consecutive pose saving in seconds. [<min>, <max>] 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

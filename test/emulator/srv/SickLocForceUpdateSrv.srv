@@ -1,0 +1,19 @@
+# Definition of ROS service SickLocForceUpdate for sick localization
+# Forces an update of the map localization with the next scan. This should be used with care because it is not garanteed that this converges to the correct pose. Moving the LiDAR instead should be preferred because it produces more robust updates.
+# Example call (ROS1):
+# rosservice call SickLocForceUpdate "{}"
+# Example call (ROS2):
+# ros2 service call SickLocForceUpdate sick_scan/srv/SickLocForceUpdateSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

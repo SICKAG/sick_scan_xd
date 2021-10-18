@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!-- LAUNCH FILE                                     -->
+<launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <!--
+         static_transform_publisher x y z qx qy qz qw frame_id child_frame_id  period_in_ms
+         static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_in_ms
+
+    Frame base_laser exists with parent base_link.
+    Frame base_link exists with parent base_footprint.
+    Frame base_footprint exists with parent odom.
+    Frame odom exists with parent map.
+    -->
+    <node pkg="tf" type="static_transform_publisher" name="laser_layer_0_first_echo_base_laser"
+          args="0 0 0 0 0 0 1 base_laser laser_+000_DIST1 100"/>
+    <node pkg="tf" type="static_transform_publisher" name="base_laser_to_base_link"
+          args="0 0 0 0 0 0 1 base_link base_laser  100"/>
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_base_footprint"
+          args="0 0 0 0 0 0 1 base_footprint base_link  100"/>
+    <node pkg="tf" type="static_transform_publisher" name="base_footprint_to_odom"
+          args="0 0 0 0 0 0 1 odom base_footprint 100"/>
+
+    <node pkg="gmapping" type="slam_gmapping" name="gmapping_thing" output="screen">
+        <param name="scan" value="laser"/>
+        <param name="odom_frame" value="odom"/>
+        <param name="base_frame" value="laser_POS_000_DIST1"/>
+    </node>
+    <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+        <param name="scanner_type" type="string" value="sick_mrs_1xxx"/>
+        <param name="intensity_resolution_16bit" type="bool" value="False"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="port" type="string" value="2112"/>
+    </node>
+
+</launch>

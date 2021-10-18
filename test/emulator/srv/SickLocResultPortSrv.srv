@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocResultPort for sick localization
+# Read the TCP port of the localization controller for result output.
+# Example call (ROS1):
+# rosservice call SickLocResultPort "{}"
+# Example call (ROS2):
+# ros2 service call SickLocResultPort sick_scan/srv/SickLocResultPortSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+int32 port # TCP-port for result output telegrams (default: 2201)
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

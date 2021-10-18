@@ -1,0 +1,21 @@
+actions: []
+authors: "Michael Lehning <michael.lehning@lehning.de>, Jochen Sprickerhof <ros@jochen.sprickerhof.de>,\
+  \ Martin G\xFCnther <martin.guenther@dfki.de>"
+brief: ''
+bugtracker: ''
+depends:
+- dynamic_reconfigure
+- diagnostic_updater
+- sensor_msgs
+- roscpp
+- catkin
+description: "A ROS driver for the SICK TiM and SICK MRS series of laser scanners.\n\
+  \    This package is based on the original sick_tim-repository of Martin G\xFCnther\
+  \ et al."
+license: BSD
+maintainers: Michael Lehning <michael.lehning@lehning.de>
+msgs: []
+package_type: package
+repo_url: https://github.com/SICKAG/sick_scan
+srvs: []
+url: http://wiki.ros.org/sick_scan

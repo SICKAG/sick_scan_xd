@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<filename>sick_mrs_6xxx.launch</filename>
+	<paramList>
+		<!-- Set the ip address to the ip address of our MRS6124 scanner -->
+	<param name="hostname" type="string" value="192.168.0.24" />
+	</paramList>
+	<resultList>
+		<param name="shotsPerLayer" type="int" value="924" />
+		<param name="scanRate" type="double" value="10.0" valueMin="9.0" valueMax="11.0" />
+		<param name="RSSIEnabled" type="bool" value="True" />
+	</resultList>
+</launch>

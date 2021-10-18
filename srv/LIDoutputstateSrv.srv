@@ -1,0 +1,19 @@
+# Definition of ROS service LIDoutputstate for sick_scan
+# Start or stop Send outputstate by event
+# Example call (ROS1):
+# rosservice call /sick_tim_7xx/LIDoutputstate "{active: 1}"
+# 
+
+# 
+# Request (input)
+# 
+
+bool active # start/stop send outputstate by event
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from lidar, false: service failed (timeout or error status from controller)

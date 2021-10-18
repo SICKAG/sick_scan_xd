@@ -1,0 +1,35 @@
+# Definition of ROS service SickDevSetLidarConfig for sick localization
+# Sets the configuration for a lidar
+# Example call (ROS1):
+# rosservice call SickDevSetLidarConfig "{index: 0, minrange: 100, maxrange: 200000, minangle: -15000, maxangle: 15000, x: 1000, y: -1000, yaw: 2000, upsidedown: true, ip: 192.168.0.123, port: 2111, interfacetype: 0, maplayer: 0, active: true}"
+# Example call (ROS2):
+# ros2 service call SickDevSetLidarConfig sick_scan/srv/SickDevSetLidarConfigSrv "{index: 0, minrange: 100, maxrange: 200000, minangle: -15000, maxangle: 15000, x: 1000, y: -1000, yaw: 2000, upsidedown: true, ip: 192.168.0.123, port: 2111, interfacetype: 0, maplayer: 0, active: true}"
+# 
+
+# 
+# Request (input)
+# 
+
+uint32 index # Index of the lidar that shall be configured. [0, 1] 
+uint32 minrange # Beams with a range lower than this distance will be discarded. [<min>, 250000] in [mm] 
+uint32 maxrange # Beams with a range greater than this distance will be discarded. [<min>, 250000] in [mm] 
+int32 minangle # Beams with an angle lower than this threshold will be discarded. [-180000, 180000] in [mdeg] 
+int32 maxangle # Beams with an angle greater than this threshold will be discarded. [-180000, 180000] in [mdeg] 
+int32 x # X position relative to vehicle coordinate system. [-50000, 50000] in [mm] 
+int32 y # Y position relative to vehicle coordinate system. [-50000, 50000] in [mm] 
+int32 yaw # Yaw angle relative to vehicle coordinate system. [-180000, 180000] in [mdeg] 
+bool upsidedown # Whether the sensor is mounted upside down. {0 (false), 1 (true)} 
+string ip # IP address of the sensor. Must be in the same subnet as the port which it is connected to. Max length = 15 
+uint32 port # COLA Port of the scanner used for communication. This is usually 2111 or 2122. [0, 65535] 
+int32 interfacetype # The type of the interface to this lidar. {0 (TCP), 1 (SERIAL)} 
+uint32 maplayer # The index of the map layer on which this LiDAR operates. If no map layers are used, set it to 0. NOTE: This feature is not implemented yet but is reserved for later releases. [<min>, <max>] 
+bool active # Whether this scanner shall be used for localization. For the LiDAR with the index 0 this should be always 1 (true). {0 (false), 1 (true)} 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool set # Whether the arguments were valid and have been configured. {0 (false), 1 (true)} 
+bool executed # Whether the lidar driver started and received data. {0 (false), 1 (true)} 

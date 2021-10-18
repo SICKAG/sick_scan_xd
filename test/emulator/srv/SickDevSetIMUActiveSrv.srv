@@ -1,0 +1,21 @@
+# Definition of ROS service SickDevSetIMUActive for sick localization
+# Set IMU Active
+# Example call (ROS1):
+# rosservice call SickDevSetIMUActive "{active: 1}"
+# Example call (ROS2):
+# ros2 service call SickDevSetIMUActive sick_scan/srv/SickDevSetIMUActiveSrv "{active: 1}"
+# 
+
+# 
+# Request (input)
+# 
+
+bool active # Use IMU data for Localization
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

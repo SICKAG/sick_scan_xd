@@ -1,0 +1,20 @@
+# Definition of ROS service SickLocOdometryRestrictYMotion for sick localization
+# Returns the variable that Indicates that the vehicle will be able to move in Y-Direction or not. If true the mounting pose of the sensor matters. For omnidirektional vehicles this must be set to false.
+# Example call (ROS1):
+# rosservice call SickLocOdometryRestrictYMotion "{}"
+# Example call (ROS2):
+# ros2 service call SickLocOdometryRestrictYMotion sick_scan/srv/SickLocOdometryRestrictYMotionSrv "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool active # Indicates that the vehicle will be able to move in Y-Direction or not 
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)

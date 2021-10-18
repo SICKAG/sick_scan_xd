@@ -1,0 +1,93 @@
+roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.72
+... logging to /home/rosuser/.ros/log/10b95518-6dab-11ea-ad93-54e1ad2921b6/roslaunch-ROS-NB-9473.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+
+started roslaunch server http://ROS-NB:45483/
+
+SUMMARY
+========
+
+PARAMETERS
+ * /rosdistro: melodic
+ * /rosversion: 1.14.3
+ * /sick_tim_5xx/cloud_topic: cloud
+ * /sick_tim_5xx/frame_id: cloud
+ * /sick_tim_5xx/hostname: 192.168.0.72
+ * /sick_tim_5xx/intensity: True
+ * /sick_tim_5xx/max_ang: 2.35619449
+ * /sick_tim_5xx/min_ang: -2.35619449
+ * /sick_tim_5xx/port: 2112
+ * /sick_tim_5xx/range_max: 100.0
+ * /sick_tim_5xx/scanner_type: sick_tim_5xx
+ * /sick_tim_5xx/sw_pll_only_publish: True
+ * /sick_tim_5xx/timelimit: 5
+ * /sick_tim_5xx/use_binary_protocol: True
+
+NODES
+  /
+    sick_tim_5xx (sick_scan/sick_generic_caller)
+
+auto-starting new master
+process[master]: started with pid [9490]
+ROS_MASTER_URI=http://localhost:11311
+
+setting /run_id to 10b95518-6dab-11ea-ad93-54e1ad2921b6
+process[rosout-1]: started with pid [9504]
+started core service [/rosout]
+process[sick_tim_5xx-2]: started with pid [9511]
+[ INFO] [1585039208.398569813]: sick_generic_caller V. 1.5.1
+[ INFO] [1585039208.398607932]: Program arguments: /home/rosuser/catkin_sick_scan/devel/lib/sick_scan/sick_generic_caller
+[ INFO] [1585039208.398616703]: Program arguments: __name:=sick_tim_5xx
+[ INFO] [1585039208.398623741]: Program arguments: __log:=/home/rosuser/.ros/log/10b95518-6dab-11ea-ad93-54e1ad2921b6/sick_tim_5xx-2.log
+[ INFO] [1585039208.411088434]: Found sopas_protocol_type param overwriting default protocol:
+[ INFO] [1585039208.411627307]: Binary protocol activated
+[ INFO] [1585039208.411645563]: Start initialising scanner [Ip: 192.168.0.72] [Port: 2112]
+[ INFO] [1585039208.432702556]: Publishing laserscan-pointcloud2 to cloud
+[ INFO] [1585039208.435916900]: Parameter setting for <active_echo: 0>
+[ INFO] [1585039208.636364903]: Sending  : <STX><STX><STX><STX><Len=0023>sMN SetAccessMode 0x03 0xf4 0x72 0x47 0x44 CRC:<0xb3>
+[ INFO] [1585039208.641911061]: Receiving: <STX>sAN SetAccessMode \x01<ETX>
+[ INFO] [1585039208.842103130]: Sending  : <STX><STX><STX><STX><Len=0015>sWN EIHstCola 0x01 CRC:<0x09>
+[ INFO] [1585039208.844391561]: Receiving: <STX>sWA EIHstCola <ETX>
+[ INFO] [1585039209.044624338]: Sending  : <STX><STX><STX><STX><Len=0019>sRN FirmwareVersion CRC:<0x24>
+[ INFO] [1585039209.046906646]: Receiving: <STX>sRA FirmwareVersion \x00\x05\x56\x32\x2e\x36\x30<ETX>
+[ INFO] [1585039209.247106669]: Sending  : <STX><STX><STX><STX><Len=0017>sRN SCdevicestate CRC:<0x30>
+[ INFO] [1585039209.249364882]: Receiving: <STX>sRA SCdevicestate \x00<ETX>
+[ INFO] [1585039209.449564429]: Sending  : <STX><STX><STX><STX><Len=0010>sRN ODoprh CRC:<0x41>
+[ INFO] [1585039209.451860156]: Receiving: <STX>sRA ODoprh \x00\x00\x06\x8c<ETX>
+[ INFO] [1585039209.652694059]: Sending  : <STX><STX><STX><STX><Len=0010>sRN ODpwrc CRC:<0x52>
+[ INFO] [1585039209.654957028]: Receiving: <STX>sRA ODpwrc \x00\x00\x00\x79<ETX>
+[ INFO] [1585039209.855754595]: Sending  : <STX><STX><STX><STX><Len=0016>sRN LocationName CRC:<0x55>
+[ INFO] [1585039209.858001258]: Receiving: <STX>sRA LocationName \x00\x0b\x6e\x6f\x74\x20\x64\x65\x66\x69\x6e\x65\x64<ETX>
+[ INFO] [1585039209.858700951]: Sending  : <STX><STX><STX><STX><Len=0018>sRN LMPoutputRange CRC:<0x5e>
+[ INFO] [1585039209.860944402]: Receiving: <STX>sRA LMPoutputRange \x00\x01\x00\x00\x0d\x05\xff\xf9\x22\x30\x00\x22\x55\x10<ETX>
+[ INFO] [1585039209.861020284]: Angle resolution of scanner is 0.33330 [deg]  (in 1/10000th deg: 0xD05)
+[ INFO] [1585039209.861052772]: [From:To] -45.00000 [deg] to 225.00000 [deg] (in 1/10000th deg: from 0xFFF92230 to 0x225510)
+[ INFO] [1585039209.861067881]: MIN_ANG:   -2.356 [rad] -135.000 [deg]
+[ INFO] [1585039209.861087613]: MAX_ANG:    2.356 [rad]  135.000 [deg]
+[ INFO] [1585039209.861187631]: Sending  : <STX><STX><STX><STX><Len=0033>sWN LMPoutputRange 0x00 0x01 0x00 0x00 0x0d 0x05 0xff 0xf9 0x22 0x30 0x00 0x22 0x55 0x10 CRC:<0x01>
+[ INFO] [1585039209.862333634]: Receiving: <STX>sWA LMPoutputRange <ETX>
+[ INFO] [1585039209.862431749]: Sending  : <STX><STX><STX><STX><Len=0018>sRN LMPoutputRange CRC:<0x5e>
+[ INFO] [1585039209.863592039]: Receiving: <STX>sRA LMPoutputRange \x00\x01\x00\x00\x0d\x05\xff\xf9\x22\x30\x00\x22\x55\x10<ETX>
+[ INFO] [1585039209.863629540]: Angle resolution of scanner is 0.33330 [deg]  (in 1/10000th deg: 0xD05)
+[ INFO] [1585039209.864600946]: MIN_ANG (after command verification):   -2.356 [rad] -135.000 [deg]
+[ INFO] [1585039209.864640069]: MAX_ANG (after command verification):    2.356 [rad]  135.000 [deg]
+[ INFO] [1585039209.864751194]: Sending  : <STX><STX><STX><STX><Len=0032>sWN LMDscandatacfg 0x01 0x00 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x00 0x01 CRC:<0x42>
+[ INFO] [1585039209.865921613]: Receiving: <STX>sWA LMDscandatacfg <ETX>
+[ INFO] [1585039209.866019035]: Sending  : <STX><STX><STX><STX><Len=0018>sRN LMDscandatacfg CRC:<0x67>
+[ INFO] [1585039209.867174065]: Receiving: <STX>sRA LMDscandatacfg \x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x01<ETX>
+[ INFO] [1585039209.868036140]: Sending  : <STX><STX><STX><STX><Len=0016>sMN LMCstartmeas CRC:<0x68>
+[ INFO] [1585039209.870269249]: Receiving: <STX>sAN LMCstartmeas \x00<ETX>
+[ INFO] [1585039209.870382286]: Sending  : <STX><STX><STX><STX><Len=0007>sMN Run CRC:<0x19>
+[ INFO] [1585039209.875890347]: Receiving: <STX>sAN Run \x01<ETX>
+[ INFO] [1585039209.875971958]: Sending  : <STX><STX><STX><STX><Len=0017>sEN LMDscandata 0x01 CRC:<0x33>
+[ INFO] [1585039209.880383534]: Receiving: <STX>sEA LMDscandata \x01<ETX>
+[ INFO] [1585039210.103593480]: 1 / 6 Packet dropped Software PLL not yet locked.
+[ INFO] [1585039210.168943009]: 2 / 6 Packet dropped Software PLL not yet locked.
+[ INFO] [1585039210.235671192]: 3 / 6 Packet dropped Software PLL not yet locked.
+[ INFO] [1585039210.302501450]: 4 / 6 Packet dropped Software PLL not yet locked.
+[ INFO] [1585039210.368983435]: 5 / 6 Packet dropped Software PLL not yet locked.
+[ INFO] [1585039210.436623960]: 6 / 6 Packet dropped Software PLL not yet locked.
+[ INFO] [1585039210.436663308]: Software PLL is expected to be ready now!
+

@@ -1,0 +1,1 @@
+This directory contains test example for data recording in a ramdisk by recording the data from a radar and a laser scanner. It is intended to serve as a visual object. The scripts must be adapted accordingly for your own use.

@@ -1,0 +1,37 @@
+# Definition of ROS service SickLocRequestTimestamp for sick localization.
+#
+# ROS service SickLocRequestTimestamp requests a timestamp from the localization controller
+# by sending cola command LocRequestTimestamp ("sMN LocRequestTimestamp").
+#
+# The service receives and decodes the current timestamp (uint32 timestamp in milliseconds)
+# and calculates the time offset with the following formular:
+#
+# delta_time_ms := mean_time_vehicle_ms - timestamp_lidar_ms
+# mean_time_vehicle_ms := (send_time_vehicle + receive_time_vehicle) / 2
+#                      := vehicles mean timestamp in milliseconds
+# send_time_vehicle    := vehicles timestamp when sending LocRequestTimestamp
+# receive_time_vehicle := vehicles timestamp when receiving the LocRequestTimestamp response
+# timestamp_lidar_ms   := lidar timestamp in milliseconds from LocRequestTimestamp response
+#
+# See Operation-Instruction-v1.1.0.241R.pdf for details about time synchronization and
+# time offset calculation. See Telegram-Listing-v1.1.0.241R.pdf and Technical_information_Telegram_Listing_NAV_LOC_en_IM0076556.pdf
+# for further details about Cola telegram LocRequestTimestamp.
+
+#
+# Request (input)
+#
+
+---
+
+#
+# Response (output)
+#
+
+uint32 timestamp_lidar_ms        # Lidar timestamp in milliseconds from LocRequestTimestamp response
+uint64 mean_time_vehicle_ms      # Vehicle mean timestamp in milliseconds: (send_time_vehicle + receive_time_vehicle) / 2
+uint64 delta_time_ms             # Time offset: mean_time_vehicle_ms - timestamp_lidar_ms
+
+uint32 send_time_vehicle_sec     # Vehicle timestamp when sending LocRequestTimestamp (seconds part of ros timestamp immediately before tcp send)
+uint32 send_time_vehicle_nsec    # Vehicle timestamp when sending LocRequestTimestamp (nano seconds part of ros timestamp immediately before tcp send)
+uint32 receive_time_vehicle_sec  # Vehicle timestamp when receiving the LocRequestTimestamp response (seconds part of ros timestamp immediately after first response byte received)
+uint32 receive_time_vehicle_nsec # Vehicle timestamp when receiving the LocRequestTimestamp response (nano seconds part of ros timestamp immediately after first response byte received)

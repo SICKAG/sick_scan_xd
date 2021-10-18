@@ -1,0 +1,24 @@
+# Definition of ROS service SickDevGetLidarState for sick localization
+# Returns the lidar state of the given lidar.
+# Example call (ROS1):
+# rosservice call SickDevGetLidarState "{index: 0}"
+# Example call (ROS2):
+# ros2 service call SickDevGetLidarState sick_scan/srv/SickDevGetLidarStateSrv "{index: 0}"
+# 
+
+# 
+# Request (input)
+# 
+
+uint32 index # The scanner index. [<min>, 1] 
+
+---
+
+# 
+# Response (output)
+# 
+
+int32 devicestatus # Status of the device. {0 (ERROR), 1 (UNDEF), 2 (OKAY)} 
+int32 deviceconnected # State of the connection to the scanner. {0 (ERROR), 1 (UNDEF), 2 (OKAY)} 
+int32 receivingdata # State of the data transmission from the scanner. {0 (ERROR), 1 (UNDEF), 2 (OKAY)} 
+bool success # true: success response received from localization controller, false: service failed (timeout or error status from controller)
