@@ -404,7 +404,7 @@ Use the following commands to run the sick_scan driver for a specific scanner ty
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
     * Windows native: `sick_generic_caller sick_rms_3xx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
-- For RMS3xx-family:
+- For RMS1xxx-family:
     * Linux native:   `sick_generic_caller sick_rms_1xxx.launch`
     * Linux ROS-1:    `roslaunch sick_scan sick_rms_1xxx.launch`
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_1xxx.launch`
@@ -707,6 +707,8 @@ LMS1000
 LMS1104
 MRS6000
 MRS6124
+RMS1xxx
+RMS1000
 RMS3xx
 RMS320
 ROS LiDAR
