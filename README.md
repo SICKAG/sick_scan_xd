@@ -9,7 +9,7 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 - [Executive Summary](#executive-summary)
 - [Supported Hardware](#supported-hardware)
 - [Supported Hardware](#supported-hardware)
-- [Build on Linux](#build-on-linux)
+- [Build on Linux generic without ROS](#build-on-linux-generic-without-ros)
 - [Build on Linux ROS1](#build-on-linux-ros1)
 - [Build on Linux ROS2](#build-on-linux-ros2)
 - [Build on Windows](#build-on-windows)
@@ -128,7 +128,7 @@ If you're using ROS, set your ROS-environment before running one of these script
 
 See the build descriptions below for more details.
 
-## Build on Linux
+## Build on Linux generic without ROS
 
 Run the following steps to build sick_scan_xd on Linux (no ROS required):
 
