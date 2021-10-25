@@ -121,6 +121,7 @@ sick_scan_xd can be build on Linux and Windows, with and without ROS, with and w
 | Windows, ROS-2, no LDMRS  | BUILD_WITH_LDMRS_SUPPORT OFF | cd test\\scripts && make_ros2.cmd              |
 
 If you're using ROS, set your ROS-environment before running one of these scripts, f.e.
+* `source /opt/ros/noetic/setup.bash` for ROS-1 noetic, or
 * `source /opt/ros/melodic/setup.bash` for ROS-1 melodic, or
 * `source /opt/ros/eloquent/setup.bash` for ROS-2 eloquent, or
 * `source /opt/ros/foxy/setup.bash` for ROS-2 fox.
