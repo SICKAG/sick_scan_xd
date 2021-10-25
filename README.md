@@ -9,7 +9,7 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 - [Executive Summary](#executive-summary)
 - [Supported Hardware](#supported-hardware)
 - [Supported Hardware](#supported-hardware)
-- [Build on Linux](#build-on-linux)
+- [Build on Linux generic without ROS](#build-on-linux-generic-without-ros)
 - [Build on Linux ROS1](#build-on-linux-ros1)
 - [Build on Linux ROS2](#build-on-linux-ros2)
 - [Build on Windows](#build-on-windows)
@@ -121,13 +121,14 @@ sick_scan_xd can be build on Linux and Windows, with and without ROS, with and w
 | Windows, ROS-2, no LDMRS  | BUILD_WITH_LDMRS_SUPPORT OFF | cd test\\scripts && make_ros2.cmd              |
 
 If you're using ROS, set your ROS-environment before running one of these scripts, f.e.
+* `source /opt/ros/noetic/setup.bash` for ROS-1 noetic, or
 * `source /opt/ros/melodic/setup.bash` for ROS-1 melodic, or
 * `source /opt/ros/eloquent/setup.bash` for ROS-2 eloquent, or
 * `source /opt/ros/foxy/setup.bash` for ROS-2 fox.
 
 See the build descriptions below for more details.
 
-## Build on Linux
+## Build on Linux generic without ROS
 
 Run the following steps to build sick_scan_xd on Linux (no ROS required):
 

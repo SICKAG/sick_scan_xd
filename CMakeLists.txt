@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # build options: set OFF for relese version, ON for development and test
-option(ENABLE_EMULATOR "Build emulator for offline and unittests" ON) # OFF (release) or ON (development)
+option(ENABLE_EMULATOR "Build emulator for offline and unittests" OFF) # OFF (release) or ON (development)
 if(WIN32)
     option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF)
 elseif(LDMRS EQUAL 0)
@@ -362,6 +362,9 @@ if(ROS_VERSION EQUAL 1)
 endif(ROS_VERSION EQUAL 1)
 
 include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser) # ${Boost_INCLUDE_DIR} 
+if(ROS_VERSION EQUAL 0)
+include_directories(roswrap/src/msg_header)
+endif()
 
 if(ROS_VERSION EQUAL 1)
     set(SICK_SCAN_LIB_SRC
