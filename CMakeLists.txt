@@ -362,6 +362,9 @@ if(ROS_VERSION EQUAL 1)
 endif(ROS_VERSION EQUAL 1)
 
 include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser) # ${Boost_INCLUDE_DIR} 
+if(ROS_VERSION EQUAL 0)
+include_directories(roswrap/src/msg_header)
+endif()
 
 if(ROS_VERSION EQUAL 1)
     set(SICK_SCAN_LIB_SRC
