@@ -169,6 +169,10 @@ namespace sick_scan
 
     bool getUseScancfgList();
 
+    void setWaitForReady(bool _waitForReady);
+
+    bool getWaitForReady();
+
 
 
   private:
@@ -191,6 +195,7 @@ namespace sick_scan
     EVAL_FIELD_SUPPORT useEvalFields;
     int maxEvalFields;
     bool useScancfgList;
+    bool waitForReady;
   };
 
 

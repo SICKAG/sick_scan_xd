@@ -1977,7 +1977,7 @@ namespace sick_scan
         char requestsMNmCLsetscancfglist[MAX_STR_LEN];
         int cfgListEntry;
         //rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
-        rosGetParam(nh,"scan_cfg_list_entry",cfgListEntry);
+        rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
         // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
         const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_SCAN_CFG_LIST].c_str();
         sprintf(requestsMNmCLsetscancfglist, pcCmdMask, cfgListEntry);
@@ -2066,11 +2066,14 @@ namespace sick_scan
             double askTmpAngleEnd = askTmpAngleEnd10000th / 10000.0;
 
             angleRes10000th = askTmpAngleRes10000th;
-            ROS_INFO_STREAM("Angle resolution of scanner is " << askTmpAngleRes << " [deg]  (in 1/10000th deg: " << askTmpAngleRes10000th << ")");
-            ROS_INFO_STREAM("[From:To] " << askTmpAngleStart << " [deg] to " << askTmpAngleEnd << "f [deg] (in 1/10000th deg: from " << askTmpAngleStart10000th << " to " << askTmpAngleEnd10000th << ")");
+            ROS_INFO_STREAM("Angle resolution of scanner is " << askTmpAngleRes << " [deg]  (in 1/10000th deg: "
+                                                              << askTmpAngleRes10000th << ")");
+            ROS_INFO_STREAM(
+                "[From:To] " << askTmpAngleStart << " [deg] to " << askTmpAngleEnd << "f [deg] (in 1/10000th deg: from "
+                             << askTmpAngleStart10000th << " to " << askTmpAngleEnd10000th << ")");
           }
         }
-      }
+
       //-----------------------------------------------------------------
       //
       // Set Min- und Max scanning angle given by config
@@ -2098,7 +2101,7 @@ namespace sick_scan
 
       angleStart10000th = (int) (std::round(10000.0 * minAngSopas));
       angleEnd10000th = (int) (std::round(10000.0 * maxAngSopas));
-
+    }
       char requestOutputAngularRange[MAX_STR_LEN];
       // special for LMS1000 TODO unify this
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
@@ -2113,7 +2116,6 @@ namespace sick_scan
       else
       {
         std::vector<unsigned char> outputAngularRangeReply;
-
 
         if (this->parser_->getCurrentParamPtr()->getUseScancfgList())
         {
@@ -2198,113 +2200,128 @@ namespace sick_scan
       // z up
       // see http://www.ros.org/reps/rep-0103.html#coordinate-frame-conventions for more details
       //-----------------------------------------------------------------
-
-      askOutputAngularRangeReply.clear();
-
-      if (useBinaryCmd)
+      if (this->parser_->getCurrentParamPtr()->getUseScancfgList())
       {
-        std::vector<unsigned char> reqBinary;
-        this->convertAscii2BinaryCmd(sopasCmdVec[CMD_GET_OUTPUT_RANGES].c_str(), &reqBinary);
-        result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_GET_OUTPUT_RANGES]);
+        // ConfigList Scanner Handling here
       }
       else
       {
-        result = sendSopasAndCheckAnswer(sopasCmdVec[CMD_GET_OUTPUT_RANGES].c_str(), &askOutputAngularRangeReply);
-      }
+        askOutputAngularRangeReply.clear();
 
-      if (result == 0)
-      {
-        char dummy0[MAX_STR_LEN] = {0};
-        char dummy1[MAX_STR_LEN] = {0};
-        int dummyInt = 0;
-        int askAngleRes10000th = 0;
-        int askAngleStart10000th = 0;
-        int askAngleEnd10000th = 0;
-        int iDummy0, iDummy1;
-        iDummy0 = 0;
-        iDummy1 = 0;
-        std::string askOutputAngularRangeStr = replyToString(askOutputAngularRangeReply);
-        // Binary-Reply Tab. 63
-        // 0x20 Space
-        // 0x00 0x01 -
-        // 0x00 0x00 0x05 0x14  // Resolution in 1/10000th degree  --> 0.13°
-        // 0x00 0x04 0x93 0xE0  // Start Angle 300000    -> 30°
-        // 0x00 0x16 0xE3 0x60  // End Angle   1.500.000 -> 150°    // in ROS +/-60°
-        // 0x83                 // Checksum
-
-        int numArgs;
-
-        /*
-         *
-         *  Initialize variables
-         */
-
-        iDummy0 = 0;
-        iDummy1 = 0;
-        dummyInt = 0;
-        askAngleRes10000th = 0;
-        askAngleStart10000th = 0;
-        askAngleEnd10000th = 0;
-
-        /*
-         *   scan values
-         *
-         */
         if (useBinaryCmd)
         {
-          const char *askOutputAngularRangeBinMask = "%4y%4ysRA LMPoutputRange %2y%4y%4y%4y";
-          numArgs = binScanfVec(&sopasReplyBinVec[CMD_GET_OUTPUT_RANGES], askOutputAngularRangeBinMask, &iDummy0,
-                                &iDummy1,
-                                &dummyInt,
-                                &askAngleRes10000th,
-                                &askAngleStart10000th,
-                                &askAngleEnd10000th);
-          //
+          std::vector<unsigned char> reqBinary;
+          this->convertAscii2BinaryCmd(sopasCmdVec[CMD_GET_OUTPUT_RANGES].c_str(), &reqBinary);
+          result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_GET_OUTPUT_RANGES]);
         }
         else
         {
-          numArgs = sscanf(askOutputAngularRangeStr.c_str(), "%s %s %d %X %X %X", dummy0, dummy1,
-                           &dummyInt,
-                           &askAngleRes10000th,
-                           &askAngleStart10000th,
-                           &askAngleEnd10000th);
+          result = sendSopasAndCheckAnswer(sopasCmdVec[CMD_GET_OUTPUT_RANGES].c_str(), &askOutputAngularRangeReply);
         }
-        if (numArgs >= 6)
+
+        if (result == 0)
         {
-          double askTmpAngleRes = askAngleRes10000th / 10000.0;
-          double askTmpAngleStart = askAngleStart10000th / 10000.0;
-          double askTmpAngleEnd = askAngleEnd10000th / 10000.0;
+          char dummy0[MAX_STR_LEN] = {0};
+          char dummy1[MAX_STR_LEN] = {0};
+          int dummyInt = 0;
+          int askAngleRes10000th = 0;
+          int askAngleStart10000th = 0;
+          int askAngleEnd10000th = 0;
+          int iDummy0, iDummy1;
+          iDummy0 = 0;
+          iDummy1 = 0;
+          std::string askOutputAngularRangeStr = replyToString(askOutputAngularRangeReply);
+          // Binary-Reply Tab. 63
+          // 0x20 Space
+          // 0x00 0x01 -
+          // 0x00 0x00 0x05 0x14  // Resolution in 1/10000th degree  --> 0.13°
+          // 0x00 0x04 0x93 0xE0  // Start Angle 300000    -> 30°
+          // 0x00 0x16 0xE3 0x60  // End Angle   1.500.000 -> 150°    // in ROS +/-60°
+          // 0x83                 // Checksum
 
-          angleRes10000th = askAngleRes10000th;
-          ROS_INFO_STREAM("Angle resolution of scanner is " << askTmpAngleRes << " [deg]  (in 1/10000th deg: " << askAngleRes10000th << ")");
+          int numArgs;
 
+          /*
+           *
+           *  Initialize variables
+           */
+
+          iDummy0 = 0;
+          iDummy1 = 0;
+          dummyInt = 0;
+          askAngleRes10000th = 0;
+          askAngleStart10000th = 0;
+          askAngleEnd10000th = 0;
+
+          /*
+           *   scan values
+           *
+           */
+          if (useBinaryCmd)
+          {
+            const char *askOutputAngularRangeBinMask = "%4y%4ysRA LMPoutputRange %2y%4y%4y%4y";
+            numArgs = binScanfVec(&sopasReplyBinVec[CMD_GET_OUTPUT_RANGES], askOutputAngularRangeBinMask, &iDummy0,
+                                  &iDummy1,
+                                  &dummyInt,
+                                  &askAngleRes10000th,
+                                  &askAngleStart10000th,
+                                  &askAngleEnd10000th);
+            //
+          }
+          else
+          {
+            numArgs = sscanf(askOutputAngularRangeStr.c_str(), "%s %s %d %X %X %X", dummy0, dummy1,
+                             &dummyInt,
+                             &askAngleRes10000th,
+                             &askAngleStart10000th,
+                             &askAngleEnd10000th);
+          }
+          if (numArgs >= 6)
+          {
+            double askTmpAngleRes = askAngleRes10000th / 10000.0;
+            double askTmpAngleStart = askAngleStart10000th / 10000.0;
+            double askTmpAngleEnd = askAngleEnd10000th / 10000.0;
+
+            angleRes10000th = askAngleRes10000th;
+            ROS_INFO_STREAM("Angle resolution of scanner is " << askTmpAngleRes << " [deg]  (in 1/10000th deg: "
+                                                              << askAngleRes10000th << ")");
+
+          }
+          double askAngleRes = askAngleRes10000th / 10000.0;
+          double askAngleStart = askAngleStart10000th / 10000.0;
+          double askAngleEnd = askAngleEnd10000th / 10000.0;
+
+          askAngleStart += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
+          askAngleEnd += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
+
+          // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+          // {
+          //   // the TiM240 operates directly in the ros coordinate system
+          // }
+          // else
+          // {
+          //   askAngleStart -= 90; // angle in ROS relative to y-axis
+          //   askAngleEnd -= 90; // angle in ROS relative to y-axis
+          // }
+          this->config_.min_ang = askAngleStart / 180.0 * M_PI;
+          this->config_.max_ang = askAngleEnd / 180.0 * M_PI;
+
+          rosDeclareParam(nh, "min_ang",
+                          this->config_.min_ang); // update parameter setting with "true" values read from scanner
+          rosGetParam(nh, "min_ang",
+                      this->config_.min_ang); // update parameter setting with "true" values read from scanner
+          rosDeclareParam(nh, "max_ang",
+                          this->config_.max_ang); // update parameter setting with "true" values read from scanner
+          rosGetParam(nh, "max_ang",
+                      this->config_.max_ang); // update parameter setting with "true" values read from scanner
+
+          ROS_INFO_STREAM(
+              "MIN_ANG (after command verification): " << config_.min_ang << " [rad] " << rad2deg(this->config_.min_ang)
+                                                       << " [deg]");
+          ROS_INFO_STREAM(
+              "MAX_ANG (after command verification): " << config_.max_ang << " [rad] " << rad2deg(this->config_.max_ang)
+                                                       << " [deg]");
         }
-        double askAngleRes = askAngleRes10000th / 10000.0;
-        double askAngleStart = askAngleStart10000th / 10000.0;
-        double askAngleEnd = askAngleEnd10000th / 10000.0;
-
-        askAngleStart += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
-        askAngleEnd += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
-        
-        // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
-        // {
-        //   // the TiM240 operates directly in the ros coordinate system
-        // }
-        // else
-        // {
-        //   askAngleStart -= 90; // angle in ROS relative to y-axis
-        //   askAngleEnd -= 90; // angle in ROS relative to y-axis
-        // }
-        this->config_.min_ang = askAngleStart / 180.0 * M_PI;
-        this->config_.max_ang = askAngleEnd / 180.0 * M_PI;
-        
-        rosDeclareParam(nh, "min_ang", this->config_.min_ang); // update parameter setting with "true" values read from scanner
-        rosGetParam(nh, "min_ang", this->config_.min_ang); // update parameter setting with "true" values read from scanner
-        rosDeclareParam(nh, "max_ang", this->config_.max_ang); // update parameter setting with "true" values read from scanner
-        rosGetParam(nh, "max_ang", this->config_.max_ang); // update parameter setting with "true" values read from scanner
-
-        ROS_INFO_STREAM("MIN_ANG (after command verification): " << config_.min_ang<< " [rad] " << rad2deg(this->config_.min_ang) << " [deg]");
-        ROS_INFO_STREAM("MAX_ANG (after command verification): " << config_.max_ang << " [rad] " << rad2deg(this->config_.max_ang) << " [deg]");
       }
       //-----------------------------------------------------------------
       //
@@ -2822,15 +2839,7 @@ namespace sick_scan
 
       if (cmdId == CMD_RUN)
       {
-        bool waitForDeviceState = true;
-        if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 1)
-        {
-          waitForDeviceState = false; // do nothing for tim5xx
-        }
-        if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 24)
-        {
-          waitForDeviceState = false; // do nothing for MRS6xxx
-        }
+        bool waitForDeviceState = this->parser_->getCurrentParamPtr()->getWaitForReady();
 
         if (waitForDeviceState)
         {
@@ -4515,7 +4524,7 @@ namespace sick_scan
     std::string keyWord10 = "sWN LICencres";
     std::string keyWord11 = "sWN LFPmeanfilter";
     std::string KeyWord12 = "sRN field";
-    std::string KeyWord13 = "sMN  mCLsetscancfglist";
+    std::string KeyWord13 = "sMN mCLsetscancfglist";
 
     //BBB
 
