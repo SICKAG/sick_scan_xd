@@ -371,6 +371,15 @@ namespace sick_scan
     this->maxEvalFields = _maxEvalFields;
   }
 
+  void ScannerBasicParam::setUseScancfgList (bool _useScancfgList )
+  {
+    this->useScancfgList = _useScancfgList;
+  }
+  bool ScannerBasicParam::getUseScancfgList()
+  {
+    return this->useScancfgList;
+  }
+
 
   /*!
   \brief Construction of parameter object
@@ -445,6 +454,7 @@ namespace sick_scan
     allowedScannerNames.push_back(SICK_SCANNER_NAV_3XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_2XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_TIM_4XX_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_LRS_36xx_NAME);
     basicParams.resize(allowedScannerNames.size()); // resize to number of supported scanner types
     for (int i = 0; i <
                     (int) basicParams.size(); i++) // set specific parameter for each scanner type - scanner type is identified by name
@@ -470,6 +480,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) ==
           0)  // LMS1000 - 4 layer, 1101 shots per scan
@@ -489,6 +500,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_240_NAME) ==
           0) // TIM_5xx - 1 Layer, max. 811 shots per scan
@@ -507,6 +519,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_5XX_NAME) ==
           0) // TIM_5xx - 1 Layer, max. 811 shots per scan
@@ -525,6 +538,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_4XXX_NAME) == 0) // LMS_4xxx - 1 Layer, 600 Hz
       {
@@ -542,6 +556,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_7XX_NAME) == 0) // TIM_7xx - 1 Layer Scanner
       {
@@ -559,6 +574,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_TIM7XX_LOGIC);
         basicParams[i].setMaxEvalFields(48);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_7XXS_NAME) == 0) // TIM_7xxS - 1 layer Safety Scanner
       {
@@ -576,6 +592,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_TIM7XX_LOGIC);
         basicParams[i].setMaxEvalFields(48);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0) // LMS_5xx - 1 Layer
       {
@@ -593,6 +610,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0) // LMS_1xx - 1 Layer
       {
@@ -610,6 +628,25 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
+        basicParams[i].setUseScancfgList(false);
+      }
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_36xx_NAME) == 0) // LMS_1xx - 1 Layer
+      {
+        basicParams[i].setNumberOfMaximumEchos(1);
+        basicParams[i].setNumberOfLayers(1);
+        basicParams[i].setNumberOfShots(7200);
+        basicParams[i].setAngularDegreeResolution(0.5);
+        basicParams[i].setExpectedFrequency(15.0);
+        basicParams[i].setUseBinaryProtocol(true);
+        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setUseSafetyPasWD(false); // Default
+        basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(-M_PI/2);// TODO Check this
+        basicParams[i].setScanMirroredAndShifted(true);// TODO Check this
+        basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);// TODO Check this
+        basicParams[i].setMaxEvalFields(30);
+        basicParams[i].setUseScancfgList(true);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_MRS_6XXX_NAME) == 0) //
       {
@@ -628,6 +665,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0) // LMS_5xx - 1 Layer
       {
@@ -645,6 +683,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
      }
 
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_3XX_NAME) == 0) // Radar
@@ -664,6 +703,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_1XXX_NAME) == 0) // Radar
       {
@@ -682,6 +722,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) // Nav 3xx
       {
@@ -699,6 +740,25 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(true);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(true);
+      }
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_OEM_15XX_NAME) == 0) // Nav 3xx
+      {
+        basicParams[i].setNumberOfMaximumEchos(1);
+        basicParams[i].setNumberOfLayers(1);
+        basicParams[i].setNumberOfShots(2880);
+        basicParams[i].setAngularDegreeResolution(0.750);
+        basicParams[i].setExpectedFrequency(55.0);
+        basicParams[i].setUseBinaryProtocol(true);
+        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setUseSafetyPasWD(false); // Default
+        basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
+        basicParams[i].setScanMirroredAndShifted(true);
+        basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
+        basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(true);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_2XX_NAME) == 0) // NAV_2xx - 1 Layer
       {
@@ -716,6 +776,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_4XX_NAME) == 0) // TiM433 and TiM443
       {
@@ -733,6 +794,7 @@ namespace sick_scan
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(false);
       }
     }
 

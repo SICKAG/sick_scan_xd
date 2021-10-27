@@ -75,6 +75,8 @@
 #define SICK_SCANNER_NAV_2XX_NAME "sick_nav_2xx"
 #define SICK_SCANNER_TIM_4XX_NAME "sick_tim_4xx"
 #define SICK_SCANNER_LRS_4XXX_NAME "sick_lrs_4xxx"
+#define SICK_SCANNER_LRS_36xx_NAME "sick_lrs_36xx"
+#define SICK_SCANNER_OEM_15XX_NAME "sick_oem_15xx"
 #include "abstract_parser.h"
 
 #include "sick_scan/sick_scan_common.h"
@@ -163,6 +165,12 @@ namespace sick_scan
     
     void setMaxEvalFields(int _maxEvalFields);
 
+    void setUseScancfgList (bool _useScancfgList );
+
+    bool getUseScancfgList();
+
+
+
   private:
     std::string scannerName;
     int numberOfLayers;
@@ -182,6 +190,7 @@ namespace sick_scan
     bool imuEnabled;
     EVAL_FIELD_SUPPORT useEvalFields;
     int maxEvalFields;
+    bool useScancfgList;
   };
 
 
