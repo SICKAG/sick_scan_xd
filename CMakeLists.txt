@@ -51,6 +51,9 @@ if(WIN32 AND EXISTS "c:/vcpkg/installed/x64-windows")
     link_directories(c:/vcpkg/installed/x64-windows/lib)
 endif()
 
+if($ENV{ROS_VERSION})
+    set(ROS_VERSION $ENV{ROS_VERSION})
+endif($ENV{ROS_VERSION})
 add_compile_options(-D__ROS_VERSION=${ROS_VERSION})
 if(ROS_VERSION EQUAL 0)
     add_compile_options(-DROSSIMU)
@@ -58,7 +61,7 @@ endif()
 if(WIN32)
     # add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
     add_compile_options(-D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
-    link_libraries(ws2_32)    
+    link_libraries(ws2_32)
 else()
     link_libraries(pthread) # std::thread requires pthread on linux
 endif()
@@ -147,8 +150,8 @@ endif(ROS_VERSION EQUAL 1)
 
 if(ROS_VERSION EQUAL 2)
     #uncomment this lines and change path accordingly
-    set(FastRTPS_INCLUDE_DIR /opt/ros/foxy/include)
-    set(FastRTPS_LIBRARY_RELEASE /opt/ros/foxy/lib/libfastrtps.so)
+    set(FastRTPS_INCLUDE_DIR /opt/ros/$ENV{ROS_DISTRO}/include)
+    set(FastRTPS_LIBRARY_RELEASE /opt/ros/$ENV{ROS_DISTRO}/lib/libfastrtps.so)
     #to fix
     #CMake Error at /snap/clion/126/bin/cmake/linux/share/cmake-3.17/Modules/FindPackageHandleStandardArgs.cmake:164 (message):
     #  Could NOT find FastRTPS (missing: FastRTPS_INCLUDE_DIR FastRTPS_LIBRARIES)
@@ -404,8 +407,14 @@ if(ROS_VERSION EQUAL 1)
     add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
     add_library(sick_scan_shared_lib SHARED ${SICK_SCAN_LIB_SRC})
 
-    add_dependencies(sick_scan_lib ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS}) # ${LDMRS_TARGET_DEPENDENCIES})
-    add_dependencies(sick_scan_shared_lib ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS}) # ${LDMRS_TARGET_DEPENDENCIES})
+    add_dependencies(sick_scan_lib
+        ${PROJECT_NAME}_gencfg
+        ${catkin_EXPORTED_TARGETS}
+        ${${PROJECT_NAME}_EXPORTED_TARGETS})
+    add_dependencies(sick_scan_shared_lib
+        ${PROJECT_NAME}_gencfg
+        ${catkin_EXPORTED_TARGETS}
+        ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
     target_link_libraries(sick_scan_lib ${catkin_LIBRARIES})
     target_link_libraries(sick_scan_shared_lib ${catkin_LIBRARIES})
