@@ -9,7 +9,7 @@
 #include "sick_scan/tcp/toolbox.hpp"
 #include <stdio.h>      // for sprintf()
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #include <sys/socket.h> // for socket(), bind(), and connect()
 #include <arpa/inet.h>  // for sockaddr_in and inet_ntoa()
 #else

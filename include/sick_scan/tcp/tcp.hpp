@@ -17,7 +17,7 @@
 #define TCP_HPP
 
 #include "sick_scan/tcp/BasicDatatypes.hpp"
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
 #else

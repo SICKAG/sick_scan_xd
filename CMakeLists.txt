@@ -51,6 +51,9 @@ if(WIN32 AND EXISTS "c:/vcpkg/installed/x64-windows")
     link_directories(c:/vcpkg/installed/x64-windows/lib)
 endif()
 
+if(NOT ROS_VERSION)
+    set(ROS_VERSION 0)
+endif()
 add_compile_options(-D__ROS_VERSION=${ROS_VERSION})
 if(ROS_VERSION EQUAL 0)
     add_compile_options(-DROSSIMU)
@@ -58,7 +61,7 @@ endif()
 if(WIN32)
     # add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
     add_compile_options(-D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
-    link_libraries(ws2_32)    
+    link_libraries(ws2_32)
 else()
     link_libraries(pthread) # std::thread requires pthread on linux
 endif()
@@ -251,7 +254,7 @@ if(ROS_VERSION EQUAL 2)
         "srv/LIDoutputstateSrv.srv"
         ${ROSIDL_EMULATOR_FILES}
         DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
-    )   
+    )
     # find_package(Boost REQUIRED COMPONENTS filesystem system serialization) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
@@ -272,7 +275,7 @@ if(BUILD_WITH_LDMRS_SUPPORT)
 else()
     message(STATUS "Building sick_scan without ldmrs support")
 endif()
- 
+
 if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
     # emulator messages
     add_message_files(
@@ -342,7 +345,7 @@ if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
         SickSavePermanentSrv.srv
         SickDevSetIMUActiveSrv.srv
         SickDevIMUActiveSrv.srv
-    ) 
+    )
 endif(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
 
 if(ROS_VERSION EQUAL 1)
@@ -361,7 +364,7 @@ if(ROS_VERSION EQUAL 1)
     )
 endif(ROS_VERSION EQUAL 1)
 
-include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser) # ${Boost_INCLUDE_DIR} 
+include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser) # ${Boost_INCLUDE_DIR}
 if(ROS_VERSION EQUAL 0)
 include_directories(roswrap/src/msg_header)
 endif()
@@ -394,12 +397,12 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_scan_messages.cpp
         driver/src/sick_scan_services.cpp
         driver/src/sick_generic_laser.cpp
-        roswrap/src/launchparser/launchparser.cpp 
+        roswrap/src/launchparser/launchparser.cpp
         driver/src/tinyxml/tinystr.cpp
         driver/src/tinyxml/tinyxml.cpp
         driver/src/tinyxml/tinyxmlerror.cpp
         driver/src/tinyxml/tinyxmlparser.cpp
-        ${LDMRS_SOURCES} 
+        ${LDMRS_SOURCES}
     )
     add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
     add_library(sick_scan_shared_lib SHARED ${SICK_SCAN_LIB_SRC})
@@ -411,9 +414,9 @@ if(ROS_VERSION EQUAL 1)
     target_link_libraries(sick_scan_shared_lib ${catkin_LIBRARIES})
 
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
-    
+
     target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES})
-    
+
     #
     #  radar_object_marker (receives radar msg. and publishes marker array for rviz or similar
     #
@@ -440,7 +443,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     endif()
     if(ROS_VERSION EQUAL 0)
         include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg roswrap/src/tools)
-        file(GLOB SRC_ROSSIMU_FILES 
+        file(GLOB SRC_ROSSIMU_FILES
             roswrap/src/cfgsimu/sick_scan/time_modi.cpp
             roswrap/src/rossimu/kinetic/src/rossimu.cpp
             roswrap/src/rossimu/kinetic/src/duration.cpp
@@ -452,7 +455,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     set(SICK_SCAN_LIB_SRC
 	    roswrap/src/getopt/getopt.c
         roswrap/src/toojpeg/toojpeg.cpp
-        roswrap/src/launchparser/launchparser.cpp 
+        roswrap/src/launchparser/launchparser.cpp
         driver/src/binScanf.cpp
         driver/src/dataDumper.cpp
         driver/src/sick_generic_imu.cpp
@@ -482,7 +485,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/tcp/toolbox.cpp
         driver/src/softwarePLL.cpp
         driver/src/helper/angle_compensator.cpp
-        ${LDMRS_SOURCES} 
+        ${LDMRS_SOURCES}
         ${SRC_ROSSIMU_FILES}
         ${SRC_WIN_FILES}
     )
@@ -504,9 +507,9 @@ if(ROS_VERSION EQUAL 2)
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
-        "diagnostic_msgs" 
+        "diagnostic_msgs"
         "visualization_msgs"
-        "tf2_ros" 
+        "tf2_ros"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
@@ -517,9 +520,9 @@ if(ROS_VERSION EQUAL 2)
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
-        "diagnostic_msgs" 
+        "diagnostic_msgs"
         "visualization_msgs"
-        "tf2_ros" 
+        "tf2_ros"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
@@ -530,16 +533,16 @@ if(ROS_VERSION EQUAL 2)
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
-        "diagnostic_msgs" 
+        "diagnostic_msgs"
         "visualization_msgs"
-        "tf2_ros" 
+        "tf2_ros"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
     rosidl_target_interfaces(sick_scan_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
     rosidl_target_interfaces(sick_scan_shared_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
     # rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_cpp")
-        
+
 endif(ROS_VERSION EQUAL 2)
 
 if(ROS_VERSION EQUAL 1)
@@ -584,8 +587,8 @@ if(ROS_VERSION EQUAL 2)
     install(DIRECTORY
         launch
         DESTINATION share/${PROJECT_NAME})
-        
-    ament_package()        
+
+    ament_package()
 endif(ROS_VERSION EQUAL 2)
 
 #
@@ -618,7 +621,7 @@ if(ENABLE_EMULATOR AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator 
         jsoncpp_lib # ${jsoncpp_LIBRARIES}
         sick_scan_lib)
     target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
-    
+
     if(ROS_VERSION EQUAL 1)
         install(TARGETS sick_scan_emulator
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
@@ -644,10 +647,10 @@ endif()
 # build and install test_server
 #
 if(ENABLE_EMULATOR)
-    add_executable(test_server 
-        tools/test_server/src/test_server.cpp 
-        tools/test_server/src/test_server_cola_msg.cpp 
-        tools/test_server/src/test_server_ldmrs_msg.cpp 
+    add_executable(test_server
+        tools/test_server/src/test_server.cpp
+        tools/test_server/src/test_server_cola_msg.cpp
+        tools/test_server/src/test_server_ldmrs_msg.cpp
         tools/test_server/src/test_server_thread.cpp
         test/emulator/src/server_socket.cpp)
     target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES})
@@ -655,11 +658,11 @@ if(ENABLE_EMULATOR)
     if(ROS_VERSION EQUAL 2)
         ament_target_dependencies(test_server "rclcpp" ) # "Boost")
     endif(ROS_VERSION EQUAL 2)
-    install(TARGETS 
+    install(TARGETS
         test_server
         DESTINATION lib/${PROJECT_NAME})
-    install(DIRECTORY 
+    install(DIRECTORY
         tools/test_server/config
         tools/test_server/launch
         DESTINATION share/${PROJECT_NAME})
-endif() 
+endif()

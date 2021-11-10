@@ -7,7 +7,7 @@
 #include <thread>
 #include "sick_scan/tcp/BasicDatatypes.hpp"
 //#include <pthread.h>
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #include <unistd.h>
 #else
 //#include <unistd_win.h>

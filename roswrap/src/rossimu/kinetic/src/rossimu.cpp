@@ -28,7 +28,7 @@
 
 #include <xmlrpcpp/XmlRpcValue.h>
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #define __cdecl
 #endif
 std::string unknownNode = "????";
@@ -498,7 +498,7 @@ int fork()
 	return(0);
 }
 
-#ifdef linux
+#if defined(linux) || defined(__APPLE__)
 #else
 void sleep(int secs)
 {
