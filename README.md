@@ -227,7 +227,7 @@ To install sick_scan_xd on Windows, follow the steps below:
 1. If not yet done, install Visual Studio. Visual Studio 2019 Community or Professional Edition is recommended.
 
 2. If not yet done, install Visual Studios package manager vcpkg:
-   * Install vcpkg:
+   * Install vcpkg and libjson:
       * Download vcpkg-master.zip from https://github.com/microsoft/vcpkg/archive/master.zip and unzip to `c:\vcpkg`. Alternatively, run "git clone https://github.com/microsoft/vcpkg"
       * Install vcpkg by running the following commands:
          ```
@@ -235,6 +235,11 @@ To install sick_scan_xd on Windows, follow the steps below:
         bootstrap-vcpkg.bat
         vcpkg integrate install
         ```
+     * Install libjson with vcpkg
+       ```
+       vcpkg install jsoncpp:x64-windows
+       ```
+       maybe you need to install the english language package. Follow the instructions at https://agirlamonggeeks.com/2019/03/10/how-to-change-language-in-visual-studio-2019-after-installation/ 
    * Include vcpkg in your path:
       ```
      set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
