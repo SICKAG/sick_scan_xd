@@ -461,7 +461,8 @@ namespace sick_scan
     allowedScannerNames.push_back(SICK_SCANNER_NAV_3XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_2XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_TIM_4XX_NAME);
-    allowedScannerNames.push_back(SICK_SCANNER_LRS_36xx_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_LRS_36x0_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_LRS_36x1_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_OEM_15XX_NAME);
     basicParams.resize(allowedScannerNames.size()); // resize to number of supported scanner types
     for (int i = 0; i <
@@ -647,7 +648,26 @@ namespace sick_scan
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
       }
-      if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_36xx_NAME) == 0) // LMS_1xx - 1 Layer
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0) //
+      {
+        basicParams[i].setNumberOfMaximumEchos(1);
+        basicParams[i].setNumberOfLayers(1);
+        basicParams[i].setNumberOfShots(7200);
+        basicParams[i].setAngularDegreeResolution(0.5);
+        basicParams[i].setExpectedFrequency(15.0);
+        basicParams[i].setUseBinaryProtocol(true);
+        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setUseSafetyPasWD(false); // Default
+        basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(-M_PI/2);// TODO Check this
+        basicParams[i].setScanMirroredAndShifted(true);// TODO Check this
+        basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);// TODO Check this
+        basicParams[i].setMaxEvalFields(30);
+        basicParams[i].setUseScancfgList(true);
+        basicParams[i].setWaitForReady(true);
+      }
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0) //
       {
         basicParams[i].setNumberOfMaximumEchos(1);
         basicParams[i].setNumberOfLayers(1);
@@ -1294,8 +1314,7 @@ namespace sick_scan
       }
       else
       {
-        ROS_WARN("Intensity parameter is enabled, but the scanner is not configured to send RSSI values! "
-                      "Please read the section 'Enabling intensity (RSSI) output' here: http://wiki.ros.org/sick_tim.");
+        ROS_WARN("Intensity parameter is enabled, but the scanner is not configured to send RSSI values! ");
       }
     }
     numEchos = distNum;

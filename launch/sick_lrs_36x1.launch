@@ -3,11 +3,12 @@
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="True"/>
-    <node name="sick_lrs_36xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <arg name="scan_cfg_list_entry" default="1"/>
+    <node name="sick_lrs_36x1" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="intensity" type="bool" value="True"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="use_binary_protocol" type="bool" value="true"/>
-        <param name="scanner_type" type="string" value="sick_lrs_36xx"/>
+        <param name="scanner_type" type="string" value="sick_lrs_36x1"/>
         <param name="range_max" type="double" value="25.0"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>
         <param name="port" type="string" value="2112"/>
@@ -17,7 +18,7 @@
         <param name="activate_lferec" type="bool" value="True"/> <!-- activate field monitoring by lferec messages -->
         <param name="activate_lidinputstate" type="bool" value="False"/>
         <param name="activate_lidoutputstate" type="bool" value="False"/>
-        <param name="scan_cfg_list_entry" type="int" value="1"/> <!-- only mode 1 is currently supported -->
+        <param name="scan_cfg_list_entry" type="int" value="$(arg scan_cfg_list_entry)"/> <!-- only mode 1 is currently supported -->
         <!--
         |Mode |Inter-laced |Scan freq. | Result. scan freq.| Reso-lution |Total Resol. | Field of view| Sector| LRS 3601 3611 |OEM 1501|NAV 310 |LRS 3600 3610 |OEM 1500|
         |   |   |       |        |        |         |       |                 |   |   |   |   |   |
