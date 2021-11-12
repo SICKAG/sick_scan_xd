@@ -2438,7 +2438,18 @@ namespace sick_scan
       }
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
       {
-        outputChannelFlagId = 1;
+        int filter_echos = 0;
+        rosGetParam(nh, "filter_echos",
+          filter_echos);
+        switch (filter_echos)
+        {
+        default:outputChannelFlagId = 0b00000001; break;
+        case 0: outputChannelFlagId = 0b00000001; break;
+        case 1: outputChannelFlagId = 0b00011111; break;
+        case 2: outputChannelFlagId = 0b00000001; break;
+
+        }
+        
         ROS_INFO("LMS 5xx detected overwriting output channel flag ID");
 
         ROS_INFO("LMS 5xx detected overwriting resolution flag (only 8 bit supported)");
@@ -2533,7 +2544,7 @@ namespace sick_scan
           || (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 24)
           )
       {
-        if ( not this->parser_->getCurrentParamPtr()->getUseScancfgList())
+        if (false==this->parser_->getCurrentParamPtr()->getUseScancfgList())
         {
           //normal scanconfig handling
           char requestLMDscandatacfg[MAX_STR_LEN];
@@ -2682,7 +2693,8 @@ namespace sick_scan
       */
 
       // CONFIG ECHO-Filter (only for MRS1000 not available for TiM5xx
-      if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() >= 4)
+      //if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() >= 4)
+        if (true)
       {
         char requestEchoSetting[MAX_STR_LEN];
         int filterEchoSetting = 0;
