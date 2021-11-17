@@ -142,25 +142,14 @@ As you can see there are default values for object height and object width of 1.
 
 ## Visualization
 
-For the visualization a ROS node was developed, which receives 
-the radar messages and exports them as boxes for the objects and as arrows for the raw data. 
-The ROS node **radar_object_marker** receives the radar data and exports marker arrays that can be visualized in rviz.
+The radar's raw targets can be visualized directly within rviz. The following screenshot shows the settings for displaying the raw targets as a point cloud. The rviz settings for this can be loaded from the rviz configuration file `launch/rviz/radar_rawtarget.rviz`.
 
-The visualization could be controlled by the following parameters:
+A typical result image (here for the single beam radar RMS1731C) is shown in the following screenshot:
 
-|Parameters | Description |
-|-----------| ------- |
-| rawtarget_sphere_radius | radius of the sphere for the raw data display |
-| rawtarget_arrow_scale | Scaling factor for the arrow at the raw targets |
-| rawtarget_palette_name | name of the color palette |
-| rawtarget_palette_min_ampl | Minimum amplitude value mapped to color idx 0. |
-| rawtarget_palette_max_ampl | Maximum amplitude value mapped to color index 255. |
-| object_arrow_scale | Scaling factor for the arrow at the raw targets |
+![radar_rviz.png](radar_rviz.png)
 
-The scaling values can be interpreted as the time an object or a raw target moves during this period. Using the distance/time equation, the distance corresponding to the arrow length is calculated from the product of this time period and the object speed or Doppler speed.
+Further information about the possible processing of the data can also be found in the source file `tools/radar_object_marker/src/radar_object_marker.cpp`
 
-Example: Doppler speed: 20[m/s], rawtarget_arrow_scale: 0.4
-An arrow of length 0.4 * 20[m] = 8[m] is displayed in rviz.
 
 ## Launch Files
 
