@@ -171,6 +171,7 @@ namespace sick_scan
       CMD_SET_LFEREC_ACTIVE,       // activate LFErec messages, send "sEN LFErec 1"
       CMD_SET_LID_OUTPUTSTATE_ACTIVE,  // activate LIDoutputstate messages, send "sEN LIDoutputstate 1"
       CMD_SET_LID_INPUTSTATE_ACTIVE,  // activate LIDinputstate messages, send "sEN LIDinputstate 1"
+      CMD_SET_SCAN_CFG_LIST, // set scan config from list for NAX310  LD-OEM15xx LD-LRS36xx
 
       // ML: Add above new CMD-Identifier
       //
