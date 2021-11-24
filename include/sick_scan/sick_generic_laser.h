@@ -8,6 +8,11 @@
 
 #include <sick_scan/sick_scan_common_tcp.h>
 
+enum NodeRunState
+{
+  scanner_init, scanner_run, scanner_finalize
+};
+
 
 int mainGenericLaser(int argc, char **argv, std::string scannerName, rosNodePtr nh);
 

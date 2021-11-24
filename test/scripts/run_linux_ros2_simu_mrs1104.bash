@@ -35,10 +35,6 @@ sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick
 sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2_mrs1104.rviz &
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed ...
-for n in $(seq 25 -1 1) ; do
-  echo -e "mrs1104 emulation running. Up to $n seconds until scan data become available..."
-  sleep 1
-done
 while true ; do  
   echo -e "mrs1104 emulation running. Close rviz or press 'q' to exit..." ; read -t 1.0 -n1 -s key
   if [[ $key = "q" ]] || [[ $key = "Q" ]]; then break ; fi

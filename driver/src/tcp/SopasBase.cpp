@@ -502,7 +502,7 @@ SopasEventMessage SopasBase::findFrameInReceiveBuffer()
  *
  * Send buffer is limited to 1024 byte!
  */
-void SopasBase::sendCommandBuffer(UINT8* buffer, UINT16 len)
+bool SopasBase::sendCommandBuffer(UINT8* buffer, UINT16 len)
 {
 	UINT8 sendBuffer[1024];
 
@@ -523,7 +523,7 @@ void SopasBase::sendCommandBuffer(UINT8* buffer, UINT16 len)
 //	traceBuffer("Cmd buffer contents:", sendBuffer, len);
 	
 	// Send command (blocking)
-	m_tcp.write(sendBuffer, len);
+	return m_tcp.write(sendBuffer, len);
 }
 
 
@@ -1680,7 +1680,11 @@ bool SopasBase::invokeMethod(const std::string& methodeName, BYTE* parameters, U
 	}
 
 	// Send command
-	sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen);
+	if(!sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::invokeMethod(): sendCommandBuffer failed")
+		return false;
+	}
 
 	// Wait for answer (the answer of a method is "AN" - not "EA")
 	bool result = receiveAnswer(AN, methodeName, 2000, answer);
@@ -1729,7 +1733,11 @@ bool SopasBase::invokeMethod(UINT16 index, BYTE* parameters, UINT16 parametersLe
 	}
 
 	// Send command
-	sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen);
+	if (!sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::invokeMethod(): sendCommandBuffer failed")
+		return false;
+	}
 
 	// Wait for answer
 	bool result = receiveAnswer(AI, index, 2000, answer);
@@ -1772,7 +1780,11 @@ bool SopasBase::readVariable(const std::string& variableName, SopasAnswer*& answ
 	}
 
 	// Send
-	sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen);
+	if (!sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::readVariable(): sendCommandBuffer failed")
+		return false;
+	}
 
 	// Wait for answer
 	bool result = receiveAnswer(RA, variableName, 2000, answer);
@@ -1812,7 +1824,11 @@ bool SopasBase::readVariable(UINT16 index, SopasAnswer*& answer)
 	}
 
 	// Send
-	sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen);
+	if (!sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::readVariable(): sendCommandBuffer failed")
+		return false;
+	}
 
 	// Wait for answer
 	bool result = receiveAnswer(RA, index, 2000, answer);
@@ -1876,7 +1892,11 @@ bool SopasBase::writeVariable(const std::string& variableName, BYTE* parameters,
 
 
 	// Send
-	sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen);
+	if (!sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::writeVariable(): sendCommandBuffer failed")
+		return false;
+	}
 	SopasAnswer* answer = NULL;
 	// Wait for answer
 	bool result = receiveAnswer(WA, variableName, 2000, answer);
@@ -1932,7 +1952,11 @@ bool SopasBase::writeVariable(UINT16 variableIndex, BYTE* parameters, UINT16 par
 	
 	// Send. The frame is added automatically.
 	printInfoMessage("SopasBase::writeVariable: Sending command buffer now (payload len=" + toString(parametersLength+4) + " bytes).", beVerboseHere);
-	sendCommandBuffer(cmdBuffer, cmdBufferLen);
+	if (!sendCommandBuffer(cmdBuffer, cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::writeVariable(): sendCommandBuffer failed")
+		return false;
+	}
 	
 	printInfoMessage("SopasBase::writeVariable: Command sent, waiting for reply...", beVerboseHere);
 	SopasAnswer* answer = NULL;
@@ -1984,7 +2008,11 @@ bool SopasBase::registerEvent(const std::string& eventName)
 	}
 
 	// Send
-	sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen);
+	if (!sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::registerEvent(): sendCommandBuffer failed")
+		return false;
+	}
 	SopasAnswer* answer = NULL;
 	// Wait for answer
 	bool result = receiveAnswer(EA, eventName, 2000, answer);
@@ -2024,7 +2052,11 @@ bool SopasBase::registerEvent(UINT16 index)
 	}
 
 	// Send command
-	sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen);
+	if (!sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::registerEvent(): sendCommandBuffer failed")
+		return false;
+	}
 
 	// Wait for answer
 	SopasAnswer* answer = NULL;
@@ -2072,7 +2104,11 @@ bool SopasBase::unregisterEvent(UINT16 index)
 	}
 
 	// Send command
-	sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen);
+	if (!sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::unregisterEvent(): sendCommandBuffer failed")
+		return false;
+	}
 
 	// Wait for answer
 	SopasAnswer* answer = NULL;
@@ -2124,7 +2160,11 @@ bool SopasBase::unregisterEvent(const std::string& eventName)
 	}
 
 	// Send
-	sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen);
+	if (!sendCommandBuffer(&(cmdBuffer[0]), cmdBufferLen))
+	{
+		ROS_ERROR("## ERROR in SopasBase::unregisterEvent(): sendCommandBuffer failed")
+		return false;
+	}
 	SopasAnswer* answer = NULL;
 	// Wait for answer
 	bool result = receiveAnswer(EA, eventName, 2000, answer);
@@ -2138,6 +2178,13 @@ bool SopasBase::unregisterEvent(const std::string& eventName)
 	return result;
 }
 
+/**
+ * Returns a timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
+ */
+uint64_t SopasBase::getNanosecTimestampLastTcpMessageReceived(void)
+{ 
+	return m_tcp.getNanosecTimestampLastTcpMessageReceived(); 
+}
 
 
 /**

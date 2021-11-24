@@ -68,7 +68,7 @@ endif()
 # get_cmake_property(_variableNames VARIABLES)
 # list (SORT _variableNames)
 # foreach (_variableName ${_variableNames})
-#	message(STATUS "${_variableName}=${${_variableName}}")
+#   message(STATUS "${_variableName}=${${_variableName}}")
 # endforeach()
 # --- CUT ---
 
@@ -385,6 +385,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_generic_radar.cpp
         driver/src/sick_generic_imu.cpp
         driver/src/sick_generic_parser.cpp
+        driver/src/sick_generic_monitoring.cpp
         driver/src/sick_scan_common_nw.cpp
         driver/src/sick_scan_config_internal.cpp
         driver/src/softwarePLL.cpp
@@ -450,7 +451,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     endif()
 
     set(SICK_SCAN_LIB_SRC
-	    roswrap/src/getopt/getopt.c
+        roswrap/src/getopt/getopt.c
         roswrap/src/toojpeg/toojpeg.cpp
         roswrap/src/launchparser/launchparser.cpp 
         driver/src/binScanf.cpp
@@ -464,6 +465,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/binPrintf.cpp
         driver/src/sick_generic_field_mon.cpp
         driver/src/sick_generic_laser.cpp
+        driver/src/sick_generic_monitoring.cpp
         driver/src/sick_generic_radar.cpp
         driver/src/sick_scan_marker.cpp
         driver/src/sick_scan_messages.cpp

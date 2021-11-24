@@ -67,7 +67,10 @@ public:
    */
   bool disconnect();
 
-  void sendCommandBuffer(UINT8 *buffer, UINT16 len);
+  bool sendCommandBuffer(UINT8 *buffer, UINT16 len);
+
+  // Returns a timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
+	uint64_t getNanosecTimestampLastTcpMessageReceived(void);
 
 private:
   // TCP

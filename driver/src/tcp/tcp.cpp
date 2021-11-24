@@ -57,7 +57,7 @@ Tcp::Tcp()
 	m_beVerbose = false;
 	m_connectionSocket = -1;
 	
-	m_readThread.m_threadShouldRun = false;
+	m_readThread = 0; // m_readThread.m_threadShouldRun = false;
 	
 	m_longStringWarningPrinted = false;
 	m_disconnectFunction = NULL;
@@ -65,6 +65,7 @@ Tcp::Tcp()
 	m_readFunction = NULL;
 	m_readFunctionObjPtr = NULL;
 
+    m_last_tcp_msg_received_nsec = 0; // no message received
 }
 
 //
@@ -83,6 +84,12 @@ Tcp::~Tcp(void)
 //
 bool Tcp::write(UINT8* buffer, UINT32 numberOfBytes)
 {
+	// Ist die Verbindung offen?
+	if (isOpen() == false)
+	{
+		ROS_ERROR("Tcp::write: Connection is not open");
+		return false;
+	}
 	INT32 bytesSent;
 	bool result;
 #ifdef _MSC_VER
@@ -170,7 +177,7 @@ bool Tcp::open(std::string ipAddress, UINT16 port, bool enableVerboseDebugOutput
 {
 	INT32 result;
 	m_beVerbose = enableVerboseDebugOutput;
-
+    m_last_tcp_msg_received_nsec = 0; // no message received
 //	printInfoMessage("Tcp::open: Setting up input buffer with size=" + convertValueToString(requiredInputBufferSize) + " bytes.", m_beVerbose);
 //	m_inBuffer.init(requiredInputBufferSize, m_beVerbose);
 	
@@ -185,11 +192,12 @@ bool Tcp::open(std::string ipAddress, UINT16 port, bool enableVerboseDebugOutput
 	}
 	if (m_connectionSocket  < 0)
 	{
-        printError("Tcp::open: socket() failed, aborting.");
+        ROS_ERROR("Tcp::open: socket() failed, aborting.");
 		return false;
 	}
 
 	// Socket ist da. Nun die Verbindung oeffnen.
+	ROS_INFO_STREAM("sick_scan_xd: Tcp::open: connecting to " << ipAddress << ":"  << port << " ...");
 	printInfoMessage("Tcp::open: Connecting. Target address is " + ipAddress + ":" + toString(port) + ".", m_beVerbose);
 	
 	struct sockaddr_in addr;
@@ -225,15 +233,18 @@ bool Tcp::open(std::string ipAddress, UINT16 port, bool enableVerboseDebugOutput
 		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),	msgbuf,	sizeof(msgbuf), NULL);
 		text = text + " Connect error " + toString(WSAGetLastError()) + std::string(msgbuf);
 #endif
-		printError(text);
+		ROS_ERROR_STREAM("" << text);
+		close(); // close socket
 		return false;
 	}
 
 	printInfoMessage("Tcp::open: Connection established. Now starting read thread.", m_beVerbose);
 
 	// Empfangsthread starten
-	m_readThread.run(this);
+	m_readThread = new SickThread<Tcp, &Tcp::readThreadFunction>();
+	m_readThread->run(this);
 	
+	ROS_INFO_STREAM("sick_scan_xd Tcp::open: connected to " << ipAddress << ":"  << port);
 	printInfoMessage("Tcp::open: Done, leaving now.", m_beVerbose);
 
 	return true;
@@ -254,7 +265,7 @@ void Tcp::readThreadFunction(bool& endThread, UINT16& waitTimeMs)
 	if (result < 0)
 	{
 		// Verbindung wurde abgebrochen
-		if (m_readThread.m_threadShouldRun == true)
+		if (m_readThread && m_readThread->m_threadShouldRun == true)
 		{
 			// Wir sollten eigentlich noch laufen!
 			printInfoMessage("Tcp::readThreadMain: Connection is lost! Read thread terminates now.", m_beVerbose);
@@ -287,7 +298,7 @@ INT32 Tcp::readInputData()
 	// Ist die Verbindung offen?
 	if (isOpen() == false)
 	{
-		printError("Tcp::readInputData: Connection is not open, aborting!");
+		ROS_ERROR("Tcp::readInputData: Connection is not open, aborting!");
 		return -1;
 	}
 		
@@ -314,7 +325,7 @@ INT32 Tcp::readInputData()
 					recvMsgSize = recv(m_connectionSocket, inBuffer, max_length, 0);
 					break;
 			}
-			if (m_readThread.m_threadShouldRun == false)
+			if (!m_readThread || m_readThread->m_threadShouldRun == false)
 			{
 				recvMsgSize = 0;
 				break;
@@ -325,7 +336,9 @@ INT32 Tcp::readInputData()
 	if (recvMsgSize < 0)
 	{
 		// Fehler
-		printError("Tcp::readInputData: Failed to read data from socket, aborting!");
+		ROS_ERROR("Tcp::readInputData: Failed to read data from socket, aborting!");
+		ScopedLock lock(&m_socketMutex);
+		closeSocket(); // otherwise the driver can terminate with broken pipe in next call to Tcp::write()
 	}
 	else if (recvMsgSize > 0)
 	{
@@ -349,11 +362,13 @@ INT32 Tcp::readInputData()
 				m_rxBuffer.push_back(inBuffer[i]);
 			}
 		}
+	    m_last_tcp_msg_received_nsec = rosNanosecTimestampNow(); // timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
+		
 	}
 	else if (recvMsgSize == 0)
 	{
 		// Verbindungsabbruch
-		printInfoMessage("Tcp::readInputData: Read 0 bytes - connection is lost!", true);
+		ROS_ERROR("Tcp::readInputData: Read 0 bytes, connection is lost!");
 		
 		// Informieren?
 		if (m_disconnectFunction != NULL)
@@ -363,8 +378,8 @@ INT32 Tcp::readInputData()
 		
 		// Mutex setzen
 		ScopedLock lock(&m_socketMutex);
-
-		m_connectionSocket = -1;	// Keine Verbindung mehr
+		closeSocket(); // otherwise the driver can terminate with broken pipe in next call to Tcp::write()
+		// m_connectionSocket = -1;	// Keine Verbindung mehr
 	}
 	
 	return recvMsgSize;
@@ -372,48 +387,65 @@ INT32 Tcp::readInputData()
 
 
 //
-// Close an open connection, if any.
+// Close an open connection, if any, and stops the read thread (if running)
 //
 void Tcp::close()
 {
 	printInfoMessage("Tcp::close: Closing Tcp connection.", m_beVerbose);
 
+	// Dem Lese-Thread ein Ende signalisieren
+	if(m_readThread)
+		m_readThread->m_threadShouldRun = false;
+	// Close TCP socket
 	if (isOpen() == true)
 	{
-		// Dem Lese-Thread ein Ende signalisieren
-		m_readThread.m_threadShouldRun = false;
+		closeSocket();
+	}
+	else
+	{
+		printInfoMessage("Tcp::close: Nothing to do - no open connection? Aborting.", m_beVerbose);
+	}
+    // Thread stoppen
+	if(m_readThread)
+		stopReadThread();
+	m_last_tcp_msg_received_nsec = 0; // no message received
+
+	printInfoMessage("Tcp::close: Done - Connection is now closed.", m_beVerbose);
+}
+
+/**
+ * Closes the tcp connection (if it's currently open)
+ */
+void Tcp::closeSocket()
+{
+	// Close TCP socket
+	if (isOpen() == true)
+	{
 #ifdef _MSC_VER
 		closesocket(m_connectionSocket);  // waere evtl. auch fuer Linux korrekt
 #else
 			// Verbindung schliessen
 		::close(m_connectionSocket);
 #endif
-		// Auf das Ende des Empfangsthreads warten
-		printInfoMessage("Tcp::close: Waiting for the server thread to terminate...", m_beVerbose);
-
-		// Thread stoppen
-		stopReadThread();
+		m_connectionSocket = -1;	// Keine Verbindung mehr
 	}
-	else
-	{
-		printInfoMessage("Tcp::close: Nothing to do - no open connection? Aborting.", m_beVerbose);
-	}
-
-	printInfoMessage("Tcp::close: Done - Connection is now closed.", m_beVerbose);
 }
-
 
 /**
  * Stoppe den Lese-Thread.
  */
 void Tcp::stopReadThread()
 {
-	printInfoMessage("Tcp::stopReadThread: Stopping thread.", m_beVerbose);
-	
-	m_readThread.m_threadShouldRun = false;
-	m_readThread.join();
-
-	printInfoMessage("Tcp::stopReadThread: Done - Read thread is now closed.", m_beVerbose);
+	if(m_readThread)
+	{
+		printInfoMessage("Tcp::stopReadThread: Stopping thread.", m_beVerbose);
+		
+		m_readThread->m_threadShouldRun = false;
+		m_readThread->join();
+		delete m_readThread;
+		m_readThread = 0;
+		printInfoMessage("Tcp::stopReadThread: Done - Read thread is now closed.", m_beVerbose);
+	}
 }
 
 

@@ -235,6 +235,14 @@ namespace sick_scan
     close_device();
   }
 
+
+  int SickScanCommonTcp::reinit(rosNodePtr nh)
+  {
+    close_device();
+    return init(nh);
+  }
+
+
   //using boost::asio::ip::tcp;
   //using boost::lambda::var;
   //using boost::lambda::_1;
@@ -745,7 +753,11 @@ namespace sick_scan
           }
           printf("\n=== END HEX DUMP ===\n");
         }
-        m_nw.sendCommandBuffer((UINT8 *) request, msgLen);
+        if (!m_nw.sendCommandBuffer((UINT8 *) request, msgLen))
+        {
+          ROS_ERROR("## ERROR in sendSOPASCommand(): sendCommandBuffer failed");
+          return ExitError;
+        }
       }
     }
 

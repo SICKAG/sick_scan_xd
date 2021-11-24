@@ -193,6 +193,13 @@ bool SickScanCommonNw::openTcpConnection()
   return true;
 }
 
+ /**
+  * Returns a timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
+  */
+uint64_t SickScanCommonNw::getNanosecTimestampLastTcpMessageReceived(void) 
+{ 
+  return m_tcp.getNanosecTimestampLastTcpMessageReceived(); 
+}
 
 //
 // Close TCP-connection and shut down read thread
@@ -469,9 +476,9 @@ SopasEventMessage SickScanCommonNw::findFrameInReceiveBuffer()
  *
  * Send buffer is limited to 1024 byte!
  */
-void SickScanCommonNw::sendCommandBuffer(UINT8 *buffer, UINT16 len)
+bool SickScanCommonNw::sendCommandBuffer(UINT8 *buffer, UINT16 len)
 {
-  m_tcp.write(buffer, len);
+  return m_tcp.write(buffer, len);
 }
 
 

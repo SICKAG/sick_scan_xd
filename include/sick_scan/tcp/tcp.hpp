@@ -16,6 +16,7 @@
 #ifndef TCP_HPP
 #define TCP_HPP
 
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scan/tcp/BasicDatatypes.hpp"
 #ifdef linux
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
@@ -57,12 +58,14 @@ public:
 	typedef void (*DisconnectFunction)(void* obj);								//  Called on disconnect
 	void setDisconnectCallbackFunction(DisconnectFunction discFunction, void* obj);
 
-	
+	uint64_t getNanosecTimestampLastTcpMessageReceived(void) { return m_last_tcp_msg_received_nsec; } // Returns a timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
+
 private:
 	bool m_longStringWarningPrinted;
 	std::string m_rxString;						// fuer readString()
 	bool isClientConnected_unlocked();
 	std::list<unsigned char> m_rxBuffer;		// Main input buffer
+	void closeSocket();
 	void stopReadThread();
 	void startServerThread();
 	void stopServerThread();
@@ -76,7 +79,7 @@ private:
 	SOCKET m_connectionSocket;	// Socket, wenn wir der Client sind (z.B. Verbindung zum Scanner)
 #endif
 	void readThreadFunction(bool& endThread, UINT16& waitTimeMs);
-	SickThread<Tcp, &Tcp::readThreadFunction> m_readThread;
+	SickThread<Tcp, &Tcp::readThreadFunction>* m_readThread;
 	INT32 readInputData();
 	
 	ReadFunction m_readFunction;		// Receive callback
@@ -84,6 +87,7 @@ private:
 	DisconnectFunction m_disconnectFunction;
 	void* m_disconnectFunctionObjPtr;	// Object of the Disconect callback
 
+	uint64_t m_last_tcp_msg_received_nsec; // timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
 };
 
 #endif // TCP_HPP

@@ -115,6 +115,8 @@ namespace sick_scan
 
     void processFrame(rosTime timeStamp, SopasEventMessage &frame);
 
+    int reinit(rosNodePtr nh);
+
     // Queue<std::vector<unsigned char> > recvQueue;
     Queue<DatagramWithTimeStamp> recvQueue;
     UINT32 m_alreadyReceivedBytes;
@@ -150,8 +152,8 @@ namespace sick_scan
                  bool isBinaryProtocol, int *numberOfRemainingFifoEntries);
 
     // Helpers for boost asio
-    int readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read = 0,
-                        bool *exception_occured = 0, bool isBinary = false);
+    virtual int readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read /* = 0 */,
+                        bool *exception_occured /* = 0 */, bool isBinary /* = false*/);
 
     /*void handleRead(boost::system::error_code error, size_t bytes_transfered);*/
 

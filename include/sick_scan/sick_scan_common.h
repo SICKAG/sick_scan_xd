@@ -194,7 +194,7 @@ namespace sick_scan
      * @param requestStr sent request string
      * @return Expected answer
      */
-    std::string generateExpectedAnswerString(const std::vector<unsigned char> requestStr);
+    std::vector<std::string> generateExpectedAnswerString(const std::vector<unsigned char> requestStr);
 
     int sendSopasAndCheckAnswer(std::string request, std::vector<unsigned char> *reply, int cmdId);
 
@@ -276,6 +276,7 @@ namespace sick_scan
       return replyToString(reply);
     }
 
+    uint64_t getNanosecTimestampLastTcpMessageReceived(void) { return m_nw.getNanosecTimestampLastTcpMessageReceived(); } // Returns a timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
 
     // move back to private
     /* FÜR MRS10000 brauchen wir einen Publish und eine NAchricht */
@@ -305,6 +306,10 @@ namespace sick_scan
      * \param [in] cmdLen Length of the Comandstring in bytes used for Binary Mode only
      */
     virtual int sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen = -1) = 0;
+
+    virtual int readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read /* = 0 */,
+                        bool *exception_occured /* = 0 */, bool isBinary /* = false*/) = 0;
+
     /// Read a datagram from the device.
     /**
      * \param [out] recvTimeStamp timestamp of received packet

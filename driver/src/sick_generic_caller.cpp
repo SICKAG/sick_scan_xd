@@ -171,7 +171,20 @@ int main(int argc, char **argv)
     ROS_INFO_STREAM("Program argument " << (i+1) << ": " << argv_tmp[i] << "\n");
   }
 
-  int result = mainGenericLaser(argc_tmp, argv_tmp, scannerName, node);
+  int result = 0;
+  try
+  {
+    result = mainGenericLaser(argc_tmp, argv_tmp, scannerName, node);
+  }
+  catch(const std::exception& e)
+  {
+    ROS_ERROR_STREAM("## ERROR in mainGenericLaser: exception " << e.what());
+  }
+  catch(...)
+  {
+    ROS_ERROR_STREAM("## ERROR in mainGenericLaser: unknown exception ");
+  }
+  
   return result;
 
 }

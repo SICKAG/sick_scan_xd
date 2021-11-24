@@ -268,6 +268,9 @@ public:
 	const std::string& getScannerName() const { return m_scannerName; }
 	const std::string& getScannerVersion() const { return m_scannerVersion; }
 
+    // Returns a timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
+	uint64_t getNanosecTimestampLastTcpMessageReceived(void);
+
 	// Convert a SOPAS error code to readable text
 	static std::string convertSopasErrorCodeToText(UINT16 errorCode);
 
@@ -330,7 +333,7 @@ protected:
 	 * @param buffer pointer to the buffer
 	 * @param len length of buffer to be sent.
 	 */
-	void sendCommandBuffer(UINT8* buffer, UINT16 len);
+	bool sendCommandBuffer(UINT8* buffer, UINT16 len);
 
 	SopasCommand colaA_decodeCommand(std::string* rxData);
 
