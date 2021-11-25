@@ -140,6 +140,8 @@ The corresponding code fills the object list in the following manner:
 ```
 As you can see there are default values for object height and object width of 1.7 (typical private vehicle)
 
+<!---
+
 ## Visualization
 
 For the visualization a ROS node was developed, which receives 
@@ -161,6 +163,8 @@ The scaling values can be interpreted as the time an object or a raw target move
 
 Example: Doppler speed: 20[m/s], rawtarget_arrow_scale: 0.4
 An arrow of length 0.4 * 20[m] = 8[m] is displayed in rviz.
+
+-->
 
 ## Launch Files
 
