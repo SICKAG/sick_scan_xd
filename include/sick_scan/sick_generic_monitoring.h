@@ -61,6 +61,7 @@
 #include <sick_scan/sick_ros_wrapper.h>
 #include <sick_scan/sick_generic_laser.h>
 #include <sick_scan/sick_generic_parser.h>
+#include <sick_scan/sick_scan_common.h>
 #include <sick_scan/sick_scan_services.h>
 
 namespace sick_scan
@@ -76,7 +77,7 @@ namespace sick_scan
   public:
 
     /** Constructor */
-    SickScanMonitor(int read_timeout_millisec = 5000);
+    SickScanMonitor(int read_timeout_millisec = READ_TIMEOUT_MILLISEC_DEFAULT);
 
     /** Destructor */
     ~SickScanMonitor();

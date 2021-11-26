@@ -130,7 +130,7 @@ sick_scan::ExitCode sick_scan::SickScanMonitor::checkStateReinitOnError(rosNodeP
     ROS_ERROR("## ERROR in sick_scan_xd: restarting scanner after read timeout");
     try
     {
-      while (rosOk() && scanner->reinit(nh) != sick_scan::ExitSuccess)
+      while (rosOk() && scanner->reinit(nh, m_read_timeout_millisec) != sick_scan::ExitSuccess)
       {
         ROS_ERROR("## ERROR in sick_scan_xd: reinit scanner failed, retrying ..");
       }

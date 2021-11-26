@@ -6,6 +6,7 @@
 
 #include <thread>
 #include "sick_scan/tcp/BasicDatatypes.hpp"
+#include "sick_scan/sick_ros_wrapper.h"
 //#include <pthread.h>
 #ifdef linux
 #include <unistd.h>
@@ -23,9 +24,10 @@ class ThreadWrapperBase
     virtual void thread_entry() = 0;
   protected:
     void* pthis;
+	std::string m_thread_name;
   public:
 	
-	ThreadWrapperBase() {pthis = NULL;};
+	ThreadWrapperBase(const std::string& thread_name = "") : m_thread_name(thread_name) {pthis = NULL;};
 	virtual ~ThreadWrapperBase() { delete t_id; };
 	  
     void run(void* classptr)
@@ -89,16 +91,19 @@ class SickThread : public ThreadWrapperBase
  	void thread_entry()
  	{
  		T* pt = static_cast<T*>(pthis);
-		
+
 		m_threadShouldRun = true;
 		bool endThread = false;
 		UINT16 sleepTimeMs = 0;
+		ROS_INFO_STREAM("SickThread " << m_thread_name << " started.");
 		
 		while ((m_threadShouldRun == true) && (endThread == false))
 		{
 			usleep(((UINT32)sleepTimeMs) * 1000);
 			(pt->*M)(endThread, sleepTimeMs);
 		}
+
+		ROS_INFO_STREAM("SickThread " << m_thread_name << " finished (flags: threadShouldRun=" << m_threadShouldRun << ", endThread=" << endThread << ").");
  	}
  	
 		
@@ -109,7 +114,7 @@ public:
 		ThreadWrapperBase::join();
 	}
 	
-	SickThread(){m_threadShouldRun = true;}
+	SickThread(const std::string& thread_name = "") : ThreadWrapperBase(thread_name) {m_threadShouldRun = true;}
 	virtual ~SickThread(){};
 	bool m_threadShouldRun;
 };

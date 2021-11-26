@@ -831,7 +831,7 @@ namespace sick_scan
     keyWordMap["sWN"] = { "sWA", "sAN" };
     keyWordMap["sRN"] = { "sRA", "sAN" };
     keyWordMap["sRI"] = { "sRA" };
-    keyWordMap["sMN"] = { "sAN" };
+    keyWordMap["sMN"] = { "sAN", "sMA" };
     keyWordMap["sEN"] = { "sEA" };
 
     std::vector<std::string> expectedAnswers;
@@ -937,6 +937,7 @@ namespace sick_scan
     else
     {
       result = -1;
+      uint64_t retry_start_timestamp_nsec = rosNanosecTimestampNow();
       for(int retry_answer_cnt = 0; result != 0; retry_answer_cnt++)
       {
         std::string answerStr = replyToString(*reply);
@@ -974,21 +975,29 @@ namespace sick_scan
             result = -1;
 
             // Problably we received some scan data message. Ignore and try again...
-            if(retry_answer_cnt < 10)
+            if(retry_answer_cnt < 100 && (rosNanosecTimestampNow() - retry_start_timestamp_nsec) / 1000000 < READ_TIMEOUT_MILLISEC_DEFAULT)
             {
-
               char buffer[64*1024];
               int bytes_read = 0;
               uint32_t binary_stx = 0x02020202;
               bool cmdIsBinary = (requestStr.size() >= sizeof(binary_stx) && memcmp(&requestStr[0], &binary_stx, sizeof(binary_stx)) == 0); // Cola-B always starts with 0x02020202
-              if (readWithTimeout(getReadTimeOutInMs(), buffer, sizeof(buffer), &bytes_read, 0, cmdIsBinary) == ExitSuccess)
+
+              int read_timeout_millisec = getReadTimeOutInMs(); // default timeout: 120 seconds (sensor may be starting up)
+              if (!reply->empty()) // sensor is up and running (i.e. responded with message), try again with 5 sec timeout
+                  read_timeout_millisec = READ_TIMEOUT_MILLISEC_DEFAULT;
+              if (readWithTimeout(read_timeout_millisec, buffer, sizeof(buffer), &bytes_read, 0, cmdIsBinary) == ExitSuccess)
               {
                 reply->resize(bytes_read);
                 std::copy(buffer, buffer + bytes_read, &(*reply)[0]);
               }
+              else
+              {
+                reply->clear();
+              }
             }
             else
             {
+              reply->clear();
               ROS_ERROR_STREAM(errString << ", giving up after " << retry_answer_cnt << " unexpected answers.");
               break;
             }
@@ -1539,8 +1548,8 @@ namespace sick_scan
     bool useBinaryCmdNow = false;
     int maxCmdLoop = 2; // try binary and ascii during startup
 
-    const int shortTimeOutInMs = 5000; // during startup phase to check binary or ascii
-    const int defaultTimeOutInMs = 120000; // standard time out 120 sec.
+    const int shortTimeOutInMs = READ_TIMEOUT_MILLISEC_DEFAULT; // during startup phase to check binary or ascii
+    const int defaultTimeOutInMs = READ_TIMEOUT_MILLISEC_STARTUP; // standard time out 120 sec.
 
     setReadTimeOutInMs(shortTimeOutInMs);
 

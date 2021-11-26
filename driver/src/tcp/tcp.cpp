@@ -241,7 +241,7 @@ bool Tcp::open(std::string ipAddress, UINT16 port, bool enableVerboseDebugOutput
 	printInfoMessage("Tcp::open: Connection established. Now starting read thread.", m_beVerbose);
 
 	// Empfangsthread starten
-	m_readThread = new SickThread<Tcp, &Tcp::readThreadFunction>();
+	m_readThread = new SickThread<Tcp, &Tcp::readThreadFunction>("TcpRecvThread");
 	m_readThread->run(this);
 	
 	ROS_INFO_STREAM("sick_scan_xd Tcp::open: connected to " << ipAddress << ":"  << port);
@@ -421,10 +421,12 @@ void Tcp::closeSocket()
 	// Close TCP socket
 	if (isOpen() == true)
 	{
+		// Verbindung schliessen
 #ifdef _MSC_VER
+		::shutdown(m_connectionSocket, SD_BOTH);
 		closesocket(m_connectionSocket);  // waere evtl. auch fuer Linux korrekt
 #else
-			// Verbindung schliessen
+		::shutdown(m_connectionSocket, SHUT_RDWR);
 		::close(m_connectionSocket);
 #endif
 		m_connectionSocket = -1;	// Keine Verbindung mehr

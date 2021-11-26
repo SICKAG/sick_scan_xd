@@ -79,16 +79,12 @@ setup_custom_pythonpath\.sh
 CTestTestfile\.cmake
 
 tools/imu_tester/venv/
-
 tools/imu_tester/imutimestampsmu+2sigma.png
-
 tools/imu_tester/.idea
-
 tools/sick_generic_device_finder/venv
-
 tools/sick_generic_device_finder/.idea
-
 tools/git_lfs
+tools/wireshark_win64_3.6.0_portable
 
 doc/angle_compensation/ampl_phase_offset\.png
 

@@ -43,7 +43,7 @@ endif(BUILD_DEBUG_TARGET)
 
 # Switch on, if you use c11-specific commands
 if(NOT WIN32)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow -fno-var-tracking-assignments")
 endif()
 
 if(WIN32 AND EXISTS "c:/vcpkg/installed/x64-windows")

@@ -430,7 +430,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
 
   sick_scan::SickScanMonitor* monitor = 0;
   bool message_monitoring_enabled = true;
-  int message_monitoring_read_timeout_millisec = 5000; // TODO: move to config
+  int message_monitoring_read_timeout_millisec = READ_TIMEOUT_MILLISEC_DEFAULT;
   if(message_monitoring_enabled)
   {
     monitor = new sick_scan::SickScanMonitor(message_monitoring_read_timeout_millisec);

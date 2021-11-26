@@ -236,9 +236,10 @@ namespace sick_scan
   }
 
 
-  int SickScanCommonTcp::reinit(rosNodePtr nh)
+  int SickScanCommonTcp::reinit(rosNodePtr nh, int delay_millisec)
   {
     close_device();
+    usleep(delay_millisec * 1000);
     return init(nh);
   }
 

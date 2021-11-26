@@ -115,7 +115,7 @@ namespace sick_scan
 
     void processFrame(rosTime timeStamp, SopasEventMessage &frame);
 
-    int reinit(rosNodePtr nh);
+    int reinit(rosNodePtr nh, int delay_millisec);
 
     // Queue<std::vector<unsigned char> > recvQueue;
     Queue<DatagramWithTimeStamp> recvQueue;

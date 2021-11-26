@@ -83,6 +83,9 @@
 #include "sick_scan/sick_generic_field_mon.h"
 #include "sick_scan/sick_scan_marker.h"
 
+#define READ_TIMEOUT_MILLISEC_STARTUP 120000 // 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.) // TODO: move timeout to config
+#define READ_TIMEOUT_MILLISEC_DEFAULT   5000 // 5 sec read timeout in operational mode (measurement mode)  // TODO: move timeout to config
+
 void swap_endian(unsigned char *ptr, int numBytes);
 
 namespace sick_scan
