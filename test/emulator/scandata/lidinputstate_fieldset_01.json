@@ -1,0 +1,20 @@
+[
+  {
+    "_source": {
+      "layers": {
+        "tcp": {
+          "tcp.analysis": {
+            "tcp.analysis.push_bytes_sent": "39"
+          },
+          "Timestamps": {
+            "tcp.time_relative": "8.531741857528687"
+          },
+          "tcp.comment": "All entries created by pcap_json_converter, not by Wireshark.",
+          "tcp.producer": "pcap_json_converter.py --pcap_filename=fieldset_trial_0001.pcapng",
+          "tcp.description": "........sSN LIDinputstate .............",
+          "tcp.payload": "02:02:02:02:00:00:00:1e:73:53:4e:20:4c:49:44:69:6e:70:75:74:73:74:61:74:65:20:00:00:00:00:00:00:01:00:00:00:00:00:2f"
+        }
+      }
+    }
+  }
+]
