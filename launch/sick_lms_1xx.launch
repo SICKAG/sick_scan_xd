@@ -2,7 +2,7 @@
 <!-- FOR FUTURE USE. NOT SUPPORTED NOW. DO NOT USE IT. -->
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
-    <arg name="frame_id" default="laser"/>
+    <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
     <node name="sick_lms_1xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="intensity" type="bool" value="False"/>

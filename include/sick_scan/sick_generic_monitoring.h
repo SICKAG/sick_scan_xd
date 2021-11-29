@@ -102,5 +102,55 @@ namespace sick_scan
 
   };
 
+  /*
+  * @brief class PointCloudMonitor monitors point cloud messages.
+  *        The ros node will be killed, if no point cloud is published within a given amount of time.
+  */
+  class PointCloudMonitor
+  {
+  public:
+
+    /** Constructor */
+    PointCloudMonitor();
+
+    /** Destructor */
+    ~PointCloudMonitor();
+
+    /*
+    * @brief Starts a thread to monitor point cloud messages.
+    *        The ros node will be killed, if no point cloud is published within a given amount of time.
+    */
+    bool startPointCloudMonitoring(rosNodePtr nh, int timeout_millisec = READ_TIMEOUT_MILLISEC_KILL_NODE, const std::string& ros_cloud_topic = "cloud");
+
+    /*
+    * @brief Stops the thread to monitor point cloud messages.
+    */
+    void stopPointCloudMonitoring(void);
+
+  protected:
+
+    /** Callback for point cloud messages */
+    void messageCbPointCloud(const ros_sensor_msgs::PointCloud2 & msg);
+
+    /** ROS2-callback for point cloud messages  */
+    void messageCbPointCloudROS2(const std::shared_ptr<ros_sensor_msgs::PointCloud2> msg);
+
+    /*
+    * @brief Thread callback, runs the point cloud monitoring.
+    *        If no point cloud is published within the timeout (150 sec. by default),
+    *        the process is killed (and the node is restarted by ros)
+    */
+    void runMonitoringThreadCb(void);
+
+
+    rosNodePtr m_nh;
+    int m_timeout_millisec;
+    std::string m_ros_cloud_topic;
+    uint64_t m_last_msg_timestamp_nanosec; // timestamp of last received point cloud message in nanoseconds
+    bool m_monitoring_thread_running;
+    std::thread* m_monitoring_thread;
+
+  };
+
 } /* namespace sick_scan */
 #endif // SICK_GENERIC_MONITORING_H_

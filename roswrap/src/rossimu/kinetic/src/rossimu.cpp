@@ -442,7 +442,7 @@ int rossimu_settings(ros::NodeHandle& nhPriv)
 	int tmpactive_echos = 1;
 	int tmpEcho_filter = 1;
 	bool tmpauto_reboot = true;
-	std::string tmpframe_id = "laser";
+	std::string tmpframe_id = "cloud";
 	std::string scannerName;
 	nhPriv.getParam("name", scannerName);
 	std::string tmphostname = "192.168.0.232";

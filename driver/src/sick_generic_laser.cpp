@@ -287,9 +287,10 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
     scannerName = nodeName;
   }
 
+  std::string cloud_topic = "cloud";
   rosDeclareParam(nhPriv, "hostname", "192.168.0.4");
   rosDeclareParam(nhPriv, "imu_enable", true);
-  rosDeclareParam(nhPriv, "cloud_topic", "cloud");
+  rosDeclareParam(nhPriv, "cloud_topic", cloud_topic);
   if (doInternalDebug)
   {
 #ifdef ROSSIMU
@@ -301,6 +302,8 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
       rosSetParam(nhPriv, "cloud_topic", "cloud");
 #endif
   }
+  rosGetParam(nhPriv, "cloud_topic", cloud_topic);
+
 
 // check for TCP - use if ~hostname is set.
   bool useTCP = false;
@@ -428,12 +431,18 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
     colaDialectId = 'A';
   }
 
-  sick_scan::SickScanMonitor* monitor = 0;
+  sick_scan::SickScanMonitor* scan_msg_monitor = 0;
+  sick_scan::PointCloudMonitor* pointcloud_monitor = 0;
   bool message_monitoring_enabled = true;
   int message_monitoring_read_timeout_millisec = READ_TIMEOUT_MILLISEC_DEFAULT;
+  int pointcloud_monitoring_timeout_millisec = READ_TIMEOUT_MILLISEC_KILL_NODE;
   if(message_monitoring_enabled)
   {
-    monitor = new sick_scan::SickScanMonitor(message_monitoring_read_timeout_millisec);
+    scan_msg_monitor = new sick_scan::SickScanMonitor(message_monitoring_read_timeout_millisec);
+#if __ROS_VERSION > 0 // point cloud monitoring in Linux-ROS
+    pointcloud_monitor = new sick_scan::PointCloudMonitor();
+    pointcloud_monitor->startPointCloudMonitoring(nhPriv, pointcloud_monitoring_timeout_millisec, cloud_topic);
+#endif
   }
   
   bool start_services = false;
@@ -503,9 +512,9 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
           rosSpinOnce(nhPriv);
           result = s_scanner->loopOnce(nhPriv);
           
-          if(monitor && message_monitoring_enabled) // Monitor scanner messages
+          if(scan_msg_monitor && message_monitoring_enabled) // Monitor scanner messages
           {
-            result = monitor->checkStateReinitOnError(nhPriv, runState, s_scanner, parser, services);
+            result = scan_msg_monitor->checkStateReinitOnError(nhPriv, runState, s_scanner, parser, services);
             if(result != sick_scan::ExitSuccess) // scanner re-init failed after read timeout or tcp error
             {
               ROS_ERROR("## ERROR in sick_generic_laser main loop: read timeout, scanner re-init failed");
@@ -524,7 +533,10 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
     }
   }
 
-  DELETE_PTR(monitor);
+  if(pointcloud_monitor)
+    pointcloud_monitor->stopPointCloudMonitoring();
+  DELETE_PTR(scan_msg_monitor);
+  DELETE_PTR(pointcloud_monitor);
   DELETE_PTR(services);
   DELETE_PTR(s_scanner); // close connnect
   DELETE_PTR(parser); // close parser

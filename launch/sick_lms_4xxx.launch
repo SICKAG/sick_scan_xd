@@ -31,7 +31,6 @@
           <param name="max_ang" type="double" value="2.35619449" />
           <param name="intensity" type="bool" value="True" />
           <param name="skip" type="int" value="0" />
-          <param name="frame_id" type="str" value="laser" />
           <param name="time_offset" type="double" value="-0.001" />
           <param name="publish_datagram" type="bool" value="False" />
           <param name="subscribe_datagram" type="bool" value="false" />

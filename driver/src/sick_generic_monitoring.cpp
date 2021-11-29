@@ -148,3 +148,119 @@ sick_scan::ExitCode sick_scan::SickScanMonitor::checkStateReinitOnError(rosNodeP
   }
   return sick_scan::ExitError;
 }
+
+/** Constructor */
+sick_scan::PointCloudMonitor::PointCloudMonitor()
+: m_monitoring_thread(0), m_monitoring_thread_running(false)
+{
+}
+
+/** Destructor */
+sick_scan::PointCloudMonitor::~PointCloudMonitor()
+{
+  stopPointCloudMonitoring();
+}
+
+/*
+* @brief Starts a thread to monitor point cloud messages.
+*        The ros node will be killed, if no point cloud is published within a given amount of time.
+*/
+bool sick_scan::PointCloudMonitor::startPointCloudMonitoring(rosNodePtr nh, int timeout_millisec, const std::string& ros_cloud_topic)
+{
+  m_nh = nh;
+  m_timeout_millisec = timeout_millisec;
+  m_ros_cloud_topic = ros_cloud_topic;
+#if defined __ROS_VERSION && __ROS_VERSION > 0
+  m_monitoring_thread_running = true;
+  m_monitoring_thread = new std::thread(&sick_scan::PointCloudMonitor::runMonitoringThreadCb, this);
+  return true;
+#else
+  ROS_ERROR("## ERROR PointCloudMonitor supported on ROS only");
+  return false;
+#endif
+}
+
+/*
+ * @brief Stops the thread to monitor point cloud messages.
+ */
+void sick_scan::PointCloudMonitor::stopPointCloudMonitoring(void)
+{
+  m_monitoring_thread_running = false;
+  if(m_monitoring_thread)
+  {
+    m_monitoring_thread->join();
+    delete(m_monitoring_thread);
+    m_monitoring_thread = 0;
+  }
+}
+
+/** Callback for point cloud messages */
+void sick_scan::PointCloudMonitor::messageCbPointCloud(const ros_sensor_msgs::PointCloud2 & msg)
+{ 
+  // ROS_INFO_STREAM("PointCloudMonitor::messageCbPointCloud: new message after " << (1.0e-9 * rosNanosecTimestampNow() - 1.0e-9 * m_last_msg_timestamp_nanosec) << " seconds");
+  m_last_msg_timestamp_nanosec = rosNanosecTimestampNow();
+}
+
+/** ROS2-callback for point cloud messages  */
+void sick_scan::PointCloudMonitor::messageCbPointCloudROS2(const std::shared_ptr<ros_sensor_msgs::PointCloud2> msg) 
+{ 
+  messageCbPointCloud(*msg); 
+}
+
+/*
+ * @brief Thread callback, runs the point cloud monitoring.
+ *        If no point cloud is published within the timeout (150 sec. by default),
+ *        the process is killed (and the node is restarted by ros)
+ */
+void sick_scan::PointCloudMonitor::runMonitoringThreadCb(void)
+{
+  // Get process id
+#ifdef _MSC_VER  
+  DWORD pid = GetCurrentProcessId();
+#else  
+  pid_t pid = getpid();
+#endif  
+
+  // Subscribe to point cloud topic
+  m_last_msg_timestamp_nanosec = rosNanosecTimestampNow();
+#if defined __ROS_VERSION && __ROS_VERSION == 1
+  ros::Subscriber pointcloud_subscriber1, pointcloud_subscriber2;
+  pointcloud_subscriber1 = m_nh->subscribe(m_ros_cloud_topic, 1, &sick_scan::PointCloudMonitor::messageCbPointCloud, this);
+  if(m_ros_cloud_topic[0] != '/')
+    pointcloud_subscriber2 = m_nh->subscribe(std::string("/") + m_ros_cloud_topic, 1, &sick_scan::PointCloudMonitor::messageCbPointCloud, this);
+#elif defined __ROS_VERSION && __ROS_VERSION == 2
+  rclcpp::Subscription<ros_sensor_msgs::PointCloud2>::SharedPtr pointcloud_subscriber1, pointcloud_subscriber2;
+  pointcloud_subscriber1 = m_nh->create_subscription<ros_sensor_msgs::PointCloud2>(m_ros_cloud_topic,10,std::bind(&sick_scan::PointCloudMonitor::messageCbPointCloudROS2, this, std::placeholders::_1));
+  if(m_ros_cloud_topic[0] != '/')
+    pointcloud_subscriber2 = m_nh->create_subscription<ros_sensor_msgs::PointCloud2>(std::string("/") + m_ros_cloud_topic,10,std::bind(&sick_scan::PointCloudMonitor::messageCbPointCloudROS2, this, std::placeholders::_1));
+#else
+  ROS_ERROR("## ERROR PointCloudMonitor supported on ROS only");
+  return;
+#endif
+
+  // Run monitoring
+  while(rosOk() && m_monitoring_thread_running)
+  {
+    uint64_t timestamp_now_nanosec = rosNanosecTimestampNow();
+    if(timestamp_now_nanosec/1000000 > m_last_msg_timestamp_nanosec/1000000 + m_timeout_millisec)
+    {
+      // Kill pid due to timeout
+      ROS_ERROR_STREAM("## ERROR PointCloudMonitor: last point cloud message on topic \"" << m_ros_cloud_topic << "\" received " << (1.0e-9 * timestamp_now_nanosec - 1.0e-9 * m_last_msg_timestamp_nanosec) << " seconds ago, " << (1.0e-3 * m_timeout_millisec) << " seconds timeout exceeded.");
+      std::stringstream kill_cmd;
+#ifdef _MSC_VER  
+      kill_cmd << "taskkill /F /PID " << pid;
+#else  
+      kill_cmd << "nohup sleep 1 ; kill -9 " << pid;
+#endif  
+      ROS_ERROR_STREAM("## ERROR PointCloudMonitor: killing process by command \"" << kill_cmd.str() << "\" for restart");
+      int ret = system(kill_cmd.str().c_str());
+    }
+    else
+    {
+      // ROS_INFO_STREAM("PointCloudMonitor: last point cloud message on topic \"" << m_ros_cloud_topic << "\" received " << (1.0e-9 * timestamp_now_nanosec - 1.0e-9 * m_last_msg_timestamp_nanosec) << " seconds ago");
+    }
+
+    usleep(100000);
+  }
+  m_monitoring_thread_running = false;
+}

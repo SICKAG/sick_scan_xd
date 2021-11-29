@@ -21,7 +21,7 @@
           args="0 0 0 0 0 0 1 odom base_footprint 100"/>
 
     <node pkg="gmapping" type="slam_gmapping" name="gmapping_thing" output="screen">
-        <param name="scan" value="laser"/>
+        <param name="scan" value="cloud"/>
         <param name="odom_frame" value="odom"/>
         <param name="base_frame" value="laser_POS_000_DIST1"/>
     </node>
