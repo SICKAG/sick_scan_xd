@@ -85,6 +85,7 @@ tools/sick_generic_device_finder/venv
 tools/sick_generic_device_finder/.idea
 tools/git_lfs
 tools/wireshark_win64_3.6.0_portable
+tools/plantuml
 
 doc/angle_compensation/ampl_phase_offset\.png
 

@@ -530,6 +530,9 @@ rosservice call /sick_lms_5xx/ColaMsg "{request: 'sRN SCdevicestate'}"
 rosservice call /sick_lms_5xx/ColaMsg "{request: 'sEN LIDinputstate 1'}"
 rosservice call /sick_lms_5xx/ColaMsg "{request: 'sEN LIDoutputstate 1'}"
 rosservice call /sick_lms_5xx/ColaMsg "{request: 'sMN LMCstartmeas'}"
+rosservice call /sick_lms_5xx/SCdevicestate "{}" # query device state
+rosservice call /sick_lms_5xx/SCreboot "{}"      # execute a software reset on the device
+rosservice call /sick_lms_5xx/SCsoftreset "{}"   # save current parameter and shut down device
 ```
 
 Use the following examples to run a cola commond on ROS-2:
@@ -539,13 +542,53 @@ ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sRN SCdevicestat
 ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sEN LIDinputstate 1'}"
 ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sEN LIDoutputstate 1'}"
 ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN LMCstartmeas'}"
+ros2 service call /SCdevicestate sick_scan/srv/SCdevicestateSrv "{}" # query device state
+ros2 service call /SCreboot sick_scan/srv/SCrebootSrv "{}"           # execute a software reset on the device
+ros2 service call /SCsoftreset sick_scan/srv/SCsoftresetSrv "{}"     # save current parameter and shut down device
 ```
 
 Note:
 * The COLA commands are sensor specific. See the user manual and telegram listing for further details.
 * ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.
 * ROS services are currently not available for the LDMRS.
-* ROS services under ROS-2 Windows are currently still experimental.
+
+### Driver states, timeouts
+
+The driver runs in two different states:
+
+1. Initialization: The scanner is initialized and configured by a list of sopas commands
+
+2. Measurement: The scanner is operational, scandata are transmitted and the point cloud is published.
+After start, the driver enters initialization mode. After successful initialization, the driver switches automatically into measurement mode.
+
+The communication between driver and scanner is monitored. In case of communication timeouts, e.g. due to network problems, the TCP connection is reset and the scanner is re-initialized. The driver uses 3 different timeouts (i.e time since last message received from lidar):
+
+1. In measurement mode: If no messages arrive for 5 seconds [timeout 0], the TCP/IP connection is closed. After a short delay, the tcp connection is reopened and the driver switches to initialisation mode and reinitialises the Lidar.
+
+2. In initialisation mode: If no messages received after 120 sec [Timeout 1] the TCP/IP connection is closed. After a short delay, the tcp connection is reopened and the driver switches to initialisation mode and reinitialises the Lidar.
+
+3. In any mode: If no messages received after 150 sec [Timeout 2] the driver terminates.
+
+Note: The internal timer is reset on successful communication. i.e. the timeout refers to the time of the last message from the Lidar. If there was no message yet, then the time of programme start is used.
+
+All timeouts can be configured in the launchfile:
+```
+<param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
+<param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->
+<param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
+<param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds --> 
+```
+
+The following diagram shows the transition between the driver states:
+
+![driverStatesDiagram](./doc/driverStatesDiagram1.png)
+
+Note: Timeout 2 (i.e. no lidar message after 150 seconds) terminates the driver. By default, the driver does not restart automatically. It is therefor recommended to run the driver within an endless loop, e.g. in bash:
+
+```
+while(true) ; do roslaunch sick_scan <launchfile> [<arguments>] ; done
+```
+
 
 ## Sopas Mode
 
