@@ -3365,7 +3365,6 @@ namespace sick_scan
       {
         return ExitSuccess;
       }
-
       ROS_DEBUG_STREAM("SickScanCommon::loopOnce: received " << actual_length << " byte data " << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(32, actual_length)) << " ... ");
 
       if (publish_datagram_)
@@ -3570,7 +3569,7 @@ namespace sick_scan
                 {
                   // warn about unexpected message and ignore all non-scandata messages
                   ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): " << actual_length << " byte message ignored ("
-                    << DataDumper::binDataToAsciiString(&receiveBuffer[0], std::min(actual_length, 64)) << (actual_length>64?"...":"") << ")");
+                    << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(actual_length, 64)) << (actual_length>64?"...":"") << ")");
                 }
                 else
                 {
@@ -4270,7 +4269,7 @@ namespace sick_scan
                   // If msg.intensities[j] < min_intensity, then set msg.ranges[j] to inf according to https://github.com/SICKAG/sick_scan/issues/131
                   if(m_min_intensity > 0) // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
                   {
-                    for (int j = 0, j_max = (int)std::min(msg.ranges.size(), msg.intensities.size()); j < j_max; j++)
+                    for (int j = 0, j_max = (int)MIN(msg.ranges.size(), msg.intensities.size()); j < j_max; j++)
                     {
                       if(msg.intensities[j] < m_min_intensity)
                       {
