@@ -384,3 +384,26 @@ bool sick_scan::SickScanMessages::parseLFErecMsg(const rosTime& timeStamp, uint8
     }
     return false;
 }
+
+/*
+ * @brief returns the sopas command keyword, e.g.: getSopasCmdKeyword("\x02\x02\x02\x02\x00\x00\x00\x8esSN LFErec \x3", 20) returns "LFErec".
+ */
+std::string sick_scan::SickScanMessages::getSopasCmdKeyword(const uint8_t* sopasRequest, int requestLength)
+{
+    const uint32_t binary_stx = 0x02020202;
+    bool requestIsBinary = (requestLength >= sizeof(binary_stx) && memcmp(sopasRequest, &binary_stx, sizeof(binary_stx)) == 0); // Cola-B always starts with 0x02020202
+
+    int keyword_start = 0, keyword_end = 0;
+    if(requestIsBinary && requestLength > 12) // 0x02020202 + { 4 byte payload length } + { 4 byte command id incl. space }
+        keyword_start = 12;
+    else if(!requestIsBinary && requestLength > 5)
+        keyword_start = 5; // 0x02 + { 4 byte command id incl. space }
+    else
+        return ""; // no keyword found
+    keyword_end = keyword_start;
+    while(keyword_end < requestLength-1 && sopasRequest[keyword_end] != 0x03 && !isspace(sopasRequest[keyword_end])) // count until <ETX> or " "
+      keyword_end++;
+    std::string keyword((const char*)&sopasRequest[keyword_start], keyword_end - keyword_start);
+    // ROS_DEBUG_STREAM("SickScanMessages::getSopasCmdKeyword(): keyword=\"" << DataDumper::binDataToAsciiString(&sopasRequest[keyword_start], keyword_end - keyword_start) << "\"=\"" << keyword << "\"");
+    return keyword;
+}

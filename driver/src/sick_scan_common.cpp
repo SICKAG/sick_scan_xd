@@ -72,6 +72,7 @@
 
 #include <sick_scan/sick_scan_common_nw.h>
 #include <sick_scan/sick_scan_common.h>
+#include <sick_scan/sick_scan_messages.h>
 #include <sick_scan/sick_generic_radar.h>
 #include <sick_scan/sick_generic_field_mon.h>
 #include <sick_scan/helper/angle_compensator.h>
@@ -526,6 +527,15 @@ namespace sick_scan
     rosDeclareParam(nh, "expected_frequency_tolerance", expected_frequency_tolerance);
     rosGetParam(nh, "expected_frequency_tolerance", expected_frequency_tolerance);
 
+    m_read_timeout_millisec_default = READ_TIMEOUT_MILLISEC_DEFAULT;
+    m_read_timeout_millisec_startup = READ_TIMEOUT_MILLISEC_STARTUP;
+
+    rosDeclareParam(nh, "read_timeout_millisec_default", m_read_timeout_millisec_default);
+    rosGetParam(nh, "read_timeout_millisec_default", m_read_timeout_millisec_default);
+
+    rosDeclareParam(nh, "read_timeout_millisec_startup", m_read_timeout_millisec_startup);
+    rosGetParam(nh, "read_timeout_millisec_startup", m_read_timeout_millisec_startup);
+
     cloud_marker_ = 0;
     publish_lferec_ = false;
     publish_lidoutputstate_ = false;
@@ -975,17 +985,16 @@ namespace sick_scan
             result = -1;
 
             // Problably we received some scan data message. Ignore and try again...
-            if(retry_answer_cnt < 100 && (rosNanosecTimestampNow() - retry_start_timestamp_nsec) / 1000000 < READ_TIMEOUT_MILLISEC_DEFAULT)
+            std::vector<std::string> response_keywords = { sick_scan::SickScanMessages::getSopasCmdKeyword((uint8_t*)requestStr.data(), requestStr.size()) }; 
+            if(retry_answer_cnt < 100 && (rosNanosecTimestampNow() - retry_start_timestamp_nsec) / 1000000 < m_read_timeout_millisec_default)
             {
               char buffer[64*1024];
               int bytes_read = 0;
-              uint32_t binary_stx = 0x02020202;
-              bool cmdIsBinary = (requestStr.size() >= sizeof(binary_stx) && memcmp(&requestStr[0], &binary_stx, sizeof(binary_stx)) == 0); // Cola-B always starts with 0x02020202
 
               int read_timeout_millisec = getReadTimeOutInMs(); // default timeout: 120 seconds (sensor may be starting up)
               if (!reply->empty()) // sensor is up and running (i.e. responded with message), try again with 5 sec timeout
-                  read_timeout_millisec = READ_TIMEOUT_MILLISEC_DEFAULT;
-              if (readWithTimeout(read_timeout_millisec, buffer, sizeof(buffer), &bytes_read, 0, cmdIsBinary) == ExitSuccess)
+                  read_timeout_millisec = m_read_timeout_millisec_default;
+              if (readWithTimeout(read_timeout_millisec, buffer, sizeof(buffer), &bytes_read, response_keywords) == ExitSuccess)
               {
                 reply->resize(bytes_read);
                 std::copy(buffer, buffer + bytes_read, &(*reply)[0]);
@@ -1548,8 +1557,15 @@ namespace sick_scan
     bool useBinaryCmdNow = false;
     int maxCmdLoop = 2; // try binary and ascii during startup
 
-    const int shortTimeOutInMs = READ_TIMEOUT_MILLISEC_DEFAULT; // during startup phase to check binary or ascii
-    const int defaultTimeOutInMs = READ_TIMEOUT_MILLISEC_STARTUP; // standard time out 120 sec.
+
+    int read_timeout_millisec_default = READ_TIMEOUT_MILLISEC_DEFAULT;
+    int read_timeout_millisec_startup = READ_TIMEOUT_MILLISEC_STARTUP;
+    rosDeclareParam(nh, "read_timeout_millisec_default", read_timeout_millisec_default);
+    rosGetParam(nh, "read_timeout_millisec_default", read_timeout_millisec_default);
+    rosDeclareParam(nh, "read_timeout_millisec_startup", read_timeout_millisec_startup);
+    rosGetParam(nh, "read_timeout_millisec_startup", read_timeout_millisec_startup);
+    const int shortTimeOutInMs = read_timeout_millisec_default; // during startup phase to check binary or ascii
+    const int defaultTimeOutInMs = read_timeout_millisec_startup; // standard time out 120 sec.
 
     setReadTimeOutInMs(shortTimeOutInMs);
 
@@ -3321,8 +3337,11 @@ namespace sick_scan
     }
     do
     {
+      const std::vector<std::string> datagram_keywords = {  // keyword list of datagrams handled here in loopOnce
+        "LMDscandata", "LMDscandatamon", 
+        "LMDradardata", "InertialMeasurementUnit", "LIDoutputstate", "LIDinputstate", "LFErec" };
 
-      int result = get_datagram(nh, recvTimeStamp, receiveBuffer, 65536, &actual_length, useBinaryProtocol, &packetsInLoop);
+      int result = get_datagram(nh, recvTimeStamp, receiveBuffer, 65536, &actual_length, useBinaryProtocol, &packetsInLoop, datagram_keywords);
       numPacketsProcessed++;
 
       rosDuration dur = recvTimeStampPush - recvTimeStamp;

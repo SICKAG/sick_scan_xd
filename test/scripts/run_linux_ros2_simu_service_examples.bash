@@ -20,6 +20,7 @@ sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick
 
 # Run example ros service calls
 sleep 2 ; ros2 service list
+sleep 2 ; ros2 service call /SCdevicestate sick_scan/srv/SCdevicestateSrv "{}" # query device state
 sleep 2 ; ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN IsSystemReady'}"
 sleep 2 ; ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sRN SCdevicestate'}"
 sleep 2 ; ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sEN LIDinputstate 1'}"

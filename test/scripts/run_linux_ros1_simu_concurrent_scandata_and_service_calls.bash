@@ -3,6 +3,7 @@
 # runServiceCalls delay just runs example service calls
 function runServiceCalls(){
   local delay=$1
+  sleep $delay ; rosservice call /sick_lms_5xx/SCdevicestate "{}"                          # query device state
   sleep $delay ; rosservice call /sick_lms_5xx/ColaMsg "{request: 'sMN IsSystemReady'}"    # query system state
   sleep $delay ; rosservice call /sick_lms_5xx/ColaMsg "{request: 'sRN SCdevicestate'}"    # query device state
   sleep $delay ; rosservice call /sick_lms_5xx/ColaMsg "{request: 'sMN LMCstartmeas'}"     # start measurement

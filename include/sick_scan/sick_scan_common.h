@@ -83,6 +83,9 @@
 #include "sick_scan/sick_generic_field_mon.h"
 #include "sick_scan/sick_scan_marker.h"
 
+/*
+** Default timeouts
+*/
 #define READ_TIMEOUT_MILLISEC_STARTUP   120000 // 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.) // TODO: move timeout to config
 #define READ_TIMEOUT_MILLISEC_DEFAULT     5000 // 5 sec read timeout in operational mode (measurement mode) // TODO: move timeout to config
 #define READ_TIMEOUT_MILLISEC_KILL_NODE 150000 // 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec. // TODO: move timeout to config
@@ -312,8 +315,7 @@ namespace sick_scan
      */
     virtual int sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen = -1) = 0;
 
-    virtual int readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read /* = 0 */,
-                        bool *exception_occured /* = 0 */, bool isBinary /* = false*/) = 0;
+    virtual int readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, const std::vector<std::string>& datagram_keywords) = 0;
 
     /// Read a datagram from the device.
     /**
@@ -322,9 +324,10 @@ namespace sick_scan
      * \param [in] bufferSize max data size to write to buffer (result should be 0 terminated)
      * \param [out] actual_length the actual amount of data written
      * \param [in] isBinaryProtocol used Communication protocol True=Binary false=ASCII
+     * \param [in] datagram_keywords keyword in returned datagram, e.g. { "LMDscandata" } to get scandata telegrams, or {} (empty vector) for next received datagram
      */
     virtual int get_datagram(rosNodePtr nh, rosTime &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize, int *actual_length,
-                             bool isBinaryProtocol, int *numberOfRemainingFifoEntries) = 0;
+                             bool isBinaryProtocol, int *numberOfRemainingFifoEntries, const std::vector<std::string>& datagram_keywords) = 0;
 
     /// Converts reply from sendSOPASCommand to string
     /**
@@ -426,6 +429,9 @@ namespace sick_scan
 
     //void getConfigUpdateParam(SickScanConfig & cfg);
     //void setConfigUpdateParam(SickScanConfig & cfg);
+
+    int m_read_timeout_millisec_default;
+    int m_read_timeout_millisec_startup;
 
     rosNodePtr m_nh;
   };

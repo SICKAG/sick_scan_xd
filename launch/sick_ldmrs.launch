@@ -18,6 +18,13 @@
         <param name="sw_pll_only_publish" type="bool" value="true"/>
         <param name="min_intensity" type="double" value="0.0"/>
 
+        <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
+        <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
+        <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->
+        <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
+        <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
+        <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
+
         <!-- Measurement parameters specific for LDMRS -->
         <param name="start_angle" type="double" value="0.872664"/>            <!-- # gen.add("start_angle",           double_t, 0, "The angle of the first range measurement [rad].",                              1600 * tics2rad, -1918 * tics2rad, 1600 * tics2rad)   # 50  deg -->
         <param name="end_angle" type="double" value="-1.047197"/>             <!-- # gen.add("end_angle",             double_t, 0, "The angle of the last range measurement [rad].",                              -1920 * tics2rad, -1920 * tics2rad, 1598 * tics2rad)   # -60 deg -->

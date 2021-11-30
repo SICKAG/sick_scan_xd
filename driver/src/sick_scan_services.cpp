@@ -66,14 +66,24 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
 {
     if(nh)
     {
+      m_client_authorization_pw = "F4724744";
+      rosDeclareParam(nh, "client_authorization_pw", m_client_authorization_pw);
+      rosGetParam(nh, "client_authorization_pw", m_client_authorization_pw);
+
 #if __ROS_VERSION == 2
 #define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsgROS2
 #define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArrROS2
 #define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstateROS2
+#define serviceCbSCdevicestateROS sick_scan::SickScanServices::serviceCbSCdevicestateROS2
+#define serviceCbSCrebootROS sick_scan::SickScanServices::serviceCbSCrebootROS2
+#define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftresetROS2
 #else
 #define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsg
 #define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArr
 #define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstate
+#define serviceCbSCdevicestateROS sick_scan::SickScanServices::serviceCbSCdevicestate
+#define serviceCbSCrebootROS sick_scan::SickScanServices::serviceCbSCreboot
+#define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftreset
 #endif
         auto srv_server_ColaMsg = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ColaMsgSrv, "ColaMsg", &serviceCbColaMsgROS, this);
         m_srv_server_ColaMsg = rosServiceServer<sick_scan_srv::ColaMsgSrv>(srv_server_ColaMsg);
@@ -84,18 +94,29 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
         auto srv_server_LIDoutputstate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::LIDoutputstateSrv, "LIDoutputstate", &serviceCbLIDoutputstateROS, this);
         m_srv_server_LIDoutputstate = rosServiceServer<sick_scan_srv::LIDoutputstateSrv>(srv_server_LIDoutputstate);
 
-        // m_srv_server_ColaMsg = nh->advertiseService("ColaMsg",&sick_scan::SickScanServices::serviceCbColaMsg, this);
-        // m_srv_server_ECRChangeArr = nh->advertiseService("ECRChangeArr",&sick_scan::SickScanServices::serviceCbECRChangeArr, this);
-        // m_srv_server_LIDoutputstate = nh->advertiseService("LIDoutputstate",&sick_scan::SickScanServices::serviceCbLIDoutputstate, this);
+        auto srv_server_SCdevicestate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCdevicestateSrv, "SCdevicestate", &serviceCbSCdevicestateROS, this);
+        m_srv_server_SCdevicestate = rosServiceServer<sick_scan_srv::SCdevicestateSrv>(srv_server_SCdevicestate);
+
+        auto srv_server_SCreboot = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCrebootSrv, "SCreboot", &serviceCbSCrebootROS, this);
+        m_srv_server_SCreboot = rosServiceServer<sick_scan_srv::SCrebootSrv>(srv_server_SCreboot);
+
+        auto srv_server_SCsoftreset = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCsoftresetSrv, "SCsoftreset", &serviceCbSCsoftresetROS, this);
+        m_srv_server_SCsoftreset = rosServiceServer<sick_scan_srv::SCsoftresetSrv>(srv_server_SCsoftreset);
 
 #if __ROS_VERSION == 1
         ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_ColaMsg.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
         ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_ECRChangeArr.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
         ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_LIDoutputstate.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SCdevicestate.getService() << "\" created (\"" << m_srv_server_SCdevicestate.getService() << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SCreboot.getService() << "\" created (\"" << m_srv_server_SCreboot.getService() << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SCsoftreset.getService() << "\" created (\"" << m_srv_server_SCsoftreset.getService() << "\")");
 #elif __ROS_VERSION == 2
         ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_ColaMsg->get_service_name()) << "\" created (\"" << std::string(m_srv_server_ColaMsg->get_service_name()) << "\")");
         ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_ECRChangeArr->get_service_name()) << "\" created (\"" << std::string(m_srv_server_ECRChangeArr->get_service_name()) << "\")");
         ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_LIDoutputstate->get_service_name()) << "\" created (\"" << std::string(m_srv_server_LIDoutputstate->get_service_name()) << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SCdevicestate->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SCdevicestate->get_service_name()) << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SCreboot->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SCreboot->get_service_name()) << "\")");
+        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SCsoftreset->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SCsoftreset->get_service_name()) << "\")");
 #endif
     }
 }
@@ -183,11 +204,13 @@ bool sick_scan::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRChange
   std::vector<unsigned char> sopasReplyBin;
   std::string sopasReplyString;
 
+  service_response.success = false;
   if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
     return false;
   }
+  service_response.success = true;
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
@@ -208,6 +231,29 @@ bool sick_scan::SickScanServices::serviceCbLIDoutputstate(sick_scan_srv::LIDoutp
   std::vector<unsigned char> sopasReplyBin;
   std::string sopasReplyString;
 
+  service_response.success = false;
+  if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
+    return false;
+  }
+  service_response.success = true;
+
+  ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
+  
+  return true;
+}
+
+/*!
+ * Sends the SOPAS authorization command "sMN SetAccessMode 3 F4724744".
+ */
+bool sick_scan::SickScanServices::sendAuthorization()
+{
+  std::string sopasCmd = std::string("sMN SetAccessMode 3 ") + m_client_authorization_pw;
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+
   if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
@@ -219,3 +265,127 @@ bool sick_scan::SickScanServices::serviceCbLIDoutputstate(sick_scan_srv::LIDoutp
   
   return true;
 }
+
+/*!
+ * Sends the SOPAS command "sMN Run", which applies previous send settings
+ */
+bool sick_scan::SickScanServices::sendRun()
+{
+  std::string sopasCmd = std::string("sMN Run");
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+
+  if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
+    return false;
+  }
+
+  ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
+  
+  return true;
+}
+
+
+/*!
+* Callbacks for service messages.
+* @param[in] service_request ros service request to lidar
+* @param[out] service_response service response from lidar
+* @return true on success, false in case of errors.
+*/
+bool sick_scan::SickScanServices::serviceCbSCdevicestate(sick_scan_srv::SCdevicestateSrv::Request &service_request, sick_scan_srv::SCdevicestateSrv::Response &service_response)
+{
+  std::string sopasCmd = std::string("sRN SCdevicestate");
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+
+  service_response.success = false;
+  service_response.state = 2; // ERROR
+  if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
+    return false;
+  }
+  service_response.success = true;
+
+  std::string response_str((char*)sopasReplyBin.data(), sopasReplyBin.size());
+  std::size_t state_pos = response_str.find("SCdevicestate");
+  if (state_pos != std::string::npos && state_pos + 14 < sopasReplyBin.size())
+  {
+    uint8_t state_byte = sopasReplyBin[state_pos + 14];
+    if(state_byte >= '0')
+      state_byte -= '0';
+    service_response.state = state_byte;
+  }
+  ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\"");
+  
+  return true;
+}
+
+bool sick_scan::SickScanServices::serviceCbSCreboot(sick_scan_srv::SCrebootSrv::Request &service_request, sick_scan_srv::SCrebootSrv::Response &service_response)
+{
+  std::string sopasCmd = std::string("sMN mSCreboot");
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+
+  service_response.success = false;
+  if(!sendAuthorization())
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices: sendAuthorization failed for command\"" << sopasCmd << "\"");
+    return false;
+  }
+
+  if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
+    return false;
+  }
+
+  ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
+  
+  if(!sendRun())
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices: sendRun failed for command\"" << sopasCmd << "\"");
+    return false;
+  }
+  service_response.success = true;
+
+  return true;
+}
+
+bool sick_scan::SickScanServices::serviceCbSCsoftreset(sick_scan_srv::SCsoftresetSrv::Request &service_request, sick_scan_srv::SCsoftresetSrv::Response &service_response)
+{
+  std::string sopasCmd = std::string("sMN mSCsoftreset");
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+
+  service_response.success = false;
+  if(!sendAuthorization())
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices: sendAuthorization failed for command\"" << sopasCmd << "\"");
+    return false;
+  }
+
+  if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
+    return false;
+  }
+
+  ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
+
+  if(!sendRun())
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices: sendRun failed for command\"" << sopasCmd << "\"");
+    return false;
+  }
+  service_response.success = true;
+
+  return true;
+}
+
+

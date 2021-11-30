@@ -434,8 +434,19 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
   sick_scan::SickScanMonitor* scan_msg_monitor = 0;
   sick_scan::PointCloudMonitor* pointcloud_monitor = 0;
   bool message_monitoring_enabled = true;
-  int message_monitoring_read_timeout_millisec = READ_TIMEOUT_MILLISEC_DEFAULT;
-  int pointcloud_monitoring_timeout_millisec = READ_TIMEOUT_MILLISEC_KILL_NODE;
+  int read_timeout_millisec_default = READ_TIMEOUT_MILLISEC_DEFAULT;
+  int read_timeout_millisec_startup = READ_TIMEOUT_MILLISEC_STARTUP;
+  int read_timeout_millisec_kill_node = READ_TIMEOUT_MILLISEC_KILL_NODE;
+  rosDeclareParam(nhPriv, "message_monitoring_enabled", message_monitoring_enabled);
+  rosGetParam(nhPriv, "message_monitoring_enabled", message_monitoring_enabled);
+  rosDeclareParam(nhPriv, "read_timeout_millisec_default", read_timeout_millisec_default);
+  rosGetParam(nhPriv, "read_timeout_millisec_default", read_timeout_millisec_default);
+  rosDeclareParam(nhPriv, "read_timeout_millisec_startup", read_timeout_millisec_startup);
+  rosGetParam(nhPriv, "read_timeout_millisec_startup", read_timeout_millisec_startup);
+  rosDeclareParam(nhPriv, "read_timeout_millisec_kill_node", read_timeout_millisec_kill_node);
+  rosGetParam(nhPriv, "read_timeout_millisec_kill_node", read_timeout_millisec_kill_node);
+  int message_monitoring_read_timeout_millisec = read_timeout_millisec_default;
+  int pointcloud_monitoring_timeout_millisec = read_timeout_millisec_kill_node;
   if(message_monitoring_enabled)
   {
     scan_msg_monitor = new sick_scan::SickScanMonitor(message_monitoring_read_timeout_millisec);
@@ -445,7 +456,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
 #endif
   }
   
-  bool start_services = false;
+  bool start_services = true;
   sick_scan::SickScanServices* services = 0;
   int result = sick_scan::ExitError;
 

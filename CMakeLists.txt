@@ -142,6 +142,9 @@ if(ROS_VERSION EQUAL 1)
         ColaMsgSrv.srv
         ECRChangeArrSrv.srv
         LIDoutputstateSrv.srv
+        SCdevicestateSrv.srv
+        SCrebootSrv.srv
+        SCsoftresetSrv.srv
     )
 endif(ROS_VERSION EQUAL 1)
 
@@ -249,6 +252,9 @@ if(ROS_VERSION EQUAL 2)
         "srv/ColaMsgSrv.srv"
         "srv/ECRChangeArrSrv.srv"
         "srv/LIDoutputstateSrv.srv"
+        "srv/SCdevicestateSrv.srv"
+        "srv/SCrebootSrv.srv"
+        "srv/SCsoftresetSrv.srv"
         ${ROSIDL_EMULATOR_FILES}
         DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
     )   
