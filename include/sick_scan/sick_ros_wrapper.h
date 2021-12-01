@@ -425,7 +425,7 @@ namespace sick_scan
 /*
 ** ROS-2 requires lowercase field names in all idl generated message structs
 */
-#if __ROS_VERSION > 0
+#if __ROS_VERSION > 1
 #define radarPreHeader radarpreheader
 #define uiVersionNo uiversionno
 #define radarPreHeaderDeviceBlock radarpreheaderdeviceblock
