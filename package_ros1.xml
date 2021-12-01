@@ -7,7 +7,7 @@
   <maintainer email="ros.test@lehning.de">rostest</maintainer>
   <author email="michael.lehning@lehning.de">Michael Lehning</author>
   <author email="ros@jochen.sprickerhof.de">Jochen Sprickerhof</author>
-  <author email="martin.guenther@dfki.de">Martin Günther</author>
+  <author email="martin.guenther@dfki.de">Martin Guenther</author>
 
   <license>Apache License, Version 2.0, see "http://www.apache.org/licenses/LICENSE-2.0"</license>
   <url type="repository">https://github.com/SICKAG/sick_scan_xd</url>
@@ -42,9 +42,9 @@
   <test_depend condition="$ROS_VERSION == 2">ament_lint_auto</test_depend>
   <test_depend condition="$ROS_VERSION == 2">ament_lint_common</test_depend>
 
-  <export>
+  <!-- export>
     <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
-  </export>
+  </export -->
   
   <member_of_group condition="$ROS_VERSION == 2">rosidl_interface_packages</member_of_group>
 </package>

@@ -180,6 +180,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
 2. Build sick_generic_caller:
    ```
    source /opt/ros/melodic/setup.bash
+   cp -f ./src/sick_scan_xd/package_ros1.xml ./src/sick_scan_xd/package.xml
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1
    source ./install_isolated/setup.bash
    ```
@@ -206,6 +207,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
 2. Build sick_generic_caller:
    ```
    source /opt/ros/eloquent/setup.bash
+   cp -f ./src/sick_scan_xd/package_ros2.xml ./src/sick_scan_xd/package.xml
    colcon build --packages-select libsick_ldmrs --event-handlers console_direct+
    source ./install/setup.bash
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
@@ -277,6 +279,7 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
 
 3. Build sick_generic_caller:
    ```
+   copy /b/y .\src\sick_scan_xd\package_ros2.xml .\src\sick_scan_xd\package.xml
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    call .\install\setup.bat
    ```
