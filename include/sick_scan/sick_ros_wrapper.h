@@ -422,31 +422,4 @@ namespace sick_scan
 }
 #endif
 
-/*
-** ROS-2 requires lowercase field names in all idl generated message structs
-*/
-#if __ROS_VERSION > 0 // 1
-#define radarPreHeader radarpreheader
-#define uiVersionNo uiversionno
-#define radarPreHeaderDeviceBlock radarpreheaderdeviceblock
-#define radarPreHeaderStatusBlock radarpreheaderstatusblock
-#define radarPreHeaderMeasurementParam1Block radarpreheadermeasurementparam1block
-#define radarPreHeaderArrayEncoderBlock radarpreheaderarrayencoderblock
-#define uiIdent uiident
-#define udiSerialNo udiserialno
-#define bDeviceError bdeviceerror
-#define bContaminationWarning bcontaminationwarning
-#define bContaminationError bcontaminationerror
-#define udiEncoderPos udiencoderpos
-#define iEncoderSpeed iencoderspeed
-#define uiCycleDuration uicycleduration
-#define uiNoiseLevel uinoiselevel
-#define uiTelegramCount uitelegramcount
-#define uiCycleCount uicyclecount
-#define udiSystemCountScan udisystemcountscan
-#define udiSystemCountTransmit udisystemcounttransmit
-#define uiInputs uiinputs
-#define uiOutputs uioutputs
-#endif
-
 #endif // __SICK_ROS_WRAPPER_H_INCLUDED

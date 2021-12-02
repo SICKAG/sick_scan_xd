@@ -10,7 +10,6 @@ build_x64/
 build_win64/
 build_linux/
 
-package.xml
 \.vs/
 
 src/sick_scan_common\.cpp~RF1a1a7142\.TMP
@@ -110,4 +109,5 @@ test/emulator/scandata/20210302_lms111.pcapng_full.json
 test/emulator/scandata/20210302_lms511.pcapng_full.json
 test/emulator/scandata/fieldset_trial_0001.pcapng_full.json
 test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng_full.json
+test/emulator/scandata/20211201_MRS_1xxx_IMU_with_movement.pcapng.json
 test/emulator/scandata/*.pcapng

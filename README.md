@@ -93,7 +93,7 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 |       |   | Scan-Rate: 12.5-25 Hz | |
 | NAV310     | [e.g. 1052928](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav3xx/nav350-3232/p/p256041) | 1 layer max. range: 250 m, ang. resol. 0.125 [deg] | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 8 Hz   |                 |
-| NAV210+NAV245      | [e.g. 	1074308](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav2xx/c/g356151) | 1 layer max. range: 100 m, ang. resol. 0.25 [deg]| ✔ [stable]|
+| NAV210+NAV245      | [e.g.    1074308](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav2xx/c/g356151) | 1 layer max. range: 100 m, ang. resol. 0.25 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 25 Hz   |                 |
 | RMS3xx             | [8021530](https://cdn.sick.com/media/docs/4/04/504/Operating_instructions_RMS3xx_en_IM0075504.PDF)| Radar Sensor | ✔ [stable]|
 | RMS1xxx             | [1107598](https://www.sick.com/de/en/detection-and-ranging-solutions/radar-sensors/rms1000/rms1731c-636111/p/p660833)| 1D Radar Sensor | ✔ [development]|
@@ -154,6 +154,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    pushd sick_scan_xd
    mkdir -p ./build_linux
    cd ./build_linux
+   export ROS_VERSION=0
    cmake -DROS_VERSION=0 -G "Unix Makefiles" ..
    make -j4
    popd
@@ -180,7 +181,6 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
 2. Build sick_generic_caller:
    ```
    source /opt/ros/melodic/setup.bash
-   cp -f ./src/sick_scan_xd/package_ros1.xml ./src/sick_scan_xd/package.xml
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1
    source ./install_isolated/setup.bash
    ```
@@ -207,7 +207,6 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
 2. Build sick_generic_caller:
    ```
    source /opt/ros/eloquent/setup.bash
-   cp -f ./src/sick_scan_xd/package_ros2.xml ./src/sick_scan_xd/package.xml
    colcon build --packages-select libsick_ldmrs --event-handlers console_direct+
    source ./install/setup.bash
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
@@ -279,7 +278,6 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
 
 3. Build sick_generic_caller:
    ```
-   copy /b/y .\src\sick_scan_xd\package_ros2.xml .\src\sick_scan_xd\package.xml
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    call .\install\setup.bat
    ```
@@ -745,7 +743,7 @@ Common problems might be solved in closed issues.
  3. Sopas file of your scanner configuration.
   The instructions at http://sickusablog.com/create-and-download-a-sopas-file/ show how to create the Sopas file.
 * In case of application support please use [https://supportportal.sick.com ](https://supportportal.sick.com).
-* Issue Handling: Issues, for which no reply was received from the questioner for more than 7 days,						
+* Issue Handling: Issues, for which no reply was received from the questioner for more than 7 days,                     
   are closed by us because we assume that the user has solved the problem.
 
 ## Keywords

@@ -499,6 +499,11 @@ sick_scan::SickLocColaTelegramMsg sick_scan::TestcaseGenerator::createColaRespon
     s_controller_settings["LMCstartmeas"] = 0;
     return sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sAN"), "LMCstopmeas", {"00"});
   }
+  if(cola_request.command_type == sick_scan::ColaParser::sEN && cola_request.command_name == "LMDradardata")
+  {
+    s_controller_settings["LMCstartmeas"] = 1;
+    return sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sEA"), "LMDradardata", {"01"});
+  }
   if(cola_request.command_type == sick_scan::ColaParser::sMN && cola_request.command_name == "LocStartLocalizing")
   {
     s_controller_settings["LocState"] = 2;

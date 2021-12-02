@@ -24,37 +24,37 @@ struct RadarPreHeaderDeviceBlock_
   typedef RadarPreHeaderDeviceBlock_<ContainerAllocator> Type;
 
   RadarPreHeaderDeviceBlock_()
-    : uiIdent(0)
-    , udiSerialNo(0)
-    , bDeviceError(false)
-    , bContaminationWarning(false)
-    , bContaminationError(false)  {
+    : uiident(0)
+    , udiserialno(0)
+    , bdeviceerror(false)
+    , bcontaminationwarning(false)
+    , bcontaminationerror(false)  {
     }
   RadarPreHeaderDeviceBlock_(const ContainerAllocator& _alloc)
-    : uiIdent(0)
-    , udiSerialNo(0)
-    , bDeviceError(false)
-    , bContaminationWarning(false)
-    , bContaminationError(false)  {
+    : uiident(0)
+    , udiserialno(0)
+    , bdeviceerror(false)
+    , bcontaminationwarning(false)
+    , bcontaminationerror(false)  {
   (void)_alloc;
     }
 
 
 
-   typedef uint32_t _uiIdent_type;
-  _uiIdent_type uiIdent;
+   typedef uint32_t _uiident_type;
+  _uiident_type uiident;
 
-   typedef uint32_t _udiSerialNo_type;
-  _udiSerialNo_type udiSerialNo;
+   typedef uint32_t _udiserialno_type;
+  _udiserialno_type udiserialno;
 
-   typedef uint8_t _bDeviceError_type;
-  _bDeviceError_type bDeviceError;
+   typedef uint8_t _bdeviceerror_type;
+  _bdeviceerror_type bdeviceerror;
 
-   typedef uint8_t _bContaminationWarning_type;
-  _bContaminationWarning_type bContaminationWarning;
+   typedef uint8_t _bcontaminationwarning_type;
+  _bcontaminationwarning_type bcontaminationwarning;
 
-   typedef uint8_t _bContaminationError_type;
-  _bContaminationError_type bContaminationError;
+   typedef uint8_t _bcontaminationerror_type;
+  _bcontaminationerror_type bcontaminationerror;
 
 
 
@@ -81,6 +81,24 @@ ros::message_operations::Printer< ::sick_scan::RadarPreHeaderDeviceBlock_<Contai
 return s;
 }
 
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator==(const ::sick_scan::RadarPreHeaderDeviceBlock_<ContainerAllocator1> & lhs, const ::sick_scan::RadarPreHeaderDeviceBlock_<ContainerAllocator2> & rhs)
+{
+  return lhs.uiident == rhs.uiident &&
+    lhs.udiserialno == rhs.udiserialno &&
+    lhs.bdeviceerror == rhs.bdeviceerror &&
+    lhs.bcontaminationwarning == rhs.bcontaminationwarning &&
+    lhs.bcontaminationerror == rhs.bcontaminationerror;
+}
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator!=(const ::sick_scan::RadarPreHeaderDeviceBlock_<ContainerAllocator1> & lhs, const ::sick_scan::RadarPreHeaderDeviceBlock_<ContainerAllocator2> & rhs)
+{
+  return !(lhs == rhs);
+}
+
+
 } // namespace sick_scan
 
 namespace ros
@@ -88,12 +106,6 @@ namespace ros
 namespace message_traits
 {
 
-
-
-// BOOLTRAITS {'IsFixedSize': True, 'IsMessage': True, 'HasHeader': False}
-// {'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'sick_scan': ['/home/rosuser/catkin_sick_scan/src/sick_scan/msg']}
-
-// !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
 
 
@@ -134,12 +146,12 @@ struct MD5Sum< ::sick_scan::RadarPreHeaderDeviceBlock_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "8c1dc3fa07dfb079c66dfaa39765f5a0";
+    return "be30eec819eb95fab7fceb700298df91";
   }
 
   static const char* value(const ::sick_scan::RadarPreHeaderDeviceBlock_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x8c1dc3fa07dfb079ULL;
-  static const uint64_t static_value2 = 0xc66dfaa39765f5a0ULL;
+  static const uint64_t static_value1 = 0xbe30eec819eb95faULL;
+  static const uint64_t static_value2 = 0xb7fceb700298df91ULL;
 };
 
 template<class ContainerAllocator>
@@ -163,16 +175,19 @@ struct Definition< ::sick_scan::RadarPreHeaderDeviceBlock_<ContainerAllocator> >
 "#\n"
 "#\n"
 "\n"
-"# Logical number of the device\"\n"
-"uint32 uiIdent\n"
-"# Serial number of the device\n"
-"uint32 udiSerialNo\n"
-"# State of the device\n"
-"bool bDeviceError\n"
-"# Contamination Warning\n"
-"bool bContaminationWarning\n"
-"# Contamination Error\n"
-"bool bContaminationError\n"
+"# ROS-1:\n"
+"#uint32 uiIdent             # Logical number of the device\"\n"
+"#uint32 udiSerialNo         # Serial number of the device\n"
+"#bool bDeviceError          # State of the device\n"
+"#bool bContaminationWarning # Contamination Warning\n"
+"#bool bContaminationError   # Contamination Error\n"
+"\n"
+"# ROS-2:\n"
+"uint32 uiident             # Logical number of the device\"\n"
+"uint32 udiserialno         # Serial number of the device\n"
+"bool bdeviceerror          # State of the device\n"
+"bool bcontaminationwarning # Contamination Warning\n"
+"bool bcontaminationerror   # Contamination Error\n"
 ;
   }
 
@@ -191,11 +206,11 @@ namespace serialization
   {
     template<typename Stream, typename T> inline static void allInOne(Stream& stream, T m)
     {
-      stream.next(m.uiIdent);
-      stream.next(m.udiSerialNo);
-      stream.next(m.bDeviceError);
-      stream.next(m.bContaminationWarning);
-      stream.next(m.bContaminationError);
+      stream.next(m.uiident);
+      stream.next(m.udiserialno);
+      stream.next(m.bdeviceerror);
+      stream.next(m.bcontaminationwarning);
+      stream.next(m.bcontaminationerror);
     }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
@@ -214,16 +229,16 @@ struct Printer< ::sick_scan::RadarPreHeaderDeviceBlock_<ContainerAllocator> >
 {
   template<typename Stream> static void stream(Stream& s, const std::string& indent, const ::sick_scan::RadarPreHeaderDeviceBlock_<ContainerAllocator>& v)
   {
-    s << indent << "uiIdent: ";
-    Printer<uint32_t>::stream(s, indent + "  ", v.uiIdent);
-    s << indent << "udiSerialNo: ";
-    Printer<uint32_t>::stream(s, indent + "  ", v.udiSerialNo);
-    s << indent << "bDeviceError: ";
-    Printer<uint8_t>::stream(s, indent + "  ", v.bDeviceError);
-    s << indent << "bContaminationWarning: ";
-    Printer<uint8_t>::stream(s, indent + "  ", v.bContaminationWarning);
-    s << indent << "bContaminationError: ";
-    Printer<uint8_t>::stream(s, indent + "  ", v.bContaminationError);
+    s << indent << "uiident: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.uiident);
+    s << indent << "udiserialno: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.udiserialno);
+    s << indent << "bdeviceerror: ";
+    Printer<uint8_t>::stream(s, indent + "  ", v.bdeviceerror);
+    s << indent << "bcontaminationwarning: ";
+    Printer<uint8_t>::stream(s, indent + "  ", v.bcontaminationwarning);
+    s << indent << "bcontaminationerror: ";
+    Printer<uint8_t>::stream(s, indent + "  ", v.bcontaminationerror);
   }
 };
 

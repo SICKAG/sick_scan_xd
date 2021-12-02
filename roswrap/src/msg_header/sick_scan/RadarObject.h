@@ -107,6 +107,28 @@ ros::message_operations::Printer< ::sick_scan::RadarObject_<ContainerAllocator> 
 return s;
 }
 
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator==(const ::sick_scan::RadarObject_<ContainerAllocator1> & lhs, const ::sick_scan::RadarObject_<ContainerAllocator2> & rhs)
+{
+  return lhs.id == rhs.id &&
+    lhs.tracking_time == rhs.tracking_time &&
+    lhs.last_seen == rhs.last_seen &&
+    lhs.velocity == rhs.velocity &&
+    lhs.bounding_box_center == rhs.bounding_box_center &&
+    lhs.bounding_box_size == rhs.bounding_box_size &&
+    lhs.object_box_center == rhs.object_box_center &&
+    lhs.object_box_size == rhs.object_box_size &&
+    lhs.contour_points == rhs.contour_points;
+}
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator!=(const ::sick_scan::RadarObject_<ContainerAllocator1> & lhs, const ::sick_scan::RadarObject_<ContainerAllocator2> & rhs)
+{
+  return !(lhs == rhs);
+}
+
+
 } // namespace sick_scan
 
 namespace ros
@@ -114,12 +136,6 @@ namespace ros
 namespace message_traits
 {
 
-
-
-// BOOLTRAITS {'IsFixedSize': False, 'IsMessage': True, 'HasHeader': False}
-// {'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'sick_scan': ['/home/rosuser/catkin_sick_scan/src/sick_scan/msg']}
-
-// !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
 
 
@@ -186,8 +202,13 @@ struct Definition< ::sick_scan::RadarObject_<ContainerAllocator> >
   {
     return "int32 id\n"
 "\n"
+"# ROS-1:\n"
 "time tracking_time                          # since when the object is tracked\n"
 "time last_seen\n"
+"\n"
+"# ROS-2:\n"
+"#builtin_interfaces/Time tracking_time        # since when the object is tracked\n"
+"#builtin_interfaces/Time last_seen\n"
 "\n"
 "geometry_msgs/TwistWithCovariance velocity\n"
 "\n"

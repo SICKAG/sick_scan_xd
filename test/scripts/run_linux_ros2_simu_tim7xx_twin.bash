@@ -29,7 +29,7 @@ source ./install/setup.bash
 
 # Start sick_scan emulator simulating 2 lidar devices
 echo -e "run_linux_ros2_simu_tim7xx_twin.bash: starting tim7xx emulation with 2 sensors\n"
-cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng.json /tmp/lmd_scandata.pcapng.json
+cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng_full.json /tmp/lmd_scandata.pcapng.json
 ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch result_telegrams_tcp_port:=2201 cola_telegrams_tcp_port:=2112 &
 sleep 1
 ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_twin.launch result_telegrams_tcp_port:=2301 cola_telegrams_tcp_port:=2312 &

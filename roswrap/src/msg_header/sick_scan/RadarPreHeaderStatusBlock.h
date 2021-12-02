@@ -24,42 +24,42 @@ struct RadarPreHeaderStatusBlock_
   typedef RadarPreHeaderStatusBlock_<ContainerAllocator> Type;
 
   RadarPreHeaderStatusBlock_()
-    : uiTelegramCount(0)
-    , uiCycleCount(0)
-    , udiSystemCountScan(0)
-    , udiSystemCountTransmit(0)
-    , uiInputs(0)
-    , uiOutputs(0)  {
+    : uitelegramcount(0)
+    , uicyclecount(0)
+    , udisystemcountscan(0)
+    , udisystemcounttransmit(0)
+    , uiinputs(0)
+    , uioutputs(0)  {
     }
   RadarPreHeaderStatusBlock_(const ContainerAllocator& _alloc)
-    : uiTelegramCount(0)
-    , uiCycleCount(0)
-    , udiSystemCountScan(0)
-    , udiSystemCountTransmit(0)
-    , uiInputs(0)
-    , uiOutputs(0)  {
+    : uitelegramcount(0)
+    , uicyclecount(0)
+    , udisystemcountscan(0)
+    , udisystemcounttransmit(0)
+    , uiinputs(0)
+    , uioutputs(0)  {
   (void)_alloc;
     }
 
 
 
-   typedef uint32_t _uiTelegramCount_type;
-  _uiTelegramCount_type uiTelegramCount;
+   typedef uint32_t _uitelegramcount_type;
+  _uitelegramcount_type uitelegramcount;
 
-   typedef uint32_t _uiCycleCount_type;
-  _uiCycleCount_type uiCycleCount;
+   typedef uint32_t _uicyclecount_type;
+  _uicyclecount_type uicyclecount;
 
-   typedef uint32_t _udiSystemCountScan_type;
-  _udiSystemCountScan_type udiSystemCountScan;
+   typedef uint32_t _udisystemcountscan_type;
+  _udisystemcountscan_type udisystemcountscan;
 
-   typedef uint32_t _udiSystemCountTransmit_type;
-  _udiSystemCountTransmit_type udiSystemCountTransmit;
+   typedef uint32_t _udisystemcounttransmit_type;
+  _udisystemcounttransmit_type udisystemcounttransmit;
 
-   typedef uint16_t _uiInputs_type;
-  _uiInputs_type uiInputs;
+   typedef uint16_t _uiinputs_type;
+  _uiinputs_type uiinputs;
 
-   typedef uint16_t _uiOutputs_type;
-  _uiOutputs_type uiOutputs;
+   typedef uint16_t _uioutputs_type;
+  _uioutputs_type uioutputs;
 
 
 
@@ -86,6 +86,25 @@ ros::message_operations::Printer< ::sick_scan::RadarPreHeaderStatusBlock_<Contai
 return s;
 }
 
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator==(const ::sick_scan::RadarPreHeaderStatusBlock_<ContainerAllocator1> & lhs, const ::sick_scan::RadarPreHeaderStatusBlock_<ContainerAllocator2> & rhs)
+{
+  return lhs.uitelegramcount == rhs.uitelegramcount &&
+    lhs.uicyclecount == rhs.uicyclecount &&
+    lhs.udisystemcountscan == rhs.udisystemcountscan &&
+    lhs.udisystemcounttransmit == rhs.udisystemcounttransmit &&
+    lhs.uiinputs == rhs.uiinputs &&
+    lhs.uioutputs == rhs.uioutputs;
+}
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator!=(const ::sick_scan::RadarPreHeaderStatusBlock_<ContainerAllocator1> & lhs, const ::sick_scan::RadarPreHeaderStatusBlock_<ContainerAllocator2> & rhs)
+{
+  return !(lhs == rhs);
+}
+
+
 } // namespace sick_scan
 
 namespace ros
@@ -93,12 +112,6 @@ namespace ros
 namespace message_traits
 {
 
-
-
-// BOOLTRAITS {'IsFixedSize': True, 'IsMessage': True, 'HasHeader': False}
-// {'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'sick_scan': ['/home/rosuser/catkin_sick_scan/src/sick_scan/msg']}
-
-// !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
 
 
@@ -139,12 +152,12 @@ struct MD5Sum< ::sick_scan::RadarPreHeaderStatusBlock_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "fa00447ba5857e64792524ca30b37274";
+    return "dfa18760ab036b23a2e4191788b3e6e4";
   }
 
   static const char* value(const ::sick_scan::RadarPreHeaderStatusBlock_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0xfa00447ba5857e64ULL;
-  static const uint64_t static_value2 = 0x792524ca30b37274ULL;
+  static const uint64_t static_value1 = 0xdfa18760ab036b23ULL;
+  static const uint64_t static_value2 = 0xa2e4191788b3e6e4ULL;
 };
 
 template<class ContainerAllocator>
@@ -166,12 +179,21 @@ struct Definition< ::sick_scan::RadarPreHeaderStatusBlock_<ContainerAllocator> >
     return "#\n"
 "#\n"
 "#\n"
-"uint32 uiTelegramCount # telegram number\n"
-"uint32 uiCycleCount # \"scan number\"\n"
-"uint32 udiSystemCountScan # system time since power on of scan gen. [us]\n"
-"uint32 udiSystemCountTransmit # system time since power on of scan transmission [us]\n"
-"uint16 uiInputs # state of digital inputs\n"
-"uint16 uiOutputs # state of digital outputs\n"
+"# ROS-1:\n"
+"#uint32 uiTelegramCount # telegram number\n"
+"#uint32 uiCycleCount # \"scan number\"\n"
+"#uint32 udiSystemCountScan # system time since power on of scan gen. [us]\n"
+"#uint32 udiSystemCountTransmit # system time since power on of scan transmission [us]\n"
+"#uint16 uiInputs # state of digital inputs\n"
+"#uint16 uiOutputs # state of digital outputs\n"
+"\n"
+"# ROS-2:\n"
+"uint32 uitelegramcount # telegram number\n"
+"uint32 uicyclecount # \"scan number\"\n"
+"uint32 udisystemcountscan # system time since power on of scan gen. [us]\n"
+"uint32 udisystemcounttransmit # system time since power on of scan transmission [us]\n"
+"uint16 uiinputs # state of digital inputs\n"
+"uint16 uioutputs # state of digital outputs\n"
 ;
   }
 
@@ -190,12 +212,12 @@ namespace serialization
   {
     template<typename Stream, typename T> inline static void allInOne(Stream& stream, T m)
     {
-      stream.next(m.uiTelegramCount);
-      stream.next(m.uiCycleCount);
-      stream.next(m.udiSystemCountScan);
-      stream.next(m.udiSystemCountTransmit);
-      stream.next(m.uiInputs);
-      stream.next(m.uiOutputs);
+      stream.next(m.uitelegramcount);
+      stream.next(m.uicyclecount);
+      stream.next(m.udisystemcountscan);
+      stream.next(m.udisystemcounttransmit);
+      stream.next(m.uiinputs);
+      stream.next(m.uioutputs);
     }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
@@ -214,18 +236,18 @@ struct Printer< ::sick_scan::RadarPreHeaderStatusBlock_<ContainerAllocator> >
 {
   template<typename Stream> static void stream(Stream& s, const std::string& indent, const ::sick_scan::RadarPreHeaderStatusBlock_<ContainerAllocator>& v)
   {
-    s << indent << "uiTelegramCount: ";
-    Printer<uint32_t>::stream(s, indent + "  ", v.uiTelegramCount);
-    s << indent << "uiCycleCount: ";
-    Printer<uint32_t>::stream(s, indent + "  ", v.uiCycleCount);
-    s << indent << "udiSystemCountScan: ";
-    Printer<uint32_t>::stream(s, indent + "  ", v.udiSystemCountScan);
-    s << indent << "udiSystemCountTransmit: ";
-    Printer<uint32_t>::stream(s, indent + "  ", v.udiSystemCountTransmit);
-    s << indent << "uiInputs: ";
-    Printer<uint16_t>::stream(s, indent + "  ", v.uiInputs);
-    s << indent << "uiOutputs: ";
-    Printer<uint16_t>::stream(s, indent + "  ", v.uiOutputs);
+    s << indent << "uitelegramcount: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.uitelegramcount);
+    s << indent << "uicyclecount: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.uicyclecount);
+    s << indent << "udisystemcountscan: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.udisystemcountscan);
+    s << indent << "udisystemcounttransmit: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.udisystemcounttransmit);
+    s << indent << "uiinputs: ";
+    Printer<uint16_t>::stream(s, indent + "  ", v.uiinputs);
+    s << indent << "uioutputs: ";
+    Printer<uint16_t>::stream(s, indent + "  ", v.uioutputs);
   }
 };
 

@@ -33,6 +33,7 @@ if [ ! -d ./build_linux ] ; then mkdir -p ./build_linux ; fi
 cd ./build_linux
 rm -f $BUILDLOGFILE
 rm -f $ERRORLOGFILE
+export ROS_VERSION=0
 cmake -DROS_VERSION=0 -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
 make -j$USECORES                             2>&1 | tee -a $BUILDLOGFILE
 
