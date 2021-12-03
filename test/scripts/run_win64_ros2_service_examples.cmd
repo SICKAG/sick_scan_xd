@@ -40,6 +40,8 @@ ros2 service type /ColaMsg
 ros2 service find sick_scan/srv/ColaMsgSrv
 @timeout /t 2
 
+ros2 service call /SCdevicestate sick_scan/srv/SCdevicestateSrv "{}"
+@timeout /t 2
 ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN IsSystemReady'}"
 @timeout /t 2
 ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sRN SCdevicestate'}"

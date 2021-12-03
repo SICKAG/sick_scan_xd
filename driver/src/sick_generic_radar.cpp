@@ -312,10 +312,10 @@ namespace sick_scan
 
         StatusBlock
         ===========
-        7: BCC            uiTelegramCount
-        8: DC0C           uiCycleCount (or uiScanCount???)
-        9: 730E9D16       udiSystemCountScan
-        10: 730EA06D       udiSystemCountTransmit
+        7: BCC            uitelegramcount
+        8: DC0C           uicyclecount
+        9: 730E9D16       udisystemcountscan
+        10: 730EA06D       udisystemcounttransmit
         11: 0              xbInputs[0]
         12: 0              xbInputs[1]
         13: 0              xbOutputs[0]
@@ -323,16 +323,16 @@ namespace sick_scan
 
         MeasurementParam1Block
         ======================
-        15: 0              MeasurementParam1Block.uiCycleDuration
-        16: 0              MeasurementParam1Block.uiNoiseLevel
+        15: 0              MeasurementParam1Block.uicycleduration
+        16: 0              MeasurementParam1Block.uinoiselevel
 
         aEncoderBlock
         =============
         17: 1              Number of aEncoderBlocks
 
 
-        18: 0              aEncoderBlock[0].udiEncoderPos
-        19: 0              aEncoderBlock[0].iEncoderSpeed
+        18: 0              aEncoderBlock[0].udiencoderpos
+        19: 0              aEncoderBlock[0].iencoderspeed
 
 
         PREHADERR_TOKEN_FIX_NUM};  // Number of fix token (excluding aEncoderBlock)
@@ -354,13 +354,13 @@ namespace sick_scan
       switch (i)
       {
         case PREHEADER_TOKEN_UI_VERSION_NO:
-          msgPtr->radarPreHeader.uiVersionNo = (UINT16) (uliDummy & 0xFFFF);
+          msgPtr->radarpreheader.uiversionno = (UINT16) (uliDummy & 0xFFFF);
           break;
         case PREHEADER_TOKEN_UI_IDENT:
-          msgPtr->radarPreHeader.radarPreHeaderDeviceBlock.uiIdent = (UINT16) (uliDummy & 0xFFFF);
+          msgPtr->radarpreheader.radarpreheaderdeviceblock.uiident = (UINT16) (uliDummy & 0xFFFF);
           break;
         case PREHEADER_TOKEN_UDI_SERIAL_NO:
-          msgPtr->radarPreHeader.radarPreHeaderDeviceBlock.udiSerialNo = (UINT32) (uliDummy & 0xFFFFFFFF);
+          msgPtr->radarpreheader.radarpreheaderdeviceblock.udiserialno = (UINT32) (uliDummy & 0xFFFFFFFF);
           break;
         case PREHEADER_TOKEN_XB_STATE_0:
           for (int j = 0; j < 3; j++)
@@ -373,13 +373,13 @@ namespace sick_scan
             switch (j)
             {
               case 0:
-                msgPtr->radarPreHeader.radarPreHeaderDeviceBlock.bDeviceError = flag;
+                msgPtr->radarpreheader.radarpreheaderdeviceblock.bdeviceerror = flag;
                 break;
               case 1:
-                msgPtr->radarPreHeader.radarPreHeaderDeviceBlock.bContaminationWarning = flag;
+                msgPtr->radarpreheader.radarpreheaderdeviceblock.bcontaminationwarning = flag;
                 break;
               case 2:
-                msgPtr->radarPreHeader.radarPreHeaderDeviceBlock.bContaminationError = flag;
+                msgPtr->radarpreheader.radarpreheaderdeviceblock.bcontaminationerror = flag;
                 break;
               default:
                 ROS_WARN("Flag parsing for this PREHEADER-Flag not implemented");
@@ -390,37 +390,37 @@ namespace sick_scan
           // reserved - do nothing
           break;
         case PREHEADER_TOKEN_TELEGRAM_COUNT: // 7
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.uiTelegramCount = (UINT16) (uliDummy & 0xFFFF);
+          msgPtr->radarpreheader.radarpreheaderstatusblock.uitelegramcount = (UINT16) (uliDummy & 0xFFFF);
           break;
         case PREHEADER_TOKEN_CYCLE_COUNT:
           sscanf(fields[i], "%hu", &uiValue);
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.uiCycleCount = (UINT16) (uliDummy & 0xFFFF);
+          msgPtr->radarpreheader.radarpreheaderstatusblock.uicyclecount = (UINT16) (uliDummy & 0xFFFF);
           break;
         case PREHEADER_TOKEN_SYSTEM_COUNT_SCAN:
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.udiSystemCountScan = (UINT32) (uliDummy & 0xFFFFFFFF);
+          msgPtr->radarpreheader.radarpreheaderstatusblock.udisystemcountscan = (UINT32) (uliDummy & 0xFFFFFFFF);
           break;
         case PREHEADER_TOKEN_SYSTEM_COUNT_TRANSMIT:
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.udiSystemCountTransmit = (UINT32) (uliDummy & 0xFFFFFFFF);
+          msgPtr->radarpreheader.radarpreheaderstatusblock.udisystemcounttransmit = (UINT32) (uliDummy & 0xFFFFFFFF);
           break;
         case PREHEADER_TOKEN_XB_INPUTS_0:
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.uiInputs = (UINT8) (uliDummy & 0xFF);;
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.uiInputs <<= 8;
+          msgPtr->radarpreheader.radarpreheaderstatusblock.uiinputs = (UINT8) (uliDummy & 0xFF);;
+          msgPtr->radarpreheader.radarpreheaderstatusblock.uiinputs <<= 8;
           break;
         case PREHEADER_TOKEN_XB_INPUTS_1:
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.uiInputs |= (UINT8) (uliDummy & 0xFF);;
+          msgPtr->radarpreheader.radarpreheaderstatusblock.uiinputs |= (UINT8) (uliDummy & 0xFF);;
           break;
         case PREHEADER_TOKEN_XB_OUTPUTS_0:
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.uiOutputs = (UINT8) (uliDummy & 0xFF);;
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.uiOutputs <<= 8;
+          msgPtr->radarpreheader.radarpreheaderstatusblock.uioutputs = (UINT8) (uliDummy & 0xFF);;
+          msgPtr->radarpreheader.radarpreheaderstatusblock.uioutputs <<= 8;
           break;
         case PREHEADER_TOKEN_XB_OUTPUTS_1:
-          msgPtr->radarPreHeader.radarPreHeaderStatusBlock.uiOutputs |= (UINT8) (uliDummy & 0xFF);;
+          msgPtr->radarpreheader.radarpreheaderstatusblock.uioutputs |= (UINT8) (uliDummy & 0xFF);;
           break;
         case PREHEADER_TOKEN_CYCLE_DURATION:
-          msgPtr->radarPreHeader.radarPreHeaderMeasurementParam1Block.uiCycleDuration = (UINT16) (uliDummy & 0xFFFF);
+          msgPtr->radarpreheader.radarpreheadermeasurementparam1block.uicycleduration = (UINT16) (uliDummy & 0xFFFF);
           break;
         case PREHEADER_TOKEN_NOISE_LEVEL:
-          msgPtr->radarPreHeader.radarPreHeaderMeasurementParam1Block.uiNoiseLevel = (UINT16) (uliDummy & 0xFFFF);
+          msgPtr->radarpreheader.radarpreheadermeasurementparam1block.uinoiselevel = (UINT16) (uliDummy & 0xFFFF);
           break;
         case PREHEADER_NUM_ENCODER_BLOCKS:
         {
@@ -428,17 +428,17 @@ namespace sick_scan
 
           if (u16NumberOfBlock > 0)
           {
-            msgPtr->radarPreHeader.radarPreHeaderArrayEncoderBlock.resize(u16NumberOfBlock);
+            msgPtr->radarpreheader.radarpreheaderarrayencoderblock.resize(u16NumberOfBlock);
 
             for (int j = 0; j < u16NumberOfBlock; j++)
             {
-              INT16 iEncoderSpeed;
+              INT16 iencoderspeed;
               int rowIndex = PREHEADER_NUM_ENCODER_BLOCKS + j * 2 + 1;
               udiValue = strtoul(fields[rowIndex], NULL, 16);
-              msgPtr->radarPreHeader.radarPreHeaderArrayEncoderBlock[j].udiEncoderPos = udiValue;
+              msgPtr->radarpreheader.radarpreheaderarrayencoderblock[j].udiencoderpos = udiValue;
               udiValue = strtoul(fields[rowIndex + 1], NULL, 16);
-              iEncoderSpeed = (int) udiValue;
-              msgPtr->radarPreHeader.radarPreHeaderArrayEncoderBlock[j].iEncoderSpeed = iEncoderSpeed;
+              iencoderspeed = (int) udiValue;
+              msgPtr->radarpreheader.radarpreheaderarrayencoderblock[j].iencoderspeed = iencoderspeed;
 
             }
           }
@@ -449,7 +449,7 @@ namespace sick_scan
 /*
 				MeasurementData
 				===============
-				2: 1             MeasurementData.uiVersionNo  : Version Information for this while structureValue
+				2: 1             MeasurementData.uiversionno  : Version Information for this while structureValue
 				Value   Range: 0 ... 65535
 				};
 

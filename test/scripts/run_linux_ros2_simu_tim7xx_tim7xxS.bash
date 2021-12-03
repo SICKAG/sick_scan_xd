@@ -40,7 +40,7 @@ source ./install/setup.bash
 #
 
 echo -e "run_linux_ros2_simu_tim7xx_tim7xxS.bash: starting TiM7xx/TiM7xxS emulation with  $sick_scan_launch_file\n"
-cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng.json /tmp/lmd_scandata.pcapng.json
+cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng_full.json /tmp/lmd_scandata.pcapng.json
 run_simu emulator_01_default.launch sick_tim_7xx.launch
 run_simu emulator_01_default.launch sick_tim_7xxS.launch
   

@@ -1,0 +1,31 @@
+@startuml
+
+[*] --> Initialization
+
+Initialization --> Measurement : Succeeded
+Initialization --> Close : Timeout (120 sec.)
+Initialization --> Error : Timeout (150 sec.)
+
+Close --> Initialization
+
+Measurement --> Success : Succeeded
+Measurement --> Close : Timeout (5 sec.)
+Measurement --> Error : Timeout (150 sec.)
+
+Success --> [*]
+Error --> [*]
+
+Close : - Shutdown TCP connection
+
+Initialization : - Open TCP connection
+Initialization : - Initialize Lidar
+Initialization : - Run sopas start commands
+
+Measurement : - Receive scan data
+Measurement : - Publish point cloud
+Measurement : - Handle service calls
+
+Success : - Exit
+Error : - Exit
+
+@enduml

@@ -79,6 +79,8 @@ namespace sick_scan
       datagram = datagram_;
     }
 
+    virtual std::vector<unsigned char> & data(void) { return datagram; }
+
 // private:
     rosTime timeStamp;
     std::vector<unsigned char> datagram;
@@ -115,6 +117,8 @@ namespace sick_scan
 
     void processFrame(rosTime timeStamp, SopasEventMessage &frame);
 
+    int reinit(rosNodePtr nh, int delay_millisec);
+
     // Queue<std::vector<unsigned char> > recvQueue;
     Queue<DatagramWithTimeStamp> recvQueue;
     UINT32 m_alreadyReceivedBytes;
@@ -144,14 +148,14 @@ namespace sick_scan
      * \param [in] bufferSize max data size to write to buffer (result should be 0 terminated)
      * \param [out] actual_length the actual amount of data written
      * \param [in] isBinaryProtocol true=binary False=ASCII
+     * \param [in] datagram_keywords keyword in returned datagram, e.g. { "LMDscandata" } to get scandata telegrams, or {} (empty vector) for next received datagram
      */
     virtual int
     get_datagram(rosNodePtr nh, rosTime &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize, int *actual_length,
-                 bool isBinaryProtocol, int *numberOfRemainingFifoEntries);
+                 bool isBinaryProtocol, int *numberOfRemainingFifoEntries, const std::vector<std::string>& datagram_keywords);
 
     // Helpers for boost asio
-    int readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read = 0,
-                        bool *exception_occured = 0, bool isBinary = false);
+    virtual int readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, const std::vector<std::string>& datagram_keywords);
 
     /*void handleRead(boost::system::error_code error, size_t bytes_transfered);*/
 

@@ -87,7 +87,7 @@ sick_scan::TestServerThread::TestServerThread(ROS::NodePtr nh, int ip_port_resul
   m_error_simulation_thread(0), m_error_simulation_thread_running(false)
 {
   m_scandatafiles = "/tmp/lmd_scandata.pcapng.json"; // default pcapng.json file for testing and debugging
-  m_scandatatypes = "sSN LMDscandata ,sSN LIDinputstate ,sSN LIDoutputstate ,sSN LFErec "; // default datatypes (send those datatypes when found in scandata file)
+  m_scandatatypes = "sSN LMDscandata ,sSN LIDinputstate ,sSN LIDoutputstate ,sSN LFErec ,sSN InertialMeasurementUnit ,sSN LMDradardata "; // default datatypes (send those datatypes when found in scandata file)
   if(nh)
   {
     ROS::param<std::string>(nh, "/sick_scan_emulator/scandatafiles", m_scandatafiles, m_scandatafiles); // comma separated list of jsonfiles to emulate scandata messages, f.e. "tim781s_scandata.pcapng.json,tim781s_sopas.pcapng.json"
@@ -570,7 +570,7 @@ void sick_scan::TestServerThread::runWorkerThreadScandataCb(socket_ptr p_socket)
      return;
   }
   ROS::sleep(m_start_scandata_delay); // delay between scandata activation ("LMCstartmeas" request) and first scandata message, default: 1 second
-  double last_msg_timestamp = 0;
+  double last_msg_timestamp = ((binary_messages.empty()) ? 0 : (binary_messages[0].timestamp));
   int iTransmitErrorCnt = 0;
   for(int msg_cnt = 0, msg_cnt_delta = 1; ROS::ok() && m_tcp_send_scandata_thread_running && p_socket && p_socket->is_open(); msg_cnt+=msg_cnt_delta)
   {

@@ -3,11 +3,11 @@
  *
  */
 #include <stdio.h>      /* for printf() and fprintf() */
-#ifdef linux
+#ifdef _MSC_VER
+#include <winsock2.h>
+#else
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
-#else
-#include <winsock2.h>
 #endif
 #include <stdlib.h>     /* for atoi() and exit() */
 #include <string.h>     /* for memset() */

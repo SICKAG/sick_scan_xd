@@ -30,6 +30,7 @@ REM Run sick_generic_caller
 REM 
 
 pushd ..\..\build_win64
+rem .\Debug\sick_generic_caller.exe ../launch/sick_lms_5xx.launch hostname:=192.168.1.24 sw_pll_only_publish:=False
 .\Debug\sick_generic_caller.exe ../launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
 popd
 

@@ -24,22 +24,22 @@ struct RadarPreHeaderEncoderBlock_
   typedef RadarPreHeaderEncoderBlock_<ContainerAllocator> Type;
 
   RadarPreHeaderEncoderBlock_()
-    : udiEncoderPos(0)
-    , iEncoderSpeed(0)  {
+    : udiencoderpos(0)
+    , iencoderspeed(0)  {
     }
   RadarPreHeaderEncoderBlock_(const ContainerAllocator& _alloc)
-    : udiEncoderPos(0)
-    , iEncoderSpeed(0)  {
+    : udiencoderpos(0)
+    , iencoderspeed(0)  {
   (void)_alloc;
     }
 
 
 
-   typedef uint32_t _udiEncoderPos_type;
-  _udiEncoderPos_type udiEncoderPos;
+   typedef uint32_t _udiencoderpos_type;
+  _udiencoderpos_type udiencoderpos;
 
-   typedef int16_t _iEncoderSpeed_type;
-  _iEncoderSpeed_type iEncoderSpeed;
+   typedef int16_t _iencoderspeed_type;
+  _iencoderspeed_type iencoderspeed;
 
 
 
@@ -66,6 +66,21 @@ ros::message_operations::Printer< ::sick_scan::RadarPreHeaderEncoderBlock_<Conta
 return s;
 }
 
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator==(const ::sick_scan::RadarPreHeaderEncoderBlock_<ContainerAllocator1> & lhs, const ::sick_scan::RadarPreHeaderEncoderBlock_<ContainerAllocator2> & rhs)
+{
+  return lhs.udiencoderpos == rhs.udiencoderpos &&
+    lhs.iencoderspeed == rhs.iencoderspeed;
+}
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator!=(const ::sick_scan::RadarPreHeaderEncoderBlock_<ContainerAllocator1> & lhs, const ::sick_scan::RadarPreHeaderEncoderBlock_<ContainerAllocator2> & rhs)
+{
+  return !(lhs == rhs);
+}
+
+
 } // namespace sick_scan
 
 namespace ros
@@ -73,12 +88,6 @@ namespace ros
 namespace message_traits
 {
 
-
-
-// BOOLTRAITS {'IsFixedSize': True, 'IsMessage': True, 'HasHeader': False}
-// {'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'sick_scan': ['/home/rosuser/catkin_sick_scan/src/sick_scan/msg']}
-
-// !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
 
 
@@ -119,12 +128,12 @@ struct MD5Sum< ::sick_scan::RadarPreHeaderEncoderBlock_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "5af720e8adc927dc42f34b3cd0d0e8e9";
+    return "fe409801376c90135322466d8a5244ac";
   }
 
   static const char* value(const ::sick_scan::RadarPreHeaderEncoderBlock_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x5af720e8adc927dcULL;
-  static const uint64_t static_value2 = 0x42f34b3cd0d0e8e9ULL;
+  static const uint64_t static_value1 = 0xfe409801376c9013ULL;
+  static const uint64_t static_value2 = 0x5322466d8a5244acULL;
 };
 
 template<class ContainerAllocator>
@@ -144,8 +153,12 @@ struct Definition< ::sick_scan::RadarPreHeaderEncoderBlock_<ContainerAllocator> 
   static const char* value()
   {
     return "# Array with connected encoder sensors\n"
-"uint32 udiEncoderPos  # encoder position [inc]\n"
-"int16 iEncoderSpeed   # encoder speed [inc/mm]\n"
+"# ROS-1:\n"
+"#uint32 udiEncoderPos  # encoder position [inc]\n"
+"#int16 iEncoderSpeed   # encoder speed [inc/mm]\n"
+"# ROS-2:\n"
+"uint32 udiencoderpos  # encoder position [inc]\n"
+"int16 iencoderspeed   # encoder speed [inc/mm]\n"
 ;
   }
 
@@ -164,8 +177,8 @@ namespace serialization
   {
     template<typename Stream, typename T> inline static void allInOne(Stream& stream, T m)
     {
-      stream.next(m.udiEncoderPos);
-      stream.next(m.iEncoderSpeed);
+      stream.next(m.udiencoderpos);
+      stream.next(m.iencoderspeed);
     }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
@@ -184,10 +197,10 @@ struct Printer< ::sick_scan::RadarPreHeaderEncoderBlock_<ContainerAllocator> >
 {
   template<typename Stream> static void stream(Stream& s, const std::string& indent, const ::sick_scan::RadarPreHeaderEncoderBlock_<ContainerAllocator>& v)
   {
-    s << indent << "udiEncoderPos: ";
-    Printer<uint32_t>::stream(s, indent + "  ", v.udiEncoderPos);
-    s << indent << "iEncoderSpeed: ";
-    Printer<int16_t>::stream(s, indent + "  ", v.iEncoderSpeed);
+    s << indent << "udiencoderpos: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.udiencoderpos);
+    s << indent << "iencoderspeed: ";
+    Printer<int16_t>::stream(s, indent + "  ", v.iencoderspeed);
   }
 };
 

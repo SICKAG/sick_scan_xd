@@ -251,10 +251,10 @@ void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall, c
                 if (cnt == intervall)
                 {
                   std::string filename_tmpl = outputfolder + "/scan";
-#if linux				  
-                  std::replace( filename_tmpl.begin(), filename_tmpl.end(), '\\', '/');
-#else
+#ifdef _MSC_VER
                   std::replace( filename_tmpl.begin(), filename_tmpl.end(), '/', '\\');
+#else
+                  std::replace( filename_tmpl.begin(), filename_tmpl.end(), '\\', '/');
 #endif
                   std::string jpgFileName_tmp = filename_tmpl + ".jpg_tmp";
 
@@ -383,10 +383,10 @@ void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall, c
 
                   free(pixel);
                   std::string jpgFileName_out = filename_tmpl + ".jpg";
-#if linux				  
+#ifdef _MSC_VER
+				  _unlink(jpgFileName_out.c_str());
 				  rename(jpgFileName_tmp.c_str(), jpgFileName_out.c_str());
 #else
-				  _unlink(jpgFileName_out.c_str());
 				  rename(jpgFileName_tmp.c_str(), jpgFileName_out.c_str());
 #endif
 
@@ -426,11 +426,11 @@ void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall, c
                     }
                     fclose(foutCsv);
                     std::string csvFileNameOut = filename_tmpl + ".csv";
-#ifdef linux
-                     rename(csvFileNameTmp.c_str(), csvFileNameOut.c_str());
-#else
+#ifdef _MSC_VER
 					  _unlink(csvFileNameOut.c_str());
 					  rename(csvFileNameTmp.c_str(), csvFileNameOut.c_str());
+#else
+                     rename(csvFileNameTmp.c_str(), csvFileNameOut.c_str());
 #endif
                   }
                   else

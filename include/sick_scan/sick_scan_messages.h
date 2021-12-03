@@ -121,6 +121,11 @@ namespace sick_scan
      */
     static bool parseLFErecMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, EVAL_FIELD_SUPPORT eval_field_logic, const std::string& frame_id, sick_scan_msg::LFErecMsg& output_msg);
 
+    /*
+     * @brief returns the sopas command keyword, e.g.: getSopasCmdKeyword("\x02\x02\x02\x02\x00\x00\x00\x8esSN LFErec \x3", 20) returns "LFErec".
+     */
+    static std::string getSopasCmdKeyword(const uint8_t* sopasRequest, int requestLength);
+
   protected:
 
     /*

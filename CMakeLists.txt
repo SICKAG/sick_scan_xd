@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # build options: set OFF for relese version, ON for development and test
-option(ENABLE_EMULATOR "Build emulator for offline and unittests" OFF) # OFF (release) or ON (development)
+option(ENABLE_EMULATOR "Build emulator for offline and unittests" ON) # OFF (release) or ON (development)
 if(WIN32)
     option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF)
 elseif(LDMRS EQUAL 0)
@@ -43,7 +43,7 @@ endif(BUILD_DEBUG_TARGET)
 
 # Switch on, if you use c11-specific commands
 if(NOT WIN32)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow -fno-var-tracking-assignments")
 endif()
 
 if(WIN32 AND EXISTS "c:/vcpkg/installed/x64-windows")
@@ -61,7 +61,7 @@ endif()
 if(WIN32)
     # add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
     add_compile_options(-D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
-    link_libraries(ws2_32)
+    link_libraries(ws2_32)    
 else()
     link_libraries(pthread) # std::thread requires pthread on linux
 endif()
@@ -71,7 +71,7 @@ endif()
 # get_cmake_property(_variableNames VARIABLES)
 # list (SORT _variableNames)
 # foreach (_variableName ${_variableNames})
-#	message(STATUS "${_variableName}=${${_variableName}}")
+#   message(STATUS "${_variableName}=${${_variableName}}")
 # endforeach()
 # --- CUT ---
 
@@ -145,6 +145,9 @@ if(ROS_VERSION EQUAL 1)
         ColaMsgSrv.srv
         ECRChangeArrSrv.srv
         LIDoutputstateSrv.srv
+        SCdevicestateSrv.srv
+        SCrebootSrv.srv
+        SCsoftresetSrv.srv
     )
 endif(ROS_VERSION EQUAL 1)
 
@@ -152,9 +155,6 @@ if(ROS_VERSION EQUAL 2)
     #uncomment this lines and change path accordingly
     set(FastRTPS_INCLUDE_DIR /opt/ros/$ENV{ROS_DISTRO}/include)
     set(FastRTPS_LIBRARY_RELEASE /opt/ros/$ENV{ROS_DISTRO}/lib/libfastrtps.so)
-    #to fix
-    #CMake Error at /snap/clion/126/bin/cmake/linux/share/cmake-3.17/Modules/FindPackageHandleStandardArgs.cmake:164 (message):
-    #  Could NOT find FastRTPS (missing: FastRTPS_INCLUDE_DIR FastRTPS_LIBRARIES)
 
     find_package(ament_cmake REQUIRED)
     # find_package(diagnostic_updater REQUIRED)
@@ -252,6 +252,9 @@ if(ROS_VERSION EQUAL 2)
         "srv/ColaMsgSrv.srv"
         "srv/ECRChangeArrSrv.srv"
         "srv/LIDoutputstateSrv.srv"
+        "srv/SCdevicestateSrv.srv"
+        "srv/SCrebootSrv.srv"
+        "srv/SCsoftresetSrv.srv"
         ${ROSIDL_EMULATOR_FILES}
         DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
     )   
@@ -388,6 +391,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_generic_radar.cpp
         driver/src/sick_generic_imu.cpp
         driver/src/sick_generic_parser.cpp
+        driver/src/sick_generic_monitoring.cpp
         driver/src/sick_scan_common_nw.cpp
         driver/src/sick_scan_config_internal.cpp
         driver/src/softwarePLL.cpp
@@ -459,7 +463,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     endif()
 
     set(SICK_SCAN_LIB_SRC
-	    roswrap/src/getopt/getopt.c
+        roswrap/src/getopt/getopt.c
         roswrap/src/toojpeg/toojpeg.cpp
         roswrap/src/launchparser/launchparser.cpp 
         driver/src/binScanf.cpp
@@ -473,6 +477,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/binPrintf.cpp
         driver/src/sick_generic_field_mon.cpp
         driver/src/sick_generic_laser.cpp
+        driver/src/sick_generic_monitoring.cpp
         driver/src/sick_generic_radar.cpp
         driver/src/sick_scan_marker.cpp
         driver/src/sick_scan_messages.cpp

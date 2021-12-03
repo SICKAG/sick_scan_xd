@@ -30,6 +30,14 @@
     <param name="timelimit" type="int" value="5" />
     <param name="new_IP_address" type="string" value="$(arg new_IP)"/>
     <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
+
+    <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
+    <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
+    <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->
+    <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
+    <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
+    <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
+
   </node>
 </launch>
 

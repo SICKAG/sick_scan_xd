@@ -72,6 +72,7 @@
 
 #include <sick_scan/sick_scan_common_nw.h>
 #include <sick_scan/sick_scan_common.h>
+#include <sick_scan/sick_scan_messages.h>
 #include <sick_scan/sick_generic_radar.h>
 #include <sick_scan/sick_generic_field_mon.h>
 #include <sick_scan/helper/angle_compensator.h>
@@ -106,6 +107,8 @@
 #ifdef ROSSIMU
 #include <sick_scan/pointcloud_utils.h>
 #endif
+
+#define RETURN_ERROR_ON_RESPONSE_TIMEOUT(result,reply) if(((result)!=ExitSuccess)&&((reply).empty()))return(ExitError)
 
 /*!
 \brief Universal swapping function
@@ -202,7 +205,7 @@ namespace sick_scan
   \param s: ASCII-Sopas command including 0x02 and 0x03
   \return Human readable string 0x02 and 0x02 are converted to "<STX>" and "<ETX>"
   */
-  std::string stripControl(std::vector<unsigned char> s)
+  std::string stripControl(std::vector<unsigned char> s, int max_strlen = -1)
   {
     bool isParamBinary = false;
     int spaceCnt = 0x00;
@@ -333,6 +336,11 @@ namespace sick_scan
           }
         }
       }
+    }
+    if(max_strlen > 0 && dest.size() > max_strlen)
+    {
+      dest.resize(max_strlen);
+      dest += "...";
     }
 
     return (dest);
@@ -518,6 +526,15 @@ namespace sick_scan
     double expected_frequency_tolerance = 0.1; // frequency should be target +- 10%
     rosDeclareParam(nh, "expected_frequency_tolerance", expected_frequency_tolerance);
     rosGetParam(nh, "expected_frequency_tolerance", expected_frequency_tolerance);
+
+    m_read_timeout_millisec_default = READ_TIMEOUT_MILLISEC_DEFAULT;
+    m_read_timeout_millisec_startup = READ_TIMEOUT_MILLISEC_STARTUP;
+
+    rosDeclareParam(nh, "read_timeout_millisec_default", m_read_timeout_millisec_default);
+    rosGetParam(nh, "read_timeout_millisec_default", m_read_timeout_millisec_default);
+
+    rosDeclareParam(nh, "read_timeout_millisec_startup", m_read_timeout_millisec_startup);
+    rosGetParam(nh, "read_timeout_millisec_startup", m_read_timeout_millisec_startup);
 
     cloud_marker_ = 0;
     publish_lferec_ = false;
@@ -733,17 +750,16 @@ namespace sick_scan
   {
     delete cloud_marker_;
     delete diagnosticPub_;
-
-    printf("sick_scan driver exiting.\n");
+    printf("sick_scan driver closed.\n");
   }
 
 
   /*!
-  \brief Generate expected answer string from the command string
+  \brief Generate expected answer strings from the command string
   \param requestStr command string (either as ASCII or BINARY)
   \return expected answer string
    */
-  std::string SickScanCommon::generateExpectedAnswerString(const std::vector<unsigned char> requestStr)
+  std::vector<std::string> SickScanCommon::generateExpectedAnswerString(const std::vector<unsigned char> requestStr)
   {
     std::string expectedAnswer = "";
     //int i = 0;
@@ -821,39 +837,39 @@ namespace sick_scan
     /*!
      * Map that defines expected answer identifiers
      */
-    std::map<std::string, std::string> keyWordMap;
-    keyWordMap["sWN"] = "sWA";
-    keyWordMap["sRN"] = "sRA";
-    keyWordMap["sRI"] = "sRA";
-    keyWordMap["sMN"] = "sAN";
-    keyWordMap["sEN"] = "sEA";
+    std::map<std::string, std::vector<std::string>> keyWordMap;
+    keyWordMap["sWN"] = { "sWA", "sAN" };
+    keyWordMap["sRN"] = { "sRA", "sAN" };
+    keyWordMap["sRI"] = { "sRA" };
+    keyWordMap["sMN"] = { "sAN", "sMA" };
+    keyWordMap["sEN"] = { "sEA" };
 
-    for (std::map<std::string, std::string>::iterator it = keyWordMap.begin(); it != keyWordMap.end(); it++)
+    std::vector<std::string> expectedAnswers;
+    for (std::map<std::string, std::vector<std::string>>::iterator it = keyWordMap.begin(); it != keyWordMap.end(); it++)
     {
-
-      std::string keyWord = it->first;
-      std::string newKeyWord = it->second;
+      const std::string& keyWord = it->first;
+      const std::vector<std::string>& newKeyWords = it->second;
 
       size_t pos = expectedAnswer.find(keyWord);
-      if (pos == std::string::npos)
+      if (pos == 0)  // must be 0, if keyword has been found
       {
-
-      }
-      else
-      {
-        if (pos == 0)  // must be 0, if keyword has been found
+        for(int n = 0; n < newKeyWords.size(); n++)
         {
-          expectedAnswer.replace(pos, keyWord.length(), newKeyWord);
-        }
-        else
-        {
-          ROS_WARN("Unexpected position of key identifier.\n");
+          expectedAnswers.push_back(expectedAnswer);
+          expectedAnswers.back().replace(pos, keyWord.length(), newKeyWords[n]);
         }
       }
-
+      else if (pos != std::string::npos) // keyword found at unexpected position
+      {
+        ROS_WARN("Unexpected position of key identifier.\n");
+      }
     }
-    return (expectedAnswer);
-
+    
+    if(expectedAnswers.empty())
+    {
+      expectedAnswers.push_back(expectedAnswer);
+    }
+    return (expectedAnswers);
   }
 
   /*!
@@ -886,6 +902,7 @@ namespace sick_scan
   {
     std::lock_guard<std::mutex> send_lock_guard(sopasSendMutex); // lock send mutex in case of asynchronous service calls
 
+    reply->clear();
     std::string cmdStr = "";
     int cmdLen = 0;
     for (size_t i = 0; i < requestStr.size(); i++)
@@ -898,14 +915,14 @@ namespace sick_scan
     std::string errString;
     if (cmdId == -1)
     {
-      errString = "Error unexpected Sopas Answer for request " + stripControl(requestStr);
+      errString = "Error unexpected Sopas answer for request " + stripControl(requestStr, 64);
     }
     else
     {
       errString = this->sopasCmdErrMsg[cmdId];
     }
 
-    std::string expectedAnswer = generateExpectedAnswerString(requestStr);
+    // std::vector<std::string> expectedAnswers = generateExpectedAnswerString(requestStr);
 
     // send sopas cmd
 
@@ -916,7 +933,7 @@ namespace sick_scan
     std::vector<unsigned char> replyVec;
     replyStr = "<STX>" + replyStr + "<ETX>";
     replyVec = stringToVector(replyStr);
-    ROS_INFO_STREAM("Receiving: " << stripControl(replyVec));
+    ROS_INFO_STREAM("Receiving: " << stripControl(replyVec, 64));
 
     if (result != 0)
     {
@@ -929,31 +946,75 @@ namespace sick_scan
     }
     else
     {
-      std::string answerStr = replyToString(*reply);
-      std::string searchPattern = generateExpectedAnswerString(requestStr);
+      result = -1;
+      uint64_t retry_start_timestamp_nsec = rosNanosecTimestampNow();
+      for(int retry_answer_cnt = 0; result != 0; retry_answer_cnt++)
+      {
+        std::string answerStr = replyToString(*reply);
+        std::stringstream expectedAnswers;
+        std::vector<std::string> searchPattern = generateExpectedAnswerString(requestStr);
 
-      if (answerStr.find(searchPattern) != std::string::npos)
-      {
-        result = 0;
-      }
-      else
-      {
-        if (cmdId == CMD_START_IMU_DATA)
+        for(int n = 0; result != 0 && n < searchPattern.size(); n++)
         {
-          ROS_INFO_STREAM("IMU-Data transfer started. No checking of reply to avoid confusing with LMD Scandata\n");
-          result = 0;
+          if (answerStr.find(searchPattern[n]) != std::string::npos)
+          {
+            result = 0;
+          }
+          expectedAnswers << (n > 0 ? "," : "") << "\"" << searchPattern[n] << "\"" ;
         }
-        else
+        if(result != 0)
         {
-          std::string tmpMsg = "Error Sopas answer mismatch " + errString + "Answer= >>>" + answerStr + "<<<";
-          ROS_ERROR_STREAM(tmpMsg << "\n");
-#ifdef USE_DIAGNOSTIC_UPDATER
-          if(diagnostics_)
-            diagnostics_->broadcast(getDiagnosticErrorCode(), tmpMsg);
-#endif
-          result = -1;
+          if (cmdId == CMD_START_IMU_DATA)
+          {
+            ROS_INFO_STREAM("IMU-Data transfer started. No checking of reply to avoid confusing with LMD Scandata\n");
+            result = 0;
+          }
+          else
+          {
+            if(answerStr.size() > 64)
+            {
+              answerStr.resize(64);
+              answerStr += "...";
+            }
+            std::string tmpMsg = "Error Sopas answer mismatch: " + errString + ", received answer: \"" + answerStr + "\", expected patterns: " + expectedAnswers.str();
+            ROS_WARN_STREAM(tmpMsg);
+  #ifdef USE_DIAGNOSTIC_UPDATER
+            if(diagnostics_)
+              diagnostics_->broadcast(getDiagnosticErrorCode(), tmpMsg);
+  #endif
+            result = -1;
+
+            // Problably we received some scan data message. Ignore and try again...
+            std::vector<std::string> response_keywords = { sick_scan::SickScanMessages::getSopasCmdKeyword((uint8_t*)requestStr.data(), requestStr.size()) }; 
+            if(retry_answer_cnt < 100 && (rosNanosecTimestampNow() - retry_start_timestamp_nsec) / 1000000 < m_read_timeout_millisec_default)
+            {
+              char buffer[64*1024];
+              int bytes_read = 0;
+
+              int read_timeout_millisec = getReadTimeOutInMs(); // default timeout: 120 seconds (sensor may be starting up)
+              if (!reply->empty()) // sensor is up and running (i.e. responded with message), try again with 5 sec timeout
+                  read_timeout_millisec = m_read_timeout_millisec_default;
+              if (readWithTimeout(read_timeout_millisec, buffer, sizeof(buffer), &bytes_read, response_keywords) == ExitSuccess)
+              {
+                reply->resize(bytes_read);
+                std::copy(buffer, buffer + bytes_read, &(*reply)[0]);
+              }
+              else
+              {
+                reply->clear();
+              }
+            }
+            else
+            {
+              reply->clear();
+              ROS_ERROR_STREAM(errString << ", giving up after " << retry_answer_cnt << " unexpected answers.");
+              break;
+            }
+
+          }
         }
       }
+
     }
     return result;
 
@@ -995,6 +1056,18 @@ namespace sick_scan
   */
   void SickScanCommon::setProtocolType(SopasProtocol cola_dialect_id)
   {
+    /* switch(cola_dialect_id)
+    {
+    case CoLa_A:
+      ROS_INFO_STREAM("SickScanCommon::setProtocolType(CoLa_A)");
+      break;
+    case CoLa_B:
+      ROS_INFO_STREAM("SickScanCommon::setProtocolType(CoLa_B)");
+      break;
+    default:
+      ROS_INFO_STREAM("SickScanCommon::setProtocolType(CoLa_Unknown)");
+      break;
+    } */
     m_protocolId = cola_dialect_id;
   }
 
@@ -1496,8 +1569,15 @@ namespace sick_scan
     bool useBinaryCmdNow = false;
     int maxCmdLoop = 2; // try binary and ascii during startup
 
-    const int shortTimeOutInMs = 5000; // during startup phase to check binary or ascii
-    const int defaultTimeOutInMs = 120000; // standard time out 120 sec.
+
+    int read_timeout_millisec_default = READ_TIMEOUT_MILLISEC_DEFAULT;
+    int read_timeout_millisec_startup = READ_TIMEOUT_MILLISEC_STARTUP;
+    rosDeclareParam(nh, "read_timeout_millisec_default", read_timeout_millisec_default);
+    rosGetParam(nh, "read_timeout_millisec_default", read_timeout_millisec_default);
+    rosDeclareParam(nh, "read_timeout_millisec_startup", read_timeout_millisec_startup);
+    rosGetParam(nh, "read_timeout_millisec_startup", read_timeout_millisec_startup);
+    const int shortTimeOutInMs = read_timeout_millisec_default; // during startup phase to check binary or ascii
+    const int defaultTimeOutInMs = read_timeout_millisec_startup; // standard time out 120 sec.
 
     setReadTimeOutInMs(shortTimeOutInMs);
 
@@ -1569,6 +1649,7 @@ namespace sick_scan
           // useBinaryCmd holds information about last successful command mode
           break;
         }
+        RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, replyDummy); // No response, non-recoverable connection error (return error and do not try other commands)
       }
       if (result != 0)
       {
@@ -2006,10 +2087,12 @@ namespace sick_scan
           std::vector<unsigned char> reqBinary;
           this->convertAscii2BinaryCmd(sopasCmdVec[CMD_GET_OUTPUT_RANGES].c_str(), &reqBinary);
           result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_GET_OUTPUT_RANGES]);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_GET_OUTPUT_RANGES]); // No response, non-recoverable connection error (return error and do not try other commands)
         }
         else
         {
           result = sendSopasAndCheckAnswer(sopasCmdVec[CMD_GET_OUTPUT_RANGES].c_str(), &askOutputAngularRangeReply);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, askOutputAngularRangeReply); // No response, non-recoverable connection error (return error and do not try other commands)
         }
 
 
@@ -2116,70 +2199,72 @@ namespace sick_scan
       }
       else
       {
-        std::vector<unsigned char> outputAngularRangeReply;
+      std::vector<unsigned char> outputAngularRangeReply;
 
         if (this->parser_->getCurrentParamPtr()->getUseScancfgList())
         {
           // config is set with list entry
+      }
+      else
+      {
+        const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES].c_str();
+        sprintf(requestOutputAngularRange, pcCmdMask, angleRes10000th, angleStart10000th, angleEnd10000th);
+      if (useBinaryCmd)
+      {
+        unsigned char tmpBuffer[255] = {0};
+        unsigned char sendBuffer[255] = {0};
+        UINT16 sendLen;
+        std::vector<unsigned char> reqBinary;
+        int iStatus = 1;
+        //				const char *askOutputAngularRangeBinMask = "%4y%4ysWN LMPoutputRange %2y%4y%4y%4y";
+        // int askOutputAngularRangeBinLen = binScanfGuessDataLenFromMask(askOutputAngularRangeBinMask);
+        // askOutputAngularRangeBinLen -= 8;  // due to header and length identifier
+
+        strcpy((char *) tmpBuffer, "WN LMPoutputRange ");
+        unsigned short orgLen = strlen((char *) tmpBuffer);
+            if (NAV3xxOutputRangeSpecialHandling)
+            {
+          colab::addIntegerToBuffer<UINT16>(tmpBuffer, orgLen, iStatus);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
         }
         else
         {
-          const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES].c_str();
-          sprintf(requestOutputAngularRange, pcCmdMask, angleRes10000th, angleStart10000th, angleEnd10000th);
-          if (useBinaryCmd)
-          {
-            unsigned char tmpBuffer[255] = {0};
-            unsigned char sendBuffer[255] = {0};
-            UINT16 sendLen;
-            std::vector<unsigned char> reqBinary;
-            int iStatus = 1;
-            //				const char *askOutputAngularRangeBinMask = "%4y%4ysWN LMPoutputRange %2y%4y%4y%4y";
-            // int askOutputAngularRangeBinLen = binScanfGuessDataLenFromMask(askOutputAngularRangeBinMask);
-            // askOutputAngularRangeBinLen -= 8;  // due to header and length identifier
-
-            strcpy((char *) tmpBuffer, "WN LMPoutputRange ");
-            unsigned short orgLen = strlen((char *) tmpBuffer);
-            if (NAV3xxOutputRangeSpecialHandling)
-            {
-              colab::addIntegerToBuffer<UINT16>(tmpBuffer, orgLen, iStatus);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
-            }
-            else
-            {
-              colab::addIntegerToBuffer<UINT16>(tmpBuffer, orgLen, iStatus);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
-              colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
-            }
-            sendLen = orgLen;
-            colab::addFrameToBuffer(sendBuffer, tmpBuffer, &sendLen);
-
-            // binSprintfVec(&reqBinary, askOutputAngularRangeBinMask, 0x02020202, askOutputAngularRangeBinLen, iStatus, angleRes10000th, angleStart10000th, angleEnd10000th);
-
-            // unsigned char sickCrc = sick_crc8((unsigned char *)(&(reqBinary)[8]), reqBinary.size() - 8);
-            // reqBinary.push_back(sickCrc);
-            reqBinary = std::vector<unsigned char>(sendBuffer, sendBuffer + sendLen);
-            // Here we must build a more complex binaryRequest
-
-            // this->convertAscii2BinaryCmd(requestOutputAngularRange, &reqBinary);
-            result = sendSopasAndCheckAnswer(reqBinary, &outputAngularRangeReply);
-          }
-          else
-          {
-            result = sendSopasAndCheckAnswer(requestOutputAngularRange, &outputAngularRangeReply);
-          }
+          colab::addIntegerToBuffer<UINT16>(tmpBuffer, orgLen, iStatus);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleRes10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleStart10000th);
+          colab::addIntegerToBuffer<UINT32>(tmpBuffer, orgLen, angleEnd10000th);
         }
+        sendLen = orgLen;
+        colab::addFrameToBuffer(sendBuffer, tmpBuffer, &sendLen);
+
+        // binSprintfVec(&reqBinary, askOutputAngularRangeBinMask, 0x02020202, askOutputAngularRangeBinLen, iStatus, angleRes10000th, angleStart10000th, angleEnd10000th);
+
+        // unsigned char sickCrc = sick_crc8((unsigned char *)(&(reqBinary)[8]), reqBinary.size() - 8);
+        // reqBinary.push_back(sickCrc);
+        reqBinary = std::vector<unsigned char>(sendBuffer, sendBuffer + sendLen);
+        // Here we must build a more complex binaryRequest
+
+        // this->convertAscii2BinaryCmd(requestOutputAngularRange, &reqBinary);
+        result = sendSopasAndCheckAnswer(reqBinary, &outputAngularRangeReply);
+        RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, outputAngularRangeReply); // No response, non-recoverable connection error (return error and do not try other commands)
+      }
+      else
+      {
+        result = sendSopasAndCheckAnswer(requestOutputAngularRange, &outputAngularRangeReply);
+        RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, outputAngularRangeReply); // No response, non-recoverable connection error (return error and do not try other commands)
+      }
+      }
       }
 
       //-----------------------------------------------------------------
@@ -2197,28 +2282,29 @@ namespace sick_scan
 
       if (this->parser_->getCurrentParamPtr()->getUseScancfgList())
       {
-        askOutputAngularRangeReply.clear();
+      askOutputAngularRangeReply.clear();
 
-        if (useBinaryCmd)
-        {
-          std::vector<unsigned char> reqBinary;
+      if (useBinaryCmd)
+      {
+        std::vector<unsigned char> reqBinary;
           this->convertAscii2BinaryCmd(sopasCmdVec[CMD_GET_PARTIAL_SCAN_CFG].c_str(), &reqBinary);
           //result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]);
           result = sendSopasAndCheckAnswer(reqBinary, &askOutputAngularRangeReply);
-        }
-        else
-        {
+      }
+      else
+      {
           result = sendSopasAndCheckAnswer(sopasCmdVec[CMD_GET_PARTIAL_SCAN_CFG].c_str(), &askOutputAngularRangeReply);
-        }
+      }
+      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, askOutputAngularRangeReply); // No response, non-recoverable connection error (return error and do not try other commands)
 
-        if (result == 0)
-        {
-          char dummy0[MAX_STR_LEN] = {0};
-          char dummy1[MAX_STR_LEN] = {0};
-          int dummyInt = 0;
-          int askAngleRes10000th = 0;
-          int askAngleStart10000th = 0;
-          int askAngleEnd10000th = 0;
+      if (result == 0)
+      {
+        char dummy0[MAX_STR_LEN] = {0};
+        char dummy1[MAX_STR_LEN] = {0};
+        int dummyInt = 0;
+        int askAngleRes10000th = 0;
+        int askAngleStart10000th = 0;
+        int askAngleEnd10000th = 0;
           int iDummy0, iDummy1=0;
           int numOfSectors=0;
           int scanFreq=0;
@@ -2246,38 +2332,39 @@ namespace sick_scan
                              dummy1,
                              &scanFreq,
                              &numOfSectors,
-                             &askAngleRes10000th,
-                             &askAngleStart10000th,
-                             &askAngleEnd10000th);
-          }
-          if (numArgs >= 6)
-          {
-            double askTmpAngleRes = askAngleRes10000th / 10000.0;
-            double askTmpAngleStart = askAngleStart10000th / 10000.0;
-            double askTmpAngleEnd = askAngleEnd10000th / 10000.0;
-            angleRes10000th = askAngleRes10000th;
+                           &askAngleRes10000th,
+                           &askAngleStart10000th,
+                           &askAngleEnd10000th);
+        }
+        if (numArgs >= 6)
+        {
+          double askTmpAngleRes = askAngleRes10000th / 10000.0;
+          double askTmpAngleStart = askAngleStart10000th / 10000.0;
+          double askTmpAngleEnd = askAngleEnd10000th / 10000.0;
+
+          angleRes10000th = askAngleRes10000th;
             ROS_INFO_STREAM("Angle resolution of scanner is " << askTmpAngleRes << " [deg]  (in 1/10000th deg: "
                                                               << askAngleRes10000th << ")");
-          }
-          double askAngleRes = askAngleRes10000th / 10000.0;
-          double askAngleStart = askAngleStart10000th / 10000.0;
-          double askAngleEnd = askAngleEnd10000th / 10000.0;
+        }
+        double askAngleRes = askAngleRes10000th / 10000.0;
+        double askAngleStart = askAngleStart10000th / 10000.0;
+        double askAngleEnd = askAngleEnd10000th / 10000.0;
 
-          askAngleStart += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
-          askAngleEnd += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
-
-          // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
-          // {
-          //   // the TiM240 operates directly in the ros coordinate system
-          // }
-          // else
-          // {
-          //   askAngleStart -= 90; // angle in ROS relative to y-axis
-          //   askAngleEnd -= 90; // angle in ROS relative to y-axis
-          // }
-          this->config_.min_ang = askAngleStart / 180.0 * M_PI;
-          this->config_.max_ang = askAngleEnd / 180.0 * M_PI;
-
+        askAngleStart += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
+        askAngleEnd += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
+        
+        // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+        // {
+        //   // the TiM240 operates directly in the ros coordinate system
+        // }
+        // else
+        // {
+        //   askAngleStart -= 90; // angle in ROS relative to y-axis
+        //   askAngleEnd -= 90; // angle in ROS relative to y-axis
+        // }
+        this->config_.min_ang = askAngleStart / 180.0 * M_PI;
+        this->config_.max_ang = askAngleEnd / 180.0 * M_PI;
+        
           rosSetParam(nh, "min_ang",
                           this->config_.min_ang); // update parameter setting with "true" values read from scanner
           rosGetParam(nh, "min_ang",
@@ -2479,10 +2566,12 @@ namespace sick_scan
             std::vector<unsigned char> fieldcfgReply;
             this->convertAscii2BinaryCmd(requestFieldcfg, &reqBinary);
             result = sendSopasAndCheckAnswer(reqBinary, &fieldcfgReply);
+            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, fieldcfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
             fieldMon->parseBinaryDatagram(fieldcfgReply);
           } else {
             std::vector<unsigned char> fieldcfgReply;
             result = sendSopasAndCheckAnswer(requestFieldcfg, &fieldcfgReply);
+            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, fieldcfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
             fieldMon->parseAsciiDatagram(fieldcfgReply);
           }
         }
@@ -2497,6 +2586,7 @@ namespace sick_scan
             std::vector<unsigned char> reqBinary;
             this->convertAscii2BinaryCmd(LIDinputstateRequest.c_str(), &reqBinary);
             result = sendSopasAndCheckAnswer(reqBinary, &LIDinputstateResponse);
+            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, LIDinputstateResponse); // No response, non-recoverable connection error (return error and do not try other commands)
             if(result == 0)
             {
               //fieldset = (LIDinputstateResponse[32] & 0xFF);
@@ -2509,6 +2599,7 @@ namespace sick_scan
           else
           {
             result = sendSopasAndCheckAnswer(LIDinputstateRequest.c_str(), &LIDinputstateResponse);
+            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, LIDinputstateResponse); // No response, non-recoverable connection error (return error and do not try other commands)
           }
 
           std::string scanner_name = parser_->getCurrentParamPtr()->getScannerName();
@@ -2547,29 +2638,31 @@ namespace sick_scan
         if (false==this->parser_->getCurrentParamPtr()->getUseScancfgList())
         {
           //normal scanconfig handling
-          char requestLMDscandatacfg[MAX_STR_LEN];
-          // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
-          // sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 00 %d 00 0 0 0 1 1\x03";
-          const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG].c_str();
+        char requestLMDscandatacfg[MAX_STR_LEN];
+        // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
+        // sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 00 %d 00 0 0 0 1 1\x03";
+        const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG].c_str();
           sprintf(requestLMDscandatacfg, pcCmdMask, outputChannelFlagId, rssiFlag ? 1 : 0,
                   rssiResolutionIs16Bit ? 1 : 0,
-                  EncoderSetings != -1 ? EncoderSetings : 0);
-          if (useBinaryCmd)
-          {
-            std::vector<unsigned char> reqBinary;
-            this->convertAscii2BinaryCmd(requestLMDscandatacfg, &reqBinary);
-            // FOR MRS6124 this should be
-            // like this:
-            // 0000  02 02 02 02 00 00 00 20 73 57 4e 20 4c 4d 44 73   .......sWN LMDs
-            // 0010  63 61 6e 64 61 74 61 63 66 67 20 1f 00 01 01 00   candatacfg .....
-            // 0020  00 00 00 00 00 00 00 01 5c
-            result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]);
-          }
-          else
-          {
-            std::vector<unsigned char> lmdScanDataCfgReply;
-            result = sendSopasAndCheckAnswer(requestLMDscandatacfg, &lmdScanDataCfgReply);
-          }
+                EncoderSetings != -1 ? EncoderSetings : 0);
+        if (useBinaryCmd)
+        {
+          std::vector<unsigned char> reqBinary;
+          this->convertAscii2BinaryCmd(requestLMDscandatacfg, &reqBinary);
+          // FOR MRS6124 this should be
+          // like this:
+          // 0000  02 02 02 02 00 00 00 20 73 57 4e 20 4c 4d 44 73   .......sWN LMDs
+          // 0010  63 61 6e 64 61 74 61 63 66 67 20 1f 00 01 01 00   candatacfg .....
+          // 0020  00 00 00 00 00 00 00 01 5c
+          result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
+        }
+        else
+        {
+          std::vector<unsigned char> lmdScanDataCfgReply;
+          result = sendSopasAndCheckAnswer(requestLMDscandatacfg, &lmdScanDataCfgReply);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmdScanDataCfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
+        }
         }
         else
         {
@@ -2586,16 +2679,17 @@ namespace sick_scan
           std::vector<unsigned char> reqBinary;
           this->convertAscii2BinaryCmd(requestLMDscandatacfgRead, &reqBinary);
           result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_GET_PARTIAL_SCANDATA_CFG]);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_GET_PARTIAL_SCANDATA_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
         }
         else
         {
           std::vector<unsigned char> lmdScanDataCfgReadReply;
           result = sendSopasAndCheckAnswer(requestLMDscandatacfgRead, &lmdScanDataCfgReadReply);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmdScanDataCfgReadReply); // No response, non-recoverable connection error (return error and do not try other commands)
         }
 
 
       }
-
       //BBB
       // set scanning angle for tim5xx and for mrs1104
       double scan_freq = 0;
@@ -2623,11 +2717,13 @@ namespace sick_scan
               std::vector<unsigned char> reqBinary;
               this->convertAscii2BinaryCmd(requestLMDscancfg, &reqBinary);
               result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_PARTIAL_SCAN_CFG]);
+              RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_SET_PARTIAL_SCAN_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
             }
             else
             {
               std::vector<unsigned char> lmdScanCfgReply;
               result = sendSopasAndCheckAnswer(requestLMDscancfg, &lmdScanCfgReply);
+              RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmdScanCfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
             }
 
 
@@ -2641,11 +2737,13 @@ namespace sick_scan
               std::vector<unsigned char> reqBinary;
               this->convertAscii2BinaryCmd(requestLMDscancfgRead, &reqBinary);
               result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]);
+              RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
             }
             else
             {
               std::vector<unsigned char> lmdScanDataCfgReadReply;
               result = sendSopasAndCheckAnswer(requestLMDscancfgRead, &lmdScanDataCfgReadReply);
+              RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmdScanDataCfgReadReply); // No response, non-recoverable connection error (return error and do not try other commands)
             }
 
           }
@@ -2685,10 +2783,12 @@ namespace sick_scan
         std::vector<unsigned char> reqBinary;
         this->convertAscii2BinaryCmd(requestMeanSetting, &reqBinary);
         result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ECHO_FILTER]);
+        RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_SET_ECHO_FILTER]); // No response, non-recoverable connection error (return error and do not try other commands)
       }
       else
       {
         result = sendSopasAndCheckAnswer(requestMeanSetting, &outputFilterMeanReply);
+        RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, outputFilterMeanReply); // No response, non-recoverable connection error (return error and do not try other commands)
       }
       */
 
@@ -2721,10 +2821,12 @@ namespace sick_scan
           std::vector<unsigned char> reqBinary;
           this->convertAscii2BinaryCmd(requestEchoSetting, &reqBinary);
           result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ECHO_FILTER]);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_SET_ECHO_FILTER]); // No response, non-recoverable connection error (return error and do not try other commands)
         }
         else
         {
           result = sendSopasAndCheckAnswer(requestEchoSetting, &outputFilterEchoRangeReply);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, outputFilterEchoRangeReply); // No response, non-recoverable connection error (return error and do not try other commands)
         }
 
       }
@@ -2889,7 +2991,8 @@ namespace sick_scan
     {
       int cmdId = *it;
       std::vector<unsigned char> tmpReply;
-      //			sendSopasAndCheckAnswer(sopasCmdVec[cmdId].c_str(), &tmpReply);
+      //			result = sendSopasAndCheckAnswer(sopasCmdVec[cmdId].c_str(), &tmpReply);
+      //      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, tmpReply); // No response, non-recoverable connection error (return error and do not try other commands)
 
       std::string sopasCmd = sopasCmdVec[cmdId];
       std::vector<unsigned char> replyDummy;
@@ -2902,6 +3005,7 @@ namespace sick_scan
         this->convertAscii2BinaryCmd(sopasCmd.c_str(), &reqBinary);
         result = sendSopasAndCheckAnswer(reqBinary, &replyDummy, cmdId);
         sopasReplyBinVec[cmdId] = replyDummy;
+        RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, replyDummy); // No response, non-recoverable connection error (return error and do not try other commands)
 
         switch (cmdId)
         {
@@ -2914,6 +3018,7 @@ namespace sick_scan
       else
       {
         result = sendSopasAndCheckAnswer(sopasCmd.c_str(), &replyDummy, cmdId);
+        RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, replyDummy); // No response, non-recoverable connection error (return error and do not try other commands)
       }
 
       if (result != 0)
@@ -2973,6 +3078,7 @@ namespace sick_scan
               result = sendSopasAndCheckAnswer(sopasDeviceStateCmd.c_str(), &replyDummyDeviceState);
               sopasReplyStrVec[CMD_DEVICE_STATE] = replyToString(replyDummyDeviceState);
             }
+            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, replyDummyDeviceState); // No response, non-recoverable connection error (return error and do not try other commands)
 
 
             if (useBinaryCmd)
@@ -3243,8 +3349,11 @@ namespace sick_scan
     }
     do
     {
+      const std::vector<std::string> datagram_keywords = {  // keyword list of datagrams handled here in loopOnce
+        "LMDscandata", "LMDscandatamon", 
+        "LMDradardata", "InertialMeasurementUnit", "LIDoutputstate", "LIDinputstate", "LFErec" };
 
-      int result = get_datagram(nh, recvTimeStamp, receiveBuffer, 65536, &actual_length, useBinaryProtocol, &packetsInLoop);
+      int result = get_datagram(nh, recvTimeStamp, receiveBuffer, 65536, &actual_length, useBinaryProtocol, &packetsInLoop, datagram_keywords);
       numPacketsProcessed++;
 
       rosDuration dur = recvTimeStampPush - recvTimeStamp;
@@ -3268,7 +3377,6 @@ namespace sick_scan
       {
         return ExitSuccess;
       }
-
       ROS_DEBUG_STREAM("SickScanCommon::loopOnce: received " << actual_length << " byte data " << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(32, actual_length)) << " ... ");
 
       if (publish_datagram_)
@@ -3285,13 +3393,7 @@ namespace sick_scan
       }
 
 
-      bool deviceIsRadar = false;
-
-      if (this->parser_->getCurrentParamPtr()->getDeviceIsRadar() == true)
-      {
-
-        deviceIsRadar = true;
-      }
+      bool deviceIsRadar = this->parser_->getCurrentParamPtr()->getDeviceIsRadar();
 
       if (true == deviceIsRadar)
       {
@@ -3474,7 +3576,14 @@ namespace sick_scan
                 }
 #endif
                 // binary message
-                if (lenVal < actual_length)
+                // if (lenVal < actual_length)
+                if (lenVal >= actual_length || actual_length < 64) // scan data message requires at least 64 byte, otherwise this can't be a scan data message
+                {
+                  // warn about unexpected message and ignore all non-scandata messages
+                  ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): " << actual_length << " byte message ignored ("
+                    << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(actual_length, 64)) << (actual_length>64?"...":"") << ")");
+                }
+                else
                 {
                   elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
                   // F5B2h -> -2638/200= -13.19°
@@ -4067,11 +4176,12 @@ namespace sick_scan
 
 
             // XXX  - HIER MEHRERE SCANS publish, falls Mehrzielszenario läuft
+            // numEchos = 0; // temporary test for issue #17 (core dump with numEchos = 0 after unexpected message, see https://github.com/michael1309/sick_scan_xd/issues/17)
             if (numEchos > 5)
             {
               ROS_WARN("Too much echos");
             }
-            else
+            else if (numEchos > 0)
             {
 
               size_t startOffset = 0;
@@ -4171,7 +4281,7 @@ namespace sick_scan
                   // If msg.intensities[j] < min_intensity, then set msg.ranges[j] to inf according to https://github.com/SICKAG/sick_scan/issues/131
                   if(m_min_intensity > 0) // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
                   {
-                    for (int j = 0, j_max = (int)std::min(msg.ranges.size(), msg.intensities.size()); j < j_max; j++)
+                    for (int j = 0, j_max = (int)MIN(msg.ranges.size(), msg.intensities.size()); j < j_max; j++)
                     {
                       if(msg.intensities[j] < m_min_intensity)
                       {
@@ -4210,9 +4320,14 @@ namespace sick_scan
 #endif
               }
             }
+            else // i.e. (numEchos <= 0)
+            {
+              ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): no echos in measurement message (numEchos=" << numEchos 
+                << ", msg.ranges.size()=" << msg.ranges.size() << ", msg.intensities.size()=" << msg.intensities.size() << ")");
+            }
 
 
-            if (publishPointCloud == true)
+            if (publishPointCloud == true && numValidEchos > 0 && msg.ranges.size() > 0)
             {
 
 

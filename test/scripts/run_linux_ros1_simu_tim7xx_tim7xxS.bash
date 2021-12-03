@@ -32,6 +32,7 @@ for sick_scan_launch_file in sick_tim_7xx.launch sick_tim_7xxS.launch ; do
     roslaunch sick_scan $sick_scan_launch_file hostname:=127.0.0.1 &
     sleep 1
     
+    # rosservice call /sick_tim_7xx/SCdevicestate "{}" # query device state
     # rosservice call /sick_tim_7xx/ColaMsg "{request: 'sEN LIDoutputstate 1'}"
     # rosservice call /sick_tim_7xx/ColaMsg "{request: 'sRN LIDoutputstate'}"
     # rosservice call /sick_tim_7xx/ColaMsg "{request: 'sEN LFErec 1'}"

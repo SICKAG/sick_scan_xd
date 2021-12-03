@@ -24,22 +24,22 @@ struct RadarPreHeaderMeasurementParam1Block_
   typedef RadarPreHeaderMeasurementParam1Block_<ContainerAllocator> Type;
 
   RadarPreHeaderMeasurementParam1Block_()
-    : uiCycleDuration(0)
-    , uiNoiseLevel(0)  {
+    : uicycleduration(0)
+    , uinoiselevel(0)  {
     }
   RadarPreHeaderMeasurementParam1Block_(const ContainerAllocator& _alloc)
-    : uiCycleDuration(0)
-    , uiNoiseLevel(0)  {
+    : uicycleduration(0)
+    , uinoiselevel(0)  {
   (void)_alloc;
     }
 
 
 
-   typedef uint32_t _uiCycleDuration_type;
-  _uiCycleDuration_type uiCycleDuration;
+   typedef uint32_t _uicycleduration_type;
+  _uicycleduration_type uicycleduration;
 
-   typedef uint32_t _uiNoiseLevel_type;
-  _uiNoiseLevel_type uiNoiseLevel;
+   typedef uint32_t _uinoiselevel_type;
+  _uinoiselevel_type uinoiselevel;
 
 
 
@@ -66,6 +66,21 @@ ros::message_operations::Printer< ::sick_scan::RadarPreHeaderMeasurementParam1Bl
 return s;
 }
 
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator==(const ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator1> & lhs, const ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator2> & rhs)
+{
+  return lhs.uicycleduration == rhs.uicycleduration &&
+    lhs.uinoiselevel == rhs.uinoiselevel;
+}
+
+template<typename ContainerAllocator1, typename ContainerAllocator2>
+bool operator!=(const ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator1> & lhs, const ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator2> & rhs)
+{
+  return !(lhs == rhs);
+}
+
+
 } // namespace sick_scan
 
 namespace ros
@@ -73,12 +88,6 @@ namespace ros
 namespace message_traits
 {
 
-
-
-// BOOLTRAITS {'IsFixedSize': True, 'IsMessage': True, 'HasHeader': False}
-// {'sensor_msgs': ['/opt/ros/melodic/share/sensor_msgs/cmake/../msg'], 'geometry_msgs': ['/opt/ros/melodic/share/geometry_msgs/cmake/../msg'], 'std_msgs': ['/opt/ros/melodic/share/std_msgs/cmake/../msg'], 'sick_scan': ['/home/rosuser/catkin_sick_scan/src/sick_scan/msg']}
-
-// !!!!!!!!!!! ['__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_parsed_fields', 'constants', 'fields', 'full_name', 'has_header', 'header_present', 'names', 'package', 'parsed_fields', 'short_name', 'text', 'types']
 
 
 
@@ -119,12 +128,12 @@ struct MD5Sum< ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAlloc
 {
   static const char* value()
   {
-    return "34fa13bb693fa69fead0a46da987eb62";
+    return "aeef3c31c38e29b1d320526a2c2d9c60";
   }
 
   static const char* value(const ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x34fa13bb693fa69fULL;
-  static const uint64_t static_value2 = 0xead0a46da987eb62ULL;
+  static const uint64_t static_value1 = 0xaeef3c31c38e29b1ULL;
+  static const uint64_t static_value2 = 0xd320526a2c2d9c60ULL;
 };
 
 template<class ContainerAllocator>
@@ -143,8 +152,12 @@ struct Definition< ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerA
 {
   static const char* value()
   {
-    return "uint32 uiCycleDuration # Time in microseconds to detect this items\n"
-"uint32 uiNoiseLevel # [1/100dB]\n"
+    return "# ROS-1:\n"
+"#uint32 uiCycleDuration # Time in microseconds to detect this items\n"
+"#uint32 uiNoiseLevel # [1/100dB]\n"
+"# ROS-2:\n"
+"uint32 uicycleduration # Time in microseconds to detect this items\n"
+"uint32 uinoiselevel # [1/100dB]\n"
 ;
   }
 
@@ -163,8 +176,8 @@ namespace serialization
   {
     template<typename Stream, typename T> inline static void allInOne(Stream& stream, T m)
     {
-      stream.next(m.uiCycleDuration);
-      stream.next(m.uiNoiseLevel);
+      stream.next(m.uicycleduration);
+      stream.next(m.uinoiselevel);
     }
 
     ROS_DECLARE_ALLINONE_SERIALIZER
@@ -183,10 +196,10 @@ struct Printer< ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllo
 {
   template<typename Stream> static void stream(Stream& s, const std::string& indent, const ::sick_scan::RadarPreHeaderMeasurementParam1Block_<ContainerAllocator>& v)
   {
-    s << indent << "uiCycleDuration: ";
-    Printer<uint32_t>::stream(s, indent + "  ", v.uiCycleDuration);
-    s << indent << "uiNoiseLevel: ";
-    Printer<uint32_t>::stream(s, indent + "  ", v.uiNoiseLevel);
+    s << indent << "uicycleduration: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.uicycleduration);
+    s << indent << "uinoiselevel: ";
+    Printer<uint32_t>::stream(s, indent + "  ", v.uinoiselevel);
   }
 };
 

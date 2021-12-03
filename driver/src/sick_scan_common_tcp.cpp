@@ -71,6 +71,7 @@
 #endif
 
 #include <sick_scan/sick_scan_common_tcp.h>
+#include <sick_scan/sick_scan_messages.h>
 #include <sick_scan/tcp/colaa.hpp>
 #include <sick_scan/tcp/colab.hpp>
 
@@ -234,6 +235,15 @@ namespace sick_scan
     // stop_scanner();
     close_device();
   }
+
+
+  int SickScanCommonTcp::reinit(rosNodePtr nh, int delay_millisec)
+  {
+    close_device();
+    usleep(delay_millisec * 1000);
+    return init(nh);
+  }
+
 
   //using boost::asio::ip::tcp;
   //using boost::lambda::var;
@@ -644,38 +654,20 @@ namespace sick_scan
     return(ret);
   }
 
-  int SickScanCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read,
-                                         bool *exception_occured, bool isBinary)
+  int SickScanCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, const std::vector<std::string>& datagram_keywords)
   {
-    // Set up the deadline to the proper timeout, error and delimiters
-    //deadline_.expires_from_now(boost::posix_time::milliseconds(timeout_ms));
-    const char end_delim = static_cast<char>(0x03);
-    int dataLen = 0;
-    //ec_ = boost::asio::error::would_block;
-    bytes_transfered_ = 0;
-
-    size_t to_read;
-
-    int numBytes = 0;
-    // Polling - should be changed to condition variable in the future
-    int waitingTimeInMs = 1; // try to lookup for new incoming packages
-    int i;
-    for (i = 0; i < timeout_ms; i += waitingTimeInMs)
+    bool retVal = this->recvQueue.waitForIncomingObject(timeout_ms, datagram_keywords);
+    if (retVal == false)
     {
-      if (false == this->recvQueue.isQueueEmpty())
-      {
-        break;
-      }
-      //boost::this_thread::sleep(boost::posix_time::milliseconds(waitingTimeInMs));
-      std::this_thread::sleep_for(std::chrono::milliseconds(waitingTimeInMs));
+      ROS_WARN("Timeout during waiting for new datagram");
+      return ExitError;
     }
-    if (i >= timeout_ms)
+    DatagramWithTimeStamp datagramWithTimeStamp = this->recvQueue.pop(datagram_keywords);
+    if(datagramWithTimeStamp.datagram.size() > buffer_size)
     {
-      ROS_ERROR_STREAM("no answer received after " << timeout_ms << " ms. Maybe sopas mode is wrong.\n");
-      return (ExitError);
+      ROS_WARN_STREAM("Length of received datagram is " << datagramWithTimeStamp.datagram.size() << " byte, exceeds buffer size (" << buffer_size << " byte), datagram truncated");
+      datagramWithTimeStamp.datagram.resize(buffer_size);
     }
-    std::condition_variable cond_;
-    DatagramWithTimeStamp datagramWithTimeStamp = this->recvQueue.pop();
 
     *bytes_read = datagramWithTimeStamp.datagram.size();
     memcpy(buffer, &(datagramWithTimeStamp.datagram[0]), datagramWithTimeStamp.datagram.size());
@@ -688,6 +680,7 @@ namespace sick_scan
   int SickScanCommonTcp::sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen)
   {
     int sLen = 0;
+    int msgLen = 0;
     int preambelCnt = 0;
     bool cmdIsBinary = false;
 
@@ -714,7 +707,6 @@ namespace sick_scan
       {
         cmdIsBinary = true;
       }
-      int msgLen = 0;
       if (cmdIsBinary == false)
       {
         msgLen = strlen(request);
@@ -726,7 +718,7 @@ namespace sick_scan
         {
           dataLen |= ((unsigned char) request[i] << (7 - i) * 8);
         }
-        msgLen = 8 + dataLen + 1; // 8 Msg. Header + Packet +
+        msgLen = 8 + dataLen + 1; // 8 Msg. Header + Packet + CRC
       }
       if (getEmulSensor())
       {
@@ -745,7 +737,11 @@ namespace sick_scan
           }
           printf("\n=== END HEX DUMP ===\n");
         }
-        m_nw.sendCommandBuffer((UINT8 *) request, msgLen);
+        if (!m_nw.sendCommandBuffer((UINT8 *) request, msgLen))
+        {
+          ROS_ERROR("## ERROR in sendSOPASCommand(): sendCommandBuffer failed");
+          return ExitError;
+        }
       }
     }
 
@@ -760,7 +756,8 @@ namespace sick_scan
     }
     else
     {
-      if (readWithTimeout(getReadTimeOutInMs(), buffer, BUF_SIZE, &bytes_read, 0, cmdIsBinary) == ExitError)
+      std::vector<std::string> response_keywords = { sick_scan::SickScanMessages::getSopasCmdKeyword((uint8_t*)request, msgLen) }; 
+      if (readWithTimeout(getReadTimeOutInMs(), buffer, BUF_SIZE, &bytes_read, response_keywords) == ExitError)
       {
 #if defined __ROS_VERSION && __ROS_VERSION == 1
           ROS_INFO_THROTTLE(1.0, "sendSOPASCommand: no full reply available for read after %d ms", getReadTimeOutInMs());
@@ -788,8 +785,7 @@ namespace sick_scan
 
 
   int SickScanCommonTcp::get_datagram(rosNodePtr nh, rosTime &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize,
-                                      int *actual_length,
-                                      bool isBinaryProtocol, int *numberOfRemainingFifoEntries)
+                                      int *actual_length, bool isBinaryProtocol, int *numberOfRemainingFifoEntries, const std::vector<std::string>& datagram_keywords)
   {
     if (NULL != numberOfRemainingFifoEntries)
     {
@@ -820,7 +816,7 @@ namespace sick_scan
       const int maxWaitInMs = getReadTimeOutInMs();
       std::vector<unsigned char> dataBuffer;
 #if 1 // prepared for reconnect
-      bool retVal = this->recvQueue.waitForIncomingObject(maxWaitInMs);
+      bool retVal = this->recvQueue.waitForIncomingObject(maxWaitInMs, datagram_keywords);
       if (retVal == false)
       {
         ROS_WARN("Timeout during waiting for new datagram");
@@ -831,7 +827,7 @@ namespace sick_scan
         // Look into receiving queue for new Datagrams
         //
         //
-        DatagramWithTimeStamp datagramWithTimeStamp = this->recvQueue.pop();
+        DatagramWithTimeStamp datagramWithTimeStamp = this->recvQueue.pop(datagram_keywords);
         if (NULL != numberOfRemainingFifoEntries)
         {
           *numberOfRemainingFifoEntries = this->recvQueue.getNumberOfEntriesInQueue();
@@ -848,37 +844,6 @@ namespace sick_scan
     }
 
     return ExitSuccess;
-
-    /*
-     * Write a SOPAS variable read request to the device.
-     */
-    /* unreachable ...
-    std::vector<unsigned char> reply;
-
-    // Wait at most 5000ms for a new scan
-    size_t timeout = 30000;
-    bool exception_occured = false;
-
-    char *buffer = reinterpret_cast<char *>(receiveBuffer);
-
-    if (readWithTimeout(timeout, buffer, bufferSize, actual_length, &exception_occured, isBinaryProtocol) !=
-        ExitSuccess)
-    {
-#if defined __ROS_VERSION && __ROS_VERSION == 1
-        ROS_ERROR_THROTTLE(1.0, "get_datagram: no data available for read after %zu ms", timeout);
-#else
-        ROS_ERROR_STREAM ("get_datagram: no data available for read after "<< timeout << " ms");
-#endif
-#ifdef USE_DIAGNOSTIC_UPDATER
-        if(diagnostics_)
-          diagnostics_->broadcast(getDiagnosticErrorCode(), "get_datagram: no data available for read after timeout.");
-#endif
-
-      return exception_occured ? ExitError : ExitSuccess;    // keep on trying
-    }
-
-    return ExitSuccess;
-    */
   }
 
 } /* namespace sick_scan */

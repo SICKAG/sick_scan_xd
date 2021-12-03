@@ -106,7 +106,33 @@ namespace sick_scan
     bool serviceCbLIDoutputstate(sick_scan_srv::LIDoutputstateSrv::Request &service_request, sick_scan_srv::LIDoutputstateSrv::Response &service_response);
     bool serviceCbLIDoutputstateROS2(std::shared_ptr<sick_scan_srv::LIDoutputstateSrv::Request> service_request, std::shared_ptr<sick_scan_srv::LIDoutputstateSrv::Response> service_response) { return serviceCbLIDoutputstate(*service_request, *service_response); }     
 
+    /*!
+     * Callbacks for service messages.
+     * @param[in] service_request ros service request to lidar
+     * @param[out] service_response service response from lidar
+     * @return true on success, false in case of errors.
+     */
+
+    bool serviceCbSCdevicestate(sick_scan_srv::SCdevicestateSrv::Request &service_request, sick_scan_srv::SCdevicestateSrv::Response &service_response);
+    bool serviceCbSCdevicestateROS2(std::shared_ptr<sick_scan_srv::SCdevicestateSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCdevicestateSrv::Response> service_response) { return serviceCbSCdevicestate(*service_request, *service_response); }     
+
+    bool serviceCbSCreboot(sick_scan_srv::SCrebootSrv::Request &service_request, sick_scan_srv::SCrebootSrv::Response &service_response);
+    bool serviceCbSCrebootROS2(std::shared_ptr<sick_scan_srv::SCrebootSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCrebootSrv::Response> service_response) { return serviceCbSCreboot(*service_request, *service_response); }     
+
+    bool serviceCbSCsoftreset(sick_scan_srv::SCsoftresetSrv::Request &service_request, sick_scan_srv::SCsoftresetSrv::Response &service_response);
+    bool serviceCbSCsoftresetROS2(std::shared_ptr<sick_scan_srv::SCsoftresetSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCsoftresetSrv::Response> service_response) { return serviceCbSCsoftreset(*service_request, *service_response); }     
+
   protected:
+
+    /*!
+    * Sends the SOPAS authorization command "sMN SetAccessMode 3 F4724744".
+    */
+    bool sendAuthorization();
+
+    /*!
+    * Sends the SOPAS command "sMN Run", which applies previous send settings
+    */
+    bool sendRun();
 
     /*!
      * Sends a sopas command and returns the lidar reply.
@@ -123,9 +149,13 @@ namespace sick_scan
 
     bool m_cola_binary;                             ///< cola ascii or cola binary messages
     sick_scan::SickScanCommonTcp* m_common_tcp;     ///< common tcp handler
-    rosServiceServer<sick_scan_srv::ColaMsgSrv>/*ros::ServiceServer*/ m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan::SickScanServices::serviceCbColaMsg
-    rosServiceServer<sick_scan_srv::ECRChangeArrSrv>/*ros::ServiceServer*/ m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan::SickScanServices::serviceCbECRChangeArr
-    rosServiceServer<sick_scan_srv::LIDoutputstateSrv>/*ros::ServiceServer*/ m_srv_server_LIDoutputstate; ///< service "LIDoutputstate", &sick_scan::SickScanServices::serviceCbLIDoutputstate
+    std::string m_client_authorization_pw;
+    rosServiceServer<sick_scan_srv::ColaMsgSrv> m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan::SickScanServices::serviceCbColaMsg
+    rosServiceServer<sick_scan_srv::ECRChangeArrSrv> m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan::SickScanServices::serviceCbECRChangeArr
+    rosServiceServer<sick_scan_srv::LIDoutputstateSrv> m_srv_server_LIDoutputstate; ///< service "LIDoutputstate", &sick_scan::SickScanServices::serviceCbLIDoutputstate
+    rosServiceServer<sick_scan_srv::SCdevicestateSrv> m_srv_server_SCdevicestate; ///< service "SCdevicestate", &sick_scan::SickScanServices::serviceCbSCdevicestate
+    rosServiceServer<sick_scan_srv::SCrebootSrv> m_srv_server_SCreboot; ///< service "SCreboot", &sick_scan::SickScanServices::serviceCbSCreboot
+    rosServiceServer<sick_scan_srv::SCsoftresetSrv> m_srv_server_SCsoftreset; ///< service "SCsoftreset", &sick_scan::SickScanServices::serviceCbSCsoftreset
 
   }; /* class SickScanServices */
 

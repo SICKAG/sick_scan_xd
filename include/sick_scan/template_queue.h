@@ -26,7 +26,6 @@ public:
     return (retVal);
   }
 
-
   bool isQueueEmpty()
   {
     bool retVal = false;
@@ -35,60 +34,83 @@ public:
     return (retVal);
   }
 
-  bool waitForIncomingObject(int timeOutInMs)
+  bool waitForIncomingObject(int timeOutInMs, const std::vector<std::string>& datagram_keywords)
   {
     std::unique_lock<std::mutex> mlock(mutex_);
     bool ret = true;
-    while (queue_.empty() && (ret == true))
+    typename std::list<T>::iterator datagram_found;
+    while (findFirstByKeyword(datagram_keywords, datagram_found) == false && (ret == true))
     {
       ret = (cond_.wait_for(mlock, std::chrono::milliseconds(timeOutInMs)) == std::cv_status::no_timeout);
     }
     return (ret);
   }
 
-  T pop()
+  T pop(const std::vector<std::string>& datagram_keywords) // T pop(const std::vector<std::string>& datagram_keywords = {})
   {
     std::unique_lock<std::mutex> mlock(mutex_);
-    while (queue_.empty())
+    typename std::list<T>::iterator datagram_found;
+    while (findFirstByKeyword(datagram_keywords, datagram_found) == false)
     {
       cond_.wait(mlock);
     }
-    T item = queue_.front();
-    queue_.pop();
+    T item = *datagram_found;
+    queue_.erase(datagram_found);
     return item;
-  }
-
-  void pop(T &item)
-  {
-    std::unique_lock<std::mutex> mlock(mutex_);
-    while (queue_.empty())
-    {
-      cond_.wait(mlock);
-    }
-    item = queue_.front();
-    queue_.pop();
   }
 
   void push(const T &item)
   {
     {
-    std::unique_lock<std::mutex> mlock(mutex_);
-    queue_.push(item);
+      std::unique_lock<std::mutex> mlock(mutex_);
+      queue_.push_back(item);
     }
     cond_.notify_one();
   }
 
-  void push(T &item)
+
+protected:
+  
+  bool findFirstByKeyword(const std::vector<std::string>& keywords, typename std::list<T>::iterator & iter)
   {
+    iter = queue_.begin();
+    if(keywords.empty())
     {
-    std::unique_lock<std::mutex> mlock(mutex_);
-    queue_.push(item);
+      return !queue_.empty();
     }
-    cond_.notify_one();
+    for( ; iter != queue_.end(); iter++)
+    {
+      std::vector<unsigned char>& datagram = iter->data();
+      uint32_t cola_b_start = 0x02020202;
+      uint8_t* datagram_keyword_start = 0;
+      int datagram_keyword_maxlen = (int)datagram.size();
+      if(datagram.size() > 12 && memcmp(datagram.data(),&cola_b_start, sizeof(cola_b_start)) == 0)
+      {
+        datagram_keyword_start = datagram.data() + 12; // 0x02020202 + { 4 byte payload length } + { 4 byte command id incl. space }
+        datagram_keyword_maxlen -= 12;
+      }
+      else if(datagram.size() > 5)
+      {
+        datagram_keyword_start = datagram.data() + 5; // 0x02 + { 4 byte command id incl. space }
+        datagram_keyword_maxlen -= 5;
+      }
+      else
+        continue;
+      
+      for(int keyword_idx = 0; keyword_idx < keywords.size(); keyword_idx++)
+      {
+        const std::string& keyword = keywords[keyword_idx];
+        if(keyword.size() <= datagram_keyword_maxlen && memcmp(datagram_keyword_start, keyword.data(), keyword.size()) == 0)
+        {
+          // ROS_DEBUG_STREAM("Queue::findFirstByKeyword(): keyword_start=\"" << std::string((char*)datagram_keyword_start, keyword.size()) << "\", keyword=\"" << keyword << "\"");
+          return true;
+        }
+      }
+    }
+    return false; // keyword not found, iter == queue_.end()
   }
 
-private:
-  std::queue<T> queue_;
+  std::list<T> queue_;
   std::mutex mutex_;
   std::condition_variable cond_;
 };

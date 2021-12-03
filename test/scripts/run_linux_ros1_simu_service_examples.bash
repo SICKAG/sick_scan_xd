@@ -25,6 +25,7 @@ sleep 10
 
 # Run example ros service calls
 sleep 2 ; rosservice list
+sleep 2 ; rosservice call /sick_lms_5xx/SCdevicestate "{}" # query device state
 sleep 2 ; rosservice call /sick_lms_5xx/ColaMsg "{request: 'sMN IsSystemReady'}"
 sleep 2 ; rosservice call /sick_lms_5xx/ColaMsg "{request: 'sRN SCdevicestate'}"
 sleep 2 ; rosservice call /sick_lms_5xx/ColaMsg "{request: 'sEN LIDinputstate 1'}"

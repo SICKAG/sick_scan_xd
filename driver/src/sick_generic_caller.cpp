@@ -80,8 +80,8 @@
 #define MAX_NAME_LEN (1024)
 
 #define SICK_GENERIC_MAJOR_VER "2"
-#define SICK_GENERIC_MINOR_VER "1"
-#define SICK_GENERIC_PATCH_LEVEL "0"
+#define SICK_GENERIC_MINOR_VER "4"
+#define SICK_GENERIC_PATCH_LEVEL "2"
 
 #include <algorithm> // for std::min
 
@@ -91,7 +91,7 @@ std::string getVersionInfo();
 /*!
 \brief Startup routine - if called with no argmuments we assume debug session.
        Set scanner name variable by parsing for "__name:=". This will be changed in the future
-	   by setting a parameter. Calls mainGenericLaser after parsing.
+       by setting a parameter. Calls mainGenericLaser after parsing.
 
 \param argc: Number of Arguments
 \param argv: Argument variable
@@ -171,7 +171,20 @@ int main(int argc, char **argv)
     ROS_INFO_STREAM("Program argument " << (i+1) << ": " << argv_tmp[i] << "\n");
   }
 
-  int result = mainGenericLaser(argc_tmp, argv_tmp, scannerName, node);
+  int result = 0;
+  try
+  {
+    result = mainGenericLaser(argc_tmp, argv_tmp, scannerName, node);
+  }
+  catch(const std::exception& e)
+  {
+    ROS_ERROR_STREAM("## ERROR in mainGenericLaser: exception " << e.what());
+  }
+  catch(...)
+  {
+    ROS_ERROR_STREAM("## ERROR in mainGenericLaser: unknown exception ");
+  }
+
   return result;
 
 }
