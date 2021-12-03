@@ -350,7 +350,7 @@ public:
 #endif //__ROS_VERSION
 
 /*
-** dynamic reconfiguration and diagnostic_updater currently supported on ROS-1 only, todo...
+** dynamic reconfiguration and diagnostic_updater currently supported on ROS-Linux only, todo...
 */
 #if __ROS_VERSION == 2 // ROS 2
 #ifndef WIN32
