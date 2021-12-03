@@ -28,7 +28,7 @@
 
 #include <xmlrpcpp/XmlRpcValue.h>
 
-#ifdef linux
+#ifndef _MSC_VER
 #define __cdecl
 #endif
 std::string unknownNode = "????";
@@ -498,8 +498,7 @@ int fork()
 	return(0);
 }
 
-#ifdef linux
-#else
+#ifdef _MSC_VER
 void sleep(int secs)
 {
 	Sleep(secs * 1000);

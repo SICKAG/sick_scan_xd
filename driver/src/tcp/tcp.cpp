@@ -9,11 +9,11 @@
 #include "sick_scan/tcp/toolbox.hpp"
 #include <stdio.h>      // for sprintf()
 
-#ifdef linux
+#ifdef _MSC_VER
+#include <WinSock2.h>
+#else
 #include <sys/socket.h> // for socket(), bind(), and connect()
 #include <arpa/inet.h>  // for sockaddr_in and inet_ntoa()
-#else
-#include <WinSock2.h>
 #endif
 #include <string.h>     // for memset()
 #include <netdb.h>      // for hostent

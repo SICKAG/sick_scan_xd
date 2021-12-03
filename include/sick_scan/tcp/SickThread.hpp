@@ -8,11 +8,11 @@
 #include "sick_scan/tcp/BasicDatatypes.hpp"
 #include "sick_scan/sick_ros_wrapper.h"
 //#include <pthread.h>
-#ifdef linux
-#include <unistd.h>
-#else
+#ifdef _MSC_VER
 //#include <unistd_win.h>
 #include <usleep.h>
+#else
+#include <unistd.h>
 #endif
 
 extern "C" void* wrapper_prerun(void*);

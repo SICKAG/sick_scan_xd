@@ -18,11 +18,11 @@
 
 #include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scan/tcp/BasicDatatypes.hpp"
-#ifdef linux
+#ifdef _MSC_VER
+#include <winsock2.h>
+#else
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
-#else
-#include <winsock2.h>
 #endif
 #include "sick_scan/tcp/Mutex.hpp"
 #include "sick_scan/tcp/SickThread.hpp"

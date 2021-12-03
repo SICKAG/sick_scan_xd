@@ -155,9 +155,6 @@ if(ROS_VERSION EQUAL 2)
     #uncomment this lines and change path accordingly
     set(FastRTPS_INCLUDE_DIR /opt/ros/$ENV{ROS_DISTRO}/include)
     set(FastRTPS_LIBRARY_RELEASE /opt/ros/$ENV{ROS_DISTRO}/lib/libfastrtps.so)
-    #to fix
-    #CMake Error at /snap/clion/126/bin/cmake/linux/share/cmake-3.17/Modules/FindPackageHandleStandardArgs.cmake:164 (message):
-    #  Could NOT find FastRTPS (missing: FastRTPS_INCLUDE_DIR FastRTPS_LIBRARIES)
 
     find_package(ament_cmake REQUIRED)
     # find_package(diagnostic_updater REQUIRED)
