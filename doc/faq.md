@@ -1,5 +1,14 @@
 # sick_scan FAQ
 
+## Compilation errors
+
+:question: Compiler reports errors in file `/opt/ros/<distro>/include/sick_scan`
+
+:white_check_mark: If sick_scan was previously installed using `apt-get install ros-<distro>-sick-scan`, you have to remove previous versions using `apt-get purge ros-<distro>-sick-scan`. Run the following steps for a complete rebuild:
+1. Run `sudo apt-get purge ros-<distro>-sick-scan` (e.g. `sudo apt-get purge ros-noetic-sick-scan`) to remove previously installed sick_scan-packages
+2. Remove the folders sick_scan_xd/build, sick_scan_xd/build_isolated, sick_scan_xd/devel, sick_scan_xd/devel_isolated, sick_scan_xd/install and sick_scan_xd/install_isolated
+3. Rebuild
+
 ## rviz shows a grey point cloud
 
 :question: rviz shows a grey point cloud. The size of points can be adjusted.
