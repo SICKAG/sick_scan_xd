@@ -1,8 +1,8 @@
 # sick_scan FAQ
 
-## How to run multiple sensors?
+## How to run multiple sensors concurrently?
 
-:question: How can I run multiple sensors with sick_scan_xd ?
+:question: How can I run multiple sensors concurrently with sick_scan_xd ?
 
 :white_check_mark: To support multiple sensors, sick_scan_xd has to be started multiple times, with one sick_scan-node for each sensor. By default, each sick_scan-node connects to "192.168.0.1" and publishes its pointcloud on topic "cloud". Therefore both the node name, the ip-address of the sensor and the pointcloud topic have to be configured differently for each node. 
 
