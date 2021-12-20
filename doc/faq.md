@@ -1,5 +1,40 @@
 # sick_scan FAQ
 
+## How to run multiple sensors?
+
+:question: How can I run multiple sensors with sick_scan_xd ?
+
+:white_check_mark: To support multiple sensors, sick_scan_xd has to be started multiple times, with one sick_scan-node for each sensor. By default, each sick_scan-node connects to "192.168.0.1" and publishes its pointcloud on topic "cloud". Therefore both the node name, the ip-address of the sensor and the pointcloud topic have to be configured differently for each node. 
+
+Node name, ip-address and pointcloud topic can be configured in the launch-file or by commandline argument:
+
+* Topic, nodename and ip configuration in a launch-file (example for TiM7xx):
+    ```
+    <launch>
+        <arg name="nodename" default="sick_tim_7xx"/>
+        <arg name="hostname" default="192.168.0.1"/>
+        <arg name="cloud_topic" default="cloud"/>
+        <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+            <param name="scanner_type" type="string" value="sick_tim_7xx"/>
+            <param name="nodename" type="string" value="$(arg nodename)"/>
+            <param name="hostname" type="string" value="$(arg hostname)"/>
+            <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+    ```
+
+* Topic, node name and ip configuration by commandline (ROS1-example for TiM7xx):
+    ```
+    roslaunch sick_scan sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1
+    roslaunch sick_scan sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2
+    ```
+
+* Topic, node name and ip configuration by commandline (ROS2-example for TiM7xx):
+    ```
+    ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1
+    ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2
+    ```
+
+Scripts [run_linux_ros1_simu_tim7xx_twin.bash](../test/scripts/run_linux_ros1_simu_tim7xx_twin.bash) and [run_linux_ros2_simu_tim7xx_twin.bash](../test/scripts/run_linux_ros2_simu_tim7xx_twin.bash) show a complete example with emulation of two TiM7xx sensors and two sick_scan nodes running concurrently using different nodenames and topics.
+
 ## Compilation errors
 
 :question: Compiler reports errors in file `/opt/ros/<distro>/include/sick_scan`
