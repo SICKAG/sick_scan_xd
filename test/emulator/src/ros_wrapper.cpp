@@ -202,5 +202,7 @@ uint64_t ROS::timestampMilliseconds(const ROS::Time& time)
   return (uint64_t)(time.sec * 1000) + (uint64_t)(time.nsec / 1000000);
 #elif defined __ROS_VERSION && __ROS_VERSION == 2
   return (uint64_t)(time.nanoseconds() / 1000000);
+#else
+  return 0;
 #endif
 }

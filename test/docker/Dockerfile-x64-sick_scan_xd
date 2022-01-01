@@ -1,0 +1,17 @@
+#
+# build libsick_ldmrs and sick_scan_xd in docker container
+#
+
+FROM ubuntu:20.04
+RUN apt-get update && apt-get -y install cmake gcc g++ libjsoncpp-dev firefox
+
+
+RUN mkdir -p /workspace/src
+COPY ./src /workspace/src/
+WORKDIR /workspace
+RUN /bin/bash -c "pushd ./src/libsick_ldmrs ; mkdir -p ./build ; cd ./build ; cmake -G \"Unix Makefiles\" .. ; make -j4 ; make -j4 install ; popd ; pushd ./src/sick_scan_xd ;  mkdir -p ./build_linux ; cd ./build_linux ; export ROS_VERSION=0 ; cmake -DROS_VERSION=0 -G \"Unix Makefiles\" .. ; make -j4 ; ls -al ./sick_generic_caller ; popd"
+
+#
+# launch sick_scan_xd with ldmrs emulator
+#
+CMD /bin/bash -c "cd /workspace/src/sick_scan_xd/test/scripts ; ls -al ; ./run_linux_simu_ldmrs.bash"

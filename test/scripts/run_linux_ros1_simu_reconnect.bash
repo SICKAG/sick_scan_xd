@@ -79,8 +79,10 @@ function killRestartEmulatorRandomly () {
 killSimulation
 printf "\033c"
 pushd ../../../..
-source /opt/ros/melodic/setup.bash
-source ./install/setup.bash
+if [ -f /opt/ros/melodic/setup.bash   ] ; then source /opt/ros/melodic/setup.bash   ; fi
+if [ -f /opt/ros/noetic/setup.bash    ] ; then source /opt/ros/noetic/setup.bash    ; fi
+if [ -f ./install_isolated/setup.bash ] ; then source ./install_isolated/setup.bash ; fi
+if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
 
 echo -e "run_simu_reconnnect.bash: starting mrs1104 emulation\n"
 
