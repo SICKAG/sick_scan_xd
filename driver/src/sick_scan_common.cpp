@@ -2792,9 +2792,9 @@ namespace sick_scan
       }
       */
 
-      // CONFIG ECHO-Filter (only for MRS1000 not available for TiM5xx
+      // CONFIG ECHO-Filter (only for MRS1xxx and MRS6xxx, not available for TiM5xx)
       //if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() >= 4)
-        if (true)
+      if (this->parser_->getCurrentParamPtr()->getFREchoFilterAvailable())
       {
         char requestEchoSetting[MAX_STR_LEN];
         int filterEchoSetting = 0;

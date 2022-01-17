@@ -35,6 +35,12 @@ Node name, ip-address and pointcloud topic can be configured in the launch-file 
 
 Scripts [run_linux_ros1_simu_tim7xx_twin.bash](../test/scripts/run_linux_ros1_simu_tim7xx_twin.bash) and [run_linux_ros2_simu_tim7xx_twin.bash](../test/scripts/run_linux_ros2_simu_tim7xx_twin.bash) show a complete example with emulation of two TiM7xx sensors and two sick_scan nodes running concurrently using different nodenames and topics.
 
+## Driver restarts again and again after "sFA" message
+
+:question: The sick_scan_xd driver restarts again and again after an error message "sFA".
+
+:white_check_mark: The behaviour is intentional. The error message "sFA" can be caused by faulty configuration or errors in the lidar. Correct operation after this error message is not guaranteed. In this case, the driver restarts itself. It is recommended to identify and correct the error using its error number ("`sFA<hexcode>`"). The SOPAS error codes are listed in the manual.
+
 ## Compilation errors
 
 :question: Compiler reports errors in file `/opt/ros/<distro>/include/sick_scan`
