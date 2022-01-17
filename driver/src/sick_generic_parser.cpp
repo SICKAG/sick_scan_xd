@@ -394,7 +394,7 @@ namespace sick_scan
   */
   ScannerBasicParam::ScannerBasicParam()
   : numberOfLayers(0), numberOfShots(0), numberOfMaximumEchos(0), elevationDegreeResolution(0), angleDegressResolution(0), expectedFrequency(0),
-     useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceIsRadar(false), useSafetyPasWD(false), encoderMode(0), 
+     useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceIsRadar(false), useSafetyPasWD(false), encoderMode(0),
      CartographerCompatibility(false), scanMirroredAndShifted(false), useEvalFields(EVAL_FIELD_UNSUPPORTED), maxEvalFields(0),
      imuEnabled (false), scanAngleShift(0)
   {
@@ -646,7 +646,7 @@ namespace sick_scan
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
         basicParams[i].setUseScancfgList(false);
-        basicParams[i].setWaitForReady(false);
+        basicParams[i].setWaitForReady(true); // changed from false to true, see comment in sick_lms1xx.launch
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0) //
       {
