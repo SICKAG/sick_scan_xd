@@ -1037,16 +1037,20 @@ namespace sick_scan
 #if defined __ROS_VERSION && __ROS_VERSION == 1
       ROS_WARN_THROTTLE(60,
                         "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
-                        "Expected time_increment: %.9f, reported time_increment: %.9f. "
+                        "Expected time_increment: %.9f, reported time_increment: %.9f "
+                        "(time_increment=%.9f, scan_time=%.9f, angle_increment=%.9f). "
                         "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.",
-                        expected_time_increment, time_increment);
+                        expected_time_increment, time_increment, time_increment, scan_time, angle_increment*180.0/M_PI);
 #else
         ROS_WARN_STREAM(
             "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
-            << "Expected time_increment: " << expected_time_increment << ", reported time_increment:" << time_increment << ". "
+            << "Expected time_increment: " << expected_time_increment << ", reported time_increment:" << time_increment << " "
+            << "(time_increment=" << time_increment << ", scan_time=" << scan_time << ", angle_increment=" << (angle_increment*180.0/M_PI) << "). "
             << "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.");
 #endif
     }
+    // ROS_DEBUG_STREAM("SickGenericParser::checkScanTiming(time_increment=" << time_increment << ", scan_time=" << scan_time << ", angle_increment=" << (angle_increment*180.0/M_PI)
+    //     << "): expected_time_increment=" << expected_time_increment);
   };
 
 

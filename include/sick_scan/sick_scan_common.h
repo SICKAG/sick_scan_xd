@@ -208,6 +208,10 @@ namespace sick_scan
 
     int sendSopasAndCheckAnswer(std::vector<unsigned char> request, std::vector<unsigned char> *reply, int cmdId);
 
+    int sendSopasAorBgetAnswer(const std::string& request, std::vector<unsigned char> *reply, bool useBinaryCmd);
+
+    ExitCode checkColaTypeAndSwitchToConfigured(bool useBinaryCmd);
+
     int setAligmentMode(int _AligmentMode);
 
     int setMeanFilter(bool _active, int _numberOfScans);

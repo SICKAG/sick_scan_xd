@@ -41,6 +41,15 @@ Scripts [run_linux_ros1_simu_tim7xx_twin.bash](../test/scripts/run_linux_ros1_si
 
 :white_check_mark: The behaviour is intentional. The error message "sFA" can be caused by faulty configuration or errors in the lidar. Correct operation after this error message is not guaranteed. In this case, the driver restarts itself. It is recommended to identify and correct the error using its error number ("`sFA<hexcode>`"). The SOPAS error codes are listed in the manual.
 
+## Driver restarts after timeout error
+
+:question: The sick_scan_xd driver changes the communication protocol and restarts after a timeout error.
+
+:white_check_mark: The use of binary communication (Cola-B) is highly recommended due to better compatibility, lower network traffic and general support.
+Recommendation:
+1. Set parameter "use_binary_protocol" to "true" in the launch file, and
+2. Set the lidar communication mode with the SOPAS ET software to binary and save this setting in the scanner's EEPROM.
+
 ## Compilation errors
 
 :question: Compiler reports errors in file `/opt/ros/<distro>/include/sick_scan`
