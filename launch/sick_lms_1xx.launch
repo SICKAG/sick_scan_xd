@@ -23,6 +23,17 @@
         <param name="activate_lidinputstate" type="bool" value="True"/> <!-- activate field monitoring by lidinputstate messages -->
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
 
+        <param name="ang_res" type="double" value="0.5" /> <!-- Supported values are "0.25" and "0.50" -->
+        <param name="scan_freq" type="double" value="50" /> <!-- Supported values are "25" and "50" -->
+        <!-- Note: angular resolution and scanning frequency of a LMS111 can be configured by parameter "ang_res" (values "0.25" or "0.5") and "scan_freq"  (values "25" or "50") -->
+        <!-- After setting "ang_res" and "scan_freq", it takes ca. 30 seconds until the pointcloud is published. -->
+        <!-- Recommendation: It is recommended to specify the desired angular resolution and scan rate in this launch file. -->
+        <!-- In this case, it is necessary to wait approx. 30 sec. until the Lidar changes to status "OK". -->
+        <!-- Alternatively, these settings can be configured in SOPAS-ET, transferred to the EEProm of the lidar and -->
+        <!-- then permanently stored. In this case, the explicit specification of scan rate and angular resolution -->
+        <!-- can be omitted and the waiting time can be avoided. -->  
+
+
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
         <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->
         <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->

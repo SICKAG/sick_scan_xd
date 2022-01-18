@@ -84,13 +84,16 @@ protected:
       uint32_t cola_b_start = 0x02020202;
       uint8_t* datagram_keyword_start = 0;
       int datagram_keyword_maxlen = (int)datagram.size();
+      int commandIdOffset = 1;
       if(datagram.size() > 12 && memcmp(datagram.data(),&cola_b_start, sizeof(cola_b_start)) == 0)
       {
+        commandIdOffset = 8; // command id behind 0x02020202 + { 4 byte payload length }
         datagram_keyword_start = datagram.data() + 12; // 0x02020202 + { 4 byte payload length } + { 4 byte command id incl. space }
         datagram_keyword_maxlen -= 12;
       }
       else if(datagram.size() > 5)
       {
+        commandIdOffset = 1;
         datagram_keyword_start = datagram.data() + 5; // 0x02 + { 4 byte command id incl. space }
         datagram_keyword_maxlen -= 5;
       }
@@ -103,6 +106,20 @@ protected:
         if(keyword.size() <= datagram_keyword_maxlen && memcmp(datagram_keyword_start, keyword.data(), keyword.size()) == 0)
         {
           // ROS_DEBUG_STREAM("Queue::findFirstByKeyword(): keyword_start=\"" << std::string((char*)datagram_keyword_start, keyword.size()) << "\", keyword=\"" << keyword << "\"");
+          return true;
+        }
+      }
+
+      // keyword not found.
+      // Check for possible sFA command as an error reply
+      std::string errorIdentifier = "sFA";
+      if (datagram.size() >= (commandIdOffset + errorIdentifier.length()))
+      {
+        const char* errorIdentifierPtr = errorIdentifier.c_str();
+        const char* cmpPtr = (const char *)(datagram.data() + commandIdOffset);
+        if (memcmp(cmpPtr, errorIdentifierPtr, errorIdentifier.length() )== 0)
+        {
+          ROS_DEBUG_STREAM("Queue::findFirstByKeyword(): error identifier sFA found in datagram");
           return true;
         }
       }

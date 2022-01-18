@@ -1020,6 +1020,72 @@ namespace sick_scan
 
   }
 
+  int SickScanCommon::sendSopasAorBgetAnswer(const std::string& sopasCmd, std::vector<unsigned char> *reply, bool useBinaryCmd)
+  {
+    int result = -1;
+    std::vector<unsigned char> replyDummy, reqBinary;
+    int prev_sopas_type = this->getProtocolType();
+    this->setProtocolType(useBinaryCmd ? CoLa_B : CoLa_A);
+    if (useBinaryCmd)
+    {
+      this->convertAscii2BinaryCmd(sopasCmd.c_str(), &reqBinary);
+      result = sendSopasAndCheckAnswer(reqBinary, &replyDummy);
+    }
+    else
+    {
+      result = sendSopasAndCheckAnswer(sopasCmd.c_str(), &replyDummy);
+    }
+    if(reply)
+      *reply = replyDummy;
+    this->setProtocolType((SopasProtocol)prev_sopas_type); // restore previous sopas type
+    return result;
+  }
+
+  // Check Cola-Configuration of the scanner:
+  // * Send "sRN DeviceState" with configured cola-dialect (Cola-B = useBinaryCmd)
+  // * If lidar does not answer:
+  //   * Send "sRN DeviceState" with different cola-dialect (Cola-B = !useBinaryCmd)
+  //   * If lidar sends a response:
+  //     * Switch to configured cola-dialect (Cola-B = useBinaryCmd) using "sWN EIHstCola" and restart
+  ExitCode SickScanCommon::checkColaTypeAndSwitchToConfigured(bool useBinaryCmd)
+  {
+    if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_DEVICE_STATE], 0, useBinaryCmd) != 0) // no answer
+    {
+      ROS_WARN_STREAM("checkColaDialect: lidar response not in configured Cola-dialect Cola-" << (useBinaryCmd ? "B" : "A") << ", trying different Cola configuration");
+      std::vector<unsigned char> sopas_response;
+      if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_DEVICE_STATE], &sopas_response, !useBinaryCmd) != 0) // no answer
+      {
+        ROS_WARN_STREAM("checkColaDialect: no lidar response in any cola configuration, check lidar and network!");
+        ROS_WARN_STREAM("SickScanCommon::init_scanner() failed, aborting.");
+        return ExitError;
+      }
+      else
+      {
+        ROS_WARN_STREAM("checkColaDialect: lidar response in configured Cola-dialect Cola-" << (!useBinaryCmd ? "B" : "A") << ", changing Cola configuration and restart!");
+        std::vector<std::string> sopas_change_cola_commands = {
+          sopasCmdVec[CMD_SET_ACCESS_MODE_3],
+          sopasCmdVec[(useBinaryCmd ? CMD_SET_TO_COLA_B_PROTOCOL : CMD_SET_TO_COLA_A_PROTOCOL)]
+        };
+        for(int n = 0; n < sopas_change_cola_commands.size(); n++)
+        {
+          if (sendSopasAorBgetAnswer(sopas_change_cola_commands[n], &sopas_response, !useBinaryCmd) != 0) // no answer
+          {
+            ROS_WARN_STREAM("checkColaDialect: no lidar response to sopas requests \"" << sopas_change_cola_commands[n] << "\", aborting");
+            return ExitError;
+          }
+        }
+        ROS_INFO_STREAM("checkColaDialect: restarting after Cola configuration change.");
+        return ExitError;
+      }
+    }
+    else
+    {
+      ROS_INFO_STREAM("checkColaDialect: lidar response in configured Cola-dialect Cola-" << (useBinaryCmd ? "B" : "A"));
+    }
+    return ExitSuccess;
+  }
+
+
   /*!
   \brief set timeout in milliseconds
   \param timeOutInMs in milliseconds
@@ -1596,6 +1662,20 @@ namespace sick_scan
       NAV3xxOutputRangeSpecialHandling = true;
     }
 
+    // Check Cola-Configuration of the scanner:
+    // * Send "sRN DeviceState" with configured cola-dialect (Cola-B = useBinaryCmd)
+    // * If lidar does not answer:
+    //   * Send "sRN DeviceState" with different cola-dialect (Cola-B = !useBinaryCmd)
+    //   * If lidar sends a response:
+    //     * Switch to configured cola-dialect (Cola-B = useBinaryCmd) using "sWN EIHstCola" and restart
+    if (checkColaTypeAndSwitchToConfigured(useBinaryCmd) != ExitSuccess)
+    {
+      ROS_WARN_STREAM("SickScanCommon::init_scanner(): checkColaDialect failed, restarting.");
+      ROS_WARN_STREAM("It is recommended to use the binary communication (Cola-B) by:");
+      ROS_WARN_STREAM("1. setting parameter use_binary_protocol true in the launch file, and");
+      ROS_WARN_STREAM("2. setting the lidar communication mode with the SOPAS ET software to binary and save this setting in the scanner's EEPROM.");
+      return ExitError;
+    }
 
     for (size_t i = 0; i < this->sopasCmdChain.size(); i++)
     {
@@ -2792,9 +2872,9 @@ namespace sick_scan
       }
       */
 
-      // CONFIG ECHO-Filter (only for MRS1000 not available for TiM5xx
+      // CONFIG ECHO-Filter (only for MRS1xxx and MRS6xxx, not available for TiM5xx)
       //if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() >= 4)
-        if (true)
+      if (this->parser_->getCurrentParamPtr()->getFREchoFilterAvailable())
       {
         char requestEchoSetting[MAX_STR_LEN];
         int filterEchoSetting = 0;

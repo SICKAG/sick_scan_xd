@@ -388,13 +388,24 @@ namespace sick_scan
   {
     return this->waitForReady;
   }
+
+  void ScannerBasicParam::setFREchoFilterAvailable(bool _frEchoFilterAvailable)
+   {
+    this->frEchoFilterAvailable = _frEchoFilterAvailable;
+  }
+ 
+  bool ScannerBasicParam::getFREchoFilterAvailable(void)
+  {
+    return this->frEchoFilterAvailable;
+  }
+
   /*!
   \brief Construction of parameter object
 
   */
   ScannerBasicParam::ScannerBasicParam()
   : numberOfLayers(0), numberOfShots(0), numberOfMaximumEchos(0), elevationDegreeResolution(0), angleDegressResolution(0), expectedFrequency(0),
-     useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceIsRadar(false), useSafetyPasWD(false), encoderMode(0), 
+     useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceIsRadar(false), useSafetyPasWD(false), encoderMode(0),
      CartographerCompatibility(false), scanMirroredAndShifted(false), useEvalFields(EVAL_FIELD_UNSUPPORTED), maxEvalFields(0),
      imuEnabled (false), scanAngleShift(0)
   {
@@ -491,6 +502,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(true);
+        basicParams[i].setFREchoFilterAvailable(true);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) ==
           0)  // LMS1000 - 4 layer, 1101 shots per scan
@@ -512,6 +524,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(true);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_240_NAME) ==
           0) // TIM_5xx - 1 Layer, max. 811 shots per scan
@@ -532,6 +545,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_5XX_NAME) ==
           0) // TIM_5xx - 1 Layer, max. 811 shots per scan
@@ -552,6 +566,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_4XXX_NAME) == 0) // LMS_4xxx - 1 Layer, 600 Hz
       {
@@ -571,6 +586,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_7XX_NAME) == 0) // TIM_7xx - 1 Layer Scanner
       {
@@ -590,6 +606,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(48);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_7XXS_NAME) == 0) // TIM_7xxS - 1 layer Safety Scanner
       {
@@ -609,6 +626,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(48);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0) // LMS_5xx - 1 Layer
       {
@@ -628,6 +646,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(30);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0) // LMS_1xx - 1 Layer
       {
@@ -646,7 +665,8 @@ namespace sick_scan
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
         basicParams[i].setUseScancfgList(false);
-        basicParams[i].setWaitForReady(false);
+        basicParams[i].setWaitForReady(true); // changed from false to true, see comment in sick_lms1xx.launch
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0) //
       {
@@ -666,6 +686,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(30);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setWaitForReady(true);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0) //
       {
@@ -685,6 +706,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(30);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setWaitForReady(true);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_MRS_6XXX_NAME) == 0) //
       {
@@ -705,6 +727,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(true);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0) // LMS_5xx - 1 Layer
       {
@@ -724,8 +747,8 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
-     }
-
+        basicParams[i].setFREchoFilterAvailable(false);
+      }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_3XX_NAME) == 0) // Radar
       {
         basicParams[i].setNumberOfMaximumEchos(1);
@@ -745,6 +768,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_1XXX_NAME) == 0) // Radar
       {
@@ -765,6 +789,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) // Nav 3xx
       {
@@ -784,6 +809,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setWaitForReady(true);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_OEM_15XX_NAME) == 0) // Nav 3xx
       {
@@ -803,6 +829,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setWaitForReady(true);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_2XX_NAME) == 0) // NAV_2xx - 1 Layer
       {
@@ -822,6 +849,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_4XX_NAME) == 0) // TiM433 and TiM443
       {
@@ -841,6 +869,7 @@ namespace sick_scan
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
       }
     }
 
@@ -1008,16 +1037,20 @@ namespace sick_scan
 #if defined __ROS_VERSION && __ROS_VERSION == 1
       ROS_WARN_THROTTLE(60,
                         "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
-                        "Expected time_increment: %.9f, reported time_increment: %.9f. "
+                        "Expected time_increment: %.9f, reported time_increment: %.9f "
+                        "(time_increment=%.9f, scan_time=%.9f, angle_increment=%.9f). "
                         "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.",
-                        expected_time_increment, time_increment);
+                        expected_time_increment, time_increment, time_increment, scan_time, angle_increment*180.0/M_PI);
 #else
         ROS_WARN_STREAM(
             "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
-            << "Expected time_increment: " << expected_time_increment << ", reported time_increment:" << time_increment << ". "
+            << "Expected time_increment: " << expected_time_increment << ", reported time_increment:" << time_increment << " "
+            << "(time_increment=" << time_increment << ", scan_time=" << scan_time << ", angle_increment=" << (angle_increment*180.0/M_PI) << "). "
             << "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.");
 #endif
     }
+    // ROS_DEBUG_STREAM("SickGenericParser::checkScanTiming(time_increment=" << time_increment << ", scan_time=" << scan_time << ", angle_increment=" << (angle_increment*180.0/M_PI)
+    //     << "): expected_time_increment=" << expected_time_increment);
   };
 
 

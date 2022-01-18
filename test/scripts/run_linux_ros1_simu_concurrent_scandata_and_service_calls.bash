@@ -35,8 +35,10 @@ function runServiceCalls(){
 
 printf "\033c"
 pushd ../../../..
-source /opt/ros/melodic/setup.bash
-source ./install/setup.bash
+if [ -f /opt/ros/melodic/setup.bash   ] ; then source /opt/ros/melodic/setup.bash   ; fi
+if [ -f /opt/ros/noetic/setup.bash    ] ; then source /opt/ros/noetic/setup.bash    ; fi
+if [ -f ./install_isolated/setup.bash ] ; then source ./install_isolated/setup.bash ; fi
+if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
 
 #
 # run_linux_ros1_simu_concurrent_scandata_and_service_calls.bash:

@@ -174,7 +174,9 @@ namespace sick_scan
 
     bool getWaitForReady();
 
+    void setFREchoFilterAvailable(bool _frEchoFilterAvailable);
 
+    bool getFREchoFilterAvailable(void);
 
   private:
     std::string scannerName;
@@ -197,6 +199,8 @@ namespace sick_scan
     int maxEvalFields;
     bool useScancfgList;
     bool waitForReady;
+    bool frEchoFilterAvailable = false;
+
   };
 
 

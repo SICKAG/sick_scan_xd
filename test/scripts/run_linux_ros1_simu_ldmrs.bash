@@ -10,8 +10,10 @@ function simu_ldmrs_killall()
 simu_ldmrs_killall
 printf "\033c"
 pushd ../../../..
-source /opt/ros/melodic/setup.bash
-source ./install/setup.bash
+if [ -f /opt/ros/melodic/setup.bash   ] ; then source /opt/ros/melodic/setup.bash   ; fi
+if [ -f /opt/ros/noetic/setup.bash    ] ; then source /opt/ros/noetic/setup.bash    ; fi
+if [ -f ./install_isolated/setup.bash ] ; then source ./install_isolated/setup.bash ; fi
+if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
 
 echo -e "run_simu_ldmrs.bash: starting ldmrs emulation\n"
 

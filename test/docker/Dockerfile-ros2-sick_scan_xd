@@ -1,0 +1,35 @@
+#
+# Select ROS-2 version, e.g. foxy or eloquent
+#
+
+FROM osrf/ros:foxy-desktop
+# FROM osrf/ros:eloquent-desktop
+
+#
+# install ROS package
+#
+
+RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-rviz2 psmisc
+RUN rm -rf /var/lib/apt/lists/*
+
+#
+# build sick_scan_xd
+#
+
+RUN mkdir -p /workspace/src
+# copy or checkout sick_scan_xd to current docker container
+COPY ./src /workspace/src/
+# workaround for missing diagnostic_updater in osrf/ros:${ROS_DISTRO}-desktop, checkout appropriate version from https://github.com/ros/diagnostics,
+# for eloquent and foxy added in roswrap/src/rossimu/${ROS_DISTRO}/include/diagnostic_updater
+RUN mkdir -p /workspace/src/sick_scan_xd/include/diagnostic_updater
+COPY ./src/sick_scan_xd/roswrap/src/rossimu/${ROS_DISTRO}/include/diagnostic_updater /workspace/src/sick_scan_xd/include/diagnostic_updater
+# build sick_scan_xd in docker container
+WORKDIR /workspace
+RUN . /opt/ros/${ROS_DISTRO}/setup.sh ; colcon build --packages-select libsick_ldmrs --cmake-args " -DCMAKE_BUILD_TYPE=Release" --event-handlers console_direct+
+RUN . ./install/setup.sh ; colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_BUILD_TYPE=Release" --event-handlers console_direct+
+RUN /bin/bash -c "echo -e \"\nsick_scan_xd colcon build finished:\" ; ls -al /workspace/build/sick_scan/sick_generic_caller ; ls -al /workspace/install/sick_scan/lib/sick_scan/sick_generic_caller"
+
+#
+# launch ros package, run sick_scan_xd with TiM7xx emulator
+#
+CMD /bin/bash -c "cd /workspace/src/sick_scan_xd/test/scripts ; ls -al ; ./run_linux_ros2_simu_tim7xx_tim7xxS.bash"
