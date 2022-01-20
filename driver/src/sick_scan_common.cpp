@@ -77,6 +77,7 @@
 #include <sick_scan/sick_generic_field_mon.h>
 #include <sick_scan/helper/angle_compensator.h>
 #include <sick_scan/sick_scan_config_internal.h>
+#include <sick_scan/sick_scan_parse_util.h>
 
 #include "sick_scan/binScanf.hpp"
 #include "sick_scan/dataDumper.h"
@@ -1271,7 +1272,8 @@ namespace sick_scan
      *                      +------------------------------------------------> 0x0320   --> 0800   -> 8 Hz scanfreq
     */
     //                                                                   0320 01 09C4 0 0036EE80 09C4 0 0 09C4 0 0 09C4 0 0
-
+    sopasCmdVec[CMD_GET_SCANDATACONFIGNAV] = "\x02sRN LMPscancfg\x03";
+    sopasCmdVec[CMD_SEN_SCANDATACONFIGNAV] = "\x02sEN LMPscancfg 1\x03";
     sopasCmdVec[CMD_SET_LFEREC_ACTIVE] = "\x02sEN LFErec 1\x03";              // TiM781S: activate LFErec messages, send "sEN LFErec 1"
     sopasCmdVec[CMD_SET_LID_OUTPUTSTATE_ACTIVE] = "\x02sEN LIDoutputstate 1\x03"; // TiM781S: activate LIDoutputstate messages, send "sEN LIDoutputstate 1"
     sopasCmdVec[CMD_SET_LID_INPUTSTATE_ACTIVE] = "\x02sEN LIDinputstate 1\x03"; // TiM781S: activate LIDinputstate messages, send "sEN LIDinputstate 1"
@@ -1367,6 +1369,8 @@ namespace sick_scan
     sopasCmdErrMsg[CMD_SET_ENCODER_MODE] = "Error activating encoder in single incremnt mode";
     sopasCmdErrMsg[CMD_SET_INCREMENTSOURCE_ENC] = "Error seting encoder increment source to Encoder";
     sopasCmdErrMsg[CMD_SET_SCANDATACONFIGNAV] = "Error setting scandata config";
+    sopasCmdErrMsg[CMD_GET_SCANDATACONFIGNAV] = "Error getting scandata config";
+    sopasCmdErrMsg[CMD_SEN_SCANDATACONFIGNAV] = "Error setting sEN LMPscancfg";
     sopasCmdErrMsg[CMD_SET_LFEREC_ACTIVE] = "Error activating LFErec messages";
     sopasCmdErrMsg[CMD_SET_LID_OUTPUTSTATE_ACTIVE] = "Error activating LIDoutputstate messages";
     sopasCmdErrMsg[CMD_SET_LID_INPUTSTATE_ACTIVE] = "Error activating LIDinputstate messages";
@@ -1475,15 +1479,26 @@ namespace sick_scan
     sopasCmdChain.push_back(CMD_OPERATION_HOURS); // read operation hours
     sopasCmdChain.push_back(CMD_POWER_ON_COUNT); // read power on count
     sopasCmdChain.push_back(CMD_LOCATION_NAME); // read location name
-    /*
-    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+
+    // Support for "sRN LMPscancfg" and "sMN mLMPsetscancfg" for NAV_3xx and LRS_36xx since version 2.4.4
+    // if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0 
+    // || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0
+    // || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0)
+    if (this->parser_->getCurrentParamPtr()->getUseScancfgList() == true) // true for SICK_SCANNER_LRS_36x0_NAME, SICK_SCANNER_LRS_36x1_NAME, SICK_SCANNER_NAV_3XX_NAME, SICK_SCANNER_OEM_15XX_NAME
     {
-      sopasCmdChain.push_back(CMD_SET_SCANDATACONFIGNAV);
+      // sopasCmdChain.push_back(CMD_SEN_SCANDATACONFIGNAV); // Read LMPscancfg by "sEN LMPscancfg 1"
+      sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
+      sopasCmdChain.push_back(CMD_SET_SCAN_CFG_LIST); // "sMN mCLsetscancfglist 1", set scan config from list for NAX310  LD-OEM15xx LD-LRS36xx
+      sopasCmdChain.push_back(CMD_RUN); // Apply changes, note by manual: "the new values will be activated only after log out (from the user level), when re-entering the Run mode"
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
+      sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
+      sopasCmdChain.push_back(CMD_SET_SCANDATACONFIGNAV); // Set configured start/stop angle using "sMN mLMPsetscancfg"
+      sopasCmdChain.push_back(CMD_RUN); // Apply changes, note by manual: "the new values will be activated only after log out (from the user level), when re-entering the Run mode"
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
+      sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
     }
-     */
 
     return (0);
-
   }
 
 
@@ -1683,6 +1698,8 @@ namespace sick_scan
 
       int cmdId = sopasCmdChain[i]; // get next command
       std::string sopasCmd = sopasCmdVec[cmdId];
+      if (sopasCmd.empty()) // skip sopas command, i.e. use default values
+        continue;
       std::vector<unsigned char> replyDummy;
       std::vector<unsigned char> reqBinary;
 
@@ -2077,7 +2094,57 @@ namespace sick_scan
           // if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_2XX_NAME) == 0)
 
           // ML: add here reply handling
-      }
+
+        case CMD_GET_SCANDATACONFIGNAV:
+        {
+          // Here we get the reply to "sRN LMPscancfg". We use this reply to set the scan configuration (frequency, start and stop angle)
+          // for the following "sMN mCLsetscancfglist" and "sMN mLMPsetscancfg ..." commands
+          int cfgListEntry = 1;
+          rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
+          sopasCmdVec[CMD_SET_SCAN_CFG_LIST] = "\x02sMN mCLsetscancfglist " + std::to_string(cfgListEntry) + "\x03"; // set scan config from list for NAX310  LD - OEM15xx LD - LRS36xx
+          sopasCmdVec[CMD_SET_SCANDATACONFIGNAV] = ""; // set start and stop angle by LMPscancfgToSopas()
+          sick_scan::SickScanParseUtil::LMPscancfg scancfg;
+          if (sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyStrVec[cmdId], scancfg))
+          {
+            // Overwrite start and stop angle with configured values
+            for (int sector_cnt = 0; sector_cnt < scancfg.sector_cfg.size() && sector_cnt < scancfg.active_sector_cnt; sector_cnt++)
+            {
+              double angle_offset_rad = this->parser_->getCurrentParamPtr()->getScanAngleShift();
+              scancfg.sector_cfg[sector_cnt].start_angle = (int32_t)(std::round(10000.0 * rad2deg(this->config_.min_ang - angle_offset_rad)));
+              scancfg.sector_cfg[sector_cnt].stop_angle = (int32_t)(std::round(10000.0 * rad2deg(this->config_.max_ang - angle_offset_rad)));
+            }
+            ROS_INFO_STREAM("Setting LMPscancfg start_angle: " << rad2deg(this->config_.min_ang) << " deg, stop_angle: " << rad2deg(this->config_.max_ang) << " deg");
+            if(sick_scan::SickScanParseUtil::LMPscancfgToSopas(scancfg, sopasCmdVec[CMD_SET_SCANDATACONFIGNAV]))
+            {
+              ROS_INFO_STREAM("Setting LMPscancfg sopas command: \"" << sopasCmdVec[CMD_SET_SCANDATACONFIGNAV] << "\"");
+            }
+            else
+            {
+              ROS_WARN_STREAM("## ERROR in init_scanner(): SickScanParseUtil::LMPscancfgToSopas() failed, start/stop angle not set, default values will be used.");
+            }
+          }
+          else
+          {
+            ROS_WARN_STREAM("## ERROR in init_scanner(): SickScanParseUtil::SopasToLMPscancfg() failed, start/stop angle not set, default values will be used.");
+          }
+        }
+        break;
+
+        case CMD_SET_SCANDATACONFIGNAV: // Parse and print the reply to "sMN mLMPsetscancfg"
+        {
+            sick_scan::SickScanParseUtil::LMPscancfg scancfg;
+            sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyStrVec[cmdId], scancfg);
+        }
+        break;
+
+        case CMD_GET_PARTIAL_SCAN_CFG: // Parse and print the reply to "sRN LMPscancfg"
+        {
+            sick_scan::SickScanParseUtil::LMPscancfg scancfg;
+            sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyStrVec[cmdId], scancfg);
+        }
+        break;
+
+      } // end of switch (cmdId)
 
 
       if (restartDueToProcolChange)
@@ -2135,7 +2202,8 @@ namespace sick_scan
 
       if (this->parser_->getCurrentParamPtr()->getUseScancfgList())
       {
-//scanconfig handling with List
+        // scanconfig handling with List
+        /* now done above via sopasCmdChain - deactivated here, otherwise the scan config will be (re-)set to default values
         char requestsMNmCLsetscancfglist[MAX_STR_LEN];
         int cfgListEntry;
         //rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
@@ -2159,6 +2227,7 @@ namespace sick_scan
           std::vector<unsigned char> lmdScanDataCfgReply;
           result = sendSopasAndCheckAnswer(requestsMNmCLsetscancfglist, &lmdScanDataCfgReply);
         }
+        */
       }
       else // CMD_GET_OUTPUT_RANGE (i.e. handling of LMDscandatacfg
       {
@@ -2379,6 +2448,9 @@ namespace sick_scan
 
       if (result == 0)
       {
+        sick_scan::SickScanParseUtil::LMPscancfg scancfg;
+        sick_scan::SickScanParseUtil::SopasToLMPscancfg(replyToString(askOutputAngularRangeReply), scancfg);
+
         char dummy0[MAX_STR_LEN] = {0};
         char dummy1[MAX_STR_LEN] = {0};
         int dummyInt = 0;
@@ -4969,6 +5041,14 @@ namespace sick_scan
     // 21
     if (cmdAscii.find(keyWord7) != std::string::npos)
     {
+#if 1
+        bufferLen = 0;
+        for (int i = keyWord7.length() + 2, i_max = strlen(requestAscii) - 1; i + 3 < i_max && bufferLen < sizeof(buffer); i += 4, bufferLen++)
+        {
+            char hex_str[] = { requestAscii[i + 2], requestAscii[i + 3], '\0' };
+            buffer[bufferLen] = (std::stoul(hex_str, nullptr, 16) & 0xFF);
+        }
+#else
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) != 0)
       {
         {
@@ -5037,6 +5117,7 @@ namespace sick_scan
 
         }
       }
+#endif
 
     }
     if (cmdAscii.find(keyWord8) != std::string::npos)
