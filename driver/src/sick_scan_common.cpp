@@ -3552,13 +3552,13 @@ namespace sick_scan
       }
       if (actual_length <= 0)
       {
-        return ExitSuccess;
-      } // return success to continue looping
+        continue;
+      } // continue looping to get_datagram()
 
       // ----- if requested, skip frames
       if (iteration_count++ % (config_.skip + 1) != 0)
       {
-        return ExitSuccess;
+        continue; // continue looping to get_datagram()
       }
       ROS_DEBUG_STREAM("SickScanCommon::loopOnce: received " << actual_length << " byte data " << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(32, actual_length)) << " ... ");
 
@@ -3586,7 +3586,9 @@ namespace sick_scan
         // parse radar telegram and send pointcloud2-debug messages
         errorCode = radar->parseDatagram(recvTimeStamp, (unsigned char *) receiveBuffer, actual_length,
                                          useBinaryProtocol);
-        return errorCode; // return success to continue looping
+        if (errorCode != ExitSuccess)
+          return errorCode; // return failures
+        continue; // continue looping to get_datagram()
       }
 
       static SickScanImu scanImu(this); // todo remove static
@@ -3599,12 +3601,14 @@ namespace sick_scan
         }
         else
         {
-          // parse radar telegram and send pointcloud2-debug messages
+          // parse IMU telegram and publish IMU data; details in sick_generic_imu.cpp's SickScanImu::parseDatagram()
           errorCode = scanImu.parseDatagram(recvTimeStamp, (unsigned char *) receiveBuffer, actual_length,
                                             useBinaryProtocol);
 
         }
-        return errorCode; // return success to continue looping
+        if (errorCode != ExitSuccess)
+          return errorCode; // return early only upon failure
+        continue; // continue looping to get_datagram()
       }
       else if(memcmp(&receiveBuffer[8], "sSN LIDoutputstate", strlen("sSN LIDoutputstate")) == 0)
       {
@@ -3630,7 +3634,9 @@ namespace sick_scan
         {
           ROS_WARN_STREAM("## ERROR SickScanCommon: parseLIDoutputstateMsg failed, received " << actual_length << " byte LIDoutputstate " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length));
         }
-        return errorCode; // return success to continue looping
+        if (errorCode != ExitSuccess)
+          return errorCode; // return only upon failure
+        continue; // continue looping to get_datagram()
       }
       else if(memcmp(&receiveBuffer[8], "sSN LIDinputstate", strlen("sSN LIDinputstate")) == 0)
       {
@@ -3645,7 +3651,9 @@ namespace sick_scan
           ROS_DEBUG_STREAM("SickScanCommon: received " << actual_length << " byte LIDinputstate " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length) 
             << ", active fieldset = " << fieldMon->getActiveFieldset());
         }
-        return errorCode; // return success to continue looping
+        if (errorCode != ExitSuccess)
+          return errorCode; // return only upon failure
+        continue; // continue looping to get_datagram()
       }
       else if(memcmp(&receiveBuffer[8], "sSN LFErec", strlen("sSN LFErec")) == 0)
       {
@@ -3671,13 +3679,15 @@ namespace sick_scan
         {
           ROS_WARN_STREAM("## ERROR SickScanCommon: parseLFErecMsg failed, received " << actual_length << " byte LFErec " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length));
         }
-        return errorCode; // return success to continue looping
+        if (errorCode != ExitSuccess)
+          return errorCode; // return only upon failure
+        continue; // continue looping to get_datagram()
       }
       else if(memcmp(&receiveBuffer[8], "sSN LMDscandatamon", strlen("sSN LMDscandatamon")) == 0)
       {
         int errorCode = ExitSuccess;
         ROS_DEBUG_STREAM("SickScanCommon: received " << actual_length << " byte LMDscandatamon (ignored) ..."); // << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length));
-        return errorCode; // return success to continue looping
+        continue; // continue looping to get_datagram()
       }
       else
       {
