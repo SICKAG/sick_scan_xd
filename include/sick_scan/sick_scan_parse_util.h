@@ -67,6 +67,8 @@
 
 namespace sick_scan
 {
+  // returns the given angle in rad normalized to angle_min ... angle_max, assuming (angle_max - angle_min) == 2 * PI
+  double normalizeAngleRad(double angle_rad, double angle_min, double angle_max);
 
   class SickScanParseUtil
   {

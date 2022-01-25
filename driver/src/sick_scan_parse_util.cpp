@@ -86,6 +86,16 @@ public:
 static SickScanParseUtilUnittest selftester = SickScanParseUtilUnittest();
 #endif  // debugging and unittest
 
+// returns the given angle in rad normalized to -PI ... +PI
+double sick_scan::normalizeAngleRad(double angle_rad, double angle_min, double angle_max)
+{
+while(angle_rad > angle_max)
+    angle_rad -= (2 * M_PI);
+while(angle_rad < angle_min)
+    angle_rad += (2 * M_PI);
+return angle_rad;
+}
+
 template<typename T> static bool convertBin(const std::string& sopas_string, size_t& offset, T& value)
 {
     value = 0;
