@@ -2226,32 +2226,39 @@ namespace sick_scan
 
       if (this->parser_->getCurrentParamPtr()->getUseScancfgList())
       {
-        // scanconfig handling with List
-        /* now done above via sopasCmdChain - deactivated here, otherwise the scan config will be (re-)set to default values
-        char requestsMNmCLsetscancfglist[MAX_STR_LEN];
-        int cfgListEntry;
-        //rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
-        rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
-        // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
-        const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_SCAN_CFG_LIST].c_str();
-        sprintf(requestsMNmCLsetscancfglist, pcCmdMask, cfgListEntry);
-        if (useBinaryCmd)
+        if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0
+        || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) 
         {
-          std::vector<unsigned char> reqBinary;
-          this->convertAscii2BinaryCmd(requestsMNmCLsetscancfglist, &reqBinary);
-          // FOR MRS6124 this should be
-          // like this:
-          // 0000  02 02 02 02 00 00 00 20 73 57 4e 20 4c 4d 44 73   .......sWN LMDs
-          // 0010  63 61 6e 64 61 74 61 63 66 67 20 1f 00 01 01 00   candatacfg .....
-          // 0020  00 00 00 00 00 00 00 01 5c
-          result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_SCAN_CFG_LIST]);
+          // scanconfig handling with list now done above via sopasCmdChain,
+          // deactivated here, otherwise the scan config will be (re-)set to default values
         }
-        else
+        else // i.e. SICK_SCANNER_LRS_36x0_NAME, SICK_SCANNER_OEM_15XX_NAME
         {
-          std::vector<unsigned char> lmdScanDataCfgReply;
-          result = sendSopasAndCheckAnswer(requestsMNmCLsetscancfglist, &lmdScanDataCfgReply);
+          // scanconfig handling with list
+          char requestsMNmCLsetscancfglist[MAX_STR_LEN];
+          int cfgListEntry;
+          //rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
+          rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
+          // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
+          const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_SCAN_CFG_LIST].c_str();
+          sprintf(requestsMNmCLsetscancfglist, pcCmdMask, cfgListEntry);
+          if (useBinaryCmd)
+          {
+            std::vector<unsigned char> reqBinary;
+            this->convertAscii2BinaryCmd(requestsMNmCLsetscancfglist, &reqBinary);
+            // FOR MRS6124 this should be
+            // like this:
+            // 0000  02 02 02 02 00 00 00 20 73 57 4e 20 4c 4d 44 73   .......sWN LMDs
+            // 0010  63 61 6e 64 61 74 61 63 66 67 20 1f 00 01 01 00   candatacfg .....
+            // 0020  00 00 00 00 00 00 00 01 5c
+            result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_SCAN_CFG_LIST]);
+          }
+          else
+          {
+            std::vector<unsigned char> lmdScanDataCfgReply;
+            result = sendSopasAndCheckAnswer(requestsMNmCLsetscancfglist, &lmdScanDataCfgReply);
+          }
         }
-        */
       }
       else // CMD_GET_OUTPUT_RANGE (i.e. handling of LMDscandatacfg
       {
