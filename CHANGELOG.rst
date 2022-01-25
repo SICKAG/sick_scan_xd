@@ -2,6 +2,8 @@
 Changelog for package sick_scan
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+This file is no longer maintained. For updates, please refer to the CHANGELOG.md file.
+
 1.10.1 (2021-03-18)
 -------------------
 * Update ipconfig.md

@@ -1480,12 +1480,11 @@ namespace sick_scan
     sopasCmdChain.push_back(CMD_POWER_ON_COUNT); // read power on count
     sopasCmdChain.push_back(CMD_LOCATION_NAME); // read location name
 
-    // Support for "sRN LMPscancfg" and "sMN mLMPsetscancfg" for NAV_3xx and LRS_36xx since version 2.4.4
-    // if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0 
-    // || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0
-    // || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0)
+    // Support for "sRN LMPscancfg" and "sMN mLMPsetscancfg" for NAV_3xx and LRS_36x1 since version 2.4.4
+    // TODO: apply and test for LRS_36x0 and OEM_15XX, too
     // if (this->parser_->getCurrentParamPtr()->getUseScancfgList() == true) // true for SICK_SCANNER_LRS_36x0_NAME, SICK_SCANNER_LRS_36x1_NAME, SICK_SCANNER_NAV_3XX_NAME, SICK_SCANNER_OEM_15XX_NAME
-    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0) // TODO: apply and test for LRS_36x0, NAV_3XX and OEM_15XX, too
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0
+    || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) 
     {
       sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
       sopasCmdChain.push_back(CMD_SET_SCAN_CFG_LIST); // "sMN mCLsetscancfglist 1", set scan config from list for NAX310  LD-OEM15xx LD-LRS36xx
@@ -2110,17 +2109,30 @@ namespace sick_scan
             for (int sector_cnt = 0; sector_cnt < scancfg.sector_cfg.size() && sector_cnt < scancfg.active_sector_cnt; sector_cnt++)
             {
               // Compensate angle shift (min/max angle from config in ros-coordinate system)
-              double angle_offset_rad = this->parser_->getCurrentParamPtr()->getScanAngleShift();
-              double start_ang_rad = this->config_.min_ang - angle_offset_rad;
-              double stop_ang_rad = this->config_.max_ang - angle_offset_rad;
-              // (this->parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. NAV-3xx
-              /* if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) // TODO: map ros start/stop angle to NAV-3xx logic
+              double start_ang_rad = (scancfg.sector_cfg[sector_cnt].start_angle / 10000.0) * (M_PI / 180.0);
+              double stop_ang_rad = (scancfg.sector_cfg[sector_cnt].stop_angle / 10000.0) * (M_PI / 180.0);
+              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) // map ros start/stop angle to NAV-3xx logic
               {
+                // NAV-3xx rotates the scan depending on start/stop angles => TODO: Set angle shift to (360 - nav_stop_angle) ???
+                // this->parser_->getCurrentParamPtr()->setScanAngleShift(2 * M_PI - stop_ang_rad);
+                // ROS_INFO_STREAM("NAV-3xx angle shift set to " << rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift()) << " deg");
+                // TODO: map ros start/stop angle to NAV-3xx logic
+                start_ang_rad = 0; // this->config_.min_ang;
+                stop_ang_rad = 2 * M_PI; // this->config_.max_ang;
+                /*
                 double start_ang_ros = start_ang_rad, stop_ang_ros = stop_ang_rad;
                 start_ang_rad = sick_scan::normalizeAngleRad(stop_ang_ros - M_PI, 0.0, 2 * M_PI);
                 stop_ang_rad = start_ang_rad + (stop_ang_ros - start_ang_ros);
                 stop_ang_rad = std::min(stop_ang_rad, 2 * M_PI); // stop_ang_rad = sick_scan::normalizeAngleRad(stop_ang_rad, 0.0, 2 * M_PI);
-              } */
+                */
+              }
+              else
+              {
+                // Compensate angle shift (min/max angle from config in ros-coordinate system)
+                double angle_offset_rad = this->parser_->getCurrentParamPtr()->getScanAngleShift();
+                start_ang_rad = this->config_.min_ang - angle_offset_rad;
+                stop_ang_rad = this->config_.max_ang - angle_offset_rad;
+              }
               scancfg.sector_cfg[sector_cnt].start_angle = (int32_t)(std::round(10000.0 * rad2deg(start_ang_rad)));
               scancfg.sector_cfg[sector_cnt].stop_angle = (int32_t)(std::round(10000.0 * rad2deg(stop_ang_rad)));
               ROS_INFO_STREAM("Setting LMPscancfg start_angle: " << rad2deg(start_ang_rad) << " deg, stop_angle: " << rad2deg(stop_ang_rad) << " deg (lidar sector " << sector_cnt << ")");
