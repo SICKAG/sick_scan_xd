@@ -20,6 +20,10 @@
         <param name="timelimit" type="int" value="5"/>
         <param name="scan_cfg_list_entry" type="int" value="1"/><!-- only mode 1 is currently supported -->
 
+        <!-- future support for min and max angle configuration (currently not supported): -->
+        <!-- param name="min_ang" type="double" value="-1.570796"/ --> <!-- default start angle for OEM 15xx: -90 deg (angle offset = 0) -->
+        <!-- param name="max_ang" type="double" value="4.712389"/ -->  <!-- default stop angle for OEM 15xx: +270 deg (angle offset = 0)  -->
+
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
         <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->

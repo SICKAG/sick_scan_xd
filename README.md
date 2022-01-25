@@ -15,6 +15,13 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 - [Build on Windows](#build-on-windows)
 - [Build on Windows ROS2](#build-on-windows-ros2)
 - [Run sick_scan driver](#run-sick_scan-driver)
+   - [Start Multiple Nodes](#start-multiple-nodes)
+   - [Common parameters](#common-parameters)
+   - [Starting Scanner with Specific Ip Address](#starting-scanner-with-specific-ip-address)
+   - [Further useful parameters and features](#further-useful-parameters-and-features)
+   - [ROS services](#ros-services)
+   - [Driver states, timeouts](#driver-states-timeouts)
+- [Sopas Mode](#sopas-mode)
 - [Bugs and feature requests](#bugs-and-feature-requests)
 - [Tools](#tools)
 - [Troubleshooting](#troubleshooting)
@@ -590,12 +597,13 @@ while(true) ; do roslaunch sick_scan <launchfile> [<arguments>] ; done
 
 ## Sopas Mode
 
-This driver supports both COLA-B (binary) and COLA-A (ASCII) communication with the laser scanner. Binary mode is activated by default. Since this mode generates less network traffic.
+This driver supports both COLA-B (binary) and COLA-A (ASCII) communication with the laser scanner. Binary mode is activated by default, since this mode generates less network traffic and enables more compatibility to all scanners.
 If the communication mode set in the scanner memory is different from that used by the driver, the scanner's communication mode is changed. This requires a restart of the TCP-IP connection, which can extend the start time by up to 30 seconds.
 There are two ways to prevent this:
-1. [Recommended] Set the communication mode with the SOPAS ET software to binary and save this setting in the scanner's EEPROM.
+1. Recommended:
+   * Set the communication mode with the SOPAS ET software to binary and save this setting in the scanner's EEPROM.
+   * Set "use_binary_protocol" to default value "true".
 2. Use the parameter "use_binary_protocol" to overwrite the default settings of the driver.
-3. Setting "use_binary_protocol" to "False" activates COLA-A and disables COLA-B (default)
 
 ## Bugs and Feature Requests
 

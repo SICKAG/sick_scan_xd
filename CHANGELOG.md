@@ -8,6 +8,10 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.4.4 - 2022-01-25
+  - **Added** Support min and max angle configuration for LRS-3601
+  - **Changed** Mirroring for NAV-3xx  
+
 ### v2.4.3 - 2022-01-18
   - **Changed** Rename class sick_lidar3d::Util to namespace sick_lidar3d::util
   - **Fixed** FREchoFilter bug for LD-LRS36xx

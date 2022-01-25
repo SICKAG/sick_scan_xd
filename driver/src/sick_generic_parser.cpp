@@ -700,8 +700,8 @@ namespace sick_scan
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
-        basicParams[i].setScanAngleShift(-M_PI/2);// TODO Check this
-        basicParams[i].setScanMirroredAndShifted(false);// TODO Check this
+        basicParams[i].setScanAngleShift(-M_PI/2);
+        basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);// TODO Check this
         basicParams[i].setMaxEvalFields(30);
         basicParams[i].setUseScancfgList(true);

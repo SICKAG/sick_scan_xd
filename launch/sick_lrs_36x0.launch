@@ -17,8 +17,12 @@
         <param name="start_services" type="bool" value="True"/> <!-- start ros service for cola commands -->
         <param name="activate_lferec" type="bool" value="True"/> <!-- activate field monitoring by lferec messages -->
         <param name="activate_lidinputstate" type="bool" value="False"/>
-        <param name="activate_lidoutputstate" type="bool" value="False"/>
+        <param name="activate_lidoutputstate" type="bool" value="False"/>        
         <param name="scan_cfg_list_entry" type="int" value="$(arg scan_cfg_list_entry)"/> <!-- only mode 1 is currently supported -->
+
+        <!-- future support for min and max angle configuration (currently not supported): -->
+        <!-- param name="min_ang" type="double" value="-3.1415927"/ --> <!-- default start angle for LRS 36x0: -180 deg incl. angle offset (-90 deg excl. angle offset, angle offset = -90 deg) -->
+        <!-- param name="max_ang" type="double" value="3.1415927"/ -->  <!-- default stop angle for LRS 36x0:  +180 deg incl. angle offset (+270 deg excl. angle offset, angle offset = -90 deg)  -->
 
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->

@@ -399,6 +399,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_generic_field_mon.cpp
         driver/src/sick_scan_marker.cpp
         driver/src/sick_scan_messages.cpp
+        driver/src/sick_scan_parse_util.cpp
         driver/src/sick_scan_services.cpp
         driver/src/sick_generic_laser.cpp
         roswrap/src/launchparser/launchparser.cpp 
@@ -481,6 +482,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/sick_generic_radar.cpp
         driver/src/sick_scan_marker.cpp
         driver/src/sick_scan_messages.cpp
+        driver/src/sick_scan_parse_util.cpp
         driver/src/sick_scan_services.cpp
         driver/src/tinyxml/tinystr.cpp
         driver/src/tinyxml/tinyxml.cpp

@@ -7,14 +7,9 @@
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
+    <arg name="scan_cfg_list_entry" default="1"/>
     <node name="sick_nav_3xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_nav_3xx"/>
-
-        <!-- -180 deg -->
-        <param name="min_ang" type="double" value="-3.14159265359"/>
-
-        <!-- 180 deg -->
-        <param name="max_ang" type="double" value="+3.14159265359"/>
 
         <param name="use_binary_protocol" type="bool" value="true"/>
         <param name="intensity" type="bool" value="True"/>
@@ -24,6 +19,11 @@
         <param name="port" type="string" value="2112"/>
         <param name="timelimit" type="int" value="5"/>
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
+        <param name="scan_cfg_list_entry" type="int" value="$(arg scan_cfg_list_entry)"/> <!-- only mode 1 is currently supported -->
+        
+        <!-- Currently only start/stop angle 0 to 360 degree in nav coordinates supported. min_ang and max_ang currently ignored, for future use only -->
+        <param name="min_ang" type="double" value="-3.14159265359"/> <!-- default start angle for NAV-3xx: -180 deg in ros coordinates (resp. 0 deg in nav coordinates) -->
+        <param name="max_ang" type="double" value="3.14159265359"/>  <!-- default stop angle for  NAV-3xx: +180 deg in ros coordinates (resp. 360 deg in nav coordinates)  -->
 
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
