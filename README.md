@@ -2,7 +2,8 @@
 
 This project provides the driver for the SICK lidar and radar sensors mentioned in the following list.
 
-Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_scan2 and sick_scan_base repositories. The driver supports both Linux (native, ROS1, ROS2) and Windows (native and ROS2).
+Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_scan2 and sick_scan_base repositories. The driver supports both Linux (native, ROS1, ROS2) and Windows (native and ROS2). See the [CHANGELOG.md](CHANGELOG.md) for the latest updates.
+
 
 ## Table of Contents
 
@@ -428,6 +429,9 @@ Common commandline options are
 - `hostname:=<ip-address>` to connect to a sensor with a given IP address. Default value is always the factory default IP address of the scanner.
 
 Further (common and scanner specific) options can be set via launchfile, see [Common parameters](#common-parameters) and configure the settings in the launchfile corresponding to the scanner type.
+
+Note: After modifying a launch-file, it has to be installed by running `catkin_make_isolated --install --cmake-args -DROS_VERSION=1`
+to be located and used by `roslaunch`.
 
 ### Start Multiple Nodes
 

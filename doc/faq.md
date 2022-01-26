@@ -50,6 +50,13 @@ Recommendation:
 1. Set parameter "use_binary_protocol" to "true" in the launch file, and
 2. Set the lidar communication mode with the SOPAS ET software to binary and save this setting in the scanner's EEPROM.
 
+## Changes in launchfiles are ignored
+
+:question: roslaunch still uses an old version after modifying the launch-file.
+
+:white_check_mark: After modifying a launch-file, it has to be installed by running `catkin_make_isolated --install --cmake-args -DROS_VERSION=1`
+to be located and used by `roslaunch`.
+
 ## Compilation errors
 
 :question: Compiler reports errors in file `/opt/ros/<distro>/include/sick_scan`
