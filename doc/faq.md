@@ -57,6 +57,29 @@ Recommendation:
 :white_check_mark: After modifying a launch-file, it has to be installed by running `catkin_make_isolated --install --cmake-args -DROS_VERSION=1`
 to be located and used by `roslaunch`.
 
+## ROS-2 launchfile support
+
+:question: How can I create a ROS-2 node in python to run sick_generic_caller from a launch.py-file in ROS-2?
+
+:white_check_mark: Example to launch a TiM-7xx node in ROS-2:
+```
+    sick_scan_pkg_prefix = get_package_share_directory('sick_scan')
+    tim_launch_file_path = os.path.join(sick_scan_pkg_prefix, 'launch/sick_tim_7xx.launch')
+    tim_top_node = Node(
+        package='sick_scan',
+        executable='sick_generic_caller',
+        output='screen',
+        arguments=[
+            tim_launch_file_path,
+            'nodename:=/lidars/tim_top',
+            'hostname:=192.168.0.110',
+            'cloud_topic:=/lidars/tim_top/cloud',
+            'frame_id:=tim_top'
+        ]
+    )
+```
+Thanks to user JWhitleyWork.
+
 ## Compilation errors
 
 :question: Compiler reports errors in file `/opt/ros/<distro>/include/sick_scan`
