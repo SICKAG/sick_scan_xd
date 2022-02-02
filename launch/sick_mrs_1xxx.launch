@@ -12,6 +12,7 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
+    <arg name="imu_frame_id" default="imu_link"/> 
     <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <!-- launch-prefix="gdb -ex run - -args" -->
         <!-- default values: -->
@@ -39,6 +40,8 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
+        <param name="imu_enable" type="bool" value="True"/>
+        <param name="imu_enable_additional_info" type="bool" value="True"/>                 
         
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->

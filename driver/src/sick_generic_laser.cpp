@@ -212,6 +212,12 @@ bool parseLaunchfileSetParameter(rosNodePtr nhPriv, int argc, char **argv)
   for (int n = 1; n < argc; n++)
   {
     std::string argv_str = argv[n];
+
+    // Ignore all arguments after and including --ros-args
+    if (argv_str == "--ros-args") {
+      break;
+    }
+
     if (getTagVal(argv_str, tag, val))
     {
         rosSetParam(nhPriv, tag, val);
