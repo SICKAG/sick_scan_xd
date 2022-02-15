@@ -29,7 +29,7 @@ rosservice call /sick_tim_7xx/ColaMsg "{request: 'sRN LIDinputstate'}"    # quer
 
 LFErec and LIDoutputstate messages are defined in [LFErecMsg.msg](../msg/LFErecMsg.msg) and [LFErecFieldMsg.msg](../msg/LFErecFieldMsg.msg) resp. [LIDoutputstateMsg.msg](../msg/LIDoutputstateMsg.msg) and published on the following topics: `"/sick_tim_7xxS/lferec"` resp. `"/sick_tim_7xxS/lidoutputstate"`.
 
-| ** Scanner ** | ** lferec topic ** | ** lidoutputstate topic **  |
+| ** Lidar ** | ** lferec topic ** | ** lidoutputstate topic **  |
 |---------------|--------------------|-----------------------------|
 | lms_1xx  | /sick_lms_1xx/lferec  | /sick_lms_1xx/lidoutputstate  |
 | lms_5xx  | /sick_lms_5xx/lferec  | /sick_lms_5xx/lidoutputstate  |
