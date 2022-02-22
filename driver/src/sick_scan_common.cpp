@@ -3105,21 +3105,6 @@ namespace sick_scan
     }
     else
     {
-      // initializing sequence for laserscanner
-      // is this device a TiM240????
-      // The TiM240 can not interpret CMD_START_MEASUREMENT
-      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
-      {
-        // the TiM240 operates directly in the ros coordinate system
-        // do nothing for a TiM240
-      }
-      else
-      {
-        startProtocolSequence.push_back(CMD_START_MEASUREMENT);
-      }
-      startProtocolSequence.push_back(CMD_RUN);  // leave user level
-      startProtocolSequence.push_back(CMD_START_SCANDATA);
-
       if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
       {
         
@@ -3144,6 +3129,21 @@ namespace sick_scan
           ROS_INFO_STREAM(parser_->getCurrentParamPtr()->getScannerName() << ": activating field monitoring by lidinputstate messages");
         }
       }
+
+      // initializing sequence for laserscanner
+      // is this device a TiM240????
+      // The TiM240 can not interpret CMD_START_MEASUREMENT
+      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+      {
+        // the TiM240 operates directly in the ros coordinate system
+        // do nothing for a TiM240
+      }
+      else
+      {
+        startProtocolSequence.push_back(CMD_START_MEASUREMENT);
+      }
+      startProtocolSequence.push_back(CMD_RUN);  // leave user level
+      startProtocolSequence.push_back(CMD_START_SCANDATA);
 
       if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 4)  // MRS1104 - start IMU-Transfer
       {
