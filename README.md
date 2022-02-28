@@ -423,7 +423,6 @@ Use the following commands to run the sick_scan driver for a specific scanner ty
     * Windows native: `sick_generic_caller sick_rms_1xxx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_1xxx.launch`
 
-
 Common commandline options are
 
 - `hostname:=<ip-address>` to connect to a sensor with a given IP address. Default value is always the factory default IP address of the scanner.
@@ -432,6 +431,13 @@ Further (common and scanner specific) options can be set via launchfile, see [Co
 
 Note: After modifying a launch-file, it has to be installed by running `catkin_make_isolated --install --cmake-args -DROS_VERSION=1`
 to be located and used by `roslaunch`.
+
+On ROS-2 you can launch sick_generic_caller by python-launchfiles, too. Use
+```
+ros2 launch sick_scan <name>.launch.py <param>:=<value>
+```
+E.g. for LMS-5xx: `ros2 launch sick_scan sick_lms_5xx.launch.py hostname:=192.168.0.1`
+
 
 ### Start Multiple Nodes
 

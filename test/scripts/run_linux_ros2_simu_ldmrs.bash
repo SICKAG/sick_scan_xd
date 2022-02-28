@@ -29,7 +29,8 @@ source ./install/setup.bash
 #
 
 sleep  1 ; ros2 run sick_scan test_server ./src/sick_scan_xd/tools/test_server/config/test_server_ldmrs.launch &
-sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_ldmrs.launch hostname:=127.0.0.1 & 
+# sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_ldmrs.launch hostname:=127.0.0.1 & 
+sleep  1 ; ros2 launch sick_scan sick_ldmrs.launch.py hostname:=127.0.0.1 &
 sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/launch/rviz/sick_ldmrs.rviz &
 sleep 20 ; ros2 topic echo diagnostics > ./log/sick_ldmrs_diagnostics.log &
 sleep  1 ; simu_ldmrs_killall
