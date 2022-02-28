@@ -33,8 +33,8 @@ LFErec and LIDoutputstate messages are defined in [LFErecMsg.msg](../msg/LFErecM
 |---------------|--------------------|-----------------------------|
 | lms_1xx  | /sick_lms_1xx/lferec  | /sick_lms_1xx/lidoutputstate  |
 | lms_5xx  | /sick_lms_5xx/lferec  | /sick_lms_5xx/lidoutputstate  |
-| TiM_7xx  | /sick_tim_7xx/lferec  | /sick_tim_7xx/lidoutputstate  |
-| TiM_7xxS | /sick_tim_7xxS/lferec | /sick_tim_7xxS/lidoutputstate |
+| lms_7xx  | /sick_tim_7xx/lferec  | /sick_tim_7xx/lidoutputstate  |
+| lms_7xxS | /sick_tim_7xxS/lferec | /sick_tim_7xxS/lidoutputstate |
 
 To view the field monitoring messages, run
 ```

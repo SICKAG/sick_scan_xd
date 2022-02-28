@@ -31,7 +31,8 @@ echo -e "run_linux_ros2_simu_rms.bash: starting rms emulation\n"
 cp -f ./src/sick_scan_xd/test/emulator/scandata/20211201_RMS_3xx_start_up.pcapng.json /tmp/lmd_scandata.pcapng.json
 sleep  1 ; ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_rms3xx.launch &
 # sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 port:=2111  & 
-sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False & 
+# sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False &
+sleep  1 ; ros2 launch sick_scan sick_rms_3xx.launch.py hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False &
 sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2_rms.rviz &
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed ...

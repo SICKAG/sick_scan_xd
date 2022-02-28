@@ -99,6 +99,7 @@ if(ROS_VERSION EQUAL 1)
         dynamic_reconfigure
         geometry_msgs
         std_msgs
+        nav_msgs
         sensor_msgs
         visualization_msgs
         message_generation
@@ -157,10 +158,11 @@ if(ROS_VERSION EQUAL 2)
     set(FastRTPS_LIBRARY_RELEASE /opt/ros/$ENV{ROS_DISTRO}/lib/libfastrtps.so)
 
     find_package(ament_cmake REQUIRED)
-    # find_package(diagnostic_updater REQUIRED)
+    find_package(diagnostic_updater REQUIRED)
     find_package(rclcpp REQUIRED)
     find_package(sensor_msgs REQUIRED)
     find_package(std_msgs REQUIRED)
+    find_package(nav_msgs REQUIRED)
     find_package(tf2 REQUIRED)
     find_package(geometry_msgs REQUIRED)
     find_package(diagnostic_msgs REQUIRED)
@@ -256,7 +258,7 @@ if(ROS_VERSION EQUAL 2)
         "srv/SCrebootSrv.srv"
         "srv/SCsoftresetSrv.srv"
         ${ROSIDL_EMULATOR_FILES}
-        DEPENDENCIES builtin_interfaces std_msgs geometry_msgs sensor_msgs
+        DEPENDENCIES builtin_interfaces std_msgs nav_msgs geometry_msgs sensor_msgs
     )   
     # find_package(Boost REQUIRED COMPONENTS filesystem system serialization) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
@@ -357,6 +359,7 @@ if(ROS_VERSION EQUAL 1)
         std_msgs
         geometry_msgs
         sensor_msgs
+        nav_msgs
     )
 
     catkin_package(
@@ -521,8 +524,10 @@ if(ROS_VERSION EQUAL 2)
         "std_msgs"
         "geometry_msgs"
         "diagnostic_msgs" 
-        "visualization_msgs"
-        "tf2_ros" 
+            "nav_msgs"
+            "visualization_msgs"
+            "tf2_ros"
+            "diagnostic_updater"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
@@ -534,21 +539,25 @@ if(ROS_VERSION EQUAL 2)
         "std_msgs"
         "geometry_msgs"
         "diagnostic_msgs" 
-        "visualization_msgs"
-        "tf2_ros" 
-        ${LDMRS_TARGET_DEPENDENCIES}
+            "nav_msgs"
+            "visualization_msgs"
+            "tf2_ros"
+            "diagnostic_updater"
+            ${LDMRS_TARGET_DEPENDENCIES}
     )
 
     ament_target_dependencies(
-        sick_generic_caller
-        # "Boost"
-        "rclcpp"
-        "sensor_msgs"
-        "std_msgs"
-        "geometry_msgs"
-        "diagnostic_msgs" 
-        "visualization_msgs"
-        "tf2_ros" 
+            sick_generic_caller
+            # "Boost"
+            "rclcpp"
+            "sensor_msgs"
+            "std_msgs"
+            "geometry_msgs"
+            "diagnostic_msgs"
+            "nav_msgs"
+            "visualization_msgs"
+            "tf2_ros"
+            "diagnostic_updater"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
