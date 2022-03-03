@@ -7,13 +7,17 @@
 
      Default min_angle is  -35 degree.
      Default max_angle is +35 degree.
-
+     
+     SOPAS angles in lidar coordinates: min_angle = 55 deg, max_angle = 125 deg, delta = 125-55 = 70 deg
+     Angle offset -90 degree: (55-90 = -35 deg, 125-90 = +35 deg)
+     Angle configuration in ROS coordinates: min_angle = -35 deg, max_angle = +35 deg, delta = 70 deg
+     
      Check IP-address, if you scanner is not found after roslaunch.
 -->
 
-<!-- You can launch a TIM_5xx-scanner on a specific ip address (e.g. 192.68.0.71) using the following example call:
+<!-- You can launch a LMS_4xxx-scanner on a specific ip address (e.g. 192.68.0.71) using the following example call:
 
-     roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71
+     roslaunch sick_scan sick_lms_4xxx.launch hostname:=192.168.0.71
 
 -->
 
@@ -23,7 +27,6 @@
     <arg name="frame_id" default="cloud"/>
     <node name="sick_lms_4xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
 
-        <!-- Default: min_angle = -135 degree, max_angle = 135 -->
         <!-- default values: -->
         <!--
           <param name="scanner_type" type="string" value="sick_tim_5xx" />
@@ -39,10 +42,10 @@
         -->
         <param name="scanner_type" type="string" value="sick_lms_4xxx"/>
 
-        <!-- -135 deg -->
+        <!-- -35 deg -->
         <param name="min_ang" type="double" value="-0.610865238"/>
 
-        <!-- 135 deg -->
+        <!-- +35 deg -->
         <param name="max_ang" type="double" value="0.610865238"/>
 
         <param name="use_binary_protocol" type="bool" value="true"/>
