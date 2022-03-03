@@ -438,6 +438,10 @@ ros2 launch sick_scan <name>.launch.py <param>:=<value>
 ```
 E.g. for LMS-5xx: `ros2 launch sick_scan sick_lms_5xx.launch.py hostname:=192.168.0.1`
 
+The launch.py-files on ROS-2 passes the corresponding launch-file to the driver: [sick_lms_5xx.launch.py](launch/sick_lms_5xx.launch.py) gives an example for LMS-5xx. Parameter can be overwritten
+* either by commandline, e.g. <br/> `ros2 launch sick_scan sick_lms_5xx.launch.py hostname:=192.168.0.1`, 
+* or by passing additional arguments in the launch.py-file, e.g. <br/> `node = Node(package='sick_scan', executable='sick_generic_caller', arguments=[launch_file_path, 'hostname:=192.168.0.1'])`
+
 
 ### Start Multiple Nodes
 

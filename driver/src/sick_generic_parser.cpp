@@ -393,7 +393,7 @@ namespace sick_scan
    {
     this->frEchoFilterAvailable = _frEchoFilterAvailable;
   }
- 
+
   bool ScannerBasicParam::getFREchoFilterAvailable(void)
   {
     return this->frEchoFilterAvailable;
@@ -580,7 +580,7 @@ namespace sick_scan
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
-        basicParams[i].setScanAngleShift(0);
+        basicParams[i].setScanAngleShift(-M_PI/2);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);

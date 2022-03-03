@@ -8,6 +8,10 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.4.6 - 
+  - **Fixed** Corrected angle shift parameter for LMS-4xxx
+  - **Changed** Typo corrected
+
 ### v2.4.5 - 
   - **Changed** bugfix #158 (driver terminates), modified SOPAS-startup sequence.
 
