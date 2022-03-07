@@ -677,7 +677,7 @@ namespace sick_scan
   /**
    * Send a SOPAS command to the device and print out the response to the console.
    */
-  int SickScanCommonTcp::sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen)
+  int SickScanCommonTcp::sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen, bool wait_for_reply)
   {
     int sLen = 0;
     int msgLen = 0;
@@ -744,6 +744,10 @@ namespace sick_scan
         }
       }
     }
+    if(!wait_for_reply)
+    {
+      return ExitSuccess;
+    }
 
     // Set timeout in 5 seconds
     const int BUF_SIZE = 65536;
@@ -765,7 +769,7 @@ namespace sick_scan
           ROS_WARN_STREAM("sendSOPASCommand: no full reply available for read after " << getReadTimeOutInMs() << " ms");
 #endif
 #ifdef USE_DIAGNOSTIC_UPDATER
-          if(diagnostics_)
+          if(diagnostics_ && rosOk())
             diagnostics_->broadcast(getDiagnosticErrorCode(),
                                "sendSOPASCommand: no full reply available for read after timeout.");
 #endif

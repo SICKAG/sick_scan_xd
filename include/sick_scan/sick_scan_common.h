@@ -319,7 +319,7 @@ namespace sick_scan
      * \param [out] reply if not NULL, will be filled with the reply package to the command.
      * \param [in] cmdLen Length of the Comandstring in bytes used for Binary Mode only
      */
-    virtual int sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen = -1) = 0;
+    virtual int sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen = -1, bool wait_for_reply = true) = 0;
 
     virtual int readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, const std::vector<std::string>& datagram_keywords) = 0;
 
