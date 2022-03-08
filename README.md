@@ -566,6 +566,12 @@ ros2 service call /SCreboot sick_scan/srv/SCrebootSrv "{}"           # execute a
 ros2 service call /SCsoftreset sick_scan/srv/SCsoftresetSrv "{}"     # save current parameter and shut down device
 ```
 
+Use ros service `SickScanExit` to stop the scanner and driver:
+```
+rosservice call /sick_nav_3xx/SickScanExit "{}" # stop scanner and driver on ROS-1
+ros2 service call /SickScanExit sick_scan/srv/SickScanExitSrv "{}" # stop scanner and driver on ROS-2
+```
+
 Note:
 * The COLA commands are sensor specific. See the user manual and telegram listing for further details.
 * ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.

@@ -16,12 +16,13 @@
      roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71
 
 -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
-    <node name="sick_lms_4xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_lms_4xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
 
         <!-- Default: min_angle = -135 degree, max_angle = 135 -->
         <!-- default values: -->

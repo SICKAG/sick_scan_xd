@@ -122,6 +122,9 @@ namespace sick_scan
     bool serviceCbSCsoftreset(sick_scan_srv::SCsoftresetSrv::Request &service_request, sick_scan_srv::SCsoftresetSrv::Response &service_response);
     bool serviceCbSCsoftresetROS2(std::shared_ptr<sick_scan_srv::SCsoftresetSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCsoftresetSrv::Response> service_response) { return serviceCbSCsoftreset(*service_request, *service_response); }     
 
+    bool serviceCbSickScanExit(sick_scan_srv::SickScanExitSrv::Request &service_request, sick_scan_srv::SickScanExitSrv::Response &service_response);
+    bool serviceCbSickScanExitROS2(std::shared_ptr<sick_scan_srv::SickScanExitSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SickScanExitSrv::Response> service_response) { return serviceCbSickScanExit(*service_request, *service_response); }     
+
   protected:
 
     /*!
@@ -156,6 +159,7 @@ namespace sick_scan
     rosServiceServer<sick_scan_srv::SCdevicestateSrv> m_srv_server_SCdevicestate; ///< service "SCdevicestate", &sick_scan::SickScanServices::serviceCbSCdevicestate
     rosServiceServer<sick_scan_srv::SCrebootSrv> m_srv_server_SCreboot; ///< service "SCreboot", &sick_scan::SickScanServices::serviceCbSCreboot
     rosServiceServer<sick_scan_srv::SCsoftresetSrv> m_srv_server_SCsoftreset; ///< service "SCsoftreset", &sick_scan::SickScanServices::serviceCbSCsoftreset
+    rosServiceServer<sick_scan_srv::SickScanExitSrv> m_srv_server_SickScanExit; ///< service "SickScanExitSrv", &sick_scan::SickScanServices::serviceCbSickScanExit
 
   }; /* class SickScanServices */
 

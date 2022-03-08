@@ -8,11 +8,12 @@
     This is an experimental launch file to set a new ip address in the scanner.
     Maybe one should add a EEPROM-write command. But in our tests this was not necessary.
 -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="new_IP" default="192.168.0.2"/>
-    <node name="sick_new_ip" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_new_ip" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_5xx"/>
         <param name="use_binary_protocol" type="bool" value="True"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>

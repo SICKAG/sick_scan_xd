@@ -13,13 +13,14 @@
      You can also add two Laserscan-Visualizer. Please set the topic for laserscan-Visualizer to /scan_1 and /scan_2 in this case.
 
 -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 <launch>
     <arg name="hostname1" default="192.168.0.1"/>
     <arg name="hostname2" default="192.168.0.2"/>
     <param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_scan)/urdf/example.urdf.xacro'"/>
     <node pkg="tf" type="static_transform_publisher" name="scanner1_to_map" args="0 0 0 0 0 0 map laser_1 100"/>
     <node pkg="tf" type="static_transform_publisher" name="scanner2_to_map" args="2 0 0 0 0 0 map laser_2 100"/>
-    <node name="sick_tim_5xx_1" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_tim_5xx_1" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_5xx"/>
         <param name="frame_id" value="/laser_1"/>
         <param name="min_ang" type="double" value="-2.35619449"/><!-- -135 deg -->
@@ -41,7 +42,7 @@
         <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
 
     </node>
-    <node name="sick_tim_5xx_2" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_tim_5xx_2" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_5xx"/>
         <param name="frame_id" value="/laser_2"/>
         <param name="min_ang" type="double" value="-2.35619449"/><!-- -135 deg -->

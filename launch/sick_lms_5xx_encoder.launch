@@ -8,10 +8,11 @@
 <!-- 
 Check IP-address, if you scanner is not found after roslaunch.
 -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <!-- launch file for the lms_5xx series -->
-    <node name="sick_lms_5xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_lms_5xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
 
         <!-- default values: -->
         <!--

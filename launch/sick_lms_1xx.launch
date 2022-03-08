@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <!-- FOR FUTURE USE. NOT SUPPORTED NOW. DO NOT USE IT. -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
-    <node name="sick_lms_1xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_lms_1xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="intensity" type="bool" value="False"/>
         <param name="intensity_resolution_16bit" type="bool" value="false"/>
         <param name="min_ang" type="double" value="-2.35619"/>

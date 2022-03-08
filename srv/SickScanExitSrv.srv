@@ -1,0 +1,17 @@
+# Definition of ROS service SickScanExit for sick_scan.
+# SickScanExit stops the scanner and exits sick_generic_caller.
+# Example call (ROS1):
+# rosservice call /sick_nav_3xx/SickScanExit "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+bool success # true: success response received from lidar, false: service failed (timeout or error status from controller)

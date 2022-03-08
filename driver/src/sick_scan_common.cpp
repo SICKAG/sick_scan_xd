@@ -589,38 +589,40 @@ namespace sick_scan
   \brief Stops sending scan data
   \return error code
    */
-  int SickScanCommon::stop_scanner()
+  int SickScanCommon::stop_scanner(bool force_immediate_shutdown)
   {
     /*
      * Stop streaming measurements
      */
-    const char requestScanData0[] = {"\x02sEN LMDscandata 0\x03\0"};
-    int result = sendSOPASCommand(requestScanData0, NULL);
-    if (result != 0)
-    {
-      // use printf because we cannot use ROS_ERROR from the destructor
-      printf("\nSOPAS - Error stopping streaming scan data!\n");
-    }
-    else
-    {
-      printf("\nSOPAS - Stopped streaming scan data.\n");
-    }
-
+    std::vector<std::string> sopas_stop_scanner_cmd = { "\x02sEN LMDscandata 0\x03\0" };
     if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
     {
-      if(sendSOPASCommand("\x02sEN LFErec 0\x03", NULL) != 0 // TiM781S: deactivate LFErec messages, send "sEN LFErec 0"
-      || sendSOPASCommand("\x02sEN LIDoutputstate 0\x03", NULL) != 0 // TiM781S: deactivate LIDoutputstate messages, send "sEN LIDoutputstate 0"
-      || sendSOPASCommand("\x02sEN LIDinputstate 0\x03", NULL) != 0) // TiM781S: deactivate LIDinputstate messages, send "sEN LIDinputstate 0"
-      {
-        // use printf because we cannot use ROS_ERROR from the destructor
-        printf("\nSOPAS - Error stopping streaming LFErec, LIDoutputstate and LIDinputstate messages!\n");
-      }
-      else
-      {
-        printf("\nSOPAS - Stopped streaming LFErec, LIDoutputstate and LIDinputstate messages\n");
-      }
+      sopas_stop_scanner_cmd.push_back("\x02sEN LFErec 0\x03"); // TiM781S: deactivate LFErec messages, send "sEN LFErec 0"
+      sopas_stop_scanner_cmd.push_back("\x02sEN LIDoutputstate 0\x03"); // TiM781S: deactivate LIDoutputstate messages, send "sEN LIDoutputstate 0"
+      sopas_stop_scanner_cmd.push_back("\x02sEN LIDinputstate 0\x03"); // TiM781S: deactivate LIDinputstate messages, send "sEN LIDinputstate 0"
     }
+    sopas_stop_scanner_cmd.push_back("\x02sMN SetAccessMode 3 F4724744\x03\0");
+    sopas_stop_scanner_cmd.push_back("\x02sMN LMCstopmeas\x03\0");
+    // sopas_stop_scanner_cmd.push_back("\x02sMN Run\x03\0");
 
+    setReadTimeOutInMs(1000);
+    ROS_INFO_STREAM("sick_scan_common: stopping scanner ...");
+    int result = ExitSuccess, cmd_result = ExitSuccess;
+    for(int cmd_idx = 0; cmd_idx < sopas_stop_scanner_cmd.size(); cmd_idx++)
+    {
+      std::vector<unsigned char> sopas_reply;
+      cmd_result = convertSendSOPASCommand(sopas_stop_scanner_cmd[cmd_idx], &sopas_reply, (force_immediate_shutdown==false));
+      if (force_immediate_shutdown == false)
+      {
+        ROS_INFO_STREAM("sick_scan_common: received sopas reply \"" << replyToString(sopas_reply) << "\"");
+      }
+      if (cmd_result != ExitSuccess)
+      {
+        ROS_WARN_STREAM("## ERROR sick_scan_common: ERROR sending sopas command \"" << sopas_stop_scanner_cmd[cmd_idx] << "\"");
+        result = ExitError;
+      }
+      // std::this_thread::sleep_for(std::chrono::milliseconds((int64_t)100));
+    }
     return result;
   }
 
@@ -678,9 +680,32 @@ namespace sick_scan
 
   }
 
+  /// Converts a given SOPAS command from ascii to binary (in case of binary communication), sends sopas (ascii or binary) and returns the response (if wait_for_reply:=true)
+  /**
+   * \param [in] request the command to send.
+   * \param [in] cmdLen Length of the Comandstring in bytes used for Binary Mode only
+   */
+  int SickScanCommon::convertSendSOPASCommand(const std::string& sopas_ascii_request, std::vector<unsigned char> *sopas_reply, bool wait_for_reply)
+  {
+    int result = ExitError;
+    if (getProtocolType() == CoLa_B)
+    {
+      std::vector<unsigned char> requestBinary;
+      convertAscii2BinaryCmd(sopas_ascii_request.c_str(), &requestBinary);
+      ROS_INFO_STREAM("sick_scan_common: sending sopas command \"" << stripControl(requestBinary) << "\"");
+      result = sendSOPASCommand((const char*)requestBinary.data(), sopas_reply, requestBinary.size(), wait_for_reply);
+    }
+    else
+    {
+      ROS_INFO_STREAM("sick_scan_common: sending sopas command \"" << sopas_ascii_request << "\"");
+      result = sendSOPASCommand(sopas_ascii_request.c_str(), sopas_reply, sopas_ascii_request.size(), wait_for_reply);
+    }
+    return result;
+  }
+
 
   /*!
-  \brief Reboot scanner (todo: this does not work if the scanner is set to binary mode) Fix me!
+  \brief Reboot scanner
   \return Result of rebooting attempt
   */
   bool SickScanCommon::rebootScanner()
@@ -689,8 +714,10 @@ namespace sick_scan
      * Set Maintenance access mode to allow reboot to be sent
      */
     std::vector<unsigned char> access_reply;
+
+
     // changed from "03" to "3"
-    int result = sendSOPASCommand("\x02sMN SetAccessMode 3 F4724744\x03\0", &access_reply);
+    int result = convertSendSOPASCommand("\x02sMN SetAccessMode 3 F4724744\x03\0", &access_reply);
     if (result != 0)
     {
       ROS_ERROR("SOPAS - Error setting access mode");
@@ -715,7 +742,7 @@ namespace sick_scan
      * Send reboot command
      */
     std::vector<unsigned char> reboot_reply;
-    result = sendSOPASCommand("\x02sMN mSCreboot\x03\0", &reboot_reply);
+    result = convertSendSOPASCommand("\x02sMN mSCreboot\x03\0", &reboot_reply);
     if (result != 0)
     {
       ROS_ERROR("SOPAS - Error rebooting scanner");

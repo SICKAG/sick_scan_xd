@@ -80,8 +80,8 @@
 #define MAX_NAME_LEN (1024)
 
 #define SICK_GENERIC_MAJOR_VER "2"
-#define SICK_GENERIC_MINOR_VER "4"
-#define SICK_GENERIC_PATCH_LEVEL "6"
+#define SICK_GENERIC_MINOR_VER "5"
+#define SICK_GENERIC_PATCH_LEVEL "0"
 
 #include <algorithm> // for std::min
 
@@ -155,10 +155,11 @@ int main(int argc, char **argv)
   rosNodePtr node = rclcpp::Node::make_shared("sick_scan", "", node_options);
 #else
   ros::init(argc, argv, scannerName, ros::init_options::NoSigintHandler);  // scannerName holds the node-name
-  signal(SIGINT, rosSignalHandler);
+  // signal(SIGINT, rosSignalHandler);
   ros::NodeHandle nh("~");
   rosNodePtr node = &nh;
 #endif
+  signal(SIGINT, rosSignalHandler);
 
   ROS_INFO_STREAM(versionInfo << "\n");
   for (int i = 0; i < argc_tmp; i++)

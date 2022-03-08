@@ -309,7 +309,7 @@ namespace sick_scan
 
     virtual int init_scanner(rosNodePtr nh);
 
-    virtual int stop_scanner();
+    virtual int stop_scanner(bool force_immediate_shutdown = false);
 
     virtual int close_device() = 0;
 
@@ -319,7 +319,14 @@ namespace sick_scan
      * \param [out] reply if not NULL, will be filled with the reply package to the command.
      * \param [in] cmdLen Length of the Comandstring in bytes used for Binary Mode only
      */
-    virtual int sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen = -1) = 0;
+    virtual int sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen, bool wait_for_reply = true) = 0;
+
+    /// Converts a given SOPAS command from ascii to binary (in case of binary communication), sends sopas (ascii or binary) and returns the response (if wait_for_reply:=true)
+    /**
+     * \param [in] request the command to send.
+     * \param [in] cmdLen Length of the Comandstring in bytes used for Binary Mode only
+     */
+    virtual int convertSendSOPASCommand(const std::string& sopas_ascii_request, std::vector<unsigned char> *reply, bool wait_for_reply = true);
 
     virtual int readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, const std::vector<std::string>& datagram_keywords) = 0;
 
