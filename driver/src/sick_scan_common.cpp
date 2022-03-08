@@ -611,18 +611,7 @@ namespace sick_scan
     for(int cmd_idx = 0; cmd_idx < sopas_stop_scanner_cmd.size(); cmd_idx++)
     {
       std::vector<unsigned char> sopas_reply;
-      if (getProtocolType() == CoLa_B)
-      {
-        std::vector<unsigned char> requestBinary;
-        convertAscii2BinaryCmd(sopas_stop_scanner_cmd[cmd_idx].c_str(), &requestBinary);
-        ROS_INFO_STREAM("sick_scan_common: sending sopas command \"" << stripControl(requestBinary) << "\"");
-        cmd_result = sendSOPASCommand((const char*)requestBinary.data(), &sopas_reply, -1, (force_immediate_shutdown==false));
-      }
-      else
-      {
-        ROS_INFO_STREAM("sick_scan_common: sending sopas command \"" << sopas_stop_scanner_cmd[cmd_idx] << "\"");
-        cmd_result = sendSOPASCommand(sopas_stop_scanner_cmd[cmd_idx].c_str(), &sopas_reply, -1, (force_immediate_shutdown==false));
-      }
+      cmd_result = convertSendSOPASCommand(sopas_stop_scanner_cmd[cmd_idx], &sopas_reply, (force_immediate_shutdown==false));
       if (force_immediate_shutdown == false)
       {
         ROS_INFO_STREAM("sick_scan_common: received sopas reply \"" << replyToString(sopas_reply) << "\"");
@@ -634,7 +623,6 @@ namespace sick_scan
       }
       // std::this_thread::sleep_for(std::chrono::milliseconds((int64_t)100));
     }
-
     return result;
   }
 
@@ -692,9 +680,32 @@ namespace sick_scan
 
   }
 
+  /// Converts a given SOPAS command from ascii to binary (in case of binary communication), sends sopas (ascii or binary) and returns the response (if wait_for_reply:=true)
+  /**
+   * \param [in] request the command to send.
+   * \param [in] cmdLen Length of the Comandstring in bytes used for Binary Mode only
+   */
+  int SickScanCommon::convertSendSOPASCommand(const std::string& sopas_ascii_request, std::vector<unsigned char> *sopas_reply, bool wait_for_reply)
+  {
+    int result = ExitError;
+    if (getProtocolType() == CoLa_B)
+    {
+      std::vector<unsigned char> requestBinary;
+      convertAscii2BinaryCmd(sopas_ascii_request.c_str(), &requestBinary);
+      ROS_INFO_STREAM("sick_scan_common: sending sopas command \"" << stripControl(requestBinary) << "\"");
+      result = sendSOPASCommand((const char*)requestBinary.data(), sopas_reply, requestBinary.size(), wait_for_reply);
+    }
+    else
+    {
+      ROS_INFO_STREAM("sick_scan_common: sending sopas command \"" << sopas_ascii_request << "\"");
+      result = sendSOPASCommand(sopas_ascii_request.c_str(), sopas_reply, sopas_ascii_request.size(), wait_for_reply);
+    }
+    return result;
+  }
+
 
   /*!
-  \brief Reboot scanner (todo: this does not work if the scanner is set to binary mode) Fix me!
+  \brief Reboot scanner
   \return Result of rebooting attempt
   */
   bool SickScanCommon::rebootScanner()
@@ -703,8 +714,10 @@ namespace sick_scan
      * Set Maintenance access mode to allow reboot to be sent
      */
     std::vector<unsigned char> access_reply;
+
+
     // changed from "03" to "3"
-    int result = sendSOPASCommand("\x02sMN SetAccessMode 3 F4724744\x03\0", &access_reply);
+    int result = convertSendSOPASCommand("\x02sMN SetAccessMode 3 F4724744\x03\0", &access_reply);
     if (result != 0)
     {
       ROS_ERROR("SOPAS - Error setting access mode");
@@ -729,7 +742,7 @@ namespace sick_scan
      * Send reboot command
      */
     std::vector<unsigned char> reboot_reply;
-    result = sendSOPASCommand("\x02sMN mSCreboot\x03\0", &reboot_reply);
+    result = convertSendSOPASCommand("\x02sMN mSCreboot\x03\0", &reboot_reply);
     if (result != 0)
     {
       ROS_ERROR("SOPAS - Error rebooting scanner");
