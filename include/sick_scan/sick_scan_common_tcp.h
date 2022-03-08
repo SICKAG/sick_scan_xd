@@ -109,7 +109,7 @@ namespace sick_scan
 
     bool getEmulSensor();
 
-    bool stopScanData();
+    bool stopScanData(bool force_immediate_shutdown = false);
 
     int numberOfDatagramInInputFifo();
 

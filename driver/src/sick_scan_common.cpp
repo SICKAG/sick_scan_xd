@@ -589,40 +589,11 @@ namespace sick_scan
   \brief Stops sending scan data
   \return error code
    */
-  int SickScanCommon::stop_scanner()
+  int SickScanCommon::stop_scanner(bool force_immediate_shutdown)
   {
     /*
      * Stop streaming measurements
      */
-    /*
-    const char requestScanData0[] = {"\x02sEN LMDscandata 0\x03\0"};
-    int result = sendSOPASCommand(requestScanData0, NULL);
-    if (result != 0)
-    {
-      // use printf because we cannot use ROS_ERROR from the destructor
-      printf("\nSOPAS - Error stopping streaming scan data!\n");
-    }
-    else
-    {
-      printf("\nSOPAS - Stopped streaming scan data.\n");
-    }
-
-    if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
-    {
-      if(sendSOPASCommand("\x02sEN LFErec 0\x03", NULL) != 0 // TiM781S: deactivate LFErec messages, send "sEN LFErec 0"
-      || sendSOPASCommand("\x02sEN LIDoutputstate 0\x03", NULL) != 0 // TiM781S: deactivate LIDoutputstate messages, send "sEN LIDoutputstate 0"
-      || sendSOPASCommand("\x02sEN LIDinputstate 0\x03", NULL) != 0) // TiM781S: deactivate LIDinputstate messages, send "sEN LIDinputstate 0"
-      {
-        // use printf because we cannot use ROS_ERROR from the destructor
-        printf("\nSOPAS - Error stopping streaming LFErec, LIDoutputstate and LIDinputstate messages!\n");
-      }
-      else
-      {
-        printf("\nSOPAS - Stopped streaming LFErec, LIDoutputstate and LIDinputstate messages\n");
-      }
-    }
-    */
-
     std::vector<std::string> sopas_stop_scanner_cmd = { "\x02sEN LMDscandata 0\x03\0" };
     if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
     {
@@ -634,29 +605,34 @@ namespace sick_scan
     sopas_stop_scanner_cmd.push_back("\x02sMN LMCstopmeas\x03\0");
     // sopas_stop_scanner_cmd.push_back("\x02sMN Run\x03\0");
 
-    setReadTimeOutInMs(500);
-    std::cout << "sick_scan_common: stopping scanner ..." << std::endl;
+    setReadTimeOutInMs(1000);
+    ROS_INFO_STREAM("sick_scan_common: stopping scanner ...");
     int result = ExitSuccess, cmd_result = ExitSuccess;
     for(int cmd_idx = 0; cmd_idx < sopas_stop_scanner_cmd.size(); cmd_idx++)
     {
+      std::vector<unsigned char> sopas_reply;
       if (getProtocolType() == CoLa_B)
       {
         std::vector<unsigned char> requestBinary;
         convertAscii2BinaryCmd(sopas_stop_scanner_cmd[cmd_idx].c_str(), &requestBinary);
-        std::cout << "sick_scan_common: sending sopas command \"" << stripControl(requestBinary) << "\"" << std::endl;
-        cmd_result = sendSOPASCommand((const char*)requestBinary.data(), 0, -1, false);
+        ROS_INFO_STREAM("sick_scan_common: sending sopas command \"" << stripControl(requestBinary) << "\"");
+        cmd_result = sendSOPASCommand((const char*)requestBinary.data(), &sopas_reply, -1, (force_immediate_shutdown==false));
       }
       else
       {
-        std::cout << "sick_scan_common: sending sopas command \"" << sopas_stop_scanner_cmd[cmd_idx] << "\"" << std::endl;
-        cmd_result = sendSOPASCommand(sopas_stop_scanner_cmd[cmd_idx].c_str(), 0, -1, false);
+        ROS_INFO_STREAM("sick_scan_common: sending sopas command \"" << sopas_stop_scanner_cmd[cmd_idx] << "\"");
+        cmd_result = sendSOPASCommand(sopas_stop_scanner_cmd[cmd_idx].c_str(), &sopas_reply, -1, (force_immediate_shutdown==false));
+      }
+      if (force_immediate_shutdown == false)
+      {
+        ROS_INFO_STREAM("sick_scan_common: received sopas reply \"" << replyToString(sopas_reply) << "\"");
       }
       if (cmd_result != ExitSuccess)
       {
-        std::cerr << "## ERROR sick_scan_common: ERROR sending sopas command \"" << sopas_stop_scanner_cmd[cmd_idx] << "\"\n" << std::endl;
+        ROS_WARN_STREAM("## ERROR sick_scan_common: ERROR sending sopas command \"" << sopas_stop_scanner_cmd[cmd_idx] << "\"");
         result = ExitError;
       }
-      std::this_thread::sleep_for(std::chrono::milliseconds((int64_t)300));
+      // std::this_thread::sleep_for(std::chrono::milliseconds((int64_t)100));
     }
 
     return result;

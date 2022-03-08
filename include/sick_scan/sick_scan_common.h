@@ -309,7 +309,7 @@ namespace sick_scan
 
     virtual int init_scanner(rosNodePtr nh);
 
-    virtual int stop_scanner();
+    virtual int stop_scanner(bool force_immediate_shutdown = false);
 
     virtual int close_device() = 0;
 

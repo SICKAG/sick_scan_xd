@@ -232,7 +232,7 @@ namespace sick_scan
 
   SickScanCommonTcp::~SickScanCommonTcp()
   {
-    // stop_scanner();
+    // stop_scanner(true);
     close_device();
   }
 
@@ -620,10 +620,10 @@ namespace sick_scan
   }
 
 
-  bool SickScanCommonTcp::stopScanData()
+  bool SickScanCommonTcp::stopScanData(bool force_immediate_shutdown)
   {
-    stop_scanner();
-    return (true);
+    int retval = stop_scanner(force_immediate_shutdown);
+    return retval == ExitSuccess;
   }
 
   // void SickScanCommonTcp::handleRead(boost::system::error_code error, size_t bytes_transfered)

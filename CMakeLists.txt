@@ -149,6 +149,7 @@ if(ROS_VERSION EQUAL 1)
         SCdevicestateSrv.srv
         SCrebootSrv.srv
         SCsoftresetSrv.srv
+        SickScanExitSrv.srv
     )
 endif(ROS_VERSION EQUAL 1)
 
@@ -257,6 +258,7 @@ if(ROS_VERSION EQUAL 2)
         "srv/SCdevicestateSrv.srv"
         "srv/SCrebootSrv.srv"
         "srv/SCsoftresetSrv.srv"
+        "srv/SickScanExitSrv.srv"
         ${ROSIDL_EMULATOR_FILES}
         DEPENDENCIES builtin_interfaces std_msgs nav_msgs geometry_msgs sensor_msgs
     )   

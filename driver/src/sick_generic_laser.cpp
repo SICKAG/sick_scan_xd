@@ -135,6 +135,19 @@ bool getTagVal(std::string tagVal, std::string &tag, std::string &val)
   return (ret);
 }
 
+bool stopScannerAndExit(bool force_immediate_shutdown)
+{
+  bool success = true;
+  if (s_scanner != NULL)
+  {
+    if (isInitialized)
+    {
+      success = s_scanner->stopScanData(force_immediate_shutdown);
+    }
+    runState = scanner_finalize;
+  }
+  return success;
+}
 
 void rosSignalHandler(int signalRecv)
 {
@@ -142,15 +155,7 @@ void rosSignalHandler(int signalRecv)
   ROS_INFO_STREAM("good bye\n");
   ROS_INFO_STREAM("You are leaving the following version of this node:\n");
   ROS_INFO_STREAM(getVersionInfo() << "\n");
-  printf("rosSignalHandler: received signal %d\n", signalRecv);
-  if (s_scanner != NULL)
-  {
-    if (isInitialized)
-    {
-      s_scanner->stopScanData();
-    }
-    runState = scanner_finalize;
-  }
+  stopScannerAndExit(true);
   rosShutdown();
 }
 
@@ -467,14 +472,14 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
   int result = sick_scan::ExitError;
 
   //sick_scan::SickScanConfig cfg;
-  std::chrono::system_clock::time_point timestamp_rosOk = std::chrono::system_clock::now();
+  //std::chrono::system_clock::time_point timestamp_rosOk = std::chrono::system_clock::now();
 
-  while (runState != scanner_finalize)
+  while (rosOk() && runState != scanner_finalize)
   {
-    if (rosOk())
-      timestamp_rosOk = std::chrono::system_clock::now();
-    else if (std::chrono::duration<double>(std::chrono::system_clock::now() - timestamp_rosOk).count() > 2 * 1000) // 2 seconds timeout to stop the scanner 
-      runState = scanner_finalize;
+    //if (rosOk())
+    //  timestamp_rosOk = std::chrono::system_clock::now();
+    //else if (std::chrono::duration<double>(std::chrono::system_clock::now() - timestamp_rosOk).count() > 2 * 1000) // 2 seconds timeout to stop the scanner 
+    //  runState = scanner_finalize;
 
     switch (runState)
     {

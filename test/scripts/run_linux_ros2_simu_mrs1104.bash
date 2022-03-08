@@ -6,6 +6,7 @@
 
 function simu_killall()
 {
+  sleep 1 ; ros2 service call /SickScanExit sick_scan/srv/SickScanExitSrv "{}"
   sleep 1 ; killall -SIGINT rviz2
   sleep 1 ; killall -SIGINT sick_generic_caller
   sleep 1 ; killall -SIGINT sick_scan_emulator
