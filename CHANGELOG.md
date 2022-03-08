@@ -6,11 +6,11 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+## Released ##
+
 ### v2.5.0 - 
   - **Fixed** Issue #24 (stop scanner at exit)
   - **Added** new ros service SickScanExit to stop scanner and exit
-
-## Released ##
 
 ### v2.4.6 - 
   - **Fixed** Corrected angle shift parameter for LMS-4xxx

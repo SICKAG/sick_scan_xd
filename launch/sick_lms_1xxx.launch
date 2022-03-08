@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <!-- FOR FUTURE USE. NOT SUPPORTED NOW. DO NOT USE IT. -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <!-- robot_description and robot_state_publisher hier evtl. einbauen  -->
-    <node name="sick_lms_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_lms_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- default values: -->
         <!--
           <param name="scanner_type" type="string" value="sick_lms_1xxx"

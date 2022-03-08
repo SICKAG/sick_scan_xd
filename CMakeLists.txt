@@ -159,7 +159,10 @@ if(ROS_VERSION EQUAL 2)
     set(FastRTPS_LIBRARY_RELEASE /opt/ros/$ENV{ROS_DISTRO}/lib/libfastrtps.so)
 
     find_package(ament_cmake REQUIRED)
-    find_package(diagnostic_updater REQUIRED)
+    if(NOT WIN32)
+        set(diagnostic_updater_pkg diagnostic_updater)
+        find_package(${diagnostic_updater_pkg} REQUIRED)
+    endif()
     find_package(rclcpp REQUIRED)
     find_package(sensor_msgs REQUIRED)
     find_package(std_msgs REQUIRED)
@@ -365,7 +368,7 @@ if(ROS_VERSION EQUAL 1)
     )
 
     catkin_package(
-        CATKIN_DEPENDS message_runtime roscpp sensor_msgs diagnostic_updater dynamic_reconfigure pcl_conversions pcl_ros tf tf2
+        CATKIN_DEPENDS message_runtime roscpp sensor_msgs ${diagnostic_updater_pkg} dynamic_reconfigure pcl_conversions pcl_ros tf tf2
         LIBRARIES sick_scan_lib sick_scan_shared_lib
         INCLUDE_DIRS include
         # DEPENDS Boost
@@ -529,7 +532,7 @@ if(ROS_VERSION EQUAL 2)
             "nav_msgs"
             "visualization_msgs"
             "tf2_ros"
-            "diagnostic_updater"
+            "${diagnostic_updater_pkg}"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
@@ -544,7 +547,7 @@ if(ROS_VERSION EQUAL 2)
             "nav_msgs"
             "visualization_msgs"
             "tf2_ros"
-            "diagnostic_updater"
+            "${diagnostic_updater_pkg}"
             ${LDMRS_TARGET_DEPENDENCIES}
     )
 
@@ -559,7 +562,7 @@ if(ROS_VERSION EQUAL 2)
             "nav_msgs"
             "visualization_msgs"
             "tf2_ros"
-            "diagnostic_updater"
+            "${diagnostic_updater_pkg}"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 

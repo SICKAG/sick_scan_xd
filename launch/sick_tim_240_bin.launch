@@ -13,13 +13,14 @@
      roslaunch sick_scan sick_tim_240.launch hostname:=192.168.0.71
 
 -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="port" default="2111"/>
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
-    <node name="sick_tim_240" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_tim_240" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_240"/>
         <!-- datagram shows values from -90 ... 120 (211 values) -->
         <!-- -120 deg -->
