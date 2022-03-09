@@ -16,6 +16,7 @@
      roslaunch sick_scan sick_tim_7xx.launch hostname:=192.168.0.71
 
 -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 
 <launch>
     <arg name="nodename" default="sick_tim_7xx"/>
@@ -24,7 +25,7 @@
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
-    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_7xx"/>
         <param name="nodename" type="string" value="$(arg nodename)"/>
         <param name="min_ang" type="double" value="-2.35619449"/>  <!-- -135 deg -->

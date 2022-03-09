@@ -42,6 +42,8 @@ done
 
 # Shutdown
 echo -e "Finishing lms5xx emulation, shutdown ros nodes\n"
+rosservice call /sick_mrs_1xxx/SickScanExit "{}"
+sleep 1
 rosnode kill -a ; sleep 1
 killall sick_generic_caller ; sleep 1
 killall sick_scan_emulator ; sleep 1

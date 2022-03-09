@@ -65,7 +65,7 @@ public:
       std::unique_lock<std::mutex> mlock(mutex_);
       queue_.push_back(item);
     }
-    cond_.notify_one();
+    cond_.notify_all(); // cond_.notify_one();
   }
 
 

@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <!-- Launch File for LDMRS -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 <launch>
 
     <arg name="hostname" default="192.168.0.1"/> 
-    <node name="sick_ldmrs" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_ldmrs" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
 
         <!-- Common settings for LDMRS -->
         <param name="scanner_type" type="string" value="sick_ldmrs"/>

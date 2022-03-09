@@ -109,7 +109,7 @@ namespace sick_scan
 
     bool getEmulSensor();
 
-    bool stopScanData();
+    bool stopScanData(bool force_immediate_shutdown = false);
 
     int numberOfDatagramInInputFifo();
 
@@ -139,7 +139,7 @@ namespace sick_scan
     virtual int close_device();
 
     /// Send a SOPAS command to the device and print out the response to the console.
-    virtual int sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen);
+    virtual int sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen, bool wait_for_reply = true);
 
     /// Read a datagram from the device.
     /**

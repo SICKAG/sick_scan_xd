@@ -7,13 +7,14 @@
 default min_angle for this scanner type is  -137.5 degree.
 default max_angle for this scanner type is +137.5 degree.
 -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="imu_frame_id" default="imu_link"/>
     <!-- robot_description and robot_state_publisher is prepared but final STL-model is missing -->
-    <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- default values: -->
         <!-- Value interpretation of "filter_echos": 0 = First Echo, 1 = All Echos, 2 = Last Echo (see "sWN FREchoFilter") -->
         <!--

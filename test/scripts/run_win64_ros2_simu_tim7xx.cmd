@@ -24,7 +24,7 @@ REM
 REM Run sick_scan on ROS-2 Windows
 REM 
 
-ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
-
+rem ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
+ros2 launch sick_scan sick_tim_7xx.launch.py hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
 @pause
 popd

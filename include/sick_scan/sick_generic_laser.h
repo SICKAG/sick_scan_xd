@@ -24,5 +24,7 @@ std::string getVersionInfo();
 
 bool parseLaunchfileSetParameter(rosNodePtr nhPriv, int argc, char **argv);
 
+bool stopScannerAndExit(bool force_immediate_shutdown = false);
+
 #endif
 
