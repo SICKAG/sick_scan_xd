@@ -105,6 +105,34 @@ std::string getVersionInfo()
   return (versionInfo);
 }
 
+void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNodePtr nhPriv, bool do_ros_spin, int & exit_code);
+
+class GenericLaserCallable
+{
+public:
+  GenericLaserCallable(int _argc, char** _argv, std::string _nodeName, rosNodePtr _nhPriv, int* _exit_code)
+  : argc(_argc), argv(_argv), nodeName(_nodeName), nhPriv(_nhPriv), exit_code(_exit_code) 
+  {
+    generic_laser_thread = new std::thread(&GenericLaserCallable::mainGenericLaserCb, this);
+  }
+  void mainGenericLaserCb(void)
+  {
+    mainGenericLaserInternal(argc, argv, nodeName, nhPriv, false, *exit_code);
+  }
+  void join(void)
+  {
+    generic_laser_thread->join();
+  }
+  int argc; 
+  char** argv; 
+  std::string nodeName; 
+  rosNodePtr nhPriv; 
+  int* exit_code;
+  std::thread* generic_laser_thread;
+};
+
+static GenericLaserCallable* s_generic_laser_thread = 0;
+
 NodeRunState runState = scanner_init;
 
 /*!
@@ -145,6 +173,12 @@ bool stopScannerAndExit(bool force_immediate_shutdown)
       success = s_scanner->stopScanData(force_immediate_shutdown);
     }
     runState = scanner_finalize;
+    if(s_generic_laser_thread)
+    {
+      s_generic_laser_thread->join();
+      delete s_generic_laser_thread;
+      s_generic_laser_thread = 0;
+    }
   }
   return success;
 }
@@ -244,14 +278,16 @@ bool parseLaunchfileSetParameter(rosNodePtr nhPriv, int argc, char **argv)
 \param argc: Number of Arguments
 \param argv: Argument variable
 \param nodeName name of the ROS-node
-\return exit-code
+\param nhPriv ros node handle
+\param exit_code exit-code
 \sa main
 */
-int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhPriv)
+void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNodePtr nhPriv, bool do_ros_spin, int & exit_code)
 {
   std::string tag;
   std::string val;
 
+  exit_code = sick_scan::ExitSuccess;
   bool doInternalDebug = false;
   bool emulSensor = false;
   for (int i = 0; i < argc; i++)
@@ -284,6 +320,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
   if(!parseLaunchfileSetParameter(nhPriv, argc, argv))
   {
     ROS_ERROR_STREAM("## ERROR sick_generic_laser: parseLaunchfileSetParameter() failed, aborting\n");
+    exit_code = sick_scan::ExitError;
     exit(-1);
   }
 #endif
@@ -359,18 +396,21 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
 #if defined LDMRS_SUPPORT && LDMRS_SUPPORT > 0
     ROS_INFO("Initializing LDMRS...");
     sick_scan::SickLdmrsNode ldmrs;
-    int result = ldmrs.init(nhPriv, hostname, frame_id);
-    if(result != sick_scan::ExitSuccess)
+    exit_code = ldmrs.init(nhPriv, hostname, frame_id);
+    if(exit_code != sick_scan::ExitSuccess)
     {
       ROS_ERROR("LDMRS initialization failed.");
-      return sick_scan::ExitError;
+      exit_code = sick_scan::ExitError;
+      return;
     }
     ROS_INFO("LDMRS initialized.");
     rosSpin(nhPriv);
-    return sick_scan::ExitSuccess;
+    exit_code = sick_scan::ExitSuccess;
+    return;
 #else
     ROS_ERROR("LDMRS not supported. Please build sick_scan with option LDMRS_SUPPORT");
-    return sick_scan::ExitError;
+    exit_code = sick_scan::ExitError;
+    return;
 #endif
   }
 
@@ -469,7 +509,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
   
   bool start_services = true;
   sick_scan::SickScanServices* services = 0;
-  int result = sick_scan::ExitError;
+  exit_code = sick_scan::ExitError;
 
   //sick_scan::SickScanConfig cfg;
   //std::chrono::system_clock::time_point timestamp_rosOk = std::chrono::system_clock::now();
@@ -501,11 +541,11 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
         {
           s_scanner->setEmulSensor(true);
         }
-        result = s_scanner->init(nhPriv);
-        if (result == sick_scan::ExitError || result == sick_scan::ExitFatal)
+        exit_code = s_scanner->init(nhPriv);
+        if (exit_code == sick_scan::ExitError || exit_code == sick_scan::ExitFatal)
         {
 		      ROS_ERROR("## ERROR in mainGenericLaser: init failed, retrying..."); // ROS_ERROR("init failed, shutting down");
-          continue; // return result;
+          continue;
         }
 
         // Start ROS services
@@ -520,7 +560,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
         isInitialized = true;
         // signal(SIGINT, SIG_DFL); // change back to standard signal handler after initialising
 
-        if (result == sick_scan::ExitSuccess) // OK -> loop again
+        if (exit_code == sick_scan::ExitSuccess) // OK -> loop again
         {
           if (changeIP)
           {
@@ -535,15 +575,18 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
         break;
 
       case scanner_run:
-        if (result == sick_scan::ExitSuccess) // OK -> loop again
+        if (exit_code == sick_scan::ExitSuccess) // OK -> loop again
         {
-          rosSpinOnce(nhPriv);
-          result = s_scanner->loopOnce(nhPriv);
+          if(do_ros_spin)
+          {
+            rosSpinOnce(nhPriv);
+          }
+          exit_code = s_scanner->loopOnce(nhPriv);
           
           if(scan_msg_monitor && message_monitoring_enabled) // Monitor scanner messages
           {
-            result = scan_msg_monitor->checkStateReinitOnError(nhPriv, runState, s_scanner, parser, services);
-            if(result != sick_scan::ExitSuccess) // scanner re-init failed after read timeout or tcp error
+            exit_code = scan_msg_monitor->checkStateReinitOnError(nhPriv, runState, s_scanner, parser, services);
+            if(exit_code != sick_scan::ExitSuccess) // scanner re-init failed after read timeout or tcp error
             {
               ROS_ERROR("## ERROR in sick_generic_laser main loop: read timeout, scanner re-init failed");
             }
@@ -569,6 +612,39 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
   DELETE_PTR(services);
   DELETE_PTR(s_scanner); // close connnect
   DELETE_PTR(parser); // close parser
-  return result;
+  return;
+}
 
+/*!
+\brief Runs mainGenericLaser non-blocking in a new thread
+\param argc: Number of Arguments
+\param argv: Argument variable
+\param nodeName name of the ROS-node
+\param nhPriv ros node handle
+\param exit_code exit-code
+\return true if mainGenericLaser is running, false otherwise
+\sa mainGenericLaser
+*/
+bool startGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhPriv, int* exit_code)
+{
+  if (s_generic_laser_thread == 0)
+  {
+    s_generic_laser_thread = new GenericLaserCallable(argc, argv, nodeName, nhPriv, exit_code);
+  }
+  return (s_generic_laser_thread != 0);
+}
+
+/*!
+\brief Internal Startup routine.
+\param argc: Number of Arguments
+\param argv: Argument variable
+\param nodeName name of the ROS-node
+\return exit-code
+\sa main
+*/
+int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhPriv)
+{
+  int result;
+  mainGenericLaserInternal(argc, argv, nodeName, nhPriv, true, result);
+  return result;
 }
