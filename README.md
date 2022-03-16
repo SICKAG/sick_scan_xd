@@ -576,6 +576,18 @@ Note:
 * The COLA commands are sensor specific. See the user manual and telegram listing for further details.
 * ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.
 * ROS services are currently not available for the LDMRS.
+* Some SOPAS commands like `sMN SetAccessMode 3 F4724744` stops the current measurement. In this case, the driver restarts after a timeout (5 seconds by default). To process those SOPAS commands without restart, you can
+   * send `sMN LMCstartmeas` and `sMN Run` to switch again into measurement mode within the timeout, or
+   * increase the driver timeout `read_timeout_millisec_default` in the launch-file.
+
+Example sequence with stop and start measurement to set a particle filter (TiM-7xxx on ROS-1):
+```
+rosservice call /sick_tim_7xx/ColaMsg "{request: 'sMN SetAccessMode 3 F4724744'}"
+rosservice call /sick_tim_7xx/ColaMsg "{request: 'sRN LFPparticle'}" # response: "sRA LFPparticle \\x00\\x01\\xf4"
+rosservice call /sick_tim_7xx/ColaMsg "{request: 'sWN LFPparticle 0101F4'}" # response: "sWA LFPparticle"
+rosservice call /sick_tim_7xx/ColaMsg "{request: 'sMN LMCstartmeas'}"
+rosservice call /sick_tim_7xx/ColaMsg "{request: 'sMN Run'}"
+```
 
 ### Driver states, timeouts
 

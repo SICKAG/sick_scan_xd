@@ -81,7 +81,7 @@
 
 #define SICK_GENERIC_MAJOR_VER "2"
 #define SICK_GENERIC_MINOR_VER "5"
-#define SICK_GENERIC_PATCH_LEVEL "0"
+#define SICK_GENERIC_PATCH_LEVEL "1"
 
 #include <algorithm> // for std::min
 
@@ -175,15 +175,24 @@ int main(int argc, char **argv)
   int result = 0;
   try
   {
-    result = mainGenericLaser(argc_tmp, argv_tmp, scannerName, node);
+    // result = mainGenericLaser(argc_tmp, argv_tmp, scannerName, node);
+    if (!startGenericLaser(argc_tmp, argv_tmp, scannerName, node, &result))
+    {
+      ROS_ERROR_STREAM("## ERROR in sick_generic_caller::main(): startGenericLaser() failed, could not start generic laser event loop");
+    }
+    else
+    {
+      rosSpin(node);
+    }
+    stopScannerAndExit();
   }
   catch(const std::exception& e)
   {
-    ROS_ERROR_STREAM("## ERROR in mainGenericLaser: exception " << e.what());
+    ROS_ERROR_STREAM("## ERROR in ick_generic_caller::main(): exception " << e.what());
   }
   catch(...)
   {
-    ROS_ERROR_STREAM("## ERROR in mainGenericLaser: unknown exception ");
+    ROS_ERROR_STREAM("## ERROR in ick_generic_caller::main(): unknown exception ");
   }
 
   return result;
