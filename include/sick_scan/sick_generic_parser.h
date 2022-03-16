@@ -125,6 +125,9 @@ namespace sick_scan
 
     bool getDeviceIsRadar(void);
 
+    bool getTrackingModeSupported(void);
+    void setTrackingModeSupported(bool _trackingModeSupported);
+
     bool getUseBinaryProtocol(void);
 
     void setScanMirroredAndShifted(bool _scanMirroredAndShifted);
@@ -189,7 +192,8 @@ namespace sick_scan
     double scanAngleShift;
     bool useBinaryProtocol;
     bool IntensityResolutionIs16Bit;
-    bool deviceIsRadar;
+    bool deviceIsRadar = false;
+    bool trackingModeSupported = false;
     bool useSafetyPasWD;
     int8_t encoderMode;
     bool CartographerCompatibility;

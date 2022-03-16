@@ -258,7 +258,7 @@ namespace sick_scan
 
     int convertAscii2BinaryCmd(const char *requestAscii, std::vector<unsigned char> *requestBinary);
 
-    int init_cmdTables();
+    int init_cmdTables(rosNodePtr nh);
 
     /// Send a SOPAS command to the scanner that should cause a soft reset
     /**

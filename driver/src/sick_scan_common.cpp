@@ -444,7 +444,7 @@ namespace sick_scan
     m_min_intensity = 0.0; // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
 
     setSensorIsRadar(false);
-    init_cmdTables();
+    init_cmdTables(nh);
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
     dynamic_reconfigure::Server<sick_scan::SickScanConfig>::CallbackType f;
     // f = boost::bind(&sick_scan::SickScanCommon::update_config, this, _1, _2);
@@ -1197,7 +1197,7 @@ namespace sick_scan
   \brief init command tables and define startup sequence
   \return exit code
   */
-  int SickScanCommon::init_cmdTables()
+  int SickScanCommon::init_cmdTables(rosNodePtr nh)
   {
     sopasCmdVec.resize(SickScanCommon::CMD_END);
     sopasCmdMaskVec.resize(
@@ -1466,7 +1466,13 @@ namespace sick_scan
     }
     if (parser_->getCurrentParamPtr()->getDeviceIsRadar() == true)
     {
-      sopasCmdChain.push_back(CMD_LOAD_APPLICATION_DEFAULT); // load application default for radar
+      bool load_application_default = false;
+      rosDeclareParam(nh, "load_application_default", load_application_default);
+      rosGetParam(nh, "load_application_default", load_application_default);
+      if(load_application_default)
+      {
+        sopasCmdChain.push_back(CMD_LOAD_APPLICATION_DEFAULT); // load application default for radar
+      }
 
       tryToStopMeasurement = false;
       // do not stop measurement for RMS320 - the RMS320 does not support the stop command
@@ -3068,17 +3074,19 @@ namespace sick_scan
       rosDeclareParam(nh, "transmit_objects", transmitObjects);
       rosGetParam(nh, "transmit_objects", transmitObjects);
 
-      rosDeclareParam(nh, "tracking_mode", trackingMode);
-      rosGetParam(nh, "tracking_mode", trackingMode);
-
-      if ((trackingMode < 0) || (trackingMode >= numTrackingModes))
+      if (this->parser_->getCurrentParamPtr()->getTrackingModeSupported())
       {
-        ROS_WARN("tracking mode id invalid. Switch to tracking mode 0");
-        trackingMode = 0;
+        rosDeclareParam(nh, "tracking_mode", trackingMode);
+        rosGetParam(nh, "tracking_mode", trackingMode);
+        if ((trackingMode < 0) || (trackingMode >= numTrackingModes))
+        {
+          ROS_WARN("tracking mode id invalid. Switch to tracking mode 0");
+          trackingMode = 0;
+        }
+        ROS_INFO_STREAM("Raw target transmission is switched [" << (transmitRawTargets ? "ON" : "OFF") << "]");
+        ROS_INFO_STREAM("Object transmission is switched [" << (transmitObjects ? "ON" : "OFF") << "]");
+        ROS_INFO_STREAM("Tracking mode is set to id [" << trackingMode << "] [" << trackingModeDescription[trackingMode] << "]");
       }
-      ROS_INFO_STREAM("Raw target transmission is switched [" << (transmitRawTargets ? "ON" : "OFF") << "]");
-      ROS_INFO_STREAM("Object transmission is switched [" << (transmitObjects ? "ON" : "OFF") << "]");
-      ROS_INFO_STREAM("Tracking mode is set to id [" << trackingMode << "] [" << trackingModeDescription[trackingMode] << "]");
 
       deviceIsRadar = true;
 
@@ -3109,19 +3117,26 @@ namespace sick_scan
       {
         startProtocolSequence.push_back(CMD_SET_TRANSMIT_OBJECTS_OFF);  // NO tracking objects will be transmitted
       }
-
-      switch (trackingMode)
+      if (!transmitRawTargets && !transmitObjects)
       {
-        case 0:
-          startProtocolSequence.push_back(CMD_SET_TRACKING_MODE_0);
-          break;
-        case 1:
-          startProtocolSequence.push_back(CMD_SET_TRACKING_MODE_1);
-          break;
-        default:
-          ROS_DEBUG("Tracking mode switching sequence unknown\n");
-          break;
+        ROS_WARN("Both ObjectData and TargetData are disabled. Check launchfile, parameter \"transmit_raw_targets\" or \"transmit_objects\" or both should be activated.");
+      }
 
+      if (this->parser_->getCurrentParamPtr()->getTrackingModeSupported())
+      {
+        switch (trackingMode)
+        {
+          case 0:
+            startProtocolSequence.push_back(CMD_SET_TRACKING_MODE_0);
+            break;
+          case 1:
+            startProtocolSequence.push_back(CMD_SET_TRACKING_MODE_1);
+            break;
+          default:
+            ROS_DEBUG("Tracking mode switching sequence unknown\n");
+            break;
+
+        }
       }
       // leave user level
 
