@@ -13,6 +13,10 @@ echo PYTHON_DIR=%PYTHON_DIR%
 python --version
 @echo.
 
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20220317-rms3xx-ascii.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20220317-rms3xx-binary.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20220316-rms1000-ascii.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20220316-rms1000-binary.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20211201_MRS_1xxx_IMU_with_movement.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20211201_RMS_1xxx_start_up.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20211201_RMS_3xx_start_up.pcapng

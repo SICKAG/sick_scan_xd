@@ -4166,7 +4166,7 @@ namespace sick_scan
                               sizeOfSingleAngularStep = sizeOfSingleAngularStepDiv10000 / 10000.0;
                               sizeOfSingleAngularStep *= (M_PI / 180.0);
 
-                              msg.angle_min = startAngle / 180.0 * M_PI - M_PI / 2;
+                              msg.angle_min = startAngle / 180.0 * M_PI + this->parser_->getCurrentParamPtr()->getScanAngleShift(); // msg.angle_min = startAngle / 180.0 * M_PI - M_PI / 2;
                               msg.angle_increment = sizeOfSingleAngularStep;
                               msg.angle_max = msg.angle_min + (numberOfItems - 1) * msg.angle_increment;
 
