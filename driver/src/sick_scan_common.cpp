@@ -437,8 +437,8 @@ namespace sick_scan
     diagnostics_ = std::make_shared<diagnostic_updater::Updater>(nh);
 #else
     diagnostics_ = 0;
-#endif  
-#endif  
+#endif
+#endif
 
     expectedFrequency_ = this->parser_->getCurrentParamPtr()->getExpectedFrequency();
     m_min_intensity = 0.0; // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
@@ -467,7 +467,7 @@ namespace sick_scan
 
       rosDeclareParam(nh, PARAM_RES_ANG, res_angle);
       rosGetParam(nh, PARAM_RES_ANG, res_angle);
-          
+
       cfg.min_ang = min_angle;
       cfg.max_ang = max_angle;
       cfg.skip = 0;
@@ -573,11 +573,11 @@ namespace sick_scan
         diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0 / expectedFrequency_ - config_.time_offset));
       ROS_ASSERT(diagnosticPub_ != NULL);
 #elif __ROS_VERSION == 2
-      diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>>(pub_, *diagnostics_, 
+      diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>>(pub_, *diagnostics_,
         diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10), // frequency should be target +- 10%
         diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0 / expectedFrequency_ - config_.time_offset));
       assert(diagnosticPub_ != NULL);
-#endif      
+#endif
     }
 #else
     config_.time_offset = 0; // to avoid uninitialized variable
@@ -892,7 +892,7 @@ namespace sick_scan
         ROS_WARN("Unexpected position of key identifier.\n");
       }
     }
-    
+
     if(expectedAnswers.empty())
     {
       expectedAnswers.push_back(expectedAnswer);
@@ -1013,7 +1013,7 @@ namespace sick_scan
             result = -1;
 
             // Problably we received some scan data message. Ignore and try again...
-            std::vector<std::string> response_keywords = { sick_scan::SickScanMessages::getSopasCmdKeyword((uint8_t*)requestStr.data(), requestStr.size()) }; 
+            std::vector<std::string> response_keywords = { sick_scan::SickScanMessages::getSopasCmdKeyword((uint8_t*)requestStr.data(), requestStr.size()) };
             if(retry_answer_cnt < 100 && (rosNanosecTimestampNow() - retry_start_timestamp_nsec) / 1000000 < m_read_timeout_millisec_default)
             {
               char buffer[64*1024];
@@ -1511,7 +1511,7 @@ namespace sick_scan
     // TODO: apply and test for LRS_36x0 and OEM_15XX, too
     // if (this->parser_->getCurrentParamPtr()->getUseScancfgList() == true) // true for SICK_SCANNER_LRS_36x0_NAME, SICK_SCANNER_LRS_36x1_NAME, SICK_SCANNER_NAV_3XX_NAME, SICK_SCANNER_OEM_15XX_NAME
     if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0
-    || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) 
+    || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
     {
       sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
       sopasCmdChain.push_back(CMD_SET_SCAN_CFG_LIST); // "sMN mCLsetscancfglist 1", set scan config from list for NAX310  LD-OEM15xx LD-LRS36xx
@@ -1875,7 +1875,7 @@ namespace sick_scan
             {
               return ExitFatal;
             }
-//					ROS_ERROR("BINARY REPLY REQUIRED");
+//                  ROS_ERROR("BINARY REPLY REQUIRED");
           }
           else
           {
@@ -2254,7 +2254,7 @@ namespace sick_scan
       if (this->parser_->getCurrentParamPtr()->getUseScancfgList())
       {
         if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0
-        || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) 
+        || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
         {
           // scanconfig handling with list now done above via sopasCmdChain,
           // deactivated here, otherwise the scan config will be (re-)set to default values
@@ -2423,7 +2423,7 @@ namespace sick_scan
         UINT16 sendLen;
         std::vector<unsigned char> reqBinary;
         int iStatus = 1;
-        //				const char *askOutputAngularRangeBinMask = "%4y%4ysWN LMPoutputRange %2y%4y%4y%4y";
+        //              const char *askOutputAngularRangeBinMask = "%4y%4ysWN LMPoutputRange %2y%4y%4y%4y";
         // int askOutputAngularRangeBinLen = binScanfGuessDataLenFromMask(askOutputAngularRangeBinMask);
         // askOutputAngularRangeBinLen -= 8;  // due to header and length identifier
 
@@ -2562,7 +2562,7 @@ namespace sick_scan
 
         askAngleStart += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
         askAngleEnd += rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
-        
+
         // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
         // {
         //   // the TiM240 operates directly in the ros coordinate system
@@ -2574,7 +2574,7 @@ namespace sick_scan
         // }
         this->config_.min_ang = askAngleStart / 180.0 * M_PI;
         this->config_.max_ang = askAngleEnd / 180.0 * M_PI;
-        
+
           rosSetParam(nh, "min_ang",
                           this->config_.min_ang); // update parameter setting with "true" values read from scanner
           rosGetParam(nh, "min_ang",
@@ -2746,7 +2746,7 @@ namespace sick_scan
         case 2: outputChannelFlagId = 0b00000001; break;
 
         }
-        
+
         ROS_INFO("LMS 5xx detected overwriting output channel flag ID");
 
         ROS_INFO("LMS 5xx detected overwriting resolution flag (only 8 bit supported)");
@@ -2766,7 +2766,7 @@ namespace sick_scan
         ROS_INFO("Reading safety fields");
         SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
         int maxFieldnum = this->parser_->getCurrentParamPtr()->getMaxEvalFields();
-        for(int fieldnum=0;fieldnum<maxFieldnum;fieldnum++) 
+        for(int fieldnum=0;fieldnum<maxFieldnum;fieldnum++)
         {
           char requestFieldcfg[MAX_STR_LEN];
           const char *pcCmdMask = sopasCmdMaskVec[CMD_GET_SAFTY_FIELD_CFG].c_str();
@@ -3134,7 +3134,7 @@ namespace sick_scan
     {
       if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
       {
-        
+
         // Activate LFErec, LIDoutputstate and LIDinputstate messages
         bool activate_lferec = true, activate_lidoutputstate = true, activate_lidinputstate = true;
         rosDeclareParam(nh, "activate_lferec", activate_lferec);
@@ -3201,7 +3201,7 @@ namespace sick_scan
     {
       int cmdId = *it;
       std::vector<unsigned char> tmpReply;
-      //			result = sendSopasAndCheckAnswer(sopasCmdVec[cmdId].c_str(), &tmpReply);
+      //            result = sendSopasAndCheckAnswer(sopasCmdVec[cmdId].c_str(), &tmpReply);
       //      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, tmpReply); // No response, non-recoverable connection error (return error and do not try other commands)
 
       std::string sopasCmd = sopasCmdVec[cmdId];
@@ -3510,7 +3510,7 @@ namespace sick_scan
       diagnostics_->force_update();
 #else
       diagnostics_->update();
-#endif      
+#endif
     }
 #endif
 
@@ -3560,7 +3560,7 @@ namespace sick_scan
     do
     {
       const std::vector<std::string> datagram_keywords = {  // keyword list of datagrams handled here in loopOnce
-        "LMDscandata", "LMDscandatamon", 
+        "LMDscandata", "LMDscandatamon",
         "LMDradardata", "InertialMeasurementUnit", "LIDoutputstate", "LIDinputstate", "LFErec" };
 
       int result = get_datagram(nh, recvTimeStamp, receiveBuffer, 65536, &actual_length, useBinaryProtocol, &packetsInLoop, datagram_keywords);
@@ -3669,7 +3669,7 @@ namespace sick_scan
           // int fieldset = (receiveBuffer[32] & 0xFF);
           // fieldMon->setActiveFieldset(fieldset);
           fieldMon->parseBinaryLIDinputstateMsg(receiveBuffer, actual_length);
-          ROS_DEBUG_STREAM("SickScanCommon: received " << actual_length << " byte LIDinputstate " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length) 
+          ROS_DEBUG_STREAM("SickScanCommon: received " << actual_length << " byte LIDinputstate " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length)
             << ", active fieldset = " << fieldMon->getActiveFieldset());
         }
         return errorCode; // return success to continue looping
@@ -3729,8 +3729,8 @@ namespace sick_scan
         bool dataToProcess = true;
         std::vector<float> vang_vec;
         vang_vec.clear();
-		dstart = NULL;
-		dend = NULL;
+        dstart = NULL;
+        dend = NULL;
 
         while (dataToProcess)
         {
@@ -3857,7 +3857,7 @@ namespace sick_scan
                       else if (packets_dropped > packets_expected_to_drop && packets_received > 0)
                       {
                         double drop_rate = (double)packets_dropped / (double)packets_received;
-                        ROS_WARN_STREAM("" << SoftwarePLL::instance().packets_dropped << " of " << SoftwarePLL::instance().packets_received << " packets dropped (" 
+                        ROS_WARN_STREAM("" << SoftwarePLL::instance().packets_dropped << " of " << SoftwarePLL::instance().packets_received << " packets dropped ("
                           << std::fixed << std::setprecision(1) << (100*drop_rate) << " perc.), maxAbsDeltaTime=" << std::fixed << std::setprecision(3) << SoftwarePLL::instance().max_abs_delta_time);
                         ROS_WARN_STREAM("More packages than expected were dropped!!\n"
                                 "Check the network connection.\n"
@@ -4151,7 +4151,7 @@ namespace sick_scan
                               sizeOfSingleAngularStep = sizeOfSingleAngularStepDiv10000 / 10000.0;
                               sizeOfSingleAngularStep *= (M_PI / 180.0);
 
-                              msg.angle_min = startAngle / 180.0 * M_PI - M_PI / 2;
+                              msg.angle_min = startAngle / 180.0 * M_PI + this->parser_->getCurrentParamPtr()->getScanAngleShift(); // msg.angle_min = startAngle / 180.0 * M_PI - M_PI / 2;
                               msg.angle_increment = sizeOfSingleAngularStep;
                               msg.angle_max = msg.angle_min + (numberOfItems - 1) * msg.angle_increment;
 
@@ -4534,7 +4534,7 @@ namespace sick_scan
             }
             else // i.e. (numEchos <= 0)
             {
-              ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): no echos in measurement message (numEchos=" << numEchos 
+              ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): no echos in measurement message (numEchos=" << numEchos
                 << ", msg.ranges.size()=" << msg.ranges.size() << ", msg.intensities.size()=" << msg.intensities.size() << ")");
             }
 
@@ -4598,12 +4598,12 @@ namespace sick_scan
                 float *cosAlphaTablePtr = &cosAlphaTable[0];
                 float *sinAlphaTablePtr = &sinAlphaTable[0];
 
-				float *vangPtr = NULL;
-				float *rangeTmpPtr = &rangeTmp[0];
-				if (vang_vec.size() > 0)
-				{
-					vangPtr = &vang_vec[0];
-				}
+                float *vangPtr = NULL;
+                float *rangeTmpPtr = &rangeTmp[0];
+                if (vang_vec.size() > 0)
+                {
+                    vangPtr = &vang_vec[0];
+                }
                 for (size_t i = 0; i < rangeNum; i++)
                 {
                   enum enum_index_descr
@@ -4821,10 +4821,10 @@ namespace sick_scan
             }
           }
           // Start Point
-		  if (dend != NULL)
-		  {
-			  buffer_pos = dend + 1;
-		  }
+          if (dend != NULL)
+          {
+              buffer_pos = dend + 1;
+          }
         } // end of while loop
       }
 
