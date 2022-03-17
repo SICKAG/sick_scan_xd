@@ -181,6 +181,291 @@ namespace sick_scan
     return (emul);
   }
 
+  class RadarDatagramField
+  {
+  public:
+    RadarDatagramField(char* _data = 0, size_t _len = 0) : data(_data), len(_len) {}
+    char* data;
+    size_t len;
+    template<typename T> bool toInteger(T &value) const
+    {
+      if(len == sizeof(value))
+      {
+        memcpy(&value, data, len);
+        swap_endian((unsigned char *)&value, len);
+        return true;
+      }
+      return false;
+    }
+  };
+
+  static uint32_t radarFieldToUint32(const RadarDatagramField& field, bool useBinaryProtocol)
+  {
+    uint32_t u32_value = 0;
+    if(useBinaryProtocol)
+    {
+      bool success = false;
+      uint8_t u8_value = 0;
+      uint16_t u16_value = 0;
+      switch (field.len)
+      {
+      case 1:
+        success = field.toInteger(u8_value);
+        u32_value = u8_value;
+        break;
+      case 2:
+        success = field.toInteger(u16_value);
+        u32_value = u16_value;
+        break;
+      case 4:
+        success = field.toInteger(u32_value);
+        break;
+      default:
+        break;
+      }
+      if(!success)
+        ROS_WARN_STREAM("radarFieldToUint32() failed (field.len=" << field.len << ")");
+    }
+    else
+    {
+      u32_value = strtoul(field.data, NULL, 16);
+    }
+    return u32_value;
+  }
+
+  static int32_t radarFieldToInt32(const RadarDatagramField& field, bool useBinaryProtocol)
+  {
+    int32_t i32_value = 0;
+    if(useBinaryProtocol)
+    {
+      bool success = false;
+      int8_t i8_value = 0;
+      int16_t i16_value = 0;
+      switch (field.len)
+      {
+      case 1:
+        success = field.toInteger(i8_value);
+        i32_value = i8_value;
+        break;
+      case 2:
+        success = field.toInteger(i16_value);
+        i32_value = i16_value;
+        break;
+      case 4:
+        success = field.toInteger(i32_value);
+        break;
+      default:
+        break;
+      }
+      if(!success)
+        ROS_WARN_STREAM("radarFieldToInt32() failed");
+    }
+    else
+    {
+      i32_value = getHexValue(field.data);
+    }
+    return i32_value;
+  }
+
+  static float radarFieldToFloat(const RadarDatagramField& field, bool useBinaryProtocol)
+  {
+    float value = 0;
+    if(useBinaryProtocol)
+    {
+      if(field.len == sizeof(value))
+      {
+        memcpy(&value, field.data, field.len);
+        swap_endian((unsigned char *)&value, sizeof(value));
+      }
+      else
+      {
+        ROS_WARN_STREAM("radarFieldToFloat(): field.len=" << field.len << ", expected 4 byte");
+      }
+    }
+    else
+    {
+      std::string token(field.data);
+      value = getFloatValue(token);
+    }
+    return value;
+  }
+
+
+  static std::string radarFieldToString(const RadarDatagramField& field, bool useBinaryProtocol)
+  {
+    return std::string(field.data, field.len);
+  }
+
+  typedef char* char_ptr;
+
+  static bool appendRadarDatagramField(char_ptr & datagram, size_t & datagram_length, size_t field_length, std::vector<RadarDatagramField> & fields)
+  {
+    if(datagram_length >= field_length)
+    {
+      fields.push_back(RadarDatagramField(datagram, field_length));
+      datagram += field_length;
+      datagram_length -= field_length;
+      return true;
+    }
+    return false;
+  }
+
+
+  static std::vector<RadarDatagramField> splitBinaryRadarDatagramToFields(char* datagram, size_t datagram_length, int verboseLevel)
+  {
+    bool success = true;
+    std::vector<RadarDatagramField> fields;
+    fields.reserve(datagram_length); // max. <datagram_length> fields in binary mode
+    // Command type, 3 byte + space
+    if(datagram_length >= 4 && memcmp(datagram, "sSN ", 4) == 0)
+    {
+      fields.push_back(RadarDatagramField(datagram, 3));
+      datagram += 4;
+      datagram_length -= 4;
+    }
+    else
+    {
+      return std::vector<RadarDatagramField>(); // unrecoverable parse error
+    }
+    // Command, 12 byte + space
+    if(datagram_length >= 4 && memcmp(datagram, "LMDradardata ", 13) == 0)
+    {
+      fields.push_back(RadarDatagramField(datagram, 12));
+      datagram += 13;
+      datagram_length -= 13;
+    }
+    else
+    {
+      return std::vector<RadarDatagramField>(); // unrecoverable parse error
+    }
+    // Append radar datagram fields
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Version number
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Device number
+    success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte Serial number
+    success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields); // 2 x 1 byte Device status
+    success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields); // 2 x 1 byte Device status
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Telegram counter
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Scan counter
+    success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte Time since start up in microsec
+    success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte Time of transmission in microsec
+    success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields); // 2 x 1 byte Status of digital inputs
+    success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields); // 2 x 1 byte Status of digital inputs
+    success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields); // 2 x 1 byte Status of digital outputs
+    success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields); // 2 x 1 byte Status of digital outputs
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte CycleDuration
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte reserved
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Amount of encoder
+    success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte Encoder position
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Encoder speed
+    // Append 16 bit channels
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Amount of 16 bit channels
+    uint16_t num_16_bit_channels = 0;
+    fields.back().toInteger(num_16_bit_channels);
+    if(num_16_bit_channels > 4) // max 4 16-bit channel
+    {
+      return std::vector<RadarDatagramField>(); // unrecoverable parse error
+    }
+    for(int channel_idx = 0; channel_idx < num_16_bit_channels; channel_idx++)
+    {
+      success = success && appendRadarDatagramField(datagram, datagram_length, 5, fields); // 5 byte Content string (identifier)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte scale factor (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte scale factor offset (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Amount of data
+      uint16_t amount_of_data = 0;
+      fields.back().toInteger(amount_of_data);
+      for(int data_field_idx = 0; data_field_idx < amount_of_data; data_field_idx++)
+      {
+        success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte output data
+      }
+    }
+    // Append 8 bit channels
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Amount of 8 bit channels
+    uint16_t num_8_bit_channels = 0;
+    fields.back().toInteger(num_8_bit_channels);
+    if(num_8_bit_channels > 4) // max 4 8-bit channel
+    {
+      return std::vector<RadarDatagramField>(); // unrecoverable parse error
+    }
+    for(int channel_idx = 0; channel_idx < num_8_bit_channels; channel_idx++)
+    {
+      success = success && appendRadarDatagramField(datagram, datagram_length, 5, fields); // 5 byte Content string (identifier)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte scale factor (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte scale factor offset (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Amount of data
+      uint16_t amount_of_data = 0;
+      fields.back().toInteger(amount_of_data);
+      for(int data_field_idx = 0; data_field_idx < amount_of_data; data_field_idx++)
+      {
+        success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields); // 1 byte output data
+      }
+    }
+    // Append position
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Output of position data
+    uint16_t position_data_available = 0;
+    fields.back().toInteger(position_data_available);
+    if(position_data_available)
+    {
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte X-coordinate (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte Y-coordinate (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte Z-coordinate (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte X-rotation (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte Y-rotation (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields); // 4 byte Z-rotation (float)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields); // 1 byte rotation type
+      success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields); // 1 byte device name
+    }
+    // Append device name
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte name is transmitted
+    uint16_t device_name_available = 0;
+    fields.back().toInteger(device_name_available);
+    if(device_name_available)
+    {
+      success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields);  // 1 byte length of name
+      success = success && appendRadarDatagramField(datagram, datagram_length, 16, fields); // 16 byte device name
+    }
+    // Append comment
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte comment is transmitted
+    uint16_t comment_available = 0;
+    fields.back().toInteger(comment_available);
+    if(comment_available)
+    {
+      success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields);  // 1 byte length of comment
+      success = success && appendRadarDatagramField(datagram, datagram_length, 16, fields); // 16 byte comment
+    }
+    // Append timestamp
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte timestamp is transmitted
+    uint16_t timestamp_available = 0;
+    fields.back().toInteger(timestamp_available);
+    if(timestamp_available)
+    {
+      success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields);  // 2 byte Year
+      success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields);  // 1 byte Month
+      success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields);  // 1 byte Day
+      success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields);  // 1 byte Hour
+      success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields);  // 1 byte Minutes
+      success = success && appendRadarDatagramField(datagram, datagram_length, 1, fields);  // 1 byte Seconds
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields);  // 4 byte Microseconds
+    }
+    // Append eventinfo
+    success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte eventinfo is transmitted
+    uint16_t eventinfo_available = 0;
+    fields.back().toInteger(eventinfo_available);
+    if(eventinfo_available)
+    {
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields);  // 4 byte type (string)
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields);  // 4 byte encoder position
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields);  // 4 byte time of event in microseconds
+      success = success && appendRadarDatagramField(datagram, datagram_length, 4, fields);  // 4 byte angle of event
+    }
+    // Return radar fields
+    if(verboseLevel > 0)
+    {
+      ROS_INFO_STREAM("splitBinaryRadarDatagramToFields(): " << fields.size() << " fields, " << num_16_bit_channels << " 16-bit channels, " << num_8_bit_channels << " 8-bit channels, success=" << success);
+    }
+    return fields;
+  }
+
+
   /*!
   \brief Parsing Ascii datagram
   \param datagram: Pointer to datagram data
@@ -191,8 +476,8 @@ namespace sick_scan
   \param echoMask: Mask corresponding to DIST-block-identifier
   \return set_range_max
   */
-  int SickScanRadarSingleton::parseAsciiDatagram(char *datagram, size_t datagram_length,
-      sick_scan_msg::RadarScan *msgPtr,
+  int SickScanRadarSingleton::parseRadarDatagram(char* datagram, size_t datagram_length, bool useBinaryProtocol,
+                                                 sick_scan_msg::RadarScan *msgPtr,
                                                  std::vector<SickScanRadarObject> &objectList,
                                                  std::vector<SickScanRadarRawTarget> &rawTargetList,
                                                  int verboseLevel)
@@ -203,12 +488,9 @@ namespace sick_scan
     // !!!!!
     // verboseLevel = 1;
     int HEADER_FIELDS = 32;
-    char *cur_field;
-    size_t count;
 
     // Reserve sufficient space
-    std::vector<char *> fields;
-    fields.reserve(datagram_length / 2);
+    std::vector<RadarDatagramField> fields;
 
     // ----- only for debug output
     std::vector<char> datagram_copy_vec;
@@ -244,22 +526,26 @@ namespace sick_scan
     datagram_copy[datagram_length] = 0;
 
     // ----- tokenize
-    count = 0;
-    cur_field = strtok(datagram, " ");
-
-    while (cur_field != NULL)
+    if(useBinaryProtocol)
     {
-      fields.push_back(cur_field);
-      //std::cout << cur_field << std::endl;
-      cur_field = strtok(NULL, " ");
+      fields = splitBinaryRadarDatagramToFields(datagram, datagram_length, verboseLevel);
+    }
+    else
+    {
+      fields.reserve(datagram_length / 2); // max. datagram_length/2 in ascii mode
+      char* cur_field = strtok(datagram, " ");
+      while (cur_field != NULL)
+      {
+        fields.push_back(RadarDatagramField(cur_field, strlen(cur_field)));
+        //std::cout << cur_field << std::endl;
+        cur_field = strtok(NULL, " ");
+      }
     }
 
     //std::cout << fields[27] << std::endl;
+    size_t count = fields.size();
 
-    count = fields.size();
-
-
-    if (verboseLevel > 0)
+    if (verboseLevel > 0 && !useBinaryProtocol)
     {
       static int cnt = 0;
       char szDumpFileName[255] = {0};
@@ -278,7 +564,7 @@ namespace sick_scan
         int i;
         for (i = 0; i < count; i++)
         {
-          fprintf(ftmp, "%3d: %s\n", i, fields[i]);
+          fprintf(ftmp, "%3d: %s\n", i, fields[i].data);
         }
         fclose(ftmp);
       }
@@ -345,12 +631,19 @@ namespace sick_scan
      * and %llx is for an `unsigned long long.
      *
      */
+    if (count < PREHADERR_TOKEN_FIX_NUM)
+    {
+      ROS_WARN_STREAM("parseRadarDatagram: " << count << " fields in datagram, at least " << PREHADERR_TOKEN_FIX_NUM << " fields required");
+      return ExitError;
+    }
     for (int i = 0; i < PREHADERR_TOKEN_FIX_NUM; i++)
     {
+      if(i == PREHEADER_TOKEN_SSN || i == PREHEADER_TOKEN_LMDRADARDATA) // skip "sSN LMDradardata"
+        continue;
       UINT16 uiValue = 0x00;
       UINT32 udiValue = 0x00;
       unsigned long int uliDummy;
-      uliDummy = strtoul(fields[i], NULL, 16);
+      uliDummy = radarFieldToUint32(fields[i], useBinaryProtocol); // strtoul(fields[i].data, NULL, 16);
       switch (i)
       {
         case PREHEADER_TOKEN_UI_VERSION_NO:
@@ -393,7 +686,7 @@ namespace sick_scan
           msgPtr->radarpreheader.radarpreheaderstatusblock.uitelegramcount = (UINT16) (uliDummy & 0xFFFF);
           break;
         case PREHEADER_TOKEN_CYCLE_COUNT:
-          sscanf(fields[i], "%hu", &uiValue);
+          uiValue = radarFieldToUint32(fields[i], useBinaryProtocol); // sscanf(fields[i].data, "%hu", &uiValue);
           msgPtr->radarpreheader.radarpreheaderstatusblock.uicyclecount = (UINT16) (uliDummy & 0xFFFF);
           break;
         case PREHEADER_TOKEN_SYSTEM_COUNT_SCAN:
@@ -434,9 +727,9 @@ namespace sick_scan
             {
               INT16 iencoderspeed;
               int rowIndex = PREHEADER_NUM_ENCODER_BLOCKS + j * 2 + 1;
-              udiValue = strtoul(fields[rowIndex], NULL, 16);
+              udiValue = radarFieldToUint32(fields[rowIndex], useBinaryProtocol); // strtoul(fields[rowIndex].data, NULL, 16);
               msgPtr->radarpreheader.radarpreheaderarrayencoderblock[j].udiencoderpos = udiValue;
-              udiValue = strtoul(fields[rowIndex + 1], NULL, 16);
+              udiValue = radarFieldToUint32(fields[rowIndex + 1], useBinaryProtocol); // strtoul(fields[rowIndex + 1].data, NULL, 16);
               iencoderspeed = (int) udiValue;
               msgPtr->radarpreheader.radarpreheaderarrayencoderblock[j].iencoderspeed = iencoderspeed;
 
@@ -537,7 +830,7 @@ namespace sick_scan
       {
         for (int j = 0; j < keyWordList.size(); j++)
         {
-          if (strcmp(fields[i], keyWordList[j].c_str()) == 0)
+          if (fields[i].len == keyWordList[j].length() && strncmp(fields[i].data, keyWordList[j].c_str(), fields[i].len) == 0)
           {
             keyWordPos[j] = i;
           }
@@ -553,7 +846,7 @@ namespace sick_scan
       else
       {
 
-        entriesNum = getHexValue(fields[keyWordPos[0] + 3]);
+        entriesNum = (int)radarFieldToInt32(fields[keyWordPos[0] + 3], useBinaryProtocol); // getHexValue(fields[keyWordPos[0] + 3].data);
         for (int i = 0; i < numKeyWords; i++)
         {
           if (keyWordPos[i] == -1)
@@ -564,7 +857,7 @@ namespace sick_scan
           }
           else
           {
-            int entriesNumTmp = getHexValue(fields[keyWordPos[i] + 3]);
+            int entriesNumTmp = (int)radarFieldToInt32(fields[keyWordPos[i] + 3], useBinaryProtocol); // getHexValue(fields[keyWordPos[i] + 3].data);
             if (entriesNumTmp != entriesNum)
             {
                 ROS_WARN_STREAM("Number of items for keyword " << keyWordList[i] << " differs from number of items for " << keyWordList[0] << "\n.");
@@ -582,10 +875,10 @@ namespace sick_scan
         {
           int scaleLineIdx = keyWordPos[i] + 1;
           int scaleOffsetLineIdx = keyWordPos[i] + 2;
-          std::string token = fields[scaleLineIdx];
-          keyWordScale[i] = getFloatValue(token);
-          token = fields[scaleOffsetLineIdx];
-          keyWordScaleOffset[i] = getFloatValue(token);
+          // std::string token = radarFieldToString(fields[scaleLineIdx], useBinaryProtocol); // fields[scaleLineIdx].data;
+          keyWordScale[i] = radarFieldToFloat(fields[scaleLineIdx], useBinaryProtocol); // getFloatValue(token);
+          // token = fields[scaleOffsetLineIdx].data;
+          keyWordScaleOffset[i] = radarFieldToFloat(fields[scaleOffsetLineIdx], useBinaryProtocol); // getFloatValue(token);
           // printf("Keyword: %-6s %8.3lf %8.3lf\n", keyWordList[i].c_str(), keyWordScale[i], keyWordScaleOffset[i]);
         }
 
@@ -619,27 +912,27 @@ namespace sick_scan
                 std::string token = keyWordList[j];
                 if (token.compare(DIST1_KEYWORD) == 0)
                 {
-                  int distRaw = getHexValue(fields[dataRowIdx]);
+                  int distRaw = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getHexValue(fields[dataRowIdx].data);
                   dist = convertScaledIntValue(distRaw, keyWordScale[j], keyWordScaleOffset[j]) * 0.001f;
                 }
                 if (token.compare(AZMT1_KEYWORD) == 0)
                 {
-                  int azimuthRaw = getShortValue(fields[dataRowIdx]);
+                  int azimuthRaw = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getShortValue(fields[dataRowIdx].data);
                   azimuth = (float) convertScaledIntValue(azimuthRaw, keyWordScale[j], keyWordScaleOffset[j]);
                 }
                 if (token.compare(VRAD1_KEYWORD) == 0)
                 {
-                  int vradRaw = getShortValue(fields[dataRowIdx]);
+                  int vradRaw = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getShortValue(fields[dataRowIdx].data);
                   vrad = (float) convertScaledIntValue(vradRaw, keyWordScale[j], keyWordScaleOffset[j]);
                 }
                 if (token.compare(MODE1_KEYWORD) == 0)
                 {
-                  int modeRaw = getHexValue(fields[dataRowIdx]);
+                  int modeRaw = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getHexValue(fields[dataRowIdx].data);
                   mode = (int) (convertScaledIntValue(modeRaw, keyWordScale[j], keyWordScaleOffset[j]) + 0.5);
                 }
                 if (token.compare(AMPL1_KEYWORD) == 0)
                 {
-                  int amplRaw = getShortValue(fields[dataRowIdx]);
+                  int amplRaw = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getShortValue(fields[dataRowIdx].data);
                   ampl = (int) (convertScaledIntValue(amplRaw, keyWordScale[j], keyWordScaleOffset[j]) + 0.5);
                 }
               }
@@ -664,7 +957,7 @@ namespace sick_scan
               {
                 int dataRowIdx = keyWordPos[j] + 4 + i;
                 std::string token = keyWordList[j];
-                int intVal = getShortValue(fields[dataRowIdx]);
+                int intVal = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getShortValue(fields[dataRowIdx].data);
                 float val = convertScaledIntValue(intVal, keyWordScale[j], keyWordScaleOffset[j]);
 
                 if (token.compare(P3DX1_KEYWORD) == 0)
@@ -690,7 +983,7 @@ namespace sick_scan
                 }
                 if (token.compare(OBJID_KEYWORD) == 0)
                 {
-                  int objIdRaw = getHexValue(fields[dataRowIdx]);
+                  int objIdRaw = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getHexValue(fields[dataRowIdx].data);
                   objId = (int) (objIdRaw * keyWordScale[j] + 0.5);
                 }
               }
@@ -1122,9 +1415,9 @@ namespace sick_scan
     std::vector<SickScanRadarObject> objectList;
     std::vector<SickScanRadarRawTarget> rawTargetList;
 
-    if (useBinaryProtocol)
+    if (useBinaryProtocol && getNameOfRadar() == "sick_rms_3xx") // RMS-3xx is out of date and no longer available for order
     {
-      throw std::logic_error("Binary protocol currently not supported.");
+      throw std::logic_error("Binary protocol for RMS-3xx currently not supported. Please use <param name=\"use_binary_protocol\" type=\"bool\" value=\"false\"/> in your launchfile.");
     }
     else
     {
@@ -1132,25 +1425,48 @@ namespace sick_scan
       char *buffer_pos = (char *) receiveBuffer;
       char *dstart = NULL;
       char *dend = NULL;
-      int dlength = 0;
-      dstart = strchr(buffer_pos, 0x02);
-      if (dstart != NULL)
+      int32_t dlength = 0;
+
+      if (useBinaryProtocol)
       {
-        dend = strchr(dstart + 1, 0x03);
+        // Decode binary: {4 byte STX} + {4 byte payload length} + {binary payload} + {1 byte CRC}
+        uint32_t binary_stx = 0x02020202;
+        dstart = strchr(buffer_pos, 0x02);
+        if(dstart != 0 && memcmp(dstart, &binary_stx, sizeof(binary_stx)) == 0)
+        {
+          dstart += 4; // {4 byte STX}
+          memcpy(&dlength, dstart, 4); // read length indicator
+          swap_endian((unsigned char *) &dlength, 4);
+          dstart += 4; // {4 byte payload length}
+          dataToProcess = true; // continue parsing
+        }
       }
-      if ((dstart != NULL) && (dend != NULL))
+      else
       {
-        dataToProcess = true; // continue parsing
-        dlength = dend - dstart;
-        *dend = '\0';
-        dstart++;
-        parseAsciiDatagram(dstart, dlength, &radarMsg_, objectList, rawTargetList);
+        dstart = strchr(buffer_pos, 0x02);
+        if (dstart != NULL)
+        {
+          dend = strchr(dstart + 1, 0x03);
+        }
+        if ((dstart != NULL) && (dend != NULL))
+        {
+          dataToProcess = true; // continue parsing
+          dlength = dend - dstart;
+          *dend = '\0';
+          dstart++;
+        }
+      }
+      if(dataToProcess && dstart != 0 && dlength > 0 && dstart + dlength <= (char*)receiveBuffer + actual_length)
+      {
+        if (parseRadarDatagram(dstart, dlength, useBinaryProtocol, &radarMsg_, objectList, rawTargetList) != ExitSuccess)
+        {
+          dataToProcess = false;
+        }
       }
       else
       {
         dataToProcess = false;
       }
-
 
       enum RADAR_PROC_LIST
       {

@@ -193,7 +193,8 @@ namespace sick_scan
 
     int parseDatagram(rosTime timeStamp, unsigned char *receiveBuffer, int actual_length, bool useBinaryProtocol);
 
-    int parseAsciiDatagram(char* datagram, size_t datagram_length, sick_scan_msg::RadarScan* msgPtr,
+    int parseRadarDatagram(char* datagram, size_t datagram_length, bool useBinaryProtocol,
+        sick_scan_msg::RadarScan* msgPtr,
         std::vector<SickScanRadarObject>& objectList,
         std::vector<SickScanRadarRawTarget>& rawTargetList, /* , SickScanConfig &config, */ // sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask);
         int verboseLevel = 0);
