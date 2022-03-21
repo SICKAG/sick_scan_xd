@@ -4532,13 +4532,16 @@ namespace sick_scan
                     outputChannelFlagId)  // publish only configured channels - workaround for cfg-bug MRS1104
                 {
 
-                  rosPublish(pub_, msg);
-
+                  // rosPublish(pub_, msg);
 #if defined USE_DIAGNOSTIC_UPDATER // && __ROS_VERSION == 1
                   // if(diagnostics_)
                   //   diagnostics_->broadcast(diagnostic_msgs_DiagnosticStatus_OK, "SickScanCommon running, no error");
                   if(diagnosticPub_)
                     diagnosticPub_->publish(msg);
+                  else
+                    rosPublish(pub_, msg);
+#else
+                  rosPublish(pub_, msg);
 #endif
 
                 }

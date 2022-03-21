@@ -13,6 +13,7 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ### v2.5.2 - 
   - **Fixed**  Fix LSR-4xxx laserscan angles #28
+  - **Fixed**  Fix duplicated laserscan messages #28
 
 ### v2.5.1 - 
   - **Fixed**  Error after SOPAS command SetAccessMode #27
