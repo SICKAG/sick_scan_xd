@@ -81,7 +81,7 @@
 
 #define SICK_GENERIC_MAJOR_VER "2"
 #define SICK_GENERIC_MINOR_VER "5"
-#define SICK_GENERIC_PATCH_LEVEL "1"
+#define SICK_GENERIC_PATCH_LEVEL "2"
 
 #include <algorithm> // for std::min
 
