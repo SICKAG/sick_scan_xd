@@ -484,6 +484,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     allowedScannerNames.push_back(SICK_SCANNER_RMS_3XX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_RMS_1XXX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_NAV_3XX_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_NAV_350_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_2XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_TIM_4XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LRS_36x0_NAME);
@@ -840,6 +841,27 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setWaitForReady(true);
+        basicParams[i].setFREchoFilterAvailable(false);
+      }
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0) // TODO: NAV-350 support
+      {
+        basicParams[i].setNumberOfMaximumEchos(1);
+        basicParams[i].setNumberOfLayers(1);
+        basicParams[i].setNumberOfShots(2880);
+        basicParams[i].setAngularDegreeResolution(0.750);
+        basicParams[i].setExpectedFrequency(55.0);
+        basicParams[i].setUseBinaryProtocol(true);
+        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
+        basicParams[i].setUseSafetyPasWD(false); // Default
+        basicParams[i].setEncoderMode(-1); // Default
+        basicParams[i].setImuEnabled(false);// Default
+        basicParams[i].setScanAngleShift(0);
+        basicParams[i].setScanMirroredAndShifted(false);
+        basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
+        basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(true);
+        basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_OEM_15XX_NAME) == 0) // Nav 3xx

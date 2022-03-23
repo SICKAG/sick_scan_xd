@@ -72,6 +72,7 @@
 #define SICK_SCANNER_RMS_3XX_NAME "sick_rms_3xx"
 #define SICK_SCANNER_RMS_1XXX_NAME "sick_rms_1xxx"
 #define SICK_SCANNER_NAV_3XX_NAME "sick_nav_3xx"
+#define SICK_SCANNER_NAV_350_NAME "sick_nav_350"
 #define SICK_SCANNER_NAV_2XX_NAME "sick_nav_2xx"
 #define SICK_SCANNER_TIM_4XX_NAME "sick_tim_4xx"
 #define SICK_SCANNER_LRS_4XXX_NAME "sick_lrs_4xxx"
