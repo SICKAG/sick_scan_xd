@@ -10,7 +10,9 @@ pushd ../../../..
 # BUILDTYPE=Debug
 BUILDTYPE=Release
 
-source /opt/ros/eloquent/setup.bash
+if [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash ; fi
+if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash     ; fi
+
 # colcon build --cmake-args " -DROS_VERSION=2" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 colcon build --packages-select libsick_ldmrs --cmake-args " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 source ./install/setup.bash

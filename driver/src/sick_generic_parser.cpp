@@ -848,15 +848,15 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setNumberOfMaximumEchos(1);
         basicParams[i].setNumberOfLayers(1);
         basicParams[i].setNumberOfShots(2880);
-        basicParams[i].setAngularDegreeResolution(0.750);
-        basicParams[i].setExpectedFrequency(55.0);
+        basicParams[i].setAngularDegreeResolution(0.250);
+        basicParams[i].setExpectedFrequency(8.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
-        basicParams[i].setTrackingModeSupported(false); // Default
-        basicParams[i].setUseSafetyPasWD(false); // Default
-        basicParams[i].setEncoderMode(-1); // Default
-        basicParams[i].setImuEnabled(false);// Default
-        basicParams[i].setScanAngleShift(0);
+        basicParams[i].setDeviceIsRadar(false);
+        basicParams[i].setTrackingModeSupported(false);
+        basicParams[i].setUseSafetyPasWD(false);
+        basicParams[i].setEncoderMode(-1);
+        basicParams[i].setImuEnabled(false);
+        basicParams[i].setScanAngleShift(-M_PI);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);

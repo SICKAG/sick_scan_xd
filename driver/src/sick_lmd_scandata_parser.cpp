@@ -63,8 +63,22 @@
 
 namespace sick_scan
 {
+    /* template<typename T> static void readFromBuffer(const uint8_t* receiveBuffer, int& pos, int receiveBufferLength, T& value)
+    {
+        if(pos + sizeof(value) < receiveBufferLength)
+        {
+            memcpy(&value, receiveBuffer + pos, sizeof(value));
+            swap_endian((unsigned char *) &value, sizeof(value));
+            pos += sizeof(value);
+        }
+        else
+        {
+            ROS_WARN_STREAM("readFromBuffer(): read pos = " << pos << " + sizeof(value) = " << sizeof(value) << " exceeds receiveBufferLength = " << receiveBufferLength);
+        }
+    } */
 
-    /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata */
+
+    /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
     bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double& elevationAngleInRad, rosTime recvTimeStamp,
         bool config_sw_pll_only_publish, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos, std::vector<float> vang_vec,
         ros_sensor_msgs::LaserScan & msg)
@@ -535,87 +549,5 @@ namespace sick_scan
 
                   return true;
     }
-
-    template<typename T> static void readFromBuffer(const uint8_t* receiveBuffer, int& pos, int receiveBufferLength, T& value)
-    {
-        if(pos + sizeof(value) < receiveBufferLength)
-        {
-            memcpy(&value, receiveBuffer + pos, sizeof(value));
-            swap_endian((unsigned char *) &value, sizeof(value));
-            pos += sizeof(value);
-        }
-        else
-        {
-            ROS_WARN_STREAM("readFromBuffer(): read pos = " << pos << " + sizeof(value) = " << sizeof(value) << " exceeds receiveBufferLength = " << receiveBufferLength);
-        }
-    }
-
-    /*
-     * Parse NAV-350 result telegram, i.e. parse telegrams of type LMDscandata received from NAV-350.
-     *  See telegram_listing_telegrams_for_configuring_and_operating_the_nav350_laser_positioning_sensor_en_im0053859.pdf for details.
-     */
-    /*
-    bool parseNAV350BinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, rosTime recvTimeStamp, bool config_sw_pll_only_publish, SickGenericParser* parser_,
-        ros_sensor_msgs::LaserScan & scan_message)
-    {
-        bool success = true;
-
-        // Read header and check payload length
-        int receive_offset = 4; // ignore 4 byte STX
-        uint32_t payload_length = 0;
-        readFromBuffer(receiveBuffer, receive_offset, receiveBufferLength, payload_length);
-        if(receiveBufferLength < 44 || payload_length > receiveBufferLength - 9) // { 4 byte STX } + { 4 byte length indicator } + { payload } + { 1 byte CRC }
-        {
-            ROS_WARN_STREAM("parseNAV350BinaryResultTelegram(): payload_length = " << payload_length << " byte, received " << receiveBufferLength << " byte,  >= 44 byte required (" << DataDumper::binDataToAsciiString(&receiveBuffer[0], receiveBufferLength) << ")");
-            return false;
-        }
-        if(memcmp(receiveBuffer + receive_offset, "sSN LMDscandata ", 16) != 0)
-        {
-            ROS_WARN_STREAM("parseNAV350BinaryResultTelegram(): sSN LMDscandata not found (" << DataDumper::binDataToAsciiString(&receiveBuffer[0], receiveBufferLength) << ")");
-            return false;
-        }
-        receive_offset += 16;
-
-        // Read scandata header
-        // uint16_t error_code = 1; // 0: ok, otherwise 1 (error)
-        // uint32_t scan_cnt = 0; // number of scans
-        // uint32_t scan_timestamp = 0; // timestamp of Scandata
-        // uint16_t device_status = 0;
-        // uint32_t scan_frequency = 0;
-        // uint16_t num_32bit_channels = 0; // amount of 32Bit channels
-        // readFromBuffer(receiveBuffer, receive_offset, receiveBufferLength, error_code);
-        // readFromBuffer(receiveBuffer, receive_offset, receiveBufferLength, scan_cnt);
-        // readFromBuffer(receiveBuffer, receive_offset, receiveBufferLength, scan_timestamp);
-        // readFromBuffer(receiveBuffer, receive_offset, receiveBufferLength, device_status);
-        // readFromBuffer(receiveBuffer, receive_offset, receiveBufferLength, scan_frequency);
-        // readFromBuffer(receiveBuffer, receive_offset, receiveBufferLength, num_32bit_channels);
-
-        // Read 32 bit channels
-        // ...
-
-        // Read 16 bit channels
-        // ...
-
-        ROS_INFO_STREAM("parseNAV350BinaryResultTelegram(): error_code=" << error_code << ", scan_cnt=" << scan_cnt <<  ", scan_timestamp=" << scan_timestamp <<  ", device_status=" << device_status 
-            <<  ", scan_frequency=" << scan_frequency <<  ", num_32bit_channels=" << num_32bit_channels);
-
-        if(true) // test only ...
-        {
-            short elevAngleX200 = 0;
-            double elevationAngleInRad = 0;
-            bool FireEncoder = false;
-            sick_scan_msg::Encoder EncoderMsg;
-            int numEchos = 0;
-            std::vector<float> vang_vec;
-
-            success = parseCommonBinaryResultTelegram(receiveBuffer, receiveBufferLength, elevAngleX200, elevationAngleInRad, recvTimeStamp, config_sw_pll_only_publish, parser_, FireEncoder, 
-                EncoderMsg, numEchos, vang_vec, scan_message);
-        }
-
-        scan_message.time_increment = scan_message.scan_time;
-        return success;
-    }
-    */
-
 
 } /* namespace sick_scan */

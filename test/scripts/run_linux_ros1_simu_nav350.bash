@@ -6,7 +6,7 @@ if [ -f /opt/ros/noetic/setup.bash    ] ; then source /opt/ros/noetic/setup.bash
 if [ -f ./install_isolated/setup.bash ] ; then source ./install_isolated/setup.bash ; fi
 if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
 
-echo -e "run_simu_rms.bash: starting NAV-350 emulation\n"
+echo -e "run_simu_nav350.bash: starting NAV-350 emulation\n"
 
 # Start roscore if not yet running
 roscore_running=`(ps -elf | grep roscore | grep -v grep | wc -l)`
@@ -46,8 +46,9 @@ done
 
 # Shutdown
 echo -e "Finishing NAV-350 emulation, shutdown ros nodes\n"
+rosservice call /sick_nav_350/SickScanExit "{}"
+killall sick_scan_emulator ; sleep 1
 rosnode kill -a ; sleep 1
 killall sick_generic_caller ; sleep 1
-killall sick_scan_emulator ; sleep 1
 popd
 

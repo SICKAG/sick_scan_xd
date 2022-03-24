@@ -73,7 +73,7 @@ namespace sick_scan
   {
   public:
 
-    SickScanServices(rosNodePtr nh = 0, sick_scan::SickScanCommonTcp* common_tcp = 0, bool cola_binary = true);
+    SickScanServices(rosNodePtr nh = 0, sick_scan::SickScanCommonTcp* common_tcp = 0, ScannerBasicParam * lidar_param = 0);
 
     virtual ~SickScanServices();
 

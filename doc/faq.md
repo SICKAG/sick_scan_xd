@@ -89,6 +89,13 @@ Thanks to user JWhitleyWork.
 2. Remove the folders sick_scan_xd/build, sick_scan_xd/build_isolated, sick_scan_xd/devel, sick_scan_xd/devel_isolated, sick_scan_xd/install and sick_scan_xd/install_isolated
 3. Rebuild
 
+:question: cmake can't find diagnostic_updater on ROS-2 foxy
+
+:white_check_mark: On ROS-2 foxy, package diagnostic_updater needs to be installed by
+```
+sudo apt-get install ros-foxy-diagnostic-updater
+```
+
 ## rviz shows a grey point cloud
 
 :question: rviz shows a grey point cloud. The size of points can be adjusted.

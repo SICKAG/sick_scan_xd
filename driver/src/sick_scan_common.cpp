@@ -605,6 +605,13 @@ namespace sick_scan
     sopas_stop_scanner_cmd.push_back("\x02sMN SetAccessMode 3 F4724744\x03\0");
     sopas_stop_scanner_cmd.push_back("\x02sMN LMCstopmeas\x03\0");
     // sopas_stop_scanner_cmd.push_back("\x02sMN Run\x03\0");
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
+    {
+      sopas_stop_scanner_cmd.clear();
+      sopas_stop_scanner_cmd.push_back(sopasCmdVec[CMD_SET_ACCESS_MODE_3]); // "sMN SetAccessMode 3 F4724744"
+      sopas_stop_scanner_cmd.push_back(sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_1]); // "sMN mNEVAChangeState 1", 1 = standby
+      sopas_stop_scanner_cmd.push_back(sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_0]); // "sMN mNEVAChangeState 0", 0 = power down
+    }
 
     setReadTimeOutInMs(1000);
     ROS_INFO_STREAM("sick_scan_common: stopping scanner ...");
@@ -1306,6 +1313,13 @@ namespace sick_scan
     sopasCmdVec[CMD_SET_LID_OUTPUTSTATE_ACTIVE] = "\x02sEN LIDoutputstate 1\x03"; // TiM781S: activate LIDoutputstate messages, send "sEN LIDoutputstate 1"
     sopasCmdVec[CMD_SET_LID_INPUTSTATE_ACTIVE] = "\x02sEN LIDinputstate 1\x03"; // TiM781S: activate LIDinputstate messages, send "sEN LIDinputstate 1"
 
+    // NAV-350 commands
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_0] = "\x02sMN mNEVAChangeState 0\x03"; // 0 = power down
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_1] = "\x02sMN mNEVAChangeState 1\x03"; // 1 = standby
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_2] = "\x02sMN mNEVAChangeState 2\x03"; // 2 = mapping
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_3] = "\x02sMN mNEVAChangeState 3\x03"; // 3 = landmark detection
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_4] = "\x02sMN mNEVAChangeState 4\x03"; // 4 = navigation
+
     /*
      *  Angle Compensation Command
      *
@@ -1402,14 +1416,18 @@ namespace sick_scan
     sopasCmdErrMsg[CMD_SET_LFEREC_ACTIVE] = "Error activating LFErec messages";
     sopasCmdErrMsg[CMD_SET_LID_OUTPUTSTATE_ACTIVE] = "Error activating LIDoutputstate messages";
     sopasCmdErrMsg[CMD_SET_LID_INPUTSTATE_ACTIVE] = "Error activating LIDinputstate messages";
-    sopasCmdErrMsg[CMD_SET_SCAN_CFG_LIST] ="Error seting scan config from list";
+    sopasCmdErrMsg[CMD_SET_SCAN_CFG_LIST] ="Error setting scan config from list";
+
+    // NAV-350 commands
+    sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_0] = "Error setting operational mode power down \"sMN mNEVAChangeState 0\"";
+    sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_1] = "Error setting operational mode standby \"sMN mNEVAChangeState 1\"";
+    sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_2] = "Error setting operational mode mapping \"sMN mNEVAChangeState 2\"";
+    sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_3] = "Error setting operational mode landmark detection \"sMN mNEVAChangeState 3\"";
+    sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_4] = "Error setting operational mode navigation \"sMN mNEVAChangeState 4\"";
+
     // ML: Add here more useful cmd and mask entries
 
     // After definition of command, we specify the command sequence for scanner initalisation
-
-
-
-
 
     if (parser_->getCurrentParamPtr()->getUseSafetyPasWD())
     {
@@ -1531,7 +1549,35 @@ namespace sick_scan
     }
     if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
     {
-      // additional settings for NAV-350 support
+      // additional startup commands for NAV-350 support
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
+      sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_1); // "sMN mNEVAChangeState 1", 1 = standby
+      int nav_operation_mode = 4;
+      rosDeclareParam(nh, "nav_operation_mode", nav_operation_mode);
+      rosGetParam(nh, "nav_operation_mode", nav_operation_mode);
+      switch(nav_operation_mode)
+      {
+      case 0:
+        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_0);
+        break;
+      case 1:
+        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_1);
+        break;
+      case 2:
+        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_2);
+        break;
+      case 3:
+        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_3);
+        break;
+      case 4:
+        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_4);
+        break;
+      default:
+        ROS_WARN_STREAM("Invalid parameter nav_operation_mode = " << nav_operation_mode << ", expected 0, 1, 2, 3 or 4, using default mode 4 (navigation)");
+        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_4);
+        break;
+      }
+      
     }
 
     return (0);
@@ -3817,20 +3863,6 @@ namespace sick_scan
                   ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): " << actual_length << " byte message ignored ("
                     << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(actual_length, 64)) << (actual_length>64?"...":"") << ")");
                 }
-                /* else if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
-                {
-                  // Parse NAV-350 result telegram, which is different to all other result telegrams
-                  if (!parseNAV350BinaryResultTelegram(receiveBuffer, actual_length, recvTimeStamp, config_.sw_pll_only_publish, parser_, msg))
-                  {
-                    ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): parseNAV350binaryResultTelegram() failed, " << actual_length << " byte message ignored ("
-                      << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length) << ")");
-                    dataToProcess = false;
-                    break;
-                  }
-                  timeIncrement = msg.time_increment;
-                  numEchos = 1;
-                  echoMask = 1;
-                }*/
                 else
                 {
                   if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevationAngleInRad, recvTimeStamp, config_.sw_pll_only_publish, 

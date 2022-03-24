@@ -68,20 +68,10 @@
 namespace sick_scan
 {
 
-  /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata */
+  /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
   bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double& elevationAngleInRad, rosTime recvTimeStamp,
     bool config_sw_pll_only_publish, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos, std::vector<float> vang_vec,
     ros_sensor_msgs::LaserScan & msg);
-
-  /*
-   * Parse NAV-350 result telegram, i.e. parse telegrams of type LMDscandata received from NAV-350.
-   *  See telegram_listing_telegrams_for_configuring_and_operating_the_nav350_laser_positioning_sensor_en_im0053859.pdf for details.
-   */
-  /*
-  bool parseNAV350BinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, rosTime recvTimeStamp, bool config_sw_pll_only_publish, SickGenericParser* parser_,
-    ros_sensor_msgs::LaserScan & msg);
-  */
-
 
 } /* namespace sick_scan */
 #endif /* SICK_LMD_SCANDATA_PARSER_H_ */

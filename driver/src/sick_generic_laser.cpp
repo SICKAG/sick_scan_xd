@@ -553,7 +553,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
         rosGetParam(nhPriv, "start_services", start_services);
         if (true == start_services)
         {
-            services = new sick_scan::SickScanServices(nhPriv, s_scanner, parser->getCurrentParamPtr()->getUseBinaryProtocol());
+            services = new sick_scan::SickScanServices(nhPriv, s_scanner, parser->getCurrentParamPtr());
             ROS_INFO("SickScanServices: ros services initialized");
         }
 

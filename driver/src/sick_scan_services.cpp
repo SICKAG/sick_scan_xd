@@ -62,9 +62,22 @@
 #include "sick_scan/sick_scan_services.h"
 #include "sick_scan/sick_generic_laser.h"
 
-sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScanCommonTcp* common_tcp, bool cola_binary)
-: m_common_tcp(common_tcp), m_cola_binary(cola_binary)
+sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScanCommonTcp* common_tcp, ScannerBasicParam * lidar_param)
+: m_common_tcp(common_tcp), m_cola_binary(true)
 {
+    bool srvSupportColaMsg = true, srvSupportECRChangeArr = true, srvSupportLIDoutputstate = true, srvSupportSCdevicestate = true;
+    bool srvSupportSCreboot = true, srvSupportSCsoftreset = true, srvSupportSickScanExit = true;
+    if(lidar_param)
+    {
+      m_cola_binary = lidar_param->getUseBinaryProtocol();
+      if(lidar_param->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
+      {
+        srvSupportECRChangeArr = false;
+        srvSupportLIDoutputstate = false;
+        srvSupportSCreboot = false;
+        srvSupportSCsoftreset = false;
+      }
+    }
     if(nh)
     {
       m_client_authorization_pw = "F4724744";
@@ -88,44 +101,55 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
 #define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftreset
 #define serviceCbSickScanExitROS sick_scan::SickScanServices::serviceCbSickScanExit
 #endif
-        auto srv_server_ColaMsg = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ColaMsgSrv, "ColaMsg", &serviceCbColaMsgROS, this);
-        m_srv_server_ColaMsg = rosServiceServer<sick_scan_srv::ColaMsgSrv>(srv_server_ColaMsg);
-
-        auto srv_server_ECRChangeArr = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ECRChangeArrSrv, "ECRChangeArr", &serviceCbECRChangeArrROS, this);
-        m_srv_server_ECRChangeArr = rosServiceServer<sick_scan_srv::ECRChangeArrSrv>(srv_server_ECRChangeArr);
-        
-        auto srv_server_LIDoutputstate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::LIDoutputstateSrv, "LIDoutputstate", &serviceCbLIDoutputstateROS, this);
-        m_srv_server_LIDoutputstate = rosServiceServer<sick_scan_srv::LIDoutputstateSrv>(srv_server_LIDoutputstate);
-
-        auto srv_server_SCdevicestate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCdevicestateSrv, "SCdevicestate", &serviceCbSCdevicestateROS, this);
-        m_srv_server_SCdevicestate = rosServiceServer<sick_scan_srv::SCdevicestateSrv>(srv_server_SCdevicestate);
-
-        auto srv_server_SCreboot = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCrebootSrv, "SCreboot", &serviceCbSCrebootROS, this);
-        m_srv_server_SCreboot = rosServiceServer<sick_scan_srv::SCrebootSrv>(srv_server_SCreboot);
-
-        auto srv_server_SCsoftreset = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCsoftresetSrv, "SCsoftreset", &serviceCbSCsoftresetROS, this);
-        m_srv_server_SCsoftreset = rosServiceServer<sick_scan_srv::SCsoftresetSrv>(srv_server_SCsoftreset);
-
-        auto srv_server_SickScanExit = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SickScanExitSrv, "SickScanExit", &serviceCbSickScanExitROS, this);
-        m_srv_server_SickScanExit = rosServiceServer<sick_scan_srv::SickScanExitSrv>(srv_server_SickScanExit);
-
 #if __ROS_VERSION == 1
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_ColaMsg.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_ECRChangeArr.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_LIDoutputstate.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SCdevicestate.getService() << "\" created (\"" << m_srv_server_SCdevicestate.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SCreboot.getService() << "\" created (\"" << m_srv_server_SCreboot.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SCsoftreset.getService() << "\" created (\"" << m_srv_server_SCsoftreset.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SickScanExit.getService() << "\" created (\"" << m_srv_server_SickScanExit.getService() << "\")");
+#define printServiceCreated(a,b) ROS_INFO_STREAM("SickScanServices: service \"" << a.getService() << "\" created (\"" << b.getService() << "\")");
 #elif __ROS_VERSION == 2
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_ColaMsg->get_service_name()) << "\" created (\"" << std::string(m_srv_server_ColaMsg->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_ECRChangeArr->get_service_name()) << "\" created (\"" << std::string(m_srv_server_ECRChangeArr->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_LIDoutputstate->get_service_name()) << "\" created (\"" << std::string(m_srv_server_LIDoutputstate->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SCdevicestate->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SCdevicestate->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SCreboot->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SCreboot->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SCsoftreset->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SCsoftreset->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SickScanExit->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SickScanExit->get_service_name()) << "\")");
+#define printServiceCreated(a,b) ROS_INFO_STREAM("SickScanServices: service \"" << a->get_service_name() << "\" created (\"" << b->get_service_name() << "\")");
+#else
+#define printServiceCreated(a,b)
 #endif
+        if(srvSupportColaMsg)
+        {
+          auto srv_server_ColaMsg = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ColaMsgSrv, "ColaMsg", &serviceCbColaMsgROS, this);
+          m_srv_server_ColaMsg = rosServiceServer<sick_scan_srv::ColaMsgSrv>(srv_server_ColaMsg);
+          printServiceCreated(srv_server_ColaMsg, m_srv_server_ColaMsg);
+        }
+        if(srvSupportECRChangeArr)
+        {
+          auto srv_server_ECRChangeArr = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ECRChangeArrSrv, "ECRChangeArr", &serviceCbECRChangeArrROS, this);
+          m_srv_server_ECRChangeArr = rosServiceServer<sick_scan_srv::ECRChangeArrSrv>(srv_server_ECRChangeArr);
+          printServiceCreated(srv_server_ECRChangeArr, m_srv_server_ECRChangeArr);
+        }
+        if(srvSupportLIDoutputstate)
+        {
+          auto srv_server_LIDoutputstate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::LIDoutputstateSrv, "LIDoutputstate", &serviceCbLIDoutputstateROS, this);
+          m_srv_server_LIDoutputstate = rosServiceServer<sick_scan_srv::LIDoutputstateSrv>(srv_server_LIDoutputstate);
+          printServiceCreated(srv_server_LIDoutputstate, m_srv_server_LIDoutputstate);
+        }
+        if(srvSupportSCdevicestate)
+        {
+          auto srv_server_SCdevicestate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCdevicestateSrv, "SCdevicestate", &serviceCbSCdevicestateROS, this);
+          m_srv_server_SCdevicestate = rosServiceServer<sick_scan_srv::SCdevicestateSrv>(srv_server_SCdevicestate);
+          printServiceCreated(srv_server_SCdevicestate, m_srv_server_SCdevicestate);
+        }
+        if(srvSupportSCreboot)
+        {
+          auto srv_server_SCreboot = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCrebootSrv, "SCreboot", &serviceCbSCrebootROS, this);
+          m_srv_server_SCreboot = rosServiceServer<sick_scan_srv::SCrebootSrv>(srv_server_SCreboot);
+          printServiceCreated(srv_server_SCreboot, m_srv_server_SCreboot);
+        }
+        if(srvSupportSCsoftreset)
+        {
+          auto srv_server_SCsoftreset = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCsoftresetSrv, "SCsoftreset", &serviceCbSCsoftresetROS, this);
+          m_srv_server_SCsoftreset = rosServiceServer<sick_scan_srv::SCsoftresetSrv>(srv_server_SCsoftreset);
+          printServiceCreated(srv_server_SCsoftreset, m_srv_server_SCsoftreset);
+        }
+        if(srvSupportSickScanExit)
+        {
+          auto srv_server_SickScanExit = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SickScanExitSrv, "SickScanExit", &serviceCbSickScanExitROS, this);
+          m_srv_server_SickScanExit = rosServiceServer<sick_scan_srv::SickScanExitSrv>(srv_server_SickScanExit);
+          printServiceCreated(srv_server_SickScanExit, m_srv_server_SickScanExit);
+        }
     }
 }
 
