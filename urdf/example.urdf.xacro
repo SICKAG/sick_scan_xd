@@ -8,6 +8,6 @@
   <xacro:include filename="$(find sick_scan)/urdf/sick_scan.urdf.xacro" />
 
   <xacro:sick_tim_5xx name="laser" ros_topic="scan" />
-  <xacro:sick_mrs_1xxx name="laser" ros_topic="scan" />
+  <xacro:sick_tim_1xxx name="laser" ros_topic="scan" />
 </robot>
 

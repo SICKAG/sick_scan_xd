@@ -28,12 +28,12 @@
       mesh="package://sick_scan/meshes/sick_tim_5xx.stl" />
   </xacro:macro>
 
-  <xacro:macro name="sick_mrs_1xxx" params="name ros_topic min_angle:=-2.357 max_angle:=2.357 gaussian_noise:=0.015 samples:=271">
+  <xacro:macro name="sick_tim_1xxx" params="name ros_topic min_angle:=-2.357 max_angle:=2.357 gaussian_noise:=0.015 samples:=271">
     <xacro:sick_tim name="${name}" ros_topic="${ros_topic}"
       length="0.06" width="0.06" height="0.079" mass="0.150" z_offset="0.05595"
       min_angle="${min_angle}" max_angle="${max_angle}"
       min_range="0.05" max_range="4.0" gaussian_noise="${gaussian_noise}" samples="${samples}"
-      mesh="package://sick_scan/meshes/sick_tim_5xx.stl" />
+      mesh="package://sick_scan/meshes/sick_tim_1xxx.stl" />
   </xacro:macro>
 
   <xacro:macro name="sick_tim" params="name ros_topic length width height mass z_offset min_angle max_angle min_range max_range gaussian_noise samples mesh">
