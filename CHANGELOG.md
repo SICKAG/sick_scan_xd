@@ -6,6 +6,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.6.0 - 
+  - **Changed** V2.6.0: RMS configuration update, issue #7
+
 ## Released ##
 
 ### v2.5.2 - 

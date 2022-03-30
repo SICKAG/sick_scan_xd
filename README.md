@@ -538,6 +538,15 @@ ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.7
 
 - **Field monitoring**: The **LMS1xx**, **LMS5xx**, **TiM7xx** and **TiM7xxS** families have [extended settings for field monitoring](./doc/field_monitoring_extensions.md).
 
+- **Radar devices**: For radar devices (RMS-1xxx, RMS-3xx), radar raw targets or radar objects or both can be tracked and transmitted. You can activate parameter transmit_raw_targets, transmit_objects or both in the launchfile:
+   ```
+   <param name="transmit_raw_targets" type="bool" value="false"/>
+   <param name="transmit_objects" type="bool" value="true"/>
+   ```
+   By default, radar objects are tracked.
+
+
+
 ### ROS services
 
 On ROS-1 and ROS-2, services can be used to send COLA commands to the sensor. This can be very helpful for diagnosis, e.g. by querying the device status or its id.
@@ -576,7 +585,7 @@ Note:
 * The COLA commands are sensor specific. See the user manual and telegram listing for further details.
 * ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.
 * ROS services are currently not available for the LDMRS.
-* Some SOPAS commands like `sMN SetAccessMode 3 F4724744` stops the current measurement. In this case, the driver restarts after a timeout (5 seconds by default). To process those SOPAS commands without restart, you can
+* Some SOPAS commands like `sMN SetAccessMode 3 F4724744` stop the current measurement. In this case, the driver restarts after a timeout (5 seconds by default). To process those SOPAS commands without restart, you can
    * send `sMN LMCstartmeas` and `sMN Run` to switch again into measurement mode within the timeout, or
    * increase the driver timeout `read_timeout_millisec_default` in the launch-file.
 

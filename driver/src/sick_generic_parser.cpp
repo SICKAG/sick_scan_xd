@@ -282,6 +282,20 @@ namespace sick_scan
   }
 
   /*!
+  \brief set/get flag to mark the radar device supports selection of tracking modes.
+  By default, true for all radar devices except RMS-1xxx, otherwise false.
+  */
+bool ScannerBasicParam::getTrackingModeSupported(void)
+{
+  return (deviceIsRadar && trackingModeSupported);
+}
+void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
+{
+  trackingModeSupported = _trackingModeSupported;
+}
+
+
+  /*!
 \brief flag to mark mirroring of rotation direction
 \param _scanMirrored: false for normal mounting true for up side down or NAV 310
 \sa setScanMirrored
@@ -480,6 +494,7 @@ namespace sick_scan
                     (int) basicParams.size(); i++) // set specific parameter for each scanner type - scanner type is identified by name
     {
       basicParams[i].setDeviceIsRadar(false); // Default
+      basicParams[i].setTrackingModeSupported(false); // Default
       basicParams[i].setScannerName(allowedScannerNames[i]);  // set scanner type for this parameter object
 
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) ==
@@ -493,6 +508,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(50.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(true);// Activate Imu for MRS1000
@@ -515,6 +531,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(50.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -536,6 +553,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -557,6 +575,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -577,6 +596,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(600.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -597,6 +617,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -617,6 +638,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(true); // Safety scanner
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -637,6 +659,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -657,6 +680,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(25.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -677,6 +701,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -697,6 +722,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -718,6 +744,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(50.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -738,6 +765,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(12.5);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -759,6 +787,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(0.00);
         basicParams[i].setUseBinaryProtocol(false); // use ASCII-Protocol
         basicParams[i].setDeviceIsRadar(true); // Device is a radar
+        basicParams[i].setTrackingModeSupported(true); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -780,6 +809,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(0.00);
         basicParams[i].setUseBinaryProtocol(false); // use ASCII-Protocol
         basicParams[i].setDeviceIsRadar(true); // Device is a radar
+        basicParams[i].setTrackingModeSupported(false); // RMS 1xxx does not support selection of tracking modes
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -800,6 +830,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(55.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -820,6 +851,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(55.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -840,6 +872,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(25.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -860,6 +893,7 @@ namespace sick_scan
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
         basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default

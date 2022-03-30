@@ -111,3 +111,11 @@ test/emulator/scandata/fieldset_trial_0001.pcapng_full.json
 test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng_full.json
 test/emulator/scandata/20211201_MRS_1xxx_IMU_with_movement.pcapng.json
 test/emulator/scandata/*.pcapng
+
+test/emulator/scandata/20220316-rms1000-ascii.pcapng.json
+
+test/emulator/scandata/20220316-rms1000-binary.pcapng.json
+
+test/emulator/scandata/20220317-rms3xx-ascii.pcapng.json
+
+test/emulator/scandata/20220317-rms3xx-binary.pcapng.json
