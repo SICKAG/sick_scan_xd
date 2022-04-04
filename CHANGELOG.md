@@ -6,10 +6,13 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+## Released ##
+
+### v2.6.1 - 
+  - **Added** V2.6.1: Support for RMS-1xxx binary protocol
+
 ### v2.6.0 - 
   - **Changed** V2.6.0: RMS configuration update, issue #7
-
-## Released ##
 
 ### v2.5.2 - 
   - **Fixed**  Fix LSR-4xxx laserscan angles #28
