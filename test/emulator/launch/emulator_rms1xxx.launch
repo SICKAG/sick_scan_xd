@@ -2,7 +2,8 @@
 <launch>
 
   <!-- Launch sick_scan_emulator -->
-  <arg name="scandatafiles" default="$(find sick_scan)/scandata/20211201_RMS_1xxx_start_up.pcapng.json"/>
+  <!-- arg name="scandatafiles" default="$(find sick_scan)/scandata/20211201_RMS_1xxx_start_up.pcapng.json"/ --> <!-- ascii communication mode -->
+  <arg name="scandatafiles" default="$(find sick_scan)/scandata/20220316-rms1000-binary.pcapng.json"/> <!-- binary communication mode -->
   <arg name="scandatatypes" default="sSN LMDscandata ,sSN LMDradardata "/>
   <rosparam command="load" file="$(find sick_scan)/yaml/emulator.yaml" />
   <node name="sick_scan_emulator" pkg="sick_scan" type="sick_scan_emulator" output="screen">
