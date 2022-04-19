@@ -3,8 +3,16 @@
 ####################################################
 cmake_minimum_required(VERSION 3.5)
 
-# build options: set OFF for relese version, ON for development and test
-option(ENABLE_EMULATOR "Build emulator for offline and unittests" ON) # OFF (release) or ON (development)
+# Emulator build options
+if(CMAKE_ENABLE_EMULATOR EQUAL 1)
+    option(ENABLE_EMULATOR "Build emulator for offline and unittests" ON) # OFF (release) or ON (development)
+    message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building sick_scan with emulator support")
+else()
+    option(ENABLE_EMULATOR "Build emulator for offline and unittests" OFF) # OFF (release) or ON (development)
+    message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building sick_scan without emulator support")
+endif()
+
+# LDMRS build options
 if(WIN32)
     option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF)
 elseif(LDMRS EQUAL 0)
@@ -12,6 +20,8 @@ elseif(LDMRS EQUAL 0)
 else()
     option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" ON)
 endif()
+
+# Debug or Release build options
 option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (development)
 
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")

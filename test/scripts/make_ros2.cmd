@@ -28,7 +28,7 @@ REM
 REM Build sick_scan_xd on Windows with colcon for ROS2
 REM 
 
-colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers "console_direct+"
+colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" --event-handlers "console_direct+"
 call .\install\setup.bat
 start "sick_scan.sln" .\build\sick_scan\sick_scan.sln
 

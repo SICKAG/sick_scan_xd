@@ -295,6 +295,10 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
 Devices of the MRS6xxx and MRS1xxx series are available with an optionally built-in IMU.
 Further information on the implementation and use of the experimental Imu support can be found on the [Imu page](doc/IMU.md).
 
+## Radar support
+
+See [radar documentation](doc/radar.md) for RMS1xxx and RMS3xx support.
+
 ## Run sick_scan driver
 
 The sick_scan driver can be started on the command line by `sick_generic_caller <launchfile> [hostname:=<ip-address>]`. The start process varies slightly depending on the target OS:
@@ -676,7 +680,7 @@ Overview of the tools:
 
 ## Simulation
 
-For unittests without sensor hardware, a simple test server is provided. To build the test server, activate cmake option `ENABLE_EMULATOR` in CMakeLists.txt and rebuild sick_scan. By default, option `ENABLE_EMULATOR` is switched off.
+For unittests without sensor hardware, a simple test server is provided. To build the test server, call either cmake with option `-DCMAKE_ENABLE_EMULATOR=1`, or activate cmake option `ENABLE_EMULATOR` in CMakeLists.txt. Then rebuild sick_scan_xd. By default, option `ENABLE_EMULATOR` is switched off.
 
 Please note that this just builds a simple test server for basic unittests of sick_scan drivers. Its purpose is to run basic tests and to help with diagnosis in case of issues. It does not emulate a real scanner!
 

@@ -16,7 +16,7 @@ if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash   
 # colcon build --cmake-args " -DROS_VERSION=2" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 colcon build --packages-select libsick_ldmrs --cmake-args " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 source ./install/setup.bash
-colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
+colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 source ./install/setup.bash
 
 # Check sick_scan

@@ -22,7 +22,7 @@ for %%i in ( .\install\sick_scan\lib .\install\sick_scan\lib\sick_scan .\build\s
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
 if exist c:\opt\ros\noetic\x64\setup.bat call c:\opt\ros\noetic\x64\setup.bat
 
-catkin_make_isolated --install --ignore-pkg libsick_ldmrs --cmake-args -DROS_VERSION=1 -DLDMRS=0
+catkin_make_isolated --install --ignore-pkg libsick_ldmrs --cmake-args -DROS_VERSION=1 -DLDMRS=0 -DCMAKE_ENABLE_EMULATOR=1
 rem catkin_make_isolated --install --ignore-pkg libsick_ldmrs --cmake-args -DROS_VERSION=1 -DCATKIN_ENABLE_TESTING=0
 
 @timeout /t 3
