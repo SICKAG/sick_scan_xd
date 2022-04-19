@@ -119,3 +119,5 @@ test/emulator/scandata/20220316-rms1000-binary.pcapng.json
 test/emulator/scandata/20220317-rms3xx-ascii.pcapng.json
 
 test/emulator/scandata/20220317-rms3xx-binary.pcapng.json
+
+test/emulator/scandata/20220323_nav350_binary.pcapng.json
