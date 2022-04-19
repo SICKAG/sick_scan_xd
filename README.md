@@ -101,8 +101,6 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 |       |   | Scan-Rate: 12.5-25 Hz | |
 | NAV310     | [e.g. 1060834](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav3xx/nav310-3211/p/p349345) | 1 layer max. range: 250 m, ang. resol. 0.125 - 1.0 [deg] | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 8 Hz   |                 |
-| NAV350     | [e.g. 1052928](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav3xx/nav350-3232/p/p256041) | 1 layer max. range: 250 m, ang. resol. 0.125 [deg] | ✔ [development]|
-|                    |                                                                                                                                  | Scan-Rate: 8 Hz   |                 |
 | NAV210+NAV245      | [e.g.    1074308](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav2xx/c/g356151) | 1 layer max. range: 100 m, ang. resol. 0.25 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 25 Hz   |                 |
 | RMS3xx             | [8021530](https://cdn.sick.com/media/docs/4/04/504/Operating_instructions_RMS3xx_en_IM0075504.PDF)| Radar Sensor | ✔ [stable]|
@@ -412,12 +410,6 @@ Use the following commands to run the sick_scan driver for a specific scanner ty
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
     * Windows native: `sick_generic_caller sick_nav_3xx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
-- For NAV350:
-    * Linux native:   `sick_generic_caller sick_nav_350.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_nav_350.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
-    * Windows native: `sick_generic_caller sick_nav_350.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
 - For RMS3xx-family:
     * Linux native:   `sick_generic_caller sick_rms_3xx.launch`
     * Linux ROS-1:    `roslaunch sick_scan sick_rms_3xx.launch`

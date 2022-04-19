@@ -6,9 +6,6 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
-### v2.6.2 - 
-  - **Added** V2.6.2: Support for NAV-350
-
 ## Released ##
 
 ### v2.6.1 - 
