@@ -2,8 +2,8 @@ REM
 REM Run a basic sick_generic_caller unittest on Windows 64 (standalone, no ROS required) with a test server emulating a basic LMS5xx device
 REM 
 
-set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python36_64;%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python37_64;%PATH%
-set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
+rem set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python36_64;%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python37_64;%PATH%
+rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 
 REM 
 REM Start html view

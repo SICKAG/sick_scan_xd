@@ -81,7 +81,7 @@
 
 #define SICK_GENERIC_MAJOR_VER "2"
 #define SICK_GENERIC_MINOR_VER "6"
-#define SICK_GENERIC_PATCH_LEVEL "1"
+#define SICK_GENERIC_PATCH_LEVEL "2"
 
 #include <algorithm> // for std::min
 
@@ -98,61 +98,76 @@ std::string getVersionInfo();
 \return exit-code
 \sa mainGenericLaser
 */
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 
-  DataDumper::instance().writeToFileNameWhenBufferIsFull("/tmp/sickscan_debug.csv");
-  char nameId[] = "__name:=";
-  char nameVal[MAX_NAME_LEN] = {0};
-  char **argv_tmp; // argv_tmp[0][0] argv_tmp[0] identisch ist zu (*argv_tmp)
-  int argc_tmp;
-  std::string scannerName = "????";
+    DataDumper::instance().writeToFileNameWhenBufferIsFull("/tmp/sickscan_debug.csv");
+    char nameId[] = "__name:=";
+    char nameVal[MAX_NAME_LEN] = { 0 };
+    char** argv_tmp; // argv_tmp[0][0] argv_tmp[0] identisch ist zu (*argv_tmp)
+    int argc_tmp;
+    std::string scannerName = "sick_scan"; // "????";
 
-  // sick_scan::SickScanImu::imuParserTest();
+    // sick_scan::SickScanImu::imuParserTest();
 
-  argc_tmp = argc;
-  argv_tmp = argv;
+    argc_tmp = argc;
+    argv_tmp = argv;
 
-  const int MAX_STR_LEN = 1024;
-  char nameTagVal[MAX_STR_LEN] = {0};
-  char logTagVal[MAX_STR_LEN] = {0};
-  char internalDebugTagVal[MAX_STR_LEN] = {0};
-  char sensorEmulVal[MAX_STR_LEN] = {0};
+    const int MAX_STR_LEN = 1024;
+    char nameTagVal[MAX_STR_LEN] = { 0 };
+    char logTagVal[MAX_STR_LEN] = { 0 };
+    char internalDebugTagVal[MAX_STR_LEN] = { 0 };
+    char sensorEmulVal[MAX_STR_LEN] = { 0 };
 
-  if (argc == 1) // just for testing without calling by roslaunch
-  {
-    // recommended call for internal debugging as an example: __name:=sick_rms_320 __internalDebug:=1
-    // strcpy(nameTagVal, "__name:=sick_rms_3xx");  // sick_rms_320 -> radar
-    strcpy(nameTagVal, "__name:=sick_tim_5xx");  // sick_rms_320 -> radar
-    strcpy(logTagVal, "__log:=/tmp/tmp.log");
-    strcpy(internalDebugTagVal, "__internalDebug:=1");
-    // strcpy(sensorEmulVal, "__emulSensor:=1");
-    strcpy(sensorEmulVal, "__emulSensor:=0");
-    argc_tmp = 5;
-    argv_tmp = (char **) malloc(sizeof(char *) * argc_tmp);
+    if (argc == 1) // just for testing without calling by roslaunch
+    {
+        // recommended call for internal debugging as an example: __name:=sick_rms_320 __internalDebug:=1
+        // strcpy(nameTagVal, "__name:=sick_rms_3xx");  // sick_rms_320 -> radar
+        strcpy(nameTagVal, "__name:=sick_tim_5xx");  // sick_rms_320 -> radar
+        strcpy(logTagVal, "__log:=/tmp/tmp.log");
+        strcpy(internalDebugTagVal, "__internalDebug:=1");
+        // strcpy(sensorEmulVal, "__emulSensor:=1");
+        strcpy(sensorEmulVal, "__emulSensor:=0");
+        argc_tmp = 5;
+        argv_tmp = (char**)malloc(sizeof(char*) * argc_tmp);
 
-    argv_tmp[0] = argv[0];
-    argv_tmp[1] = nameTagVal;
-    argv_tmp[2] = logTagVal;
-    argv_tmp[3] = internalDebugTagVal;
-    argv_tmp[4] = sensorEmulVal;
+        argv_tmp[0] = argv[0];
+        argv_tmp[1] = nameTagVal;
+        argv_tmp[2] = logTagVal;
+        argv_tmp[3] = internalDebugTagVal;
+        argv_tmp[4] = sensorEmulVal;
 
-  }
-  //
-  std::string versionInfo = "sick_generic_caller V. ";
-  versionInfo += std::string(SICK_GENERIC_MAJOR_VER) + '.';
-  versionInfo += std::string(SICK_GENERIC_MINOR_VER) + '.';
-  versionInfo += std::string(SICK_GENERIC_PATCH_LEVEL);
+    }
+    //
+    std::string versionInfo = "sick_generic_caller V. ";
+    versionInfo += std::string(SICK_GENERIC_MAJOR_VER) + '.';
+    versionInfo += std::string(SICK_GENERIC_MINOR_VER) + '.';
+    versionInfo += std::string(SICK_GENERIC_PATCH_LEVEL);
 
-  setVersionInfo(versionInfo);
+    setVersionInfo(versionInfo);
 
 #if defined __ROS_VERSION && __ROS_VERSION == 2
-  // Pass command line arguments to rclcpp.
-  rclcpp::init(argc, argv);
-  rclcpp::NodeOptions node_options;
-  node_options.allow_undeclared_parameters(true);
-  //node_options.automatically_declare_initial_parameters(true);
-  rosNodePtr node = rclcpp::Node::make_shared("sick_scan", "", node_options);
+    // Pass command line arguments to rclcpp.
+    rclcpp::init(argc, argv);
+    rclcpp::NodeOptions node_options;
+    node_options.allow_undeclared_parameters(true);
+    //node_options.automatically_declare_initial_parameters(true);
+    rosNodePtr node = rclcpp::Node::make_shared("sick_scan", "", node_options);
+/*  #elif defined __ROS_VERSION && __ROS_VERSION == 1 && defined WIN32
+    try
+    {
+        std::cout << "sick_generic_caller: ros::init with argc, argv ..." << std::endl;
+        ros::init(argc, argv, scannerName);// , ros::init_options::NoSigintHandler);  // scannerName holds the node-name
+        // signal(SIGINT, rosSignalHandler);
+        std::cout << "sick_generic_caller: ros::NodeHandle nh() ..." << std::endl;
+    }
+    catch (const std::exception& exc)
+    {
+        std::cout << "sick_generic_caller: exception \"" << exc.what() << "\" in ros::init()" << std::endl;
+    }
+    ros::NodeHandle nh("~");
+    std::cout << "sick_generic_caller: continue ..." << std::endl;
+    rosNodePtr node = &nh; */
 #else
   ros::init(argc, argv, scannerName, ros::init_options::NoSigintHandler);  // scannerName holds the node-name
   // signal(SIGINT, rosSignalHandler);

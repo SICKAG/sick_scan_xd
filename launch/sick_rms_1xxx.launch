@@ -3,7 +3,6 @@
      LAUNCH-FILE for
      RMS1xxx - Radar device
      EXPERIMENTAL - brand new driver
-     Only SOPAS-ASCII supported.
   -->
 <!-- Using node option required="true" will close roslaunch after node exits -->
 

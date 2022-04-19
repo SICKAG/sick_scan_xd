@@ -393,13 +393,16 @@ namespace sick_scan
 }
 #endif // WIN32
 #elif __ROS_VERSION == 1 // ROS 1
+#ifndef WIN32
 #include <dynamic_reconfigure/server.h>
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>
-#include <sick_scan/SickScanConfig.h>
+//#include <sick_scan/SickScanConfig.h>
 #include <sick_scan/SickLDMRSDriverConfig.h>
 #define USE_DYNAMIC_RECONFIGURE
 #define USE_DIAGNOSTIC_UPDATER
+#endif // WIN32
+#include <sick_scan/SickScanConfig.h>
 #else
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/publisher.h>

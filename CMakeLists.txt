@@ -46,11 +46,6 @@ if(NOT WIN32)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow -fno-var-tracking-assignments")
 endif()
 
-if(WIN32 AND EXISTS "c:/vcpkg/installed/x64-windows")
-    include_directories(c:/vcpkg/installed/x64-windows/include)
-    link_directories(c:/vcpkg/installed/x64-windows/lib)
-endif()
-
 if($ENV{ROS_VERSION})
     set(ROS_VERSION $ENV{ROS_VERSION})
 endif($ENV{ROS_VERSION})
@@ -58,6 +53,12 @@ add_compile_options(-D__ROS_VERSION=${ROS_VERSION})
 if(ROS_VERSION EQUAL 0)
     add_compile_options(-DROSSIMU)
 endif()
+
+if(WIN32 AND EXISTS "c:/vcpkg/installed/x64-windows")
+    include_directories(c:/vcpkg/installed/x64-windows/include)
+    link_directories(c:/vcpkg/installed/x64-windows/lib)
+endif()
+
 if(WIN32)
     # add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
     add_compile_options(-D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
@@ -81,10 +82,6 @@ endif()
 # message(${CMAKE_BINARY_DIR})
 # set(CATKIN_DEVEL_PREFIX "${CMAKE_BINARY_DIR}/devel")
 # set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/devel;/opt/ros/melodic")
-
-if(ROS_VERSION LESS 2)
-    # find_package(Boost REQUIRED COMPONENTS filesystem system serialization)
-endif(ROS_VERSION LESS 2)
 
 if(ENABLE_EMULATOR)
         find_package(jsoncpp REQUIRED) # install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" (Linux) resp. "vcpkg install jsoncpp:x64-windows" (Windows)
@@ -371,16 +368,20 @@ if(ROS_VERSION EQUAL 1)
         CATKIN_DEPENDS message_runtime roscpp sensor_msgs ${diagnostic_updater_pkg} dynamic_reconfigure pcl_conversions pcl_ros tf tf2
         LIBRARIES sick_scan_lib sick_scan_shared_lib
         INCLUDE_DIRS include
-        # DEPENDS Boost
     )
 endif(ROS_VERSION EQUAL 1)
 
-include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser) # ${Boost_INCLUDE_DIR} 
+include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser)
 if(ROS_VERSION EQUAL 0)
 include_directories(roswrap/src/msg_header)
 endif()
 
 if(ROS_VERSION EQUAL 1)
+
+    if(WIN32)
+        include_directories(roswrap/helper_win)
+        file(GLOB SRC_WIN_FILES roswrap/helper_win/usleep/usleep.c)
+    endif()
     set(SICK_SCAN_LIB_SRC
         driver/src/dataDumper.cpp
         driver/src/sick_scan_common.cpp
@@ -416,7 +417,8 @@ if(ROS_VERSION EQUAL 1)
         driver/src/tinyxml/tinyxml.cpp
         driver/src/tinyxml/tinyxmlerror.cpp
         driver/src/tinyxml/tinyxmlparser.cpp
-        ${LDMRS_SOURCES} 
+        ${LDMRS_SOURCES}
+        ${SRC_WIN_FILES}
     )
     add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
     add_library(sick_scan_shared_lib SHARED ${SICK_SCAN_LIB_SRC})

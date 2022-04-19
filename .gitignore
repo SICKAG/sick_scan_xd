@@ -123,3 +123,9 @@ test/emulator/scandata/20220317-rms3xx-binary.pcapng.json
 doc/20220322_sick_scan_xd_lidar3d_integration.pptx
 
 test/emulator/scandata/20220323_nav350_binary.pcapng.json
+
+doc/20220407_sick_scan_xd_lidar3d_integration.pptx
+
+doc/20220407_sick_scan_xd_nav350.pptx
+
+test/scripts/run_win64_ros1_simu_lms5xx.cmd
