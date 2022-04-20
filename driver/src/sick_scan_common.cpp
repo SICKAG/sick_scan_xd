@@ -2958,7 +2958,7 @@ namespace sick_scan
 
       }
       //BBB
-      // set scanning angle for tim5xx and for mrs1104
+      // set scanning angle for lms1xx and lms5xx
       double scan_freq = 0;
       double ang_res = 0;
       rosDeclareParam(nh, "scan_freq", scan_freq); // filter_echos
@@ -2975,6 +2975,60 @@ namespace sick_scan
           }
           else
           {
+            if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0
+            || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
+            {
+              // "sMN mLMPsetscancfg" for lms1xx and lms5xx:
+              // scan frequencies lms1xx: 25 or 50 Hz, lms5xx: 25, 35, 50, 75 or 100 Hz
+              // Number of active sectors: 1 for lms1xx and lms5xx
+              // Angular resolution: 0.25 or 0.5 deg for lms1xx, 0.0417, 0.083, 0.1667, 0.25, 0.333, 0.5, 0.667 or 1.0 deg for lms5xx, angular resolution in 1/10000 deg
+              // Start angle: -45 deg for lms1xx, -50 deg for lms5xx in lidar coordinates
+              // Stop angle: +225 deg for lms1xx, +185 deg for lms5xx in lidar coordinates
+              sick_scan::SickScanParseUtil::LMPscancfg lmp_scancfg;
+              sick_scan::SickScanParseUtil::LMPscancfgSector lmp_scancfg_sector;
+              lmp_scancfg.scan_frequency = std::lround(100.0 * scan_freq);
+              lmp_scancfg.active_sector_cnt = 1; // this->parser_->getCurrentParamPtr()->getNumberOfLayers();
+              lmp_scancfg_sector.angular_resolution = std::lround(10000.0 * ang_res);
+              if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0)
+              {
+                lmp_scancfg_sector.start_angle = -450000;
+                lmp_scancfg_sector.stop_angle = +2250000;
+              }
+              else if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
+              {
+                lmp_scancfg_sector.start_angle = -500000;
+                lmp_scancfg_sector.stop_angle = +1850000;
+              }
+              lmp_scancfg.sector_cfg.push_back(lmp_scancfg_sector);
+              std::string lmp_scancfg_sopas;
+              if (sick_scan::SickScanParseUtil::LMPscancfgToSopas(lmp_scancfg, lmp_scancfg_sopas))
+              {
+                std::vector<unsigned char> reqBinary, lmp_scancfg_reply;
+                if (useBinaryCmd)
+                {
+                  this->convertAscii2BinaryCmd(lmp_scancfg_sopas.c_str(), &reqBinary);
+                  result = sendSopasAndCheckAnswer(reqBinary, &lmp_scancfg_reply);
+                  RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmp_scancfg_reply); // No response, non-recoverable connection error (return error and do not try other commands)
+                }
+                else
+                {
+                  result = sendSopasAndCheckAnswer(lmp_scancfg_sopas, &lmp_scancfg_reply);
+                  RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmp_scancfg_reply); // No response, non-recoverable connection error (return error and do not try other commands)
+                }
+              }
+              else
+              {
+                ROS_WARN_STREAM("sick_scan::init_scanner: sick_scan::SickScanParseUtil::LMPscancfgToSopas() failed");
+              }
+            }
+            else
+            {
+              ROS_WARN_STREAM("sick_scan::init_scanner: \"sMN mLMPsetscancfg\" currently not supported for " 
+                << this->parser_->getCurrentParamPtr()->getScannerName() 
+                << ", scan frequency and angular resolution not set, using default values (" 
+                << __FILE__ << ":" << __LINE__ << ")");
+            }
+            /* previous version:
             char requestLMDscancfg[MAX_STR_LEN];
             //    sopasCmdMaskVec[CMD_SET_PARTIAL_SCAN_CFG] = "\x02sMN mLMPsetscancfg %d 1 %d 0 0\x03";//scanfreq [1/100 Hz],angres [1/10000°],
             const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCAN_CFG].c_str();
@@ -2992,7 +3046,7 @@ namespace sick_scan
               result = sendSopasAndCheckAnswer(requestLMDscancfg, &lmdScanCfgReply);
               RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmdScanCfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
             }
-
+            */
 
             // check setting
             char requestLMDscancfgRead[MAX_STR_LEN];

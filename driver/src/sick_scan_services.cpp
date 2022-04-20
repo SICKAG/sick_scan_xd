@@ -58,9 +58,13 @@
  * Based on the TiM communication example by SICK AG.
  *
  */
+#include <iostream>
+#include <iomanip>
 
 #include "sick_scan/sick_scan_services.h"
 #include "sick_scan/sick_generic_laser.h"
+
+#define LIDAR3D_SOPAS_ARGS_BIG_ENDIAN (true) // Arguments of SOPAS commands are big endian encoded
 
 sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScanCommonTcp* common_tcp, ScannerBasicParam * lidar_param)
 : m_common_tcp(common_tcp), m_cola_binary(true)
@@ -246,7 +250,7 @@ bool sick_scan::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRChange
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   return true;
 }
 
@@ -273,7 +277,7 @@ bool sick_scan::SickScanServices::serviceCbLIDoutputstate(sick_scan_srv::LIDoutp
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   return true;
 }
 
@@ -294,7 +298,7 @@ bool sick_scan::SickScanServices::sendAuthorization()
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   return true;
 }
 
@@ -315,10 +319,381 @@ bool sick_scan::SickScanServices::sendRun()
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   return true;
 }
 
+/*!
+ * Sends a multiScan136 command
+ */
+bool sick_scan::SickScanServices::sendSopasCmdCheckResponse(const std::string& sopas_request, const std::string& expected_response)
+{
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+  if(!sendSopasAndCheckAnswer(sopas_request, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasCmdCheckResponse() failed on sending command\"" << sopas_request << "\"");
+    return false;
+  }
+  ROS_INFO_STREAM("SickScanServices::sendSopasCmdCheckResponse(): request: \"" << sopas_request << "\", response: \"" << sopasReplyString << "\"");
+  if(sopasReplyString.find(expected_response) == std::string::npos)
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasCmdCheckResponse(): request: \"" << sopas_request << "\", unexpected response: \"" << sopasReplyString << "\", \"" << expected_response << "\" not found");
+    return false;
+  }
+  return true;
+}
+
+#if defined LIDAR3D_SUPPORT && LIDAR3D_SUPPORT > 0
+/*!
+* Sends the multiScan136 start commands "sWN ScanDataFormatSettings", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
+*/
+bool sick_scan::SickScanServices::sendMRS100StartCmd(const std::string& mrs100_ip, int mrs100_port)
+{
+  std::stringstream ip_stream(mrs100_ip);
+  std::string ip_token;
+  std::vector<std::string> ip_tokens;
+  while (getline(ip_stream, ip_token, '.'))
+  {
+    ip_tokens.push_back(ip_token);
+  }
+  if (ip_tokens.size() != 4)
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd() failed: can't split ip address \"" << mrs100_ip << "\" into 4 tokens, check ip adress");
+    return false;
+  }
+  std::stringstream eth_settings_cmd;
+  eth_settings_cmd << "sWN ScanDataEthSettings 1";
+  for (int i = 0; i < ip_tokens.size(); i++)
+  {
+    eth_settings_cmd << " +";
+    eth_settings_cmd << ip_tokens[i];
+  }
+  eth_settings_cmd << " +";
+  eth_settings_cmd << mrs100_port;
+  if (!sendSopasCmdCheckResponse(eth_settings_cmd.str(), "sWA ScanDataEthSettings")) // configure destination scan data output destination , f.e. "sWN ScanDataEthSettings 1 +192 +168 +0 +52 +2115" (ip 192.168.0.52 port 2115)
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEthSettings 1\") failed.");
+    return false;
+  }
+
+  if (!sendSopasCmdCheckResponse("sWN ScanDataFormatSettings 1 1", "sWA ScanDataFormatSettings")) // set scan data output format to MSGPACK
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataFormatSettings 1 1\") failed.");
+    return false;
+  }
+  if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 1", "sWA ScanDataEnable")) // enable scan data output
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEnable 1\") failed.");
+    return false;
+  }
+  if (!sendSopasCmdCheckResponse("sMN LMCstartmeas", "sAN LMCstartmeas")) // start measurement
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sMN LMCstartmeas\") failed.");
+    return false;
+  }
+  if (!sendSopasCmdCheckResponse("sMN Run", "sAN Run")) // apply the settings
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sMN Run\") failed.");
+    return false;
+  }
+  return true;
+}
+#endif // LIDAR3D_SUPPORT
+
+#if defined LIDAR3D_SUPPORT && LIDAR3D_SUPPORT > 0
+/*!
+ * Sends the multiScan136 stop commands "sWN ScanDataEnable 0" and "sMN Run"
+ */
+bool sick_scan::SickScanServices::sendMRS100StopCmd(void)
+{
+  if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 0", "sWA ScanDataEnable")) // disble scan data output
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StopCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEnable 0\") failed.");
+    return false;
+  }
+  if (!sendSopasCmdCheckResponse("sMN Run", "sAN Run")) // apply the settings
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StopCmd(): sendSopasCmdCheckResponse(\"sMN Run\") failed.");
+    return false;
+  }
+  return true;
+}
+#endif // LIDAR3D_SUPPORT
+
+union FLOAT_BYTE32_UNION
+{
+  uint8_t u8_bytes[4];
+  uint32_t u32_bytes;
+  float value;
+};
+
+/*!
+* Converts a hex string (hex_str: 4 byte hex value as string, little or big endian) to float.
+* Check f.e. by https://www.h-schmidt.net/FloatConverter/IEEE754.html
+* Examples:
+* convertHexStringToFloat("C0490FF9", true) returns -3.14
+* convertHexStringToFloat("3FC90FF9", true) returns +1.57
+*/
+float sick_scan::SickScanServices::convertHexStringToFloat(const std::string& hex_str, bool hexStrIsBigEndian)
+{
+  FLOAT_BYTE32_UNION hex_buffer;
+  if(hexStrIsBigEndian)
+  {
+    for(int m = 3, n = 1; n < hex_str.size(); n+=2, m--)
+    {
+      char hexval[4] = { hex_str[n-1], hex_str[n], '\0', '\0' };
+      hex_buffer.u8_bytes[m] = (uint8_t)(std::strtoul(hexval, NULL, 16) & 0xFF);
+    }
+  }
+  else
+  {
+    for(int m = 0, n = 1; n < hex_str.size(); n+=2, m++)
+    {
+      char hexval[4] = { hex_str[n-1], hex_str[n], '\0', '\0' };
+      hex_buffer.u8_bytes[m] = (uint8_t)(std::strtoul(hexval, NULL, 16) & 0xFF);
+    }
+  }
+  // ROS_DEBUG_STREAM("convertHexStringToFloat(" << hex_str << ", " << hexStrIsBigEndian << "): " << std::hex << hex_buffer.u32_bytes << " = " << std::fixed << hex_buffer.value);
+  return hex_buffer.value;
+}
+
+/*!
+* Converts a float value to hex string (hex_str: 4 byte hex value as string, little or big endian).
+* Check f.e. by https://www.h-schmidt.net/FloatConverter/IEEE754.html
+* Examples:
+* convertFloatToHexString(-3.14, true) returns "C0490FDB"
+* convertFloatToHexString(+1.57, true) returns "3FC90FF8"
+*/
+std::string sick_scan::SickScanServices::convertFloatToHexString(float value, bool hexStrInBigEndian)
+{
+  FLOAT_BYTE32_UNION hex_buffer;
+  hex_buffer.value = value;
+  std::stringstream hex_str;
+  if(hexStrInBigEndian)
+  {
+    for(int n = 3; n >= 0; n--)
+      hex_str << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (int)(hex_buffer.u8_bytes[n]);
+  }
+  else
+  {
+    for(int n = 0; n < 4; n++)
+      hex_str << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (int)(hex_buffer.u8_bytes[n]);
+  }
+  // ROS_DEBUG_STREAM("convertFloatToHexString(" << value << ", " << hexStrInBigEndian << "): " << hex_str.str());
+  return hex_str.str();
+}
+
+#if defined LIDAR3D_SUPPORT && LIDAR3D_SUPPORT > 0
+/*!
+* Sends the SOPAS command to query multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, mrs100_LFPlayerFilter)
+* @param[out] mrs100_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+* @param[out] mrs100_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+* @param[out] mrs100_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+* @param[out] msgpack_validator_filter_settings; // filter settings for msgpack validator: required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
+*/
+bool sick_scan::SickScanServices::queryMRS100Filtersettings(int& mrs100_FREchoFilter, std::string& mrs100_LFPangleRangeFilter, std::string& mrs100_LFPlayerFilter, sick_lidar3d::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings)
+{
+  std::vector<std::vector<unsigned char>> sopasRepliesBin;
+  std::vector<std::string> sopasRepliesString;
+
+  // Query FREchoFilter, LFPangleRangeFilter and LFPlayerFilter settings
+  std::vector<std::string> sopasCommands = { "FREchoFilter", "LFPangleRangeFilter", "LFPlayerFilter" };
+  for(int n = 0; n < sopasCommands.size(); n++)
+  {
+    std::string sopasRequest = "sRN " + sopasCommands[n];
+    std::string sopasExpectedResponse = "sRA " +  sopasCommands[n];
+    std::vector<unsigned char> sopasReplyBin;
+    std::string sopasReplyString;
+    if(!sendSopasAndCheckAnswer(sopasRequest, sopasReplyBin, sopasReplyString) || sopasReplyString.find(sopasExpectedResponse) == std::string::npos)
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): sendSopasAndCheckAnswer(\"" << sopasRequest << "\") failed or unexpected response: \"" << sopasReplyString << "\", expected: \"" << sopasExpectedResponse << "\"");
+      return false;
+    }
+    ROS_DEBUG_STREAM("SickScanServices::queryMRS100Filtersettings(): request: \"" << sopasRequest << "\", response: \"" << sopasReplyString << "\"");
+    sopasRepliesBin.push_back(sopasReplyBin);
+    sopasRepliesString.push_back(sopasReplyString);
+  }
+
+  // Convert sopas answers
+  std::vector<std::vector<std::string>> sopasTokens;
+  for(int n = 0; n < sopasCommands.size(); n++)
+  {
+    std::string parameterString = sopasRepliesString[n].substr(4 + sopasCommands[n].size() + 1);
+    std::vector<std::string> parameterToken;
+    sick_lidar3d::util::parseVector(parameterString, parameterToken, ' ');
+    sopasTokens.push_back(parameterToken);
+    ROS_INFO_STREAM("SickScanServices::queryMRS100Filtersettings(): " << sopasCommands[n] << ": \"" << parameterString << "\" = {" << sick_lidar3d::util::printVector(parameterToken, ",") << "}");
+  }
+
+  // Parse FREchoFilter
+  if(sopasCommands.size() > 0 && sopasTokens[0].size() == 1)
+  {
+    mrs100_FREchoFilter = std::stoi(sopasTokens[0][0]);
+  }
+  else
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): parse error in FREchoFilter");
+    return false;
+  }
+
+  // Parse LFPangleRangeFilter
+  std::vector<float> mrs100_angles_deg;
+  if(sopasCommands.size() > 1 && sopasTokens[1].size() == 6)
+  {
+    std::stringstream parameter;
+    int filter_enabled = std::stoi(sopasTokens[1][0]); // <enabled>
+    parameter << filter_enabled;
+    for(int n = 1; n < 5; n++) // <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop>
+    {
+      float angle_deg = (convertHexStringToFloat(sopasTokens[1][n], LIDAR3D_SOPAS_ARGS_BIG_ENDIAN) * 180.0 / M_PI);
+      parameter << " " << angle_deg;
+      if(filter_enabled)
+        mrs100_angles_deg.push_back(angle_deg);
+    }
+    parameter << " " << sopasTokens[1][5]; // <beam_increment>
+    mrs100_LFPangleRangeFilter = parameter.str();
+  }
+  else
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): parse error in LFPangleRangeFilter");
+    return false;
+  }
+
+  // Parse LFPlayerFilter
+  std::vector<int> layer_active_vector;
+  if(sopasCommands.size() > 2 && sopasTokens[2].size() == 17)
+  {
+    std::stringstream parameter;
+    int filter_enabled = std::stoi(sopasTokens[2][0]); // <enabled>
+    parameter << filter_enabled;
+    for(int n = 1; n < sopasTokens[2].size(); n++)
+    {
+      int layer_active = std::stoi(sopasTokens[2][n]);
+      if(filter_enabled)
+        layer_active_vector.push_back(layer_active);
+      parameter << " " << layer_active;
+    }
+    mrs100_LFPlayerFilter = parameter.str();
+  }
+  else
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): parse error in LFPlayerFilter");
+    return false;
+  }
+
+  // Set filter settings for validation of msgpack data, i.e. set config.msgpack_validator_required_echos, config.msgpack_validator_azimuth_start, config.msgpack_validator_azimuth_end,
+  // config.msgpack_validator_elevation_start, config.msgpack_validator_elevation_end, config.msgpack_validator_layer_filter according to the queried filter settings
+  if(mrs100_FREchoFilter == 0 || mrs100_FREchoFilter == 2) // 0: FIRST_ECHO (EchoCount=1), 2: LAST_ECHO (EchoCount=1)
+  {
+    msgpack_validator_filter_settings.msgpack_validator_required_echos = { 0 }; // one echo with index 0
+  }
+  else if(mrs100_FREchoFilter == 1) // 1: ALL_ECHOS (EchoCount=3)
+  {
+    msgpack_validator_filter_settings.msgpack_validator_required_echos = { 0, 1, 2 }; // three echos with index 0, 1, 2
+  }
+  else
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): unexpected value of FREchoFilter = " << mrs100_FREchoFilter
+    << ", expected 0: FIRST_ECHO (EchoCount=1), 1: ALL_ECHOS (EchoCount=3) or 2: LAST_ECHO (EchoCount=1)");
+    return false;
+  }
+  if(mrs100_angles_deg.size() == 4) // otherwise LFPangleRangeFilter disabled (-> use configured default values)
+  {
+    msgpack_validator_filter_settings.msgpack_validator_azimuth_start = (mrs100_angles_deg[0] * M_PI / 180);
+    msgpack_validator_filter_settings.msgpack_validator_azimuth_end = (mrs100_angles_deg[1] * M_PI / 180);
+    msgpack_validator_filter_settings.msgpack_validator_elevation_start = (mrs100_angles_deg[2] * M_PI / 180);
+    msgpack_validator_filter_settings.msgpack_validator_elevation_end = (mrs100_angles_deg[3] * M_PI / 180);
+  }
+  if(layer_active_vector.size() == 16)  // otherwise LFPlayerFilter disabled (-> use configured default values)
+  {
+    msgpack_validator_filter_settings.msgpack_validator_layer_filter = layer_active_vector;
+  }
+
+  // Example: sopas.FREchoFilter = "1", sopas.LFPangleRangeFilter = "0 -180 180 -90.0002 90.0002 1", sopas.LFPlayerFilter = "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
+  // msgpack_validator_required_echos = { 0 }, msgpack_validator_angles = { -3.14159 3.14159 -1.5708 1.5708 } [rad], msgpack_validator_layer_filter = { 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 }
+  ROS_INFO_STREAM("SickScanServices::queryMRS100Filtersettings(): sopas.FREchoFilter = \"" << mrs100_FREchoFilter
+    << "\", sopas.LFPangleRangeFilter = \"" << mrs100_LFPangleRangeFilter
+    << "\", sopas.LFPlayerFilter = \"" << mrs100_LFPlayerFilter  << "\"");
+  ROS_INFO_STREAM("SickScanServices::queryMRS100Filtersettings(): msgpack_validator_required_echos = { " << sick_lidar3d::util::printVector(msgpack_validator_filter_settings.msgpack_validator_required_echos)
+    << " }, msgpack_validator_angles = { " << msgpack_validator_filter_settings.msgpack_validator_azimuth_start << " " << msgpack_validator_filter_settings.msgpack_validator_azimuth_end
+    << " " << msgpack_validator_filter_settings.msgpack_validator_elevation_start << " " << msgpack_validator_filter_settings.msgpack_validator_elevation_end
+    << " } [rad], msgpack_validator_layer_filter = { " << sick_lidar3d::util::printVector(msgpack_validator_filter_settings.msgpack_validator_layer_filter)  << " }");
+  return true;
+}
+#endif // LIDAR3D_SUPPORT
+
+#if defined LIDAR3D_SUPPORT && LIDAR3D_SUPPORT > 0
+/*!
+* Sends the SOPAS command to write multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, mrs100_LFPlayerFilter)
+* @param[in] mrs100_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+* @param[in] mrs100_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+* @param[in] mrs100_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+*/
+bool sick_scan::SickScanServices::writeMRS100Filtersettings(int mrs100_FREchoFilter, const std::string& mrs100_LFPangleRangeFilter, const std::string& mrs100_LFPlayerFilter)
+{
+  // Write FREchoFilter
+  if(mrs100_FREchoFilter >= 0) // otherwise not configured
+  {
+    std::string sopasRequest = "sWN FREchoFilter " + std::to_string(mrs100_FREchoFilter), sopasExpectedResponse = "sWA FREchoFilter";
+    if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): sendSopasCmdCheckResponse(\"" << sopasRequest << "\") failed.");
+      return false;
+    }
+  }
+
+  // Write LFPangleRangeFilter
+  if(!mrs100_LFPangleRangeFilter.empty()) // otherwise not configured
+  {
+    // convert deg to rad and float to hex
+    std::vector<std::string> parameter_token;
+    sick_lidar3d::util::parseVector(mrs100_LFPangleRangeFilter, parameter_token, ' ');
+    if(parameter_token.size() != 6)
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): can't split mrs100_LFPangleRangeFilter = \"" << mrs100_LFPangleRangeFilter << "\", expected 6 values separated by space");
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings() failed.");
+      return false;
+    }
+    int filter_enabled = std::stoi(parameter_token[0]); // <enabled>
+    std::vector<float> angle_deg;
+    for(int n = 1; n < 5; n++)
+      angle_deg.push_back(std::stof(parameter_token[n]));
+    int beam_increment = std::stoi(parameter_token[5]); // <beam_increment>
+    std::stringstream sopas_parameter;
+    sopas_parameter << filter_enabled;
+    for(int n = 0; n < angle_deg.size(); n++)
+      sopas_parameter << " " << convertFloatToHexString(angle_deg[n] * M_PI / 180, LIDAR3D_SOPAS_ARGS_BIG_ENDIAN);
+    sopas_parameter << " " << beam_increment;
+    // Write LFPangleRangeFilter
+    std::string sopasRequest = "sWN LFPangleRangeFilter " + sopas_parameter.str(), sopasExpectedResponse = "sWA LFPangleRangeFilter";
+    if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): sendSopasCmdCheckResponse(\"" << sopasRequest << "\") failed.");
+      return false;
+    }
+  }
+
+  // Write LFPlayerFilter
+  if(!mrs100_LFPlayerFilter.empty()) // otherwise not configured
+  {
+    std::string sopasRequest = "sWN LFPlayerFilter " + mrs100_LFPlayerFilter, sopasExpectedResponse = "sWA LFPlayerFilter";
+    if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): sendSopasCmdCheckResponse(\"" << sopasRequest << "\") failed.");
+      return false;
+    }
+  }
+
+  // Apply the settings
+  if (!sendSopasCmdCheckResponse("sMN Run", "sAN Run"))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): sendSopasCmdCheckResponse(\"sMN Run\") failed.");
+    return false;
+  }
+  return true;
+}
+#endif // LIDAR3D_SUPPORT
 
 /*!
 * Callbacks for service messages.
@@ -352,7 +727,7 @@ bool sick_scan::SickScanServices::serviceCbSCdevicestate(sick_scan_srv::SCdevice
   }
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\"");
-  
+
   return true;
 }
 
@@ -377,7 +752,7 @@ bool sick_scan::SickScanServices::serviceCbSCreboot(sick_scan_srv::SCrebootSrv::
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   if(!sendRun())
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices: sendRun failed for command\"" << sopasCmd << "\"");

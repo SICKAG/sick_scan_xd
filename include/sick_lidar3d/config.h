@@ -1,0 +1,215 @@
+/*
+ * @brief config.h implements the configuration (yaml, commandline and default parameters) for project sick_lidar3d.
+ *
+ * Copyright (C) 2020 Ing.-Buero Dr. Michael Lehning, Hildesheim
+ * Copyright (C) 2020 SICK AG, Waldkirch
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of SICK AG nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission
+ *     * Neither the name of Ing.-Buero Dr. Michael Lehning nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ *      Authors:
+ *         Michael Lehning <michael.lehning@lehning.de>
+ *
+ *  Copyright 2020 SICK AG
+ *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
+ *
+ */
+#ifndef __SICK_LIDAR3D_CONFIG_H
+#define __SICK_LIDAR3D_CONFIG_H
+
+#include "sick_lidar3d/common.h"
+
+namespace sick_lidar3d
+{
+    /*
+     * @brief Container for filter settings for msgpack validator, returned from  by queryMRS100Filtersettings()
+     */
+    class MsgpackValidatorFilterConfig
+    {
+    public:
+        std::vector<int> msgpack_validator_required_echos; // { 0, 1, 2 }
+        float msgpack_validator_azimuth_start;             // default for full scan: -M_PI;
+        float msgpack_validator_azimuth_end;               // default for full scan: +M_PI;
+        float msgpack_validator_elevation_start;           // default for full scan: -M_PI/2.0;
+        float msgpack_validator_elevation_end;             // default for full scan: +M_PI/2.0;
+        std::vector<int> msgpack_validator_layer_filter;   // default for full scan: 16 layer active, i.e. { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
+    };
+
+    /*
+     * @brief class sick_lidar3d::Config implements the configuration
+     * (yaml, commandline and default parameters) for project sick_lidar3d.
+     */
+    class Config
+    {
+    public:
+
+        /*
+         * @brief Default constructor, initializes the configuration with default values
+         */
+        Config();
+
+        /*
+         * @brief Destructor
+         */
+        ~Config();
+
+        /*
+         * @brief Initializes sick_lidar3d configuration by commandline arguments and yaml-file.
+         */
+        bool Init(int argc, char** argv);
+
+        /*
+         * @brief Prints the commandline arguments.
+         */
+        void PrintHelp(void);
+
+        /*
+         * sick_lidar3d configuration
+         */
+
+        std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a MRS100 lidar or MRS100 emulator
+        int udp_port;                               // = 2115; // default udp port for multiScan136 resp. multiScan136 emulator is 2115
+        std::string publish_topic;                  // = "/cloud"; // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
+
+        std::string publish_topic_all_segments;     // = "/cloud_360" // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
+        int segment_count;                          // 12 // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
+
+        std::string publish_frame_id;               // = "world"; // frame id of ros PointCloud2 messages, default: "world"
+        int udp_input_fifolength;                   // = 20; // max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
+        int msgpack_output_fifolength;              // = 20; // max. msgpack output fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
+        int verbose_level;                          // = 1; // verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1
+        bool measure_timing;                        // = true; // measure_timing == true: duration and latency of msgpack conversion and export is measured, default: true
+        bool visualize;                             // = false;  // visualize == true: plot lidarpoints via python wrapper, visualize == false: no diagrams, default: false
+        bool export_csv;                            // = false; // export msgpack data to csv file, default: false
+        bool export_udp_msg;                        // = false; // true : export binary udpand msgpack data to file(*.udp and* .msg), default: false
+        bool exit_on_keys_esc_q;                    // = true; // exit lidar3d_mrs100_recv after pressing key ESC, 'q' or 'Q'
+        std::string logfolder;                      // = "./logfiles"; // output folder for logfiles, default: "."
+        std::string inputfolder_msgfiles;           // = "../../sick_lidar3d/python/polarscan_reader_test/resource"; // Input folder with msgpack files *.msg in offline mode (read from file, decode and optionally export to csv)
+        std::string input_msgfiles_templ;           // = "udp_received_msg_%03d.msg" // Input msgpack files *.msg to read in offline/test mode
+        std::vector<std::string> input_msgfiles;    // Input msgpack files *.msg to read in offline mode
+        bool mrs100_post_start_stop;                // Post start and stop commands to start/stop multiScan136 using Rest-API
+        std::string mrs100_ip;                      // IP address of multiScan136 to post start and stop commands using Rest-API
+        std::string mrs100_dst_ip;                  // UDP destination IP address (ip address of udp receiver)
+        int mrs100_port;                            // IP port of multiScan136 to post start and stop commands using Rest-API
+        bool mrs100_send_udp_start;                 // Send udp start string to multiScan136, default: True
+        std::string mrs100_send_udp_start_string;   // udp string to start multiScan136, default: "magicalActivate"
+
+        // SOPAS settings
+        std::string sopas_tcp_port;                 // TCP port for SOPAS commands, default port: 2111
+        bool start_sopas_service;                   // True: sopas services for CoLa-commands are started (ROS only), default: true
+        bool send_sopas_mrs100_start_stop_cmd;      // True: multiScan136 start and stop command sequece ("sWN ScanDataEnable 0/1" etc.) are sent after driver start and stop, default: true
+        bool sopas_cola_binary;                     // False: SOPAS uses CoLa-A (ascii, default, recommended), CoLa-B (true, binary) currently experimental
+        int sopas_timeout_ms;                       // Timeout for SOPAS response in milliseconds, default: 5000
+        std::string client_authorization_pw = "F4724744"; // Default password for client authorization
+
+        // MSR100 filter settings
+        bool mrs100_read_filtersettings;             // True  // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true
+        int mrs100_FREchoFilter;                     // 1     // Optionally set FREchoFilter with 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+        bool mrs100_set_FREchoFilter;                // False // If true, FREchoFilter is set at startup (default: false)
+        std::string mrs100_LFPangleRangeFilter;      // "0 -180.0 +180.0 -90.0 +90.0 1" // Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+        bool mrs100_set_LFPangleRangeFilter;         // False // If true, LFPangleRangeFilter is set at startup (default: false)
+        std::string mrs100_LFPlayerFilter;           // "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" // Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+        bool mrs100_set_LFPlayerFilter;              // False // If true, LFPlayerFilter is set at startup (default: false)
+
+        // msgpack validation
+        bool msgpack_validator_enabled; // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
+        int msgpack_validator_verbose;  // 0: print error messages, 1: print error and informational messages, 2: print error and all messages
+        bool msgpack_validator_discard_msgpacks_out_of_bounds; // true: msgpacks are discarded if scan data out of bounds detected, false: error message if a msgpack is not validated
+        int msgpack_validator_check_missing_scandata_interval; // check msgpack for missing scandata after collecting N msgpacks, default: N = 12 segments. Increase this value to tolerate udp packet drops. Use 12 to check each full scan.
+        MsgpackValidatorFilterConfig msgpack_validator_filter_settings; // required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
+        std::vector<int> msgpack_validator_valid_segments; // indices of valid segmentes, default for full scan: 12 segments, i.e. { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }
+
+        NodePtr node;                               // ROS node handle (always 0 on non-ros-targets)
+
+    }; // class Config
+
+    /*
+    * @brief Config utility functions
+    */
+    namespace util
+    {
+
+        /** Splits a string into substrings by a given delimiter */
+        inline void parseVector(const std::string str, std::vector<std::string>& vec, char delim = ' ')
+        {
+            vec.clear();
+            std::istringstream in_stream(str);
+            std::string token;
+            while (std::getline(in_stream, token, delim))
+            {
+                vec.push_back(token);
+            }
+        }
+
+        /** Splits a string into a list of float values */
+        inline void parseVector(const std::string str, std::vector<float>& vec, char delim = ' ')
+        {
+            vec.clear();
+            std::vector<std::string> token;
+            sick_lidar3d::util::parseVector(str, token, delim);
+            for(int n = 0; n < token.size(); n++)
+                vec.push_back(std::stof(token[n]));
+        }
+
+        /** Splits a string into a list of int values */
+        inline void parseVector(const std::string str, std::vector<int>& vec, char delim = ' ')
+        {
+            vec.clear();
+            std::vector<std::string> token;
+            sick_lidar3d::util::parseVector(str, token, delim);
+            for(int n = 0; n < token.size(); n++)
+                vec.push_back(std::stoi(token[n]));
+        }
+
+        /** Prints a list of values to string */
+        template <typename T> inline std::string printVector(const std::vector<T>& vec, const std::string& delim = " ")
+        {
+            std::stringstream s;
+            for(int n = 0; n < vec.size(); n++)
+                s << (n > 0 ? delim : "") << vec[n];
+            return s.str();
+        }
+
+
+    } // namespace util
+
+} // namespace sick_lidar3d
+#endif // __SICK_LIDAR3D_COMMON_H

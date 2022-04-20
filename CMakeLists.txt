@@ -21,6 +21,15 @@ else()
     option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" ON)
 endif()
 
+# MRS100/LIDAR3D/MULTISCAN136 build options
+if(LIDAR3D EQUAL 1)
+    option(BUILD_WITH_LIDAR3D_SUPPORT "Build sick_scan_xd with LIDAR3D support" ON) # Test only, currently under development...
+elseif(LIDAR3D EQUAL 0)
+    option(BUILD_WITH_LIDAR3D_SUPPORT "Build sick_scan_xd without LIDAR3D support" OFF)
+else()
+    option(BUILD_WITH_LIDAR3D_SUPPORT "Build sick_scan_xd with LIDAR3D support" OFF) # ON)
+endif()
+
 # Debug or Release build options
 option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (development)
 
@@ -86,16 +95,16 @@ endif()
 # endforeach()
 # --- CUT ---
 
-# For warning <catkin_workspace>/devel/include' should be placed in
-# the devel space instead of the build space
-# see: https://answers.ros.org/question/67244/qtcreator-with-catkin/
-# message(${CMAKE_BINARY_DIR})
-# set(CATKIN_DEVEL_PREFIX "${CMAKE_BINARY_DIR}/devel")
-# set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/devel;/opt/ros/melodic")
-
-if(ENABLE_EMULATOR)
-        find_package(jsoncpp REQUIRED) # install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" (Linux) resp. "vcpkg install jsoncpp:x64-windows" (Windows)
-endif(ENABLE_EMULATOR)
+# jsoncpp required for emulator and lidar3d
+if(ENABLE_EMULATOR OR BUILD_WITH_LIDAR3D_SUPPORT)
+    # libcurl and jsoncpp
+    find_package(jsoncpp REQUIRED) # install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" (Linux) resp. "vcpkg install jsoncpp:x64-windows" (Windows) 
+    if(WIN32)
+      set(LIB_JSONCPP jsoncpp_lib)
+    else()
+      set(LIB_JSONCPP jsoncpp_lib)
+    endif()
+endif()
 
 if(ROS_VERSION EQUAL 1)
     find_package(catkin REQUIRED COMPONENTS
@@ -110,6 +119,7 @@ if(ROS_VERSION EQUAL 1)
         sensor_msgs
         visualization_msgs
         message_generation
+        message_runtime
         tf
         tf2
         )
@@ -275,13 +285,14 @@ if(ROS_VERSION EQUAL 2)
     # find_package(Boost REQUIRED COMPONENTS filesystem system serialization) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
+# Support for LDMRS
 if(BUILD_WITH_LDMRS_SUPPORT)
     message(STATUS "Building sick_scan with LDMRS support")
     add_compile_options(-DLDMRS_SUPPORT=1)
     find_package(SickLDMRS REQUIRED)
     # find_package(Boost REQUIRED COMPONENTS filesystem system serialization)
     # find_package(PCL REQUIRED) # workaround https://github.com/ros2/rosidl/issues/402 : Do find_package(PCL) after calling rosidl_generate_interfaces in your CMakeLists.txt
-    set(LDMRS_INCLUDES ${SICK_LDMRS_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
+    set(LDMRS_INCLUDES ${SICK_LDMRS_INCLUDE_DIRS}) # ${PCL_INCLUDE_DIRS})
     set(LDMRS_SOURCES driver/src/ldmrs/sick_ldmrs_config.cpp driver/src/ldmrs/sick_ldmrs_driver.cpp driver/src/ldmrs/sick_ldmrs_node.cpp)
     set(LDMRS_TARGET_DEPENDENCIES SickLDMRS)
     # set(SICK_LDMRS_LIBRARIES ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES})
@@ -291,6 +302,50 @@ if(BUILD_WITH_LDMRS_SUPPORT)
     message(STATUS "SICK_LDMRS_LIBRARIES: ${SICK_LDMRS_LIBRARIES}")
 else()
     message(STATUS "Building sick_scan without ldmrs support")
+endif()
+
+# Support for MRS100/LIDAR3D/MULTISCAN136
+if(BUILD_WITH_LIDAR3D_SUPPORT)
+    message(STATUS "Building sick_scan with lidar3d support")
+    add_compile_options(-DLIDAR3D_SUPPORT=1)
+    # libcurl and jsoncpp
+    find_package(CURL REQUIRED)    # install libcurl by running "sudo apt-get install libcurl-dev" (Linux) resp. "vcpkg install curl[tool]:x64-windows" (Windows)
+    if(WIN32)
+      set(LIB_CURL libcurl)
+    else()
+      set(LIB_CURL curl)
+    endif()
+    # msgpack11
+    if(ROS_VERSION GREATER 0)
+        set(MSGPACK11_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/../msgpack11/include")
+        set(MSGPACK11_LIBRARY_DIR "${CMAKE_INSTALL_PREFIX}/../msgpack11/lib")
+    else()
+        set(MSGPACK11_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/../msgpack11")
+        set(MSGPACK11_LIBRARY_DIR "${PROJECT_BINARY_DIR}/../msgpack11/$<CONFIGURATION>")
+    endif()
+    if(WIN32)
+        set(MSGPACK11_LIBRARIES "msgpack11.lib")
+    else()
+        set(MSGPACK11_LIBRARY_DIR "${PROJECT_BINARY_DIR}/../msgpack11")
+        set(MSGPACK11_LIBRARIES "libmsgpack11.a")
+    endif()
+    include_directories(${MSGPACK11_INCLUDE_DIR})
+    link_directories(${MSGPACK11_LIBRARY_DIR})
+    # lidar3d sources
+    file(GLOB LIDAR3D_SOURCES driver/src/sick_lidar3d/*.cpp)
+    # lidar3d emulator and test executables
+    if(ENABLE_EMULATOR)
+        add_executable(lidar3d_mrs100_recv test/src/sick_lidar3d/lidar3d_mrs100_recv.cpp)
+        target_link_libraries(lidar3d_mrs100_recv sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES} ${LIB_CURL} ${LIB_JSONCPP})
+        add_dependencies(lidar3d_mrs100_recv sick_scan_lib)
+        if(ROS_VERSION EQUAL 1)
+            install(TARGETS lidar3d_mrs100_recv RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+        else()
+            install(TARGETS lidar3d_mrs100_recv RUNTIME DESTINATION lib/${PROJECT_NAME})
+        endif()
+    endif(ENABLE_EMULATOR)
+else()
+    message(STATUS "Building sick_scan without lidar3d support")
 endif()
  
 if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
@@ -375,7 +430,7 @@ if(ROS_VERSION EQUAL 1)
     )
 
     catkin_package(
-        CATKIN_DEPENDS message_runtime roscpp sensor_msgs ${diagnostic_updater_pkg} dynamic_reconfigure pcl_conversions pcl_ros tf tf2
+        CATKIN_DEPENDS message_runtime roscpp sensor_msgs ${diagnostic_updater_pkg} dynamic_reconfigure tf tf2 # pcl_conversions pcl_ros tf tf2
         LIBRARIES sick_scan_lib sick_scan_shared_lib
         INCLUDE_DIRS include
     )
@@ -428,6 +483,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/tinyxml/tinyxmlerror.cpp
         driver/src/tinyxml/tinyxmlparser.cpp
         ${LDMRS_SOURCES}
+        ${LIDAR3D_SOURCES}
         ${SRC_WIN_FILES}
     )
     add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
@@ -442,12 +498,12 @@ if(ROS_VERSION EQUAL 1)
         ${catkin_EXPORTED_TARGETS}
         ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
-    target_link_libraries(sick_scan_lib ${catkin_LIBRARIES})
-    target_link_libraries(sick_scan_shared_lib ${catkin_LIBRARIES})
+    target_link_libraries(sick_scan_lib ${MSGPACK11_LIBRARIES} ${LIB_CURL} ${LIB_JSONCPP} ${catkin_LIBRARIES})
+    target_link_libraries(sick_scan_shared_lib ${MSGPACK11_LIBRARIES} ${LIB_CURL} ${LIB_JSONCPP} ${catkin_LIBRARIES})
 
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
     
-    target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES})
+    target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES} ${LIB_CURL} ${LIB_JSONCPP})
     
     #
     #  radar_object_marker (receives radar msg. and publishes marker array for rviz or similar
@@ -520,7 +576,8 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/tcp/toolbox.cpp
         driver/src/softwarePLL.cpp
         driver/src/helper/angle_compensator.cpp
-        ${LDMRS_SOURCES} 
+        ${LDMRS_SOURCES}
+        ${LIDAR3D_SOURCES}
         ${SRC_ROSSIMU_FILES}
         ${SRC_WIN_FILES}
     )
@@ -529,7 +586,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
 
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
 
-    target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES})
+    target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES} ${LIB_CURL} ${LIB_JSONCPP})
 
 endif()
 
@@ -659,8 +716,10 @@ if(ENABLE_EMULATOR AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator 
     target_link_libraries(sick_scan_emulator
         ${catkin_LIBRARIES}
         ${roslib_LIBRARIES}
-        jsoncpp_lib # ${jsoncpp_LIBRARIES}
-        sick_scan_lib)
+        sick_scan_lib
+        ${MSGPACK11_LIBRARIES} 
+        ${LIB_CURL}
+        ${LIB_JSONCPP})
     target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
     
     if(ROS_VERSION EQUAL 1)
@@ -694,7 +753,7 @@ if(ENABLE_EMULATOR)
         tools/test_server/src/test_server_ldmrs_msg.cpp 
         tools/test_server/src/test_server_thread.cpp
         test/emulator/src/server_socket.cpp)
-    target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES})
+    target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES} ${LIB_CURL} ${LIB_JSONCPP})
     target_include_directories(test_server PUBLIC test test/emulator/include)
     if(ROS_VERSION EQUAL 2)
         ament_target_dependencies(test_server "rclcpp" ) # "Boost")
