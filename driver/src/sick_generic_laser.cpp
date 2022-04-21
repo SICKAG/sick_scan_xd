@@ -111,7 +111,7 @@ class GenericLaserCallable
 {
 public:
   GenericLaserCallable(int _argc, char** _argv, std::string _nodeName, rosNodePtr _nhPriv, int* _exit_code)
-  : argc(_argc), argv(_argv), nodeName(_nodeName), nhPriv(_nhPriv), exit_code(_exit_code) 
+  : argc(_argc), argv(_argv), nodeName(_nodeName), nhPriv(_nhPriv), exit_code(_exit_code)
   {
     generic_laser_thread = new std::thread(&GenericLaserCallable::mainGenericLaserCb, this);
   }
@@ -123,10 +123,10 @@ public:
   {
     generic_laser_thread->join();
   }
-  int argc; 
-  char** argv; 
-  std::string nodeName; 
-  rosNodePtr nhPriv; 
+  int argc;
+  char** argv;
+  std::string nodeName;
+  rosNodePtr nhPriv;
   int* exit_code;
   std::thread* generic_laser_thread;
 };
@@ -506,7 +506,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
     pointcloud_monitor->startPointCloudMonitoring(nhPriv, pointcloud_monitoring_timeout_millisec, cloud_topic);
 #endif
   }
-  
+
   bool start_services = true;
   sick_scan::SickScanServices* services = 0;
   exit_code = sick_scan::ExitError;
@@ -518,7 +518,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   {
     //if (rosOk())
     //  timestamp_rosOk = std::chrono::system_clock::now();
-    //else if (std::chrono::duration<double>(std::chrono::system_clock::now() - timestamp_rosOk).count() > 2 * 1000) // 2 seconds timeout to stop the scanner 
+    //else if (std::chrono::duration<double>(std::chrono::system_clock::now() - timestamp_rosOk).count() > 2 * 1000) // 2 seconds timeout to stop the scanner
     //  runState = scanner_finalize;
 
     switch (runState)
@@ -567,6 +567,11 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
             runState = scanner_finalize;
           }
           runState = scanner_run; // after initialising switch to run state
+#if __ROS_VERSION > 0
+          ROS_INFO_STREAM("Setup completed, sick_scan_xd is up and running. Pointcloud is published on topic \"" << cloud_topic << "\"");
+#else
+          ROS_INFO("Setup completed, sick_scan_xd is up and running.");
+#endif
         }
         else
         {
@@ -582,7 +587,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
             rosSpinOnce(nhPriv);
           }
           exit_code = s_scanner->loopOnce(nhPriv);
-          
+
           if(scan_msg_monitor && message_monitoring_enabled) // Monitor scanner messages
           {
             exit_code = scan_msg_monitor->checkStateReinitOnError(nhPriv, runState, s_scanner, parser, services);
