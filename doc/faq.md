@@ -89,6 +89,43 @@ Thanks to user JWhitleyWork.
 2. Remove the folders sick_scan_xd/build, sick_scan_xd/build_isolated, sick_scan_xd/devel, sick_scan_xd/devel_isolated, sick_scan_xd/install and sick_scan_xd/install_isolated
 3. Rebuild
 
+:question: cmake can't find diagnostic_updater on ROS-2 foxy
+
+:white_check_mark: On ROS-2 foxy, package diagnostic_updater needs to be installed by
+```
+sudo apt-get install ros-foxy-diagnostic-updater
+```
+
+:question: catkin gives me the following error message:
+`By not providing “FindSICKLDMRS.cmake” in CMAKE_MODULE_PATH this project ……, but CMake did not find one.”`
+
+:white_check_mark:  One problem with ROS is that it doesn't automatically rebuild everything if you just append "-DLMRRS=0".
+If you accidentally did the following call before
+```
+catkin_make_isolated --install --cmake-args -DROS_VERSION=1
+```
+you must remove the build/devel/install-directories created by the ROS build process.
+For this please run the following commands to remove the directories, which holds the previous build results:
+```
+cd ~/ros_catkin_ws
+rm -rf build_isolated
+rm -rf devel_isolated
+rm -rf install_isolated
+rm -rf devel
+```
+It is possible that not all directories are present in this list. But that does not matter.
+The only subdirectory left should be "src".
+You can check this with the following command:
+```
+ls */ -d
+```
+The output should be:
+```
+src/
+```
+After doing this please rerun the command
+catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0
+
 ## rviz shows a grey point cloud
 
 :question: rviz shows a grey point cloud. The size of points can be adjusted.

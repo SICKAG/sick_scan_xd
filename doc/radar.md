@@ -175,7 +175,12 @@ The following launch files serve as examples for use:
 * sick_rms_3xx_emul.launch: Additionally an emulation was created, which allows testing the interface chain without a physical radar.
 
 ### Data visualization example video
-[Can be found here](200326_5_video_track.mp4)
+
+[A video example can be found here](200326_5_video_track.mp4).
+
+The following figure shows a viz-screenshot of the pointcloud:
+
+![radar_rviz](radar_rviz.png)
 
 ## Parameter for Radar Usage
 The following parameters are support by the node **sick_generic_caller** in

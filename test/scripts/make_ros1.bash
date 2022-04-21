@@ -1,6 +1,6 @@
 #!/bin/bash
 pushd ../../../..
-source /opt/ros/melodic/setup.bash
+source /opt/ros/noetic/setup.bash
 rm -f ./build/catkin_make_install.log
 
 #

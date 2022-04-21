@@ -290,10 +290,14 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
    call .\install\setup.bat
    ```
 
-## IMU Support
+## IMU support
 
 Devices of the MRS6xxx and MRS1xxx series are available with an optionally built-in IMU.
 Further information on the implementation and use of the experimental Imu support can be found on the [Imu page](doc/IMU.md).
+
+## Radar support
+
+See [radar documentation](doc/radar.md) for RMS1xxx and RMS3xx support.
 
 ## Run sick_scan driver
 
