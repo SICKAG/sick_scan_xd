@@ -130,6 +130,10 @@ namespace sick_scan
                     SoftwarePLL::instance().packets_received++;
                     if (bRet == false)
                     {
+                      if(SoftwarePLL::instance().packets_received <= 1)
+                      {
+                        ROS_INFO("Software PLL locking started, mapping ticks to system time.");
+                      }
                       int packets_expected_to_drop = SoftwarePLL::instance().fifoSize - 1;
                       SoftwarePLL::instance().packets_dropped++;
                       size_t packets_dropped = SoftwarePLL::instance().packets_dropped;
@@ -140,7 +144,7 @@ namespace sick_scan
                       }
                       else if (packets_dropped == packets_expected_to_drop)
                       {
-                        ROS_INFO("Software PLL is expected to be ready now!");
+                        ROS_INFO("Software PLL is ready and locked now!");
                       }
                       else if (packets_dropped > packets_expected_to_drop && packets_received > 0)
                       {

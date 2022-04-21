@@ -2996,7 +2996,7 @@ namespace sick_scan
               }
               else if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
               {
-                lmp_scancfg_sector.start_angle = -500000;
+                lmp_scancfg_sector.start_angle = -50000;
                 lmp_scancfg_sector.stop_angle = +1850000;
               }
               lmp_scancfg.sector_cfg.push_back(lmp_scancfg_sector);

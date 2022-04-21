@@ -567,6 +567,11 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
             runState = scanner_finalize;
           }
           runState = scanner_run; // after initialising switch to run state
+#if __ROS_VERSION > 0
+          ROS_INFO_STREAM("Setup completed, sick_scan_xd is up and running. Pointcloud is published on topic \"" << cloud_topic << "\"");
+#else
+          ROS_INFO("Setup completed, sick_scan_xd is up and running.");
+#endif          
         }
         else
         {
