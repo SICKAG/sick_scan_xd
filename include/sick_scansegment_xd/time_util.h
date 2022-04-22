@@ -1,5 +1,5 @@
 /*
- * @brief mrs100_curl implements a rest-api to post start and stop commands to the multiScan136.
+ * @brief time_util.h implements utility functions for time measurement and profiling.
  *
  * Copyright (C) 2020 Ing.-Buero Dr. Michael Lehning, Hildesheim
  * Copyright (C) 2020 SICK AG, Waldkirch
@@ -52,33 +52,91 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_MRS_CURL_H
-#define __SICK_LIDAR3D_MRS_CURL_H
+#ifndef __SICK_SCANSEGMENT_XD_TIME_UTIL_H
+#define __SICK_SCANSEGMENT_XD_TIME_UTIL_H
 
-#include <string>
+#include "sick_scansegment_xd/common.h"
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
-    class MRS100CURL
+    /*
+     * class TimingStatistics is a utility class to measure basic statistics (mean, max, stddev and histogram) for the duration of a msgpack in milliseconds.
+     */
+    class TimingStatistics
     {
     public:
 
         /*
-         * @brief Posts the start command to multiScan136
-         * @param[in] mrs100_ip ip address of a multiScan136, f.e. "127.0.0.1" (localhost, loopback) for an emulator or "192.168.0.1" for multiScan136
-         * @param[in] mrs100_dst_ip UDP destination IP address ()
-         * @param[in] udp_port ip port, f.e. 2115 (default port for multiScan136 emulator)
+         * Default constructor, initializes all member with 0
          */
-        static bool postStart(const std::string& mrs100_ip = "192.168.0.1", const std::string& mrs100_dst_ip = "", int udp_port = 2115);
+        TimingStatistics() : m_cnt(0), m_sum(0), m_sum_sq(0), m_max(0), m_hist(11) {}
 
         /*
-         * @brief Posts the stop command to multiScan136
-         * @param[in] ip ip address of a multiScan136, f.e. "127.0.0.1" (localhost, loopback) for an emulator or "192.168.0.1" for multiScan136
-         * @param[in] udp_port ip port, f.e. 2115 (default port for multiScan136 emulator)
+         * Adds a duration in milliseconds to the time statistics
          */
-        static bool postStop(const std::string& ip = "192.168.0.1", int udp_port = 2115);
+        void AddTimeMilliseconds(double t)
+        {
+            m_sum += t;
+            m_sum_sq += (t * t);
+            m_max = std::max(m_max, t);
+            int hist_idx = std::min((int)t, (int)m_hist.size() - 1);
+            m_hist[hist_idx] += 1;
+            m_cnt++;
+        }
 
-    };  // class MRS100CURL
+        /*
+         * Returns the mean duration in milliseconds
+         */
+        double MeanMilliseconds(void) const
+        {
+            if(m_cnt > 0)
+            {
+                return m_sum / (double)m_cnt;
+            }
+            return 0;
+        }
 
-}   // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_MRS_CURL_H
+        /*
+         * Returns the standard deviation of all durations in milliseconds
+         */
+        double StddevMilliseconds(void) const
+        {
+            if (m_cnt > 1)
+            {
+                double var = (m_sum_sq - (m_sum * m_sum) / m_cnt) / (m_cnt - 1);
+                return std::sqrt(var);
+            }
+            return 0;
+        }
+
+        /*
+         * Returns the max duration in milliseconds
+         */
+        double MaxMilliseconds(void)  const
+        {
+            return m_max;
+        }
+
+        /*
+         * Prints the duration histogram to string, f.e. "10,5,6,...,3" means 10 durations between 0 and 1 ms, 5 durations between 1 and 2 ms, 3 durations greater 10 ms.
+         */
+        std::string PrintHistMilliseconds(const std::string& separator = ",") const
+        {
+            std::stringstream s;
+            s << m_hist[0];
+            for (size_t n = 1; n < m_hist.size(); n++)
+                s << separator << m_hist[n];
+            return s.str();
+        }
+
+    protected:
+
+        size_t m_cnt;
+        double m_sum;
+        double m_sum_sq;
+        double m_max;
+        std::vector<int> m_hist;
+    };  // class TimingStatistics
+
+} // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_TIME_UTIL_H

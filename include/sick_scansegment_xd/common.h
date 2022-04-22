@@ -1,5 +1,5 @@
 /*
- * @brief common.h contains basic and common definition for project sick_lidar3d
+ * @brief common.h contains basic and common definition for project sick_scansegment_xd
  * to support the sick 3D lidar multiScan136.
  *
  * Copyright (C) 2020 Ing.-Buero Dr. Michael Lehning, Hildesheim
@@ -53,8 +53,8 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_COMMON_H
-#define __SICK_LIDAR3D_COMMON_H
+#ifndef __SICK_SCANSEGMENT_XD_COMMON_H
+#define __SICK_SCANSEGMENT_XD_COMMON_H
 
 #define _USE_MATH_DEFINES
 #include <algorithm>
@@ -91,40 +91,21 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
-typedef rclcpp::Node::SharedPtr NodePtr;
 typedef sensor_msgs::msg::PointCloud2 PointCloud2Msg;
 typedef rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr PointCloud2MsgPublisher;
 typedef sensor_msgs::msg::PointField PointField;
 typedef rclcpp::Clock rosClock;
 typedef rclcpp::QoS rosQoS;
-#define LIDAR3D_INFO_STREAM(msgstream)  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_lidar3d"),msgstream)
-#define LIDAR3D_WARN_STREAM(msgstream)  RCLCPP_WARN_STREAM(rclcpp::get_logger("sick_lidar3d"),msgstream)
-#define LIDAR3D_ERROR_STREAM(msgstream) RCLCPP_ERROR_STREAM(rclcpp::get_logger("sick_lidar3d"),msgstream)
-//#define rosShutdown() rclcpp::shutdown()
 
 #elif defined __ROS_VERSION && __ROS_VERSION > 0
 
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
-typedef ros::NodeHandle* NodePtr;
 typedef sensor_msgs::PointCloud2 PointCloud2Msg;
 typedef ros::Publisher PointCloud2MsgPublisher;
 typedef sensor_msgs::PointField PointField;
 typedef ros::Time rosClock;
 typedef int rosQoS;
-#define LIDAR3D_INFO_STREAM  ROS_INFO_STREAM
-#define LIDAR3D_WARN_STREAM  ROS_WARN_STREAM
-#define LIDAR3D_ERROR_STREAM ROS_ERROR_STREAM
-//#define rosShutdown() ros::shutdown()
-
-#else
-
-typedef void* NodePtr; // always 0 on targets not using ROS
-#define LIDAR3D_LOG_STREAM(ostream,msgstream) do{ std::stringstream ss; ss << msgstream; ostream << ss.str() << std::endl; } while(0)
-#define LIDAR3D_INFO_STREAM(msgstream)  LIDAR3D_LOG_STREAM(std::cout,msgstream)
-#define LIDAR3D_WARN_STREAM(msgstream)  LIDAR3D_LOG_STREAM(std::cout,msgstream)
-#define LIDAR3D_ERROR_STREAM(msgstream) LIDAR3D_LOG_STREAM(std::cerr,msgstream)
-//#define rosShutdown()
 
 #endif
 
@@ -133,7 +114,7 @@ typedef std::chrono::time_point<std::chrono::system_clock> chrono_system_time;
 // typedef std::chrono::high_resolution_clock chrono_highres_clock;
 // typedef std::chrono::time_point<std::chrono::high_resolution_clock> chrono_highres_time;
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
     /*
      * @brief Returns the duration in seconds
@@ -207,5 +188,5 @@ namespace sick_lidar3d
         return name;
     }
 
-} // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_COMMON_H
+} // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_COMMON_H

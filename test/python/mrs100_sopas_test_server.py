@@ -1,6 +1,6 @@
 """
     A simple sopas test server. A listening tcp socket is opened, incoming connections are accepted and some basic cola telegrams are responded on client requests.
-    Note: This is just a simple test server for basic unittests of sick_lidar3d cola commands. It does not emulate any device.
+    Note: This is just a simple test server for basic unittests of sick_scansegment_xd cola commands. It does not emulate any device.
 
     Usage:
     python sopas_test_server.py --tcp_port=<int> --cola_binary=<int>

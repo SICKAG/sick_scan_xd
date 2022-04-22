@@ -1,5 +1,5 @@
 /*
- * @brief python_wrapper wraps matplotlib and python calls using pythons C++ API.
+ * @brief udp_poster implements udp posts to start and stop multiScan136.
  *
  * Copyright (C) 2020 Ing.-Buero Dr. Michael Lehning, Hildesheim
  * Copyright (C) 2020 SICK AG, Waldkirch
@@ -52,36 +52,75 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_PYTHON_WRAPPER_H
-#define __SICK_LIDAR3D_PYTHON_WRAPPER_H
+#ifndef __SICK_SCANSEGMENT_XD_UDP_POSTER_H
+#define __SICK_SCANSEGMENT_XD_UDP_POSTER_H
 
-#ifdef USE_PYTHON
-#include <sstream>
-#include <string>
-#include <Python.h>
+#include "sick_scansegment_xd/common.h"
 
-#ifdef USE_MATPLOTLIBCPP
-#define WITHOUT_NUMPY
-#include "matplotlibcpp.h"
-#endif
-
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
-    class PythonWrapper
+    /*
+     * @brief forward declaration of an udp sender socket implementation.
+     * Used internally in the UdpPoster.
+     */
+    class UdpSenderSocketImpl;
+
+    /*
+     * @brief forward declaration of an udp receiver socket implementation.
+     * Used internally in the UdpPoster.
+     */
+    class UdpReceiverSocketImpl;
+
+    /*
+     * @brief class UdpReceiver receives msgpack raw data by udp.
+     * It implements a udp client, connects to multiScan136 (or any other udp-) sender,
+     * receives and buffers msgpack raw data.
+     */
+    class UdpPoster
     {
     public:
 
-        static void Init(const char* program_name)
-        {
-            std::wstringstream ws_program_name;
-            ws_program_name << program_name;
-            const wchar_t* w_argv[1] = { ws_program_name.str().c_str() };
-            Py_SetProgramName((wchar_t*)ws_program_name.str().c_str());
-            Py_Initialize();
-            PySys_SetArgvEx(1, (wchar_t**)w_argv, 0);
-        }
-    };
+        /*
+         * @brief Default constructor.
+         * @param[in] ip ip address of a multiScan136, f.e. "127.0.0.1" (localhost, loopback) for an emulator or "192.168.0.1" for multiScan136
+         * @param[in] udp_port ip port, f.e. 2115 (default port for multiScan136 emulator)
+         */
+        UdpPoster(const std::string& ip = "192.168.0.1", int udp_port = 2115);
 
-} // namespace sick_lidar3d
-#endif // USE_PYTHON
-#endif // __SICK_LIDAR3D_PYTHON_WRAPPER_H
+        /*
+         * @brief Default destructor.
+         */
+        ~UdpPoster();
+
+        /*
+         * @brief Returns the ip address to send udp messages.
+         */
+        const std::string& IP(void) const;
+
+        /*
+         * @brief Returns the port to send udp messages.
+         */
+        const int& Port(void) const;
+
+        /*
+         * @brief Posts a request message.
+         * @param[in] request message to send
+         * @param[in] response message received
+         * @return true on success, otherwise false
+         */
+        bool Post(const std::string& request, std::string& response);
+
+    private:
+
+        /*
+         * Member data to run a udp receiver
+         */
+        std::string m_ip; // ip address of a multiScan136 to to send upd messages.
+        int m_port;       // udp port to send and receive
+        UdpSenderSocketImpl* m_sender_impl;     // implementation of the udp sender socket
+        UdpReceiverSocketImpl* m_receiver_impl; // implementation of the udp receiver socket
+
+    };  // class UdpPoster
+
+}   // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_UDP_RECEIVER_H

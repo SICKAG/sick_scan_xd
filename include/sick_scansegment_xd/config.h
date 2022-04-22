@@ -1,5 +1,5 @@
 /*
- * @brief config.h implements the configuration (yaml, commandline and default parameters) for project sick_lidar3d.
+ * @brief config.h implements the configuration (yaml, commandline and default parameters) for project sick_scansegment_xd.
  *
  * Copyright (C) 2020 Ing.-Buero Dr. Michael Lehning, Hildesheim
  * Copyright (C) 2020 SICK AG, Waldkirch
@@ -52,12 +52,13 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_CONFIG_H
-#define __SICK_LIDAR3D_CONFIG_H
+#ifndef __SICK_SCANSEGMENT_XD_CONFIG_H
+#define __SICK_SCANSEGMENT_XD_CONFIG_H
 
-#include "sick_lidar3d/common.h"
+#include "sick_scan/sick_ros_wrapper.h"
+#include "sick_scansegment_xd/common.h"
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
     /*
      * @brief Container for filter settings for msgpack validator, returned from  by queryMRS100Filtersettings()
@@ -74,8 +75,8 @@ namespace sick_lidar3d
     };
 
     /*
-     * @brief class sick_lidar3d::Config implements the configuration
-     * (yaml, commandline and default parameters) for project sick_lidar3d.
+     * @brief class sick_scansegment_xd::Config implements the configuration
+     * (yaml, commandline and default parameters) for project sick_scansegment_xd.
      */
     class Config
     {
@@ -92,9 +93,15 @@ namespace sick_lidar3d
         ~Config();
 
         /*
-         * @brief Initializes sick_lidar3d configuration by commandline arguments and yaml-file.
+         * @brief Initializes sick_scansegment_xd configuration by commandline arguments and yaml-file.
          */
         bool Init(int argc, char** argv);
+
+        /*
+         * @brief Initializes sick_scansegment_xd configuration
+         * @param[in] node ROS node handle (always 0 on non-ros-targets)
+         */
+        bool Init(rosNodePtr node);
 
         /*
          * @brief Prints the commandline arguments.
@@ -102,7 +109,12 @@ namespace sick_lidar3d
         void PrintHelp(void);
 
         /*
-         * sick_lidar3d configuration
+         * @brief Prints the current settings.
+         */
+        void PrintConfig(void);
+
+        /*
+         * sick_scansegment_xd configuration
          */
 
         std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a MRS100 lidar or MRS100 emulator
@@ -117,37 +129,32 @@ namespace sick_lidar3d
         int msgpack_output_fifolength;              // = 20; // max. msgpack output fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
         int verbose_level;                          // = 1; // verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1
         bool measure_timing;                        // = true; // measure_timing == true: duration and latency of msgpack conversion and export is measured, default: true
-        bool visualize;                             // = false;  // visualize == true: plot lidarpoints via python wrapper, visualize == false: no diagrams, default: false
         bool export_csv;                            // = false; // export msgpack data to csv file, default: false
         bool export_udp_msg;                        // = false; // true : export binary udpand msgpack data to file(*.udp and* .msg), default: false
-        bool exit_on_keys_esc_q;                    // = true; // exit lidar3d_mrs100_recv after pressing key ESC, 'q' or 'Q'
         std::string logfolder;                      // = "./logfiles"; // output folder for logfiles, default: "."
-        std::string inputfolder_msgfiles;           // = "../../sick_lidar3d/python/polarscan_reader_test/resource"; // Input folder with msgpack files *.msg in offline mode (read from file, decode and optionally export to csv)
-        std::string input_msgfiles_templ;           // = "udp_received_msg_%03d.msg" // Input msgpack files *.msg to read in offline/test mode
-        std::vector<std::string> input_msgfiles;    // Input msgpack files *.msg to read in offline mode
-        bool mrs100_post_start_stop;                // Post start and stop commands to start/stop multiScan136 using Rest-API
-        std::string mrs100_ip;                      // IP address of multiScan136 to post start and stop commands using Rest-API
-        std::string mrs100_dst_ip;                  // UDP destination IP address (ip address of udp receiver)
-        int mrs100_port;                            // IP port of multiScan136 to post start and stop commands using Rest-API
-        bool mrs100_send_udp_start;                 // Send udp start string to multiScan136, default: True
-        std::string mrs100_send_udp_start_string;   // udp string to start multiScan136, default: "magicalActivate"
+        std::string hostname;                       // IP address of multiScan136 to post start and stop commands
+        std::string udp_receiver_ip;                // UDP destination IP address (ip address of udp receiver)
+        int port;                                   // IP port of multiScan136 to post start and stop commands
+        bool send_udp_start;                        // Send udp start string to multiScan136, default: True
+        std::string send_udp_start_string;          // udp string to start multiScan136, default: "magicalActivate"
+        int udp_timeout_ms;                         // Timeout for udp messages in milliseconds, default: 60*1000
 
         // SOPAS settings
         std::string sopas_tcp_port;                 // TCP port for SOPAS commands, default port: 2111
         bool start_sopas_service;                   // True: sopas services for CoLa-commands are started (ROS only), default: true
-        bool send_sopas_mrs100_start_stop_cmd;      // True: multiScan136 start and stop command sequece ("sWN ScanDataEnable 0/1" etc.) are sent after driver start and stop, default: true
+        bool send_sopas_start_stop_cmd;             // True: multiScan136 start and stop command sequece ("sWN ScanDataEnable 0/1" etc.) are sent after driver start and stop, default: true
         bool sopas_cola_binary;                     // False: SOPAS uses CoLa-A (ascii, default, recommended), CoLa-B (true, binary) currently experimental
         int sopas_timeout_ms;                       // Timeout for SOPAS response in milliseconds, default: 5000
         std::string client_authorization_pw = "F4724744"; // Default password for client authorization
 
         // MSR100 filter settings
-        bool mrs100_read_filtersettings;             // True  // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true
-        int mrs100_FREchoFilter;                     // 1     // Optionally set FREchoFilter with 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
-        bool mrs100_set_FREchoFilter;                // False // If true, FREchoFilter is set at startup (default: false)
-        std::string mrs100_LFPangleRangeFilter;      // "0 -180.0 +180.0 -90.0 +90.0 1" // Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
-        bool mrs100_set_LFPangleRangeFilter;         // False // If true, LFPangleRangeFilter is set at startup (default: false)
-        std::string mrs100_LFPlayerFilter;           // "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" // Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
-        bool mrs100_set_LFPlayerFilter;              // False // If true, LFPlayerFilter is set at startup (default: false)
+        bool host_read_filtersettings;             // True  // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true
+        int host_FREchoFilter;                     // 1     // Optionally set FREchoFilter with 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+        bool host_set_FREchoFilter;                // False // If true, FREchoFilter is set at startup (default: false)
+        std::string host_LFPangleRangeFilter;      // "0 -180.0 +180.0 -90.0 +90.0 1" // Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+        bool host_set_LFPangleRangeFilter;         // False // If true, LFPangleRangeFilter is set at startup (default: false)
+        std::string host_LFPlayerFilter;           // "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" // Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+        bool host_set_LFPlayerFilter;              // False // If true, LFPlayerFilter is set at startup (default: false)
 
         // msgpack validation
         bool msgpack_validator_enabled; // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
@@ -157,7 +164,7 @@ namespace sick_lidar3d
         MsgpackValidatorFilterConfig msgpack_validator_filter_settings; // required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
         std::vector<int> msgpack_validator_valid_segments; // indices of valid segmentes, default for full scan: 12 segments, i.e. { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }
 
-        NodePtr node;                               // ROS node handle (always 0 on non-ros-targets)
+        rosNodePtr node; // NodePtr node; // ROS node handle (always 0 on non-ros-targets)
 
     }; // class Config
 
@@ -184,7 +191,7 @@ namespace sick_lidar3d
         {
             vec.clear();
             std::vector<std::string> token;
-            sick_lidar3d::util::parseVector(str, token, delim);
+            sick_scansegment_xd::util::parseVector(str, token, delim);
             for(int n = 0; n < token.size(); n++)
                 vec.push_back(std::stof(token[n]));
         }
@@ -194,7 +201,7 @@ namespace sick_lidar3d
         {
             vec.clear();
             std::vector<std::string> token;
-            sick_lidar3d::util::parseVector(str, token, delim);
+            sick_scansegment_xd::util::parseVector(str, token, delim);
             for(int n = 0; n < token.size(); n++)
                 vec.push_back(std::stoi(token[n]));
         }
@@ -211,5 +218,5 @@ namespace sick_lidar3d
 
     } // namespace util
 
-} // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_COMMON_H
+} // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_COMMON_H

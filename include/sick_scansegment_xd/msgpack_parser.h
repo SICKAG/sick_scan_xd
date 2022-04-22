@@ -4,20 +4,20 @@
  * Usage example:
  *
  * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
- * sick_lidar3d::MsgPackParserOutput msgpack_output;
- * sick_lidar3d::MsgPackParser::Parse(msgpack_istream, msgpack_output);
+ * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+ * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, msgpack_output);
  *
- * sick_lidar3d::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
+ * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
  *
  * for (int groupIdx = 0; groupIdx < msgpack_output.scandata.size(); groupIdx++)
  * {
  * 	 for (int echoIdx = 0; echoIdx < msgpack_output.scandata[groupIdx].size(); echoIdx++)
  * 	 {
- * 	   std::vector<sick_lidar3d::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
+ * 	   std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
  * 	   std::cout << (groupIdx + 1) << ". group, " << (echoIdx + 1) << ". echo: ";
  * 	   for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
  * 	   {
- * 		  sick_lidar3d::MsgPackParserOutput::PointXYZI& point = scanline[pointIdx];
+ * 		  sick_scansegment_xd::MsgPackParserOutput::PointXYZI& point = scanline[pointIdx];
  * 		  std::cout << (pointIdx > 0 ? "," : "") << "(" << point.x << "," << point.y << "," << point.z << "," << point.i << ")";
  * 	   }
  * 	   std::cout << std::endl;
@@ -75,14 +75,14 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_MSGPACK_PARSER_H
-#define __SICK_LIDAR3D_MSGPACK_PARSER_H
+#ifndef __SICK_SCANSEGMENT_XD_MSGPACK_PARSER_H
+#define __SICK_SCANSEGMENT_XD_MSGPACK_PARSER_H
 
-#include "sick_lidar3d/common.h"
-#include "sick_lidar3d/fifo.h"
-#include "sick_lidar3d/msgpack_validator.h"
+#include "sick_scansegment_xd/common.h"
+#include "sick_scansegment_xd/fifo.h"
+#include "sick_scansegment_xd/msgpack_validator.h"
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
     /*
 	 * @brief class MsgPackParserOutput is the container for unpacked and converted msgpack data for the sick 3D lidar multiScan136.
@@ -176,10 +176,10 @@ namespace sick_lidar3d
          *
          * Usage example:
          *
-         * std::vector<uint8_t> msgpack_data = sick_lidar3d::MsgPackParser::ReadFile("polarscan_testdata_000.msg");
-         * sick_lidar3d::MsgPackParserOutput msgpack_output;
-         * sick_lidar3d::MsgPackParser::Parse(msgpack_data, msgpack_output);
-         * sick_lidar3d::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
+         * std::vector<uint8_t> msgpack_data = sick_scansegment_xd::MsgPackParser::ReadFile("polarscan_testdata_000.msg");
+         * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+         * sick_scansegment_xd::MsgPackParser::Parse(msgpack_data, msgpack_output);
+         * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
          *
          * @param[in+out] msgpack_ifstream the binary input stream delivering the binary msgpack data
          * @param[in] msgpack_timestamp receive timestamp of msgpack_data
@@ -192,7 +192,7 @@ namespace sick_lidar3d
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
         static bool Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
-            sick_lidar3d::MsgPackValidatorData& msgpack_validator_data_collector, const sick_lidar3d::MsgPackValidator& msgpack_validator = sick_lidar3d::MsgPackValidator(), 
+            sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(), 
             bool msgpack_validator_enabled = false, bool discard_msgpacks_not_validated = false,
             bool use_software_pll = true, bool verbose = false);
 
@@ -202,20 +202,20 @@ namespace sick_lidar3d
 		 * Usage example:
 		 * 
 		 * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
-		 * sick_lidar3d::MsgPackParserOutput msgpack_output;
-		 * sick_lidar3d::MsgPackParser::Parse(msgpack_istream, msgpack_output);
+		 * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+		 * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, msgpack_output);
 		 *
-         * sick_lidar3d::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
+         * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
          *
 		 * for (int groupIdx = 0; groupIdx < msgpack_output.scandata.size(); groupIdx++)
 		 * {
 		 * 	 for (int echoIdx = 0; echoIdx < msgpack_output.scandata[groupIdx].size(); echoIdx++)
 		 * 	 {
-		 * 	   std::vector<sick_lidar3d::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
+		 * 	   std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
 		 * 	   std::cout << (groupIdx + 1) << ". group, " << (echoIdx + 1) << ". echo: ";
 		 * 	   for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 		 * 	   {
-		 * 		  sick_lidar3d::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+		 * 		  sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
 		 * 		  std::cout << (pointIdx > 0 ? "," : "") << "(" << point.x << "," << point.y << "," << point.z << "," << point.i << ")";
 		 * 	   }
 		 * 	   std::cout << std::endl;
@@ -233,7 +233,7 @@ namespace sick_lidar3d
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
         static bool Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
-            sick_lidar3d::MsgPackValidatorData& msgpack_validator_data_collector, const sick_lidar3d::MsgPackValidator& msgpack_validator = sick_lidar3d::MsgPackValidator(),
+            sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(),
             bool msgpack_validator_enabled = false, bool discard_msgpacks_not_validated = false, 
             bool use_software_pll = true, bool verbose = false);
 
@@ -249,10 +249,10 @@ namespace sick_lidar3d
          * Usage example:
          *
          * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
-         * sick_lidar3d::MsgPackParserOutput msgpack_output;
-         * sick_lidar3d::MsgPackParser::Parse(msgpack_istream, msgpack_output);
+         * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+         * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, msgpack_output);
          *
-         * sick_lidar3d::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
+         * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
          *
          * @param[in] result converted msgpack data, output from Parse function
          * @param[in] csvFile name of output csv file incl. optional file path
@@ -308,5 +308,5 @@ namespace sick_lidar3d
 
 	};  // class MsgPackParser
 
-}   // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_MSGPACK_PARSER_H
+}   // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_MSGPACK_PARSER_H

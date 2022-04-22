@@ -62,27 +62,27 @@
  */
 #include <float.h>
 
-#include "sick_lidar3d/msgpack_validator.h"
+#include "sick_scansegment_xd/msgpack_validator.h"
 
 /*
  * @brief Default constructor. Class MsgPackValidatorData collects echo_idx, azimuth, elevation and segment_idx
  *        during msgpack parsing for msgpack validation.
  */
-sick_lidar3d::MsgPackValidatorData::MsgPackValidatorData()
+sick_scansegment_xd::MsgPackValidatorData::MsgPackValidatorData()
 {
 }
 
 /*
  * @brief Default destructor.
  */
-sick_lidar3d::MsgPackValidatorData::~MsgPackValidatorData()
+sick_scansegment_xd::MsgPackValidatorData::~MsgPackValidatorData()
 {
 }
 
 /*
  * @brief Updates the azimuth histogram
  */
-void sick_lidar3d::MsgPackValidatorData::update(int echo_idx, int segment_idx, float azimuth, float elevation) 
+void sick_scansegment_xd::MsgPackValidatorData::update(int echo_idx, int segment_idx, float azimuth, float elevation) 
 { 
     m_azimuth_histogram[echo_idx][segment_idx][elevationToInt(elevation)][azimuthToInt(azimuth)] += 1;
 }
@@ -90,7 +90,7 @@ void sick_lidar3d::MsgPackValidatorData::update(int echo_idx, int segment_idx, f
 /*
  * @brief Returns the resolution of azimuth histogram in degree (i.e. 1.0 degree)
  */
-float sick_lidar3d::MsgPackValidatorData::getAzimuthHistogramResolutionDeg(void) const
+float sick_scansegment_xd::MsgPackValidatorData::getAzimuthHistogramResolutionDeg(void) const
 { 
     return AzimuthHistogramResolution;
 }
@@ -98,7 +98,7 @@ float sick_lidar3d::MsgPackValidatorData::getAzimuthHistogramResolutionDeg(void)
 /*
  * @brief Returns the resolution of azimuth histogram in radians (i.e. (PI/180) * 1.0 degree)
  */
-float sick_lidar3d::MsgPackValidatorData::getAzimuthHistogramResolutionRad(void) const
+float sick_scansegment_xd::MsgPackValidatorData::getAzimuthHistogramResolutionRad(void) const
 { 
     return deg2rad(AzimuthHistogramResolution);
 }
@@ -106,7 +106,7 @@ float sick_lidar3d::MsgPackValidatorData::getAzimuthHistogramResolutionRad(void)
 /*
  * @brief Returns the resolution of elevation histogram in degree (i.e. 1.0 degree)
  */
-float sick_lidar3d::MsgPackValidatorData::getElevationHistogramResolutionDeg(void) const
+float sick_scansegment_xd::MsgPackValidatorData::getElevationHistogramResolutionDeg(void) const
 { 
     return ElevationHistogramResolution;
 }
@@ -114,7 +114,7 @@ float sick_lidar3d::MsgPackValidatorData::getElevationHistogramResolutionDeg(voi
 /*
  * @brief Returns the resolution of elevation histogram in degree (i.e. (PI/180) * 1.0 degree)
  */
-float sick_lidar3d::MsgPackValidatorData::getElevationHistogramResolutionRad(void) const
+float sick_scansegment_xd::MsgPackValidatorData::getElevationHistogramResolutionRad(void) const
 { 
     return deg2rad(ElevationHistogramResolution);
 }
@@ -122,7 +122,7 @@ float sick_lidar3d::MsgPackValidatorData::getElevationHistogramResolutionRad(voi
 /*
  * @brief Returns the current data values as human readable string
  */
-std::vector<std::string> sick_lidar3d::MsgPackValidatorData::print(void) const
+std::vector<std::string> sick_scansegment_xd::MsgPackValidatorData::print(void) const
 {
     std::vector<std::string> messages;
     // Loop over Histogram of azimuth angles: azimuth_count = m_azimuth_histogram[echo_idx][segment_idx][elevationToInt(elevation)][azimuthToInt(azimuth)]
@@ -185,7 +185,7 @@ std::vector<std::string> sick_lidar3d::MsgPackValidatorData::print(void) const
  * @param[in] layer_filter 0 (deactivated) or 1 (activated) for each layer, default: all 16 layers activated
  * @param[in] verbose 0: print error messages, 1: print error and informational messages, 2: print error and all messages
  */
-sick_lidar3d::MsgPackValidator::MsgPackValidator(const std::vector<int>& echos, float azimuth_start, float azimuth_end, float elevation_start, float elevation_end, 
+sick_scansegment_xd::MsgPackValidator::MsgPackValidator(const std::vector<int>& echos, float azimuth_start, float azimuth_end, float elevation_start, float elevation_end, 
     const std::vector<int>& segments, const std::vector<int>& layer_filter, int verbose)
 : m_echos_required(echos), m_azimuth_start(azimuth_start), m_azimuth_end(azimuth_end), m_elevation_start(elevation_start), m_elevation_end(elevation_end), 
 m_valid_segments(segments), m_layer_filter(layer_filter), m_verbose(verbose)
@@ -195,7 +195,7 @@ m_valid_segments(segments), m_layer_filter(layer_filter), m_verbose(verbose)
 /*
  * @brief Default destructor.
  */
-sick_lidar3d::MsgPackValidator::~MsgPackValidator()
+sick_scansegment_xd::MsgPackValidator::~MsgPackValidator()
 {
 }
 
@@ -207,7 +207,7 @@ sick_lidar3d::MsgPackValidator::~MsgPackValidator()
  *
  * @return true if validation passed successfully, false otherwise.
  */
-bool sick_lidar3d::MsgPackValidator::validateNotOutOfBound(const MsgPackValidatorData& msgpack_data_received) const
+bool sick_scansegment_xd::MsgPackValidator::validateNotOutOfBound(const MsgPackValidatorData& msgpack_data_received) const
 {
     // loop over histogram of azimuth angles: azimuth_count = getHistogram()[echo_idx][segment_idx][elevationToInt(elevation)][azimuthToInt(azimuth)]
     // and check against configured limits
@@ -236,21 +236,21 @@ bool sick_lidar3d::MsgPackValidator::validateNotOutOfBound(const MsgPackValidato
                         if (std::find(m_echos_required.begin(), m_echos_required.end(), echo_idx) == m_echos_required.end())
                         {
                             success = false;
-			                LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator: echo = " << echo_idx << " unexpected (expected echo: [ " 
+			                ROS_WARN_STREAM("## WARNING MsgPackValidator: echo = " << echo_idx << " unexpected (expected echo: [ " 
                                 << listVector(m_echos_required) << " ]");
                             break;
                         }
                         if (std::find(m_valid_segments.begin(), m_valid_segments.end(), segment_idx) == m_valid_segments.end())
                         {
                             success = false;
-			                LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator: segment = " << segment_idx << " (echo " << echo_idx << ") unexpected (valid segments: [ " 
+			                ROS_WARN_STREAM("## WARNING MsgPackValidator: segment = " << segment_idx << " (echo " << echo_idx << ") unexpected (valid segments: [ " 
                                 << listVector(m_valid_segments) << " ]");
                             break;
                         }
                         if (elevation_rad < m_elevation_start || elevation_rad > m_elevation_end)
                         {
                             success = false;
-			                LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator: elevation = " << (elevation_rad * 180.0 / M_PI) << " deg (echo " << echo_idx << ", segment " << segment_idx 
+			                ROS_WARN_STREAM("## WARNING MsgPackValidator: elevation = " << (elevation_rad * 180.0 / M_PI) << " deg (echo " << echo_idx << ", segment " << segment_idx 
                                 << ") out of limits [ " << (m_elevation_start * 180.0 / M_PI) << ", " << (m_elevation_end * 180.0 / M_PI) << " ] deg.");
                             break;
                         }
@@ -263,21 +263,21 @@ bool sick_lidar3d::MsgPackValidator::validateNotOutOfBound(const MsgPackValidato
                 }
                 if(!out_of_bounds_azimuth_angles.empty())
                 {
-			        LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator: azimuth angles = [ " << listVector(out_of_bounds_azimuth_angles) << " ] deg (echo " << echo_idx << ", segment " << segment_idx << ", elevation " 
+			        ROS_WARN_STREAM("## WARNING MsgPackValidator: azimuth angles = [ " << listVector(out_of_bounds_azimuth_angles) << " ] deg (echo " << echo_idx << ", segment " << segment_idx << ", elevation " 
                         << (elevation_rad * 180.0 / M_PI) << " deg) out of limits [ " << (m_azimuth_start * 180.0 / M_PI) << ", " << (m_azimuth_end * 180.0 / M_PI) << " ] deg.");
                 }
             }
         }
     }
     if (!success)
-        LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator::validateNotOutOfBound() finished with error.");
+        ROS_WARN_STREAM("## WARNING MsgPackValidator::validateNotOutOfBound() finished with error.");
     else if (m_verbose > 1)
-        LIDAR3D_INFO_STREAM("MsgPackValidator::validateNotOutOfBound() finished successfull.");
+        ROS_INFO_STREAM("MsgPackValidator::validateNotOutOfBound() finished successfull.");
     return success;
 }
 
 /** Returns the number of azimuth angles counted in the histogram for a given echo, segment, elevation and azimuth */
-int sick_lidar3d::MsgPackValidator::getAzimuthHistogramCount(const MsgPackValidatorData::AzimuthHistogramPerElevationPerSegmentPerEcho& azimuth_histogram,
+int sick_scansegment_xd::MsgPackValidator::getAzimuthHistogramCount(const MsgPackValidatorData::AzimuthHistogramPerElevationPerSegmentPerEcho& azimuth_histogram,
     int echo_idx, int segment_idx, int elevation_idx, int azimuth_idx) const
 {
     MsgPackValidatorData::AzimuthHistogramPerElevationPerSegmentPerEcho::const_iterator collected_echo = azimuth_histogram.find(echo_idx);
@@ -309,12 +309,12 @@ int sick_lidar3d::MsgPackValidator::getAzimuthHistogramCount(const MsgPackValida
     return 0; // given echo, segment, elevation and azimuth not found in histogram
 }
 
-void sick_lidar3d::MsgPackValidator::printMissingHistogramData(const std::vector<std::string>& messages) const
+void sick_scansegment_xd::MsgPackValidator::printMissingHistogramData(const std::vector<std::string>& messages) const
 {
     if (m_verbose > 1)
     {
         for (int msg_cnt = 0; msg_cnt < messages.size(); msg_cnt++)
-            LIDAR3D_WARN_STREAM("## " << messages[msg_cnt]);
+            ROS_WARN_STREAM("## " << messages[msg_cnt]);
     }
 }
 
@@ -325,7 +325,7 @@ void sick_lidar3d::MsgPackValidator::printMissingHistogramData(const std::vector
  *
  * @return true if validation passed successfully, false otherwise.
  */
-bool sick_lidar3d::MsgPackValidator::validateNoMissingScandata(const MsgPackValidatorData& msgpack_data_collected) const
+bool sick_scansegment_xd::MsgPackValidator::validateNoMissingScandata(const MsgPackValidatorData& msgpack_data_collected) const
 {
     // Idea to validate mspack data for completeness:
     // 1. Received azimuth angles are collected in a histogram over some period for each elevation
@@ -349,7 +349,7 @@ bool sick_lidar3d::MsgPackValidator::validateNoMissingScandata(const MsgPackVali
         MsgPackValidatorData::AzimuthHistogramPerElevationPerSegmentPerEcho::const_iterator collected_echo = azimuth_histogram.find(echo_idx);
         if (collected_echo == azimuth_histogram.cend() || collected_echo->first != echo_idx || collected_echo->second.empty())
         {
-            LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: no scan data found in echo " << echo_idx << ":");
+            ROS_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: no scan data found in echo " << echo_idx << ":");
             printMissingHistogramData(msgpack_data_collected.print());
             return false;
         }
@@ -363,7 +363,7 @@ bool sick_lidar3d::MsgPackValidator::validateNoMissingScandata(const MsgPackVali
             // Check if required segment found in histogram
             if (collected_segment == collected_echo->second.cend() || collected_segment->first != segment_idx || collected_segment->second.empty())
             {
-                /* LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: no scan data found in segment " << segment_idx << " (echo " << echo_idx << "):");
+                /* ROS_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: no scan data found in segment " << segment_idx << " (echo " << echo_idx << "):");
                 printMissingHistogramData(msgpack_data_collected.print());
                 return false; */
                 continue;
@@ -395,7 +395,7 @@ bool sick_lidar3d::MsgPackValidator::validateNoMissingScandata(const MsgPackVali
         }
         if(num_layer_required != num_layer_collected)
         {
-            LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: " << num_layer_required << " layer expected, but " << num_layer_collected << " layer collected.");
+            ROS_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: " << num_layer_required << " layer expected, but " << num_layer_collected << " layer collected.");
             printMissingHistogramData(msgpack_data_collected.print());
             return false;
         }
@@ -409,7 +409,7 @@ bool sick_lidar3d::MsgPackValidator::validateNoMissingScandata(const MsgPackVali
             {
                 // no scan data for this elevation
                 if (m_verbose > 1)
-                    LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: no scan data found for elevation " << msgpack_data_collected.elevationIndexToDeg(elevation_idx) 
+                    ROS_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: no scan data found for elevation " << msgpack_data_collected.elevationIndexToDeg(elevation_idx) 
                         << " [deg] (echo " << echo_idx << ")");
                 elevation_values_missing = true;
                 success = false;
@@ -425,14 +425,14 @@ bool sick_lidar3d::MsgPackValidator::validateNoMissingScandata(const MsgPackVali
                 {
                     // no scan data for this azimuth
                     if (m_verbose > 1)
-                        LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: no scan data found for azimuth " << msgpack_data_collected.azimuthIndexToDeg(azimuth_idx) 
+                        ROS_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata() failed: no scan data found for azimuth " << msgpack_data_collected.azimuthIndexToDeg(azimuth_idx) 
                             << " [deg] (echo " << echo_idx << ", elevation " << msgpack_data_collected.elevationIndexToDeg(elevation_idx) << ")");
                     azimuth_values_missing = true;
                     success = false;
                 }
                 // else
                 // {
-                //     LIDAR3D_INFO_STREAM("elevation " << msgpack_data_collected.elevationIndexToDeg(elevation_idx) << ", azimuth " << msgpack_data_collected.azimuthIndexToDeg(azimuth_idx) 
+                //     ROS_INFO_STREAM("elevation " << msgpack_data_collected.elevationIndexToDeg(elevation_idx) << ", azimuth " << msgpack_data_collected.azimuthIndexToDeg(azimuth_idx) 
                 //         << " [deg] echo " << echo_idx <<  ": azimuth_hist_cnt = " << collected_azimuth_histogram[azimuth_idx]);
                 // }
             }
@@ -441,12 +441,12 @@ bool sick_lidar3d::MsgPackValidator::validateNoMissingScandata(const MsgPackVali
 
     if(!success)
     {
-        LIDAR3D_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata(): msgpack validation for missing scan data finished with error " << (elevation_values_missing ? "elevation values missing ":"") << (azimuth_values_missing ? "azimuth values missing " : "") );
+        ROS_WARN_STREAM("## WARNING MsgPackValidator::validateNoMissingScandata(): msgpack validation for missing scan data finished with error " << (elevation_values_missing ? "elevation values missing ":"") << (azimuth_values_missing ? "azimuth values missing " : "") );
         printMissingHistogramData(msgpack_data_collected.print());
     }
     else if (m_verbose > 0)
     {
-        LIDAR3D_INFO_STREAM("MsgPackValidator::validateNoMissingScandata() finished successfull.");
+        ROS_INFO_STREAM("MsgPackValidator::validateNoMissingScandata() finished successfull.");
     }
     return success;
 }

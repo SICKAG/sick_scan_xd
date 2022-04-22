@@ -4,20 +4,20 @@
  * Usage example:
  *
  * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
- * sick_lidar3d::MsgPackParserOutput msgpack_output;
- * sick_lidar3d::MsgPackParser::Parse(msgpack_istream, msgpack_output);
+ * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+ * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, msgpack_output);
  *
- * sick_lidar3d::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
+ * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
  *
  * for (int groupIdx = 0; groupIdx < msgpack_output.scandata.size(); groupIdx++)
  * {
  * 	 for (int echoIdx = 0; echoIdx < msgpack_output.scandata[groupIdx].size(); echoIdx++)
  * 	 {
- * 	   std::vector<sick_lidar3d::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
+ * 	   std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
  * 	   std::cout << (groupIdx + 1) << ". group, " << (echoIdx + 1) << ". echo: ";
  * 	   for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
  * 	   {
- * 		  sick_lidar3d::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+ * 		  sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
  * 		  std::cout << (pointIdx > 0 ? "," : "") << "(" << point.x << "," << point.y << "," << point.z << "," << point.i << ")";
  * 	   }
  * 	   std::cout << std::endl;
@@ -79,7 +79,7 @@
 #include <fstream>
 #include <msgpack11.hpp>
 #include "sick_scan/softwarePLL.h"
-#include "sick_lidar3d/msgpack_parser.h"
+#include "sick_scansegment_xd/msgpack_parser.h"
 
 /** normalizes an angle to [ -PI , +PI ] */
 static float normalizeAngle(float angle_rad)
@@ -94,8 +94,8 @@ static float normalizeAngle(float angle_rad)
  /*
   * @brief Counter for each message (each scandata decoded from msgpack data)
   */
-int sick_lidar3d::MsgPackParser::messageCount = 0;
-int sick_lidar3d::MsgPackParser::telegramCount = 0;
+int sick_scansegment_xd::MsgPackParser::messageCount = 0;
+int sick_scansegment_xd::MsgPackParser::telegramCount = 0;
 
 /*
  * @brief Returns the tokenized integer of a msgpack key.
@@ -140,39 +140,39 @@ int sick_lidar3d::MsgPackParser::telegramCount = 0;
 } */
 
 /*
- * @brief Define msgpack keys by precompiler define (faster than calling sick_lidar3d::MsgpackKeyToInt)
+ * @brief Define msgpack keys by precompiler define (faster than calling sick_scansegment_xd::MsgpackKeyToInt)
  */
-#define MsgpackKeyToInt_class             0x10 // sick_lidar3d::MsgpackKeyToInt("class")
-#define MsgpackKeyToInt_data              0x11 // sick_lidar3d::MsgpackKeyToInt("data")
-#define MsgpackKeyToInt_numOfElems        0x12 // sick_lidar3d::MsgpackKeyToInt("numOfElems")
-#define MsgpackKeyToInt_elemSz            0x13 // sick_lidar3d::MsgpackKeyToInt("elemSz")
-#define MsgpackKeyToInt_endian            0x14 // sick_lidar3d::MsgpackKeyToInt("endian")
-#define MsgpackKeyToInt_elemTypes         0x15 // sick_lidar3d::MsgpackKeyToInt("elemTypes")
-#define MsgpackKeyToInt_little            0x30 // sick_lidar3d::MsgpackKeyToInt("little")
-#define MsgpackKeyToInt_float32           0x31 // sick_lidar3d::MsgpackKeyToInt("float32")
-#define MsgpackKeyToInt_ChannelTheta      0x50 // sick_lidar3d::MsgpackKeyToInt("ChannelTheta")
-#define MsgpackKeyToInt_ChannelPhi        0x51 // sick_lidar3d::MsgpackKeyToInt("ChannelPhi")
-#define MsgpackKeyToInt_DistValues        0x52 // sick_lidar3d::MsgpackKeyToInt("DistValues")
-#define MsgpackKeyToInt_RssiValues        0x53 // sick_lidar3d::MsgpackKeyToInt("RssiValues")
-#define MsgpackKeyToInt_PropertiesValues  0x54 // sick_lidar3d::MsgpackKeyToInt("PropertiesValues")
-#define MsgpackKeyToInt_Scan              0x70 // sick_lidar3d::MsgpackKeyToInt("Scan")
-#define MsgpackKeyToInt_TimestampStart    0x71 // sick_lidar3d::MsgpackKeyToInt("TimestampStart")
-#define MsgpackKeyToInt_TimestampStop     0x72 // sick_lidar3d::MsgpackKeyToInt("TimestampStop")
-#define MsgpackKeyToInt_ThetaStart        0x73 // sick_lidar3d::MsgpackKeyToInt("ThetaStart")
-#define MsgpackKeyToInt_ThetaStop         0x74 // sick_lidar3d::MsgpackKeyToInt("ThetaStop")
-#define MsgpackKeyToInt_ScanNumber        0x75 // sick_lidar3d::MsgpackKeyToInt("ScanNumber")
-#define MsgpackKeyToInt_ModuleId          0x76 // sick_lidar3d::MsgpackKeyToInt("ModuleId")
-#define MsgpackKeyToInt_BeamCount         0x77 // sick_lidar3d::MsgpackKeyToInt("BeamCount")
-#define MsgpackKeyToInt_EchoCount         0x78 // sick_lidar3d::MsgpackKeyToInt("EchoCount")
-#define MsgpackKeyToInt_ScanSegment       0x90 // sick_lidar3d::MsgpackKeyToInt("ScanSegment")
-#define MsgpackKeyToInt_SegmentCounter    0x91 // sick_lidar3d::MsgpackKeyToInt("SegmentCounter")
-#define MsgpackKeyToInt_FrameNumber       0x92 // sick_lidar3d::MsgpackKeyToInt("FrameNumber")
-#define MsgpackKeyToInt_Availability      0x93 // sick_lidar3d::MsgpackKeyToInt("Availability")
-#define MsgpackKeyToInt_SenderId          0x94 // sick_lidar3d::MsgpackKeyToInt("SenderId")
-#define MsgpackKeyToInt_SegmentSize       0x95 // sick_lidar3d::MsgpackKeyToInt("SegmentSize")
-#define MsgpackKeyToInt_SegmentData       0x96 // sick_lidar3d::MsgpackKeyToInt("SegmentData")
-#define MsgpackKeyToInt_TelegramCounter   0xB0 // sick_lidar3d::MsgpackKeyToInt("TelegramCounter")
-#define MsgpackKeyToInt_TimestampTransmit 0xB1 // sick_lidar3d::MsgpackKeyToInt("TimestampTransmit")
+#define MsgpackKeyToInt_class             0x10 // sick_scansegment_xd::MsgpackKeyToInt("class")
+#define MsgpackKeyToInt_data              0x11 // sick_scansegment_xd::MsgpackKeyToInt("data")
+#define MsgpackKeyToInt_numOfElems        0x12 // sick_scansegment_xd::MsgpackKeyToInt("numOfElems")
+#define MsgpackKeyToInt_elemSz            0x13 // sick_scansegment_xd::MsgpackKeyToInt("elemSz")
+#define MsgpackKeyToInt_endian            0x14 // sick_scansegment_xd::MsgpackKeyToInt("endian")
+#define MsgpackKeyToInt_elemTypes         0x15 // sick_scansegment_xd::MsgpackKeyToInt("elemTypes")
+#define MsgpackKeyToInt_little            0x30 // sick_scansegment_xd::MsgpackKeyToInt("little")
+#define MsgpackKeyToInt_float32           0x31 // sick_scansegment_xd::MsgpackKeyToInt("float32")
+#define MsgpackKeyToInt_ChannelTheta      0x50 // sick_scansegment_xd::MsgpackKeyToInt("ChannelTheta")
+#define MsgpackKeyToInt_ChannelPhi        0x51 // sick_scansegment_xd::MsgpackKeyToInt("ChannelPhi")
+#define MsgpackKeyToInt_DistValues        0x52 // sick_scansegment_xd::MsgpackKeyToInt("DistValues")
+#define MsgpackKeyToInt_RssiValues        0x53 // sick_scansegment_xd::MsgpackKeyToInt("RssiValues")
+#define MsgpackKeyToInt_PropertiesValues  0x54 // sick_scansegment_xd::MsgpackKeyToInt("PropertiesValues")
+#define MsgpackKeyToInt_Scan              0x70 // sick_scansegment_xd::MsgpackKeyToInt("Scan")
+#define MsgpackKeyToInt_TimestampStart    0x71 // sick_scansegment_xd::MsgpackKeyToInt("TimestampStart")
+#define MsgpackKeyToInt_TimestampStop     0x72 // sick_scansegment_xd::MsgpackKeyToInt("TimestampStop")
+#define MsgpackKeyToInt_ThetaStart        0x73 // sick_scansegment_xd::MsgpackKeyToInt("ThetaStart")
+#define MsgpackKeyToInt_ThetaStop         0x74 // sick_scansegment_xd::MsgpackKeyToInt("ThetaStop")
+#define MsgpackKeyToInt_ScanNumber        0x75 // sick_scansegment_xd::MsgpackKeyToInt("ScanNumber")
+#define MsgpackKeyToInt_ModuleId          0x76 // sick_scansegment_xd::MsgpackKeyToInt("ModuleId")
+#define MsgpackKeyToInt_BeamCount         0x77 // sick_scansegment_xd::MsgpackKeyToInt("BeamCount")
+#define MsgpackKeyToInt_EchoCount         0x78 // sick_scansegment_xd::MsgpackKeyToInt("EchoCount")
+#define MsgpackKeyToInt_ScanSegment       0x90 // sick_scansegment_xd::MsgpackKeyToInt("ScanSegment")
+#define MsgpackKeyToInt_SegmentCounter    0x91 // sick_scansegment_xd::MsgpackKeyToInt("SegmentCounter")
+#define MsgpackKeyToInt_FrameNumber       0x92 // sick_scansegment_xd::MsgpackKeyToInt("FrameNumber")
+#define MsgpackKeyToInt_Availability      0x93 // sick_scansegment_xd::MsgpackKeyToInt("Availability")
+#define MsgpackKeyToInt_SenderId          0x94 // sick_scansegment_xd::MsgpackKeyToInt("SenderId")
+#define MsgpackKeyToInt_SegmentSize       0x95 // sick_scansegment_xd::MsgpackKeyToInt("SegmentSize")
+#define MsgpackKeyToInt_SegmentData       0x96 // sick_scansegment_xd::MsgpackKeyToInt("SegmentData")
+#define MsgpackKeyToInt_TelegramCounter   0xB0 // sick_scansegment_xd::MsgpackKeyToInt("TelegramCounter")
+#define MsgpackKeyToInt_TimestampTransmit 0xB1 // sick_scansegment_xd::MsgpackKeyToInt("TimestampTransmit")
 #define MsgpackKeyToInt_MaxValue          0xB2 // max allowed value of a msgpack key
 
 /*
@@ -361,7 +361,7 @@ public:
 /*
  * Returns true, if endianess of the current system (destination target) is big endian, otherwise false.
  */
-bool sick_lidar3d::MsgPackParser::SystemIsBigEndian(void)
+bool sick_scansegment_xd::MsgPackParser::SystemIsBigEndian(void)
 {
 	// Get endianess of the system (destination target) by comparing MSB and LSB of a int32 number
 	uint32_t u32_one = 1;
@@ -377,7 +377,7 @@ bool sick_lidar3d::MsgPackParser::SystemIsBigEndian(void)
 /*
  * @brief return a timestamp of the current time (i.e. std::chrono::system_clock::now() formatted by "YYYY-MM-DD hh-mm-ss.msec").
  */
-std::string sick_lidar3d::MsgPackParser::Timestamp(const std::chrono::system_clock::time_point& now)
+std::string sick_scansegment_xd::MsgPackParser::Timestamp(const std::chrono::system_clock::time_point& now)
 {
 	std::time_t cur_time = std::chrono::system_clock::to_time_t(now);
 	std::chrono::milliseconds milliseonds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
@@ -394,7 +394,7 @@ std::string sick_lidar3d::MsgPackParser::Timestamp(const std::chrono::system_clo
  * @param[in] nsec nanosecond part of timestamp
  * @return "<sec>.<millisec>"
  */
-std::string sick_lidar3d::MsgPackParser::Timestamp(uint32_t sec, uint32_t nsec)
+std::string sick_scansegment_xd::MsgPackParser::Timestamp(uint32_t sec, uint32_t nsec)
 {
 	std::stringstream timestamp;
 	timestamp << sec << "." << std::setfill('0') << std::setw(6) << (nsec / 1000);
@@ -406,7 +406,7 @@ std::string sick_lidar3d::MsgPackParser::Timestamp(uint32_t sec, uint32_t nsec)
  * @param[in] filepath input file incl. path
  * @param[out] list of bytes
  */
-std::vector<uint8_t> sick_lidar3d::MsgPackParser::ReadFile(const std::string& filepath)
+std::vector<uint8_t> sick_scansegment_xd::MsgPackParser::ReadFile(const std::string& filepath)
 {
 	std::ifstream file_istream(filepath, std::ios::binary);
 	if (file_istream.is_open())
@@ -418,7 +418,7 @@ std::vector<uint8_t> sick_lidar3d::MsgPackParser::ReadFile(const std::string& fi
  * @brief Returns a hexdump of a msgpack. To get a well formatted json struct from a msgpack,
  * just paste the returned string to https://toolslick.com/conversion/data/messagepack-to-json
  */
-std::string sick_lidar3d::MsgPackParser::MsgpackToHexDump(const std::vector<uint8_t>& msgpack_data, bool pretty_print)
+std::string sick_scansegment_xd::MsgPackParser::MsgpackToHexDump(const std::vector<uint8_t>& msgpack_data, bool pretty_print)
 {
 	std::stringstream msgpack_hexdump;
 	for (size_t n = 0; n < msgpack_data.size(); n++)
@@ -440,10 +440,10 @@ std::string sick_lidar3d::MsgPackParser::MsgpackToHexDump(const std::vector<uint
  *
  * Usage example:
  *
- * std::vector<uint8_t> msgpack_data = sick_lidar3d::MsgPackParser::ReadFile("polarscan_testdata_000.msg");
- * sick_lidar3d::MsgPackParserOutput msgpack_output;
- * sick_lidar3d::MsgPackParser::Parse(msgpack_data, msgpack_output);
- * sick_lidar3d::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
+ * std::vector<uint8_t> msgpack_data = sick_scansegment_xd::MsgPackParser::ReadFile("polarscan_testdata_000.msg");
+ * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+ * sick_scansegment_xd::MsgPackParser::Parse(msgpack_data, msgpack_output);
+ * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
  *
  * @param[in+out] msgpack_ifstream the binary input stream delivering the binary msgpack data
  * @param[in] msgpack_timestamp receive timestamp of msgpack_data
@@ -455,8 +455,8 @@ std::string sick_lidar3d::MsgPackParser::MsgpackToHexDump(const std::vector<uint
  * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
-bool sick_lidar3d::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
-    sick_lidar3d::MsgPackValidatorData& msgpack_validator_data_collector, const sick_lidar3d::MsgPackValidator& msgpack_validator, 
+bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
+    sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator, 
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated, 
 	bool use_software_pll, bool verbose)
 {
@@ -480,20 +480,20 @@ bool sick_lidar3d::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data
  * Usage example:
  *
  * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
- * sick_lidar3d::MsgPackParserOutput msgpack_output;
- * sick_lidar3d::MsgPackParser::Parse(msgpack_istream, msgpack_output);
+ * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+ * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, msgpack_output);
  *
- * sick_lidar3d::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
+ * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
  *
  * for (int groupIdx = 0; groupIdx < msgpack_output.scandata.size(); groupIdx++)
  * {
  * 	 for (int echoIdx = 0; echoIdx < msgpack_output.scandata[groupIdx].size(); echoIdx++)
  * 	 {
- * 	   std::vector<sick_lidar3d::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
+ * 	   std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
  * 	   std::cout << (groupIdx + 1) << ". group, " << (echoIdx + 1) << ". echo: ";
  * 	   for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
  * 	   {
- * 		  sick_lidar3d::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+ * 		  sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
  * 		  std::cout << (pointIdx > 0 ? "," : "") << "(" << point.x << "," << point.y << "," << point.z << "," << point.i << ")";
  * 	   }
  * 	   std::cout << std::endl;
@@ -510,8 +510,8 @@ bool sick_lidar3d::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data
  * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
-bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
-    sick_lidar3d::MsgPackValidatorData& msgpack_validator_data_collector, const sick_lidar3d::MsgPackValidator& msgpack_validator, 
+bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
+    sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator, 
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
 	bool use_software_pll, bool verbose)
 {
@@ -531,31 +531,31 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
 		msg_unpacked = msgpack11::MsgPack::parse(msgpack_istream, msg_parse_error);
 		if (!msg_parse_error.empty())
 		{
-			LIDAR3D_ERROR_STREAM("## ERROR msgpack11::MsgPack::parse(): " << msg_parse_error);
+			ROS_ERROR_STREAM("## ERROR msgpack11::MsgPack::parse(): " << msg_parse_error);
 			return false;
 		}
 		// std::cout << printMsgPack(msg_unpacked) << std::endl << std::endl;
 	}
 	catch(const std::exception & exc)
 	{
-		LIDAR3D_ERROR_STREAM("## ERROR msgpack11::MsgPack::parse(): exception " << exc.what());
+		ROS_ERROR_STREAM("## ERROR msgpack11::MsgPack::parse(): exception " << exc.what());
 		return false;
 	}
 
 	// Get endianess of the system (destination target)
 	bool dstIsBigEndian = SystemIsBigEndian();
 
-	// Parse the unpacked msgpack data, see sick_lidar3d/python/polarscan_reader_test/polarscan_receiver_test.py for multiScan136 message format 
+	// Parse the unpacked msgpack data, see sick_scansegment_xd/python/polarscan_reader_test/polarscan_receiver_test.py for multiScan136 message format 
     // and https://github.com/ar90n/msgpack11/blob/master/msgpack11.hpp or https://github.com/ar90n/msgpack11/blob/master/example.cpp 
 	// for details about decoding and paring MsgPack data.
 	try
 	{
-		sick_lidar3d::MsgPackValidatorData msgpack_validator_data;
+		sick_scansegment_xd::MsgPackValidatorData msgpack_validator_data;
 		// std::cout << "root_object_items: " << printMsgPack(msg_unpacked.object_items()) << std::endl;
 		msgpack11::MsgPack::object::const_iterator root_data_iter = msg_unpacked.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_data]);
 		if (root_data_iter == msg_unpacked.object_items().end())
 		{
-			LIDAR3D_WARN_STREAM("## ERROR MsgPackParser::Parse(): \"data\" not found");
+			ROS_WARN_STREAM("## ERROR MsgPackParser::Parse(): \"data\" not found");
 			return false;
 		}
 		const msgpack11::MsgPack& root_data = root_data_iter->second;
@@ -563,7 +563,7 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
 		msgpack11::MsgPack::object::const_iterator timestamp_data_iter = root_data.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_TimestampTransmit]);
 		if (group_data_iter == root_data.object_items().end() || timestamp_data_iter == root_data.object_items().end())
 		{
-			LIDAR3D_WARN_STREAM("## ERROR MsgPackParser::Parse(): \"SegmentData\" and/or \"TimestampTransmit\" not found");
+			ROS_WARN_STREAM("## ERROR MsgPackParser::Parse(): \"SegmentData\" and/or \"TimestampTransmit\" not found");
 			return false;
 		}
 		const msgpack11::MsgPack& group_data = group_data_iter->second;
@@ -584,15 +584,15 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
 				result.timestamp_sec = pll_sec;
 				result.timestamp_nsec = pll_nsec;
 				if (verbose)
-					LIDAR3D_INFO_STREAM("MsgPackParser::Parse(): sensor_ticks=" << curtick << ", system_time=" << Timestamp(systemtime_sec, systemtime_nsec) << " sec, timestamp=" << result.timestamp << " sec");
+					ROS_INFO_STREAM("MsgPackParser::Parse(): sensor_ticks=" << curtick << ", system_time=" << Timestamp(systemtime_sec, systemtime_nsec) << " sec, timestamp=" << result.timestamp << " sec");
 			}
 			else if (verbose)
-				LIDAR3D_INFO_STREAM("MsgPackParser::Parse(): sensor_ticks=" << curtick << ", system_time=" << Timestamp(systemtime_sec, systemtime_nsec) << " sec, SoftwarePLL not yet initialized");
+				ROS_INFO_STREAM("MsgPackParser::Parse(): sensor_ticks=" << curtick << ", system_time=" << Timestamp(systemtime_sec, systemtime_nsec) << " sec, SoftwarePLL not yet initialized");
 		}
 		msgpack11::MsgPack::object::const_iterator segment_counter_iter = root_data.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_SegmentCounter]);
 		if (segment_counter_iter == root_data.object_items().end())
 		{
-			LIDAR3D_WARN_STREAM("## ERROR MsgPackParser::Parse(): \"SegmentCounter\" not found");
+			ROS_WARN_STREAM("## ERROR MsgPackParser::Parse(): \"SegmentCounter\" not found");
 			return false;
 		}
 		const msgpack11::MsgPack& segment_idx_data = segment_counter_iter->second;
@@ -631,7 +631,7 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
 				distValuesMsg == dataMsg->second.object_items().end() || rssiValuesMsg == dataMsg->second.object_items().end() || 
 				timestampStartMsg == dataMsg->second.object_items().end() || timestampStopMsg == dataMsg->second.object_items().end())
 			{
-				LIDAR3D_WARN_STREAM("## ERROR MsgPackParser::Parse(): Entries in data segment missing");
+				ROS_WARN_STREAM("## ERROR MsgPackParser::Parse(): Entries in data segment missing");
 				continue;
 			}
 			uint32_t u32TimestampStart = timestampStartMsg->second.uint32_value();
@@ -668,14 +668,14 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
 			assert(channelPhi.data.size() == 1 && channelTheta.data.size() > 0 && distValues.size() == iEchoCount && rssiValues.size() == iEchoCount);
 
 			// Convert to cartesian coordinates
-			result.scandata.push_back(sick_lidar3d::MsgPackParserOutput::Scangroup());
+			result.scandata.push_back(sick_scansegment_xd::MsgPackParserOutput::Scangroup());
 			result.scandata.back().timestampStart_sec = u32TimestampStart_sec;
 			result.scandata.back().timestampStart_nsec = u32TimestampStart_nsec;
 			result.scandata.back().timestampStop_sec = u32TimestampStop_sec;
 			result.scandata.back().timestampStop_nsec = u32TimestampStop_nsec;
 			iEchoCount = std::min((int)distValuesDataMsg.size(), iEchoCount);
 			iEchoCount = std::min((int)rssiValuesDataMsg.size(), iEchoCount);
-			std::vector<sick_lidar3d::MsgPackParserOutput::Scanline>& groupData = result.scandata.back().scanlines;
+			std::vector<sick_scansegment_xd::MsgPackParserOutput::Scanline>& groupData = result.scandata.back().scanlines;
 			groupData.reserve(iEchoCount);
 			int iPointCount = (int)channelTheta.data.size();
 			// Precompute sin and cos values of azimuth and elevation
@@ -690,13 +690,13 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
 				cos_azimuth[pointIdx] = std::cos(azimuth);
 				sin_azimuth[pointIdx] = std::sin(azimuth);
                 // if (pointIdx > 0)
-				//     LIDAR3D_DEBUG_STREAM("azimuth[" << pointIdx << "] = " << (azimuth * 180 / M_PI) << " [deg], delta_azimuth = " << ((channelTheta.data[pointIdx] - channelTheta.data[pointIdx-1]) * 180 / M_PI) << " [deg]");
+				//     SCANSEGMENT_XD_DEBUG_STREAM("azimuth[" << pointIdx << "] = " << (azimuth * 180 / M_PI) << " [deg], delta_azimuth = " << ((channelTheta.data[pointIdx] - channelTheta.data[pointIdx-1]) * 180 / M_PI) << " [deg]");
 			}
 			for (int echoIdx = 0; echoIdx < iEchoCount; echoIdx++)
 			{
 				assert(iPointCount == channelTheta.data.size() && iPointCount == distValues[echoIdx].data.size() && iPointCount == rssiValues[echoIdx].data.size());
-				groupData.push_back(sick_lidar3d::MsgPackParserOutput::Scanline());
-				sick_lidar3d::MsgPackParserOutput::Scanline& scanline = groupData.back();
+				groupData.push_back(sick_scansegment_xd::MsgPackParserOutput::Scanline());
+				sick_scansegment_xd::MsgPackParserOutput::Scanline& scanline = groupData.back();
 				scanline.reserve(iPointCount);
 				for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 				{
@@ -712,22 +712,22 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
 						msgpack_validator_data.update(echoIdx, segment_idx, azimuth_norm, elevation);
 						msgpack_validator_data_collector.update(echoIdx, segment_idx, azimuth_norm, elevation);
 					}
-					scanline.push_back(sick_lidar3d::MsgPackParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx));
+					scanline.push_back(sick_scansegment_xd::MsgPackParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx));
 				}
 			}
 
 			// debug output
 			if (verbose)
 			{
-				LIDAR3D_INFO_STREAM((groupIdx + 1) << ". group: EchoCount = " << iEchoCount);
-				LIDAR3D_INFO_STREAM((groupIdx + 1) << ". group: phi = [" << channelPhi.print() << "], " << channelPhi.data.size() << " element");
-				LIDAR3D_INFO_STREAM((groupIdx + 1) << ". group: theta = [" << channelTheta.print() << "], " << channelTheta.data.size() << " elements");
-				LIDAR3D_INFO_STREAM((groupIdx + 1) << ". group: timestampStart = " << u32TimestampStart << " = " << Timestamp(u32TimestampStart_sec, u32TimestampStart_nsec));
-				LIDAR3D_INFO_STREAM((groupIdx + 1) << ". group: timestampStop = " << u32TimestampStop << " = " << Timestamp(u32TimestampStop_sec, u32TimestampStop_nsec));
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: EchoCount = " << iEchoCount);
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: phi = [" << channelPhi.print() << "], " << channelPhi.data.size() << " element");
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: theta = [" << channelTheta.print() << "], " << channelTheta.data.size() << " elements");
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStart = " << u32TimestampStart << " = " << Timestamp(u32TimestampStart_sec, u32TimestampStart_nsec));
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStop = " << u32TimestampStop << " = " << Timestamp(u32TimestampStop_sec, u32TimestampStop_nsec));
 				for (int n = 0; n < distValues.size(); n++)
-					LIDAR3D_INFO_STREAM((groupIdx + 1) << ". group: dist[" << n << "] = [" << distValues[n].print() << "], " << distValues[n].data.size() << " elements");
+					ROS_INFO_STREAM((groupIdx + 1) << ". group: dist[" << n << "] = [" << distValues[n].print() << "], " << distValues[n].data.size() << " elements");
 				for (int n = 0; n < rssiValues.size(); n++)
-					LIDAR3D_INFO_STREAM((groupIdx + 1) << ". group: rssi[" << n << "] = [" << rssiValues[n].print() << "], " << rssiValues[n].data.size() << " elements");
+					ROS_INFO_STREAM((groupIdx + 1) << ". group: rssi[" << n << "] = [" << rssiValues[n].print() << "], " << rssiValues[n].data.size() << " elements");
 				// std::cout << (groupIdx + 1) << ". group: ChannelPhiMsg.data = " << printMsgPack(*channelPhiMsgElement.data) << std::endl;
 				// std::cout << (groupIdx + 1) << ". group: ChannelPhiMsg.elemSz = " << printMsgPack(*channelPhiMsgElement.elemSz) << std::endl;
 				// std::cout << (groupIdx + 1) << ". group: ChannelPhiMsg.elemType = " << printMsgPack(*channelPhiMsgElement.elemTypes) << std::endl;
@@ -750,7 +750,7 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
 				//	 std::cout << (groupIdx + 1) << ". group: RssiValuesDataMsg[" << n << "].elemTypes = " << printMsgPack(*rssiValuesDataMsg[n].elemTypes) << std::endl;
 				//	 std::cout << (groupIdx + 1) << ". group: RssiValuesDataMsg[" << n << "].endian = " << printMsgPack(*rssiValuesDataMsg[n].endian) << std::endl;
 				// }
-				LIDAR3D_INFO_STREAM("");
+				ROS_INFO_STREAM("");
 			}
 		}
     	// msgpack validation
@@ -760,26 +760,26 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
 			{
 				std::vector<std::string> messages = msgpack_validator_data.print();
 				for(int n = 0; n < messages.size(); n++)
-					LIDAR3D_INFO_STREAM(messages[n]);
+					ROS_INFO_STREAM(messages[n]);
 			}
 			if (msgpack_validator.validateNotOutOfBound(msgpack_validator_data) == false)
 			{
 				if (discard_msgpacks_not_validated)
 				{
-					LIDAR3D_ERROR_STREAM("## ERROR MsgPackParser::Parse(): msgpack out of bounds validation failed, pointcloud discarded");
+					ROS_ERROR_STREAM("## ERROR MsgPackParser::Parse(): msgpack out of bounds validation failed, pointcloud discarded");
 					return false;
 				}
-				LIDAR3D_ERROR_STREAM("## ERROR MsgPackParser::Parse(): msgpack out of bounds validation failed");
+				ROS_ERROR_STREAM("## ERROR MsgPackParser::Parse(): msgpack out of bounds validation failed");
 			}
 			else if (verbose)
 			{
-				LIDAR3D_INFO_STREAM("msgpack out of bounds validation passed.");
+				ROS_INFO_STREAM("msgpack out of bounds validation passed.");
 			}
 		}
 	}
 	catch (const std::exception& exc)
 	{
-		LIDAR3D_ERROR_STREAM("## ERROR msgpack11::MsgPack::parse(): exception " << exc.what());
+		ROS_ERROR_STREAM("## ERROR msgpack11::MsgPack::parse(): exception " << exc.what());
 		return false;
 	}
 	result.segmentIndex = segment_idx;
@@ -793,22 +793,22 @@ bool sick_lidar3d::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_time
  * Usage example:
  *
  * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
- * sick_lidar3d::MsgPackParserOutput msgpack_output;
- * sick_lidar3d::MsgPackParser::Parse(msgpack_istream, msgpack_output);
+ * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+ * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, msgpack_output);
  *
- * sick_lidar3d::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
+ * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
  *
  * @param[in] result converted msgpack data, output from Parse function
  * @param[in] csvFile name of output csv file incl. optional file path
  * @param[in] overwrite_existing_file if overwrite_existing_file is true and csvFile already exists, the file will be overwritten. otherwise all results are appended to the file.
  */
-bool sick_lidar3d::MsgPackParser::WriteCSV(const std::vector<MsgPackParserOutput>& results, const std::string& csvFile, bool overwrite_existing_file)
+bool sick_scansegment_xd::MsgPackParser::WriteCSV(const std::vector<MsgPackParserOutput>& results, const std::string& csvFile, bool overwrite_existing_file)
 {
 	if (results.empty())
 		return false;
 	bool write_header = false;
 	std::ios::openmode openmode = std::ios::app;
-	if (overwrite_existing_file || results[0].segmentIndex == 0 || !sick_lidar3d::FileReadable(csvFile))
+	if (overwrite_existing_file || results[0].segmentIndex == 0 || !sick_scansegment_xd::FileReadable(csvFile))
 	{
 		write_header = true; // Write a csv header once for all new csv files
 		openmode = std::ios::trunc; // Create a new file in overwrite mode or at the first message, otherwise append all further messages
@@ -816,7 +816,7 @@ bool sick_lidar3d::MsgPackParser::WriteCSV(const std::vector<MsgPackParserOutput
 	std::ofstream csv_ostream(csvFile, openmode);
 	if (!csv_ostream.is_open())
 	{
-		LIDAR3D_ERROR_STREAM("## ERRORMsgPackParser::WriteCSV(): can't open output file \"" << csvFile << "\" for writing.");
+		ROS_ERROR_STREAM("## ERRORMsgPackParser::WriteCSV(): can't open output file \"" << csvFile << "\" for writing.");
 		return false;
 	}
 	if (write_header)
@@ -830,10 +830,10 @@ bool sick_lidar3d::MsgPackParser::WriteCSV(const std::vector<MsgPackParserOutput
 		{
 			for (int echoIdx = 0; echoIdx < result.scandata[groupIdx].scanlines.size(); echoIdx++)
 			{
-				const std::vector<sick_lidar3d::MsgPackParserOutput::LidarPoint>& scanline = result.scandata[groupIdx].scanlines[echoIdx];
+				const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = result.scandata[groupIdx].scanlines[echoIdx];
 				for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 				{
-					const sick_lidar3d::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+					const sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
 					csv_ostream << std::setw(12) << result.segmentIndex;
 					csv_ostream << ";" << std::setw(24) << result.timestamp;
 					csv_ostream << ";" << std::setw(12) << point.groupIdx;
@@ -860,7 +860,7 @@ bool sick_lidar3d::MsgPackParser::WriteCSV(const std::vector<MsgPackParserOutput
  * Note: All output vectors x, y, z, i, group_idx, echo_idx, msg_idx identical size, i.e. it's safe to
  * assert(x.size() == y.size() && x.size() == z.size() && x.size() == i.size() && x.size() == group_idx.size() && echo_idx.size() == msg_idx.size());
  */
-bool sick_lidar3d::MsgPackParser::ExportXYZI(const std::vector<MsgPackParserOutput>& results, std::vector<float>& x, std::vector<float>& y, std::vector<float>& z, std::vector<float>& i, std::vector<int>& group_idx, std::vector<int>& echo_idx, std::vector<int>& msg_idx)
+bool sick_scansegment_xd::MsgPackParser::ExportXYZI(const std::vector<MsgPackParserOutput>& results, std::vector<float>& x, std::vector<float>& y, std::vector<float>& z, std::vector<float>& i, std::vector<int>& group_idx, std::vector<int>& echo_idx, std::vector<int>& msg_idx)
 {
 	if (results.empty())
 		return false;
@@ -886,10 +886,10 @@ bool sick_lidar3d::MsgPackParser::ExportXYZI(const std::vector<MsgPackParserOutp
 		{
 			for (int echoIdx = 0; echoIdx < result.scandata[groupIdx].scanlines.size(); echoIdx++)
 			{
-				const std::vector<sick_lidar3d::MsgPackParserOutput::LidarPoint>& scanline = result.scandata[groupIdx].scanlines[echoIdx];
+				const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = result.scandata[groupIdx].scanlines[echoIdx];
 				for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 				{
-					const sick_lidar3d::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+					const sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
 					x.push_back(point.x);
 					y.push_back(point.y);
 					z.push_back(point.z);

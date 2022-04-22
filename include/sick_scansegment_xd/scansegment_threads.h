@@ -1,8 +1,8 @@
 /*
- * @brief time_util.h implements utility functions for time measurement and profiling.
+ * @brief scansegement_threads runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
  *
- * Copyright (C) 2020 Ing.-Buero Dr. Michael Lehning, Hildesheim
- * Copyright (C) 2020 SICK AG, Waldkirch
+ * Copyright (C) 2022 Ing.-Buero Dr. Michael Lehning, Hildesheim
+ * Copyright (C) 2022 SICK AG, Waldkirch
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,92 +48,65 @@
  *      Authors:
  *         Michael Lehning <michael.lehning@lehning.de>
  *
- *  Copyright 2020 SICK AG
- *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
+ *  Copyright 2022 SICK AG
+ *  Copyright 2022 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_TIME_UTIL_H
-#define __SICK_LIDAR3D_TIME_UTIL_H
+#ifndef __SICK_SCANSEGEMENT_THREADS_H
+#define __SICK_SCANSEGEMENT_THREADS_H
 
-#include "sick_lidar3d/common.h"
+#include "sick_scansegment_xd/config.h"
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
     /*
-     * class TimingStatistics is a utility class to measure basic statistics (mean, max, stddev and histogram) for the duration of a msgpack in milliseconds.
-     */
-    class TimingStatistics
+	 * @brief Initializes and runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
+	 */
+    int run(rosNodePtr node, const std::string& scannerName);
+
+    /*
+	 * @brief class MsgPackThreads runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
+	 */
+    class MsgPackThreads
     {
     public:
 
         /*
-         * Default constructor, initializes all member with 0
-         */
-        TimingStatistics() : m_cnt(0), m_sum(0), m_sum_sq(0), m_max(0), m_hist(11) {}
+	     * @brief MsgPackThreads constructor
+	     */
+        MsgPackThreads();
 
         /*
-         * Adds a duration in milliseconds to the time statistics
-         */
-        void AddTimeMilliseconds(double t)
-        {
-            m_sum += t;
-            m_sum_sq += (t * t);
-            m_max = std::max(m_max, t);
-            int hist_idx = std::min((int)t, (int)m_hist.size() - 1);
-            m_hist[hist_idx] += 1;
-            m_cnt++;
-        }
+	     * @brief MsgPackThreads destructor
+	     */
+        ~MsgPackThreads();
 
         /*
-         * Returns the mean duration in milliseconds
-         */
-        double MeanMilliseconds(void) const
-        {
-            assert(m_cnt > 0);
-            return m_sum / (double)m_cnt;
-        }
+	     * @brief Initializes msgpack receiver, converter and publisher and starts msgpack handling and publishing in a background thread.
+	     */
+        bool start(const sick_scansegment_xd::Config& config);
 
         /*
-         * Returns the standard deviation of all durations in milliseconds
-         */
-        double StddevMilliseconds(void) const
-        {
-            if (m_cnt > 1)
-            {
-                double var = (m_sum_sq - (m_sum * m_sum) / m_cnt) / (m_cnt - 1);
-                return std::sqrt(var);
-            }
-            return 0;
-        }
+	     * @brief Stops running threads and closes msgpack receiver, converter and publisher.
+	     */
+        bool stop(void);
 
         /*
-         * Returns the max duration in milliseconds
-         */
-        double MaxMilliseconds(void)  const
-        {
-            return m_max;
-        }
-
-        /*
-         * Prints the duration histogram to string, f.e. "10,5,6,...,3" means 10 durations between 0 and 1 ms, 5 durations between 1 and 2 ms, 3 durations greater 10 ms.
-         */
-        std::string PrintHistMilliseconds(const std::string& separator = ",") const
-        {
-            std::stringstream s;
-            s << m_hist[0];
-            for (size_t n = 1; n < m_hist.size(); n++)
-                s << separator << m_hist[n];
-            return s.str();
-        }
+	     * @brief Joins running threads and returns after they finished.
+	     */
+        void join(void);
 
     protected:
 
-        size_t m_cnt;
-        double m_sum;
-        double m_sum_sq;
-        double m_max;
-        std::vector<int> m_hist;
-    };  // class TimingStatistics
+        /*
+        * @brief Thread callback, initializes and runs msgpack receiver, converter and publisher.
+        */
+        bool runThreadCb(void);
 
-} // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_TIME_UTIL_H
+       sick_scansegment_xd::Config m_config;                      // sick_scansegment_xd configuration
+       std::thread* m_scansegment_thread;                         // background thread to convert msgpack to MsgPackParserOutput data
+       bool m_run_scansegment_thread;                             // flag to start and stop the udp converter thread
+    };
+
+}   // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGEMENT_THREADS_H

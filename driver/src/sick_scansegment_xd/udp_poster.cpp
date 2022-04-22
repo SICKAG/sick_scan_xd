@@ -52,28 +52,28 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#include "sick_lidar3d/udp_poster.h"
-#include "sick_lidar3d/udp_sockets.h"
+#include "sick_scansegment_xd/udp_poster.h"
+#include "sick_scansegment_xd/udp_sockets.h"
 
 /*
  * @brief Default constructor.
  * @param[in] ip ip address of a multiScan136, f.e. "127.0.0.1" (localhost, loopback) for an emulator or "192.168.0.1" for multiScan136
  * @param[in] udp_port ip port, f.e. 2115 (default port for multiScan136 emulator)
  */
-sick_lidar3d::UdpPoster::UdpPoster(const std::string& ip, int udp_port)
+sick_scansegment_xd::UdpPoster::UdpPoster(const std::string& ip, int udp_port)
 : m_ip(ip), m_port(udp_port), m_sender_impl(0), m_receiver_impl(0)
 {
     m_sender_impl = new UdpSenderSocketImpl(m_ip, m_port);
     if (!m_sender_impl->IsOpen())
     {
-        LIDAR3D_ERROR_STREAM("## ERROR UdpPoster::Init(): can't open socket, UdpSenderSocketImpl(" << m_ip << "," << m_port << ") failed.");
+        ROS_ERROR_STREAM("## ERROR UdpPoster::Init(): can't open socket, UdpSenderSocketImpl(" << m_ip << "," << m_port << ") failed.");
         delete m_sender_impl;
         m_sender_impl = 0;
     }
     m_receiver_impl = new UdpReceiverSocketImpl();
     if (!m_receiver_impl->Init(m_ip, m_port))
     {
-        LIDAR3D_ERROR_STREAM("## ERROR UdpPoster::Init(): can't open socket, UdpReceiverSocketImpl::Init(" << m_ip << "," << m_port << ") failed.");
+        ROS_ERROR_STREAM("## ERROR UdpPoster::Init(): can't open socket, UdpReceiverSocketImpl::Init(" << m_ip << "," << m_port << ") failed.");
         delete m_receiver_impl;
         m_receiver_impl = 0;
     }
@@ -82,7 +82,7 @@ sick_lidar3d::UdpPoster::UdpPoster(const std::string& ip, int udp_port)
 /*
  * @brief Default destructor.
  */
-sick_lidar3d::UdpPoster::~UdpPoster()
+sick_scansegment_xd::UdpPoster::~UdpPoster()
 {
     if (m_sender_impl)
     {
@@ -99,7 +99,7 @@ sick_lidar3d::UdpPoster::~UdpPoster()
 /*
  * @brief Returns the ip address to send udp messages.
  */
-const std::string& sick_lidar3d::UdpPoster::IP(void) const
+const std::string& sick_scansegment_xd::UdpPoster::IP(void) const
 {
 	return m_ip;
 }
@@ -107,7 +107,7 @@ const std::string& sick_lidar3d::UdpPoster::IP(void) const
 /*
  * @brief Returns the port to send udp messages.
  */
-const int& sick_lidar3d::UdpPoster::Port(void) const
+const int& sick_scansegment_xd::UdpPoster::Port(void) const
 {
 	return m_port;
 }
@@ -118,22 +118,22 @@ const int& sick_lidar3d::UdpPoster::Port(void) const
  * @param[in] response message received
  * @return true on success, otherwise false
  */
-bool sick_lidar3d::UdpPoster::Post(const std::string& request, std::string& response)
+bool sick_scansegment_xd::UdpPoster::Post(const std::string& request, std::string& response)
 {
     if (!m_sender_impl)
     {
-        LIDAR3D_ERROR_STREAM("## ERROR UdpPoster::Post(): udp sender socket not initialized");
+        ROS_ERROR_STREAM("## ERROR UdpPoster::Post(): udp sender socket not initialized");
         return false;
     }
     std::vector<uint8_t> request_data(request.begin(), request.end());
     if (!m_sender_impl->Send(request_data))
     {
-        LIDAR3D_ERROR_STREAM("## ERROR UdpPoster::Post(): failed to send " << request_data.size() << " byte message \"" << request << "\"");
+        ROS_ERROR_STREAM("## ERROR UdpPoster::Post(): failed to send " << request_data.size() << " byte message \"" << request << "\"");
         return false;
     }
     if (!m_receiver_impl)
     {
-        LIDAR3D_ERROR_STREAM("## ERROR UdpPoster::Post(): udp receiver socket not initialized");
+        ROS_ERROR_STREAM("## ERROR UdpPoster::Post(): udp receiver socket not initialized");
         return false;
     }
     std::vector<uint8_t> response_data(1024, 0);

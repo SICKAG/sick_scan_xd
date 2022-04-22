@@ -490,7 +490,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     allowedScannerNames.push_back(SICK_SCANNER_LRS_36x0_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LRS_36x1_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_OEM_15XX_NAME);
-    allowedScannerNames.push_back(SICK_SCANNER_LIDAR3D_MRS100_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_SCANSEGMENT_XD_NAME);
     basicParams.resize(allowedScannerNames.size()); // resize to number of supported scanner types
     for (int i = 0; i <
                     (int) basicParams.size(); i++) // set specific parameter for each scanner type - scanner type is identified by name
@@ -928,9 +928,9 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
       }
-      if (basicParams[i].getScannerName().compare(SICK_SCANNER_LIDAR3D_MRS100_NAME) == 0)
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0)
       {
-        // LIDAR3D MRS100 (Multiscan 136) handled by msgpack_converter and msgpack_exporter
+        // SCANSEGMENT_XD MRS100 (Multiscan 136) handled by msgpack_converter and msgpack_exporter
       }
     }
 

@@ -55,9 +55,9 @@
  *
  */
 
-#include "sick_lidar3d/fifo.h"
-#include "sick_lidar3d/udp_receiver.h"
-#include "sick_lidar3d/udp_sockets.h"
+#include "sick_scansegment_xd/fifo.h"
+#include "sick_scansegment_xd/udp_receiver.h"
+#include "sick_scansegment_xd/udp_sockets.h"
 
 /*
  * Computes the zlib CRC32 checksum, see https://stackoverflow.com/questions/15030011/same-crc32-for-python-and-c
@@ -79,7 +79,7 @@ static uint32_t crc32(uint32_t crc, const uint8_t* buf, size_t len)
 /*
  * @brief Default constructor.
  */
-sick_lidar3d::UdpReceiver::UdpReceiver() : m_verbose(false), m_export_udp_msg(false), m_socket_impl(0), m_fifo_impl(0), m_receiver_thread(0), m_run_receiver_thread(false),
+sick_scansegment_xd::UdpReceiver::UdpReceiver() : m_verbose(false), m_export_udp_msg(false), m_socket_impl(0), m_fifo_impl(0), m_receiver_thread(0), m_run_receiver_thread(false),
     m_udp_recv_buffer_size(0), m_udp_timeout_recv_nonblocking(0), m_udp_sender_timeout(0)
 {
 }
@@ -87,7 +87,7 @@ sick_lidar3d::UdpReceiver::UdpReceiver() : m_verbose(false), m_export_udp_msg(fa
 /*
  * @brief Default destructor.
  */
-sick_lidar3d::UdpReceiver::~UdpReceiver()
+sick_scansegment_xd::UdpReceiver::~UdpReceiver()
 {
     Close();
 }
@@ -100,7 +100,7 @@ sick_lidar3d::UdpReceiver::~UdpReceiver()
  * @param[in] verbose true: enable debug output, false: quiet mode (default)
  * @param[in] export_udp_msg: true: export binary udp and msgpack data to file (*.udp and *.msg), default: false
  */
-bool sick_lidar3d::UdpReceiver::Init(const std::string& udp_sender, int udp_port, int udp_input_fifolength, bool verbose, bool export_udp_msg)
+bool sick_scansegment_xd::UdpReceiver::Init(const std::string& udp_sender, int udp_port, int udp_input_fifolength, bool verbose, bool export_udp_msg)
 {
     if (m_socket_impl || m_fifo_impl || m_receiver_thread)
         Close();
@@ -118,7 +118,7 @@ bool sick_lidar3d::UdpReceiver::Init(const std::string& udp_sender, int udp_port
     m_socket_impl = new UdpReceiverSocketImpl();
     if (!m_socket_impl->Init(udp_sender, udp_port))
     {
-        LIDAR3D_ERROR_STREAM("## ERROR UdpReceiver::Init(): UdpReceiverSocketImpl::Init(" << udp_sender << "," << udp_port << ") failed.");
+        ROS_ERROR_STREAM("## ERROR UdpReceiver::Init(): UdpReceiverSocketImpl::Init(" << udp_sender << "," << udp_port << ") failed.");
         return false;
     }
 
@@ -128,17 +128,17 @@ bool sick_lidar3d::UdpReceiver::Init(const std::string& udp_sender, int udp_port
 /*
  * @brief Starts receiving udp packages in a background thread and pops msgpack data packages to the fifo.
  */
-bool sick_lidar3d::UdpReceiver::Start(void)
+bool sick_scansegment_xd::UdpReceiver::Start(void)
 {
     m_run_receiver_thread = true;
-    m_receiver_thread = new std::thread(&sick_lidar3d::UdpReceiver::Run, this);
+    m_receiver_thread = new std::thread(&sick_scansegment_xd::UdpReceiver::Run, this);
     return true;
 }
 
 /*
  * @brief Stop to receive data and shutdown the udp socket
  */
-void sick_lidar3d::UdpReceiver::Close(void)
+void sick_scansegment_xd::UdpReceiver::Close(void)
 {
     m_run_receiver_thread = false;
     if (m_fifo_impl)
@@ -166,11 +166,11 @@ void sick_lidar3d::UdpReceiver::Close(void)
 /*
  * @brief Thread callback, runs the receiver for udp packages and pops msgpack data packages to the fifo.
  */
-bool sick_lidar3d::UdpReceiver::Run(void)
+bool sick_scansegment_xd::UdpReceiver::Run(void)
 {
     if (!m_socket_impl)
     {
-        LIDAR3D_ERROR_STREAM("## ERROR UdpReceiver::Run(): UdpReceiver not initialized, call UdpReceiver::Init() first.");
+        ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): UdpReceiver not initialized, call UdpReceiver::Init() first.");
         return false;
     }
     try
@@ -192,7 +192,7 @@ bool sick_lidar3d::UdpReceiver::Run(void)
                 uint32_t bytes_to_receive = (uint32_t)(u32PayloadLength + m_udp_msg_start_seq.size() + 2 * sizeof(uint32_t));
                 if (bytes_received != bytes_to_receive)
                 {
-                    LIDAR3D_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << bytes_received << " bytes received, " << bytes_to_receive << " bytes expected, u32PayloadLength=" << u32PayloadLength);
+                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << bytes_received << " bytes received, " << bytes_to_receive << " bytes expected, u32PayloadLength=" << u32PayloadLength);
                 }
                 // std::cout << "UdpReceiver: u32PayloadLength = " << u32PayloadLength << " byte" << std::endl;
                 // CRC check
@@ -202,17 +202,17 @@ bool sick_lidar3d::UdpReceiver::Run(void)
                 if (u32PayloadCRC != u32MsgPackCRC)
                 {
                     crc_error = true;
-                    LIDAR3D_ERROR_STREAM("## ERROR UdpReceiver::Run(): CRC 0x" << std::setfill('0') << std::setw(2) << std::hex << u32PayloadCRC
+                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): CRC 0x" << std::setfill('0') << std::setw(2) << std::hex << u32PayloadCRC
                         << " received from " << std::dec << bytes_received << " udp bytes different to CRC 0x"
                         << std::setfill('0') << std::setw(2) << std::hex << u32MsgPackCRC << " computed from "
                         << std::dec << (msgpack_payload.size()) << " byte payload, message dropped");
-                    LIDAR3D_ERROR_STREAM("## ERROR UdpReceiver::Run(): decoded payload size: " << u32PayloadLength << " byte, bytes_to_receive (expected udp message length): "
+                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): decoded payload size: " << u32PayloadLength << " byte, bytes_to_receive (expected udp message length): "
                         << bytes_to_receive << " byte, bytes_received (received udp message length): " << bytes_received << " byte");
                     continue;
                 }
                 if (u32PayloadLength != msgpack_payload.size())
                 {
-                    LIDAR3D_ERROR_STREAM("## ERROR UdpReceiver::Run(): u32PayloadLength=" << u32PayloadLength << " different to decoded payload size " << msgpack_payload.size());
+                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): u32PayloadLength=" << u32PayloadLength << " different to decoded payload size " << msgpack_payload.size());
                 }
                 // Push msgpack_payload to input fifo
                 if (!crc_error)
@@ -221,14 +221,14 @@ bool sick_lidar3d::UdpReceiver::Run(void)
                     udp_recv_counter++;
                     if (m_verbose)
                     {
-                        LIDAR3D_INFO_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received from " << m_socket_impl->SenderIP() << ": " << ToPrintableString(udp_payload, bytes_received));
-                        LIDAR3D_INFO_STREAM("UdpReceiver::Run(): " << fifo_length << " messages currently in paylod buffer, totally received " << udp_recv_counter << " udp packages");
+                        ROS_INFO_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received: " << ToPrintableString(udp_payload, bytes_received));
+                        ROS_INFO_STREAM("UdpReceiver::Run(): " << fifo_length << " messages currently in paylod buffer, totally received " << udp_recv_counter << " udp packages");
                     }
                 }
                 if (m_export_udp_msg) // || crc_error
                 {
-                    std::ofstream udp_ostream(std::string("udp_received_bin_") + sick_lidar3d::FormatNumber(udp_recv_counter, 3, true, false, -1) + ".udp", std::ofstream::binary);
-                    std::ofstream msg_ostream(std::string("udp_received_msg_") + sick_lidar3d::FormatNumber(udp_recv_counter, 3, true, false, -1) + ".msg", std::ofstream::binary);
+                    std::ofstream udp_ostream(std::string("udp_received_bin_") + sick_scansegment_xd::FormatNumber(udp_recv_counter, 3, true, false, -1) + ".udp", std::ofstream::binary);
+                    std::ofstream msg_ostream(std::string("udp_received_msg_") + sick_scansegment_xd::FormatNumber(udp_recv_counter, 3, true, false, -1) + ".msg", std::ofstream::binary);
                     if (udp_ostream.is_open() && msg_ostream.is_open())
                     {
                         udp_ostream.write((const char*)udp_payload.data(), bytes_received);
@@ -238,13 +238,13 @@ bool sick_lidar3d::UdpReceiver::Run(void)
             }
             else if(bytes_received > 0)
             {
-                LIDAR3D_ERROR_STREAM("## ERROR UdpReceiver::Run(): Received " << bytes_received << " unexpected bytes from " << m_socket_impl->SenderIP());
+                ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): Received " << bytes_received << " unexpected bytes");
                 if(m_verbose)
-                    LIDAR3D_ERROR_STREAM(ToHexString(udp_payload, bytes_received));
+                    ROS_ERROR_STREAM(ToHexString(udp_payload, bytes_received));
             }
             if(bytes_received > 0)
                 timestamp_last_udp_recv = chrono_system_clock::now();
-            if (sick_lidar3d::Seconds(timestamp_last_udp_recv, chrono_system_clock::now()) > m_udp_sender_timeout) // if no udp packages received within 1-2 seconds, we switch to blocking udp receive
+            if (sick_scansegment_xd::Seconds(timestamp_last_udp_recv, chrono_system_clock::now()) > m_udp_sender_timeout) // if no udp packages received within 1-2 seconds, we switch to blocking udp receive
                 udp_recv_timeout = -1;                             // udp timeout, last datagram more than 1 second ago, resync and block until next datagram received
             else                                                   // in normal mode we receive udp datagrams non-blocking with timeout to enable sync with msgpack start
                 udp_recv_timeout = m_udp_timeout_recv_nonblocking; // receive non-blocking with timeout
@@ -254,7 +254,7 @@ bool sick_lidar3d::UdpReceiver::Run(void)
     }
     catch (std::exception & e)
     {
-        LIDAR3D_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << e.what());
+        ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << e.what());
     }
     m_run_receiver_thread = false;
     return false;
@@ -265,7 +265,7 @@ bool sick_lidar3d::UdpReceiver::Run(void)
  * param[in] payload payload buffer
  * param[in] bytes_received number of received bytes
  */
-std::string sick_lidar3d::UdpReceiver::ToHexString(const std::vector<uint8_t>& payload, size_t bytes_received)
+std::string sick_scansegment_xd::UdpReceiver::ToHexString(const std::vector<uint8_t>& payload, size_t bytes_received)
 {
     std::stringstream hexstream;
     for (size_t n = 0; n < bytes_received; n++)
@@ -280,7 +280,7 @@ std::string sick_lidar3d::UdpReceiver::ToHexString(const std::vector<uint8_t>& p
  * param[in] payload payload buffer
  * param[in] bytes_received number of received bytes
  */
-std::string sick_lidar3d::UdpReceiver::ToPrintableString(const std::vector<uint8_t>& payload, size_t bytes_received)
+std::string sick_scansegment_xd::UdpReceiver::ToPrintableString(const std::vector<uint8_t>& payload, size_t bytes_received)
 {
     std::vector<uint8_t> payload_printable(bytes_received + 1);
     for (size_t n = 0; n < bytes_received; n++)

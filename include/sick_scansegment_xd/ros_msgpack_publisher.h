@@ -53,14 +53,14 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_ROS_MSGPACK_PUBLISHER_H
-#define __SICK_LIDAR3D_ROS_MSGPACK_PUBLISHER_H
+#ifndef __SICK_SCANSEGMENT_XD_ROS_MSGPACK_PUBLISHER_H
+#define __SICK_SCANSEGMENT_XD_ROS_MSGPACK_PUBLISHER_H
 #if defined __ROS_VERSION && __ROS_VERSION > 0
 
-#include "sick_lidar3d/config.h"
-#include "sick_lidar3d/msgpack_exporter.h"
+#include "sick_scansegment_xd/config.h"
+#include "sick_scansegment_xd/msgpack_exporter.h"
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
     /*
      * class PointXYZI32f is just a container for a single multiScan136 point in cartesian coordinates x, y, z and intensity i
@@ -81,9 +81,9 @@ namespace sick_lidar3d
      * and publishes PointCloud2 messages with msgpack data from multiScan136.
      */
     #if defined __ROS_VERSION && __ROS_VERSION > 1
-    class RosMsgpackPublisher : public rclcpp::Node, public sick_lidar3d::MsgPackExportListenerIF
+    class RosMsgpackPublisher : public rclcpp::Node, public sick_scansegment_xd::MsgPackExportListenerIF
     #else
-    class RosMsgpackPublisher : public sick_lidar3d::MsgPackExportListenerIF
+    class RosMsgpackPublisher : public sick_scansegment_xd::MsgPackExportListenerIF
     #endif
     {
     public:
@@ -91,22 +91,17 @@ namespace sick_lidar3d
         /*
          * @brief RosMsgpackPublisher constructor
          * @param[in] node_name name of the ros node
-         * @param[in] config sick_lidar3d configuration, RosMsgpackPublisher uses
+         * @param[in] config sick_scansegment_xd configuration, RosMsgpackPublisher uses
          *            config.publish_topic: ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
          *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
          *            config.segment_count: number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
          *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
-         *            config.exit_on_keys_esc_q: true: shutdown and exit lidar3d_mrs100_recv after pressing key ESC, 'q' or 'Q'
          * @param[in] qos quality of service profile for the ros publisher, default: 1
          */
-        RosMsgpackPublisher(const std::string& node_name = "lidar3d_mrs100_recv", const sick_lidar3d::Config& config = sick_lidar3d::Config(), const rosQoS& qos = 1);
+        RosMsgpackPublisher(const std::string& node_name = "sick_scansegment_xd", const sick_scansegment_xd::Config& config = sick_scansegment_xd::Config(), const rosQoS& qos = 1);
 
         /*
          * @brief RosMsgpackPublisher destructor
-         * @param[in] node_name name of the ros node
-         * @param[in] topic ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
-         * @param[in] qos quality of service profile for the ros publisher, default: 1
-         * @param[in] exit_on_keys_esc_q true: shutdown and exit lidar3d_mrs100_recv after pressing key ESC, 'q' or 'Q'
          */
         virtual ~RosMsgpackPublisher();
 
@@ -115,12 +110,12 @@ namespace sick_lidar3d
          * for each registered listener after msgpack data have been received and converted.
          * This function converts and publishes msgpack data to PointCloud2 messages.
          */
-        virtual void HandleMsgPackData(const sick_lidar3d::MsgPackParserOutput& msgpack_data);
+        virtual void HandleMsgPackData(const sick_scansegment_xd::MsgPackParserOutput& msgpack_data);
 
         /*
          * Returns this instance explicitely as an implementation of interface MsgPackExportListenerIF.
          */
-        virtual sick_lidar3d::MsgPackExportListenerIF* ExportListener(void);
+        virtual sick_scansegment_xd::MsgPackExportListenerIF* ExportListener(void);
 
         /*
          * Sets min and max azimuth of a full scan in radians, default: -M_PI, +M_PI
@@ -152,7 +147,7 @@ namespace sick_lidar3d
                  segment_list.reserve(12);
                  telegram_list.reserve(12);
              }
-             void appendLidarPoints(const std::vector<std::vector<sick_lidar3d::PointXYZI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
+             void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
              {
                  for (int echoIdx = 0; echoIdx < points.size() && echoIdx < lidar_points.size(); echoIdx++)
                      lidar_points[echoIdx].insert(lidar_points[echoIdx].end(), points[echoIdx].begin(), points[echoIdx].end());
@@ -167,7 +162,7 @@ namespace sick_lidar3d
              float min_azimuth;        // min azimuth of all points in radians
              float max_azimuth;        // max azimuth of all points in radians
              size_t total_point_count; // total number of points in all segments
-             std::vector<std::vector<sick_lidar3d::PointXYZI32f>> lidar_points; // list of PointXYZI32f: lidar_points[echoIdx] are the points of all segments of an echo (idx echoIdx)
+             std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>> lidar_points; // list of PointXYZI32f: lidar_points[echoIdx] are the points of all segments of an echo (idx echoIdx)
              std::vector<int32_t> segment_list; // list of all collected segment indices
              std::vector<int32_t> telegram_list; // list of all collected telegram counters
          };
@@ -181,7 +176,7 @@ namespace sick_lidar3d
           * @param[in] echo_count number of echos
           * @param[out] pointcloud_msg PointCloud2Msg result
           */
-         void convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_lidar3d::PointXYZI32f>>& lidar_points,
+         void convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>>& lidar_points,
             size_t total_point_count, PointCloud2Msg& pointcloud_msg);
       
         /*
@@ -190,7 +185,6 @@ namespace sick_lidar3d
         void publish(PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg);
 
         bool m_active; // activate publishing
-        bool m_exit_on_keys_esc_q; // true: shutdown and exit lidar3d_mrs100_recv after pressing key ESC, 'q' or 'Q'
         std::string m_frame_id;    // frame id of ros PointCloud2 messages, default: "world"
         rosClock m_ros_clock;      // clock for message timestamps
         int m_segment_count = 12;  // number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
@@ -203,6 +197,6 @@ namespace sick_lidar3d
         PointCloud2MsgPublisher m_publisher_all_segments; // ros publisher to publish PointCloud2 message of all segments (360 degree)
 
     };  // class RosMsgpackPublisher
-}   // namespace sick_lidar3d
+}   // namespace sick_scansegment_xd
 #endif // __ROS_VERSION && __ROS_VERSION > 0
-#endif // __SICK_LIDAR3D_ROS_MSGPACK_PUBLISHER_H
+#endif // __SICK_SCANSEGMENT_XD_ROS_MSGPACK_PUBLISHER_H

@@ -52,8 +52,8 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_FIFO_H
-#define __SICK_LIDAR3D_FIFO_H
+#ifndef __SICK_SCANSEGMENT_XD_FIFO_H
+#define __SICK_SCANSEGMENT_XD_FIFO_H
 
 #include <chrono>
 #include <condition_variable>
@@ -69,7 +69,7 @@ typedef std::chrono::system_clock fifo_clock;
 // typedef std::chrono::time_point<std::chrono::high_resolution_clock> fifo_timestamp;
 // typedef std::chrono::high_resolution_clock fifo_clock;
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
     template <typename T> class Fifo
     {
@@ -79,7 +79,7 @@ namespace sick_lidar3d
          * @brief Fifo default constructor
          * @param[in] fifo_length max. fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
          */
-        Fifo(int fifo_length = 20) : m_fifo_length(fifo_length), m_shutdown(false) {}
+        Fifo(int fifo_length = 20) : m_fifo_length(fifo_length), m_shutdown(false), m_num_messages_received(0), m_timestamp_last_msg_received() {}
 
         /*
          * @brief Fifo destructor
@@ -93,6 +93,8 @@ namespace sick_lidar3d
         {
             std::unique_lock<std::mutex> lock(m_mutex);
             m_queue.push(std::make_tuple(element, timestamp, counter));
+            m_num_messages_received++;
+            m_timestamp_last_msg_received = timestamp;
             while(m_fifo_length > 0 && m_queue.size() > m_fifo_length)
                 m_queue.pop();
             m_cond.notify_all();
@@ -140,6 +142,24 @@ namespace sick_lidar3d
         }
 
         /*
+         * @brief Returns the total number of messages pushed to fifo since constructed
+         */
+        virtual size_t TotalMessagesPushed()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return m_num_messages_received;
+        }
+
+        /*
+         * @brief Returns the time in seconds since the last message has been pushed (i.e. since last message received from lidar)
+         */
+        virtual double SecondsSinceLastPush()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            return Seconds(m_timestamp_last_msg_received, fifo_clock::now());
+        }
+
+        /*
          * @brief Returns the duration in seconds between a push (start) and pop (end) timestamps
          */
         static double Seconds(const fifo_timestamp& timestamp_start, const fifo_timestamp& timestamp_end = fifo_clock::now())
@@ -156,6 +176,8 @@ namespace sick_lidar3d
         std::condition_variable m_cond;   // condition to wait and notify on push and pop
         int m_fifo_length;                // max. fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
         bool m_shutdown;                  // if true, fifo is in shutdown mode and Pop returns immediately, default: false
+        size_t m_num_messages_received;   // total number of messages pushed to fifo
+        fifo_timestamp m_timestamp_last_msg_received; // timestamp of last message pushed to fifo
     };
 
     /*
@@ -171,5 +193,5 @@ namespace sick_lidar3d
         PayloadFifo(int fifo_length = 20) : Fifo<std::vector<uint8_t>>(fifo_length) {}
     };
 
-} // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_FIFO_H
+} // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_FIFO_H

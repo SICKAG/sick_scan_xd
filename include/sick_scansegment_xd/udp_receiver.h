@@ -54,18 +54,17 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_UDP_RECEIVER_H
-#define __SICK_LIDAR3D_UDP_RECEIVER_H
+#ifndef __SICK_SCANSEGMENT_XD_UDP_RECEIVER_H
+#define __SICK_SCANSEGMENT_XD_UDP_RECEIVER_H
 
-#include "sick_lidar3d/common.h"
-#include "sick_lidar3d/fifo.h"
+#include "sick_scansegment_xd/common.h"
+#include "sick_scansegment_xd/fifo.h"
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
     /*
      * @brief forward declaration of an udp receiver socket implementation.
-     * Used internally in the UdpReceiver, implementation uses
-     * boost::asio::ip::udp.
+     * Used internally in the UdpReceiver.
      */
     class UdpReceiverSocketImpl;
 
@@ -147,7 +146,7 @@ namespace sick_lidar3d
         /*
          * Member data to run a udp receiver
          */
-        UdpReceiverSocketImpl* m_socket_impl;     // implementation of the udp receiver socket, uses boost::asio::ip::udp
+        UdpReceiverSocketImpl* m_socket_impl;     // implementation of the udp receiver socket
         PayloadFifo* m_fifo_impl;                 // implementation of a thread safe fifo buffer to share the payload of udp packages
         std::thread* m_receiver_thread;           // background thread to receive udp packages
         bool m_run_receiver_thread;               // flag to start and stop the udp receiver thread
@@ -155,5 +154,5 @@ namespace sick_lidar3d
 
     };  // class UdpReceiver
 
-}   // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_UDP_RECEIVER_H
+}   // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_UDP_RECEIVER_H

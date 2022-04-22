@@ -5,9 +5,9 @@
  *
  * Usage example:
  *
- * sick_lidar3d::UdpReceiver udp_receiver;
+ * sick_scansegment_xd::UdpReceiver udp_receiver;
  * udp_receiver.Init("127.0.0.1", 2115, -1, true);
- * sick_lidar3d::MsgPackConverter msgpack_converter(udp_receiver.Fifo(), -1, true);
+ * sick_scansegment_xd::MsgPackConverter msgpack_converter(udp_receiver.Fifo(), -1, true);
  * msgpack_converter.Start()
  * udp_receiver.Start();
  *
@@ -62,15 +62,15 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_MSGPACK_CONVERTER_H
-#define __SICK_LIDAR3D_MSGPACK_CONVERTER_H
+#ifndef __SICK_SCANSEGMENT_XD_MSGPACK_CONVERTER_H
+#define __SICK_SCANSEGMENT_XD_MSGPACK_CONVERTER_H
 
-#include "sick_lidar3d/common.h"
-#include "sick_lidar3d/fifo.h"
-#include "sick_lidar3d/msgpack_parser.h"
-#include "sick_lidar3d/msgpack_validator.h"
+#include "sick_scansegment_xd/common.h"
+#include "sick_scansegment_xd/fifo.h"
+#include "sick_scansegment_xd/msgpack_parser.h"
+#include "sick_scansegment_xd/msgpack_validator.h"
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
 	/*
      * @brief class MsgPackConverter runs a background thread to unpack and parses msgpack data for the sick 3D lidar multiScan136.
@@ -92,7 +92,7 @@ namespace sick_lidar3d
          * @param[in] msgpack_output_fifolength max. output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
          * @param[in] verbose true: enable debug output, false: quiet mode (default)
          */
-         MsgPackConverter(sick_lidar3d::PayloadFifo* input_fifo, int msgpack_output_fifolength = 20, bool verbose = false);
+         MsgPackConverter(sick_scansegment_xd::PayloadFifo* input_fifo, int msgpack_output_fifolength = 20, bool verbose = false);
 
         /*
          * @brief Default destructor.
@@ -117,12 +117,12 @@ namespace sick_lidar3d
          * @param[in] discard_msgpacks_not_validated true: msgpacks are discarded if scan data out of bounds detected, false: error message if a msgpack is not validated
          * @param[in] msgpack_validator_check_missing_scandata_interval check msgpack for missing scandata after collecting N msgpacks, default: N = 12 segments. Increase this value to tolerate udp packet drops. Use 12 to check each full scan.
          */
-        void SetValidator(sick_lidar3d::MsgPackValidator& msgpack_validator, bool msgpack_validator_enabled, bool discard_msgpacks_not_validated, int msgpack_validator_check_missing_scandata_interval); 
+        void SetValidator(sick_scansegment_xd::MsgPackValidator& msgpack_validator, bool msgpack_validator_enabled, bool discard_msgpacks_not_validated, int msgpack_validator_check_missing_scandata_interval); 
 
         /*
          * @brief Returns the output fifo storing the multiScan136 scanlines.
          */
-        sick_lidar3d::Fifo<MsgPackParserOutput>* Fifo(void) { return m_output_fifo; }
+        sick_scansegment_xd::Fifo<MsgPackParserOutput>* Fifo(void) { return m_output_fifo; }
 
    protected:
 
@@ -140,15 +140,15 @@ namespace sick_lidar3d
          * Member data to run the converter
          */
        PayloadFifo* m_input_fifo;                               // input fifo for msgpack data
-       sick_lidar3d::Fifo<MsgPackParserOutput>* m_output_fifo;  // output fifo for MsgPackParserOutput data converted from  msgpack data
+       sick_scansegment_xd::Fifo<MsgPackParserOutput>* m_output_fifo;  // output fifo for MsgPackParserOutput data converted from  msgpack data
        std::thread* m_converter_thread;                         // background thread to convert msgpack to MsgPackParserOutput data
        bool m_run_converter_thread;                             // flag to start and stop the udp converter thread
        bool m_msgpack_validator_enabled;                        // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
-       sick_lidar3d::MsgPackValidator m_msgpack_validator;      // msgpack validation, see MsgPackValidator for details
+       sick_scansegment_xd::MsgPackValidator m_msgpack_validator;      // msgpack validation, see MsgPackValidator for details
        bool m_discard_msgpacks_not_validated;                   // true: msgpacks are discarded if scan data out of bounds detected, false: error message if a msgpack is not validated
        int m_msgpack_validator_check_missing_scandata_interval; // check msgpack for missing scandata after collecting N msgpacks, default: N = 12 segments. Increase this value to tolerate udp packet drops. Use 12 to check each full scan.
 
 	};  // class MsgPackConverter
 
-}   // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_MSGPACK_CONVERTER_H
+}   // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_MSGPACK_CONVERTER_H

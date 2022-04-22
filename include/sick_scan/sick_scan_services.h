@@ -65,9 +65,9 @@
 #include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scan/sick_scan_common.h"
 #include "sick_scan/sick_scan_common_tcp.h"
-#if defined LIDAR3D_SUPPORT && LIDAR3D_SUPPORT > 0
-#include "sick_lidar3d/config.h"
-#endif // LIDAR3D_SUPPORT
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+#include "sick_scansegment_xd/config.h"
+#endif // SCANSEGMENT_XD_SUPPORT
 
 namespace sick_scan
 {
@@ -138,13 +138,13 @@ namespace sick_scan
     bool serviceCbSickScanExit(sick_scan_srv::SickScanExitSrv::Request &service_request, sick_scan_srv::SickScanExitSrv::Response &service_response);
     bool serviceCbSickScanExitROS2(std::shared_ptr<sick_scan_srv::SickScanExitSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SickScanExitSrv::Response> service_response) { return serviceCbSickScanExit(*service_request, *service_response); }
 
-#if defined LIDAR3D_SUPPORT && LIDAR3D_SUPPORT > 0
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
     /*!
      * Sends the MRS100 start commands "sWN ScanDataFormatSettings", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
-     * @param[in] mrs100_ip IP address of multiScan136, default 192.168.0.1
-     * @param[in] mrs100_port IP port of multiScan136, default 2115
+     * @param[in] hostname IP address of multiScan136, default 192.168.0.1
+     * @param[in] port IP port of multiScan136, default 2115
      */
-    bool sendMRS100StartCmd(const std::string& mrs100_ip, int mrs100_port);
+    bool sendMRS100StartCmd(const std::string& hostname, int port);
 
     /*!
      * Sends the MRS100 stop commands "sWN ScanDataEnable 0" and "sMN Run"
@@ -152,23 +152,23 @@ namespace sick_scan
     bool sendMRS100StopCmd(void);
 
     /*!
-    * Sends the SOPAS command to query multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, mrs100_LFPlayerFilter)
-    * @param[out] mrs100_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
-    * @param[out] mrs100_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
-    * @param[out] mrs100_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+    * Sends the SOPAS command to query multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, host_LFPlayerFilter)
+    * @param[out] host_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+    * @param[out] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+    * @param[out] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
     * @param[out] msgpack_validator_filter_settings; // filter settings for msgpack validator: required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
     */
-    bool queryMRS100Filtersettings(int& mrs100_FREchoFilter, std::string& mrs100_LFPangleRangeFilter, std::string& mrs100_LFPlayerFilter, sick_lidar3d::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings);
+    bool queryMRS100Filtersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter, sick_scansegment_xd::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings);
 
     /*!
-    * Sends the SOPAS command to write multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, mrs100_LFPlayerFilter)
-    * @param[in] mrs100_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
-    * @param[in] mrs100_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
-    * @param[in] mrs100_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+    * Sends the SOPAS command to write multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, host_LFPlayerFilter)
+    * @param[in] host_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+    * @param[in] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+    * @param[in] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
     */
-    bool writeMRS100Filtersettings(int mrs100_FREchoFilter, const std::string& mrs100_LFPangleRangeFilter, const std::string& mrs100_LFPlayerFilter);
+    bool writeMRS100Filtersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter);
 
-#endif // defined LIDAR3D_SUPPORT && LIDAR3D_SUPPORT > 0
+#endif // defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
 
   protected:
 

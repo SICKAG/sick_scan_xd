@@ -1,8 +1,8 @@
 /*
- * @brief json_parser wraps json parsing and conversion using jsoncpp.
+ * @brief lidar3d_mrs100_recv implements a ROS node to receive and publish data from the new sick 3D lidar multiScan136.
  *
- * Copyright (C) 2021 Ing.-Buero Dr. Michael Lehning, Hildesheim
- * Copyright (C) 2021 SICK AG, Waldkirch
+ * Copyright (C) 2020 Ing.-Buero Dr. Michael Lehning, Hildesheim
+ * Copyright (C) 2020 SICK AG, Waldkirch
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,64 +48,60 @@
  *      Authors:
  *         Michael Lehning <michael.lehning@lehning.de>
  *
- *  Copyright 2021 SICK AG
- *  Copyright 2021 Ing.-Buero Dr. Michael Lehning
+ *  Copyright 2020 SICK AG
+ *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_JSON_PARSER_H_INCLUDED
-#define __SICK_LIDAR3D_JSON_PARSER_H_INCLUDED
+#include "sick_scan/sick_ros_wrapper.h"
+#include "sick_scansegment_xd/scansegement_threads.h"
 
-#include <map>
-#include <string>
-
-namespace sick_lidar3d
+/*
+ * main runs lidar3d_mrs100_recv:
+ * - Initialize udp receiver, msgpack converter and ros publisher,
+ * - Run threads to receive, convert, export and publish msgpack data,
+ * - Optionally save to csv-file,
+ * - Optionally read and convert msgpack files,
+ * - Report cpu times and possible data lost.
+ */
+int main(int argc, char** argv)
 {
-    /*
-    ** @brief class JsonValue represents a type (bool, int, double or string) and a value
-    */
-    class JsonValue
+    // Configuration
+    sick_scansegment_xd::Config config;
+    if (!config.Init(argc, argv))
+        ROS_ERROR_STREAM("## ERROR lidar3d_mrs100_recv: Config::Init() failed, using default values.");
+    ROS_INFO_STREAM("lidar3d_mrs100_recv started.");
+
+    sick_scansegment_xd::MsgPackThreads msgpack_threads;
+    if(!msgpack_threads.start(config))
     {
-    public:
-        enum Type { INVALID = 0, BOOL, INT, DOUBLE, STRING };
-        JsonValue() : m_type(INVALID), m_b_val(false), m_i_val(0), m_d_val(0), m_s_val("") {}
-        JsonValue(bool val) : m_type(BOOL), m_b_val(val), m_i_val(0), m_d_val(0), m_s_val("") {}
-        JsonValue(int64_t val) : m_type(INT), m_b_val(0), m_i_val(val), m_d_val(0), m_s_val("") {}
-        JsonValue(double val) : m_type(DOUBLE), m_b_val(0), m_i_val(0), m_d_val(val), m_s_val("") {}
-        JsonValue(const std::string& val) : m_type(STRING), m_b_val(0), m_i_val(0), m_d_val(0), m_s_val(val) {}
-        bool toBool(void) const;
-        int64_t toInt(void) const;
-        double toDouble(void) const;
-        std::string toString(void) const;
-        Type type(void) const;
-        std::string typeString(void) const;
-    protected:
-        Type m_type;
-        bool m_b_val;
-        int64_t m_i_val;
-        double m_d_val;
-        std::string m_s_val;
-    };
+        ROS_ERROR_STREAM("## ERROR lidar3d_mrs100_recv: sick_scansegment_xd::MsgPackThreads::start() failed");
+    }
 
-    /*
-    ** @brief class JsonParser wraps json parsing and conversion using jsoncpp
-    */
-    class JsonParser
+    // Run event loop
+#if defined __ROS_VERSION && __ROS_VERSION > 1
+    rclcpp::spin(config.node);
+    ROS_INFO_STREAM("lidar3d_mrs100_recv finishing, ros shutdown.");
+#elif defined __ROS_VERSION && __ROS_VERSION > 0
+    ros::spin();
+    ROS_INFO_STREAM("lidar3d_mrs100_recv finishing, ros shutdown.");
+#else // Run background task until ENTER key pressed
+    while(true)
     {
-    public:
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        int c;
+        if (KBHIT() && ((c = GETCH()) == 27 || c == 'q' || c == 'Q'))
+        {
+            ROS_INFO_STREAM("lidar3d_mrs100_recv: key " << c << " pressed, aborting...");
+            break;
+        }
+    }
+#endif
+    rosShutdown();
 
-        /*
-        ** @brief Parses the response data of a http GET or POST request and returns a map of key-value pairs.
-        ** Example: json_values = parseRestResponseData("{'header': {'status': 0, 'message': 'Ok'}, 'data': {'success': True}}")
-        ** returns a map json_values["success"] := "True" resp. toBool(json_values["success"]) == true.
-        **
-        ** @param json_msg json response from SIM localization server
-        ** @param verbose if verbose>0: print key-value pairs, otherwise silent except for error messages
-        **
-        ** @return map of key-value pairs
-        */
-        static std::map<std::string, JsonValue> parseRestResponseData(const std::string& json_msg, int verbose = 0);
-
-    }; // class JsonParser
-
-} // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_JSON_PARSER_H_INCLUDED
+    if(!msgpack_threads.stop())
+    {
+        ROS_ERROR_STREAM("## ERROR lidar3d_mrs100_recv: sick_scansegment_xd::MsgPackThreads::stop() failed");
+    }
+    ROS_INFO_STREAM("lidar3d_mrs100_recv finished.");
+    return 0;
+}

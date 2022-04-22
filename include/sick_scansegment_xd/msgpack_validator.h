@@ -62,8 +62,8 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_MSGPACK_VALIDATOR_H
-#define __SICK_LIDAR3D_MSGPACK_VALIDATOR_H
+#ifndef __SICK_SCANSEGMENT_XD_MSGPACK_VALIDATOR_H
+#define __SICK_SCANSEGMENT_XD_MSGPACK_VALIDATOR_H
 
 #ifndef _USE_MATH_DEFINES // to ensure that M_PI is defined
 #define _USE_MATH_DEFINES
@@ -73,9 +73,9 @@
 #include <string>
 #include <vector>
 
-#include "sick_lidar3d/common.h"
+#include "sick_scansegment_xd/common.h"
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
 	/*
      * @brief class MsgPackValidatorData collects echo_idx, azimuth, elevation and segment_idx
@@ -274,5 +274,5 @@ namespace sick_lidar3d
 
 	};  // class MsgPackValidator
 
-}   // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_MSGPACK_VALIDATOR_H
+}   // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_MSGPACK_VALIDATOR_H

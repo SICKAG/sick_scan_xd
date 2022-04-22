@@ -52,25 +52,24 @@
  *
  */
 
-#include "sick_lidar3d/ros_msgpack_publisher.h"
+#include "sick_scansegment_xd/ros_msgpack_publisher.h"
 
 #if defined __ROS_VERSION && __ROS_VERSION > 0
 
 /*
  * @brief RosMsgpackPublisher constructor
  * @param[in] node_name name of the ros node
- * @param[in] config sick_lidar3d configuration, RosMsgpackPublisher uses
+ * @param[in] config sick_scansegment_xd configuration, RosMsgpackPublisher uses
  *            config.publish_topic: ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
  *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
  *            config.segment_count: number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
  *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
- *            config.exit_on_keys_esc_q: true: shutdown and exit lidar3d_mrs100_recv after pressing key ESC, 'q' or 'Q'
  * @param[in] qos quality of service profile for the ros publisher, default: 1
  */
-sick_lidar3d::RosMsgpackPublisher::RosMsgpackPublisher(const std::string& node_name, const sick_lidar3d::Config& config, const rosQoS& qos)
+sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string& node_name, const sick_scansegment_xd::Config& config, const rosQoS& qos)
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 	: Node(node_name), m_frame_id(config.publish_frame_id), m_publish_topic(config.publish_topic), m_publish_topic_all_segments(config.publish_topic_all_segments),
-	m_active(false), m_segment_count(config.segment_count), m_min_azimuth((float)-M_PI), m_max_azimuth((float)+M_PI), m_exit_on_keys_esc_q(config.exit_on_keys_esc_q), m_ros_clock(RCL_ROS_TIME)
+	m_active(false), m_segment_count(config.segment_count), m_min_azimuth((float)-M_PI), m_max_azimuth((float)+M_PI), m_ros_clock(RCL_ROS_TIME)
 {
 	m_points_collector = SegmentPointsCollector(m_segment_count);
 	if(m_publish_topic != "")
@@ -80,7 +79,7 @@ sick_lidar3d::RosMsgpackPublisher::RosMsgpackPublisher(const std::string& node_n
 }
 #elif defined __ROS_VERSION && __ROS_VERSION > 0
 	: m_frame_id(config.publish_frame_id), m_publish_topic(config.publish_topic), m_publish_topic_all_segments(config.publish_topic_all_segments),
-		m_segment_count(config.segment_count), m_exit_on_keys_esc_q(config.exit_on_keys_esc_q), m_ros_clock()
+		m_segment_count(config.segment_count), m_ros_clock()
 {
 	if(m_publish_topic != "")
 		m_publisher_cur_segment = config.node->advertise<PointCloud2Msg>(m_publish_topic, qos);
@@ -91,20 +90,15 @@ sick_lidar3d::RosMsgpackPublisher::RosMsgpackPublisher(const std::string& node_n
 
 /*
  * @brief RosMsgpackPublisher destructor
- * @param[in] node_name name of the ros node
- * @param[in] topic ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
- * @param[in] qos quality of service profile for the ros publisher, default: 1
- * @param[in] exit_on_keys_esc_q true: shutdown and exit lidar3d_mrs100_recv after pressing key ESC, 'q' or 'Q'
  */
-sick_lidar3d::RosMsgpackPublisher::~RosMsgpackPublisher()
+sick_scansegment_xd::RosMsgpackPublisher::~RosMsgpackPublisher()
 {
 }
-
 
 /*
  * Shortcut to publish a PointCloud2Msg
  */
-void sick_lidar3d::RosMsgpackPublisher::publish(PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg)
+void sick_scansegment_xd::RosMsgpackPublisher::publish(PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg)
 {
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 	publisher->publish(pointcloud_msg);
@@ -122,7 +116,7 @@ void sick_lidar3d::RosMsgpackPublisher::publish(PointCloud2MsgPublisher& publish
  * @param[in] echo_count number of echos
  * @param[out] pointcloud_msg PointCloud2Msg result
  */
-void sick_lidar3d::RosMsgpackPublisher::convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_lidar3d::PointXYZI32f>>& lidar_points,
+void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>>& lidar_points,
   size_t total_point_count, PointCloud2Msg& pointcloud_msg)
 {
   // set pointcloud header
@@ -176,7 +170,7 @@ void sick_lidar3d::RosMsgpackPublisher::convertPointsToCloud(uint32_t timestamp_
  * for each registered listener after msgpack data have been received and converted.
  * This function converts and publishes msgpack data to PointCloud2 messages.
  */
-void sick_lidar3d::RosMsgpackPublisher::HandleMsgPackData(const sick_lidar3d::MsgPackParserOutput& msgpack_data)
+void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scansegment_xd::MsgPackParserOutput& msgpack_data)
 {
 	if (!m_active)
 		return; // publishing deactivated
@@ -196,7 +190,7 @@ void sick_lidar3d::RosMsgpackPublisher::HandleMsgPackData(const sick_lidar3d::Ms
 		}
 	}
 	float lidar_points_min_azimuth = +2.0f * (float)M_PI, lidar_points_max_azimuth = -2.0f * (float)M_PI;
-	std::vector<std::vector<sick_lidar3d::PointXYZI32f>> lidar_points(echo_count);
+	std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>> lidar_points(echo_count);
 	for (int echoIdx = 0; echoIdx < echo_count; echoIdx++)
 	{
 		lidar_points[echoIdx].reserve(point_count_per_echo);
@@ -205,11 +199,11 @@ void sick_lidar3d::RosMsgpackPublisher::HandleMsgPackData(const sick_lidar3d::Ms
 	{
 		for (int echoIdx = 0; echoIdx < msgpack_data.scandata[groupIdx].scanlines.size(); echoIdx++)
 		{
-			const std::vector<sick_lidar3d::MsgPackParserOutput::LidarPoint>& scanline = msgpack_data.scandata[groupIdx].scanlines[echoIdx];
+			const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_data.scandata[groupIdx].scanlines[echoIdx];
 			for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 			{
-				const sick_lidar3d::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
-				lidar_points[echoIdx].push_back(sick_lidar3d::PointXYZI32f(point.x, point.y, point.z, point.i));
+				const sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZI32f(point.x, point.y, point.z, point.i));
 				lidar_points_min_azimuth = std::min(lidar_points_min_azimuth, point.azimuth);
 				lidar_points_max_azimuth = std::max(lidar_points_max_azimuth, point.azimuth);
 			}
@@ -229,8 +223,8 @@ void sick_lidar3d::RosMsgpackPublisher::HandleMsgPackData(const sick_lidar3d::Ms
 	// 	  iv.  Konfiguration erfolgt über YAML-Datei.
 	if(m_publish_topic_all_segments != "")
 	{
-		// LIDAR3D_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.segment_count=" << m_points_collector.segment_count << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count);
-		// LIDAR3D_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.segment_count=" << m_points_collector.segment_count 
+		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.segment_count=" << m_points_collector.segment_count << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count);
+		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.segment_count=" << m_points_collector.segment_count 
 		// 	<< ", m_points_collector.total_point_count=" << m_points_collector.total_point_count << ", m_points_collector.azimuth=(" << m_points_collector.min_azimuth << "," << m_points_collector.max_azimuth
 		//     << "), config.azimuth=(" << m_min_azimuth << "," << m_max_azimuth << ")");
 		if (segment_idx == 0 || segment_idx < m_points_collector.segment_count) // start with new segment index, i.e. publish the collected pointcloud and start a new collection of all points (until N <= 12 segments collected)
@@ -248,9 +242,9 @@ void sick_lidar3d::RosMsgpackPublisher::HandleMsgPackData(const sick_lidar3d::Ms
 					PointCloud2Msg pointcloud_msg;
 					convertPointsToCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, m_points_collector.total_point_count, pointcloud_msg);
 					publish(m_publisher_all_segments, pointcloud_msg);
-					// LIDAR3D_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): cloud_360 published, " << m_points_collector.total_point_count << " points, " << pointcloud_msg.data.size() << " byte, "
-					//     << m_points_collector.segment_list.size() << " segments (" << sick_lidar3d::util::printVector(m_points_collector.segment_list, ",") << "), "
-					//     << m_points_collector.telegram_list.size() << " telegrams (" << sick_lidar3d::util::printVector(m_points_collector.telegram_list, ",") << "), "
+					// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): cloud_360 published, " << m_points_collector.total_point_count << " points, " << pointcloud_msg.data.size() << " byte, "
+					//     << m_points_collector.segment_list.size() << " segments (" << sick_scansegment_xd::util::printVector(m_points_collector.segment_list, ",") << "), "
+					//     << m_points_collector.telegram_list.size() << " telegrams (" << sick_scansegment_xd::util::printVector(m_points_collector.telegram_list, ",") << "), "
 					//     << "min_azimuth=" << (m_points_collector.min_azimuth * 180.0 / M_PI) << ", max_azimuth=" << (m_points_collector.max_azimuth * 180.0 / M_PI) << " [deg]");
 					m_points_collector = SegmentPointsCollector(m_segment_count, telegram_cnt);
 				}
@@ -260,7 +254,7 @@ void sick_lidar3d::RosMsgpackPublisher::HandleMsgPackData(const sick_lidar3d::Ms
 			m_points_collector.timestamp_sec = msgpack_data.timestamp_sec;
 			m_points_collector.timestamp_nsec = msgpack_data.timestamp_nsec;
 			m_points_collector.total_point_count = total_point_count;
-			m_points_collector.lidar_points = std::vector<std::vector<sick_lidar3d::PointXYZI32f>>(lidar_points.size());
+			m_points_collector.lidar_points = std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>>(lidar_points.size());
 			for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
 				m_points_collector.lidar_points[echoIdx].reserve(12 * lidar_points[echoIdx].size());
 			m_points_collector.appendLidarPoints(lidar_points, segment_idx, telegram_cnt);
@@ -280,12 +274,12 @@ void sick_lidar3d::RosMsgpackPublisher::HandleMsgPackData(const sick_lidar3d::Ms
 		}
 		else
 		{
-			LIDAR3D_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.segment_count 
+			ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.segment_count 
 				<< ", current telegram: " << telegram_cnt << ", last telegram in collector: " << m_points_collector.telegram_cnt
 				<< ", datagram(s) missing, 360-degree-pointcloud not published");
 			m_points_collector = SegmentPointsCollector(m_segment_count, telegram_cnt); // reset pointcloud collector
 		}
-		// LIDAR3D_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx " << segment_idx << " of " << m_segment_count << ", " << m_points_collector.total_point_count << " points in collector");
+		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx " << segment_idx << " of " << m_segment_count << ", " << m_points_collector.total_point_count << " points in collector");
 	}
   
     // Publish PointCloud2 message for the current segment
@@ -296,18 +290,11 @@ void sick_lidar3d::RosMsgpackPublisher::HandleMsgPackData(const sick_lidar3d::Ms
 		publish(m_publisher_cur_segment, pointcloud_msg_segment);
 	}
 	
-	/* check for exit
-	int c = 0;
-	if (m_exit_on_keys_esc_q && KBHIT() && ((c = GETCH()) == 27 || c == 'q' || c == 'Q'))
-	{
-		LIDAR3D_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): key " << c << " pressed, aborting...");
-		rosShutdown(); // stop after pressing ESC, 'q' or 'Q'.
-	} */
 }
 
 /*
  * Returns this instance explicitely as an implementation of interface MsgPackExportListenerIF.
  */
-sick_lidar3d::MsgPackExportListenerIF* sick_lidar3d::RosMsgpackPublisher::ExportListener(void) { return this; }
+sick_scansegment_xd::MsgPackExportListenerIF* sick_scansegment_xd::RosMsgpackPublisher::ExportListener(void) { return this; }
 
 #endif // __ROS_VERSION && __ROS_VERSION > 0

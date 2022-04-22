@@ -761,7 +761,6 @@ Further examples are provided in folder `test/scripts`.
 ## FAQ
 
 * FAQ: [doc/faq.md](doc/faq.md)
-* ROS installation: [doc/InstallROS2.md](doc/InstallROS2.md)
 
 ## Troubleshooting
 

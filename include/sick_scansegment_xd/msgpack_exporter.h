@@ -53,14 +53,14 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
-#ifndef __SICK_LIDAR3D_MSGPACK_EXPORTER_H
-#define __SICK_LIDAR3D_MSGPACK_EXPORTER_H
+#ifndef __SICK_SCANSEGMENT_XD_MSGPACK_EXPORTER_H
+#define __SICK_SCANSEGMENT_XD_MSGPACK_EXPORTER_H
 
-#include "sick_lidar3d/common.h"
-#include "sick_lidar3d/fifo.h"
-#include "sick_lidar3d/msgpack_parser.h"
+#include "sick_scansegment_xd/common.h"
+#include "sick_scansegment_xd/fifo.h"
+#include "sick_scansegment_xd/msgpack_parser.h"
 
-namespace sick_lidar3d
+namespace sick_scansegment_xd
 {
     /*
      * @brief class MsgPackExportListenerIF is an interface to listen to exported msgpack data.
@@ -75,7 +75,7 @@ namespace sick_lidar3d
          * Callback function of MsgPackExportListenerIF. HandleMsgPackData() will be called in MsgPackExporter
          * for each registered listener after msgpack data have been received and converted.
          */
-        virtual void HandleMsgPackData(const sick_lidar3d::MsgPackParserOutput& msgpack_data) = 0;
+        virtual void HandleMsgPackData(const sick_scansegment_xd::MsgPackParserOutput& msgpack_data) = 0;
     };
 
 	/*
@@ -99,9 +99,8 @@ namespace sick_lidar3d
          * @param[in] export_csv true: export MsgPackParserOutput data to csv files
          * @param[in] verbose true: enable debug output, false: quiet mode (default)
          * @param[in] measure_timing true: duration and latency of msgpack conversion and export is measured, default: false
-         * @param[in] visualize true: plot MsgPackParserOutput data, false: quiet mode (default)
          */
-         MsgPackExporter(sick_lidar3d::PayloadFifo* udp_fifo, sick_lidar3d::Fifo<MsgPackParserOutput>* msgpack_fifo, const std::string& logfolder, bool export_csv, bool verbose = false, bool measure_timing = false, bool visualize = false);
+         MsgPackExporter(sick_scansegment_xd::PayloadFifo* udp_fifo, sick_scansegment_xd::Fifo<MsgPackParserOutput>* msgpack_fifo, const std::string& logfolder, bool export_csv, bool verbose = false, bool measure_timing = false);
 
         /*
          * @brief Default destructor.
@@ -127,12 +126,12 @@ namespace sick_lidar3d
          * @brief Registers a listener to msgpack export data. MsgPackExporter will notify registered listeners
          * whenever msgpack data have been received and successfully converted by calling listener->HandleMsgPackData().
          */
-        void AddExportListener(sick_lidar3d::MsgPackExportListenerIF* listener);
+        void AddExportListener(sick_scansegment_xd::MsgPackExportListenerIF* listener);
 
         /*
          * @brief Removes a registered listener.
          */
-        void RemoveExportListener(sick_lidar3d::MsgPackExportListenerIF* listener);
+        void RemoveExportListener(sick_scansegment_xd::MsgPackExportListenerIF* listener);
 
     protected:
 
@@ -153,18 +152,17 @@ namespace sick_lidar3d
        bool m_export_csv;                                       // true: export MsgPackParserOutput data to csv files
        bool m_verbose;                                          // true: enable debug output, false: quiet mode (default)
        bool m_measure_timing;                                   // true: duration and latency of msgpack conversion and export is measured, default: false
-       bool m_visualize;                                        // true: true: plot MsgPackParserOutput data, false: quiet mode (default)
 
        /*
         * Member data to run the exporter
         */
-       sick_lidar3d::PayloadFifo* m_udp_fifo;                         // fifo buffering udp packages (for informational messages only)
-       sick_lidar3d::Fifo<MsgPackParserOutput>* m_msgpack_fifo;       // input fifo buffering MsgPackParserOutput data from multiScan136 (for csv export and visualization)
+       sick_scansegment_xd::PayloadFifo* m_udp_fifo;                         // fifo buffering udp packages (for informational messages only)
+       sick_scansegment_xd::Fifo<MsgPackParserOutput>* m_msgpack_fifo;       // input fifo buffering MsgPackParserOutput data from multiScan136 (for csv export and visualization)
        std::thread* m_exporter_thread;                                // background thread to export MsgPackParserOutput data
        bool m_run_exporter_thread;                                    // flag to start and stop the exporter thread
-       std::list< sick_lidar3d::MsgPackExportListenerIF*> m_listener; // list of export listener, which will be notified calling listener->HandleMsgPackData() after successfull conversion of received msgpack data
+       std::list< sick_scansegment_xd::MsgPackExportListenerIF*> m_listener; // list of export listener, which will be notified calling listener->HandleMsgPackData() after successfull conversion of received msgpack data
 
 	};  // class MsgPackExporter
 
-}   // namespace sick_lidar3d
-#endif // __SICK_LIDAR3D_MSGPACK_EXPORTER_H
+}   // namespace sick_scansegment_xd
+#endif // __SICK_SCANSEGMENT_XD_MSGPACK_EXPORTER_H
