@@ -1076,11 +1076,15 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
                         "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.",
                         expected_time_increment, time_increment, time_increment, scan_time, angle_increment*180.0/M_PI);
 #else
-        ROS_WARN_STREAM(
-            "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
-            << "Expected time_increment: " << expected_time_increment << ", reported time_increment:" << time_increment << " "
-            << "(time_increment=" << time_increment << ", scan_time=" << scan_time << ", angle_increment=" << (angle_increment*180.0/M_PI) << "). "
-            << "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.");
+        static rosTime last_message_time(0);
+        if ((rosTimeNow() - last_message_time) > rosDurationFromSec(60)) {
+          last_message_time = rosTimeNow();
+          ROS_WARN_STREAM(
+              "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
+              << "Expected time_increment: " << expected_time_increment << ", reported time_increment:" << time_increment << " "
+              << "(time_increment=" << time_increment << ", scan_time=" << scan_time << ", angle_increment=" << (angle_increment * 180.0 / M_PI) << "). "
+              << "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.");
+        }
 #endif
     }
     // ROS_DEBUG_STREAM("SickGenericParser::checkScanTiming(time_increment=" << time_increment << ", scan_time=" << scan_time << ", angle_increment=" << (angle_increment*180.0/M_PI)
