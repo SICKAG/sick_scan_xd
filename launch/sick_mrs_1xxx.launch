@@ -14,7 +14,8 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="imu_frame_id" default="imu_link"/> 
-    <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <arg name="nodename" default="sick_mrs_1xxx"/>
+    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- launch-prefix="gdb -ex run - -args" -->
         <!-- default values: -->
         <!-- Value interpretation of "filter_echos": 0 = First Echo, 1 = All Echos, 2 = Last Echo (see "sWN FREchoFilter") -->

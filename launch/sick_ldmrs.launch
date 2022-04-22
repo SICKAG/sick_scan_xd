@@ -4,7 +4,8 @@
 <launch>
 
     <arg name="hostname" default="192.168.0.1"/> 
-    <node name="sick_ldmrs" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <arg name="nodename" default="sick_ldmrs"/>
+    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
 
         <!-- Common settings for LDMRS -->
         <param name="scanner_type" type="string" value="sick_ldmrs"/>
