@@ -73,6 +73,7 @@
 #include <string>
 #include <vector>
 
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scansegment_xd/common.h"
 
 namespace sick_scansegment_xd

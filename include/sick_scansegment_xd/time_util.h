@@ -55,6 +55,7 @@
 #ifndef __SICK_SCANSEGMENT_XD_TIME_UTIL_H
 #define __SICK_SCANSEGMENT_XD_TIME_UTIL_H
 
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scansegment_xd/common.h"
 
 namespace sick_scansegment_xd

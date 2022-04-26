@@ -58,9 +58,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 1.937401533126831
+      Max Intensity: 2.2988598346710205
       Min Color: 0; 0; 0
-      Min Intensity: -1.649698257446289
+      Min Intensity: -1.6527236700057983
       Name: PointCloud2
       Position Transformer: XYZ
       Selectable: true
@@ -153,5 +153,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1200
-  X: 1130
-  Y: 334
+  X: 1123
+  Y: 402

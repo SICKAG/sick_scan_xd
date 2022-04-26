@@ -53,8 +53,9 @@
  */
 
 #include "sick_scansegment_xd/ros_msgpack_publisher.h"
-
-#if defined __ROS_VERSION && __ROS_VERSION > 0
+#if defined ROSSIMU
+#include "sick_scan/pointcloud_utils.h"
+#endif
 
 /*
  * @brief RosMsgpackPublisher constructor
@@ -68,25 +69,29 @@
  */
 sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string& node_name, const sick_scansegment_xd::Config& config, const rosQoS& qos)
 #if defined __ROS_VERSION && __ROS_VERSION > 1
-	: Node(node_name), m_frame_id(config.publish_frame_id), m_publish_topic(config.publish_topic), m_publish_topic_all_segments(config.publish_topic_all_segments),
-	m_active(false), m_segment_count(config.segment_count), m_min_azimuth((float)-M_PI), m_max_azimuth((float)+M_PI), m_ros_clock(RCL_ROS_TIME)
+	: Node(node_name)
+#endif
 {
+	m_active = false;
+    m_frame_id = config.publish_frame_id;
+	m_publish_topic = config.publish_topic;
+	m_publish_topic_all_segments = config.publish_topic_all_segments;
+	m_segment_count = config.segment_count;
+	m_min_azimuth = (float)-M_PI;
+	m_max_azimuth = (float)+M_PI;
+#if defined __ROS_VERSION && __ROS_VERSION > 1 // ROS-2 publisher
 	m_points_collector = SegmentPointsCollector(m_segment_count);
 	if(m_publish_topic != "")
 	  m_publisher_cur_segment = create_publisher<PointCloud2Msg>(m_publish_topic, qos);
 	if(m_publish_topic_all_segments != "")
 	  m_publisher_all_segments = create_publisher<PointCloud2Msg>(m_publish_topic_all_segments, qos);
-}
-#elif defined __ROS_VERSION && __ROS_VERSION > 0
-	: m_frame_id(config.publish_frame_id), m_publish_topic(config.publish_topic), m_publish_topic_all_segments(config.publish_topic_all_segments),
-		m_segment_count(config.segment_count), m_ros_clock()
-{
+#elif defined __ROS_VERSION && __ROS_VERSION > 0 // ROS-1 publisher
 	if(m_publish_topic != "")
 		m_publisher_cur_segment = config.node->advertise<PointCloud2Msg>(m_publish_topic, qos);
 	if(m_publish_topic_all_segments != "")
 		m_publisher_all_segments = config.node->advertise<PointCloud2Msg>(m_publish_topic_all_segments, qos);
-}
 #endif
+}
 
 /*
  * @brief RosMsgpackPublisher destructor
@@ -104,6 +109,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::publish(PointCloud2MsgPublisher& 
 	publisher->publish(pointcloud_msg);
 #elif defined __ROS_VERSION && __ROS_VERSION > 0
 	publisher.publish(pointcloud_msg);
+#elif defined ROSSIMU
+    plotPointCloud(pointcloud_msg);
 #endif
 }
 
@@ -120,7 +127,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t tim
   size_t total_point_count, PointCloud2Msg& pointcloud_msg)
 {
   // set pointcloud header
-  // pointcloud_msg.header.stamp = m_ros_clock.now();
+  // pointcloud_msg.header.stamp = rosTimeNow();
   pointcloud_msg.header.stamp.sec = timestamp_sec;
 #if defined __ROS_VERSION && __ROS_VERSION > 1
   pointcloud_msg.header.stamp.nanosec = timestamp_nsec;
@@ -210,7 +217,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		}
 	}
 	
-  // Versendung von Vollumläufen als ROS-Nachricht:
+    // Versendung von Vollumläufen als ROS-Nachricht:
 	// a. Prozess läuft an
 	// b. Segmente werden verworfen, bis ein Segment mit Startwinkel 0° eintrifft.
 	// c. Es werden dann 12 Segmente aufgesammelt, bis 360° erreicht sind.
@@ -287,7 +294,9 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	{
 		PointCloud2Msg pointcloud_msg_segment;
 		convertPointsToCloud(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, total_point_count, pointcloud_msg_segment);
+		#if __ROS_VERSION > 0
 		publish(m_publisher_cur_segment, pointcloud_msg_segment);
+		#endif
 	}
 	
 }
@@ -296,5 +305,3 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
  * Returns this instance explicitely as an implementation of interface MsgPackExportListenerIF.
  */
 sick_scansegment_xd::MsgPackExportListenerIF* sick_scansegment_xd::RosMsgpackPublisher::ExportListener(void) { return this; }
-
-#endif // __ROS_VERSION && __ROS_VERSION > 0

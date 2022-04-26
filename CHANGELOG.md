@@ -6,6 +6,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.7.0 - 
+  - **Added** V2.7.0: Support for Multiscan136 (sick_scansegment_xd)
+
 ## Released ##
 
 ### v2.6.1 - 

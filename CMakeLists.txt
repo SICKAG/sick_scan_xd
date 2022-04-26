@@ -22,12 +22,10 @@ else()
 endif()
 
 # MRS100/SCANSEGMENT_XD/MULTISCAN136 build options
-if(SCANSEGMENT_XD EQUAL 1)
-    option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build sick_scan_xd with SCANSEGMENT_XD support" ON) # Test only, currently under development...
-elseif(SCANSEGMENT_XD EQUAL 0)
+if(SCANSEGMENT_XD EQUAL 0)
     option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build sick_scan_xd without SCANSEGMENT_XD support" OFF)
 else()
-    option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build sick_scan_xd with SCANSEGMENT_XD support" OFF) # ON)
+    option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build sick_scan_xd with SCANSEGMENT_XD support" ON)
 endif()
 
 # Debug or Release build options
@@ -306,37 +304,25 @@ endif()
 
 # Support for MRS100/SCANSEGMENT_XD/MULTISCAN136
 if(BUILD_WITH_SCANSEGMENT_XD_SUPPORT)
-    message(STATUS "Building sick_scan with lidar3d support")
+    message(STATUS "Building sick_scan with SCANSEGMENT_XD support")
     add_compile_options(-DSCANSEGMENT_XD_SUPPORT=1)
     # msgpack11
-    if(ROS_VERSION GREATER 0)
-        set(MSGPACK11_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/../msgpack11/include")
-        set(MSGPACK11_LIBRARY_DIR "${CMAKE_INSTALL_PREFIX}/../msgpack11/lib")
-    else()
+    if(WIN32 OR ROS_VERSION EQUAL 0)
         set(MSGPACK11_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/../msgpack11")
-        set(MSGPACK11_LIBRARY_DIR "${PROJECT_BINARY_DIR}/../msgpack11/$<CONFIGURATION>")
+    else()
+        set(MSGPACK11_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/../msgpack11/include")
     endif()
     if(WIN32)
         set(MSGPACK11_LIBRARIES "msgpack11.lib")
+        link_libraries(${MSGPACK11_LIBRARIES})
+        link_directories("${PROJECT_BINARY_DIR}/msgpack11/$<CONFIGURATION>;${PROJECT_BINARY_DIR}/../msgpack11/$<CONFIGURATION>")
     else()
-        set(MSGPACK11_LIBRARY_DIR "${PROJECT_BINARY_DIR}/../msgpack11")
         set(MSGPACK11_LIBRARIES "libmsgpack11.a")
+        link_directories("${PROJECT_BINARY_DIR}/../msgpack11")
     endif()
     include_directories(${MSGPACK11_INCLUDE_DIR})
-    link_directories(${MSGPACK11_LIBRARY_DIR})
-    # lidar3d sources
+    # sick_scansegment_xd sources
     file(GLOB SCANSEGMENT_XD_SOURCES driver/src/sick_scansegment_xd/*.cpp)
-    # lidar3d emulator and test executables
-    # if(ENABLE_EMULATOR)
-    #     add_executable(lidar3d_mrs100_recv test/src/sick_scansegment_xd/lidar3d_mrs100_recv.cpp)
-    #     target_link_libraries(lidar3d_mrs100_recv sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES})
-    #     add_dependencies(lidar3d_mrs100_recv sick_scan_lib)
-    #     if(ROS_VERSION EQUAL 1)
-    #         install(TARGETS lidar3d_mrs100_recv RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-    #     else()
-    #         install(TARGETS lidar3d_mrs100_recv RUNTIME DESTINATION lib/${PROJECT_NAME})
-    #     endif()
-    # endif(ENABLE_EMULATOR)
 else()
     message(STATUS "Building sick_scan without lidar3d support")
 endif()
@@ -452,6 +438,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/tcp/Time.cpp
         driver/src/tcp/colaa.cpp
         driver/src/tcp/colab.cpp
+        driver/src/tcp/wsa_init.cpp
         driver/src/binPrintf.cpp
         driver/src/binScanf.cpp
         driver/src/sick_scan_common_tcp.cpp
@@ -567,6 +554,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/tcp/tcp.cpp
         driver/src/tcp/Time.cpp
         driver/src/tcp/toolbox.cpp
+        driver/src/tcp/wsa_init.cpp
         driver/src/softwarePLL.cpp
         driver/src/helper/angle_compensator.cpp
         ${LDMRS_SOURCES}
@@ -576,9 +564,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     )
     add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
     add_library(sick_scan_shared_lib SHARED ${SICK_SCAN_LIB_SRC})
-
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
-
     target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES})
 
 endif()

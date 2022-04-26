@@ -95,7 +95,6 @@ typedef sensor_msgs::msg::PointCloud2 PointCloud2Msg;
 typedef rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr PointCloud2MsgPublisher;
 typedef sensor_msgs::msg::PointField PointField;
 typedef rclcpp::Clock rosClock;
-typedef rclcpp::QoS rosQoS;
 
 #elif defined __ROS_VERSION && __ROS_VERSION > 0
 
@@ -105,6 +104,13 @@ typedef sensor_msgs::PointCloud2 PointCloud2Msg;
 typedef ros::Publisher PointCloud2MsgPublisher;
 typedef sensor_msgs::PointField PointField;
 typedef ros::Time rosClock;
+
+#else
+
+typedef ros_sensor_msgs::PointCloud2 PointCloud2Msg;
+typedef rosPublisher<PointCloud2Msg> PointCloud2MsgPublisher;
+typedef ros_sensor_msgs::PointField PointField;
+typedef rosTime rosClock;
 typedef int rosQoS;
 
 #endif

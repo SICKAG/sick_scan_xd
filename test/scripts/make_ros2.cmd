@@ -10,6 +10,7 @@ if 1==1 (
     REM For a complete cleanup and build, remove .\build, .\install and the catkin/colcon generated file .\src\CMakeLists.txt
     rmdir /s/q .\build
     rmdir /s/q .\install
+    rmdir /s/q .\log
     del /f/q .\src\CMakeLists.txt
 )
 
@@ -25,9 +26,10 @@ rem set PATH=%ProgramFiles%\CMake\bin;%ProgramFiles(x86)%\Microsoft Visual Studi
 rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 
 REM 
-REM Build sick_scan_xd on Windows with colcon for ROS2
+REM Build msgpack11 and sick_scan_xd on Windows with colcon for ROS2
 REM 
 
+colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+ 
 colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" --event-handlers "console_direct+"
 call .\install\setup.bat
 start "sick_scan.sln" .\build\sick_scan\sick_scan.sln

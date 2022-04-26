@@ -65,6 +65,7 @@
 #ifndef __SICK_SCANSEGMENT_XD_MSGPACK_CONVERTER_H
 #define __SICK_SCANSEGMENT_XD_MSGPACK_CONVERTER_H
 
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scansegment_xd/common.h"
 #include "sick_scansegment_xd/fifo.h"
 #include "sick_scansegment_xd/msgpack_parser.h"

@@ -207,11 +207,9 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 
         // Initialize msgpack exporter and publisher
         sick_scansegment_xd::MsgPackExporter msgpack_exporter(udp_receiver->Fifo(), msgpack_converter.Fifo(), m_config.logfolder, m_config.export_csv, m_config.verbose_level > 0, m_config.measure_timing);
-#if defined __ROS_VERSION && __ROS_VERSION > 0
         std::shared_ptr<sick_scansegment_xd::RosMsgpackPublisher> ros_msgpack_publisher = std::make_shared<sick_scansegment_xd::RosMsgpackPublisher>("sick_scansegment_xd", m_config, 1);
         msgpack_exporter.AddExportListener(ros_msgpack_publisher->ExportListener());
         sick_scansegment_xd::MsgPackExportListenerIF* listener = ros_msgpack_publisher->ExportListener();
-#endif
 
         // Run udp receiver, msgpack converter and msgpack exporter in background tasks
         if (msgpack_converter.Start() && udp_receiver->Start() && msgpack_exporter.Start())
@@ -269,10 +267,8 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             m_config.msgpack_validator_verbose);
         msgpack_converter.SetValidator(msgpack_validator, m_config.msgpack_validator_enabled, m_config.msgpack_validator_discard_msgpacks_out_of_bounds, m_config.msgpack_validator_check_missing_scandata_interval);
 
-#if defined __ROS_VERSION && __ROS_VERSION > 0
         ros_msgpack_publisher->SetFullScanAzimuthRange(m_config.msgpack_validator_filter_settings.msgpack_validator_azimuth_start, m_config.msgpack_validator_filter_settings.msgpack_validator_azimuth_end);
         ros_msgpack_publisher->SetActive(true);
-#endif
 
         // Send SOPAS start command
         if(sopas_tcp && sopas_service && m_config.send_sopas_start_stop_cmd)
@@ -306,9 +302,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
 
         // Close msgpack receiver, converter and exporter
-#if defined __ROS_VERSION && __ROS_VERSION > 0
         msgpack_exporter.RemoveExportListener(ros_msgpack_publisher->ExportListener());
-#endif
         ROS_INFO_STREAM("sick_scansegment_xd finishing.");
 
         // Send stop command (sopas and/or rest-api)

@@ -57,7 +57,9 @@
 
 #include <string>
 #if defined WIN32 || defined _MSC_VER
+#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+#endif
 #include <winsock2.h>
 #define UNLINK _unlink
 static std::string getErrorMessage(void)
@@ -82,31 +84,10 @@ typedef struct sockaddr SOCKADDR;
 #define closesocket close
 static std::string getErrorMessage(void) { return std::to_string(errno) + " (" + std::string(strerror(errno)) + ")"; }
 #endif
- 
-/** Defines required for boost
-#ifdef __MSVC_RUNTIME_CHECKS
-#define __RESTORE_MSVC_RUNTIME_CHECKS __MSVC_RUNTIME_CHECKS
-#undef __MSVC_RUNTIME_CHECKS // suppress for boost runtime
-#endif
-#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
-#define __RESTORE_WINSOCK_DEPRECATED_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS // suppress boost/winsock warnings about deprecated API
-#endif
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT _WIN32_WINNT_WIN10
-#endif
-#include <boost/array.hpp>
-#include <boost/asio.hpp>
-#include <boost/exception/diagnostic_information.hpp>
-#ifdef __RESTORE_MSVC_RUNTIME_CHECKS
-#define __MSVC_RUNTIME_CHECKS __RESTORE_MSVC_RUNTIME_CHECKS
-#endif
-#ifdef __RESTORE_WINSOCK_DEPRECATED_WARNINGS
-#undef _WINSOCK_DEPRECATED_NO_WARNINGS
-#endif
-*/
 
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scansegment_xd/common.h"
+#include "sick_scan/tcp/wsa_init.hpp"
 
 namespace sick_scansegment_xd
 {
@@ -153,12 +134,13 @@ namespace sick_scansegment_xd
         {
             try
             {
+                wsa_init();
                 m_udp_sender = udp_sender;
                 m_udp_port = udp_port;
                 m_udp_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                 if (m_udp_socket == INVALID_SOCKET)
                 {
-                    ROS_ERROR_STREAM("## ERROR UdpReceiverSocketImpl::Init(" << m_udp_sender << ":" << m_udp_port << "): can't open socket.");
+                    ROS_ERROR_STREAM("## ERROR UdpReceiverSocketImpl::Init(" << m_udp_sender << ":" << m_udp_port << "): can't open socket, error: " << getErrorMessage());
                     return false;
                 }
                 // #if defined WIN32 || defined _MSC_VER
@@ -178,7 +160,7 @@ namespace sick_scansegment_xd
                 ROS_INFO_STREAM("UdpReceiverSocketImpl: udp socket created, binding to port " << ntohs(sim_servaddr.sin_port) << " ... ");
                 if (bind(m_udp_socket, (SOCKADDR*)&sim_servaddr, sizeof(sim_servaddr)) < 0)
                 {
-                    ROS_ERROR_STREAM("## ERROR UdpReceiverSocketImpl::Init(" << m_udp_sender << ":" << m_udp_port << "): can't bind socket.");
+                    ROS_ERROR_STREAM("## ERROR UdpReceiverSocketImpl::Init(" << m_udp_sender << ":" << m_udp_port << "): can't bind socket, error: " << getErrorMessage());
                     closesocket(m_udp_socket);
                     m_udp_socket = INVALID_SOCKET;
                     return false;
@@ -188,7 +170,7 @@ namespace sick_scansegment_xd
             catch (std::exception & e)
             {
                 m_udp_socket = INVALID_SOCKET;
-                ROS_ERROR_STREAM("## ERROR UdpReceiverSocketImpl::Init(): can't open socket to " << m_udp_sender << ":" << m_udp_port << ", " << e.what());
+                ROS_ERROR_STREAM("## ERROR UdpReceiverSocketImpl::Init(): can't open socket to " << m_udp_sender << ":" << m_udp_port << ", exception: " << e.what());
                 return false;
             }
         }
@@ -224,7 +206,7 @@ namespace sick_scansegment_xd
                 // for(int n = 0; n < chunk_bytes_received; n++)
                 //     std::cout << std::setfill('0') << std::setw(2) << std::hex << (int)(msg_payload.data()[bytes_received + n] & 0xFF);
                 // std::cout << std::endl;
-                if (bytes_received == 0 && chunk_bytes_received > headerlength && std::equal(msg_payload.begin(), msg_payload.begin() + udp_msg_start_seq.size(), udp_msg_start_seq.begin())) // start of new msgpack
+                if (bytes_received == 0 && chunk_bytes_received > (int64_t)headerlength && std::equal(msg_payload.begin(), msg_payload.begin() + udp_msg_start_seq.size(), udp_msg_start_seq.begin())) // start of new msgpack
                 {
                     // Decode 8 byte header: 0x02020202 + Payloadlength
                     size_t Payloadlength= Convert4Byte(msg_payload.data() + udp_msg_start_seq.size());
@@ -272,7 +254,7 @@ namespace sick_scansegment_xd
                 m_udp_port = udp_port;
                 if ((m_udp_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == INVALID_SOCKET)
                 {
-                    ROS_ERROR_STREAM("## ERROR UdpSenderSocketImpl::init(" << server_address << ":" << udp_port << "): can't create socket");
+                    ROS_ERROR_STREAM("## ERROR UdpSenderSocketImpl::init(" << server_address << ":" << udp_port << "): can't create socket, error: " << getErrorMessage());
                 }
                 else
                 {
@@ -291,7 +273,7 @@ namespace sick_scansegment_xd
             catch (const std::exception& e)
             {
                 m_udp_socket = INVALID_SOCKET;
-                ROS_ERROR_STREAM("## ERROR UdpSenderSocketImpl(): socket initialization failed, exception " << e.what());
+                ROS_ERROR_STREAM("## ERROR UdpSenderSocketImpl(): socket initialization failed, exception: " << e.what());
             }
         }
 
@@ -311,7 +293,7 @@ namespace sick_scansegment_xd
           }
           catch (const std::exception& e)
           {
-              ROS_ERROR_STREAM("## ERROR ~UdpSenderSocketImpl(): socket shutdown and close failed, exception " << e.what());
+              ROS_ERROR_STREAM("## ERROR ~UdpSenderSocketImpl(): socket shutdown and close failed, exception: " << e.what());
           }
         }
 
@@ -362,7 +344,7 @@ namespace sick_scansegment_xd
                 }
                 catch (const std::exception& e)
                 {
-                    ROS_ERROR_STREAM("## ERROR UdpSenderSocketImpl()::Send() failed, exception " << e.what());
+                    ROS_ERROR_STREAM("## ERROR UdpSenderSocketImpl()::Send() failed, exception: " << e.what());
                 }
             }
             else

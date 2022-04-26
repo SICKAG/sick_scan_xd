@@ -34,6 +34,7 @@ cd ./build_linux
 rm -f $BUILDLOGFILE
 rm -f $ERRORLOGFILE
 export ROS_VERSION=0
+# cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
 cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
 make -j$USECORES                                                       2>&1 | tee -a $BUILDLOGFILE
 

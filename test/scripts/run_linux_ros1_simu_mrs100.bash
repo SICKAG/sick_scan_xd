@@ -5,7 +5,7 @@ function killall_cleanup()
 {
   rosnode kill -a
   killall sick_generic_caller
-  pkill -f sopas_test_server.py
+  pkill -f mrs100_sopas_test_server.py
 }
 
 # Run example ros service calls
@@ -44,7 +44,7 @@ function call_service_filter_examples()
 pushd ../../../..
 printf "\033c"
 source /opt/ros/noetic/setup.bash
-source ./install/setup.bash
+source ./install_isolated/setup.bash
 killall_cleanup
 sleep 1
 rm -rf ~/.ros/log

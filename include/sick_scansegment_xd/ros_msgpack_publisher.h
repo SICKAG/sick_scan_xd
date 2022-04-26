@@ -55,8 +55,8 @@
  */
 #ifndef __SICK_SCANSEGMENT_XD_ROS_MSGPACK_PUBLISHER_H
 #define __SICK_SCANSEGMENT_XD_ROS_MSGPACK_PUBLISHER_H
-#if defined __ROS_VERSION && __ROS_VERSION > 0
 
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scansegment_xd/config.h"
 #include "sick_scansegment_xd/msgpack_exporter.h"
 
@@ -186,7 +186,6 @@ namespace sick_scansegment_xd
 
         bool m_active; // activate publishing
         std::string m_frame_id;    // frame id of ros PointCloud2 messages, default: "world"
-        rosClock m_ros_clock;      // clock for message timestamps
         int m_segment_count = 12;  // number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
         float m_min_azimuth; // min azimuth of a full scan in radians, default: -M_PI
         float m_max_azimuth; // max azimuth of a full scan in radians, default: +M_PI
@@ -197,6 +196,6 @@ namespace sick_scansegment_xd
         PointCloud2MsgPublisher m_publisher_all_segments; // ros publisher to publish PointCloud2 message of all segments (360 degree)
 
     };  // class RosMsgpackPublisher
+
 }   // namespace sick_scansegment_xd
-#endif // __ROS_VERSION && __ROS_VERSION > 0
 #endif // __SICK_SCANSEGMENT_XD_ROS_MSGPACK_PUBLISHER_H

@@ -149,6 +149,7 @@ template <typename T> void rosDeclareParam(rosNodePtr nh, const std::string& par
 template <typename T> bool rosGetParam(rosNodePtr nh, const std::string& param_name, T& param_value) { return nh->getParam(param_name, param_value); }
 template <typename T> void rosSetParam(rosNodePtr nh, const std::string& param_name, const T& param_value) { nh->setParam(param_name, param_value); }
 
+typedef int rosQoS;
 typedef ros::Duration rosDuration;
 typedef ros::Time rosTime;
 inline rosTime rosTimeNow(void) { return ros::Time::now(); }
@@ -162,7 +163,7 @@ public:
     rosPublisher() : ros::Publisher() {}
     rosPublisher(ros::Publisher& _publisher) : ros::Publisher(_publisher) {}
 };
-template <typename T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string& topic, uint32_t queue_size = 10, int qos = 10)
+template <typename T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string& topic, uint32_t queue_size = 10, rosQoS qos = 10)
 {
     std::string topic2;
     if(topic.empty() || topic[0] != '/')
@@ -285,6 +286,7 @@ template <typename T> void rosSetParam(rosNodePtr nh, const std::string& param_n
     }
 }
 
+typedef rclcpp::QoS rosQoS;
 typedef rclcpp::Duration rosDuration;
 typedef rclcpp::Time rosTime; // typedef builtin_interfaces::msg::Time rosTime;
 inline rosTime rosTimeNow(void) { return rclcpp::Clock().now(); }
@@ -298,7 +300,7 @@ public:
     rosPublisher() : rclcpp::Publisher<T>::SharedPtr(0) {}
     template <class U> rosPublisher(U& _publisher) : rclcpp::Publisher<T>::SharedPtr(_publisher) {}
 };
-template <class T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string& topic, uint32_t queue_size = 10, rclcpp::QoS qos = rclcpp::SystemDefaultsQoS())
+template <class T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string& topic, uint32_t queue_size = 10, rosQoS qos = rclcpp::SystemDefaultsQoS())
 {
     ROS_INFO_STREAM("Publishing on topic \"" << topic << "\"");
     auto publisher = nh->create_publisher<T>(topic, qos);

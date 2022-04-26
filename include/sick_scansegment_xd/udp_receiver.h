@@ -57,6 +57,7 @@
 #ifndef __SICK_SCANSEGMENT_XD_UDP_RECEIVER_H
 #define __SICK_SCANSEGMENT_XD_UDP_RECEIVER_H
 
+#include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scansegment_xd/common.h"
 #include "sick_scansegment_xd/fifo.h"
 

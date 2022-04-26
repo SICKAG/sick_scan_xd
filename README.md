@@ -29,6 +29,7 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 - [SLAM-Support](doc/slam.md)
 - [IMU-Support](#imu-Support)
 - [Radar](doc/radar.md)
+- [Multiscan136](doc/sick_scan_segment_xd.md)
 - [Profiling](doc/profiling.md)
 - [Testing](#testing)
 - [Creators](#creators)
@@ -67,13 +68,13 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 | MRS6124            | [6065086](https://www.sick.com/de/en/detection-and-ranging-solutions/3d-lidar-sensors/mrs6000/c/g448151)                         | 24 layer max. range: 200 m, ang. resol. 0.13 [deg] hor., 0.0625 [deg] ver. The SICK MRS6124 is a multi-layer, multi-echo 3D laser scanner that is geared towards rough outdoor environments. | ✔ [stable]|
 |                                                                               | Scan-Rate: 10 Hz                       |                 |
 | MRS1104            | [1081208](https://www.sick.com/sg/en/detection-and-ranging-solutions/3d-lidar-sensors/mrs1000/mrs1104c-111011/p/p495044)         | 4 layer max. range: 64 m, ang. resol. 0.25 [deg] hor., 2.50 [deg] ver.                                         | ✔ [stable]|
-|                    |                                                                                                                                  | Scan-Rate: 50 Hz, 4x12.5 Hz            |                 |https://cdn.sick.com/media/docs/4/04/504/Operating_instructions_RMS3xx_en_IM0075504.PDF
+|                    |                                                                                                                                  | Scan-Rate: 50 Hz, 4x12.5 Hz            |                 |
 |                    |                                                                                                                                  | Scan-Rate: 150 Hz, 4x37.5 Hz   |                 |
 | TiM240             | [1104981](https://www.sick.com/ag/en/detection-and-ranging-solutions/2d-lidar-sensors/tim2xx/tim240-2050300/p/p654443)           | 1 layer max. range: 10 m, ang. resol. 1.00 [deg], 240 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 14.5 Hz   |                 |
-| TiM433             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [prototype]|
+| TiM433             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15.0 Hz   |                 |
-| TiM443             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [prototype]|
+| TiM443             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15.0 Hz   |                 |
 | TiM551             | [1060445](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim551-2050001/p/p343045)                 | 1 layer max. range: 10 m, ang. resol. 1.00[deg] | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
@@ -95,16 +96,17 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
 | LMS4xxx-Family     | [e.g. 1091423](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/lms4000/lms4111r-13000/p/p578044?ff_data) | 1 layer max. range: 3 m, ang. resol. 0,0833 [deg], opening angle: +/- 50 [deg] | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 600 Hz   |                 |
-| LDMRS |   | 4 or 8 layer, max. range: 50/320 m, ang. resol. 0.025°/.../0.25 [deg] | ✔ [development]|
+| LDMRS |   | 4 or 8 layer, max. range: 50/320 m, ang. resol. 0.025°/.../0.25 [deg] | ✔ [stable]|
 |       |   | Scan-Rate: 12.5-50 Hz | |
-| LRS4000 |   | 1 layer, max. range: 130 m, ang. resol. 0.125/0.25/0.5 [deg]  | ✔ [development]|
+| LRS4000 | [1098855](https://www.sick.com/no/en/detection-and-ranging-solutions/2d-lidar-sensors/lrs4000/c/g555594)  | 1 layer, max. range: 130 m, ang. resol. 0.125/0.25/0.5 [deg]  | ✔ [stable]|
 |       |   | Scan-Rate: 12.5-25 Hz | |
 | NAV310     | [e.g. 1060834](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav3xx/nav310-3211/p/p349345) | 1 layer max. range: 250 m, ang. resol. 0.125 - 1.0 [deg] | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 8 Hz   |                 |
 | NAV210+NAV245      | [e.g.    1074308](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav2xx/c/g356151) | 1 layer max. range: 100 m, ang. resol. 0.25 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 25 Hz   |                 |
 | RMS3xx             | [8021530](https://cdn.sick.com/media/docs/4/04/504/Operating_instructions_RMS3xx_en_IM0075504.PDF)| Radar Sensor | ✔ [stable]|
-| RMS1xxx             | [1107598](https://www.sick.com/de/en/detection-and-ranging-solutions/radar-sensors/rms1000/rms1731c-636111/p/p660833)| 1D Radar Sensor | ✔ [development]|
+| RMS1xxx             | [1107598](https://www.sick.com/de/en/detection-and-ranging-solutions/radar-sensors/rms1000/rms1731c-636111/p/p660833)| 1D Radar Sensor | ✔ [stable]|
+| Multiscan136 | prototype | The MultiScan136 Beta is a new lidar with 16 lidar units rotating around a vertical axis | ✔ [prototype]|
 
 Note:
 * LDMRS family is currently not supported on Windows.
@@ -142,11 +144,12 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
 
 1. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
-   git clone https://github.com/SICKAG/libsick_ldmrs.git
+   git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
+   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-2. Build libsick_ldmrs (only required for LDMRS sensors):
+2. Build libsick_ldmrs (only required once for LDMRS sensors):
    ```
    pushd libsick_ldmrs
    mkdir -p ./build
@@ -157,11 +160,20 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-3. Build sick_generic_caller:
+3. Build msgpack library (only required once for Multiscan136/sick_scansegment_xd):
    ```
-   pushd sick_scan_xd
-   mkdir -p ./build_linux
-   cd ./build_linux
+   mkdir -p ./build
+   pushd ./build
+   cmake -G "Unix Makefiles" -D MSGPACK11_BUILD_TESTS=0 ../msgpack11
+   make -j4
+   sudo make install
+   popd
+   ```
+
+4. Build sick_generic_caller:
+   ```
+   mkdir -p ./build
+   pushd ./build
    export ROS_VERSION=0
    cmake -DROS_VERSION=0 -G "Unix Makefiles" ..
    make -j4
@@ -173,58 +185,86 @@ Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not nee
    cmake -DROS_VERSION=0 -DLDMRS=0 -G "Unix Makefiles" ..
    ```
 
+Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+   ```
+   cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ..
+   ```
+
+
 ## Build on Linux ROS1
 
 Run the following steps to build sick_scan_xd on Linux with ROS 1:
 
-1. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
+1. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
    git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
+   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
 
-2. Build sick_generic_caller:
+2. Build msgpack library (only required once for Multiscan136/sick_scansegment_xd):
    ```
-   source /opt/ros/melodic/setup.bash
+   mkdir -p ./build/msgpack11
+   pushd ./build/msgpack11
+   cmake -G "Unix Makefiles" -D CMAKE_CXX_FLAGS=-fPIC -D CMAKE_BUILD_TYPE=Release -D MSGPACK11_BUILD_TESTS=0 ../../src/msgpack11
+   make
+   sudo make install
+   popd
+   ```
+
+3. Build sick_generic_caller:
+   ```
+   source /opt/ros/noetic/setup.bash # replace noetic by your ros distro
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1
    source ./install_isolated/setup.bash
    ```
-   For ROS versions other than melodic, please replace `source /opt/ros/melodic/setup.bash` with your ros distribution.
+   For ROS versions other than noetic, please replace `source /opt/ros/noetic/setup.bash` with your ros distribution.
 
 Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call catkin_make_isolated with option `-DLDMRS=0`:
    ```
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0
    ```
 
+Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+   ```
+   catkin_make_isolated --install --cmake-args -DROS_VERSION=1  -DSCANSEGMENT_XD=0
+   ```
+
 ## Build on Linux ROS2
 
 Run the following steps to build sick_scan_xd on Linux with ROS 2:
 
-1. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
+1. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
    git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
+   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
 
 2. Build sick_generic_caller:
    ```
-   source /opt/ros/eloquent/setup.bash
+   source /opt/ros/foxy/setup.bash # replace foxy by your ros distro
    colcon build --packages-select libsick_ldmrs --event-handlers console_direct+
    source ./install/setup.bash
+   colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    source ./install/setup.bash
    ```
-   For ROS versions other than eloquent, please replace `source /opt/ros/eloquent/setup.bash` with your ros distribution.
+   For ROS versions other than foxy, please replace `source /opt/ros/foxy/setup.bash` with your ros distribution.
 
 Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call colcon with option `-DLDMRS=0`:
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
+   ```
+Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+   ```
+   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
 ## Build on Windows
@@ -234,30 +274,34 @@ To install sick_scan_xd on Windows, follow the steps below:
 1. If not yet done, install Visual Studio. Visual Studio 2019 Community or Professional Edition is recommended.
 
 2. If not yet done, install Visual Studios package manager vcpkg:
-   * Install vcpkg and libjson:
-      * Download vcpkg-master.zip from https://github.com/microsoft/vcpkg/archive/master.zip and unzip to `c:\vcpkg`. Alternatively, run "git clone https://github.com/microsoft/vcpkg"
-      * Install vcpkg by running the following commands:
-         ```
-        cd c:/vcpkg
-        bootstrap-vcpkg.bat
-        vcpkg integrate install
-        ```
-     * Install libjson with vcpkg
-       ```
-       vcpkg install jsoncpp:x64-windows
-       ```
-       maybe you need to install the english language package. Follow the instructions at https://agirlamonggeeks.com/2019/03/10/how-to-change-language-in-visual-studio-2019-after-installation/ 
+   * Download vcpkg-master.zip from https://github.com/microsoft/vcpkg/archive/master.zip and unzip to `c:\vcpkg`. Alternatively, run "git clone https://github.com/microsoft/vcpkg"
+   * Install vcpkg by running the following commands:
+      ```
+     cd c:/vcpkg
+     bootstrap-vcpkg.bat
+     vcpkg integrate install
+     ```
    * Include vcpkg in your path:
       ```
      set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
      ```
 
-3. Clone repository https://github.com/SICKAG/sick_scan_xd:
+3. Clone repositories https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
+   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-4. Build sick_generic_caller with cmake and Visual Studio 2019:
+4. Build mspack with cmake and Visual Studio 2019:
+   ```
+   mkdir build\msgpack11
+   pushd build\msgpack11
+   cmake -DMSGPACK11_BUILD_TESTS=0 -G "Visual Studio 16 2019" ../../../msgpack11
+   popd
+   ```
+   Open file `build\msgpack11.sln` in Visual Studio and build all targets (shortcut F7).
+
+5. Build sick_generic_caller with cmake and Visual Studio 2019:
    ```
    cd sick_scan_xd
    set _os=x64
@@ -273,21 +317,33 @@ To install sick_scan_xd on Windows, follow the steps below:
 
 Note: LDMRS sensors are currently not supported on Windows.
 
+Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+   ```
+   cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "%_cmake_string%" ..
+   ```
+
 ## Build on Windows ROS2
 
 To install sick_scan_xd on Windows with ROS-2, follow the steps below:
 
 1. If not yet done, install Visual Studio 2019 and vcpkg as described in [Build on Windows](#build-on-windows).
 
-2. Clone repository https://github.com/SICKAG/sick_scan_xd:
+2. Clone repositories https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
+   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
 3. Build sick_generic_caller:
    ```
+   colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+ 
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    call .\install\setup.bat
+   ```
+
+Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+   ```
+   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
 ## IMU Support
@@ -298,6 +354,10 @@ Further information on the implementation and use of the experimental Imu suppor
 ## Radar support
 
 See [radar documentation](doc/radar.md) for RMS1xxx and RMS3xx support.
+
+## Multiscan136 support
+
+See [sick_scan_segment_xd](doc/sick_scan_segment_xd.md) for Multiscan136 support.
 
 ## Run sick_scan driver
 
@@ -426,6 +486,13 @@ Use the following commands to run the sick_scan driver for a specific scanner ty
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_1xxx.launch`
     * Windows native: `sick_generic_caller sick_rms_1xxx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_1xxx.launch`
+- For Multiscan136 (sick_scansegement_xd):
+    * Linux native:   `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-1:    `roslaunch sick_scan sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows native: `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * `hostname` is the ip-address of the lidar, `udp_receiver_ip` is the ip-address of the receiver (i.e. the ip of the computer running sick_generic_caller).
 
 Common commandline options are
 
@@ -832,6 +899,7 @@ NAV245
 NAV310
 LDMRS
 LRS4000
+Multiscan136
 
 ## Creators
 
