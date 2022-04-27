@@ -1,4 +1,4 @@
-|/**
+/**
 * \file
 * \brief Laser Scanner Entry Point
 *
@@ -63,9 +63,6 @@
 *
 *  Copyright 2018/2019/2020/2021 SICK AG
 *  Copyright 2018/2019/2020/2021 Ing.-Büro Dr. Michael Lehning
-
-
-
 */
 
 #include <stdio.h>
@@ -211,5 +208,4 @@ int main(int argc, char** argv)
   }
 
   return result;
-
 }
