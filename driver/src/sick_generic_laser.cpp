@@ -404,7 +404,12 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
       return;
     }
     ROS_INFO("LDMRS initialized.");
-    rosSpin(nhPriv);
+    // Run event loop
+    // rosSpin(nhPriv);
+    while(rosOk()) // return after signal, while rosSpin runs in sick_generic_caller
+    {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
     exit_code = sick_scan::ExitSuccess;
     return;
 #else
