@@ -8,6 +8,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.6.2 - 
+  - **Fixed** LDMRS spinning problem corrected
+
 ### v2.6.1 - 
   - **Added** V2.6.1: Support for RMS-1xxx binary protocol
 
