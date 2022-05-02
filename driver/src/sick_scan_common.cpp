@@ -3840,7 +3840,7 @@ namespace sick_scan
         bool FireEncoder = false;
         EncoderMsg.header.frame_id = "Encoder";
         ROS_HEADER_SEQ(EncoderMsg.header, numPacketsProcessed);
-        msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
+        msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // default: ros-timestamp at message received, will be updated by software-pll
         double elevationAngleInRad = 0.0;
         short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
         // F5B2h -> -2638/200= -13.19°
@@ -3925,6 +3925,7 @@ namespace sick_scan
                       dataToProcess = false;
                       break;
                   }
+                  msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // recvTimeStamp updated by software-pll
                   timeIncrement = msg.time_increment;
                   echoMask = (1 << numEchos) - 1;
                 }
@@ -4230,8 +4231,7 @@ namespace sick_scan
 
 
               cloud_.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
-
-
+              // ROS_DEBUG_STREAM("laser_scan timestamp: " << msg.header.stamp << ", pointclound timestamp: " << cloud_.header.stamp);
               cloud_.header.frame_id = config_.frame_id;
               ROS_HEADER_SEQ(cloud_.header, 0);
               cloud_.height = numTmpLayer * numValidEchos; // due to multi echo multiplied by num. of layers

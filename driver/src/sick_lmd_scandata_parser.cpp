@@ -79,7 +79,7 @@ namespace sick_scan
 
 
     /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
-    bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double& elevationAngleInRad, rosTime recvTimeStamp,
+    bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double& elevationAngleInRad, rosTime& recvTimeStamp,
         bool config_sw_pll_only_publish, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos, std::vector<float> vang_vec,
         ros_sensor_msgs::LaserScan & msg)
     {
@@ -116,6 +116,7 @@ namespace sick_scan
                                                              SystemCountTransmit);
                     lastSystemCountScan = SystemCountScan;
                   }
+                  // ROS_DEBUG_STREAM("recvTimeStamp before software-pll correction: " << recvTimeStamp);
                   rosTime tmp_time = recvTimeStamp;
                   uint32_t recvTimeStampSec = (uint32_t)sec(recvTimeStamp), recvTimeStampNsec = (uint32_t)nsec(recvTimeStamp);
                   bRet = SoftwarePLL::instance().getCorrectedTimeStamp(recvTimeStampSec, recvTimeStampNsec,
@@ -123,6 +124,7 @@ namespace sick_scan
                   recvTimeStamp = rosTime(recvTimeStampSec, recvTimeStampNsec);
                   double timestampfloat_coor = sec(recvTimeStamp) + nsec(recvTimeStamp) * 1e-9;
                   double DeltaTime = timestampfloat - timestampfloat_coor;
+                  // ROS_DEBUG_STREAM("recvTimeStamp after software-pll correction: " << recvTimeStamp);
                   //ROS_INFO("%F,%F,%u,%u,%F",timestampfloat,timestampfloat_coor,SystemCountTransmit,SystemCountScan,DeltaTime);
                   //TODO Handle return values
                   if (config_sw_pll_only_publish == true)

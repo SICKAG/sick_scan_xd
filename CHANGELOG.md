@@ -8,8 +8,12 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ### v2.7.0 - 
   - **Added** V2.7.0: Support for Multiscan136 (sick_scansegment_xd)
+  - **Fixed** Timestamp LaserScan-message corrected (identical timestamps in LaserScan- and PointCloud2-messages, both by Software-PLL)
 
 ## Released ##
+
+### v2.6.2 - 
+  - **Fixed** LDMRS spinning problem corrected
 
 ### v2.6.1 - 
   - **Added** V2.6.1: Support for RMS-1xxx binary protocol
