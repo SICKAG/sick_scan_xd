@@ -3785,7 +3785,7 @@ namespace sick_scan
         bool FireEncoder = false;
         EncoderMsg.header.frame_id = "Encoder";
         ROS_HEADER_SEQ(EncoderMsg.header, numPacketsProcessed);
-        msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
+        msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // default: ros-timestamp at message received, will be updated by software-pll
         double elevationAngleInRad = 0.0;
         short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
         // F5B2h -> -2638/200= -13.19°
@@ -3940,6 +3940,10 @@ namespace sick_scan
                       dataToProcess = false;
                       break;
                     }
+                    else
+                    {
+                      msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // update timestamp by software-pll
+					}
                   }
 
 #ifdef DEBUG_DUMP_ENABLED
