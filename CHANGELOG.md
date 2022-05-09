@@ -12,6 +12,12 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.6.4 - 
+  - **Fixed** LMS5xx echo filter settings corrected
+
+### v2.6.3 - 
+  - **Fixed** Timestamp Laserscan message corrected
+
 ### v2.6.2 - 
   - **Fixed** LDMRS spinning problem corrected
 

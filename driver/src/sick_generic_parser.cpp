@@ -654,7 +654,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0) // LMS_5xx - 1 Layer
       {
-        basicParams[i].setNumberOfMaximumEchos(1);
+        basicParams[i].setNumberOfMaximumEchos(5); // (1) LMS sends up to 5 echos
         basicParams[i].setNumberOfLayers(1);
         basicParams[i].setNumberOfShots(381);
         basicParams[i].setAngularDegreeResolution(0.5);
@@ -671,7 +671,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setMaxEvalFields(30);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setWaitForReady(false);
-        basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setFREchoFilterAvailable(true); // (false) // LMS uses echo filter settings to configure number of echos: "sWN FREchoFilter N" with N=0: first echo, N=1: all echos, N=2: last echo
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0) // LMS_1xx - 1 Layer
       {
