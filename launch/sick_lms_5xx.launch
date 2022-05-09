@@ -42,6 +42,7 @@ Check IP-address, if you scanner is not found after roslaunch.
         <param name="port" type="string" value="2112"/>
         <param name="timelimit" type="int" value="5"/>
         <param name="use_binary_protocol" type="bool" value="true"/>
+        <param name="filter_echos" type="int" value="1"/> <!-- FREchoFilter settings: 0: first echo, 1: all echos, 2: last echo -->
         <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
         <!-- possible angular resolutions are 1,0.6667,0.5,0.3333,0.25,0.1667
