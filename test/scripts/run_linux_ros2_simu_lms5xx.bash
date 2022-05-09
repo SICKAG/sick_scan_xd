@@ -8,6 +8,7 @@ echo -e "run_simu_lms5xx.bash: starting lms5xx emulation\n"
 
 # Start sick_scan emulator
 python3 ./src/sick_scan_xd/test/emulator/test_server.py --scandata_file=./src/sick_scan_xd/test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112 & 
+# python3 ./src/sick_scan_xd/test/emulator/test_server.py --scandata_file=./src/sick_scan_xd/test/emulator/scandata/20220505_lms511_wireshark_issue49.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112 & 
 sleep 1
 
 # Start rviz

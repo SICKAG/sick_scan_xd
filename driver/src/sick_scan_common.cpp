@@ -1546,7 +1546,7 @@ namespace sick_scan
     int maxNumberOfEchos = 1;
 
 
-    maxNumberOfEchos = this->parser_->getCurrentParamPtr()->getNumberOfMaximumEchos();  // 1 for TIM 571, 3 for MRS1104, 5 for 6000
+    maxNumberOfEchos = this->parser_->getCurrentParamPtr()->getNumberOfMaximumEchos();  // 1 for TIM 571, 3 for MRS1104, 5 for 6000, 5 for LMS5xx
 
 
     bool rssiFlag = false;
@@ -4658,7 +4658,13 @@ namespace sick_scan
 
               std::vector<float> cosAlphaTable; // Lookup table for cos
               std::vector<float> sinAlphaTable; // Lookup table for sin
-              size_t rangeNum = rangeTmp.size() / numValidEchos;
+
+              size_t rangeNumAllEchos = rangeTmp.size(); // rangeTmp.size() := number of range values in all echos (max. 5 echos)
+              size_t rangeNumAllEchosCloud = cloud_.height * cloud_.width; // number of points allocated in the point cloud
+              rangeNumAllEchos = std::min(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
+              size_t rangeNum = rangeNumAllEchos / numValidEchos;
+              // ROS_INFO_STREAM("numValidEchos=" << numValidEchos << ", numEchos=" << numEchos << ", cloud_.height * cloud_.width=" << cloud_.height * cloud_.width << ", rangeNum=" << rangeNum);
+
               cosAlphaTable.resize(rangeNum);
               sinAlphaTable.resize(rangeNum);
               float mirror_factor = 1.0;
@@ -4702,6 +4708,8 @@ namespace sick_scan
 
                   unsigned char *ptr = cloudDataPtr + adroff;
                   float *fptr = (float *) (cloudDataPtr + adroff);
+
+                  assert(adroff < cloud_.data.size()); // issue #49
 
                   ros_geometry_msgs::Point32 point;
                   float range_meter = rangeTmpPtr[iEcho * rangeNum + i];
