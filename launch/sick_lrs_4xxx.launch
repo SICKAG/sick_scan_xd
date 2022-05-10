@@ -14,6 +14,22 @@
         <param name="range_max" type="double" value="100.0"/>
         <param name="intensity" type="bool" value="True"/>
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
+        <param name="filter_echos" type="int" value="0"/> <!-- FREchoFilter settings: Use 0 (first echo) for LRS4xxx -->
+        
+        <param name="scan_cfg_list_entry" type="int" value="1"/>
+        <!-- Parameter scan_cfg_list_entry can be set to one of the following modes of the LRS4000 table (sets the scan configuration by "sMN mCLsetscancfglist <mode>")        
+        Mode Name Interlaced ScanFreq ResultScanFreq Resolution TotalResol FieldOfView        
+         1 12.5Hz & 0.040 deg 0x 12.5 Hz 12.5 Hz 0.040 deg 0.040 deg 360 deg
+         2 12.5Hz & 0.060 deg 0x 12.5 Hz 12.5 Hz 0.060 deg 0.060 deg 360 deg
+         4 12.5Hz & 0.100 deg 0x 12.5 Hz 12.5 Hz 0.100 deg 0.100 deg 360 deg
+         5 12.5Hz & 0.120 deg 0x 12.5 Hz 12.5 Hz 0.120 deg 0.120 deg 360 deg
+        11 12.5Hz & 0.020 deg 0x 12.5 Hz 12.5 Hz 0.040 deg 0.020 deg 288 deg
+        71   25Hz & 0.040 deg 0x   25 Hz   25 Hz 0.080 deg 0.040 deg 288 deg
+        61   25Hz & 0.080 deg 0x   25 Hz   25 Hz 0.080 deg 0.080 deg 360 deg
+        62   25Hz & 0.120 deg 0x   25 Hz   25 Hz 0.120 deg 0.120 deg 360 deg
+        64   25Hz & 0.200 deg 0x   25 Hz   25 Hz 0.200 deg 0.200 deg 360 deg
+        65   25Hz & 0.240 deg 0x   25 Hz   25 Hz 0.240 deg 0.240 deg 360 deg
+         -->
 
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->

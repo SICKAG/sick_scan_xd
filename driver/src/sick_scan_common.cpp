@@ -1557,6 +1557,7 @@ namespace sick_scan
     rosGetParam(nh, "intensity", rssiFlag);
     rosDeclareParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
     rosGetParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
+    // rosDeclareParam(nh, "min_intensity", m_min_intensity);
     rosGetParam(nh, "min_intensity", m_min_intensity); // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
     //check new ip adress and add cmds to write ip to comand chain
     std::string sNewIPAddr = "";
@@ -1881,7 +1882,7 @@ namespace sick_scan
             {
               return ExitFatal;
             }
-//					ROS_ERROR("BINARY REPLY REQUIRED");
+//                  ROS_ERROR("BINARY REPLY REQUIRED");
           }
           else
           {
@@ -2132,6 +2133,7 @@ namespace sick_scan
           // Here we get the reply to "sRN LMPscancfg". We use this reply to set the scan configuration (frequency, start and stop angle)
           // for the following "sMN mCLsetscancfglist" and "sMN mLMPsetscancfg ..." commands
           int cfgListEntry = 1;
+          // rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
           rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
           sopasCmdVec[CMD_SET_SCAN_CFG_LIST] = "\x02sMN mCLsetscancfglist " + std::to_string(cfgListEntry) + "\x03"; // set scan config from list for NAX310  LD - OEM15xx LD - LRS36xx
           sopasCmdVec[CMD_SET_SCANDATACONFIGNAV] = ""; // set start and stop angle by LMPscancfgToSopas()
@@ -2269,8 +2271,8 @@ namespace sick_scan
         {
           // scanconfig handling with list
           char requestsMNmCLsetscancfglist[MAX_STR_LEN];
-          int cfgListEntry;
-          //rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
+          int cfgListEntry = 1;
+          // rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
           rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
           // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
           const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_SCAN_CFG_LIST].c_str();
@@ -2293,7 +2295,7 @@ namespace sick_scan
           }
         }
       }
-      else // CMD_GET_OUTPUT_RANGE (i.e. handling of LMDscandatacfg
+      if (this->parser_->getCurrentParamPtr()->getUseWriteOutputRanges()) // else // CMD_GET_OUTPUT_RANGE
       {
         if (useBinaryCmd)
         {
@@ -2371,34 +2373,34 @@ namespace sick_scan
           }
         }
 
-      //-----------------------------------------------------------------
-      //
-      // Set Min- und Max scanning angle given by config
-      //
-      //-----------------------------------------------------------------
+		//-----------------------------------------------------------------
+		//
+		// Set Min- und Max scanning angle given by config
+		//
+		//-----------------------------------------------------------------
 
-      ROS_INFO_STREAM("MIN_ANG: " << config_.min_ang << " [rad] " << rad2deg(this->config_.min_ang) << " [deg]");
-      ROS_INFO_STREAM("MAX_ANG: " << config_.max_ang << " [rad] " << rad2deg(this->config_.max_ang) << " [deg]");
+		ROS_INFO_STREAM("MIN_ANG: " << config_.min_ang << " [rad] " << rad2deg(this->config_.min_ang) << " [deg]");
+		ROS_INFO_STREAM("MAX_ANG: " << config_.max_ang << " [rad] " << rad2deg(this->config_.max_ang) << " [deg]");
 
-      // convert to 10000th degree
-      double minAngSopas = rad2deg(this->config_.min_ang);
-      double maxAngSopas = rad2deg(this->config_.max_ang);
+		// convert to 10000th degree
+		double minAngSopas = rad2deg(this->config_.min_ang);
+		double maxAngSopas = rad2deg(this->config_.max_ang);
 
-      minAngSopas -= rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
-      maxAngSopas -= rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
-      // if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
-      // {
-      //   // the TiM240 operates directly in the ros coordinate system
-      // }
-      // else
-      // {
-      //   minAngSopas += 90.0;
-      //   maxAngSopas += 90.0;
-      // }
+		minAngSopas -= rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
+		maxAngSopas -= rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift());
+		// if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+		// {
+		//   // the TiM240 operates directly in the ros coordinate system
+		// }
+		// else
+		// {
+		//   minAngSopas += 90.0;
+		//   maxAngSopas += 90.0;
+		// }
 
-      angleStart10000th = (int) (std::round(10000.0 * minAngSopas));
-      angleEnd10000th = (int) (std::round(10000.0 * maxAngSopas));
-    }
+		angleStart10000th = (int)(std::round(10000.0 * minAngSopas));
+		angleEnd10000th = (int)(std::round(10000.0 * maxAngSopas));
+	}
       char requestOutputAngularRange[MAX_STR_LEN];
       // special for LMS1000 TODO unify this
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
@@ -2417,9 +2419,9 @@ namespace sick_scan
         if (this->parser_->getCurrentParamPtr()->getUseScancfgList())
         {
           // config is set with list entry
-      }
-      else
-      {
+        }
+        if (this->parser_->getCurrentParamPtr()->getUseWriteOutputRanges()) // else
+        {
         const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES].c_str();
         sprintf(requestOutputAngularRange, pcCmdMask, angleRes10000th, angleStart10000th, angleEnd10000th);
       if (useBinaryCmd)
@@ -2429,7 +2431,7 @@ namespace sick_scan
         UINT16 sendLen;
         std::vector<unsigned char> reqBinary;
         int iStatus = 1;
-        //				const char *askOutputAngularRangeBinMask = "%4y%4ysWN LMPoutputRange %2y%4y%4y%4y";
+        //              const char *askOutputAngularRangeBinMask = "%4y%4ysWN LMPoutputRange %2y%4y%4y%4y";
         // int askOutputAngularRangeBinLen = binScanfGuessDataLenFromMask(askOutputAngularRangeBinMask);
         // askOutputAngularRangeBinLen -= 8;  // due to header and length identifier
 
@@ -2598,8 +2600,7 @@ namespace sick_scan
                                                        << " [deg]");
         }
       }
-      else
-
+      if (this->parser_->getCurrentParamPtr()->getUseWriteOutputRanges()) // else
       {
         askOutputAngularRangeReply.clear();
 
@@ -2742,8 +2743,8 @@ namespace sick_scan
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
       {
         int filter_echos = 0;
-        rosGetParam(nh, "filter_echos",
-          filter_echos);
+        // rosDeclareParam(nh, "filter_echos", filter_echos);
+        rosGetParam(nh, "filter_echos", filter_echos);
         switch (filter_echos)
         {
         default:outputChannelFlagId = 0b00000001; break;
@@ -2920,7 +2921,7 @@ namespace sick_scan
         {
           if (this->parser_->getCurrentParamPtr()->getUseScancfgList() == true)
           {
-            ROS_INFO("variable ang_res and scan_freq setings for  OEM15xx NAV 3xx or LRD-36XX  has not been implemented");
+            ROS_INFO("variable ang_res and scan_freq settings for  OEM15xx NAV 3xx or LRD-36XX  has not been implemented");
           }
           else
           {
@@ -3270,7 +3271,7 @@ namespace sick_scan
     {
       int cmdId = *it;
       std::vector<unsigned char> tmpReply;
-      //			result = sendSopasAndCheckAnswer(sopasCmdVec[cmdId].c_str(), &tmpReply);
+      //            result = sendSopasAndCheckAnswer(sopasCmdVec[cmdId].c_str(), &tmpReply);
       //      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, tmpReply); // No response, non-recoverable connection error (return error and do not try other commands)
 
       std::string sopasCmd = sopasCmdVec[cmdId];
@@ -3798,8 +3799,8 @@ namespace sick_scan
         bool dataToProcess = true;
         std::vector<float> vang_vec;
         vang_vec.clear();
-		dstart = NULL;
-		dend = NULL;
+        dstart = NULL;
+        dend = NULL;
 
         while (dataToProcess)
         {
@@ -3943,7 +3944,7 @@ namespace sick_scan
                     else
                     {
                       msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // update timestamp by software-pll
-					}
+                    }
                   }
 
 #ifdef DEBUG_DUMP_ENABLED
@@ -4684,12 +4685,12 @@ namespace sick_scan
                 float *cosAlphaTablePtr = &cosAlphaTable[0];
                 float *sinAlphaTablePtr = &sinAlphaTable[0];
 
-				float *vangPtr = NULL;
-				float *rangeTmpPtr = &rangeTmp[0];
-				if (vang_vec.size() > 0)
-				{
-					vangPtr = &vang_vec[0];
-				}
+                float *vangPtr = NULL;
+                float *rangeTmpPtr = &rangeTmp[0];
+                if (vang_vec.size() > 0)
+                {
+                    vangPtr = &vang_vec[0];
+                }
                 for (size_t i = 0; i < rangeNum; i++)
                 {
                   enum enum_index_descr
@@ -4909,10 +4910,10 @@ namespace sick_scan
             }
           }
           // Start Point
-		  if (dend != NULL)
-		  {
-			  buffer_pos = dend + 1;
-		  }
+          if (dend != NULL)
+          {
+              buffer_pos = dend + 1;
+          }
         } // end of while loop
       }
 
