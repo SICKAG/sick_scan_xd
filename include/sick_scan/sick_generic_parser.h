@@ -173,6 +173,10 @@ namespace sick_scan
 
     bool getUseScancfgList();
 
+    void setUseWriteOutputRanges(bool _useWriteOutputRanges);
+
+    bool getUseWriteOutputRanges();
+
     void setWaitForReady(bool _waitForReady);
 
     bool getWaitForReady();
@@ -202,6 +206,7 @@ namespace sick_scan
     EVAL_FIELD_SUPPORT useEvalFields;
     int maxEvalFields;
     bool useScancfgList;
+    bool useWriteOutputRanges;
     bool waitForReady;
     bool frEchoFilterAvailable = false;
 

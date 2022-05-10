@@ -8,6 +8,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.6.5 - 
+  - **Fixed** LRS4xxx scan configuration #52
+
 ### v2.6.4 - 
   - **Fixed** LMS5xx echo filter settings corrected
 

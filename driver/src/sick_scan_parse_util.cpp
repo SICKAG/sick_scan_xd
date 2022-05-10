@@ -173,7 +173,7 @@ bool sick_scan::SickScanParseUtil::SopasToLMPscancfg(const std::string& sopas_re
     success = success && convertBin(sopas_reply, offset, scancfg.active_sector_cnt); // number of active sectors
     int max_sector_cnt = 4; // scancfg.active_sector_cnt // always 4 sectors are transmitted by sopas
     scancfg.sector_cfg.reserve(max_sector_cnt);
-    for (int sector_cnt = 0; success == true && sector_cnt < max_sector_cnt; sector_cnt++)
+    for (int sector_cnt = 0; success == true && sector_cnt < max_sector_cnt && offset < sopas_reply.length(); sector_cnt++)
     {
         sick_scan::SickScanParseUtil::LMPscancfgSector scancfg_sector;
         success = success && convertBin(sopas_reply, offset, scancfg_sector.angular_resolution); // angular resolution in 1/10000 deg
