@@ -88,6 +88,8 @@ tools/plantuml
 doc/angle_compensation/ampl_phase_offset\.png
 
 demo/scan.jpg_tmp
+demo/scan.jpg
+demo/scan.csv
 doc/20210712_sick_scan_xd.pptx
 doc/backlog.md
 

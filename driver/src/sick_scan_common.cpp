@@ -1607,6 +1607,7 @@ namespace sick_scan
     rosGetParam(nh, "intensity", rssiFlag);
     rosDeclareParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
     rosGetParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
+    // rosDeclareParam(nh, "min_intensity", m_min_intensity);
     rosGetParam(nh, "min_intensity", m_min_intensity); // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
     //check new ip adress and add cmds to write ip to comand chain
     std::string sNewIPAddr = "";
@@ -2182,6 +2183,7 @@ namespace sick_scan
           // Here we get the reply to "sRN LMPscancfg". We use this reply to set the scan configuration (frequency, start and stop angle)
           // for the following "sMN mCLsetscancfglist" and "sMN mLMPsetscancfg ..." commands
           int cfgListEntry = 1;
+          // rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
           rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
           sopasCmdVec[CMD_SET_SCAN_CFG_LIST] = "\x02sMN mCLsetscancfglist " + std::to_string(cfgListEntry) + "\x03"; // set scan config from list for NAX310  LD - OEM15xx LD - LRS36xx
           sopasCmdVec[CMD_SET_SCANDATACONFIGNAV] = ""; // set start and stop angle by LMPscancfgToSopas()
@@ -2320,7 +2322,7 @@ namespace sick_scan
         {
           // scanconfig handling with list
           char requestsMNmCLsetscancfglist[MAX_STR_LEN];
-          int cfgListEntry;
+          int cfgListEntry = 1;
           //rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
           rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
           // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
@@ -2344,7 +2346,7 @@ namespace sick_scan
           }
         }
       }
-      else // CMD_GET_OUTPUT_RANGE (i.e. handling of LMDscandatacfg
+      if (this->parser_->getCurrentParamPtr()->getUseWriteOutputRanges()) // else // CMD_GET_OUTPUT_RANGE
       {
         if (useBinaryCmd)
         {
@@ -2469,7 +2471,7 @@ namespace sick_scan
         {
           // config is set with list entry
       }
-      else
+      if (this->parser_->getCurrentParamPtr()->getUseWriteOutputRanges()) // else
       {
         const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES].c_str();
         sprintf(requestOutputAngularRange, pcCmdMask, angleRes10000th, angleStart10000th, angleEnd10000th);
@@ -2649,8 +2651,7 @@ namespace sick_scan
                                                        << " [deg]");
         }
       }
-      else
-
+      if (this->parser_->getCurrentParamPtr()->getUseWriteOutputRanges()) // else
       {
         askOutputAngularRangeReply.clear();
 
@@ -2793,8 +2794,8 @@ namespace sick_scan
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
       {
         int filter_echos = 0;
-        rosGetParam(nh, "filter_echos",
-          filter_echos);
+        // rosDeclareParam(nh, "filter_echos", filter_echos);
+        rosGetParam(nh, "filter_echos", filter_echos);
         switch (filter_echos)
         {
         default:outputChannelFlagId = 0b00000001; break;
