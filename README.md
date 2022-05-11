@@ -25,6 +25,7 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 - [Sopas Mode](#sopas-mode)
 - [Bugs and feature requests](#bugs-and-feature-requests)
 - [Tools](#tools)
+- [Software Overview](#software-overview)
 - [Simulation](#simulation)
 - [Troubleshooting](#troubleshooting)
 - [SLAM-Support](doc/slam.md)
@@ -787,6 +788,10 @@ Overview of the tools:
   and the launch file sick_new_ip.launch to set a new IP address. If further settings are to be saved that cannot be made via ROS   parameters, we recommend using the Windows tool "Sopas ET" from SICK.
 * Unit tests: For a quick unit test after installation without the sensor hardware, a test server is provided to simulate a scanner. See [emulator](doc/emulator.md) for further details.
 * Testing: The sick_scan_test program was developed for testing the driver. See [test/sick_scan_test.md](test/sick_scan_test.md) for details.
+
+## Software Overview
+
+An overview over the software and its modules can be found in [software_overview](doc/software_overview.md).
 
 ## Simulation
 
