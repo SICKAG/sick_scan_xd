@@ -25,9 +25,12 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 - [Sopas Mode](#sopas-mode)
 - [Bugs and feature requests](#bugs-and-feature-requests)
 - [Tools](#tools)
+- [Simulation](#simulation)
 - [Troubleshooting](#troubleshooting)
 - [SLAM-Support](doc/slam.md)
 - [IMU-Support](#imu-Support)
+- [Software PLL](#software-pll)
+- [Field extensions](#field-extensions)
 - [Radar](doc/radar.md)
 - [Multiscan136](doc/sick_scan_segment_xd.md)
 - [Profiling](doc/profiling.md)
@@ -121,14 +124,14 @@ sick_scan_xd can be build on Linux and Windows, with and without ROS, with and w
 
 | **target** | **cmake settings** | **build script** |
 |------------|--------------------|------------------|
-| Linux, native, LDMRS      | BUILD_WITH_LDMRS_SUPPORT ON  | cd test/scripts && makeall_linux.bash |
-| Linux, native, no LDMRS   | BUILD_WITH_LDMRS_SUPPORT OFF | cd test/scripts && makeall_linux_no_ldmrs.bash |
-| Linux, ROS-1, LDMRS       | BUILD_WITH_LDMRS_SUPPORT ON  | cd test/scripts && makeall_ros1.bash           |
-| Linux, ROS-1, no LDMRS    | BUILD_WITH_LDMRS_SUPPORT OFF | cd test/scripts && makeall_ros1_no_ldmrs.bash  |
-| Linux, ROS-2, LDMRS       | BUILD_WITH_LDMRS_SUPPORT ON  | cd test/scripts && makeall_ros2.bash           |
-| Linux, ROS-2, no LDMRS    | BUILD_WITH_LDMRS_SUPPORT OFF | cd test/scripts && makeall_ros2_no_ldmrs.bash  |
-| Windows, native, no LDMRS | BUILD_WITH_LDMRS_SUPPORT OFF | cd test\\scripts && make_win64.cmd             |
-| Windows, ROS-2, no LDMRS  | BUILD_WITH_LDMRS_SUPPORT OFF | cd test\\scripts && make_ros2.cmd              |
+| Linux, native, LDMRS      | BUILD_WITH_LDMRS_SUPPORT ON  | cd test/scripts && chmod a+x ./*.bash && ./makeall_linux.bash          |
+| Linux, native, no LDMRS   | BUILD_WITH_LDMRS_SUPPORT OFF | cd test/scripts && chmod a+x ./*.bash && ./makeall_linux_no_ldmrs.bash |
+| Linux, ROS-1, LDMRS       | BUILD_WITH_LDMRS_SUPPORT ON  | cd test/scripts && chmod a+x ./*.bash && ./makeall_ros1.bash           |
+| Linux, ROS-1, no LDMRS    | BUILD_WITH_LDMRS_SUPPORT OFF | cd test/scripts && chmod a+x ./*.bash && ./makeall_ros1_no_ldmrs.bash  |
+| Linux, ROS-2, LDMRS       | BUILD_WITH_LDMRS_SUPPORT ON  | cd test/scripts && chmod a+x ./*.bash && ./makeall_ros2.bash           |
+| Linux, ROS-2, no LDMRS    | BUILD_WITH_LDMRS_SUPPORT OFF | cd test/scripts && chmod a+x ./*.bash && ./makeall_ros2_no_ldmrs.bash  |
+| Windows, native, no LDMRS | BUILD_WITH_LDMRS_SUPPORT OFF | cd test\\scripts && make_win64.cmd |
+| Windows, ROS-2, no LDMRS  | BUILD_WITH_LDMRS_SUPPORT OFF | cd test\\scripts && make_ros2.cmd  |
 
 If you're using ROS, set your ROS-environment before running one of these scripts, f.e.
 * `source /opt/ros/noetic/setup.bash` for ROS-1 noetic, or
@@ -142,14 +145,20 @@ See the build descriptions below for more details.
 
 Run the following steps to build sick_scan_xd on Linux (no ROS required):
 
-1. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
+1. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
+   ```
+   mkdir -p ./sick_scan_ws
+   cd ./sick_scan_ws
+   ```
+
+2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
    git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
    git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-2. Build libsick_ldmrs (only required once for LDMRS sensors):
+3. Build libsick_ldmrs (only required once for LDMRS sensors):
    ```
    pushd libsick_ldmrs
    mkdir -p ./build
@@ -160,7 +169,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-3. Build msgpack library (only required once for Multiscan136/sick_scansegment_xd):
+4. Build msgpack library (only required once for Multiscan136/sick_scansegment_xd):
    ```
    mkdir -p ./build
    pushd ./build
@@ -170,7 +179,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-4. Build sick_generic_caller:
+5. Build sick_generic_caller:
    ```
    mkdir -p ./build
    pushd ./build
@@ -195,7 +204,13 @@ Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If y
 
 Run the following steps to build sick_scan_xd on Linux with ROS 1:
 
-1. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+1. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
+   ```
+   mkdir -p ./sick_scan_ws
+   cd ./sick_scan_ws
+   ```
+
+2. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
@@ -205,7 +220,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
    popd
    ```
 
-2. Build msgpack library (only required once for Multiscan136/sick_scansegment_xd):
+3. Build msgpack library (only required once for Multiscan136/sick_scansegment_xd):
    ```
    mkdir -p ./build/msgpack11
    pushd ./build/msgpack11
@@ -215,7 +230,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
    popd
    ```
 
-3. Build sick_generic_caller:
+4. Build sick_generic_caller:
    ```
    source /opt/ros/noetic/setup.bash # replace noetic by your ros distro
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1
@@ -237,7 +252,13 @@ Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If y
 
 Run the following steps to build sick_scan_xd on Linux with ROS 2:
 
-1. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+1. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
+   ```
+   mkdir -p ./sick_scan_ws
+   cd ./sick_scan_ws
+   ```
+
+2. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
@@ -247,7 +268,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    popd
    ```
 
-2. Build sick_generic_caller:
+3. Build sick_generic_caller:
    ```
    source /opt/ros/foxy/setup.bash # replace foxy by your ros distro
    colcon build --packages-select libsick_ldmrs --event-handlers console_direct+
@@ -286,13 +307,19 @@ To install sick_scan_xd on Windows, follow the steps below:
      set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
      ```
 
-3. Clone repositories https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+3. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
+   ```
+   mkdir sick_scan_ws
+   cd sick_scan_ws
+   ```
+
+4. Clone repositories https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
    git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-4. Build mspack with cmake and Visual Studio 2019:
+5. Build mspack with cmake and Visual Studio 2019:
    ```
    mkdir build\msgpack11
    pushd build\msgpack11
@@ -301,7 +328,7 @@ To install sick_scan_xd on Windows, follow the steps below:
    ```
    Open file `build\msgpack11.sln` in Visual Studio and build all targets (shortcut F7).
 
-5. Build sick_generic_caller with cmake and Visual Studio 2019:
+6. Build sick_generic_caller with cmake and Visual Studio 2019:
    ```
    cd sick_scan_xd
    set _os=x64
@@ -328,13 +355,22 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
 
 1. If not yet done, install Visual Studio 2019 and vcpkg as described in [Build on Windows](#build-on-windows).
 
-2. Clone repositories https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+2. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
    ```
-   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
-   git clone https://github.com/SICKAG/sick_scan_xd.git
+   mkdir sick_scan_ws
+   cd sick_scan_ws
    ```
 
-3. Build sick_generic_caller:
+3. Clone repositories https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+   ```
+   mkdir ./src
+   pushd ./src
+   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/sick_scan_xd.git
+   popd
+   ```
+
+4. Build sick_generic_caller:
    ```
    colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+ 
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
@@ -358,6 +394,14 @@ See [radar documentation](doc/radar.md) for RMS1xxx and RMS3xx support.
 ## Multiscan136 support
 
 See [sick_scan_segment_xd](doc/sick_scan_segment_xd.md) for Multiscan136 support.
+
+## Software PLL
+
+A software pll is used to convert lidar timestamps in ticks to the ros system time. See [software_pll](doc/software_pll.md) for further details.
+
+## Field extensions
+
+The LMS1xx, LMS5xx, TiM7xx and TiM7xxS families support extensions for field monitoring. See [field_monitoring_extensions](doc/field_monitoring_extensions.md) for further details.
 
 ## Run sick_scan driver
 
@@ -705,7 +749,6 @@ Note: Timeout 2 (i.e. no lidar message after 150 seconds) terminates the driver.
 ```
 while(true) ; do roslaunch sick_scan <launchfile> [<arguments>] ; done
 ```
-
 
 ## Sopas Mode
 
