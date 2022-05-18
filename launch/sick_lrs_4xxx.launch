@@ -14,6 +14,7 @@
         <param name="range_max" type="double" value="100.0"/>
         <param name="intensity" type="bool" value="True"/>
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
+        <param name="skip" type="int" value="0" /> <!-- Default: 0 (i.e. publish each scan), otherwise only each n.th scan is published -->
         <param name="filter_echos" type="int" value="0"/> <!-- FREchoFilter settings: Use 0 (first echo) for LRS4xxx -->
         
         <param name="scan_cfg_list_entry" type="int" value="1"/>
