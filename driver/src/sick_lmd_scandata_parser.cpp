@@ -151,7 +151,7 @@ namespace sick_scan
                       else if (packets_dropped > packets_expected_to_drop && packets_received > 0)
                       {
                         double drop_rate = (double)packets_dropped / (double)packets_received;
-                        ROS_WARN_STREAM("" << SoftwarePLL::instance().packets_dropped << " of " << SoftwarePLL::instance().packets_received << " packets dropped (" 
+                        ROS_WARN_STREAM("" << SoftwarePLL::instance().packets_dropped << " of " << SoftwarePLL::instance().packets_received << " packets dropped ("
                           << std::fixed << std::setprecision(1) << (100*drop_rate) << " perc.), maxAbsDeltaTime=" << std::fixed << std::setprecision(3) << SoftwarePLL::instance().max_abs_delta_time);
                         ROS_WARN_STREAM("More packages than expected were dropped!!\n"
                                 "Check the network connection.\n"
@@ -460,7 +460,13 @@ namespace sick_scan
                                   msg.time_increment = fabs(parser_->getCurrentParamPtr()->getNumberOfLayers() * msg.scan_time * msg.angle_increment / (2.0 * M_PI));
                               }
 
-                              if (parser_->getCurrentParamPtr()->getScanMirroredAndShifted())
+                              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+                              {
+                                msg.angle_min = (float)(-M_PI);
+                                msg.angle_max = (float)(+M_PI);
+                                msg.angle_increment *= -1.0;
+                              }
+                              else if (this->parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. for SICK_SCANNER_LRS_36x0_NAME and SICK_SCANNER_NAV_3XX_NAME
                               {
                                 /* TODO: Check this ...
                                 msg.angle_min -= (float)(M_PI / 2);
