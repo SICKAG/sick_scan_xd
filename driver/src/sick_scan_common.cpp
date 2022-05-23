@@ -479,6 +479,12 @@ namespace sick_scan
     rosDeclareParam(nh, "nodename", nodename);
     rosGetParam(nh, "nodename", nodename);
 
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+    {
+      // NAV-310 only supports min/max angles of -PI to +PI (resp. 0 to 360 degree in sensor coordinates). To avoid unexpected results, min/max angles can not be set by configuration.
+      config_.min_ang = -M_PI;
+      config_.max_ang = +M_PI;
+    }
 
     // datagram publisher (only for debug)
     rosDeclareParam(nh, "publish_datagram", false);
@@ -536,6 +542,17 @@ namespace sick_scan
 
     rosDeclareParam(nh, "read_timeout_millisec_startup", m_read_timeout_millisec_startup);
     rosGetParam(nh, "read_timeout_millisec_startup", m_read_timeout_millisec_startup);
+
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+    {
+      // NAV-310 only supports min/max angles of -PI to +PI (resp. 0 to 360 degree in sensor coordinates). To avoid unexpected results, min/max angles can not be set by configuration.
+      if(std::abs(config_.min_ang + M_PI) > FLT_EPSILON || std::abs(config_.max_ang - M_PI) > FLT_EPSILON)
+      {
+        ROS_WARN_STREAM("## WARNING: configured min/max_angle = " << config_.min_ang << "," << config_.max_ang << " not supported by NAV-3xx. min/max_angle = -PI,+PI will be used.");
+        config_.min_ang = -M_PI;
+        config_.max_ang = +M_PI;
+      }
+    }
 
     cloud_marker_ = 0;
     publish_lferec_ = false;
@@ -1529,6 +1546,14 @@ namespace sick_scan
       sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
       sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
     }
+    /*
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+    {
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
+      sopasCmdChain.push_back("\x02sWN LMDscandatacfg 01 00 1 0 0 0 00 0 0 0 1 1\x03");
+      sopasCmdChain.push_back(CMD_RUN); // Apply changes
+    }
+    */
 
     return (0);
   }
@@ -2148,18 +2173,9 @@ namespace sick_scan
               double stop_ang_rad = (scancfg.sector_cfg[sector_cnt].stop_angle / 10000.0) * (M_PI / 180.0);
               if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) // map ros start/stop angle to NAV-3xx logic
               {
-                // NAV-3xx rotates the scan depending on start/stop angles => TODO: Set angle shift to (360 - nav_stop_angle) ???
-                // this->parser_->getCurrentParamPtr()->setScanAngleShift(2 * M_PI - stop_ang_rad);
-                // ROS_INFO_STREAM("NAV-3xx angle shift set to " << rad2deg(this->parser_->getCurrentParamPtr()->getScanAngleShift()) << " deg");
-                // TODO: map ros start/stop angle to NAV-3xx logic
+                // NAV-310 only supports min/max angles 0 to 360 degree in sensor coordinates. To avoid unexpected results, min/max angles can not be set by configuration.
                 start_ang_rad = 0; // this->config_.min_ang;
                 stop_ang_rad = 2 * M_PI; // this->config_.max_ang;
-                /*
-                double start_ang_ros = start_ang_rad, stop_ang_ros = stop_ang_rad;
-                start_ang_rad = sick_scan::normalizeAngleRad(stop_ang_ros - M_PI, 0.0, 2 * M_PI);
-                stop_ang_rad = start_ang_rad + (stop_ang_ros - start_ang_ros);
-                stop_ang_rad = std::min(stop_ang_rad, 2 * M_PI); // stop_ang_rad = sick_scan::normalizeAngleRad(stop_ang_rad, 0.0, 2 * M_PI);
-                */
               }
               else
               {
@@ -4233,7 +4249,13 @@ namespace sick_scan
                               msg.angle_increment = sizeOfSingleAngularStep;
                               msg.angle_max = msg.angle_min + (numberOfItems - 1) * msg.angle_increment;
 
-                              if (this->parser_->getCurrentParamPtr()->getScanMirroredAndShifted())
+                              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+                              {
+                                msg.angle_min = (float)(-M_PI);
+                                msg.angle_max = (float)(+M_PI);
+                                msg.angle_increment *= -1.0;
+                              }
+                              else if (this->parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. for SICK_SCANNER_LRS_36x0_NAME and SICK_SCANNER_NAV_3XX_NAME
                               {
                                 /* TODO: Check this ...
                                 msg.angle_min -= (float)(M_PI / 2);
