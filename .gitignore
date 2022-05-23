@@ -104,3 +104,7 @@ doc/20220407_sick_scan_xd_nav350.pptx
 test/scripts/run_win64_ros1_simu_lms5xx.cmd
 
 doc/20220428_sick_scan_xd_sw_overview.pptx
+
+doc/sick_scan_api/GBC08_Specification_Export_2528general_template.docx
+
+doc/sick_scan_api/sick_scan_api.md

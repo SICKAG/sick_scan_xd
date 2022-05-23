@@ -12,6 +12,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.6.6 - 
+  - **Update** NAV310 + LRS4xxx update, issues #58, #59, #60, #61
+
 ### v2.6.5 - 
   - **Fixed** LRS4xxx scan configuration #52
 
