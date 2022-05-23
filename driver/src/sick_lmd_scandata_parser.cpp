@@ -466,7 +466,7 @@ namespace sick_scan
                                 msg.angle_max = (float)(+M_PI);
                                 msg.angle_increment *= -1.0;
                               }
-                              else if (this->parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. for SICK_SCANNER_LRS_36x0_NAME and SICK_SCANNER_NAV_3XX_NAME
+                              else if (parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. for SICK_SCANNER_LRS_36x0_NAME and SICK_SCANNER_NAV_3XX_NAME
                               {
                                 /* TODO: Check this ...
                                 msg.angle_min -= (float)(M_PI / 2);
