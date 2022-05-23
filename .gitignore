@@ -92,3 +92,7 @@ doc/20210712_sick_scan_xd.pptx
 doc/backlog.md
 
 test/emulator/scandata
+
+test/scripts/make_ros1_with_emulator.bash
+
+test/scripts/makeall_ros1_with_emulator.bash
