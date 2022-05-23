@@ -90,6 +90,7 @@
 #define _USE_MATH_DEFINES
 
 #include <math.h>
+#include <float.h>
 
 #ifndef rad2deg
 #define rad2deg(x) ((x) / M_PI * 180.0)
