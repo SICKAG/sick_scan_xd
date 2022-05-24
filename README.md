@@ -9,13 +9,13 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 
 - [Executive Summary](#executive-summary)
 - [Supported Hardware](#supported-hardware)
-- [Supported Hardware](#supported-hardware)
+- [Supported platforms](#supported-platforms)
 - [Build on Linux generic without ROS](#build-on-linux-generic-without-ros)
 - [Build on Linux ROS1](#build-on-linux-ros1)
 - [Build on Linux ROS2](#build-on-linux-ros2)
 - [Build on Windows](#build-on-windows)
 - [Build on Windows ROS2](#build-on-windows-ros2)
-- [Run sick_scan driver](#run-sick_scan-driver)
+- [Run sick_scan_xd driver](#run-sick_scan_xd-driver)
    - [Start Multiple Nodes](#start-multiple-nodes)
    - [Common parameters](#common-parameters)
    - [Starting Scanner with Specific Ip Address](#starting-scanner-with-specific-ip-address)
@@ -76,10 +76,6 @@ ROS Device Driver for SICK lidar and radar sensors - supported scanner types:
 |                    |                                                                                                                                  | Scan-Rate: 150 Hz, 4x37.5 Hz   |                 |
 | TiM240             | [1104981](https://www.sick.com/ag/en/detection-and-ranging-solutions/2d-lidar-sensors/tim2xx/tim240-2050300/p/p654443)           | 1 layer max. range: 10 m, ang. resol. 1.00 [deg], 240 [deg]| ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 14.5 Hz   |                 |
-| TiM433             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [stable]|
-|                    |                                                                                                                                  | Scan-Rate: 15.0 Hz   |                 |
-| TiM443             | prototype  | 1 layer range: 0.05 m ... 15 m, ang. resol. 0.33 [deg], 240 [deg]| ✔ [stable]|
-|                    |                                                                                                                                  | Scan-Rate: 15.0 Hz   |                 |
 | TiM551             | [1060445](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim551-2050001/p/p343045)                 | 1 layer max. range: 10 m, ang. resol. 1.00[deg] | ✔ [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
 | TiM561             | [1071419](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/tim5xx/tim561-2050101/p/p369446)                 | 1 layer max. range: 10 m, ang. resol. 0.33 [deg]| ✔ [stable]|
@@ -116,8 +112,12 @@ Note:
 * LDMRS family is currently not supported on Windows.
 * ROS services require installation of ROS-1 or ROS-2, i.e. services for Cola commands are currently not supported on native Linux or native Windows.
 * ROS services are currently not available for LDMRS.
-* dynamic reconfiguration of sick_scan parameter is supported on ROS-1 or ROS-2 only, neither under Linux nor under Windows.
+* dynamic reconfiguration of sick_scan_xd parameter is supported on ROS-1 or ROS-2 only, neither under Linux nor under Windows.
 * Publishing pointcloud data requires ROS-1 or ROS-2. On native Linux resp. native Windows, pointcloud data are currently saved to jpg- and csv-files for demonstration purposes.
+
+## Supported platforms
+
+The driver is developed and tested for x86 architecture. Use for system with ARM architecture (e.g. Raspberry platform) is not officially supported.
 
 ## Build targets
 
@@ -404,9 +404,9 @@ A software pll is used to convert lidar timestamps in ticks to the ros system ti
 
 The LMS1xx, LMS5xx, TiM7xx and TiM7xxS families support extensions for field monitoring. See [field_monitoring_extensions](doc/field_monitoring_extensions.md) for further details.
 
-## Run sick_scan driver
+## Run sick_scan_xd driver
 
-The sick_scan driver can be started on the command line by `sick_generic_caller <launchfile> [hostname:=<ip-address>]`. The start process varies slightly depending on the target OS:
+The sick_scan_xd driver can be started on the command line by `sick_generic_caller <launchfile> [hostname:=<ip-address>]`. The start process varies slightly depending on the target OS:
 
 - On native Linux without ROS, call
 
@@ -428,7 +428,7 @@ The sick_scan driver can be started on the command line by `sick_generic_caller 
 
     ```ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/<launchfile>```
 
-Use the following commands to run the sick_scan driver for a specific scanner type:
+Use the following commands to run the sick_scan_xd driver for a specific scanner type:
 
 - For MRS6124:
     * Linux native:   `sick_generic_caller sick_mrs_6xxx.launch`
@@ -454,12 +454,6 @@ Use the following commands to run the sick_scan driver for a specific scanner ty
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_240.launch`
     * Windows native: `sick_generic_caller sick_tim_240.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_240.launch`
-- For TiM4xx-family:
-    * Linux native:   `sick_generic_caller sick_tim_4xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_tim_4xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_4xx.launch`
-    * Windows native: `sick_generic_caller sick_tim_4xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_4xx.launch`
 - For TiM5xx-family:
     * Linux native:   `sick_generic_caller sick_tim_5xx.launch`
     * Linux ROS-1:    `roslaunch sick_scan sick_tim_5xx.launch`
@@ -797,13 +791,11 @@ An overview over the software and its modules can be found in [software_overview
 
 For unittests without sensor hardware, a simple test server is provided. To build the test server, call either cmake with option `-DCMAKE_ENABLE_EMULATOR=1`, or activate cmake option `ENABLE_EMULATOR` in CMakeLists.txt. Then rebuild sick_scan_xd. By default, option `ENABLE_EMULATOR` is switched off.
 
-Please note that this just builds a simple test server for basic unittests of sick_scan drivers. Its purpose is to run basic tests and to help with diagnosis in case of issues. It does not emulate a real scanner!
+Please note that this just builds a simple test server for basic unittests of sick_scan_xd drivers. Its purpose is to run basic tests and to help with diagnosis in case of issues. It does not emulate a real scanner!
 
 Simulation requires jsoncpp. Install with `sudo apt-get install libjsoncpp-dev` on Linux and with `vcpkg install jsoncpp:x64-windows` on Windows.
 
-You can find examples to test and run sick_scan in offline mode in folder `test/scripts`. Their purpose is to demonstrate the usage of the sick_scan driver. Please feel free to customize the scripts or use them as a starting point for own projects.
-
-Note: Some larger scandata files for testing and development are provided in folder `test/emulator/scandata`. These files are versioned using "Git Large File Storage". Follow the description [doc/git_lfs.md](doc/git_lfs.md) to install and use git lfs extension.
+You can find examples to test and run sick_scan_xd in offline mode in folder `test/scripts`. Their purpose is to demonstrate the usage of the sick_scan_xd driver. Please feel free to customize the scripts or use them as a starting point for own projects.
 
 ### Simulation on Windows
 
