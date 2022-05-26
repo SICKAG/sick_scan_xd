@@ -486,6 +486,12 @@ namespace sick_scan
       config_.min_ang = -M_PI;
       config_.max_ang = +M_PI;
     }
+    else if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
+    {
+      // LMS min/max angles currently set to +-95 degree
+      config_.min_ang = -95.0 * M_PI / 180.0;
+      config_.max_ang = +95.0 * M_PI / 180.0;
+    }
 
     // datagram publisher (only for debug)
     rosDeclareParam(nh, "publish_datagram", false);
@@ -552,6 +558,16 @@ namespace sick_scan
         ROS_WARN_STREAM("## WARNING: configured min/max_angle = " << config_.min_ang << "," << config_.max_ang << " not supported by NAV-3xx. min/max_angle = -PI,+PI will be used.");
         config_.min_ang = -M_PI;
         config_.max_ang = +M_PI;
+      }
+    }
+    else if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
+    {
+      // LMS min/max angles currently set to +-95 degree
+      if(std::abs(config_.min_ang + 95.0 * M_PI / 180.0) > FLT_EPSILON || std::abs(config_.max_ang - 95.0 * M_PI / 180.0) > FLT_EPSILON)
+      {
+        ROS_WARN_STREAM("## WARNING: configured min/max_angle = " << config_.min_ang << "," << config_.max_ang << " not supported. min/max_angle = -95,+95 degree will be used.");
+        config_.min_ang = -95.0 * M_PI / 180.0;
+        config_.max_ang = +95.0 * M_PI / 180.0;
       }
     }
 
