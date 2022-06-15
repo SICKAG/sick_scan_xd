@@ -2,8 +2,8 @@
 * \file
 * \brief Laser Scanner Entry Point
 *
-* Copyright (C) 2020, 2019,2018,2017, Ing.-Buero Dr. Michael Lehning, Hildesheim
-* Copyright (C) 2020, 2019,2018,2017, SICK AG, Waldkirch
+* Copyright (C) 2022, 2021, 2020, 2019,2018,2017, Ing.-Buero Dr. Michael Lehning, Hildesheim
+* Copyright (C) 2022, 2021, 2020, 2019,2018,2017, SICK AG, Waldkirch
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 *
-*  Last modified: 9th June 2020
+*  Last modified: 25th June 2022
 *
 *      Authors:
 *         Michael Lehning <michael.lehning@lehning.de>
@@ -61,8 +61,8 @@
 *
 *
 *
-*  Copyright 2018/2019/2020/2021 SICK AG
-*  Copyright 2018/2019/2020/2021 Ing.-Büro Dr. Michael Lehning
+*  Copyright 2018/2019/2020/2021/2022 SICK AG
+*  Copyright 2018/2019/2020/2021/2022 Ing.-Büro Dr. Michael Lehning
 
 
 
@@ -81,7 +81,7 @@
 
 #define SICK_GENERIC_MAJOR_VER "2"
 #define SICK_GENERIC_MINOR_VER "6"
-#define SICK_GENERIC_PATCH_LEVEL "7"
+#define SICK_GENERIC_PATCH_LEVEL "8"
 
 #include <algorithm> // for std::min
 
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 #endif
   signal(SIGINT, rosSignalHandler);
 
-  ROS_INFO_STREAM(versionInfo << "\n");
+  ROS_INFO_STREAM(versionInfo);
   for (int i = 0; i < argc_tmp; i++)
   {
     if (strstr(argv_tmp[i], nameId) == argv_tmp[i])
@@ -169,8 +169,9 @@ int main(int argc, char **argv)
       strcpy(nameVal, argv_tmp[i] + strlen(nameId));
       scannerName = nameVal;
     }
-    ROS_INFO_STREAM("Program argument " << (i+1) << ": " << argv_tmp[i] << "\n");
+    ROS_INFO_STREAM("Program argument " << (i+1) << ": " << argv_tmp[i]);
   }
+  ROS_INFO_STREAM("==========================================");
 
   int result = 0;
   try
