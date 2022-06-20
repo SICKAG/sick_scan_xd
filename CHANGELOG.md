@@ -12,6 +12,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.6.8 - 
+  - **Fixed** Merge pull request #76
+
 ### v2.6.7 - 
   - **Update** LMS511 configuration #67
 

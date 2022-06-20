@@ -3,8 +3,8 @@
 * \brief Laser Scanner communication main routine
 *
 * Copyright (C) 2013, Osnabrueck University
-* Copyright (C) 2017-2019, Ing.-Buero Dr. Michael Lehning, Hildesheim
-* Copyright (C) 2017-2019, SICK AG, Waldkirch
+* Copyright (C) 2017-2022, Ing.-Buero Dr. Michael Lehning, Hildesheim
+* Copyright (C) 2017-2022, SICK AG, Waldkirch
 *
 * All rights reserved.
 *
@@ -487,12 +487,6 @@ namespace sick_scan
       config_.min_ang = -M_PI;
       config_.max_ang = +M_PI;
     }
-    else if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
-    {
-      // LMS min/max angles currently set to +-95 degree
-      config_.min_ang = -95.0 * M_PI / 180.0;
-      config_.max_ang = +95.0 * M_PI / 180.0;
-    }
 
     // datagram publisher (only for debug)
     rosDeclareParam(nh, "publish_datagram", false);
@@ -559,16 +553,6 @@ namespace sick_scan
         ROS_WARN_STREAM("## WARNING: configured min/max_angle = " << config_.min_ang << "," << config_.max_ang << " not supported by NAV-3xx. min/max_angle = -PI,+PI will be used.");
         config_.min_ang = -M_PI;
         config_.max_ang = +M_PI;
-      }
-    }
-    else if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
-    {
-      // LMS min/max angles currently set to +-95 degree
-      if(std::abs(config_.min_ang + 95.0 * M_PI / 180.0) > FLT_EPSILON || std::abs(config_.max_ang - 95.0 * M_PI / 180.0) > FLT_EPSILON)
-      {
-        ROS_WARN_STREAM("## WARNING: configured min/max_angle = " << config_.min_ang << "," << config_.max_ang << " not supported. min/max_angle = -95,+95 degree will be used.");
-        config_.min_ang = -95.0 * M_PI / 180.0;
-        config_.max_ang = +95.0 * M_PI / 180.0;
       }
     }
 
@@ -1679,7 +1663,7 @@ namespace sick_scan
     rosDeclareParam(nh, "active_echos", activeEchos);
     rosGetParam(nh, "active_echos", activeEchos);
 
-    ROS_INFO_STREAM("Parameter setting for <active_echo: " << activeEchos << "d>\n");
+    ROS_INFO_STREAM("Parameter setting for <active_echo: " << activeEchos << ">");
     std::vector<bool> outputChannelFlag;
     outputChannelFlag.resize(maxNumberOfEchos);
     //int i;
@@ -2452,7 +2436,7 @@ namespace sick_scan
             ROS_INFO_STREAM("Angle resolution of scanner is " << askTmpAngleRes << " [deg]  (in 1/10000th deg: "
                                                               << askTmpAngleRes10000th << ")");
             ROS_INFO_STREAM(
-                "[From:To] " << askTmpAngleStart << " [deg] to " << askTmpAngleEnd << "f [deg] (in 1/10000th deg: from "
+                "[From:To] " << askTmpAngleStart << " [deg] to " << askTmpAngleEnd << " [deg] (in 1/10000th deg: from "
                              << askTmpAngleStart10000th << " to " << askTmpAngleEnd10000th << ")");
           }
         }
@@ -2482,8 +2466,8 @@ namespace sick_scan
       //   maxAngSopas += 90.0;
       // }
 
-      angleStart10000th = (int) (std::round(10000.0 * minAngSopas));
-      angleEnd10000th = (int) (std::round(10000.0 * maxAngSopas));
+      angleStart10000th = (int)(std::round(10000.0 * minAngSopas));
+      angleEnd10000th = (int)(std::round(10000.0 * maxAngSopas));
     }
       char requestOutputAngularRange[MAX_STR_LEN];
       // special for LMS1000 TODO unify this
@@ -3016,7 +3000,7 @@ namespace sick_scan
               // scan frequencies lms1xx: 25 or 50 Hz, lms5xx: 25, 35, 50, 75 or 100 Hz
               // Number of active sectors: 1 for lms1xx and lms5xx
               // Angular resolution: 0.25 or 0.5 deg for lms1xx, 0.0417, 0.083, 0.1667, 0.25, 0.333, 0.5, 0.667 or 1.0 deg for lms5xx, angular resolution in 1/10000 deg
-              // Start angle: -45 deg for lms1xx, -50 deg for lms5xx in lidar coordinates
+              // Start angle: -45 deg for lms1xx,   -5 deg for lms5xx in lidar coordinates
               // Stop angle: +225 deg for lms1xx, +185 deg for lms5xx in lidar coordinates
               sick_scan::SickScanParseUtil::LMPscancfg lmp_scancfg;
               sick_scan::SickScanParseUtil::LMPscancfgSector lmp_scancfg_sector;
@@ -3030,8 +3014,39 @@ namespace sick_scan
               }
               else if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
               {
-                lmp_scancfg_sector.start_angle = -50000;
-                lmp_scancfg_sector.stop_angle = +1850000;
+                double angle_offset_rad = this->parser_->getCurrentParamPtr()->getScanAngleShift();
+                double start_ang_rad = this->config_.min_ang - angle_offset_rad;
+                double stop_ang_rad = this->config_.max_ang - angle_offset_rad;
+
+                int32_t start_angle_in_10000th = (int32_t)(std::round(10000.0 * rad2deg(start_ang_rad)));
+                int32_t stop_angle_in_10000th = (int32_t)(std::round(10000.0 * rad2deg(stop_ang_rad)));
+
+                ROS_INFO_STREAM("Prepare mLMPsetscancfg: Start Angle in 10000th deg in lidar notation: " << start_angle_in_10000th);
+                ROS_INFO_STREAM("Prepare mLMPsetscancfg: Stop Angle in 10000th deg in lidar notation : " << stop_angle_in_10000th);
+
+                lmp_scancfg_sector.start_angle = start_angle_in_10000th;  // -5 [deg]
+                lmp_scancfg_sector.stop_angle = stop_angle_in_10000th; // +185 [deg]
+
+                if (useBinaryCmd)
+                {
+                  std::vector<unsigned char> reqBinary;
+                  reqBinary.clear();
+                  this->convertAscii2BinaryCmd(sopasCmdVec[CMD_RUN].c_str(), &reqBinary);
+                  result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_RUN]));
+                  reqBinary.clear();
+                  this->convertAscii2BinaryCmd(sopasCmdVec[CMD_SET_ACCESS_MODE_3].c_str(), &reqBinary);
+                  result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ACCESS_MODE_3]));
+                  reqBinary.clear();
+                }
+                else
+                {
+                  std::vector<unsigned char> resetReply;
+                  std::string runCmd = sopasCmdVec[CMD_RUN];
+                  std::string UserLvlCmd = sopasCmdVec[CMD_SET_ACCESS_MODE_3];
+                  result &= (0 == sendSopasAndCheckAnswer(runCmd, &resetReply));
+                  result &= (0 == sendSopasAndCheckAnswer(UserLvlCmd, &resetReply));
+                }
+
               }
               lmp_scancfg.sector_cfg.push_back(lmp_scancfg_sector);
               std::string lmp_scancfg_sopas;
