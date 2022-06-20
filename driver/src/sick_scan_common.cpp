@@ -2968,8 +2968,8 @@ namespace sick_scan
                 int32_t start_angle_in_10000th = (int32_t)(std::round(10000.0 * rad2deg(start_ang_rad)));
                 int32_t stop_angle_in_10000th = (int32_t)(std::round(10000.0 * rad2deg(stop_ang_rad)));
 
-                ROS_INFO("Prepare mLMPsetscancfg: Start Angle in 10000th deg in lidar notation: %10d", start_angle_in_10000th);
-                ROS_INFO("Prepare mLMPsetscancfg: Stop Angle in 10000th deg in lidar notation : %10d", stop_angle_in_10000th);
+                ROS_INFO_STREAM("Prepare mLMPsetscancfg: Start Angle in 10000th deg in lidar notation: " << start_angle_in_10000th);
+                ROS_INFO_STREAM("Prepare mLMPsetscancfg: Stop Angle in 10000th deg in lidar notation : " << stop_angle_in_10000th);
 
                 lmp_scancfg_sector.start_angle = start_angle_in_10000th;  // -5 [deg]
                 lmp_scancfg_sector.stop_angle = stop_angle_in_10000th; // +185 [deg]
