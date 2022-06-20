@@ -378,6 +378,9 @@ namespace sick_scan
       rosDeclareParam(m_nh, "sw_pll_only_publish", cfg.sw_pll_only_publish);
       rosGetParam(m_nh, "sw_pll_only_publish", cfg.sw_pll_only_publish);
 
+      rosDeclareParam(m_nh, "use_generation_timestamp", cfg.use_generation_timestamp);
+      rosGetParam(m_nh, "use_generation_timestamp", cfg.use_generation_timestamp);
+
       rosDeclareParam(m_nh, "time_offset", cfg.time_offset);
       rosGetParam(m_nh, "time_offset", cfg.time_offset);
 
@@ -413,6 +416,9 @@ namespace sick_scan
 
       rosDeclareParam(m_nh, "sw_pll_only_publish", cfg.sw_pll_only_publish);
       rosSetParam(m_nh, "sw_pll_only_publish", cfg.sw_pll_only_publish);
+
+      rosDeclareParam(m_nh, "use_generation_timestamp", cfg.use_generation_timestamp);
+      rosGetParam(m_nh, "use_generation_timestamp", cfg.use_generation_timestamp);
 
       rosDeclareParam(m_nh, "time_offset", cfg.time_offset);
       rosSetParam(m_nh, "time_offset", cfg.time_offset);
@@ -525,6 +531,11 @@ namespace sick_scan
 
     rosDeclareParam(nh, "sw_pll_only_publish", config_.sw_pll_only_publish);
     rosGetParam(nh, "sw_pll_only_publish", config_.sw_pll_only_publish);
+
+    rosDeclareParam(nh, "use_generation_timestamp", config_.use_generation_timestamp);
+    rosGetParam(nh, "use_generation_timestamp", config_.use_generation_timestamp);
+    if(config_.use_generation_timestamp == 0)
+      ROS_INFO_STREAM("use_generation_timestamp:=0, using lidar send timestamp instead of generation timestamp for software pll converted message timestamp.");
 
     rosDeclareParam(nh, "time_offset", config_.time_offset);
     rosGetParam(nh, "time_offset", config_.time_offset);
@@ -3968,8 +3979,8 @@ namespace sick_scan
                 }
                 else
                 {
-                  if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevationAngleInRad, recvTimeStamp, config_.sw_pll_only_publish,
-                    parser_, FireEncoder, EncoderMsg, numEchos, vang_vec, msg))
+                  if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevationAngleInRad, recvTimeStamp, 
+                    config_.sw_pll_only_publish, config_.use_generation_timestamp, parser_, FireEncoder, EncoderMsg, numEchos, vang_vec, msg))
                   {
                       dataToProcess = false;
                       break;
@@ -3981,7 +3992,7 @@ namespace sick_scan
               }
             }
 
-            //TODO timing issue posible here
+            //perform time consistency test
             parser_->checkScanTiming(msg.time_increment, msg.scan_time, msg.angle_increment, 0.00001f);
 
             success = ExitSuccess;
@@ -4627,6 +4638,8 @@ namespace sick_scan
           new_config.skip = parameter.as_int();
         else if(parameter.get_name() == "sw_pll_only_publish" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_BOOL)
           new_config.sw_pll_only_publish = parameter.as_bool();
+        else if(parameter.get_name() == "use_generation_timestamp" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_BOOL)
+          new_config.use_generation_timestamp = parameter.as_bool();
         else if(parameter.get_name() == "time_offset" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE)
           new_config.time_offset = parameter.as_double();
         else if(parameter.get_name() == "cloud_output_mode" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_INTEGER)

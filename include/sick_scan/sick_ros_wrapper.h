@@ -423,6 +423,7 @@ namespace sick_scan
         double ang_res = 0;
         int skip = 0;
         bool sw_pll_only_publish = false;
+        bool use_generation_timestamp = true;
         double time_offset = 0;
         int cloud_output_mode = 0;
     };

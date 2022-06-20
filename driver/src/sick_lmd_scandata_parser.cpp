@@ -80,7 +80,7 @@ namespace sick_scan
 
     /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
     bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double& elevationAngleInRad, rosTime& recvTimeStamp,
-        bool config_sw_pll_only_publish, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos, std::vector<float> vang_vec,
+        bool config_sw_pll_only_publish, bool use_generation_timestamp, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos, std::vector<float> vang_vec,
         ros_sensor_msgs::LaserScan & msg)
     {
                   elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
@@ -102,11 +102,20 @@ namespace sick_scan
                   elevationAngleInRad = -elevAngleX200 / 200.0 * deg2rad_const;
                   ROS_HEADER_SEQ(msg.header, elevAngleX200); // should be multiple of 0.625° starting with -2638 (corresponding to 13.19°)
 
+                  // Time since start up in microseconds: Counting the time since power up the device; starting with 0. In the output telegram this is the time at the zero index before the measurement itself starts.
                   memcpy(&SystemCountScan, receiveBuffer + 0x26, 4);
                   swap_endian((unsigned char *) &SystemCountScan, 4);
 
+                  // Time of transmission in microseconds: Time in μs when the complete scan is transmitted to the buffer for data output; starting with 0 at scanner bootup.
                   memcpy(&SystemCountTransmit, receiveBuffer + 0x2A, 4);
                   swap_endian((unsigned char *) &SystemCountTransmit, 4);
+
+                  /*{
+                    double system_count_scan_sec = SystemCountScan * 1e-6;
+                    double system_count_transmit_sec = SystemCountTransmit * 1e-6;
+                    ROS_INFO_STREAM("LMDscandata: SystemCountScan = " << system_count_scan_sec << " sec, SystemCountTransmit = " << system_count_transmit_sec << " sec, delta = " << 1.0e3*(system_count_transmit_sec - system_count_scan_sec) << " millisec.");
+                  }*/
+
                   double timestampfloat = sec(recvTimeStamp) + nsec(recvTimeStamp) * 1e-9;
                   bool bRet;
                   if (SystemCountScan !=
@@ -119,8 +128,11 @@ namespace sick_scan
                   // ROS_DEBUG_STREAM("recvTimeStamp before software-pll correction: " << recvTimeStamp);
                   rosTime tmp_time = recvTimeStamp;
                   uint32_t recvTimeStampSec = (uint32_t)sec(recvTimeStamp), recvTimeStampNsec = (uint32_t)nsec(recvTimeStamp);
-                  bRet = SoftwarePLL::instance().getCorrectedTimeStamp(recvTimeStampSec, recvTimeStampNsec,
-                                                                       SystemCountScan);
+                  uint32_t lidar_ticks = SystemCountScan;
+                  if(use_generation_timestamp == 0)
+                    lidar_ticks = SystemCountTransmit;
+                  bRet = SoftwarePLL::instance().getCorrectedTimeStamp(recvTimeStampSec, recvTimeStampNsec, lidar_ticks);
+
                   recvTimeStamp = rosTime(recvTimeStampSec, recvTimeStampNsec);
                   double timestampfloat_coor = sec(recvTimeStamp) + nsec(recvTimeStamp) * 1e-9;
                   double DeltaTime = timestampfloat - timestampfloat_coor;
