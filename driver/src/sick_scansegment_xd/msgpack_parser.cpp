@@ -273,7 +273,7 @@ static std::string printMsgPack(const msgpack11::MsgPack& msg)
 }
 
 /*
- * @brief class MsgPackElement is a quadruple of MsgPack 
+ * @brief class MsgPackElement is a quadruple of MsgPack
  * for data, size, type and endianess of a MsgPack element.
  * Note: For performance reasons, the pointer to the objects
  * are stored. The caller has to insure objects are allocated
@@ -313,8 +313,8 @@ public:
 			uint32_t u32_bytes;
 			float value;
 		};
-		assert(msgpack.data && msgpack.elemSz && msgpack.elemTypes && msgpack.endian 
-			&& msgpack.elemSz->is_number() && msgpack.elemSz->int_value() == 4 
+		assert(msgpack.data && msgpack.elemSz && msgpack.elemTypes && msgpack.endian
+			&& msgpack.elemSz->is_number() && msgpack.elemSz->int_value() == 4
 			&& msgpack.data->binary_items().size() > 0
 			&& ((msgpack.data->binary_items().size()) % (msgpack.elemSz->int_value())) == 0
 			&& msgpack.elemTypes->int_value() == MsgpackKeyToInt_float32);
@@ -455,9 +455,9 @@ std::string sick_scansegment_xd::MsgPackParser::MsgpackToHexDump(const std::vect
  * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
-bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
-    sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator, 
-	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated, 
+bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result,
+    sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
+	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
 	bool use_software_pll, bool verbose)
 {
 	// To debug, print and visual msgpack_data, just paste hex dump to
@@ -510,8 +510,8 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
  * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
-bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
-    sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator, 
+bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result,
+    sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
 	bool use_software_pll, bool verbose)
 {
@@ -519,8 +519,8 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 	uint32_t systemtime_sec = (uint32_t)(systemtime_nanoseconds / 1000000000);  // seconds part of timestamp
 	uint32_t systemtime_nsec = (uint32_t)(systemtime_nanoseconds % 1000000000); // nanoseconds part of timestamp
 	result.timestamp = Timestamp(systemtime_sec, systemtime_nsec); // Timestamp(std::chrono::system_clock::now()); // default timestamp: msgpack receive time, overwritten by timestamp from msgpack data
-	result.timestamp_sec = systemtime_sec;  
-	result.timestamp_nsec = systemtime_nsec; 
+	result.timestamp_sec = systemtime_sec;
+	result.timestamp_nsec = systemtime_nsec;
 	int32_t segment_idx = messageCount++; // default value: counter for each message (each scandata decoded from msgpack data), overwritten by msgpack data
 	int32_t telegram_cnt = telegramCount++; // default value: counter for each message (each scandata decoded from msgpack data), overwritten by msgpack data
 	msgpack11::MsgPack msg_unpacked;
@@ -545,8 +545,8 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 	// Get endianess of the system (destination target)
 	bool dstIsBigEndian = SystemIsBigEndian();
 
-	// Parse the unpacked msgpack data, see sick_scansegment_xd/python/polarscan_reader_test/polarscan_receiver_test.py for multiScan136 message format 
-    // and https://github.com/ar90n/msgpack11/blob/master/msgpack11.hpp or https://github.com/ar90n/msgpack11/blob/master/example.cpp 
+	// Parse the unpacked msgpack data, see sick_scansegment_xd/python/polarscan_reader_test/polarscan_receiver_test.py for multiScan136 message format
+    // and https://github.com/SICKAG/msgpack11/blob/master/msgpack11.hpp or https://github.com/SICKAG/msgpack11/blob/master/example.cpp
 	// for details about decoding and paring MsgPack data.
 	try
 	{
@@ -626,9 +626,9 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			msgpack11::MsgPack::object::const_iterator rssiValuesMsg = dataMsg->second.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_RssiValues]);
 			msgpack11::MsgPack::object::const_iterator timestampStartMsg = dataMsg->second.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_TimestampStart]);
 			msgpack11::MsgPack::object::const_iterator timestampStopMsg = dataMsg->second.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_TimestampStop]);
-			if (echoCountMsg == dataMsg->second.object_items().end() || 
+			if (echoCountMsg == dataMsg->second.object_items().end() ||
 				channelPhiMsg == dataMsg->second.object_items().end() || channelThetaMsg == dataMsg->second.object_items().end() ||
-				distValuesMsg == dataMsg->second.object_items().end() || rssiValuesMsg == dataMsg->second.object_items().end() || 
+				distValuesMsg == dataMsg->second.object_items().end() || rssiValuesMsg == dataMsg->second.object_items().end() ||
 				timestampStartMsg == dataMsg->second.object_items().end() || timestampStopMsg == dataMsg->second.object_items().end())
 			{
 				ROS_WARN_STREAM("## ERROR MsgPackParser::Parse(): Entries in data segment missing");

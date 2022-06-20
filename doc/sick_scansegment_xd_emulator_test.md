@@ -4,7 +4,7 @@ On Windows with ROS-2, sick_lidar_3d can be tested against the SICK emulator. Ru
 
 1. Checkout msgpack11 and sick_lidar3d:
 	```
-	git clone https://github.com/ar90n/msgpack11.git
+	git clone https://github.com/SICKAG/msgpack11.git
 	git clone https://github.com/SICKAG/sick_lidar3d.git
 	```
 

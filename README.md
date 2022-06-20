@@ -155,7 +155,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
 2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
    git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
-   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/msgpack11.git     # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
@@ -211,12 +211,12 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
    cd ./sick_scan_ws
    ```
 
-2. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+2. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
    git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
-   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/msgpack11.git     # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
@@ -235,7 +235,8 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
    ```
    source /opt/ros/noetic/setup.bash # replace noetic by your ros distro
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1
-   source ./install_isolated/setup.bash
+   source ./devel_isolated/setup.bash
+   # source ./install_isolated/setup.bash
    ```
    For ROS versions other than noetic, please replace `source /opt/ros/noetic/setup.bash` with your ros distribution.
 
@@ -259,12 +260,12 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    cd ./sick_scan_ws
    ```
 
-2. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+2. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
    git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
-   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/msgpack11.git     # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
@@ -314,9 +315,9 @@ To install sick_scan_xd on Windows, follow the steps below:
    cd sick_scan_ws
    ```
 
-4. Clone repositories https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+4. Clone repositories https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
-   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/msgpack11.git     # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
@@ -362,11 +363,11 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
    cd sick_scan_ws
    ```
 
-3. Clone repositories https://github.com/ar90n/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+3. Clone repositories https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir ./src
    pushd ./src
-   git clone https://github.com/ar90n/msgpack11.git      # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/msgpack11.git     # only required for Multiscan136 (sick_scansegment_xd)
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
