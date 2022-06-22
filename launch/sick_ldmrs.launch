@@ -4,6 +4,8 @@
 <launch>
 
     <arg name="hostname" default="192.168.0.1"/> 
+    <arg name="cloud_topic" default="cloud"/>
+    <arg name="frame_id" default="cloud"/>
     <arg name="nodename" default="sick_ldmrs"/>
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
 
@@ -14,8 +16,8 @@
         <param name="min_ang" type="double" value="-1.047197"/>
         <param name="max_ang" type="double" value="+1.047197"/>
         <param name="use_binary_protocol" type="bool" value="true"/>
-        <param name="cloud_topic" type="string" value="cloud"/>
-        <param name="frame_id" type="str" value="cloud"/>
+        <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="timelimit" type="int" value="5"/>
         <param name="sw_pll_only_publish" type="bool" value="true"/>
         <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->

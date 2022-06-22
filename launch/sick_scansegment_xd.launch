@@ -6,7 +6,9 @@
     <arg name="hostname" default="192.168.0.1"/>  <!-- IP address of multiScan136, overwrites default ip address "192.168.0.1" in sick_scansegment_xd.yaml -->
     <arg name="udp_receiver_ip" default=""/>        <!-- UDP destination IP address (ip address of udp receiver), overwrites default in sick_scansegment_xd.yaml -->
     <arg name="nodename" default="sick_scansegment_xd"/>
-
+    <arg name="publish_topic" type="string" value="/cloud" />                         <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
+    <arg name="publish_topic_all_segments" type="string" value="/cloud_360" />        <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360" -->
+    <arg name="publish_frame_id" type="string" value="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_scansegment_xd"/>
 
@@ -18,10 +20,10 @@
         <!-- sick_scansegment_xd basic settings: -->
         <param name="udp_sender" type="string" value="" />                                  <!-- Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a MRS100 lidar or MRS100 emulator -->
         <param name="udp_port" type="int" value="2115" />                                   <!-- default udp port for multiScan136 resp. multiScan136 emulator is 2115 -->
-        <param name="publish_topic" type="string" value="/cloud" />                         <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
-        <param name="publish_topic_all_segments" type="string" value="/cloud_360" />        <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360" -->
+        <param name="publish_topic" type="string" value="$(arg publish_topic)" />           <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
+        <param name="publish_topic_all_segments" type="string" value="$(arg publish_topic_all_segments)" />  <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360" -->
         <param name="segment_count" type="int" value="12" />                                <!-- number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment -->
-        <param name="publish_frame_id" type="string" value="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
+        <param name="publish_frame_id" type="string" value="$(arg publish_frame_id)" />     <!-- frame id of ros PointCloud2 messages, default: "world" -->
         <param name="udp_input_fifolength" type="int" value="20" />                         <!-- max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
         <param name="msgpack_output_fifolength" type="int" value="20" />                    <!-- max. msgpack output fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
         <param name="verbose_level" type="int" value="1" />                                 <!-- verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1 -->

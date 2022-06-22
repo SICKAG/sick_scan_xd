@@ -11,6 +11,8 @@ Check IP-address, if you scanner is not found after roslaunch.
 <!-- Using node option required="true" will close roslaunch after node exits -->
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
+    <arg name="cloud_topic" default="cloud"/>
+    <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="nodename" default="sick_lms_5xx"/>
     <!-- launch file for the lms_5xx series -->
@@ -32,7 +34,8 @@ Check IP-address, if you scanner is not found after roslaunch.
         <param name="min_ang" type="double" value="-1.658062789" />
         <param name="max_ang" type="double" value="1.658062789" />
 
-        <param name="frame_id" type="str" value="cloud"/>
+        <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="scanner_type" type="string" value="sick_lms_5xx"/>
         <param name="range_max" type="double" value="100.0"/>
         <param name="intensity" type="bool" value="true"/>
