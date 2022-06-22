@@ -1,11 +1,16 @@
 <?xml version="1.0"?>
 <!-- Using node option required="true" will close roslaunch after node exits -->
 <launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <arg name="cloud_topic" default="cloud"/>
+    <arg name="frame_id" default="cloud"/>
+    <arg name="scan_cfg_list_entry" default="1"/>
+    <arg name="skip" default="0"/>
     <node name="sick_lrs_4xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_lrs_4xxx"/>
-        <param name="hostname" type="string" value="192.168.0.1"/>
-        <param name="cloud_topic" type="string" value="cloud"/>
-        <param name="frame_id" type="str" value="cloud"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="port" type="string" value="2112"/>
         <param name="timelimit" type="int" value="5"/>
         <param name="min_ang" type="double" value="-3.1415926"/>
@@ -14,10 +19,10 @@
         <param name="range_max" type="double" value="100.0"/>
         <param name="intensity" type="bool" value="True"/>
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
-        <param name="skip" type="int" value="0" /> <!-- Default: 0 (i.e. publish each scan), otherwise only each n.th scan is published -->
+        <param name="skip" type="int" value="$(arg skip)"/> <!-- Default: 0 (i.e. publish each scan), otherwise only each n.th scan is published -->
         <param name="filter_echos" type="int" value="2"/> <!-- FREchoFilter settings: 0 = first echo, 2 = last echo, default: 2 -->
         
-        <param name="scan_cfg_list_entry" type="int" value="1"/>
+        <param name="scan_cfg_list_entry" type="int" value="$(arg scan_cfg_list_entry)"/>
         <!-- Parameter scan_cfg_list_entry can be set to one of the following modes of the LRS4000 table (sets the scan configuration by "sMN mCLsetscancfglist <mode>")        
         Mode Name Interlaced ScanFreq ResultScanFreq Resolution TotalResol FieldOfView        
          1 12.5Hz & 0.040 deg 0x 12.5 Hz 12.5 Hz 0.040 deg 0.040 deg 360 deg
