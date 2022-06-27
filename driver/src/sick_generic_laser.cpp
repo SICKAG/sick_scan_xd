@@ -91,11 +91,15 @@
 #include <stdlib.h>
 #include <signal.h>
 
+#define SICK_GENERIC_MAJOR_VER "2"
+#define SICK_GENERIC_MINOR_VER "7"
+#define SICK_GENERIC_PATCH_LEVEL "0"
+
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
 static bool isInitialized = false;
 static sick_scan::SickScanCommonTcp *s_scanner = NULL;
-static std::string versionInfo = "???";
+static std::string versionInfo = std::string(SICK_GENERIC_MAJOR_VER) + '.' + std::string(SICK_GENERIC_MINOR_VER) + '.' + std::string(SICK_GENERIC_PATCH_LEVEL);
 
 void setVersionInfo(std::string _versionInfo)
 {
@@ -136,7 +140,7 @@ public:
 
 static GenericLaserCallable* s_generic_laser_thread = 0;
 
-NodeRunState runState = scanner_init;
+static NodeRunState runState = scanner_init;
 
 /*!
 \brief splitting expressions like <tag>:=<value> into <tag> and <value>

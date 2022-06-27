@@ -467,6 +467,7 @@ if(ROS_VERSION EQUAL 1)
         ${SRC_WIN_FILES}
     )
     add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
+    # target_compile_options(sick_scan_lib PUBLIC "-fPIC")
     add_library(sick_scan_shared_lib SHARED ${SICK_SCAN_LIB_SRC})
 
     add_dependencies(sick_scan_lib
@@ -563,6 +564,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         ${SRC_WIN_FILES}
     )
     add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
+    # target_compile_options(sick_scan_lib PUBLIC "-fPIC")
     add_library(sick_scan_shared_lib SHARED ${SICK_SCAN_LIB_SRC})
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
     target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES})

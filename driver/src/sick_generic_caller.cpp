@@ -77,14 +77,11 @@
 
 #define MAX_NAME_LEN (1024)
 
-#define SICK_GENERIC_MAJOR_VER "2"
-#define SICK_GENERIC_MINOR_VER "7"
-#define SICK_GENERIC_PATCH_LEVEL "0"
 
 #include <algorithm> // for std::min
 
 
-std::string getVersionInfo();
+// std::string getVersionInfo();
 
 /*!
 \brief Startup routine - if called with no argmuments we assume debug session.
@@ -104,7 +101,7 @@ int main(int argc, char** argv)
     char nameVal[MAX_NAME_LEN] = { 0 };
     char** argv_tmp; // argv_tmp[0][0] argv_tmp[0] identisch ist zu (*argv_tmp)
     int argc_tmp;
-    std::string scannerName = "sick_scan"; // "????";
+    std::string scannerName = "sick_scan";
 
     // sick_scan::SickScanImu::imuParserTest();
 
@@ -137,11 +134,7 @@ int main(int argc, char** argv)
 
     }
     //
-    std::string versionInfo = "sick_generic_caller V. ";
-    versionInfo += std::string(SICK_GENERIC_MAJOR_VER) + '.';
-    versionInfo += std::string(SICK_GENERIC_MINOR_VER) + '.';
-    versionInfo += std::string(SICK_GENERIC_PATCH_LEVEL);
-
+    std::string versionInfo = std::string("sick_generic_caller V. ") + getVersionInfo();
     setVersionInfo(versionInfo);
 
 #if defined __ROS_VERSION && __ROS_VERSION == 2
@@ -151,21 +144,6 @@ int main(int argc, char** argv)
     node_options.allow_undeclared_parameters(true);
     //node_options.automatically_declare_initial_parameters(true);
     rosNodePtr node = rclcpp::Node::make_shared("sick_scan", "", node_options);
-/*  #elif defined __ROS_VERSION && __ROS_VERSION == 1 && defined WIN32
-    try
-    {
-        std::cout << "sick_generic_caller: ros::init with argc, argv ..." << std::endl;
-        ros::init(argc, argv, scannerName);// , ros::init_options::NoSigintHandler);  // scannerName holds the node-name
-        // signal(SIGINT, rosSignalHandler);
-        std::cout << "sick_generic_caller: ros::NodeHandle nh() ..." << std::endl;
-    }
-    catch (const std::exception& exc)
-    {
-        std::cout << "sick_generic_caller: exception \"" << exc.what() << "\" in ros::init()" << std::endl;
-    }
-    ros::NodeHandle nh("~");
-    std::cout << "sick_generic_caller: continue ..." << std::endl;
-    rosNodePtr node = &nh; */
 #else
   ros::init(argc, argv, scannerName, ros::init_options::NoSigintHandler);  // scannerName holds the node-name
   // signal(SIGINT, rosSignalHandler);
