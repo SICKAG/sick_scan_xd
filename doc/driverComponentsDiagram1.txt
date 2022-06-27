@@ -1,0 +1,98 @@
+@startuml
+
+package "sick_scan_xd" {
+  [sick_generic_caller]
+  [sick_generic_laser]
+  [sick_scan_common]
+  [sick_scansegment_xd]
+  [sick_ldmrs]
+  [sick_scan_services]
+  [sick_generic_monitoring]
+}
+
+node "sick_scan_common" {
+  [SOPAS] -- TCP
+  [TCP receiver] -- TCP
+  [Telegram processing]
+  [Pointcloud] - ROS
+}
+
+node "sick_scansegment_xd" {
+  [SOPAS] -- TCP
+  [UDP receiver] -- UDP
+  [Msgpack processing] -- msgpack11
+  [Pointcloud] - ROS
+}
+
+node "sick_ldmrs" {
+  [LDMRS processing] -- lib_sick_ldmrs
+}
+
+node "sick_scan_services" {
+  [SOPAS] -- TCP
+  [Services] -- ROS
+}
+
+node "sick_generic_monitoring" {
+  [Monitor] -- TCP
+}
+
+[sick_generic_caller] --> [sick_generic_laser]
+[sick_generic_laser] --> sick_scan_common
+[sick_generic_laser] --> sick_scansegment_xd
+[sick_generic_laser] --> sick_ldmrs
+[sick_generic_laser] --> sick_scan_services
+[sick_generic_laser] --> sick_generic_monitoring
+
+
+note right of sick_generic_caller
+  sick_scan_xd:
+  * main
+  * System init (ROS, signal handler)
+  * Run event loop
+  * exit
+end note
+
+note right of sick_generic_laser
+  sick_generic_laser:
+  * Read configuration
+  * Lidar specific setup
+  * Start ros services
+  * Start monitoring
+end note
+
+note bottom of sick_ldmrs
+  sick_ldmrs:
+  * Convert and delegate to lib_sick_ldmrs
+end note
+
+note bottom of sick_scan_common
+  sick_scan_common:
+  * SOPAS startup sequence LMS/LRS/MRS/NAV/TiM/RMS
+  * TCP receiver thread
+  * Process telegrams
+  * Publish pointcloud
+end note
+
+note bottom of sick_scansegment_xd
+  sick_scansegment_xd:
+  * SOPAS startup (MRS100)
+  * UDP receiver thread
+  * Process msgpacks
+  * Publish pointcloud + cloud_360
+end note
+
+note bottom of sick_scan_services
+  sick_scan_services:
+  * Implement ros services
+  * Run SOPAS commands
+end note
+
+note bottom of sick_generic_monitoring
+  sick_generic_monitoring:
+  * Monitor TCP connection
+  * Watchdog scan data
+  * Timeout: signal reconnect
+end note
+
+@enduml

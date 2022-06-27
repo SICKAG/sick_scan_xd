@@ -58,13 +58,30 @@
  * Based on the TiM communication example by SICK AG.
  *
  */
+#include <iostream>
+#include <iomanip>
 
 #include "sick_scan/sick_scan_services.h"
 #include "sick_scan/sick_generic_laser.h"
 
-sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScanCommonTcp* common_tcp, bool cola_binary)
-: m_common_tcp(common_tcp), m_cola_binary(cola_binary)
+#define SCANSEGMENT_XD_SOPAS_ARGS_BIG_ENDIAN (true) // Arguments of SOPAS commands are big endian encoded
+
+sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScanCommonTcp* common_tcp, ScannerBasicParam * lidar_param)
+: m_common_tcp(common_tcp), m_cola_binary(true)
 {
+    bool srvSupportColaMsg = true, srvSupportECRChangeArr = true, srvSupportLIDoutputstate = true, srvSupportSCdevicestate = true;
+    bool srvSupportSCreboot = true, srvSupportSCsoftreset = true, srvSupportSickScanExit = true;
+    if(lidar_param)
+    {
+      m_cola_binary = lidar_param->getUseBinaryProtocol();
+      if(lidar_param->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
+      {
+        srvSupportECRChangeArr = false;
+        srvSupportLIDoutputstate = false;
+        srvSupportSCreboot = false;
+        srvSupportSCsoftreset = false;
+      }
+    }
     if(nh)
     {
       m_client_authorization_pw = "F4724744";
@@ -88,44 +105,55 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
 #define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftreset
 #define serviceCbSickScanExitROS sick_scan::SickScanServices::serviceCbSickScanExit
 #endif
-        auto srv_server_ColaMsg = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ColaMsgSrv, "ColaMsg", &serviceCbColaMsgROS, this);
-        m_srv_server_ColaMsg = rosServiceServer<sick_scan_srv::ColaMsgSrv>(srv_server_ColaMsg);
-
-        auto srv_server_ECRChangeArr = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ECRChangeArrSrv, "ECRChangeArr", &serviceCbECRChangeArrROS, this);
-        m_srv_server_ECRChangeArr = rosServiceServer<sick_scan_srv::ECRChangeArrSrv>(srv_server_ECRChangeArr);
-        
-        auto srv_server_LIDoutputstate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::LIDoutputstateSrv, "LIDoutputstate", &serviceCbLIDoutputstateROS, this);
-        m_srv_server_LIDoutputstate = rosServiceServer<sick_scan_srv::LIDoutputstateSrv>(srv_server_LIDoutputstate);
-
-        auto srv_server_SCdevicestate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCdevicestateSrv, "SCdevicestate", &serviceCbSCdevicestateROS, this);
-        m_srv_server_SCdevicestate = rosServiceServer<sick_scan_srv::SCdevicestateSrv>(srv_server_SCdevicestate);
-
-        auto srv_server_SCreboot = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCrebootSrv, "SCreboot", &serviceCbSCrebootROS, this);
-        m_srv_server_SCreboot = rosServiceServer<sick_scan_srv::SCrebootSrv>(srv_server_SCreboot);
-
-        auto srv_server_SCsoftreset = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCsoftresetSrv, "SCsoftreset", &serviceCbSCsoftresetROS, this);
-        m_srv_server_SCsoftreset = rosServiceServer<sick_scan_srv::SCsoftresetSrv>(srv_server_SCsoftreset);
-
-        auto srv_server_SickScanExit = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SickScanExitSrv, "SickScanExit", &serviceCbSickScanExitROS, this);
-        m_srv_server_SickScanExit = rosServiceServer<sick_scan_srv::SickScanExitSrv>(srv_server_SickScanExit);
-
 #if __ROS_VERSION == 1
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_ColaMsg.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_ECRChangeArr.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_LIDoutputstate.getService() << "\" created (\"" << m_srv_server_ColaMsg.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SCdevicestate.getService() << "\" created (\"" << m_srv_server_SCdevicestate.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SCreboot.getService() << "\" created (\"" << m_srv_server_SCreboot.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SCsoftreset.getService() << "\" created (\"" << m_srv_server_SCsoftreset.getService() << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << srv_server_SickScanExit.getService() << "\" created (\"" << m_srv_server_SickScanExit.getService() << "\")");
+#define printServiceCreated(a,b) ROS_INFO_STREAM("SickScanServices: service \"" << a.getService() << "\" created (\"" << b.getService() << "\")");
 #elif __ROS_VERSION == 2
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_ColaMsg->get_service_name()) << "\" created (\"" << std::string(m_srv_server_ColaMsg->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_ECRChangeArr->get_service_name()) << "\" created (\"" << std::string(m_srv_server_ECRChangeArr->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_LIDoutputstate->get_service_name()) << "\" created (\"" << std::string(m_srv_server_LIDoutputstate->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SCdevicestate->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SCdevicestate->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SCreboot->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SCreboot->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SCsoftreset->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SCsoftreset->get_service_name()) << "\")");
-        ROS_INFO_STREAM("SickScanServices: service \"" << std::string(srv_server_SickScanExit->get_service_name()) << "\" created (\"" << std::string(m_srv_server_SickScanExit->get_service_name()) << "\")");
+#define printServiceCreated(a,b) ROS_INFO_STREAM("SickScanServices: service \"" << a->get_service_name() << "\" created (\"" << b->get_service_name() << "\")");
+#else
+#define printServiceCreated(a,b)
 #endif
+        if(srvSupportColaMsg)
+        {
+          auto srv_server_ColaMsg = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ColaMsgSrv, "ColaMsg", &serviceCbColaMsgROS, this);
+          m_srv_server_ColaMsg = rosServiceServer<sick_scan_srv::ColaMsgSrv>(srv_server_ColaMsg);
+          printServiceCreated(srv_server_ColaMsg, m_srv_server_ColaMsg);
+        }
+        if(srvSupportECRChangeArr)
+        {
+          auto srv_server_ECRChangeArr = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ECRChangeArrSrv, "ECRChangeArr", &serviceCbECRChangeArrROS, this);
+          m_srv_server_ECRChangeArr = rosServiceServer<sick_scan_srv::ECRChangeArrSrv>(srv_server_ECRChangeArr);
+          printServiceCreated(srv_server_ECRChangeArr, m_srv_server_ECRChangeArr);
+        }
+        if(srvSupportLIDoutputstate)
+        {
+          auto srv_server_LIDoutputstate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::LIDoutputstateSrv, "LIDoutputstate", &serviceCbLIDoutputstateROS, this);
+          m_srv_server_LIDoutputstate = rosServiceServer<sick_scan_srv::LIDoutputstateSrv>(srv_server_LIDoutputstate);
+          printServiceCreated(srv_server_LIDoutputstate, m_srv_server_LIDoutputstate);
+        }
+        if(srvSupportSCdevicestate)
+        {
+          auto srv_server_SCdevicestate = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCdevicestateSrv, "SCdevicestate", &serviceCbSCdevicestateROS, this);
+          m_srv_server_SCdevicestate = rosServiceServer<sick_scan_srv::SCdevicestateSrv>(srv_server_SCdevicestate);
+          printServiceCreated(srv_server_SCdevicestate, m_srv_server_SCdevicestate);
+        }
+        if(srvSupportSCreboot)
+        {
+          auto srv_server_SCreboot = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCrebootSrv, "SCreboot", &serviceCbSCrebootROS, this);
+          m_srv_server_SCreboot = rosServiceServer<sick_scan_srv::SCrebootSrv>(srv_server_SCreboot);
+          printServiceCreated(srv_server_SCreboot, m_srv_server_SCreboot);
+        }
+        if(srvSupportSCsoftreset)
+        {
+          auto srv_server_SCsoftreset = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SCsoftresetSrv, "SCsoftreset", &serviceCbSCsoftresetROS, this);
+          m_srv_server_SCsoftreset = rosServiceServer<sick_scan_srv::SCsoftresetSrv>(srv_server_SCsoftreset);
+          printServiceCreated(srv_server_SCsoftreset, m_srv_server_SCsoftreset);
+        }
+        if(srvSupportSickScanExit)
+        {
+          auto srv_server_SickScanExit = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::SickScanExitSrv, "SickScanExit", &serviceCbSickScanExitROS, this);
+          m_srv_server_SickScanExit = rosServiceServer<sick_scan_srv::SickScanExitSrv>(srv_server_SickScanExit);
+          printServiceCreated(srv_server_SickScanExit, m_srv_server_SickScanExit);
+        }
     }
 }
 
@@ -222,7 +250,7 @@ bool sick_scan::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRChange
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   return true;
 }
 
@@ -249,7 +277,7 @@ bool sick_scan::SickScanServices::serviceCbLIDoutputstate(sick_scan_srv::LIDoutp
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   return true;
 }
 
@@ -270,7 +298,7 @@ bool sick_scan::SickScanServices::sendAuthorization()
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   return true;
 }
 
@@ -291,10 +319,381 @@ bool sick_scan::SickScanServices::sendRun()
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   return true;
 }
 
+/*!
+ * Sends a multiScan136 command
+ */
+bool sick_scan::SickScanServices::sendSopasCmdCheckResponse(const std::string& sopas_request, const std::string& expected_response)
+{
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+  if(!sendSopasAndCheckAnswer(sopas_request, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasCmdCheckResponse() failed on sending command\"" << sopas_request << "\"");
+    return false;
+  }
+  ROS_INFO_STREAM("SickScanServices::sendSopasCmdCheckResponse(): request: \"" << sopas_request << "\", response: \"" << sopasReplyString << "\"");
+  if(sopasReplyString.find(expected_response) == std::string::npos)
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasCmdCheckResponse(): request: \"" << sopas_request << "\", unexpected response: \"" << sopasReplyString << "\", \"" << expected_response << "\" not found");
+    return false;
+  }
+  return true;
+}
+
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+/*!
+* Sends the multiScan136 start commands "sWN ScanDataFormatSettings", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
+*/
+bool sick_scan::SickScanServices::sendMRS100StartCmd(const std::string& hostname, int port)
+{
+  std::stringstream ip_stream(hostname);
+  std::string ip_token;
+  std::vector<std::string> ip_tokens;
+  while (getline(ip_stream, ip_token, '.'))
+  {
+    ip_tokens.push_back(ip_token);
+  }
+  if (ip_tokens.size() != 4)
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd() failed: can't split ip address \"" << hostname << "\" into 4 tokens, check ip adress");
+    return false;
+  }
+  std::stringstream eth_settings_cmd;
+  eth_settings_cmd << "sWN ScanDataEthSettings 1";
+  for (int i = 0; i < ip_tokens.size(); i++)
+  {
+    eth_settings_cmd << " +";
+    eth_settings_cmd << ip_tokens[i];
+  }
+  eth_settings_cmd << " +";
+  eth_settings_cmd << port;
+  if (!sendSopasCmdCheckResponse(eth_settings_cmd.str(), "sWA ScanDataEthSettings")) // configure destination scan data output destination , f.e. "sWN ScanDataEthSettings 1 +192 +168 +0 +52 +2115" (ip 192.168.0.52 port 2115)
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEthSettings 1\") failed.");
+    return false;
+  }
+
+  if (!sendSopasCmdCheckResponse("sWN ScanDataFormatSettings 1 1", "sWA ScanDataFormatSettings")) // set scan data output format to MSGPACK
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataFormatSettings 1 1\") failed.");
+    return false;
+  }
+  if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 1", "sWA ScanDataEnable")) // enable scan data output
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEnable 1\") failed.");
+    return false;
+  }
+  if (!sendSopasCmdCheckResponse("sMN LMCstartmeas", "sAN LMCstartmeas")) // start measurement
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sMN LMCstartmeas\") failed.");
+    return false;
+  }
+  if (!sendSopasCmdCheckResponse("sMN Run", "sAN Run")) // apply the settings
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sMN Run\") failed.");
+    return false;
+  }
+  return true;
+}
+#endif // SCANSEGMENT_XD_SUPPORT
+
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+/*!
+ * Sends the multiScan136 stop commands "sWN ScanDataEnable 0" and "sMN Run"
+ */
+bool sick_scan::SickScanServices::sendMRS100StopCmd(void)
+{
+  if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 0", "sWA ScanDataEnable")) // disble scan data output
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StopCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEnable 0\") failed.");
+    return false;
+  }
+  if (!sendSopasCmdCheckResponse("sMN Run", "sAN Run")) // apply the settings
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StopCmd(): sendSopasCmdCheckResponse(\"sMN Run\") failed.");
+    return false;
+  }
+  return true;
+}
+#endif // SCANSEGMENT_XD_SUPPORT
+
+union FLOAT_BYTE32_UNION
+{
+  uint8_t u8_bytes[4];
+  uint32_t u32_bytes;
+  float value;
+};
+
+/*!
+* Converts a hex string (hex_str: 4 byte hex value as string, little or big endian) to float.
+* Check f.e. by https://www.h-schmidt.net/FloatConverter/IEEE754.html
+* Examples:
+* convertHexStringToFloat("C0490FF9", true) returns -3.14
+* convertHexStringToFloat("3FC90FF9", true) returns +1.57
+*/
+float sick_scan::SickScanServices::convertHexStringToFloat(const std::string& hex_str, bool hexStrIsBigEndian)
+{
+  FLOAT_BYTE32_UNION hex_buffer;
+  if(hexStrIsBigEndian)
+  {
+    for(int m = 3, n = 1; n < hex_str.size(); n+=2, m--)
+    {
+      char hexval[4] = { hex_str[n-1], hex_str[n], '\0', '\0' };
+      hex_buffer.u8_bytes[m] = (uint8_t)(std::strtoul(hexval, NULL, 16) & 0xFF);
+    }
+  }
+  else
+  {
+    for(int m = 0, n = 1; n < hex_str.size(); n+=2, m++)
+    {
+      char hexval[4] = { hex_str[n-1], hex_str[n], '\0', '\0' };
+      hex_buffer.u8_bytes[m] = (uint8_t)(std::strtoul(hexval, NULL, 16) & 0xFF);
+    }
+  }
+  // ROS_DEBUG_STREAM("convertHexStringToFloat(" << hex_str << ", " << hexStrIsBigEndian << "): " << std::hex << hex_buffer.u32_bytes << " = " << std::fixed << hex_buffer.value);
+  return hex_buffer.value;
+}
+
+/*!
+* Converts a float value to hex string (hex_str: 4 byte hex value as string, little or big endian).
+* Check f.e. by https://www.h-schmidt.net/FloatConverter/IEEE754.html
+* Examples:
+* convertFloatToHexString(-3.14, true) returns "C0490FDB"
+* convertFloatToHexString(+1.57, true) returns "3FC90FF8"
+*/
+std::string sick_scan::SickScanServices::convertFloatToHexString(float value, bool hexStrInBigEndian)
+{
+  FLOAT_BYTE32_UNION hex_buffer;
+  hex_buffer.value = value;
+  std::stringstream hex_str;
+  if(hexStrInBigEndian)
+  {
+    for(int n = 3; n >= 0; n--)
+      hex_str << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (int)(hex_buffer.u8_bytes[n]);
+  }
+  else
+  {
+    for(int n = 0; n < 4; n++)
+      hex_str << std::setfill('0') << std::setw(2) << std::uppercase << std::hex << (int)(hex_buffer.u8_bytes[n]);
+  }
+  // ROS_DEBUG_STREAM("convertFloatToHexString(" << value << ", " << hexStrInBigEndian << "): " << hex_str.str());
+  return hex_str.str();
+}
+
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+/*!
+* Sends the SOPAS command to query multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, host_LFPlayerFilter)
+* @param[out] host_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+* @param[out] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+* @param[out] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+* @param[out] msgpack_validator_filter_settings; // filter settings for msgpack validator: required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
+*/
+bool sick_scan::SickScanServices::queryMRS100Filtersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter, sick_scansegment_xd::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings)
+{
+  std::vector<std::vector<unsigned char>> sopasRepliesBin;
+  std::vector<std::string> sopasRepliesString;
+
+  // Query FREchoFilter, LFPangleRangeFilter and LFPlayerFilter settings
+  std::vector<std::string> sopasCommands = { "FREchoFilter", "LFPangleRangeFilter", "LFPlayerFilter" };
+  for(int n = 0; n < sopasCommands.size(); n++)
+  {
+    std::string sopasRequest = "sRN " + sopasCommands[n];
+    std::string sopasExpectedResponse = "sRA " +  sopasCommands[n];
+    std::vector<unsigned char> sopasReplyBin;
+    std::string sopasReplyString;
+    if(!sendSopasAndCheckAnswer(sopasRequest, sopasReplyBin, sopasReplyString) || sopasReplyString.find(sopasExpectedResponse) == std::string::npos)
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): sendSopasAndCheckAnswer(\"" << sopasRequest << "\") failed or unexpected response: \"" << sopasReplyString << "\", expected: \"" << sopasExpectedResponse << "\"");
+      return false;
+    }
+    ROS_DEBUG_STREAM("SickScanServices::queryMRS100Filtersettings(): request: \"" << sopasRequest << "\", response: \"" << sopasReplyString << "\"");
+    sopasRepliesBin.push_back(sopasReplyBin);
+    sopasRepliesString.push_back(sopasReplyString);
+  }
+
+  // Convert sopas answers
+  std::vector<std::vector<std::string>> sopasTokens;
+  for(int n = 0; n < sopasCommands.size(); n++)
+  {
+    std::string parameterString = sopasRepliesString[n].substr(4 + sopasCommands[n].size() + 1);
+    std::vector<std::string> parameterToken;
+    sick_scansegment_xd::util::parseVector(parameterString, parameterToken, ' ');
+    sopasTokens.push_back(parameterToken);
+    ROS_INFO_STREAM("SickScanServices::queryMRS100Filtersettings(): " << sopasCommands[n] << ": \"" << parameterString << "\" = {" << sick_scansegment_xd::util::printVector(parameterToken, ",") << "}");
+  }
+
+  // Parse FREchoFilter
+  if(sopasCommands.size() > 0 && sopasTokens[0].size() == 1)
+  {
+    host_FREchoFilter = std::stoi(sopasTokens[0][0]);
+  }
+  else
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): parse error in FREchoFilter");
+    return false;
+  }
+
+  // Parse LFPangleRangeFilter
+  std::vector<float> mrs100_angles_deg;
+  if(sopasCommands.size() > 1 && sopasTokens[1].size() == 6)
+  {
+    std::stringstream parameter;
+    int filter_enabled = std::stoi(sopasTokens[1][0]); // <enabled>
+    parameter << filter_enabled;
+    for(int n = 1; n < 5; n++) // <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop>
+    {
+      float angle_deg = (convertHexStringToFloat(sopasTokens[1][n], SCANSEGMENT_XD_SOPAS_ARGS_BIG_ENDIAN) * 180.0 / M_PI);
+      parameter << " " << angle_deg;
+      if(filter_enabled)
+        mrs100_angles_deg.push_back(angle_deg);
+    }
+    parameter << " " << sopasTokens[1][5]; // <beam_increment>
+    host_LFPangleRangeFilter = parameter.str();
+  }
+  else
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): parse error in LFPangleRangeFilter");
+    return false;
+  }
+
+  // Parse LFPlayerFilter
+  std::vector<int> layer_active_vector;
+  if(sopasCommands.size() > 2 && sopasTokens[2].size() == 17)
+  {
+    std::stringstream parameter;
+    int filter_enabled = std::stoi(sopasTokens[2][0]); // <enabled>
+    parameter << filter_enabled;
+    for(int n = 1; n < sopasTokens[2].size(); n++)
+    {
+      int layer_active = std::stoi(sopasTokens[2][n]);
+      if(filter_enabled)
+        layer_active_vector.push_back(layer_active);
+      parameter << " " << layer_active;
+    }
+    host_LFPlayerFilter = parameter.str();
+  }
+  else
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): parse error in LFPlayerFilter");
+    return false;
+  }
+
+  // Set filter settings for validation of msgpack data, i.e. set config.msgpack_validator_required_echos, config.msgpack_validator_azimuth_start, config.msgpack_validator_azimuth_end,
+  // config.msgpack_validator_elevation_start, config.msgpack_validator_elevation_end, config.msgpack_validator_layer_filter according to the queried filter settings
+  if(host_FREchoFilter == 0 || host_FREchoFilter == 2) // 0: FIRST_ECHO (EchoCount=1), 2: LAST_ECHO (EchoCount=1)
+  {
+    msgpack_validator_filter_settings.msgpack_validator_required_echos = { 0 }; // one echo with index 0
+  }
+  else if(host_FREchoFilter == 1) // 1: ALL_ECHOS (EchoCount=3)
+  {
+    msgpack_validator_filter_settings.msgpack_validator_required_echos = { 0, 1, 2 }; // three echos with index 0, 1, 2
+  }
+  else
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMRS100Filtersettings(): unexpected value of FREchoFilter = " << host_FREchoFilter
+    << ", expected 0: FIRST_ECHO (EchoCount=1), 1: ALL_ECHOS (EchoCount=3) or 2: LAST_ECHO (EchoCount=1)");
+    return false;
+  }
+  if(mrs100_angles_deg.size() == 4) // otherwise LFPangleRangeFilter disabled (-> use configured default values)
+  {
+    msgpack_validator_filter_settings.msgpack_validator_azimuth_start = (mrs100_angles_deg[0] * M_PI / 180);
+    msgpack_validator_filter_settings.msgpack_validator_azimuth_end = (mrs100_angles_deg[1] * M_PI / 180);
+    msgpack_validator_filter_settings.msgpack_validator_elevation_start = (mrs100_angles_deg[2] * M_PI / 180);
+    msgpack_validator_filter_settings.msgpack_validator_elevation_end = (mrs100_angles_deg[3] * M_PI / 180);
+  }
+  if(layer_active_vector.size() == 16)  // otherwise LFPlayerFilter disabled (-> use configured default values)
+  {
+    msgpack_validator_filter_settings.msgpack_validator_layer_filter = layer_active_vector;
+  }
+
+  // Example: sopas.FREchoFilter = "1", sopas.LFPangleRangeFilter = "0 -180 180 -90.0002 90.0002 1", sopas.LFPlayerFilter = "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
+  // msgpack_validator_required_echos = { 0 }, msgpack_validator_angles = { -3.14159 3.14159 -1.5708 1.5708 } [rad], msgpack_validator_layer_filter = { 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 }
+  ROS_INFO_STREAM("SickScanServices::queryMRS100Filtersettings(): sopas.FREchoFilter = \"" << host_FREchoFilter
+    << "\", sopas.LFPangleRangeFilter = \"" << host_LFPangleRangeFilter
+    << "\", sopas.LFPlayerFilter = \"" << host_LFPlayerFilter  << "\"");
+  ROS_INFO_STREAM("SickScanServices::queryMRS100Filtersettings(): msgpack_validator_required_echos = { " << sick_scansegment_xd::util::printVector(msgpack_validator_filter_settings.msgpack_validator_required_echos)
+    << " }, msgpack_validator_angles = { " << msgpack_validator_filter_settings.msgpack_validator_azimuth_start << " " << msgpack_validator_filter_settings.msgpack_validator_azimuth_end
+    << " " << msgpack_validator_filter_settings.msgpack_validator_elevation_start << " " << msgpack_validator_filter_settings.msgpack_validator_elevation_end
+    << " } [rad], msgpack_validator_layer_filter = { " << sick_scansegment_xd::util::printVector(msgpack_validator_filter_settings.msgpack_validator_layer_filter)  << " }");
+  return true;
+}
+#endif // SCANSEGMENT_XD_SUPPORT
+
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+/*!
+* Sends the SOPAS command to write multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, host_LFPlayerFilter)
+* @param[in] host_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+* @param[in] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+* @param[in] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+*/
+bool sick_scan::SickScanServices::writeMRS100Filtersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter)
+{
+  // Write FREchoFilter
+  if(host_FREchoFilter >= 0) // otherwise not configured
+  {
+    std::string sopasRequest = "sWN FREchoFilter " + std::to_string(host_FREchoFilter), sopasExpectedResponse = "sWA FREchoFilter";
+    if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): sendSopasCmdCheckResponse(\"" << sopasRequest << "\") failed.");
+      return false;
+    }
+  }
+
+  // Write LFPangleRangeFilter
+  if(!host_LFPangleRangeFilter.empty()) // otherwise not configured
+  {
+    // convert deg to rad and float to hex
+    std::vector<std::string> parameter_token;
+    sick_scansegment_xd::util::parseVector(host_LFPangleRangeFilter, parameter_token, ' ');
+    if(parameter_token.size() != 6)
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): can't split host_LFPangleRangeFilter = \"" << host_LFPangleRangeFilter << "\", expected 6 values separated by space");
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings() failed.");
+      return false;
+    }
+    int filter_enabled = std::stoi(parameter_token[0]); // <enabled>
+    std::vector<float> angle_deg;
+    for(int n = 1; n < 5; n++)
+      angle_deg.push_back(std::stof(parameter_token[n]));
+    int beam_increment = std::stoi(parameter_token[5]); // <beam_increment>
+    std::stringstream sopas_parameter;
+    sopas_parameter << filter_enabled;
+    for(int n = 0; n < angle_deg.size(); n++)
+      sopas_parameter << " " << convertFloatToHexString(angle_deg[n] * M_PI / 180, SCANSEGMENT_XD_SOPAS_ARGS_BIG_ENDIAN);
+    sopas_parameter << " " << beam_increment;
+    // Write LFPangleRangeFilter
+    std::string sopasRequest = "sWN LFPangleRangeFilter " + sopas_parameter.str(), sopasExpectedResponse = "sWA LFPangleRangeFilter";
+    if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): sendSopasCmdCheckResponse(\"" << sopasRequest << "\") failed.");
+      return false;
+    }
+  }
+
+  // Write LFPlayerFilter
+  if(!host_LFPlayerFilter.empty()) // otherwise not configured
+  {
+    std::string sopasRequest = "sWN LFPlayerFilter " + host_LFPlayerFilter, sopasExpectedResponse = "sWA LFPlayerFilter";
+    if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): sendSopasCmdCheckResponse(\"" << sopasRequest << "\") failed.");
+      return false;
+    }
+  }
+
+  // Apply the settings
+  if (!sendSopasCmdCheckResponse("sMN Run", "sAN Run"))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::writeMRS100Filtersettings(): sendSopasCmdCheckResponse(\"sMN Run\") failed.");
+    return false;
+  }
+  return true;
+}
+#endif // SCANSEGMENT_XD_SUPPORT
 
 /*!
 * Callbacks for service messages.
@@ -328,7 +727,7 @@ bool sick_scan::SickScanServices::serviceCbSCdevicestate(sick_scan_srv::SCdevice
   }
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\"");
-  
+
   return true;
 }
 
@@ -353,7 +752,7 @@ bool sick_scan::SickScanServices::serviceCbSCreboot(sick_scan_srv::SCrebootSrv::
 
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
   ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\"");
-  
+
   if(!sendRun())
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices: sendRun failed for command\"" << sopasCmd << "\"");

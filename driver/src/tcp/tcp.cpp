@@ -7,6 +7,7 @@
 #include "sick_scan/tcp/tcp.hpp"
 #include "sick_scan/tcp/errorhandler.hpp"
 #include "sick_scan/tcp/toolbox.hpp"
+#include "sick_scan/tcp/wsa_init.hpp"
 #include <stdio.h>      // for sprintf()
 
 #ifdef _MSC_VER
@@ -22,35 +23,6 @@
 #include <sys/poll.h>
 #include <poll.h>
 #endif
-
-class WSA_AUTO_INIT
-{
-public:
-	WSA_AUTO_INIT() : m_wsastartup(0) {}
-	~WSA_AUTO_INIT()
-	{
-#if defined _MSC_VER && __ROS_VERSION == 0
-		if (m_wsastartup > 0)
-		{
-			WSACleanup();
-			m_wsastartup = 0;
-		}
-#endif
-	}
-	void init()
-	{
-#if defined _MSC_VER && __ROS_VERSION == 0
-		if (m_wsastartup == 0)
-		{
-			WSADATA wsaData;
-			WSAStartup(MAKEWORD(2, 2), &wsaData);
-		}
-#endif
-	}
-protected:
-	int m_wsastartup;
-};
-static WSA_AUTO_INIT s_wsa_auto_init_singleton;
 
 Tcp::Tcp()
 {
@@ -182,7 +154,7 @@ bool Tcp::open(std::string ipAddress, UINT16 port, bool enableVerboseDebugOutput
 //	m_inBuffer.init(requiredInputBufferSize, m_beVerbose);
 	
 	printInfoMessage("Tcp::open: Opening connection.", m_beVerbose);
-	s_wsa_auto_init_singleton.init();
+	wsa_init();
 
 	// Socket erzeugen
 	m_connectionSocket = -1;	// Keine Verbindung

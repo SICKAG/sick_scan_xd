@@ -21,7 +21,8 @@
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
-    <node name="sick_tim_240" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <arg name="nodename" default="sick_tim_240"/>
+    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_240"/>
         <!-- datagram shows values from -90 ... 120 (211 values) -->
         <!-- -120 deg -->
@@ -39,6 +40,7 @@
         <param name="port" type="string" value="$(arg port)"/>
         <param name="timelimit" type="int" value="5"/>
         <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
+        <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
 
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->

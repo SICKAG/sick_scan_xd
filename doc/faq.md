@@ -89,11 +89,14 @@ Thanks to user JWhitleyWork.
 2. Remove the folders sick_scan_xd/build, sick_scan_xd/build_isolated, sick_scan_xd/devel, sick_scan_xd/devel_isolated, sick_scan_xd/install and sick_scan_xd/install_isolated
 3. Rebuild
 
-:question: cmake can't find diagnostic_updater on ROS-2 foxy
+:question: cmake can't find diagnostic_updater
 
 :white_check_mark: On ROS-2 foxy, package diagnostic_updater needs to be installed by
 ```
-sudo apt-get install ros-foxy-diagnostic-updater
+sudo apt-get update
+sudo apt-get install ros-$ROS_DISTRO-diagnostic-updater # install diagnostic_updater
+# E.g. to install diagnostic_updater on foxy, run
+# sudo apt-get install ros-foxy-diagnostic-updater
 ```
 
 :question: catkin gives me the following error message:

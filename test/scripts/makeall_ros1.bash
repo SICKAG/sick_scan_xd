@@ -1,7 +1,8 @@
 #!/bin/bash
 printf "\033c"
 pushd ../../../..
-source /opt/ros/noetic/setup.bash
+if [ -f /opt/ros/melodic/setup.bash ] ; then source /opt/ros/melodic/setup.bash ; fi
+if [ -f /opt/ros/noetic/setup.bash  ] ; then source /opt/ros/noetic/setup.bash  ; fi
 
 #
 # cleanup
@@ -10,7 +11,7 @@ source /opt/ros/noetic/setup.bash
 rosclean purge -y
 rm -rf ./build ./devel ./install ./build_isolated ./devel_isolated ./install_isolated
 rm -rf ~/.ros/*
-catkin clean --yes --all-profiles --verbose
+# catkin clean --yes --all-profiles --verbose
 # catkin_make clean
 mkdir -p ./build_isolated ./devel_isolated ./install_isolated
 ln -s ./build_isolated ./build

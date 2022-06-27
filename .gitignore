@@ -88,11 +88,25 @@ tools/plantuml
 doc/angle_compensation/ampl_phase_offset\.png
 
 demo/scan.jpg_tmp
+demo/scan.jpg
+demo/scan.csv
 doc/20210712_sick_scan_xd.pptx
 doc/backlog.md
 
 test/emulator/scandata
 
-test/scripts/make_ros1_with_emulator.bash
+doc/20220322_sick_scan_xd_lidar3d_integration.pptx
 
-test/scripts/makeall_ros1_with_emulator.bash
+doc/20220407_sick_scan_xd_lidar3d_integration.pptx
+
+doc/20220407_sick_scan_xd_nav350.pptx
+
+test/scripts/run_win64_ros1_simu_lms5xx.cmd
+
+doc/20220428_sick_scan_xd_sw_overview.pptx
+
+doc/sick_scan_api/GBC08_Specification_Export_2528general_template.docx
+
+doc/sick_scan_api/sick_scan_api.md
+
+doc/sick_scan_api/apiComponentsDiagram1.png

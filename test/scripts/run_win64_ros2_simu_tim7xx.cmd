@@ -4,11 +4,11 @@ REM
 
 if exist "c:\dev\ros2_foxy\local_setup.bat" ( call C:\dev\ros2_foxy\local_setup.bat )
 if exist "c:\opt\ros\foxy\x64\setup.bat" ( call c:\opt\ros\foxy\x64\setup.bat )
-set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
+rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 
 pushd ..\..\..\..
 call .\install\setup.bat
-start "rviz2" rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2.rviz
+start "rviz2" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2.rviz
 @timeout /t 5
 
 REM 

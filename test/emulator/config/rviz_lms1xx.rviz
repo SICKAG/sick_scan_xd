@@ -71,9 +71,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 0
       Min Color: 0; 0; 0
-      Min Intensity: 0
       Name: PointCloud2
       Position Transformer: XYZ
       Queue Size: 10
@@ -86,26 +84,28 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Class: rviz/Axes
+    - Alpha: 1
+      Class: rviz/Axes
       Enabled: true
       Length: 1
       Name: Axes
       Radius: 0.029999999329447746
-      Reference Frame: laser
+      Reference Frame: cloud
+      Show Trail: false
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /sick_lms_1xx/marker
       Name: MarkerArray
       Namespaces:
-        {}
+        sick_scan: true
       Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: laser
+    Fixed Frame: cloud
     Frame Rate: 30
   Name: root
   Tools:
@@ -135,6 +135,7 @@ Visualization Manager:
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Field of View: 0.7853981852531433
       Focal Point:
         X: 0
         Y: 0
@@ -146,7 +147,6 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
       Yaw: 3.1414999961853027
     Saved: ~
 Window Geometry:
@@ -165,5 +165,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1359
-  X: 545
+  X: 763
   Y: 27

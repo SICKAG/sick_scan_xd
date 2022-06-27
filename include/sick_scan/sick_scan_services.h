@@ -65,6 +65,9 @@
 #include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scan/sick_scan_common.h"
 #include "sick_scan/sick_scan_common_tcp.h"
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+#include "sick_scansegment_xd/config.h"
+#endif // SCANSEGMENT_XD_SUPPORT
 
 namespace sick_scan
 {
@@ -73,9 +76,19 @@ namespace sick_scan
   {
   public:
 
-    SickScanServices(rosNodePtr nh = 0, sick_scan::SickScanCommonTcp* common_tcp = 0, bool cola_binary = true);
+    SickScanServices(rosNodePtr nh = 0, sick_scan::SickScanCommonTcp* common_tcp = 0, ScannerBasicParam * lidar_param = 0);
 
     virtual ~SickScanServices();
+
+    /*!
+    * Sends the SOPAS authorization command "sMN SetAccessMode 3 F4724744".
+    */
+    bool sendAuthorization();
+
+    /*!
+     * Sends a multiScan136 command
+     */
+    bool sendSopasCmdCheckResponse(const std::string& sopas_request, const std::string& expected_response);
 
     /*!
      * Callback for service ColaMsg (ColaMsg, send a cola message to lidar).
@@ -84,7 +97,7 @@ namespace sick_scan
      * @return true on success, false in case of errors.
      */
     bool serviceCbColaMsg(sick_scan_srv::ColaMsgSrv::Request &service_request, sick_scan_srv::ColaMsgSrv::Response &service_response);
-    bool serviceCbColaMsgROS2(std::shared_ptr<sick_scan_srv::ColaMsgSrv::Request> service_request, std::shared_ptr<sick_scan_srv::ColaMsgSrv::Response> service_response) { return serviceCbColaMsg(*service_request, *service_response); }     
+    bool serviceCbColaMsgROS2(std::shared_ptr<sick_scan_srv::ColaMsgSrv::Request> service_request, std::shared_ptr<sick_scan_srv::ColaMsgSrv::Response> service_response) { return serviceCbColaMsg(*service_request, *service_response); }
 
     /*!
      * Callback for service messages (ECRChangeArr, Request status change of monitoring fields on event).
@@ -94,7 +107,7 @@ namespace sick_scan
      * @return true on success, false in case of errors.
      */
     bool serviceCbECRChangeArr(sick_scan_srv::ECRChangeArrSrv::Request &service_request, sick_scan_srv::ECRChangeArrSrv::Response &service_response);
-    bool serviceCbECRChangeArrROS2(std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Request> service_request, std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Response> service_response) { return serviceCbECRChangeArr(*service_request, *service_response); }     
+    bool serviceCbECRChangeArrROS2(std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Request> service_request, std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Response> service_response) { return serviceCbECRChangeArr(*service_request, *service_response); }
 
     /*!
      * Callback for service messages (LIDoutputstate, Request status change of monitoring fields on event).
@@ -104,7 +117,7 @@ namespace sick_scan
      * @return true on success, false in case of errors.
      */
     bool serviceCbLIDoutputstate(sick_scan_srv::LIDoutputstateSrv::Request &service_request, sick_scan_srv::LIDoutputstateSrv::Response &service_response);
-    bool serviceCbLIDoutputstateROS2(std::shared_ptr<sick_scan_srv::LIDoutputstateSrv::Request> service_request, std::shared_ptr<sick_scan_srv::LIDoutputstateSrv::Response> service_response) { return serviceCbLIDoutputstate(*service_request, *service_response); }     
+    bool serviceCbLIDoutputstateROS2(std::shared_ptr<sick_scan_srv::LIDoutputstateSrv::Request> service_request, std::shared_ptr<sick_scan_srv::LIDoutputstateSrv::Response> service_response) { return serviceCbLIDoutputstate(*service_request, *service_response); }
 
     /*!
      * Callbacks for service messages.
@@ -114,23 +127,50 @@ namespace sick_scan
      */
 
     bool serviceCbSCdevicestate(sick_scan_srv::SCdevicestateSrv::Request &service_request, sick_scan_srv::SCdevicestateSrv::Response &service_response);
-    bool serviceCbSCdevicestateROS2(std::shared_ptr<sick_scan_srv::SCdevicestateSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCdevicestateSrv::Response> service_response) { return serviceCbSCdevicestate(*service_request, *service_response); }     
+    bool serviceCbSCdevicestateROS2(std::shared_ptr<sick_scan_srv::SCdevicestateSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCdevicestateSrv::Response> service_response) { return serviceCbSCdevicestate(*service_request, *service_response); }
 
     bool serviceCbSCreboot(sick_scan_srv::SCrebootSrv::Request &service_request, sick_scan_srv::SCrebootSrv::Response &service_response);
-    bool serviceCbSCrebootROS2(std::shared_ptr<sick_scan_srv::SCrebootSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCrebootSrv::Response> service_response) { return serviceCbSCreboot(*service_request, *service_response); }     
+    bool serviceCbSCrebootROS2(std::shared_ptr<sick_scan_srv::SCrebootSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCrebootSrv::Response> service_response) { return serviceCbSCreboot(*service_request, *service_response); }
 
     bool serviceCbSCsoftreset(sick_scan_srv::SCsoftresetSrv::Request &service_request, sick_scan_srv::SCsoftresetSrv::Response &service_response);
-    bool serviceCbSCsoftresetROS2(std::shared_ptr<sick_scan_srv::SCsoftresetSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCsoftresetSrv::Response> service_response) { return serviceCbSCsoftreset(*service_request, *service_response); }     
+    bool serviceCbSCsoftresetROS2(std::shared_ptr<sick_scan_srv::SCsoftresetSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SCsoftresetSrv::Response> service_response) { return serviceCbSCsoftreset(*service_request, *service_response); }
 
     bool serviceCbSickScanExit(sick_scan_srv::SickScanExitSrv::Request &service_request, sick_scan_srv::SickScanExitSrv::Response &service_response);
-    bool serviceCbSickScanExitROS2(std::shared_ptr<sick_scan_srv::SickScanExitSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SickScanExitSrv::Response> service_response) { return serviceCbSickScanExit(*service_request, *service_response); }     
+    bool serviceCbSickScanExitROS2(std::shared_ptr<sick_scan_srv::SickScanExitSrv::Request> service_request, std::shared_ptr<sick_scan_srv::SickScanExitSrv::Response> service_response) { return serviceCbSickScanExit(*service_request, *service_response); }
 
-  protected:
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+    /*!
+     * Sends the MRS100 start commands "sWN ScanDataFormatSettings", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
+     * @param[in] hostname IP address of multiScan136, default 192.168.0.1
+     * @param[in] port IP port of multiScan136, default 2115
+     */
+    bool sendMRS100StartCmd(const std::string& hostname, int port);
 
     /*!
-    * Sends the SOPAS authorization command "sMN SetAccessMode 3 F4724744".
+     * Sends the MRS100 stop commands "sWN ScanDataEnable 0" and "sMN Run"
+     */
+    bool sendMRS100StopCmd(void);
+
+    /*!
+    * Sends the SOPAS command to query multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, host_LFPlayerFilter)
+    * @param[out] host_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+    * @param[out] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+    * @param[out] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+    * @param[out] msgpack_validator_filter_settings; // filter settings for msgpack validator: required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
     */
-    bool sendAuthorization();
+    bool queryMRS100Filtersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter, sick_scansegment_xd::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings);
+
+    /*!
+    * Sends the SOPAS command to write multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, host_LFPlayerFilter)
+    * @param[in] host_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+    * @param[in] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+    * @param[in] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+    */
+    bool writeMRS100Filtersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter);
+
+#endif // defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+
+  protected:
 
     /*!
     * Sends the SOPAS command "sMN Run", which applies previous send settings
@@ -145,6 +185,24 @@ namespace sick_scan
      * @return true on success, false in case of errors.
      */
     bool sendSopasAndCheckAnswer(const std::string& sopasCmd, std::vector<unsigned char>& sopasReplyBin, std::string& sopasReplyString);
+
+    /*!
+    * Converts a hex string (hex_str: 4 byte hex value as string, little or big endian) to float.
+    * Check f.e. by https://www.h-schmidt.net/FloatConverter/IEEE754.html
+    * Examples:
+    * convertHexStringToFloat("C0490FF9", true) returns -3.14
+    * convertHexStringToFloat("3FC90FF9", true) returns +1.57
+    */
+    static float convertHexStringToFloat(const std::string& hex_str, bool hexStrIsBigEndian);
+
+    /*!
+    * Converts a float value to hex string (hex_str: 4 byte hex value as string, little or big endian).
+    * Check f.e. by https://www.h-schmidt.net/FloatConverter/IEEE754.html
+    * Examples:
+    * convertFloatToHexString(-3.14, true) returns "C0490FDB"
+    * convertFloatToHexString(+1.57, true) returns "3FC90FF8"
+    */
+    static std::string convertFloatToHexString(float value, bool hexStrInBigEndian);
 
     /*
      * Member data

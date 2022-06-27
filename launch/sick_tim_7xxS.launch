@@ -25,6 +25,7 @@
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="nodename" default="sick_tim_7xxS"/>
     <arg name="port" default="2112"/>
+    <arg name="skip" default="0"/>
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_7xxS"/>
         <param name="nodename" type="string" value="$(arg nodename)"/>
@@ -37,8 +38,10 @@
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="port" type="string" value="$(arg port)"/>
+        <param name="skip" type="int" value="$(arg skip)"/> <!-- Default: 0 (i.e. publish each scan), otherwise only each n.th scan is published -->
         <param name="timelimit" type="int" value="5"/>
         <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
+        <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->
         <param name="start_services" type="bool" value="True"/> <!-- start ros service for cola commands -->
         <param name="activate_lferec" type="bool" value="True"/> <!-- activate field monitoring by lferec messages -->
         <param name="activate_lidoutputstate" type="bool" value="True"/> <!-- activate field monitoring by lidoutputstate messages -->
