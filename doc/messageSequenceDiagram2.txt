@@ -1,0 +1,26 @@
+@startuml
+
+"MRS100" -> "UDP receiver thread": UDP datagram
+"UDP receiver thread" -> "UDP receiver thread": recv message header
+"UDP receiver thread" -> "UDP receiver thread": recv message payload
+"UDP receiver thread" -> "UDP receiver thread": check CRC
+"UDP receiver thread" -> "Input FIFO": push message
+
+"MsgPackConverter" -> "Input FIFO": pop message
+"Input FIFO" -> "MsgPackConverter": message
+"MsgPackConverter" -> "MsgPackParser": parse message
+"MsgPackParser" -> "MsgPackConverter": scan segment
+"MsgPackConverter" -> "MsgPackConverter": collect scan segment
+"MsgPackConverter" -> "MsgPackValidator": validate scan segment
+"MsgPackConverter" -> "MsgPackValidator": validate full scan 
+"MsgPackConverter" -> "Output FIFO": push scan segment
+
+"MsgPackExporter" -> "Output FIFO": pop scan segment
+"Output FIFO" -> "MsgPackExporter": scan segment
+"MsgPackExporter" -> "MsgPackPublisher": publish scan
+
+"MsgPackPublisher" -> "MsgPackPublisher": collect scan segments
+"MsgPackPublisher" -> "ROS": pointcloud
+"MsgPackPublisher" -> "ROS": 360 degree pointcloud 
+
+@enduml

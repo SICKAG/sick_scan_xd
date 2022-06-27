@@ -16,6 +16,7 @@
   <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
 
   <build_depend condition="$ROS_VERSION == 1">message_generation</build_depend>
+  <build_depend condition="$ROS_VERSION == 1">message_runtime</build_depend>
   <build_depend condition="$ROS_VERSION == 2">rosidl_default_generators</build_depend>
 
   <depend condition="$ROS_VERSION == 1">diagnostic_updater</depend>
@@ -36,9 +37,6 @@
   <depend condition="$ROS_VERSION == 2">rcl_interfaces</depend>
 
   <exec_depend condition="$ROS_VERSION == 1">message_runtime</exec_depend>
-  <exec_depend condition="$ROS_VERSION == 1">pcl_conversions</exec_depend>
-  <exec_depend condition="$ROS_VERSION == 1">pcl_ros</exec_depend>
-
   <exec_depend condition="$ROS_VERSION == 2">rosidl_default_runtime</exec_depend>
   <test_depend condition="$ROS_VERSION == 2">ament_lint_auto</test_depend>
   <test_depend condition="$ROS_VERSION == 2">ament_lint_common</test_depend>

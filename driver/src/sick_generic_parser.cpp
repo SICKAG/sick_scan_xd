@@ -432,7 +432,6 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
      useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceIsRadar(false), useSafetyPasWD(false), encoderMode(0),
      CartographerCompatibility(false), scanMirroredAndShifted(false), useEvalFields(EVAL_FIELD_UNSUPPORTED), maxEvalFields(0),
      imuEnabled (false), scanAngleShift(0), useScancfgList(false), useWriteOutputRanges(false)
-
   {
     this->elevationDegreeResolution = 0.0;
     this->setUseBinaryProtocol(false);
@@ -495,11 +494,13 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     allowedScannerNames.push_back(SICK_SCANNER_RMS_3XX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_RMS_1XXX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_NAV_3XX_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_NAV_350_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_2XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_TIM_4XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LRS_36x0_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LRS_36x1_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_OEM_15XX_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_SCANSEGMENT_XD_NAME);
     basicParams.resize(allowedScannerNames.size()); // resize to number of supported scanner types
     for (int i = 0; i <
                     (int) basicParams.size(); i++) // set specific parameter for each scanner type - scanner type is identified by name
@@ -869,6 +870,28 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setWaitForReady(true);
         basicParams[i].setFREchoFilterAvailable(false);
       }
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0) // TODO: NAV-350 support
+      {
+        basicParams[i].setNumberOfMaximumEchos(1);
+        basicParams[i].setNumberOfLayers(1);
+        basicParams[i].setNumberOfShots(2880);
+        basicParams[i].setAngularDegreeResolution(0.250);
+        basicParams[i].setExpectedFrequency(8.0);
+        basicParams[i].setUseBinaryProtocol(true);
+        basicParams[i].setDeviceIsRadar(false);
+        basicParams[i].setTrackingModeSupported(false);
+        basicParams[i].setUseSafetyPasWD(false);
+        basicParams[i].setEncoderMode(-1);
+        basicParams[i].setImuEnabled(false);
+        basicParams[i].setScanAngleShift(-M_PI);
+        basicParams[i].setScanMirroredAndShifted(false);
+        basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
+        basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setUseScancfgList(true);
+        basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
+        basicParams[i].setWaitForReady(false);
+        basicParams[i].setFREchoFilterAvailable(false);
+      }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_OEM_15XX_NAME) == 0) // Nav 3xx
       {
         basicParams[i].setNumberOfMaximumEchos(1);
@@ -934,6 +957,10 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+      }
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0)
+      {
+        // SCANSEGMENT_XD MRS100 (Multiscan 136) handled by msgpack_converter and msgpack_exporter
       }
     }
 
@@ -1107,7 +1134,8 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
                         expected_time_increment, time_increment, time_increment, scan_time, angle_increment*180.0/M_PI);
 #else
         static rosTime last_message_time(0);
-        if ((rosTimeNow() - last_message_time) > rosDurationFromSec(60)) {
+        if ((rosTimeNow() - last_message_time) > rosDurationFromSec(60))
+        {
           last_message_time = rosTimeNow();
           ROS_WARN_STREAM(
               "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "

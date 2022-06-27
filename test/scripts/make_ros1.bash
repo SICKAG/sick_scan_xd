@@ -1,16 +1,26 @@
 #!/bin/bash
 pushd ../../../..
-source /opt/ros/noetic/setup.bash
+if [ -f /opt/ros/melodic/setup.bash ] ; then source /opt/ros/melodic/setup.bash ; fi
+if [ -f /opt/ros/noetic/setup.bash  ] ; then source /opt/ros/noetic/setup.bash  ; fi
 rm -f ./build/catkin_make_install.log
 
 #
-# build and install
+# Build and install msgpack11
 #
 
-#catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release
+mkdir -p ./build/msgpack11
+pushd ./build/msgpack11
+cmake -G "Unix Makefiles" -D CMAKE_CXX_FLAGS=-fPIC -D CMAKE_BUILD_TYPE=Release -D MSGPACK11_BUILD_TESTS=0 ../../src/msgpack11  2>&1 | tee -a ../catkin_make_install.log
+make              2>&1 | tee -a ../catkin_make_install.log
+sudo make install 2>&1 | tee -a ../catkin_make_install.log
+popd
 
-catkin_make_isolated --install --cmake-args -DROS_VERSION=1 2>&1 | tee -a ./build/catkin_make_install.log
-#catkin_make install --cmake-args -DROS_VERSION=1 2>&1 | tee -a ./build/catkin_make_install.log
+#
+# Build and install sick_scan_xd
+#
+
+# catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 -DSCANSEGMENT_XD=0 2>&1 | tee -a ./build/catkin_make_install.log
+catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 2>&1 | tee -a ./build/catkin_make_install.log
 source ./install/setup.bash
 
 #

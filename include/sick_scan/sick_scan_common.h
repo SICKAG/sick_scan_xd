@@ -182,6 +182,14 @@ namespace sick_scan
       CMD_SET_LID_INPUTSTATE_ACTIVE,  // activate LIDinputstate messages, send "sEN LIDinputstate 1"
       CMD_SET_SCAN_CFG_LIST, // "sMN mCLsetscancfglist %d", set scan config from list for NAX310  LD-OEM15xx LD-LRS36xx
 
+      // NAV-350 commands
+      CMD_SET_NAV_OPERATIONAL_MODE_0, // "sMN mNEVAChangeState 0", 0 = power down
+      CMD_SET_NAV_OPERATIONAL_MODE_1, // "sMN mNEVAChangeState 1", 1 = standby
+      CMD_SET_NAV_OPERATIONAL_MODE_2, // "sMN mNEVAChangeState 2", 2 = mapping
+      CMD_SET_NAV_OPERATIONAL_MODE_3, // "sMN mNEVAChangeState 3", 3 = landmark detection
+      CMD_SET_NAV_OPERATIONAL_MODE_4, // "sMN mNEVAChangeState 4", 4 = navigation
+
+
       // ML: Add above new CMD-Identifier
       //
       //

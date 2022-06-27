@@ -12,7 +12,7 @@ BUILDTYPE=Release
 
 source /opt/ros/eloquent/setup.bash
 # colcon build --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
-colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
+colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" "-DCMAKE_ENABLE_EMULATOR=1" " -DLDMRS=0" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 source ./install/setup.bash
 
 # Check sick_scan

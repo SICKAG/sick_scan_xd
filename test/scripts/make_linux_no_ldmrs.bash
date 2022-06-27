@@ -18,8 +18,8 @@ if [ ! -d ./build_linux ] ; then mkdir -p ./build_linux ; fi
 cd ./build_linux
 rm -f $BUILDLOGFILE
 rm -f $ERRORLOGFILE
-cmake -DROS_VERSION=0 -DLDMRS=0 -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
-make -j$USECORES                                       2>&1 | tee -a $BUILDLOGFILE
+cmake -DROS_VERSION=0 -DLDMRS=0 -DCMAKE_ENABLE_EMULATOR=1 -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
+make -j$USECORES                                                                 2>&1 | tee -a $BUILDLOGFILE
 
 # Check build errors and warnings
 grep "warning:" $BUILDLOGFILE   2>&1 | tee -a $ERRORLOGFILE

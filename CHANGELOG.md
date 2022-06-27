@@ -6,6 +6,10 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.7.0 - 
+  - **Added** V2.7.0: Support for Multiscan136 (sick_scansegment_xd)
+  - **Fixed** Timestamp LaserScan-message corrected (identical timestamps in LaserScan- and PointCloud2-messages, both by Software-PLL)
+
 ## Released ##
 
 ### v2.6.8 - 
@@ -58,7 +62,7 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **Changed** Mirroring for NAV-3xx  
 
 ### v2.4.3 - 2022-01-18
-  - **Changed** Rename class sick_lidar3d::Util to namespace sick_lidar3d::util
+  - **Changed** Rename class sick_lidar::Util to namespace sick_lidar::util
   - **Fixed** FREchoFilter bug for LD-LRS36xx
   - **Added** Support of TiM240
   - **Added** Automatic switch to specified SOPAS mode (binary vs. ASCII) during startup

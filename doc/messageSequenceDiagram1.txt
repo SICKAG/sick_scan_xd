@@ -1,0 +1,14 @@
+@startuml
+
+"Lidar" -> "TCP receiver thread": LMDscandata telegram
+"TCP receiver thread" -> "TCP receiver thread": recv telegram header
+"TCP receiver thread" -> "TCP receiver thread": recv telegram payload
+"TCP receiver thread" -> "TCP receiver thread": check CRC
+"TCP receiver thread" -> "FIFO": push message
+"sick_scan_common" -> "FIFO": pop request, keyword = "LMDscandata"
+"FIFO" -> "sick_scan_common": LMDscandata message
+"sick_scan_common" -> "sick_scan_common": parse LMDscandata
+"sick_scan_common" -> "sick_scan_common": convert to pointcloud
+"sick_scan_common" -> "ROS": pointcloud
+
+@enduml

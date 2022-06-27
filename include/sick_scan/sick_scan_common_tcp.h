@@ -119,6 +119,12 @@ namespace sick_scan
 
     int reinit(rosNodePtr nh, int delay_millisec);
 
+    virtual int init_device();
+
+    virtual int close_device();
+
+    bool isConnected() { return m_nw.isConnected(); }
+
     // Queue<std::vector<unsigned char> > recvQueue;
     Queue<DatagramWithTimeStamp> recvQueue;
     UINT32 m_alreadyReceivedBytes;
@@ -133,10 +139,6 @@ namespace sick_scan
     void disconnectFunction();
 
     void readCallbackFunctionOld(UINT8 *buffer, UINT32 &numOfBytes);
-
-    virtual int init_device();
-
-    virtual int close_device();
 
     /// Send a SOPAS command to the device and print out the response to the console.
     virtual int sendSOPASCommand(const char *request, std::vector<unsigned char> *reply, int cmdLen, bool wait_for_reply = true);

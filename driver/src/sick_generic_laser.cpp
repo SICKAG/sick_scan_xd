@@ -69,6 +69,9 @@
 #if defined LDMRS_SUPPORT && LDMRS_SUPPORT > 0
 #include <sick_scan/ldmrs/sick_ldmrs_node.h>
 #endif
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+#include "sick_scansegment_xd/scansegment_threads.h"
+#endif
 #include <sick_scan/sick_scan_common_tcp.h>
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_laser.h>
@@ -88,11 +91,15 @@
 #include <stdlib.h>
 #include <signal.h>
 
+#define SICK_GENERIC_MAJOR_VER "2"
+#define SICK_GENERIC_MINOR_VER "7"
+#define SICK_GENERIC_PATCH_LEVEL "0"
+
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
 static bool isInitialized = false;
 static sick_scan::SickScanCommonTcp *s_scanner = NULL;
-static std::string versionInfo = "???";
+static std::string versionInfo = std::string(SICK_GENERIC_MAJOR_VER) + '.' + std::string(SICK_GENERIC_MINOR_VER) + '.' + std::string(SICK_GENERIC_PATCH_LEVEL);
 
 void setVersionInfo(std::string _versionInfo)
 {
@@ -133,7 +140,7 @@ public:
 
 static GenericLaserCallable* s_generic_laser_thread = 0;
 
-NodeRunState runState = scanner_init;
+static NodeRunState runState = scanner_init;
 
 /*!
 \brief splitting expressions like <tag>:=<value> into <tag> and <value>
@@ -419,6 +426,18 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
 #endif
   }
 
+  if(scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
+  {
+#if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+    exit_code = sick_scansegment_xd::run(nhPriv, scannerName);
+    return;
+#else
+    ROS_ERROR(SICK_SCANNER_SCANSEGMENT_XD_NAME " not supported. Please build sick_scan with option SCANSEGMENT_XD_SUPPORT");
+    exit_code = sick_scan::ExitError;
+    return;
+#endif
+  }
+
   sick_scan::SickGenericParser *parser = new sick_scan::SickGenericParser(scannerName);
 
   char colaDialectId = 'A'; // A or B (Ascii or Binary)
@@ -558,7 +577,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
         rosGetParam(nhPriv, "start_services", start_services);
         if (true == start_services)
         {
-            services = new sick_scan::SickScanServices(nhPriv, s_scanner, parser->getCurrentParamPtr()->getUseBinaryProtocol());
+            services = new sick_scan::SickScanServices(nhPriv, s_scanner, parser->getCurrentParamPtr());
             ROS_INFO("SickScanServices: ros services initialized");
         }
 
