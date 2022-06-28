@@ -1611,7 +1611,10 @@ namespace sick_scan
       if (lfp_meanfilter_arg >= 0)
       {
         // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
-        sopasCmdVec[CMD_SET_LFPMEANFILTER] = "\x02sWN LFPmeanfilter " + toString((lfp_meanfilter_arg > 0) ? 1 : 0) + " " + toString(lfp_meanfilter_arg) + " 0\x03";
+        if (lfp_meanfilter_arg == 0) // deactivate, number of scans must be >= 2
+          sopasCmdVec[CMD_SET_LFPMEANFILTER] = "\x02sWN LFPmeanfilter 0 2 0\x03";
+        else
+          sopasCmdVec[CMD_SET_LFPMEANFILTER] = "\x02sWN LFPmeanfilter 1 " + toString(lfp_meanfilter_arg) + " 0\x03";
         sopasCmdChain.push_back(CMD_SET_LFPMEANFILTER);
         // ROS_INFO_STREAM("lfp_meanfilter set to " << lfp_meanfilter_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LFPMEANFILTER] << "\"");
       }
