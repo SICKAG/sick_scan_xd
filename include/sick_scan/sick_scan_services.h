@@ -170,22 +170,6 @@ namespace sick_scan
 
 #endif // defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
 
-  protected:
-
-    /*!
-    * Sends the SOPAS command "sMN Run", which applies previous send settings
-    */
-    bool sendRun();
-
-    /*!
-     * Sends a sopas command and returns the lidar reply.
-     * @param[in] sopasCmd sopas command to send, f.e. "sEN ECRChangeArr 1"
-     * @param[out] sopasReplyBin response from lidar incl. start/stop byte
-     * @param[out] sopasReplyString sopasReplyBin converted to string
-     * @return true on success, false in case of errors.
-     */
-    bool sendSopasAndCheckAnswer(const std::string& sopasCmd, std::vector<unsigned char>& sopasReplyBin, std::string& sopasReplyString);
-
     /*!
     * Converts a hex string (hex_str: 4 byte hex value as string, little or big endian) to float.
     * Check f.e. by https://www.h-schmidt.net/FloatConverter/IEEE754.html
@@ -203,6 +187,22 @@ namespace sick_scan
     * convertFloatToHexString(+1.57, true) returns "3FC90FF8"
     */
     static std::string convertFloatToHexString(float value, bool hexStrInBigEndian);
+
+  protected:
+
+    /*!
+    * Sends the SOPAS command "sMN Run", which applies previous send settings
+    */
+    bool sendRun();
+
+    /*!
+     * Sends a sopas command and returns the lidar reply.
+     * @param[in] sopasCmd sopas command to send, f.e. "sEN ECRChangeArr 1"
+     * @param[out] sopasReplyBin response from lidar incl. start/stop byte
+     * @param[out] sopasReplyString sopasReplyBin converted to string
+     * @return true on success, false in case of errors.
+     */
+    bool sendSopasAndCheckAnswer(const std::string& sopasCmd, std::vector<unsigned char>& sopasReplyBin, std::string& sopasReplyString);
 
     /*
      * Member data

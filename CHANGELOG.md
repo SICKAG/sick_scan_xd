@@ -6,11 +6,15 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.7.3 - 
+  - **Added** Supported for LFPmeanfilter and LFPmedianfilter (MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx)
+  - **Added** Supported for LMDscandatascalefactor (LRS4xxx)
+
+## Released ##
+
 ### v2.7.0 - 
   - **Added** V2.7.0: Support for Multiscan136 (sick_scansegment_xd)
   - **Fixed** Timestamp LaserScan-message corrected (identical timestamps in LaserScan- and PointCloud2-messages, both by Software-PLL)
-
-## Released ##
 
 ### v2.6.8 - 
   - **Fixed** Merge pull request #76

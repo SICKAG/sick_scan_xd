@@ -106,6 +106,7 @@
 #include <climits>
 #include <sick_scan/sick_generic_imu.h>
 #include <sick_scan/sick_scan_messages.h>
+#include <sick_scan/sick_scan_services.h>
 
 #ifdef ROSSIMU
 #include <sick_scan/pointcloud_utils.h>
@@ -1349,6 +1350,11 @@ namespace sick_scan
     sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_3] = "\x02sMN mNEVAChangeState 3\x03"; // 3 = landmark detection
     sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_4] = "\x02sMN mNEVAChangeState 4\x03"; // 4 = navigation
 
+    // Supported by sick_generic_caller version 2.7.3 and above:
+    sopasCmdVec[CMD_SET_LFPMEANFILTER] = "\x02sWN LFPmeanfilter 0 0 0\x03"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
+    sopasCmdVec[CMD_SET_LFPMEDIANFILTER] = "\x02sWN LFPmedianfilter 0 3\x03"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
+    sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor 3F800000\x03"; // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
+
     /*
      *  Angle Compensation Command
      *
@@ -1389,6 +1395,8 @@ namespace sick_scan
     sopasCmdMaskVec[CMD_SET_GATEWAY] = "\x02sWN EIgate %02X %02X %02X %02X\x03";
     sopasCmdMaskVec[CMD_SET_ENCODER_RES] = "\x02sWN LICencres %f\x03";
     sopasCmdMaskVec[CMD_SET_SCAN_CFG_LIST] ="\x02sMN mCLsetscancfglist %d\x03";// set scan config from list for NAX310  LD-OEM15xx LD-LRS36xx
+
+
 /*
  |Mode |Inter-laced |Scan freq. | Result. scan freq.| Reso-lution |Total Resol. | Field of view| Sector| LRS 3601 3611 |OEM 1501|NAV 310 |LRS 3600 3610 |OEM 1500|
 |---|---|-------|--------|--------|---------|-------|-----------------|---|---|---|---|---|
@@ -1453,6 +1461,11 @@ namespace sick_scan
     sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_2] = "Error setting operational mode mapping \"sMN mNEVAChangeState 2\"";
     sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_3] = "Error setting operational mode landmark detection \"sMN mNEVAChangeState 3\"";
     sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_4] = "Error setting operational mode navigation \"sMN mNEVAChangeState 4\"";
+
+    // Supported by sick_generic_caller version 2.7.3 and above:
+    sopasCmdErrMsg[CMD_SET_LFPMEANFILTER] = "Error setting sopas command \"sWN LFPmeanfilter ...\"";
+    sopasCmdErrMsg[CMD_SET_LFPMEDIANFILTER] = "Error setting sopas command \"sWN LFPmedianfilter ...\"";
+    sopasCmdErrMsg[CMD_SET_LMDSCANDATASCALEFACTOR] = "Error setting  sopas command\"sWN LMDscandatascalefactor ...\"";
 
     // ML: Add here more useful cmd and mask entries
 
@@ -1584,9 +1597,51 @@ namespace sick_scan
       sopasCmdChain.push_back(CMD_RUN); // Apply changes
     }
     */
+    // Support for "sWN LFPmeanfilter" and "sWN LFPmedianfilter" (MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx)
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0
+     || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0
+     || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_4XXX_NAME) == 0
+     || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0)
+    {
+      int lfp_meanfilter_arg = -1, lfp_medianfilter_arg = -1;
+      rosDeclareParam(nh, "lfp_meanfilter", lfp_meanfilter_arg);
+      rosGetParam(nh, "lfp_meanfilter", lfp_meanfilter_arg);
+      rosDeclareParam(nh, "lfp_medianfilter", lfp_medianfilter_arg);
+      rosGetParam(nh, "lfp_medianfilter", lfp_medianfilter_arg);
+      if (lfp_meanfilter_arg >= 0)
+      {
+        // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
+        sopasCmdVec[CMD_SET_LFPMEANFILTER] = "\x02sWN LFPmeanfilter " + toString((lfp_meanfilter_arg > 0) ? 1 : 0) + " " + toString(lfp_meanfilter_arg) + " 0\x03";
+        sopasCmdChain.push_back(CMD_SET_LFPMEANFILTER);
+        // ROS_INFO_STREAM("lfp_meanfilter set to " << lfp_meanfilter_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LFPMEANFILTER] << "\"");
+      }
+      if (lfp_medianfilter_arg >= 0)
+      {
+        // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
+        sopasCmdVec[CMD_SET_LFPMEDIANFILTER] = "\x02sWN LFPmedianfilter "+ toString((lfp_medianfilter_arg > 0) ? 1 : 0) + " 3\x03"; 
+        sopasCmdChain.push_back(CMD_SET_LFPMEDIANFILTER);
+        // ROS_INFO_STREAM("lfp_medianfilter set to " << lfp_medianfilter_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LFPMEDIANFILTER] << "\"");
+      }
+    }
+    // Support for "sWN LMDscandatascalefactor" (LRS4xxx)
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0)
+    {
+      double lmd_scandatascalefactor_arg = 0;
+      rosDeclareParam(nh, "lmd_scandatascalefactor", lmd_scandatascalefactor_arg);
+      rosGetParam(nh, "lmd_scandatascalefactor", lmd_scandatascalefactor_arg);
+      if (lmd_scandatascalefactor_arg > 0)
+      {
+        // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
+        std::string scalefactor_hex = sick_scan::SickScanServices::convertFloatToHexString((float)lmd_scandatascalefactor_arg, true);
+        sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor " + scalefactor_hex + "\x03"; 
+        sopasCmdChain.push_back(CMD_SET_LMDSCANDATASCALEFACTOR);
+        // ROS_INFO_STREAM("lmd_scandatascalefactor set to " << lmd_scandatascalefactor_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LMDSCANDATASCALEFACTOR] << "\"");
+      }
+    }
+
+    // Additional startup commands for NAV-350 support
     if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
     {
-      // additional startup commands for NAV-350 support
       sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
       sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_1); // "sMN mNEVAChangeState 1", 1 = standby
       int nav_operation_mode = 4;
@@ -4463,12 +4518,14 @@ namespace sick_scan
               if (shallIFire) // shall i fire the signal???
               {
 #ifdef ROSSIMU
+                notifyPointcloudListener(nh, &cloud_);
                 plotPointCloud(cloud_);
 #else
                 // ROS_DEBUG_STREAM("publishing cloud " << cloud_.height << " x " << cloud_.width << " data, cloud_output_mode=" << config_.cloud_output_mode);
                 if (config_.cloud_output_mode==0)
                 {
                   // standard handling of scans
+                  notifyPointcloudListener(nh, &cloud_);
                   rosPublish(cloud_pub_, cloud_);
 
                 }
@@ -4707,6 +4764,9 @@ namespace sick_scan
     std::string keyWord11 = "sWN LFPmeanfilter";
     std::string KeyWord12 = "sRN field";
     std::string KeyWord13 = "sMN mCLsetscancfglist";
+    std::string KeyWord14 = "sWN LFPmeanfilter"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
+    std::string KeyWord15 = "sWN LFPmedianfilter"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
+    std::string KeyWord16 = "sWN LMDscandatascalefactor"; // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
 
     //BBB
 
@@ -4995,6 +5055,39 @@ namespace sick_scan
       buffer[0] = (unsigned char) (0xFF & scanCfgListEntry);
       bufferLen = 1;
     }
+    if (cmdAscii.find(KeyWord14) != std::string::npos) // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
+    {
+      // ROS_INFO_STREAM("convertAscii2BinaryCmd: requestAscii=" << requestAscii);
+      int args[3] = { 0, 0, 0 };
+      sscanf(requestAscii + KeyWord14.length() + 1, " %d %d %d", &(args[0]), &(args[1]), &(args[2]));
+      buffer[0] = (unsigned char) (0xFF & args[0]);
+      buffer[1] = (unsigned char) (0xFF & (args[1] >> 8));
+      buffer[2] = (unsigned char) (0xFF & (args[1] >> 0));
+      buffer[3] = (unsigned char) (0xFF & args[2]);
+      bufferLen = 4;
+    }
+    if (cmdAscii.find(KeyWord15) != std::string::npos) // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
+    {
+      // ROS_INFO_STREAM("convertAscii2BinaryCmd: requestAscii=" << requestAscii);
+      int args[2] = { 0, 0 };
+      sscanf(requestAscii + KeyWord15.length() + 1, " %d %d", &(args[0]), &(args[1]));
+      buffer[0] = (unsigned char) (0xFF & args[0]);
+      buffer[1] = (unsigned char) (0xFF & (args[1] >> 8));
+      buffer[2] = (unsigned char) (0xFF & (args[1] >> 0));
+      bufferLen = 3;
+    }
+    if (cmdAscii.find(KeyWord16) != std::string::npos) // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
+    {
+      // ROS_INFO_STREAM("convertAscii2BinaryCmd: requestAscii=" << requestAscii);
+      uint32_t args = 0;
+      sscanf(requestAscii + KeyWord16.length() + 1, " %x", &args);
+      buffer[0] = (unsigned char) (0xFF & (args >> 24));
+      buffer[1] = (unsigned char) (0xFF & (args >> 16));
+      buffer[2] = (unsigned char) (0xFF & (args >> 8));
+      buffer[3] = (unsigned char) (0xFF & (args >> 0));
+      bufferLen = 4;
+    }
+
     // copy base command string to buffer
     bool switchDoBinaryData = false;
     for (int i = 1; i <= (int) (msgLen); i++)  // STX DATA ETX --> 0 1 2
