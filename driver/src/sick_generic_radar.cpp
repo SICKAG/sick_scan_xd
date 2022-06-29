@@ -505,7 +505,7 @@ namespace sick_scan
     if (verboseLevel > 0)
     {
       static int cnt = 0;
-      char szDumpFileName[255] = {0};
+      char szDumpFileName[2*255] = {0};
       char szDir[255] = {0};
 #ifdef _MSC_VER
       strcpy(szDir, "C:\\temp\\");
@@ -548,7 +548,7 @@ namespace sick_scan
     if (verboseLevel > 0 && !useBinaryProtocol)
     {
       static int cnt = 0;
-      char szDumpFileName[255] = {0};
+      char szDumpFileName[2*255] = {0};
       char szDir[255] = {0};
 #ifdef _MSC_VER
       strcpy(szDir, "C:\\temp\\");
