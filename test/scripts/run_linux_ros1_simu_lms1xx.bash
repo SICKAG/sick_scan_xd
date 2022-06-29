@@ -3,8 +3,9 @@ printf "\033c"
 pushd ../../../..
 if [ -f /opt/ros/melodic/setup.bash   ] ; then source /opt/ros/melodic/setup.bash   ; fi
 if [ -f /opt/ros/noetic/setup.bash    ] ; then source /opt/ros/noetic/setup.bash    ; fi
-if [ -f ./install_isolated/setup.bash ] ; then source ./install_isolated/setup.bash ; fi
-if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
+if [ -f ./devel_isolated/setup.bash   ] ; then source ./devel_isolated/setup.bash   ; fi
+#if [ -f ./install_isolated/setup.bash ] ; then source ./install_isolated/setup.bash ; fi
+#if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
 
 echo -e "run_simu_lms5xx.bash: starting lms1xx emulation\n"
 
@@ -26,7 +27,7 @@ sleep 1
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
 sleep 1
 
-# Start sick_scan driver for lms5xx
+# Start sick_scan driver for lms1xx
 echo -e "Launching sick_scan sick_lms_1xx.launch\n"
 # roslaunch sick_scan sick_lms_1xx.launch hostname:=192.168.0.111 &
 roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 &
@@ -34,14 +35,14 @@ sleep 1
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed
 while true ; do  
-  echo -e "lms5xx emulation running. Close rviz or press 'q' to exit..." ; read -t 1.0 -n1 -s key
+  echo -e "lms1xx emulation running. Close rviz or press 'q' to exit..." ; read -t 1.0 -n1 -s key
   if [[ $key = "q" ]] || [[ $key = "Q" ]]; then break ; fi
   rviz_running=`(ps -elf | grep rviz | grep -v grep | wc -l)`
   if [ $rviz_running -lt 1 ] ; then break ; fi
 done
 
 # Shutdown
-echo -e "Finishing lms5xx emulation, shutdown ros nodes\n"
+echo -e "Finishing lms1xx emulation, shutdown ros nodes\n"
 rosnode kill -a ; sleep 1
 killall sick_generic_caller ; sleep 1
 killall sick_scan_emulator ; sleep 1

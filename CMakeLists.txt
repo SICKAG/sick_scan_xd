@@ -442,6 +442,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/binPrintf.cpp
         driver/src/binScanf.cpp
         driver/src/sick_scan_common_tcp.cpp
+        driver/src/sick_generic_callback.cpp
         driver/src/sick_generic_radar.cpp
         driver/src/sick_generic_imu.cpp
         driver/src/sick_generic_parser.cpp
@@ -527,6 +528,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         roswrap/src/launchparser/launchparser.cpp 
         driver/src/binScanf.cpp
         driver/src/dataDumper.cpp
+        driver/src/sick_generic_callback.cpp
         driver/src/sick_generic_imu.cpp
         driver/src/sick_generic_parser.cpp
         driver/src/sick_lmd_scandata_parser.cpp

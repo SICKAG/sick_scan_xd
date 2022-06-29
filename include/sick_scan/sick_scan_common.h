@@ -70,6 +70,7 @@
 #include <vector>
 
 #include <sick_scan/sick_ros_wrapper.h>
+#include <sick_scan/sick_generic_callback.h>
 
 #include <thread>
 #include <mutex>
@@ -189,6 +190,10 @@ namespace sick_scan
       CMD_SET_NAV_OPERATIONAL_MODE_3, // "sMN mNEVAChangeState 3", 3 = landmark detection
       CMD_SET_NAV_OPERATIONAL_MODE_4, // "sMN mNEVAChangeState 4", 4 = navigation
 
+      // Supported by sick_generic_caller version 2.7.3 and above:
+      CMD_SET_LFPMEANFILTER, // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
+      CMD_SET_LFPMEDIANFILTER, // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
+      CMD_SET_LMDSCANDATASCALEFACTOR, // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
 
       // ML: Add above new CMD-Identifier
       //
