@@ -8,6 +8,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.7.4 - 
+  - **Fixed** ROS2 compilation error #83
+
 ### v2.7.3 - 
   - **Added** Supported for LFPmeanfilter and LFPmedianfilter (MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx)
   - **Added** Supported for LMDscandatascalefactor (LRS4xxx)
