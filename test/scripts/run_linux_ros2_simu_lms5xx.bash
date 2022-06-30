@@ -1,7 +1,8 @@
 #!/bin/bash
 printf "\033c"
 pushd ../../../..
-source /opt/ros/eloquent/setup.bash
+if [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash ; fi
+if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash     ; fi
 source ./install/setup.bash
 
 echo -e "run_simu_lms5xx.bash: starting lms5xx emulation\n"

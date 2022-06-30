@@ -89,7 +89,8 @@ function killRestartEmulatorRandomly () {
 killSimulation
 printf "\033c"
 pushd ../../../..
-source /opt/ros/eloquent/setup.bash
+if [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash ; fi
+if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash     ; fi
 source ./install/setup.bash
 
 echo -e "run_simu_reconnnect.bash: starting mrs1104 emulation\n"

@@ -29,6 +29,8 @@ function run_simu()
 simu_killall
 printf "\033c"
 pushd ../../../..
+if [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash ; fi
+if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash     ; fi
 source ./install/setup.bash
 
 #
