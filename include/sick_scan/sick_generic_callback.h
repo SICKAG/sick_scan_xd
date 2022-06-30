@@ -62,27 +62,25 @@
 
 namespace sick_scan
 {
-    typedef void* Handle;
-
-    typedef void(* PointCloud2Callback)(Handle handle, const ros_sensor_msgs::PointCloud2* msg);
-    void addPointcloudListener(Handle handle, PointCloud2Callback listener);
-    void notifyPointcloudListener(Handle handle, const ros_sensor_msgs::PointCloud2* msg);
+    typedef void(* PointCloud2Callback)(rosNodePtr handle, const ros_sensor_msgs::PointCloud2* msg);
+    void addPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
+    void notifyPointcloudListener(rosNodePtr handle, const ros_sensor_msgs::PointCloud2* msg);
 
     /*
     *  Callback template for registration and deregistration of callbacks incl. notification of listeners
     */
-    template<class MsgType> class SickCallbackHandler
+    template<typename HandleType, class MsgType> class SickCallbackHandler
     {
     public:
         
-        typedef void(* callbackFunctionPtr)(Handle handle, const MsgType* msg);
+        typedef void(* callbackFunctionPtr)(HandleType handle, const MsgType* msg);
 
-        void addListener(Handle handle, callbackFunctionPtr listener)
+        void addListener(HandleType handle, callbackFunctionPtr listener)
         {
             m_listeners[handle].push_back(listener);
         }
 
-        void notifyListener(Handle handle, const MsgType* msg)
+        void notifyListener(HandleType handle, const MsgType* msg)
         {
             std::vector<callbackFunctionPtr> & listeners = m_listeners[handle];
             for(int n = 0; n < listeners.size(); n++)
@@ -96,7 +94,7 @@ namespace sick_scan
 
     protected:
 
-        std::map<Handle, std::vector<callbackFunctionPtr>> m_listeners;
+        std::map<HandleType, std::vector<callbackFunctionPtr>> m_listeners;
 
     };  // class SickCallbackHandler
 

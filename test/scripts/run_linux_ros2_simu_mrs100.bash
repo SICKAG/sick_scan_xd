@@ -45,7 +45,8 @@ function call_service_filter_examples()
 
 pushd ../../../..
 printf "\033c"
-source /opt/ros/foxy/setup.bash
+if [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash ; fi
+if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash     ; fi
 source ./install/setup.bash
 killall_cleanup
 sleep 1

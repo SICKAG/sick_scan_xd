@@ -54,16 +54,16 @@
 */
 #include <sick_scan/sick_generic_callback.h>
 
-static sick_scan::SickCallbackHandler<ros_sensor_msgs::PointCloud2> s_poincloud_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,ros_sensor_msgs::PointCloud2> s_poincloud_callback_handler;
 
 namespace sick_scan
 {
-    void addPointcloudListener(Handle handle, PointCloud2Callback listener)
+    void addPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
     {
         s_poincloud_callback_handler.addListener(handle, listener);
 	}
 
-    void notifyPointcloudListener(Handle handle, const ros_sensor_msgs::PointCloud2* msg)
+    void notifyPointcloudListener(rosNodePtr handle, const ros_sensor_msgs::PointCloud2* msg)
     {
         s_poincloud_callback_handler.notifyListener(handle, msg);
 	}
