@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -32,7 +33,7 @@
 #include <mutex>
 //#include <boost/signals2/connection.hpp>
 
-namespace ros
+namespace roswrap
 {
 
 class PollManager;

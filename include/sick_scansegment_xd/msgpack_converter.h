@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief msgpack_converter runs a background thread to unpack and parses msgpack data for the sick 3D lidar multiScan136.
  * msgpack_converter pops binary msgpack data from an input fifo, converts the data to scanlines using MsgPackParser::Parse()

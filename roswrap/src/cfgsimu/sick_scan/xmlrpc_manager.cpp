@@ -35,7 +35,7 @@
 
 using namespace XmlRpc;
 
-namespace ros
+namespace roswrap
 {
 
 namespace xmlrpc
@@ -433,4 +433,4 @@ void XMLRPCManager::unbind(const std::string& function_name)
   unbind_requested_ = false;
 }
 
-} // namespace ros
+} // namespace roswrap

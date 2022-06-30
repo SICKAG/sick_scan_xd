@@ -1,6 +1,7 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2008, Morgan Quigley and Willow Garage, Inc.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *   * Redistributions of source code must retain the above copyright notice,
@@ -37,7 +38,7 @@
 #include <memory>
 
 
-namespace ros {
+namespace roswrap {
 
 typedef std::vector<std::pair<std::string, std::string> > VP_string;
 typedef std::vector<std::string> V_string;

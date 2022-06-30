@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -41,7 +42,7 @@
 #include <ros/time.h>
 
 
-namespace ros
+namespace roswrap
 {
 
 /**
@@ -109,7 +110,7 @@ public:
    *
    * @todo Consider making this private.
    */
-  bool validateXmlrpcResponse(const std::string& method, 
+  bool validateXmlrpcResponse(const std::string& method,
 			      XmlRpc::XmlRpcValue &response, XmlRpc::XmlRpcValue &payload);
 
   /**

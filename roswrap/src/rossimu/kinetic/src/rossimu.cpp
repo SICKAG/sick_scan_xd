@@ -74,8 +74,8 @@ public:
 	{
 		// This line only runs once, thus creating the only instance in existence
 		static MapStringSingleton *instance = new MapStringSingleton;
-		// dereferencing the variable here, saves the caller from having to use 
-		// the arrow operator, and removes temptation to try and delete the 
+		// dereferencing the variable here, saves the caller from having to use
+		// the arrow operator, and removes temptation to try and delete the
 		// returned instance.
 		return *instance; // always returns the same instance
 	}
@@ -84,13 +84,13 @@ private:
 	// We need to make some given functions private to finish the definition of the singleton
 	MapStringSingleton() {} // default constructor available only to members or friends of this class
 
-							// Note that the next two functions are not given bodies, thus any attempt 
-							// to call them implicitly will return as compiler errors. This prevents 
+							// Note that the next two functions are not given bodies, thus any attempt
+							// to call them implicitly will return as compiler errors. This prevents
 							// accidental copying of the only instance of the class.
 	MapStringSingleton(const MapStringSingleton &old); // disallow copy constructor
 	const MapStringSingleton &operator=(const MapStringSingleton &old); //disallow assignment operator
 
-																		// Note that although this should be allowed, 
+																		// Note that although this should be allowed,
 																		// some compilers may not implement private destructors
 																		// This prevents others from deleting our one single instance, which was otherwise created on the heap
 	~MapStringSingleton() {}
@@ -98,7 +98,7 @@ private: // private data for an instance of this class
 	std::map<std::string, std::string> mMapString;
 };
 
-namespace ros
+namespace roswrap
 {
 	namespace console
 	{
@@ -107,7 +107,7 @@ namespace ros
 		return(true);
 	}
 	}
-	
+
 	ROSCPP_DECL void Subscriber::shutdown(void)
 	{
 		return;
@@ -139,7 +139,7 @@ namespace ros
 	{
 		MapStringSingleton& single = MapStringSingleton::Instance();
 		single.setVal(key, s);
-		
+
 	}
 	bool NodeHandle::getParam(const std::string& key, std::string& s) const
 	{
@@ -215,11 +215,11 @@ namespace ros
 			}
 			d = dummy;
 		}
-		return(fnd);		
+		return(fnd);
 	}
 }
 
-namespace ros
+namespace roswrap
 {
 	namespace console
 	{
@@ -303,7 +303,7 @@ ros::Subscriber::Subscriber(class ros::Subscriber const &)
 {
 }
 
-bool ros::NodeHandle::getParamCached(const std::string& key, double& d) const 
+bool ros::NodeHandle::getParamCached(const std::string& key, double& d) const
 {
 	return(true);
 }
@@ -388,7 +388,7 @@ class ros::ServiceServer ros::NodeHandle::advertiseService(struct ros::Advertise
 //sick_scan::AbstractParser::AbstractParser(void)
 //{
 //}
-	
+
 //sick_scan::AbstractParser::~AbstractParser(void)
 //{
 //}

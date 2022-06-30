@@ -4380,7 +4380,7 @@ namespace sick_scan
 
               size_t rangeNumAllEchos = rangeTmp.size(); // rangeTmp.size() := number of range values in all echos (max. 5 echos)
               size_t rangeNumAllEchosCloud = cloud_.height * cloud_.width; // number of points allocated in the point cloud
-              rangeNumAllEchos = std::min(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
+              rangeNumAllEchos = MIN(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
               size_t rangeNum = rangeNumAllEchos / numValidEchos;
               // ROS_INFO_STREAM("numValidEchos=" << numValidEchos << ", numEchos=" << numEchos << ", cloud_.height * cloud_.width=" << cloud_.height * cloud_.width << ", rangeNum=" << rangeNum);
 

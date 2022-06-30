@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Software License Agreement (BSD License)
  *
@@ -39,7 +40,7 @@
 #include "node_handle.h"
 #include <memory>
 
-namespace ros
+namespace roswrap
 {
 namespace topic
 {
@@ -138,6 +139,6 @@ std::shared_ptr<M const> waitForMessage(const std::string& topic, ros::NodeHandl
 }
 
 } // namespace topic
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCPP_TOPIC_H

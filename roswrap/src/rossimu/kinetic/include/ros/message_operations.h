@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2010, Willow Garage, Inc.
  *
@@ -30,7 +31,7 @@
 
 #include <ostream>
 
-namespace ros
+namespace roswrap
 {
 namespace message_operations
 {
@@ -71,7 +72,7 @@ struct Printer<uint8_t>
 };
 
 } // namespace message_operations
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSLIB_MESSAGE_OPERATIONS_H
 

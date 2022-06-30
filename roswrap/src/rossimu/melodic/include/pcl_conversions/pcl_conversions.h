@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Software License Agreement (BSD License)
  *
@@ -717,7 +718,7 @@ namespace pcl {
 
 } // namespace pcl
 
-namespace ros
+namespace roswrap
 {
   template<>
   struct DefaultMessageCreator<pcl::PCLPointCloud2>
@@ -760,7 +761,7 @@ namespace ros
     };
 
     template<> struct HasHeader<pcl::PCLPointCloud2> : TrueType {};
-  } // namespace ros::message_traits
+  } // namespace roswrap::message_traits
 
   namespace serialization
   {
@@ -899,9 +900,9 @@ namespace ros
         return length;
       }
     };
-  } // namespace ros::serialization
+  } // namespace roswrap::serialization
 
-} // namespace ros
+} // namespace roswrap
 
 
 #endif /* PCL_CONVERSIONS_H__ */

@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief sim_loc_testcase_generator generates testcases for SIM Localization driver.
  * The generator creates deterministic and random based result port telegrams.

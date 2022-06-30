@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -38,7 +39,7 @@
 #include <mutex>
 //#include <boost/thread/recursive_mutex.hpp>
 
-namespace ros
+namespace roswrap
 {
 
 class Message;
@@ -234,6 +235,6 @@ private:
   XMLRPCManagerPtr xmlrpc_manager_;
 };
 
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCPP_TOPIC_MANAGER_H

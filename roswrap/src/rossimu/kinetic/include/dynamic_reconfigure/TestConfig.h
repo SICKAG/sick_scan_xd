@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 //#line 2 "/tmp/binarydeb/ros-kinetic-dynamic-reconfigure-1.5.48/templates/ConfigType.h.template"
 // *********************************************************
 // 

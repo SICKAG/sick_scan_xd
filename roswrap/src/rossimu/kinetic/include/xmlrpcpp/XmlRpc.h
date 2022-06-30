@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 // this file modified by Morgan Quigley on 22 April 2008 to add 
 // a std::exception-derived class
 #ifndef _XMLRPC_H_

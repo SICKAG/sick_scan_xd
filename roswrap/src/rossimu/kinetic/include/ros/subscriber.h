@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -32,7 +33,7 @@
 #include "ros/forwards.h"
 #include "ros/subscription_callback_helper.h"
 
-namespace ros
+namespace roswrap
 {
 
 /**
@@ -87,7 +88,7 @@ public:
 
 private:
 
-  Subscriber(const std::string& topic, const NodeHandle& node_handle, 
+  Subscriber(const std::string& topic, const NodeHandle& node_handle,
 	     const SubscriptionCallbackHelperPtr& helper);
 
   class Impl

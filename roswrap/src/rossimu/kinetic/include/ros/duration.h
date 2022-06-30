@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
@@ -59,7 +60,7 @@ namespace boost {
   }
 }
 
-namespace ros
+namespace roswrap
 {
 ROSTIME_DECL void normalizeSecNSecSigned(int64_t& sec, int64_t& nsec);
 ROSTIME_DECL void normalizeSecNSecSigned(int32_t& sec, int32_t& nsec);

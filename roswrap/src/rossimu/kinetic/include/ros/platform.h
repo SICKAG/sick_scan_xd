@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2010, Willow Garage, Inc.
  *
@@ -56,7 +57,7 @@
 #endif
 #include <string>
 
-namespace ros {
+namespace roswrap {
 
 /**
  * Convenient cross platform function for returning a std::string of an
@@ -81,6 +82,6 @@ inline bool get_environment_variable(std::string &str, const char* environment_v
 	}
 }
 
-} // namespace ros
+} // namespace roswrap
 
 #endif /* CPP_COMMON_PLATFORM_H_ */

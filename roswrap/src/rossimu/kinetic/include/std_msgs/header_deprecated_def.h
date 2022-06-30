@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -24,7 +25,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #ifndef STD_MSGS_INCLUDING_HEADER_DEPRECATED_DEF
 #error("Do not include this file directly.  Instead, include std_msgs/Header.h")
 #endif
@@ -150,35 +151,35 @@ std::ostream& operator<<(std::ostream& s, const  ::roslib::Header_<ContainerAllo
 
 } // namespace roslib
 
-namespace ros
+namespace roswrap
 {
 namespace message_traits
 {
 template<class ContainerAllocator>
 struct MD5Sum< ::roslib::Header_<ContainerAllocator> > {
-  static const char* value() 
+  static const char* value()
   {
     return "2176decaecbce78abc3b96ef049fabed";
   }
 
-  static const char* value(const  ::roslib::Header_<ContainerAllocator> &) { return value(); } 
+  static const char* value(const  ::roslib::Header_<ContainerAllocator> &) { return value(); }
   static const uint64_t static_value1 = 0x2176decaecbce78aULL;
   static const uint64_t static_value2 = 0xbc3b96ef049fabedULL;
 };
 
 template<class ContainerAllocator>
 struct DataType< ::roslib::Header_<ContainerAllocator> > {
-  static const char* value() 
+  static const char* value()
   {
     return "roslib/Header";
   }
 
-  static const char* value(const  ::roslib::Header_<ContainerAllocator> &) { return value(); } 
+  static const char* value(const  ::roslib::Header_<ContainerAllocator> &) { return value(); }
 };
 
 template<class ContainerAllocator>
 struct Definition< ::roslib::Header_<ContainerAllocator> > {
-  static const char* value() 
+  static const char* value()
   {
     return "# Standard metadata for higher-level stamped data types.\n\
 # This is generally used to communicate timestamped data \n\
@@ -199,13 +200,13 @@ string frame_id\n\
 ";
   }
 
-  static const char* value(const  ::roslib::Header_<ContainerAllocator> &) { return value(); } 
+  static const char* value(const  ::roslib::Header_<ContainerAllocator> &) { return value(); }
 };
 
 } // namespace message_traits
-} // namespace ros
+} // namespace roswrap
 
-namespace ros
+namespace roswrap
 {
 namespace serialization
 {
@@ -222,9 +223,9 @@ template<class ContainerAllocator> struct Serializer< ::roslib::Header_<Containe
   ROS_DECLARE_ALLINONE_SERIALIZER;
 }; // struct Header_
 } // namespace serialization
-} // namespace ros
+} // namespace roswrap
 
-namespace ros
+namespace roswrap
 {
 namespace message_operations
 {
@@ -232,7 +233,7 @@ namespace message_operations
 template<class ContainerAllocator>
 struct Printer< ::roslib::Header_<ContainerAllocator> >
 {
-  template<typename Stream> static void stream(Stream& s, const std::string& indent, const  ::roslib::Header_<ContainerAllocator> & v) 
+  template<typename Stream> static void stream(Stream& s, const std::string& indent, const  ::roslib::Header_<ContainerAllocator> & v)
   {
     s << indent << "seq: ";
     Printer<uint32_t>::stream(s, indent + "  ", v.seq);
@@ -245,5 +246,5 @@ struct Printer< ::roslib::Header_<ContainerAllocator> >
 
 
 } // namespace message_operations
-} // namespace ros
+} // namespace roswrap
 

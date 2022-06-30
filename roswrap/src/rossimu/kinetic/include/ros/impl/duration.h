@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
@@ -37,7 +38,7 @@
 #include <ros/duration.h>
 #include <ros/rate.h>
 
-namespace ros {
+namespace roswrap {
   //
   // DurationBase template member function implementation
   //

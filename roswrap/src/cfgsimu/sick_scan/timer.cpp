@@ -28,7 +28,7 @@
 #include "ros/timer.h"
 #include "ros/timer_manager.h"
 
-namespace ros
+namespace roswrap
 {
 
 Timer::Impl::Impl()

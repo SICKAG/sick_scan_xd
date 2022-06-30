@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2013-2014, Dariush Forouher
  *
@@ -36,7 +37,7 @@
 #include "ros/subscription_callback_helper.h"
 #include <map>
 
-namespace ros
+namespace roswrap
 {
 
 /**

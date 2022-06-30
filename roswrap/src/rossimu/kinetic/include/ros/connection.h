@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Software License Agreement (BSD License)
  *
@@ -49,7 +50,7 @@
 
 #define READ_BUFFER_SIZE (1024*64)
 
-namespace ros
+namespace roswrap
 {
 
 class Transport;
@@ -167,7 +168,7 @@ public:
   Header& getHeader() { return header_; }
 
   /**
-   * \brief Set the Header associated with this connection (used with UDPROS, 
+   * \brief Set the Header associated with this connection (used with UDPROS,
    *        which receives the connection during XMLRPC negotiation).
    */
   void setHeader(const Header& header) { header_ = header; }
@@ -266,6 +267,6 @@ private:
 };
 typedef std::shared_ptr<Connection> ConnectionPtr;
 
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCPP_CONNECTION_H

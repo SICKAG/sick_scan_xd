@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -31,7 +32,7 @@
 #include "common.h"
 #include "ros/forwards.h"
 
-namespace ros
+namespace roswrap
 {
 
 /**
@@ -50,7 +51,7 @@ struct ROSCPP_DECL TimerOptions
    * \brief Constructor
    * \param
    */
-  TimerOptions(Duration _period, const TimerCallback& _callback, 
+  TimerOptions(Duration _period, const TimerCallback& _callback,
                CallbackQueueInterface* _queue, bool oneshot = false, bool autostart = true)
     : period(_period)
     , callback(_callback)

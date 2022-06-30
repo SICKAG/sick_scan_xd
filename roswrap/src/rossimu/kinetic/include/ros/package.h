@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -76,7 +77,7 @@
 #  define ROSLIB_DECL
 #endif
 
-namespace ros
+namespace roswrap
 {
 namespace package
 {
@@ -147,6 +148,6 @@ ROSLIB_DECL void getPlugins(
 ROS_DEPRECATED ROSLIB_DECL void getPlugins(const std::string& package, const std::string& attribute, M_string& plugins, bool force_recrawl=false);
 
 } // namespace package
-} // namespace ros
+} // namespace roswrap
 
 #endif

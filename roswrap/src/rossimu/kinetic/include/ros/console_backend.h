@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (c) 2013, Open Source Robotics Foundation
  * All rights reserved.
@@ -30,7 +31,7 @@
 #ifndef ROSCONSOLE_CONSOLE_BACKEND_H
 #define ROSCONSOLE_CONSOLE_BACKEND_H
 
-namespace ros
+namespace roswrap
 {
 namespace console
 {
@@ -63,6 +64,6 @@ extern void (*function_print)(void*, ::ros::console::Level, const char*, const c
 
 } // namespace backend
 } // namespace console
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCONSOLE_CONSOLE_BACKEND_H
