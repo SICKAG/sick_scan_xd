@@ -3953,12 +3953,12 @@ namespace sick_scan
 
         ros_sensor_msgs::LaserScan msg;
         sick_scan_msg::Encoder EncoderMsg;
-        EncoderMsg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
+        EncoderMsg.header.stamp = recvTimeStamp + rosDuration(std::chrono::duration<double>(config_.time_offset));
         //TODO remove this hardcoded variable
         bool FireEncoder = false;
         EncoderMsg.header.frame_id = "Encoder";
         ROS_HEADER_SEQ(EncoderMsg.header, numPacketsProcessed);
-        msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // default: ros-timestamp at message received, will be updated by software-pll
+        msg.header.stamp = recvTimeStamp + rosDuration(std::chrono::duration<double>(config_.time_offset)); // default: ros-timestamp at message received, will be updated by software-pll
         double elevationAngleInRad = 0.0;
         short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
         // F5B2h -> -2638/200= -13.19°
@@ -4043,7 +4043,7 @@ namespace sick_scan
                       dataToProcess = false;
                       break;
                   }
-                  msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // recvTimeStamp updated by software-pll
+                  msg.header.stamp = recvTimeStamp + rosDuration(std::chrono::duration<double>(config_.time_offset)); // recvTimeStamp updated by software-pll
                   timeIncrement = msg.time_increment;
                   echoMask = (1 << numEchos) - 1;
                 }
@@ -4348,7 +4348,7 @@ namespace sick_scan
               int numTmpLayer = numOfLayers;
 
 
-              cloud_.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
+              cloud_.header.stamp = recvTimeStamp + rosDuration(std::chrono::duration<double>(config_.time_offset));
               // ROS_DEBUG_STREAM("laser_scan timestamp: " << msg.header.stamp << ", pointclound timestamp: " << cloud_.header.stamp);
               cloud_.header.frame_id = config_.frame_id;
               ROS_HEADER_SEQ(cloud_.header, 0);
@@ -4528,7 +4528,7 @@ namespace sick_scan
                 if (config_.cloud_output_mode==0)
                 {
                   // standard handling of scans
-                  notifyPointcloudListener(nh, &cloud_);
+                  notifyPointcloudListener(static_cast<void*>(nh.get()), &cloud_);
                   rosPublish(cloud_pub_, cloud_);
 
                 }

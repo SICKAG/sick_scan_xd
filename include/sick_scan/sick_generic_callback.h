@@ -66,7 +66,7 @@ namespace sick_scan
 
     typedef void(* PointCloud2Callback)(Handle handle, const ros_sensor_msgs::PointCloud2* msg);
     void addPointcloudListener(Handle handle, PointCloud2Callback listener);
-    void notifyPointcloudListener(Handle handle, const ros_sensor_msgs::PointCloud2* msg);
+    void notifyPointcloudListener(Handle handle, const sensor_msgs::msg::PointCloud2* msg);
 
     /*
     *  Callback template for registration and deregistration of callbacks incl. notification of listeners

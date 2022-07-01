@@ -299,7 +299,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
     marker_point.pose.orientation.w = 1.0;
     marker_point.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
     marker_point.color = gray();
-    marker_point.lifetime = rosDuration(0); // lifetime 0 indicates forever
+    marker_point.lifetime = rosDuration(0s); // lifetime 0 indicates forever
 
     marker_point.points.resize(3 * nr_triangles);
     marker_point.colors.resize(3 * nr_triangles);
@@ -376,7 +376,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
             marker_field_name.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
             marker_field_name.color = field_info[field_info_idx].field_color;
             marker_field_name.color.a = 1;
-            marker_field_name.lifetime = rosDuration(0); // lifetime 0 indicates forever
+            marker_field_name.lifetime = rosDuration(0s); // lifetime 0 indicates forever
             marker_field_name.text = field_info[field_info_idx].field_name;
             marker_array.push_back(marker_field_name);
         }
@@ -395,7 +395,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
 #else
             marker_field_name.action = ros_visualization_msgs::Marker::DELETE;
 #endif
-            marker_field_name.lifetime = rosDuration(0); // lifetime 0 indicates forever
+            marker_field_name.lifetime = rosDuration(0s); // lifetime 0 indicates forever
             marker_array.push_back(marker_field_name);
         }
         
@@ -430,7 +430,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
             marker_point.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
             marker_point.color = field_info[field_info_idx].field_color;
             marker_point.color.a = 1;
-            marker_point.lifetime = rosDuration(0); // lifetime 0 indicates forever
+            marker_point.lifetime = rosDuration(0s); // lifetime 0 indicates forever
             std::stringstream marker_text;
             // int detection_field_number = field_info.size() - field_info_idx; // field_info[field_info_idx].field_index;
             if (loop_cnt == 0)
@@ -469,7 +469,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
         marker_point.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
         marker_point.color = green();
         marker_point.color.a = 1;
-        marker_point.lifetime = rosDuration(0); // lifetime 0 indicates forever
+        marker_point.lifetime = rosDuration(0s); // lifetime 0 indicates forever
         std::stringstream marker_text;
         if (loop_cnt == 0)
             marker_text << "Fieldset :";
@@ -507,7 +507,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createOut
             marker_point.action = ros_visualization_msgs::Marker::ADD; // note: ADD == MODIFY
             marker_point.color = output_colors[field_idx];
             marker_point.color.a = 1;
-            marker_point.lifetime = rosDuration(0); // lifetime 0 indicates forever
+            marker_point.lifetime = rosDuration(0s); // lifetime 0 indicates forever
             std::stringstream marker_text;
             int output_device = field_idx + 1;
             if (loop_cnt == 0)

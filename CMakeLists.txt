@@ -174,9 +174,15 @@ if(ROS_VERSION EQUAL 2)
     set(FastRTPS_LIBRARY_RELEASE /opt/ros/$ENV{ROS_DISTRO}/lib/libfastrtps.so)
 
     find_package(ament_cmake REQUIRED)
+
+
     if(NOT WIN32)
-        set(diagnostic_updater_pkg diagnostic_updater)
-        find_package(${diagnostic_updater_pkg} REQUIRED)
+        # still check if diagnostics updater is available (not the case for current some versions)
+        find_package(diagnostic_updater)
+        if (${diagnostic_updater_FOUND})
+            set(diagnostic_updater_pkg diagnostic_updater)
+            add_compile_definitions(ROS2_DIAGNOSTICS_UPDATER_AVAILABLE)
+        endif()
     endif()
     find_package(rclcpp REQUIRED)
     find_package(sensor_msgs REQUIRED)
@@ -279,7 +285,7 @@ if(ROS_VERSION EQUAL 2)
         "srv/SickScanExitSrv.srv"
         ${ROSIDL_EMULATOR_FILES}
         DEPENDENCIES builtin_interfaces std_msgs nav_msgs geometry_msgs sensor_msgs
-    )   
+    )
     # find_package(Boost REQUIRED COMPONENTS filesystem system serialization) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
@@ -620,9 +626,10 @@ if(ROS_VERSION EQUAL 2)
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
-    rosidl_target_interfaces(sick_scan_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
-    rosidl_target_interfaces(sick_scan_shared_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
-    # rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_cpp")
+    rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+    target_link_libraries(sick_scan_lib "${cpp_typesupport_target}")
+    target_link_libraries(sick_scan_shared_lib "${cpp_typesupport_target}")
+    target_link_libraries(sick_generic_caller "${cpp_typesupport_target}")
         
 endif(ROS_VERSION EQUAL 2)
 
