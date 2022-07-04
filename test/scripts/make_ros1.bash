@@ -21,7 +21,7 @@ popd
 
 # catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 -DSCANSEGMENT_XD=0 2>&1 | tee -a ./build/catkin_make_install.log
 catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 2>&1 | tee -a ./build/catkin_make_install.log
-source ./install/setup.bash
+source ./install_isolated/setup.bash
 
 #
 # print warnings and errors
@@ -34,7 +34,7 @@ echo -e "\ncatkin_make errors:"
 cat build/catkin_make_install.log | grep -i "error:"
 
 # print sick_scan binaries
-echo -e "\ninstall/lib/sick_scan:"
-ls -al ./install/lib/sick_scan
+echo -e "\ninstall_isolated/lib/sick_scan:"
+ls -al ./install_isolated/lib/sick_scan
 popd
 

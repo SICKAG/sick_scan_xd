@@ -74,6 +74,7 @@
 #include <sstream>
 #include <thread>
 #include <vector>
+#include <chrono>
 
 #if !defined __ROS_VERSION
 #define __ROS_VERSION 0 // default: native Linux or Windows
@@ -358,7 +359,7 @@ public:
 ** dynamic reconfiguration and diagnostic_updater currently supported on ROS-Linux only, todo...
 */
 #if __ROS_VERSION == 2 // ROS 2
-#ifndef WIN32
+#ifdef ROS_DIAGNOSTICS_UPDATER_AVAILABLE
 #include <diagnostic_updater/diagnostic_updater.hpp> // part of diagnostic_msgs of ROS2, not available on ROS2-Windows until foxy patch 4
 #include <diagnostic_updater/publisher.hpp>
 #include <rcl_interfaces/msg/set_parameters_result.hpp>
@@ -394,7 +395,7 @@ namespace sick_scan
     DiagnosedPublisherT publisher_;
     };
 }
-#endif // WIN32
+#endif // ROS_DIAGNOSTICS_UPDATER_AVAILABLE
 #elif __ROS_VERSION == 1 // ROS 1
 #ifndef WIN32
 #include <dynamic_reconfigure/server.h>

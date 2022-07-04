@@ -1621,7 +1621,7 @@ namespace sick_scan
       if (lfp_medianfilter_arg >= 0)
       {
         // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
-        sopasCmdVec[CMD_SET_LFPMEDIANFILTER] = "\x02sWN LFPmedianfilter "+ toString((lfp_medianfilter_arg > 0) ? 1 : 0) + " 3\x03"; 
+        sopasCmdVec[CMD_SET_LFPMEDIANFILTER] = "\x02sWN LFPmedianfilter "+ toString((lfp_medianfilter_arg > 0) ? 1 : 0) + " 3\x03";
         sopasCmdChain.push_back(CMD_SET_LFPMEDIANFILTER);
         // ROS_INFO_STREAM("lfp_medianfilter set to " << lfp_medianfilter_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LFPMEDIANFILTER] << "\"");
       }
@@ -1636,7 +1636,7 @@ namespace sick_scan
       {
         // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
         std::string scalefactor_hex = sick_scan::SickScanServices::convertFloatToHexString((float)lmd_scandatascalefactor_arg, true);
-        sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor " + scalefactor_hex + "\x03"; 
+        sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor " + scalefactor_hex + "\x03";
         sopasCmdChain.push_back(CMD_SET_LMDSCANDATASCALEFACTOR);
         // ROS_INFO_STREAM("lmd_scandatascalefactor set to " << lmd_scandatascalefactor_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LMDSCANDATASCALEFACTOR] << "\"");
       }
@@ -3953,12 +3953,12 @@ namespace sick_scan
 
         ros_sensor_msgs::LaserScan msg;
         sick_scan_msg::Encoder EncoderMsg;
-        EncoderMsg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
+        EncoderMsg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
         //TODO remove this hardcoded variable
         bool FireEncoder = false;
         EncoderMsg.header.frame_id = "Encoder";
         ROS_HEADER_SEQ(EncoderMsg.header, numPacketsProcessed);
-        msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // default: ros-timestamp at message received, will be updated by software-pll
+        msg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset); // default: ros-timestamp at message received, will be updated by software-pll
         double elevationAngleInRad = 0.0;
         short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
         // F5B2h -> -2638/200= -13.19°
@@ -4037,13 +4037,13 @@ namespace sick_scan
                 }
                 else
                 {
-                  if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevationAngleInRad, recvTimeStamp, 
+                  if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevationAngleInRad, recvTimeStamp,
                     config_.sw_pll_only_publish, config_.use_generation_timestamp, parser_, FireEncoder, EncoderMsg, numEchos, vang_vec, msg))
                   {
                       dataToProcess = false;
                       break;
                   }
-                  msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // recvTimeStamp updated by software-pll
+                  msg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset); // recvTimeStamp updated by software-pll
                   timeIncrement = msg.time_increment;
                   echoMask = (1 << numEchos) - 1;
                 }
@@ -4348,7 +4348,7 @@ namespace sick_scan
               int numTmpLayer = numOfLayers;
 
 
-              cloud_.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
+              cloud_.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
               // ROS_DEBUG_STREAM("laser_scan timestamp: " << msg.header.stamp << ", pointclound timestamp: " << cloud_.header.stamp);
               cloud_.header.frame_id = config_.frame_id;
               ROS_HEADER_SEQ(cloud_.header, 0);

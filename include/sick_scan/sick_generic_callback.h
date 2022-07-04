@@ -78,24 +78,27 @@ namespace sick_scan
 
         void addListener(HandleType handle, callbackFunctionPtr listener)
         {
-            m_listeners[handle].push_back(listener);
+            if (listener)
+            {
+                m_listeners[handle].push_back(listener);
+            }
         }
 
         void notifyListener(HandleType handle, const MsgType* msg)
         {
-            std::vector<callbackFunctionPtr> & listeners = m_listeners[handle];
-            for(int n = 0; n < listeners.size(); n++)
+            std::list<callbackFunctionPtr> & listeners = m_listeners[handle];
+            for(typename std::list<callbackFunctionPtr>::iterator iter_listener = listeners.begin(); iter_listener != listeners.end(); iter_listener++)
             {
-                if (listeners[n])
+                if (*iter_listener)
                 {
-                    listeners[n](handle, msg);
+                    (*iter_listener)(handle, msg);
                 }
             }
         }
 
     protected:
 
-        std::map<HandleType, std::vector<callbackFunctionPtr>> m_listeners;
+        std::map<HandleType, std::list<callbackFunctionPtr>> m_listeners;
 
     };  // class SickCallbackHandler
 
