@@ -1,4 +1,10 @@
 #!/bin/bash
+
+#
+# Build sick_scan_xd shared API library
+#
+./make_linux.bash
+
 pushd ../../../..
 if [ -f /opt/ros/melodic/setup.bash ] ; then source /opt/ros/melodic/setup.bash ; fi
 if [ -f /opt/ros/noetic/setup.bash  ] ; then source /opt/ros/noetic/setup.bash  ; fi

@@ -6,6 +6,13 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.8.0 - 
+  - **Added** Generic interface, C-API
+
+### v2.7.5 - 
+  - **Changed** merge pull request #85 (adapt to ROS2 Humble)
+  - **Changed** Changed to namespace roswrap in ros wrapper classes
+
 ## Released ##
 
 ### v2.7.4 - 

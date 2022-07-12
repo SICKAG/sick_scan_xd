@@ -82,6 +82,7 @@ if(WIN32)
     link_libraries(ws2_32)    
 else()
     link_libraries(pthread) # std::thread requires pthread on linux
+    link_libraries(dl)      # dynamic loading of libraries
 endif()
 
 # By uncommenting the following lines you can list all variable names ...
@@ -167,7 +168,7 @@ if(ROS_VERSION EQUAL 1)
         SickScanExitSrv.srv
     )
     set(diagnostic_updater_pkg diagnostic_updater)
-    add_compile_definitions(ROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+    add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
 endif(ROS_VERSION EQUAL 1)
 
 if(ROS_VERSION EQUAL 2)
@@ -181,7 +182,7 @@ if(ROS_VERSION EQUAL 2)
         find_package(diagnostic_updater)
         if (${diagnostic_updater_FOUND})
             set(diagnostic_updater_pkg diagnostic_updater)
-            add_compile_definitions(ROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+            add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
         endif()
     endif()
     find_package(rclcpp REQUIRED)
@@ -421,7 +422,7 @@ if(ROS_VERSION EQUAL 1)
     )
 endif(ROS_VERSION EQUAL 1)
 
-include_directories(include include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser)
+include_directories(include include/sick_scan_xd_api include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser)
 if(ROS_VERSION EQUAL 0)
 include_directories(roswrap/src/msg_header)
 endif()
@@ -464,6 +465,8 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_scan_parse_util.cpp
         driver/src/sick_scan_services.cpp
         driver/src/sick_generic_laser.cpp
+        driver/src/sick_scan_xd_api/api_impl.cpp
+        driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
         roswrap/src/launchparser/launchparser.cpp 
         driver/src/tinyxml/tinystr.cpp
         driver/src/tinyxml/tinyxml.cpp
@@ -566,6 +569,8 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/tcp/wsa_init.cpp
         driver/src/softwarePLL.cpp
         driver/src/helper/angle_compensator.cpp
+        driver/src/sick_scan_xd_api/api_impl.cpp
+        driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
         ${LDMRS_SOURCES}
         ${SCANSEGMENT_XD_SOURCES}
         ${SRC_ROSSIMU_FILES}
@@ -574,6 +579,9 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     add_library(sick_scan_lib STATIC ${SICK_SCAN_LIB_SRC})
     # target_compile_options(sick_scan_lib PUBLIC "-fPIC")
     add_library(sick_scan_shared_lib SHARED ${SICK_SCAN_LIB_SRC})
+    if(ROS_VERSION EQUAL 0)    
+        target_link_libraries(sick_scan_shared_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES})    
+    endif()
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
     target_link_libraries(sick_generic_caller sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES})
 
@@ -639,13 +647,24 @@ if(ROS_VERSION EQUAL 2)
 
 endif(ROS_VERSION EQUAL 2)
 
+# Build test and usage example for sick_scan_xd_api
+add_executable(sick_scan_xd_api_test 
+    test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp
+    test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c
+    driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
+)
+if(ROS_VERSION EQUAL 1)
+    target_link_libraries(sick_scan_xd_api_test ${catkin_LIBRARIES})
+endif()
+
 if(ROS_VERSION EQUAL 1)
     install(TARGETS sick_scan_lib sick_scan_shared_lib
         DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
-    install(
-        TARGETS
-        sick_generic_caller
+    install(TARGETS sick_generic_caller
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+    install(TARGETS sick_scan_xd_api_test
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
     # install(TARGETS sick_scan_test RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

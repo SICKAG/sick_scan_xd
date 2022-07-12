@@ -384,6 +384,10 @@ Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If y
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
+## API
+
+sick_scan_xd provides a C API, which can be used by any programming language with C-bindings, e.g. in C/C++ or python applications. See [sick_scan_api.md](doc/sick_scan_api/sick_scan_api.md) for further details.
+
 ## IMU Support
 
 Devices of the MRS6xxx and MRS1xxx series are available with an optionally built-in IMU.

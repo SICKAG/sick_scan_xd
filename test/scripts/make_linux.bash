@@ -12,6 +12,8 @@ USECORES=4
 # Build libsick_ldmrs on Linux
 # 
 
+echo -e "sudo build/install libsick_ldmrs ..."
+sudo echo -e "build/install libsick_ldmrs..."
 if [ -d ../../../libsick_ldmrs ] ; then
   pushd ../../../libsick_ldmrs
   if [ ! -d ./build ] ; then mkdir -p ./build ; fi
@@ -27,6 +29,7 @@ fi
 # Build sick_scan_xd on Linux
 # 
 
+echo -e "build sick_scan_xd ..."
 pushd ../..
 if [ ! -d ./build_linux ] ; then mkdir -p ./build_linux ; fi
 
@@ -51,7 +54,20 @@ if [ ! -f ./sick_generic_caller ] ; then
 else
     echo -e "\nmake sick_scan_xd finished."
 fi
+if [ ! -f ./libsick_scan_shared_lib.so ] ; then
+    echo -e "\n## ERROR building libsick_scan_shared_lib.so\n"
+else
+    echo -e "\nmake libsick_scan_shared_lib.so finished."
+fi
+if [ ! -f ./sick_scan_xd_api_test ] ; then
+    echo -e "\n## ERROR building sick_scan_xd_api_test\n"
+else
+    echo -e "make sick_scan_xd_api_test finished."
+fi
 ls -al ./sick_generic_caller
+ls -al ./libsick_scan_shared_lib.so
+ls -al ./sick_scan_xd_api_test
+ldd -r ./libsick_scan_shared_lib.so # print undefined symbols in libsick_scan_shared_lib.so
 echo -e "\n" 
 
 popd 

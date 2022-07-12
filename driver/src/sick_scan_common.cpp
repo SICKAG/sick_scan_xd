@@ -4521,14 +4521,14 @@ namespace sick_scan
               if (shallIFire) // shall i fire the signal???
               {
 #ifdef ROSSIMU
-                notifyPointcloudListener(nh, &cloud_);
+                notifyPointcloudListener(nh, &cloud_); // TODO: add num_echos and segment_idx
                 plotPointCloud(cloud_);
 #else
                 // ROS_DEBUG_STREAM("publishing cloud " << cloud_.height << " x " << cloud_.width << " data, cloud_output_mode=" << config_.cloud_output_mode);
                 if (config_.cloud_output_mode==0)
                 {
                   // standard handling of scans
-                  notifyPointcloudListener(nh, &cloud_);
+                  notifyPointcloudListener(nh, &cloud_); // TODO: add num_echos and segment_idx
                   rosPublish(cloud_pub_, cloud_);
 
                 }
