@@ -422,7 +422,7 @@ if(ROS_VERSION EQUAL 1)
     )
 endif(ROS_VERSION EQUAL 1)
 
-include_directories(include include/sick_scan_xd_api include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include roswrap/src/include/launchparser)
+include_directories(include include/sick_scan_xd_api include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include/launchparser)
 if(ROS_VERSION EQUAL 0)
 include_directories(roswrap/src/msg_header)
 endif()
@@ -516,6 +516,7 @@ if(ROS_VERSION EQUAL 1)
 
 else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
 
+    include_directories(roswrap/src/include)
     if(WIN32)
         include_directories(roswrap/helper_win)
         file(GLOB SRC_WIN_FILES roswrap/helper_win/usleep/usleep.c)

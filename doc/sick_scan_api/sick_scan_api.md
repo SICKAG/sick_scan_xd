@@ -16,7 +16,7 @@ The generic sick_scan_xd API ships with the API-header, the library (binary or s
 
 ## Build shared library
 
-The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../README.md/#build-on-linux-generic-without-ros) for Linux resp. [Build on Windows](../README.md/#build-on-windows) for Windows.
+The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../../README.md/#build-on-linux-generic-without-ros) for Linux resp. [Build on Windows](../../README.md/#build-on-windows) for Windows.
 
 ## C-API
 

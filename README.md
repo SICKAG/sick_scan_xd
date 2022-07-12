@@ -15,6 +15,7 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 - [Build on Linux ROS2](#build-on-linux-ros2)
 - [Build on Windows](#build-on-windows)
 - [Build on Windows ROS2](#build-on-windows-ros2)
+- [API](#api)
 - [Run sick_scan_xd driver](#run-sick_scan_xd-driver)
    - [Start Multiple Nodes](#start-multiple-nodes)
    - [Common parameters](#common-parameters)
