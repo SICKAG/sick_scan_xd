@@ -186,19 +186,19 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    mkdir -p ./build
    pushd ./build
    export ROS_VERSION=0
-   cmake -DROS_VERSION=0 -G "Unix Makefiles" ..
+   cmake -DROS_VERSION=0 -G "Unix Makefiles" ../sick_scan_xd
    make -j4
    popd
    ```
 
 Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DLDMRS=0`:
    ```
-   cmake -DROS_VERSION=0 -DLDMRS=0 -G "Unix Makefiles" ..
+   cmake -DROS_VERSION=0 -DLDMRS=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
 
 Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
-   cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ..
+   cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
 
 

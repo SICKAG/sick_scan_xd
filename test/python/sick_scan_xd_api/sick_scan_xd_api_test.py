@@ -28,11 +28,14 @@ if __name__ == "__main__":
         ros_pointcloud_publisher = rospy.Publisher("/sick_scan_xd_api_test/api_cloud", PointCloud2, queue_size=10)
 
     # Load sick_scan_library
-    sick_scan_library = SickScanApiLoadLibrary(["build_linux/", "src/sick_scan_xd/build_linux/", "./", "./"], "libsick_scan_shared_lib.so")
+    sick_scan_library = SickScanApiLoadLibrary(["build/", "build_linux/", "src/build/", "src/build_linux/", "src/sick_scan_xd/build/", "src/sick_scan_xd/build_linux/", "./", "../"], "libsick_scan_shared_lib.so")
     api_handle = SickScanApiCreate(sick_scan_library)
 
     # Initialize lidar by launchfile, e.g. sick_tim_7xx.launch
-    SickScanApiInitByLaunchfile(sick_scan_library, api_handle, "./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False")
+    # SickScanApiInitByLaunchfile(sick_scan_library, api_handle, "./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False")
+    cli_args = " ".join(sys.argv[1:])
+    print("sick_scan_xd_api_test.py: initializing lidar, commandline arguments = \"{}\"".format(cli_args))
+    SickScanApiInitByLaunchfile(sick_scan_library, api_handle, cli_args)
 
     # Register a callback for PointCloud messages
     pointcloud_callback = SickScanPointCloudMsgCallback(pySickScanCartesianPointCloudMsgCallback)

@@ -14,9 +14,80 @@ The generic sick_scan_xd API ships with the API-header, the library (binary or s
 
 ![apiComponentsDiagram1.png](apiComponentsDiagram1.png)
 
-## Build shared library
+## Build and test shared library
 
-The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../../README.md/#build-on-linux-generic-without-ros) for Linux resp. [Build on Windows](../../README.md/#build-on-windows) for Windows.
+The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../../README.md/#build-on-linux-generic-without-ros) for Linux. To avoid potential relocation issues, building without LDMRS and Multiscan support is currently recommended (but will be supported in the next release). Run the following commands to build the shared library `libsick_scan_shared_lib.so` on Linux:
+
+```
+git clone <repository>/sick_scan_xd.git
+mkdir -p ./build
+pushd ./build
+cmake -DROS_VERSION=0 -DLDMRS=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ../sick_scan_xd
+make -j4
+ls -al libsick_scan_shared_lib.so sick_scan_xd_api_test sick_generic_caller
+popd
+```
+
+After successfull build, the shared library `libsick_scan_shared_lib.so` and a tiny test executable `sick_scan_xd_api_test` are created. Run `sick_scan_xd_api_test <launchfile> hostname:=<ip-address>` to test the API against a lidar, e.g.:
+
+```
+cd ./build
+export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH
+./sick_scan_xd_api_test ../sick_scan_xd/launch/sick_lms_1xx.launch hostname:=192.168.0.111
+```
+
+The executable binary `sick_scan_xd_api_test` will just load library `libsick_scan_shared_lib.so`, start the lidar and print a message when receiving lidar messages, e.g. `sick_scan_xd_api_test: pointcloud callback`. Replace `sick_lms_1xx.launch` in the example by the launchfile corresponding to your type of lidar.
+
+To load the library, the build folder has to be included in `LD_LIBRARY_PATH`. Set environment variable `LD_LIBRARY_PATH` to your build folder, e.g.
+```
+export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH
+```
+
+### Python example
+
+Python example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) is handy to test the library in python. Like its C++ counterpart, it just loads library `libsick_scan_shared_lib.so`, starts a lidar and receives the lidar pointcloud via API. On ROS-1, the pointcloud is converted to ROS and published on topic "/sick_scan_xd_api_test/api_cloud".
+
+Run `python3 sick_scan_xd_api_test.py <launchfile> hostname:=<ip-address>` to test the API against a lidar, e.g.:
+
+```
+cd ./build
+export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH
+source /opt/ros/noetic/setup.bash
+python3 ../sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ../sick_scan_xd/launch/sick_lms_1xx.launch hostname:=192.168.0.111
+```
+
+### Simulation and unittest
+
+sick_scan_xd provides a tiny server for offline tests which simulates a basic lidar. It just accepts TCP connections, responds to sopas requests with predefined responses and sends lidar data from file. See [Simulation](../../README.md/#simulation) for further details. Note that the simulation does not emulate or replace a lidar, it just supports basic unittests.
+
+Open a new terminal and run the following steps to test the api against a TiM7xx simulation using the python example mentioned above:
+
+1. Build library `libsick_scan_shared_lib.so` incl. emulator with option `-DCMAKE_ENABLE_EMULATOR=1`:
+   ```
+   mkdir -p ./src/build
+   pushd ./src/build
+   rm -rf ./*
+   cmake -DROS_VERSION=0 -DLDMRS=0 -DSCANSEGMENT_XD=0 -DCMAKE_ENABLE_EMULATOR=1 -G "Unix Makefiles" ../sick_scan_xd
+   make -j4
+   ls -al libsick_scan_shared_lib.so sick_scan_xd_api_test sick_generic_caller sick_scan_emulator
+   popd
+   ```
+
+2. Build sick_scan_xd for ROS-1 on Linux, see [Build on Linux ROS1](../../README.md/#build-on-linux-ros1)
+
+3. Start the TiM7xx simulator:
+   ```
+   cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng.json /tmp/lmd_scandata.pcapng.json
+   ./src/build/sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch &
+   sleep 1
+   ```
+
+4. Run sick_scan_xd_api_test.py against the TiM7xx simulator on localhost:
+   ```
+   python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
+   ```
+
+5. Start rviz and visualize the pointcloud on topic "/sick_scan_xd_api_test/api_cloud".
 
 ## C-API
 
@@ -651,7 +722,7 @@ SickScanApiRelease(apiHandle);
 SickScanApiUnloadLibrary();
 ```
 
-Note: All functions named `SickScanApi` are implemented within the library file (typically "sick_scan_api.dll" on Windows resp. "sick_scan_api.so" on Linux). A small wrapper is included in the examples, which loads and unloads the library (functions `SickScanApiLoadLibrary` and `SickScanApiUnloadLibrary`) and delegates the function calls to the binary.
+Note: All functions named `SickScanApi` are implemented within the library file ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux). A small wrapper is included in the examples, which loads and unloads the library (functions `SickScanApiLoadLibrary` and `SickScanApiUnloadLibrary`) and delegates the function calls to the binary.
 
 A C/C++ usage example is implemented in [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp).
 

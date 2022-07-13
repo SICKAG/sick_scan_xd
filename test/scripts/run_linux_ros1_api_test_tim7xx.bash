@@ -39,7 +39,7 @@ function start_api_test_cpp()
 # Run sick_scan_xd_api_test (python example)
 function run_api_test_python()
 {
-    python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py 
+    python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
 }
 
 function kill_simu()
