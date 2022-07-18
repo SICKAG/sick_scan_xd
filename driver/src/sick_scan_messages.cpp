@@ -264,7 +264,7 @@ bool sick_scan::SickScanMessages::parseLFErecMsg(const rosTime& timeStamp, uint8
         output_msg.fields_number = 0;
         if(!readBinaryBuffer(receiveBuffer, receiveLength, output_msg.fields_number) || output_msg.fields_number <= 0)
         {
-            ROS_ERROR_STREAM("## ERROR SickScanMessages::parseLFErecMsg(): parse error, fields number = " << output_msg.fields_number<< " should be greater 0 (" << __FILE__ << ":" << __LINE__ << ")");
+            ROS_ERROR_STREAM("## ERROR SickScanMessages::parseLFErecMsg(): parse error, fields number = " << output_msg.fields_number<< " should be greater than 0 (" << __FILE__ << ":" << __LINE__ << ")");
             ROS_ERROR_STREAM("## ERROR SickScanMessages::parseLFErecMsg(): " << msg_receiveLength << " byte received: " << DataDumper::binDataToAsciiString(msg_receiveBuffer, msg_receiveLength));
             return false;
         }

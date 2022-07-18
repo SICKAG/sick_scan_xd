@@ -68,8 +68,11 @@ class SickScanApiConverter
 {
 public:
 #if __ROS_VERSION == 1
-    /* Convert a SickScanPointCloudMsg to sensor_msgs::PointCloud2 (ROS-1 only) */
+    /* Convert a cartesian SickScanPointCloudMsg to sensor_msgs::PointCloud2 (ROS-1 only) */
     static sensor_msgs::PointCloud2 convertPointCloudMsg(const SickScanPointCloudMsg & msg);
+
+    /* Convert a polar SickScanPointCloudMsg to sensor_msgs::PointCloud2 (ROS-1 only) */
+    static sensor_msgs::PointCloud2 convertPolarPointCloudMsg(const SickScanPointCloudMsg & msg);
 #endif
 
 }; // SickScanApiConverter

@@ -1,8 +1,9 @@
-#include <signal.h>
+#include <exception>
 #include <iomanip>
-#include <vector>
-#include <string>
+#include <signal.h>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include "sick_scan_api.h"
 #include "sick_scan/sick_generic_laser.h"
@@ -11,7 +12,9 @@
 static std::string s_scannerName = "sick_scan";
 static std::map<SickScanApiHandle,std::string> s_api_caller;
 static std::vector<void*> s_malloced_resources;
-
+static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanPointCloudMsg> s_callback_handler_cartesian_pointcloud_messages;
+static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanPointCloudMsg> s_callback_handler_polar_pointcloud_messages;
+static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanImuMsg>        s_callback_handler_imu_messages;
 
 static SickScanApiHandle castNodeToApiHandle(rosNodePtr node)
 {
@@ -26,11 +29,13 @@ static rosNodePtr castApiHandleToNode(SickScanApiHandle apiHandle)
 /*
 *  Message converter
 */
-static SickScanPointCloudMsg convertPointCloudMsg(const ros_sensor_msgs::PointCloud2& msg)
+
+static SickScanPointCloudMsg convertPointCloudMsg(const sick_scan::PointCloud2withEcho& msg_with_echo)
 {
     SickScanPointCloudMsg export_msg;
     memset(&export_msg, 0, sizeof(export_msg));
     // Copy header and pointcloud dimension
+    const ros_sensor_msgs::PointCloud2& msg = msg_with_echo.pointcloud;
     ROS_HEADER_SEQ(export_msg.header, msg.header.seq); // export_msg.header.seq = msg.header.seq;
     export_msg.header.timestamp_sec = sec(msg.header.stamp); // msg.header.stamp.sec;
     export_msg.header.timestamp_nsec = nsec(msg.header.stamp); // msg.header.stamp.nsec;
@@ -41,6 +46,8 @@ static SickScanPointCloudMsg convertPointCloudMsg(const ros_sensor_msgs::PointCl
     export_msg.is_dense = msg.is_dense;
     export_msg.point_step = msg.point_step;
     export_msg.row_step = msg.row_step;
+    export_msg.num_echos = msg_with_echo.num_echos;
+    export_msg.segment_idx = msg_with_echo.segment_idx;
     // Copy field descriptions
     int num_fields = msg.fields.size();
     std::vector<SickScanPointFieldMsg> export_fields(num_fields);
@@ -82,19 +89,72 @@ static void freePointCloudMsg(SickScanPointCloudMsg& export_msg)
     memset(&export_msg, 0, sizeof(export_msg));
 }
 
+static SickScanImuMsg convertImuMsg(const ros_sensor_msgs::Imu& src_msg)
+{
+    SickScanImuMsg dst_msg;
+    memset(&dst_msg, 0, sizeof(dst_msg));
+    // Copy header
+    ROS_HEADER_SEQ(dst_msg.header, src_msg.header.seq);
+    dst_msg.header.timestamp_sec = sec(src_msg.header.stamp);
+    dst_msg.header.timestamp_nsec = nsec(src_msg.header.stamp);
+    strncpy(dst_msg.header.frame_id, src_msg.header.frame_id.c_str(), sizeof(dst_msg.header.frame_id) - 2);
+
+    dst_msg.orientation.x = src_msg.orientation.x;
+    dst_msg.orientation.y = src_msg.orientation.y;
+    dst_msg.orientation.z = src_msg.orientation.z;
+    dst_msg.orientation.w = src_msg.orientation.w;
+    for(int n = 0; n < 9; n++)
+        dst_msg.orientation_covariance[n] = src_msg.orientation_covariance[n];
+    dst_msg.angular_velocity.x = src_msg.angular_velocity.x;
+    dst_msg.angular_velocity.y = src_msg.angular_velocity.y;
+    dst_msg.angular_velocity.z = src_msg.angular_velocity.z;
+    for(int n = 0; n < 9; n++)
+        dst_msg.angular_velocity_covariance[n] = src_msg.angular_velocity_covariance[n];
+    dst_msg.linear_acceleration.x = src_msg.linear_acceleration.x;
+    dst_msg.linear_acceleration.y = src_msg.linear_acceleration.y;
+    dst_msg.linear_acceleration.z = src_msg.linear_acceleration.z;
+    for(int n = 0; n < 9; n++)
+        dst_msg.linear_acceleration_covariance[n] = src_msg.linear_acceleration_covariance[n];
+    return dst_msg;
+}
+
+static void freeImuMsg(SickScanImuMsg& msg)
+{
+    memset(&msg, 0, sizeof(msg));
+}
+
 /*
 *  Callback handler
 */
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanPointCloudMsg> s_callback_handler_pointcloud_messages;
 
-static void pointcloud_callback(rosNodePtr node, const ros_sensor_msgs::PointCloud2* msg)
+static void cartesian_pointcloud_callback(rosNodePtr node, const sick_scan::PointCloud2withEcho* msg)
 {
-    ROS_INFO_STREAM("api_impl pointcloud_callback: PointCloud2 message, " << msg->width << "x" << msg->height << " points");
+    ROS_DEBUG_STREAM("api_impl cartesian_pointcloud_callback: PointCloud2 message, " << msg->pointcloud.width << "x" << msg->pointcloud.height << " points");
     // Convert ros_sensor_msgs::PointCloud2 message to SickScanPointCloudMsg and export (i.e. notify all listeners)
     SickScanPointCloudMsg export_msg = convertPointCloudMsg(*msg);
     SickScanApiHandle apiHandle = castNodeToApiHandle(node);
-    s_callback_handler_pointcloud_messages.notifyListener(apiHandle, &export_msg);
+    s_callback_handler_cartesian_pointcloud_messages.notifyListener(apiHandle, &export_msg);
     freePointCloudMsg(export_msg);
+}
+
+static void polar_pointcloud_callback(rosNodePtr node, const sick_scan::PointCloud2withEcho* msg)
+{
+    ROS_DEBUG_STREAM("api_impl polar_pointcloud_callback: PointCloud2 message, " << msg->pointcloud.width << "x" << msg->pointcloud.height << " points");
+    // Convert ros_sensor_msgs::PointCloud2 message to SickScanPointCloudMsg and export (i.e. notify all listeners)
+    SickScanPointCloudMsg export_msg = convertPointCloudMsg(*msg);
+    SickScanApiHandle apiHandle = castNodeToApiHandle(node);
+    s_callback_handler_polar_pointcloud_messages.notifyListener(apiHandle, &export_msg);
+    freePointCloudMsg(export_msg);
+}
+
+static void imu_callback(rosNodePtr node, const ros_sensor_msgs::Imu* msg)
+{
+    ROS_DEBUG_STREAM("api_impl imu_callback: Imu message, orientation={" << msg->orientation << "}, angular_velocity={" << msg->angular_velocity << "}, linear_acceleration={" << msg->linear_acceleration << "}");
+    // Convert ros_sensor_msgs::PointCloud2 message to SickScanPointCloudMsg and export (i.e. notify all listeners)
+    SickScanImuMsg export_msg = convertImuMsg(*msg);
+    SickScanApiHandle apiHandle = castNodeToApiHandle(node);
+    s_callback_handler_imu_messages.notifyListener(apiHandle, &export_msg);
+    freeImuMsg(export_msg);
 }
 
 /*
@@ -108,98 +168,173 @@ static void pointcloud_callback(rosNodePtr node, const ros_sensor_msgs::PointClo
 */
 SickScanApiHandle SickScanApiCreate(int argc, char** argv)
 {
-    std::string versionInfo = std::string("sick_scan_api V. ") + getVersionInfo();
-    setVersionInfo(versionInfo);
+    try
+    {
+        std::string versionInfo = std::string("sick_scan_api V. ") + getVersionInfo();
+        setVersionInfo(versionInfo);
 
-#if defined __ROS_VERSION && __ROS_VERSION == 2
-    rclcpp::init(argc, argv);
-    rclcpp::NodeOptions node_options;
-    node_options.allow_undeclared_parameters(true);
-    rosNodePtr node = rclcpp::Node::make_shared("sick_scan", "", node_options);
-    SickScanApiHandle apiHandle = castNodeToApiHandle(node);
-#else
-    ros::init(argc, argv, s_scannerName, ros::init_options::NoSigintHandler);
-    SickScanApiHandle apiHandle = new ros::NodeHandle("~");
-#endif
+        #if defined __ROS_VERSION && __ROS_VERSION == 2
+        rclcpp::init(argc, argv);
+        rclcpp::NodeOptions node_options;
+        node_options.allow_undeclared_parameters(true);
+        rosNodePtr node = rclcpp::Node::make_shared("sick_scan", "", node_options);
+        SickScanApiHandle apiHandle = castNodeToApiHandle(node);
+        #else
+        ros::init(argc, argv, s_scannerName, ros::init_options::NoSigintHandler);
+        SickScanApiHandle apiHandle = new ros::NodeHandle("~");
+        #endif
 
-    signal(SIGINT, rosSignalHandler);
-    ROS_INFO_STREAM(versionInfo);
+        signal(SIGINT, rosSignalHandler);
+        ROS_INFO_STREAM(versionInfo);
 
-    if (argc > 0 && argv != 0 && argv[0] != 0)
-        s_api_caller[apiHandle] = argv[0];
-    return apiHandle;
+        if (argc > 0 && argv != 0 && argv[0] != 0)
+            s_api_caller[apiHandle] = argv[0];
+        return apiHandle;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiCreate(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiCreate(): unknown exception ");
+    }
+    return 0;
 }
 
 // Release and free all resources of a handle; the handle is invalid after SickScanApiRelease
 int32_t SickScanApiRelease(SickScanApiHandle apiHandle)
 {
-    for(int n = 0; n < s_malloced_resources.size(); n++)
-        free(s_malloced_resources[n]);
-    s_malloced_resources.clear();
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiRelease(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_api_caller[apiHandle].clear();
+        s_callback_handler_cartesian_pointcloud_messages.clear();
+        s_callback_handler_polar_pointcloud_messages.clear();
+        s_callback_handler_imu_messages.clear();
+        for(int n = 0; n < s_malloced_resources.size(); n++)
+            free(s_malloced_resources[n]);
+        s_malloced_resources.clear();
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRelease(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRelease(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 
 // Initializes a lidar by launchfile and starts message receiving and processing
 int32_t SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* launchfile_args)
 {
-    if (apiHandle == 0)
+    try
     {
-        ROS_ERROR_STREAM("## ERROR SickScanApiInitByLaunchfile(" << launchfile_args << "): invalid apiHandle");
-        return SICK_SCAN_API_NOT_INITIALIZED;
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiInitByLaunchfile(" << launchfile_args << "): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        // Split launchfile_args by spaces
+        ROS_INFO_STREAM("SickScanApiInitByLaunchfile: launchfile_args = \"" << launchfile_args << "\"");
+        std::istringstream args_stream(launchfile_args);
+        std::string arg;
+        std::vector<std::string> args;
+        while (getline(args_stream, arg, ' ' ))
+            args.push_back(arg);
+        // Convert to argc, argv
+        int argc = args.size() + 1;
+        char** argv = (char**)malloc(argc * sizeof(char*));
+        s_malloced_resources.push_back(argv);
+        argv[0] = (char*)malloc(s_api_caller[apiHandle].size() + 1);
+        strcpy(argv[0], s_api_caller[apiHandle].c_str());
+        s_malloced_resources.push_back(argv[0]);
+        for(int n = 1; n < argc; n++)
+        {
+            argv[n] = (char*)malloc(strlen(args[n-1].c_str()) + 1);
+            strcpy(argv[n], args[n-1].c_str());
+            s_malloced_resources.push_back(argv[n]);
+        }
+        // Init using SickScanApiInitByCli
+        int32_t ret = SickScanApiInitByCli(apiHandle, argc, argv);
+        return ret;
     }
-    // Split launchfile_args by spaces
-    ROS_INFO_STREAM("SickScanApiInitByLaunchfile: launchfile_args = \"" << launchfile_args << "\"");
-    std::istringstream args_stream(launchfile_args);
-    std::string arg;
-    std::vector<std::string> args;
-    while (getline(args_stream, arg, ' ' ))
-        args.push_back(arg);
-    // Convert to argc, argv
-    int argc = args.size() + 1;
-    char** argv = (char**)malloc(argc * sizeof(char*));
-    s_malloced_resources.push_back(argv);
-    argv[0] = (char*)malloc(s_api_caller[apiHandle].size() + 1);
-    strcpy(argv[0], s_api_caller[apiHandle].c_str());
-    s_malloced_resources.push_back(argv[0]);
-    for(int n = 1; n < argc; n++)
+    catch(const std::exception& e)
     {
-        argv[n] = (char*)malloc(strlen(args[n-1].c_str()) + 1);
-        strcpy(argv[n], args[n-1].c_str());
-        s_malloced_resources.push_back(argv[n]);
+        ROS_ERROR_STREAM("## ERROR SickScanApiInitByLaunchfile(): exception " << e.what());
     }
-    // Init using SickScanApiInitByCli
-    int32_t ret = SickScanApiInitByCli(apiHandle, argc, argv);
-    return ret;
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiInitByLaunchfile(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 
 // Initializes a lidar by commandline arguments and starts message receiving and processing
 int32_t SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv)
 {
-    if (apiHandle == 0)
+    try
     {
-        ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): invalid apiHandle");
-        return SICK_SCAN_API_NOT_INITIALIZED;
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        std::stringstream cli_params;
+        for(int n = 0; n < argc; n++)
+            cli_params << (n > 0 ? " ": "")  << argv[n];
+        ROS_INFO_STREAM("SickScanApiInitByCli: " << cli_params.str());
+        
+        // Start sick_scan event loop
+        int exit_code = 0;
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!startGenericLaser(argc, argv, s_scannerName, node, &exit_code) || exit_code != sick_scan::ExitSuccess)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): startGenericLaser() failed, could not start generic laser event loop");
+            return SICK_SCAN_API_ERROR;
+        }
+        return SICK_SCAN_API_SUCCESS;
     }
-    std::stringstream cli_params;
-    for(int n = 0; n < argc; n++)
-        cli_params << (n > 0 ? " ": "")  << argv[n];
-    ROS_INFO_STREAM("SickScanApiInitByCli: " << cli_params.str());
-    
-    // Start sick_scan event loop
-    int exit_code = 0;
-    rosNodePtr node = castApiHandleToNode(apiHandle);
-    if (!startGenericLaser(argc, argv, s_scannerName, node, &exit_code) || exit_code != sick_scan::ExitSuccess)
+    catch(const std::exception& e)
     {
-        ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): startGenericLaser() failed, could not start generic laser event loop");
-        return SICK_SCAN_API_ERROR;
+        ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): exception " << e.what());
     }
-    return SICK_SCAN_API_SUCCESS;
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 
 // Stops message receiving and processing and closes a lidar
 int32_t SickScanApiClose(SickScanApiHandle apiHandle)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiClose(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        stopScannerAndExit(true);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiClose(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiClose(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 
 /*
@@ -209,39 +344,151 @@ int32_t SickScanApiClose(SickScanApiHandle apiHandle)
 // Register / deregister a callback for cartesian PointCloud messages, pointcloud in cartesian coordinates with fields x, y, z, intensity
 int32_t SickScanApiRegisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
-    if (apiHandle == 0)
+    try
     {
-        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterCartesianPointCloudMsg(): invalid apiHandle");
-        return SICK_SCAN_API_NOT_INITIALIZED;
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiRegisterCartesianPointCloudMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_cartesian_pointcloud_messages.addListener(apiHandle, callback);
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        sick_scan::addCartesianPointcloudListener(node, cartesian_pointcloud_callback);
+        return SICK_SCAN_API_SUCCESS;
     }
-    s_callback_handler_pointcloud_messages.addListener(apiHandle, callback);
-    rosNodePtr node = castApiHandleToNode(apiHandle);
-    sick_scan::addPointcloudListener(node, pointcloud_callback);
-    return SICK_SCAN_API_SUCCESS;
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterCartesianPointCloudMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterCartesianPointCloudMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 int32_t SickScanApiDeregisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterCartesianPointCloudMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_cartesian_pointcloud_messages.removeListener(apiHandle, callback);
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        sick_scan::removeCartesianPointcloudListener(node, cartesian_pointcloud_callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterCartesianPointCloudMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterCartesianPointCloudMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 
 // Register / deregister a callback for polar PointCloud messages, pointcloud in polar coordinates with fields range, azimuth, elevation, intensity
 int32_t SickScanApiRegisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiRegisterPolarPointCloudMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_polar_pointcloud_messages.addListener(apiHandle, callback);
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        sick_scan::addPolarPointcloudListener(node, polar_pointcloud_callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterPolarPointCloudMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterPolarPointCloudMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 int32_t SickScanApiDeregisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterPolarPointCloudMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_polar_pointcloud_messages.removeListener(apiHandle, callback);
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        sick_scan::removePolarPointcloudListener(node, polar_pointcloud_callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterPolarPointCloudMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterPolarPointCloudMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 
 // Register / deregister a callback for Imu messages
 int32_t SickScanApiRegisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiRegisterImuMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_imu_messages.addListener(apiHandle, callback);
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        sick_scan::addImuListener(node, imu_callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterImuMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterImuMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 int32_t SickScanApiDeregisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterImuMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_imu_messages.removeListener(apiHandle, callback);
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        sick_scan::removeImuListener(node, imu_callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterImuMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterImuMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
 }
 
 // Register / deregister a callback for SickScanLFErecMsg messages

@@ -55,7 +55,7 @@
 #include <sick_scan_api_converter.h>
 
 #if __ROS_VERSION == 1
-/* Convert a SickScanPointCloudMsg to sensor_msgs::PointCloud2 (ROS-1 only) */
+/* Convert a cartesian SickScanPointCloudMsg to sensor_msgs::PointCloud2 (ROS-1 only) */
 sensor_msgs::PointCloud2 SickScanApiConverter::convertPointCloudMsg(const SickScanPointCloudMsg & msg)
 {
     sensor_msgs::PointCloud2 pointcloud;
@@ -65,7 +65,7 @@ sensor_msgs::PointCloud2 SickScanApiConverter::convertPointCloudMsg(const SickSc
     pointcloud.header.stamp.nsec = msg.header.timestamp_nsec;
     pointcloud.header.frame_id = msg.header.frame_id;
     pointcloud.width = msg.width;
-    pointcloud.height = msg.height ;
+    pointcloud.height = msg.height;
     pointcloud.is_bigendian = msg.is_bigendian;
     pointcloud.is_dense = msg.is_dense;
     pointcloud.point_step = msg.point_step;
@@ -87,4 +87,76 @@ sensor_msgs::PointCloud2 SickScanApiConverter::convertPointCloudMsg(const SickSc
     // Return converted pointcloud
     return pointcloud;
 }
-#endif
+#endif // __ROS_VERSION == 1
+
+#if __ROS_VERSION == 1
+/* Convert a polar SickScanPointCloudMsg to sensor_msgs::PointCloud2 (ROS-1 only) */
+sensor_msgs::PointCloud2 SickScanApiConverter::convertPolarPointCloudMsg(const SickScanPointCloudMsg & msg)
+{
+    sensor_msgs::PointCloud2 pointcloud;
+    // Copy header and pointcloud dimension
+    pointcloud.header.seq = msg.header.seq;
+    pointcloud.header.stamp.sec = msg.header.timestamp_sec;
+    pointcloud.header.stamp.nsec = msg.header.timestamp_nsec;
+    pointcloud.header.frame_id = msg.header.frame_id;
+    pointcloud.width = msg.width;
+    pointcloud.height = msg.height;
+    pointcloud.is_bigendian = msg.is_bigendian;
+    pointcloud.is_dense = msg.is_dense;
+    // Create field descriptions
+    int num_fields = msg.fields.size;
+    SickScanPointFieldMsg* msg_fields_buffer = (SickScanPointFieldMsg*)msg.fields.buffer;
+    int field_offset_range = -1, field_offset_azimuth = -1, field_offset_elevation = -1, field_offset_intensity = -1;
+    for(int n = 0; n < num_fields; n++)
+    {
+        if (strcmp(msg_fields_buffer[n].name, "range") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+            field_offset_range = msg_fields_buffer[n].offset;
+        else if (strcmp(msg_fields_buffer[n].name, "azimuth") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+            field_offset_azimuth = msg_fields_buffer[n].offset;
+        else if (strcmp(msg_fields_buffer[n].name, "elevation") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+            field_offset_elevation = msg_fields_buffer[n].offset;
+        else if (strcmp(msg_fields_buffer[n].name, "intensity") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+            field_offset_intensity = msg_fields_buffer[n].offset;
+    }
+    pointcloud.fields.resize(4);
+    for (int i = 0; i < pointcloud.fields.size(); i++)
+    {
+        std::string channelId[] = {"x", "y", "z", "intensity"};
+        pointcloud.fields[i].name = channelId[i];
+        pointcloud.fields[i].offset = i * sizeof(float);
+        pointcloud.fields[i].count = 1;
+        pointcloud.fields[i].datatype = sensor_msgs::PointField::FLOAT32;
+    }
+    pointcloud.point_step = pointcloud.fields.size() * sizeof(float); // i.e. point_step := 16 byte
+    pointcloud.row_step = pointcloud.point_step * pointcloud.width;
+    // Convert pointcloud data
+    pointcloud.data.resize(pointcloud.row_step * pointcloud.height);
+    int cartesian_point_cloud_offset = 0;
+    float* cartesian_point_cloud_buffer = (float*)pointcloud.data.data();
+    for (int row_idx = 0; row_idx < msg.height; row_idx++)
+    {
+        for (int col_idx = 0; col_idx < msg.width; col_idx++, cartesian_point_cloud_offset+=4)
+        {
+            // Get lidar point in polar coordinates (range, azimuth and elevation)
+            int polar_point_offset = row_idx * msg.row_step + col_idx * msg.point_step;
+            float point_range = ((float*)(msg.data.buffer + polar_point_offset + field_offset_range))[0];
+            float point_azimuth = ((float*)(msg.data.buffer + polar_point_offset + field_offset_azimuth))[0];
+            float point_elevation = ((float*)(msg.data.buffer + polar_point_offset + field_offset_elevation))[0];
+            float point_intensity = 0;
+            if (field_offset_intensity >= 0)
+                point_intensity = ((float*)(msg.data.buffer + polar_point_offset + field_offset_intensity))[0];
+            // Convert from polar to cartesian coordinates
+            float point_x = point_range * cosf(point_elevation) * cosf(point_azimuth);
+            float point_y = point_range * cosf(point_elevation) * sinf(point_azimuth);
+            float point_z = point_range * sinf(point_elevation);
+            // printf("point %d,%d: offset=%d, range=%f, azimuth=%f, elevation=%f, intensity=%f, x=%f, y=%f, z=%f\n", col_idx, row_idx, polar_point_offset, 
+            //     point_range, point_azimuth * 180 / M_PI, point_elevation * 180 / M_PI, point_intensity, point_x, point_y, point_z);
+            cartesian_point_cloud_buffer[cartesian_point_cloud_offset + 0] = point_x;
+            cartesian_point_cloud_buffer[cartesian_point_cloud_offset + 1] = point_y;
+            cartesian_point_cloud_buffer[cartesian_point_cloud_offset + 2] = point_z;
+            cartesian_point_cloud_buffer[cartesian_point_cloud_offset + 3] = point_intensity;         
+        }
+    }
+    return pointcloud;
+}
+#endif // __ROS_VERSION == 1

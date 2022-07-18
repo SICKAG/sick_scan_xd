@@ -161,7 +161,7 @@ typedef struct SickScanPointArrayType // Array of SickScanVector3Msg, which can 
   SickScanVector3Msg* buffer;  // Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
 } SickScanPointArray;
 
-typedef struct SickScanImuMsgType // equivalent to SickImu.msg
+typedef struct SickScanImuMsgType // equivalent to ros sensor_msgs::Imu
 {
   SickScanHeader header;                       // message timestamp
   SickScanQuaternionMsg orientation;
@@ -170,10 +170,6 @@ typedef struct SickScanImuMsgType // equivalent to SickImu.msg
   double angular_velocity_covariance[9];       // Row major about x, y, z axes
   SickScanVector3Msg linear_acceleration;
   double linear_acceleration_covariance[9];    // Row major x, y z
-  uint32_t ticks;                              // timestamp Ticks from laser scanner
-  float quaternion_accuracy;                   // quaternion accuracy in rad
-  uint8_t angular_velocity_reliability;        // angular velocity reliability 0 low 255 high, value should be over 3
-  uint8_t linear_acceleration_reliability;     // linear acceleration reliability 0 low 255 high, value should be over 3
 } SickScanImuMsg;
 
 typedef struct SickScanLFErecFieldMsgType // equivalent to LFErecFieldMsg.msg

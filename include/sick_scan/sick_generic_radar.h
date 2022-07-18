@@ -179,6 +179,7 @@ namespace sick_scan
     bool emul = false;
 
     std::string radarName = "???"; // radar device type
+    rosNodePtr node;
 
     rosPublisher<ros_sensor_msgs::PointCloud2> cloud_radar_rawtarget_pub_;
     rosPublisher<ros_sensor_msgs::PointCloud2> cloud_radar_track_pub_;

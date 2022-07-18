@@ -189,9 +189,10 @@ namespace sick_scan
   class SickScanImu
   {
   public:
-    SickScanImu(SickScanCommon *commonPtr_)
+    SickScanImu(SickScanCommon *commonPtr_, rosNodePtr nh_)
     {
       commonPtr = commonPtr_;
+      nh = nh_;
     }
 
     bool isImuDatagram(char *datagram, size_t datagram_length);
@@ -216,6 +217,7 @@ namespace sick_scan
 
   private:
     SickScanCommon *commonPtr;
+    rosNodePtr nh;
     bool emul;
   };
 

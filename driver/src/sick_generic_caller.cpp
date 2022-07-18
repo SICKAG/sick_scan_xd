@@ -180,11 +180,11 @@ int main(int argc, char** argv)
   }
   catch(const std::exception& e)
   {
-    ROS_ERROR_STREAM("## ERROR in ick_generic_caller::main(): exception " << e.what());
+    ROS_ERROR_STREAM("## ERROR in sick_generic_caller::main(): exception " << e.what());
   }
   catch(...)
   {
-    ROS_ERROR_STREAM("## ERROR in ick_generic_caller::main(): unknown exception ");
+    ROS_ERROR_STREAM("## ERROR in sick_generic_caller::main(): unknown exception ");
   }
 
   return result;

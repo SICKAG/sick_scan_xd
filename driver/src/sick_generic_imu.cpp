@@ -505,7 +505,7 @@ namespace sick_scan
   }
   void SickScanImu::imuParserTest()
   {
-    sick_scan::SickScanImu scanImu(NULL);
+    sick_scan::SickScanImu scanImu(NULL, 0);
     sick_scan::SickScanImuValue imuValue;
     //                                             checked with online converter
     //                                             https://www.h-schmidt.net/FloatConverter/IEEE754de.html
@@ -835,6 +835,7 @@ namespace sick_scan
     }
     if (true == bRet)
     {
+        notifyImuListener(nh, &imuMsg_);
         rosPublish(this->commonPtr->imuScan_pub_, imuMsg_);
     }
     return (exitCode);

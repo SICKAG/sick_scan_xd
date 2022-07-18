@@ -99,7 +99,7 @@ class SickScanPointArray(ctypes.Structure):          # sick_scan_api: struct Sic
         ("buffer", ctypes.POINTER(SickScanVector3Msg))  # Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
     ]
 
-class SickScanImuMsg(ctypes.Structure):              # sick_scan_api: struct SickScanImuMsg, equivalent to SickImu.msg
+class SickScanImuMsg(ctypes.Structure):              # sick_scan_api: struct SickScanImuMsg, equivalent to ros sensor_msgs::Imu
     _fields_ = [
         ("header", SickScanHeader),                              # message timestamp
         ("orientation", SickScanQuaternionMsg),
@@ -107,11 +107,7 @@ class SickScanImuMsg(ctypes.Structure):              # sick_scan_api: struct Sic
         ("angular_velocity", SickScanVector3Msg),
         ("angular_velocity_covariance", ctypes.c_double * 9),    # Row major about x, y, z axes
         ("linear_acceleration", SickScanVector3Msg),
-        ("linear_acceleration_covariance", ctypes.c_double * 9), # Row major x, y z
-        ("ticks", ctypes.c_uint32),                              # timestamp Ticks from laser scanner
-        ("quaternion_accuracy", ctypes.c_float),                 # quaternion accuracy in rad
-        ("angular_velocity_reliability", ctypes.c_uint8),        # angular velocity reliability 0 low 255 high, value should be over 3
-        ("linear_acceleration_reliability", ctypes.c_uint8)      # linear acceleration reliability 0 low 255 high, value should be over 3
+        ("linear_acceleration_covariance", ctypes.c_double * 9)  # Row major x, y z
     ]
 
 class SickScanLFErecFieldMsg(ctypes.Structure):      # sick_scan_api: struct SickScanLFErecFieldMsg, equivalent to LFErecFieldMsg.msg
@@ -368,20 +364,44 @@ def SickScanApiLoadLibrary(paths, lib_filname):
     sick_scan_library.SickScanApiFreeLdmrsObjectArrayMsg.restype = ctypes.c_int
     return sick_scan_library
 
+# Unload sick_scan_xd api library
+def SickScanApiUnloadLibrary(sick_scan_library):
+    del sick_scan_library
+
 # Create an instance of sick_scan_xd api.
 # Optional commandline arguments argc, argv identical to sick_generic_caller.
 # Call SickScanApiInitByLaunchfile or SickScanApiInitByCli to process a lidar.
 def SickScanApiCreate(sick_scan_library):
     null_ptr = ctypes.POINTER(ctypes.c_char_p)()
-    api_handle = sick_scan_library.SickScanApiCreate(0, null_ptr) # TODO: convert and call with argc, argv
+    api_handle = sick_scan_library.SickScanApiCreate(0, null_ptr)
     return api_handle
+
+# Release and free all resources of the api handle; the handle is invalid after SickScanApiRelease
+def SickScanApiRelease(sick_scan_library, api_handle):
+    return sick_scan_library.SickScanApiRelease(api_handle)
 
 # Initialize a lidar by launchfile and start message receiving and processing
 def SickScanApiInitByLaunchfile(sick_scan_library, api_handle, launchfile_args):
-    ret = sick_scan_library.SickScanApiInitByLaunchfile(api_handle, ctypes.create_string_buffer(str.encode(launchfile_args)))
-    return ret
+    return sick_scan_library.SickScanApiInitByLaunchfile(api_handle, ctypes.create_string_buffer(str.encode(launchfile_args)))
 
-# Register a callback for PointCloud messages
+# Release and free all resources of the api handle; the handle is invalid after SickScanApiRelease
+def SickScanApiClose(sick_scan_library, api_handle):
+    return sick_scan_library.SickScanApiClose(api_handle)
+
+# Register / deregister a callback for cartesian PointCloud messages, pointcloud in cartesian coordinates with fields x, y, z, intensity
 def SickScanApiRegisterCartesianPointCloudMsg(sick_scan_library, api_handle, pointcloud_callback):
-    ret = sick_scan_library.SickScanApiRegisterCartesianPointCloudMsg(api_handle, pointcloud_callback)
-    return ret
+    return sick_scan_library.SickScanApiRegisterCartesianPointCloudMsg(api_handle, pointcloud_callback)
+def SickScanApiDeregisterCartesianPointCloudMsg(sick_scan_library, api_handle, pointcloud_callback):
+    return sick_scan_library.SickScanApiDeregisterCartesianPointCloudMsg(api_handle, pointcloud_callback)
+
+# Register / deregister a callback for polar PointCloud messages, pointcloud in polar coordinates with fields range, azimuth, elevation, intensity
+def SickScanApiRegisterPolarPointCloudMsg(sick_scan_library, api_handle, pointcloud_callback):
+    return sick_scan_library.SickScanApiRegisterPolarPointCloudMsg(api_handle, pointcloud_callback)
+def SickScanApiDeregisterPolarPointCloudMsg(sick_scan_library, api_handle, pointcloud_callback):
+    return sick_scan_library.SickScanApiDeregisterPolarPointCloudMsg(api_handle, pointcloud_callback)
+
+# Register / deregister a callback for Imu messages
+def SickScanApiRegisterImuMsg(sick_scan_library, api_handle, imu_callback):
+    return sick_scan_library.SickScanApiRegisterImuMsg(api_handle, imu_callback)
+def SickScanApiDeregisterImuMsg(sick_scan_library, api_handle, imu_callback):
+    return sick_scan_library.SickScanApiDeregisterImuMsg(api_handle, imu_callback)

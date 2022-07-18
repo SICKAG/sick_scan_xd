@@ -121,7 +121,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /sick_scan_xd_api_test/api_cloud
+      Topic: /sick_scan_xd_api_test/api_cloud_polar
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -190,5 +190,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1267
-  X: 1090
+  X: 193
   Y: 27

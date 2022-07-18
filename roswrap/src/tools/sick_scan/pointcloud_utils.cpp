@@ -370,7 +370,7 @@ void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall, c
                     }
                   }
 
-                  // Write JPEG Scan Top View // TODO: remove (demo output replaced by API)
+                  // Write JPEG Scan Top View
                   foutJpg = fopen(jpgFileName_tmp.c_str(), "wb");
                   if (foutJpg == NULL)
                   {
@@ -391,7 +391,7 @@ void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall, c
 #endif
 
                   }
-                  // Write CSV-File // TODO: remove (demo output replaced by API)
+                  // Write CSV-File
                   std::string csvFileNameTmp = filename_tmpl + ".csv_tmp";
                   FILE *foutCsv = fopen(csvFileNameTmp.c_str(), "w");
                   if (foutCsv)

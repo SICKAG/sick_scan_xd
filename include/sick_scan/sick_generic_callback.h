@@ -63,9 +63,28 @@
 
 namespace sick_scan
 {
-    typedef void(* PointCloud2Callback)(rosNodePtr handle, const ros_sensor_msgs::PointCloud2* msg);
-    void addPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
-    void notifyPointcloudListener(rosNodePtr handle, const ros_sensor_msgs::PointCloud2* msg);
+    struct PointCloud2withEcho
+    {
+        PointCloud2withEcho(const ros_sensor_msgs::PointCloud2* msg = 0, int32_t _num_echos = 0, int32_t _segment_idx = 0) : pointcloud(*msg), num_echos(_num_echos), segment_idx(_segment_idx) {}
+        ros_sensor_msgs::PointCloud2 pointcloud; // ROS PointCloud2
+        int32_t num_echos;                       // number of echos
+        int32_t segment_idx;                     // segment index (or -1 if pointcloud contains data from multiple segments)
+    };
+
+    typedef void(* PointCloud2Callback)(rosNodePtr handle, const PointCloud2withEcho* msg);
+    typedef void(* ImuCallback)(rosNodePtr handle, const ros_sensor_msgs::Imu* msg);
+
+    void addCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
+    void notifyCartesianPointcloudListener(rosNodePtr handle, const PointCloud2withEcho* msg);
+    void removeCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
+
+    void addPolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
+    void notifyPolarPointcloudListener(rosNodePtr handle, const PointCloud2withEcho* msg);
+    void removePolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
+
+    void addImuListener(rosNodePtr handle, ImuCallback listener);
+    void notifyImuListener(rosNodePtr handle, const ros_sensor_msgs::Imu* msg);
+    void removeImuListener(rosNodePtr handle, ImuCallback listener);
 
     /*
     *  Callback template for registration and deregistration of callbacks incl. notification of listeners
@@ -94,6 +113,27 @@ namespace sick_scan
                     (*iter_listener)(handle, msg);
                 }
             }
+        }
+
+        void removeListener(HandleType handle, callbackFunctionPtr listener)
+        {
+            std::list<callbackFunctionPtr> & listeners = m_listeners[handle];
+            for(typename std::list<callbackFunctionPtr>::iterator iter_listener = listeners.begin(); iter_listener != listeners.end(); )
+            {
+                if (*iter_listener == listener)
+                {
+                    iter_listener = listeners.erase(iter_listener);
+                }
+                else
+                {
+                    iter_listener++;
+                }
+            }
+        }
+
+        void clear()
+        {
+            m_listeners.clear();
         }
 
     protected:

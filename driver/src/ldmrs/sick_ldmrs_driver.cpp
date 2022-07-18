@@ -40,7 +40,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include "sick_scan/ldmrs/sick_ldmrs_driver.hpp"
-
+#include <sick_scan/sick_generic_callback.h>
 #include <sick_ldmrs/datatypes/EvalCaseResults.hpp>
 #include <sick_ldmrs/datatypes/EvalCases.hpp>
 #include <sick_ldmrs/datatypes/Fields.hpp>
@@ -55,7 +55,7 @@
 #endif
 
 // Convert lmdrs scan to PointCloud2
-void ldmrsScanToPointCloud2(const datatypes::Scan* scan, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg);
+void ldmrsScanToPointCloud2(const datatypes::Scan* scan, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar);
 
 namespace sick_ldmrs_driver
 {
@@ -154,14 +154,18 @@ void SickLDMRS::setData(BasicData &data)
       const Time& time = scannerInfos[0].getStartTimestamp();
       ROS_DEBUG_STREAM("setData(): Scan start time: " << time.toString() << " (" << time.toLongString() << ")");
 
-      ros_sensor_msgs::PointCloud2 msg;
-      ldmrsScanToPointCloud2(scan, scannerInfos[0].isRearMirrorSide(), config_.frame_id, msg);
+      ros_sensor_msgs::PointCloud2 msg, msg_polar;
+      ldmrsScanToPointCloud2(scan, scannerInfos[0].isRearMirrorSide(), config_.frame_id, msg, msg_polar);
+      sick_scan::PointCloud2withEcho sick_cloud_msg(&msg, 1, 0);
+      sick_scan::PointCloud2withEcho sick_cloud_msg_polar(&msg_polar, 1, 0);
+      notifyPolarPointcloudListener(nh_, &sick_cloud_msg_polar);
+      notifyCartesianPointcloudListener(nh_, &sick_cloud_msg);
       if(diagnosticPub_)
         diagnosticPub_->publish(msg);
       else
         rosPublish(pub_, msg);
 #ifdef ROSSIMU
-        plotPointCloud(msg);
+        // plotPointCloud(msg);
 #endif
     }
     break;
@@ -589,7 +593,7 @@ std::string SickLDMRS::flexres_err_to_string(const UINT32 code) const
 #if 1
 
 // Convert lmdrs scan to PointCloud2
-void ldmrsScanToPointCloud2(const datatypes::Scan* scan, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg)
+void ldmrsScanToPointCloud2(const datatypes::Scan* scan, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar)
 {
   typedef struct SICK_LDMRS_Point
   {
@@ -644,10 +648,20 @@ void ldmrsScanToPointCloud2(const datatypes::Scan* scan, bool isRearMirrorSide, 
   msg.fields[6].count = 1;
   msg.fields[6].datatype = ros_sensor_msgs::PointField::UINT8;
 
+  msg_polar = msg;
+  msg_polar.fields[0].name = "range";
+  msg_polar.fields[1].name = "azimuth";
+  msg_polar.fields[2].name = "elevation";
+
   msg.data.resize(msg.row_step * msg.height);
   std::fill(msg.data.begin(), msg.data.end(), 0);
   SICK_LDMRS_Point* data_p = (SICK_LDMRS_Point*)(&msg.data[0]);
-  for (size_t i = 0; i < scan->size(); i++, data_p++)
+
+  msg_polar.data.resize(msg_polar.row_step * msg_polar.height);
+  std::fill(msg_polar.data.begin(), msg_polar.data.end(), 0);
+  SICK_LDMRS_Point* polar_data_p = (SICK_LDMRS_Point*)(&msg_polar.data[0]);
+
+  for (size_t i = 0; i < scan->size(); i++, data_p++, polar_data_p++)
   {
     const ScanPoint& p = (*scan)[i];
     data_p->x = p.getX();
@@ -657,6 +671,10 @@ void ldmrsScanToPointCloud2(const datatypes::Scan* scan, bool isRearMirrorSide, 
     data_p->layer = p.getLayer() + (isRearMirrorSide ? 4 : 0);
     data_p->echo = p.getEchoNum();
     data_p->flags = p.getFlags();
+    *polar_data_p = *data_p;
+    polar_data_p->x = p.getDist();
+    polar_data_p->y = p.getHAngle();
+    polar_data_p->z = -p.getVAngle();
   }
 }
 

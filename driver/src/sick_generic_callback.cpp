@@ -54,18 +54,55 @@
 */
 #include <sick_scan/sick_generic_callback.h>
 
-static sick_scan::SickCallbackHandler<rosNodePtr,ros_sensor_msgs::PointCloud2> s_poincloud_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan::PointCloud2withEcho> s_cartesian_poincloud_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan::PointCloud2withEcho> s_polar_poincloud_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,ros_sensor_msgs::Imu>           s_imu_callback_handler;
 
 namespace sick_scan
 {
-    void addPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
+    void addCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
     {
-        s_poincloud_callback_handler.addListener(handle, listener);
+        s_cartesian_poincloud_callback_handler.addListener(handle, listener);
 	}
 
-    void notifyPointcloudListener(rosNodePtr handle, const ros_sensor_msgs::PointCloud2* msg)
+    void notifyCartesianPointcloudListener(rosNodePtr handle, const sick_scan::PointCloud2withEcho* msg)
     {
-        s_poincloud_callback_handler.notifyListener(handle, msg);
+        s_cartesian_poincloud_callback_handler.notifyListener(handle, msg);
+	}
+
+    void removeCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        s_cartesian_poincloud_callback_handler.removeListener(handle, listener);
+	}
+
+    void addPolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        s_polar_poincloud_callback_handler.addListener(handle, listener);
+	}
+
+    void notifyPolarPointcloudListener(rosNodePtr handle, const sick_scan::PointCloud2withEcho* msg)
+    {
+        s_polar_poincloud_callback_handler.notifyListener(handle, msg);
+	}
+
+    void removePolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        s_polar_poincloud_callback_handler.removeListener(handle, listener);
+	}
+
+    void addImuListener(rosNodePtr handle, ImuCallback listener)
+    {
+        s_imu_callback_handler.addListener(handle, listener);
+	}
+
+    void notifyImuListener(rosNodePtr handle, const ros_sensor_msgs::Imu* msg)
+    {
+        s_imu_callback_handler.notifyListener(handle, msg);
+	}
+
+    void removeImuListener(rosNodePtr handle, ImuCallback listener)
+    {
+        s_imu_callback_handler.removeListener(handle, listener);
 	}
 
 }   // namespace sick_scan

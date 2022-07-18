@@ -3858,7 +3858,7 @@ namespace sick_scan
         return errorCode; // return success to continue looping
       }
 
-      static SickScanImu scanImu(this); // todo remove static
+      static SickScanImu scanImu(this, nh); // todo remove static
       if (scanImu.isImuDatagram((char *) receiveBuffer, actual_length))
       {
         int errorCode = ExitSuccess;
@@ -4348,6 +4348,7 @@ namespace sick_scan
               int numTmpLayer = numOfLayers;
 
 
+              ros_sensor_msgs::PointCloud2 cloud_;
               cloud_.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
               // ROS_DEBUG_STREAM("laser_scan timestamp: " << msg.header.stamp << ", pointclound timestamp: " << cloud_.header.stamp);
               cloud_.header.frame_id = config_.frame_id;
@@ -4370,7 +4371,13 @@ namespace sick_scan
 
               cloud_.data.resize(cloud_.row_step * cloud_.height);
 
+              ros_sensor_msgs::PointCloud2 cloud_polar = cloud_;
+              cloud_polar.fields[0].name = "range";
+              cloud_polar.fields[1].name = "azimuth";
+              cloud_polar.fields[2].name = "elevation";
+
               unsigned char *cloudDataPtr = &(cloud_.data[0]);
+              unsigned char *cloudDataPtr_polar = &(cloud_polar.data[0]);
 
 
               // prepare lookup for elevation angle table
@@ -4427,8 +4434,10 @@ namespace sick_scan
 
                   unsigned char *ptr = cloudDataPtr + adroff;
                   float *fptr = (float *) (cloudDataPtr + adroff);
-
+                  
                   assert(adroff < cloud_.data.size()); // issue #49
+
+                  float *fptr_polar = (float *) (cloudDataPtr_polar + adroff);
 
                   ros_geometry_msgs::Point32 point;
                   float range_meter = rangeTmpPtr[iEcho * rangeNum + i];
@@ -4474,6 +4483,10 @@ namespace sick_scan
                   fptr[idx_y] = rangeCos * (float)sin(phi_used) * mirror_factor;  // copy y value in pointcloud
                   fptr[idx_z] = range_meter * sinAlphaTablePtr[i] * mirror_factor;// copy z value in pointcloud
 
+                  fptr_polar[idx_x] = range_meter; // range in meter
+                  fptr_polar[idx_y] = phi_used;    // azimuth in radians
+                  fptr_polar[idx_z] = alpha;       // elevation in radians
+
                   fptr[idx_intensity] = 0.0;
                   if (config_.intensity)
                   {
@@ -4484,6 +4497,7 @@ namespace sick_scan
                       fptr[idx_intensity] = intensityTmpPtr[intensityIndex]; // copy intensity value in pointcloud
                     }
                   }
+                  fptr_polar[idx_intensity] = fptr[idx_intensity];
                   angle += msg.angle_increment;
                 }
                 // Publish
@@ -4520,15 +4534,19 @@ namespace sick_scan
 
               if (shallIFire) // shall i fire the signal???
               {
+                sick_scan::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0);
+                sick_scan::PointCloud2withEcho cloud_msg_polar(&cloud_polar, numValidEchos, 0);
 #ifdef ROSSIMU
-                notifyPointcloudListener(nh, &cloud_); // TODO: add num_echos and segment_idx
-                plotPointCloud(cloud_);
+                notifyPolarPointcloudListener(nh, &cloud_msg_polar);
+                notifyCartesianPointcloudListener(nh, &cloud_msg);
+                // plotPointCloud(cloud_);
 #else
                 // ROS_DEBUG_STREAM("publishing cloud " << cloud_.height << " x " << cloud_.width << " data, cloud_output_mode=" << config_.cloud_output_mode);
                 if (config_.cloud_output_mode==0)
                 {
                   // standard handling of scans
-                  notifyPointcloudListener(nh, &cloud_); // TODO: add num_echos and segment_idx
+                  notifyPolarPointcloudListener(nh, &cloud_msg_polar);
+                  notifyCartesianPointcloudListener(nh, &cloud_msg);
                   rosPublish(cloud_pub_, cloud_);
 
                 }
@@ -4618,6 +4636,8 @@ namespace sick_scan
                     assert(partialCloud.data.size() == partialCloud.width * partialCloud.point_step);
 
 
+                    sick_scan::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0);
+                    notifyCartesianPointcloudListener(nh, &partial_cloud_msg);
                     rosPublish(cloud_pub_, partialCloud);
                     //memcpy(&(partialCloud.data[0]), &(cloud_.data[0]) + i * cloud_.point_step, cloud_.point_step * numPartialShots);
                     //cloud_pub_.publish(partialCloud);
