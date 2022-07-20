@@ -101,6 +101,7 @@ namespace sick_scan
     std::vector<ros_visualization_msgs::Marker> createMonFieldsetLegend(int fieldset);
     std::vector<ros_visualization_msgs::Marker> createOutputStateLegend(const std::vector<std::string>& output_state, const std::vector<std::string>& output_count, const std::vector<ros_std_msgs::ColorRGBA>& output_colors);
 
+    rosNodePtr m_nh;
     std::string m_frame_id;
     rosPublisher<ros_visualization_msgs::MarkerArray> m_marker_publisher;
     int m_scan_mon_fieldset;

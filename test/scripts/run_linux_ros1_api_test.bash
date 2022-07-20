@@ -7,11 +7,7 @@ function start_tim7xx_emulator()
 {
     echo -e "\n-------------------------------------------"
     echo -e "run_api_test: starting tim7xx emulation ...\n"
-    # Start sick_scan emulator
-    # roslaunch sick_scan emulator_01_default.launch &
-    cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng.json /tmp/lmd_scandata.pcapng.json
-    ./src/sick_scan_xd/build_linux/sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch &
-    # Start rviz
+    roslaunch sick_scan emulator_01_default.launch &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_api_tim7xx.rviz --opengl 210 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_api_tim7xx_polar.rviz --opengl 210 &
     sleep 1
@@ -49,6 +45,17 @@ function start_mrs100_emulator()
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_api_mrs100_polar.rviz --opengl 210 &
     sleep 1
 }
+
+# Start rms3xx radar emulator and rviz
+function start_rms3xx_emulator()
+{
+    echo -e "\n-------------------------------------------"
+    echo -e "run_api_test: starting rms3xx radar emulation ...\n"
+    roslaunch sick_scan emulator_rms3xx.launch &
+    sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_api_rms1xxx.rviz --opengl 210 &
+    sleep 1
+}
+
  
 # Wait for max 30 seconds, or until 'q' or 'Q' pressed, or until rviz is closed
 function waitUntilRvizClosed()
@@ -106,8 +113,8 @@ fi
 
 # Start tim7xx emulator and run sick_scan_xd_api_test (python example)
 start_tim7xx_emulator
-python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False &
-waitUntilRvizClosed 10
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+waitUntilRvizClosed 40
 kill_simu
 
 # Start mrs100 (multiscan136) emulator and run sick_scan_xd_api_test (python example)
@@ -131,11 +138,17 @@ python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py
 waitUntilRvizClosed 10
 kill_simu
 
+# Start rms3xx radar emulator and run sick_scan_xd_api_test (python example)
+start_rms3xx_emulator
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+waitUntilRvizClosed 10
+kill_simu
+
 # Start tim7xx emulator and run sick_scan_xd_api_test (cpp example)
 start_tim7xx_emulator
-# ./install_isolated/lib/sick_scan/sick_scan_xd_api_test ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
-# rosrun --prefix 'gdb -ex run --args' sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False"
-rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False" &
+# ./install_isolated/lib/sick_scan/sick_scan_xd_api_test ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
+# rosrun --prefix 'gdb -ex run --args' sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False"
+rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" &
 waitUntilRvizClosed 10
 kill_simu
 

@@ -157,6 +157,8 @@ typedef ros::Time rosTime;
 inline rosTime rosTimeNow(void) { return ros::Time::now(); }
 inline uint32_t sec(const rosTime& time) { return time.sec; }   // return seconds part of ros::Time
 inline uint32_t nsec(const rosTime& time) { return time.nsec; } // return nanoseconds part of ros::Time
+inline uint32_t sec(const rosDuration& time) { return time.sec; }   // return seconds part of ros::Duration
+inline uint32_t nsec(const rosDuration& time) { return time.nsec; } // return nanoseconds part of ros::Duration
 inline uint64_t rosNanosecTimestampNow(void) { rosTime now = rosTimeNow(); return (((uint64_t)sec(now)) * (uint64_t)1000000000) + std::min((uint64_t)nsec(now), (uint64_t)1000000000); }
 
 template <class T> class rosPublisher : public ros::Publisher
@@ -294,6 +296,8 @@ typedef rclcpp::Time rosTime; // typedef builtin_interfaces::msg::Time rosTime;
 inline rosTime rosTimeNow(void) { return rclcpp::Clock().now(); }
 inline uint32_t sec(const rosTime& time) { return (uint32_t)(time.nanoseconds() / 1000000000); }              // return seconds part of rclcpp::Time
 inline uint32_t nsec(const rosTime& time) { return (uint32_t)(time.nanoseconds() - 1000000000 * sec(time)); } // return nanoseconds part of rclcpp::Time
+inline uint32_t sec(const rosDuration& time) { return (uint32_t)(time.nanoseconds() / 1000000000); }              // return seconds part of rclcpp::Duration
+inline uint32_t nsec(const rosDuration& time) { return (uint32_t)(time.nanoseconds() - 1000000000 * sec(time)); } // return nanoseconds part of rclcpp::Duration
 inline uint64_t rosNanosecTimestampNow(void) { rosTime now = rosTimeNow(); return (((uint64_t)sec(now)) * (uint64_t)1000000000) + std::min((uint64_t)nsec(now), (uint64_t)1000000000); }
 
 template <class T> class rosPublisher : public rclcpp::Publisher<T>::SharedPtr

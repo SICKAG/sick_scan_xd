@@ -3886,6 +3886,7 @@ namespace sick_scan
         if (sick_scan::SickScanMessages::parseLIDoutputstateMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, scanner_name, outputstate_msg))
         {
           // Publish LIDoutputstate message
+          notifyLIDoutputstateListener(nh, &outputstate_msg);
           if(publish_lidoutputstate_)
           {
               rosPublish(lidoutputstate_pub_, outputstate_msg);
@@ -3927,6 +3928,7 @@ namespace sick_scan
         if (sick_scan::SickScanMessages::parseLFErecMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, eval_field_logic, scanner_name, lferec_msg))
         {
           // Publish LFErec message
+          notifyLFErecListener(nh, &lferec_msg);
           if(publish_lferec_)
           {
             rosPublish(lferec_pub_, lferec_msg);

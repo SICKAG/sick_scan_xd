@@ -324,6 +324,53 @@ typedef struct SickScanLdmrsObjectArrayType // equivalent to SickLdmrsObjectArra
   SickScanLdmrsObjectBuffer objects;     // Array of SickScanLdmrsObjects
 } SickScanLdmrsObjectArray;
 
+typedef struct SickScanColorRGBAType // equivalent to std_msgs::ColorRGBA
+{
+  float r;
+  float g;
+  float b;
+  float a;
+} SickScanColorRGBA;
+
+typedef struct SickScanColorRGBAArrayType // Array of SickScanColorRGBA, which can be serialized and imported in C, C++ or python
+{
+  uint64_t capacity; // Number of allocated elements, i.e. max. number of elements in buffer, allocated buffer size is capacity * sizeof(SickScanColorRGBA)
+  uint64_t size;     // Number of currently used elements in the buffer
+  SickScanColorRGBA* buffer;  // Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
+} SickScanColorRGBAArray;
+
+typedef struct SickScanVisualizationMarkerType // equivalent to visualization_msgs::Marker
+{
+  char ns[1024];                               // Namespace to place this object in... used in conjunction with id to create a unique name for the object
+  int32_t id;                                  // object ID useful in conjunction with the namespace for manipulating and deleting the object later
+  int32_t type;                                // Type of object
+  int32_t action;                              // 0 add/modify an object, 1 (deprecated), 2 deletes an object, 3 deletes all objects
+  SickScanVector3Msg pose_position;            // Pose of the object (positional part)
+  SickScanQuaternionMsg pose_orientation;      // Pose of the object (rotational part)
+  SickScanVector3Msg scale;                    // Scale of the object 1,1,1 means default (usually 1 meter square)
+  SickScanColorRGBA color;                     // Color [0.0-1.0]
+  double lifetime;                             // How long the object should last before being automatically deleted.  0 means forever (duration in seconds)
+  uint8_t frame_locked;                        // boolean, If this marker should be frame-locked, i.e. retransformed into its frame every timestep
+  SickScanPointArray points;                   // Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...)
+  SickScanColorRGBAArray colors;               // Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...). Number of colors must either be 0 or equal to the number of points. NOTE: alpha is not yet used
+  char text[1024];                             // NOTE: only used for text markers
+  char mesh_resource[1024];                    // NOTE: only used for MESH_RESOURCE markers
+  uint8_t mesh_use_embedded_materials;         // boolean
+} SickScanVisualizationMarker;
+
+typedef struct SickScanVisualizationMarkerBufferType // Array of SickScanVisualizationMarkers
+{
+  uint64_t capacity; // Number of allocated elements, i.e. max. number of elements in buffer, allocated buffer size is capacity * sizeof(SickScanVisualizationMarker)
+  uint64_t size;     // Number of currently used elements in the buffer
+  SickScanVisualizationMarker* buffer;  // Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
+} SickScanVisualizationMarkerBuffer;
+
+typedef struct SickScanVisualizationMarkerMsgType // equivalent to visualization_msgs::MarkerArray
+{
+  SickScanHeader header;                          // message timestamp
+  SickScanVisualizationMarkerBuffer objects;      // Array of SickScanVisualizationMarkers
+} SickScanVisualizationMarkerMsg;
+
 /*
 *  Callback declarations
 */
@@ -335,6 +382,7 @@ typedef void(* SickScanLFErecMsgCallback)(SickScanApiHandle apiHandle, const Sic
 typedef void(* SickScanLIDoutputstateMsgCallback)(SickScanApiHandle apiHandle, const SickScanLIDoutputstateMsg* msg);
 typedef void(* SickScanRadarScanCallback)(SickScanApiHandle apiHandle, const SickScanRadarScan* msg);
 typedef void(* SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
+typedef void(* SickScanVisualizationMarkerCallback)(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg);
 
 /*
 *  Functions to initialize and close the API and a lidar
@@ -397,6 +445,10 @@ int32_t SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanR
 int32_t SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
 int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
 
+// Register / deregister a callback for VisualizationMarker messages
+int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+
 /*
 *  Polling functions
 */
@@ -425,6 +477,10 @@ int32_t SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarSc
 // Wait for and return the next LdmrsObjectArray messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec);
 int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg);
+
+// Wait for and return the next VisualizationMarker message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
+int32_t SickScanApiFreeVisualizationMarkersg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
 
 /*
 *  Error codes, return values of SickScanApi-functions
@@ -667,19 +723,149 @@ class SickScanLdmrsObjectBuffer(ctypes.Structure):   # sick_scan_api: struct Sic
 class SickScanLdmrsObjectArray(ctypes.Structure):    # sick_scan_api: struct SickScanLdmrsObjectArray, equivalent to SickLdmrsObjectArray.msg
     _fields_ = [
         ("header", SickScanHeader),                  # message timestamp
-        ("objects", SickScanLdmrsObjectBuffer)      # Array of SickScanLdmrsObjects
+        ("objects", SickScanLdmrsObjectBuffer)       # Array of SickScanLdmrsObjects
+    ]
+
+class SickScanColorRGBA(ctypes.Structure):               # equivalent to std_msgs::ColorRGBA
+    _fields_ = [
+        ("r", ctypes.c_float),
+        ("g", ctypes.c_float),
+        ("b", ctypes.c_float),
+        ("a", ctypes.c_float)
+    ]
+
+class SickScanColorRGBAArray(ctypes.Structure):          # Array of SickScanColorRGBA, which can be serialized and imported in C, C++ or python
+    _fields_ = [
+        ("capacity", ctypes.c_uint64),                   # Number of allocated elements, i.e. max. number of elements in buffer, allocated buffer size is capacity * sizeof(SickScanColorRGBA)
+        ("size", ctypes.c_uint64),                       # Number of currently used elements in the buffer
+        ("buffer", ctypes.POINTER(SickScanColorRGBA))    # Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
+    ]
+
+class SickScanVisualizationMarker(ctypes.Structure):     # equivalent to visualization_msgs::Marker
+    _fields_ = [
+        ("header", SickScanHeader),                      # message timestamp
+        ("ns", ctypes.c_char * 1024),                    # Namespace to place this object in... used in conjunction with id to create a unique name for the object
+        ("id", ctypes.c_int32),                          # object ID useful in conjunction with the namespace for manipulating and deleting the object later
+        ("type", ctypes.c_int32),                        # Type of object
+        ("action", ctypes.c_int32),                      # 0 add/modify an object, 1 (deprecated), 2 deletes an object, 3 deletes all objects
+        ("pose_position", SickScanVector3Msg),           # Pose of the object (positional part)
+        ("pose_orientation", SickScanQuaternionMsg),     # Pose of the object (rotational part)
+        ("scale", SickScanVector3Msg),                   # Scale of the object 1,1,1 means default (usually 1 meter square)
+        ("color", SickScanColorRGBA),                    # Color [0.0-1.0]
+        ("lifetime_sec", ctypes.c_uint32),               # How long the object should last before being automatically deleted.  0 means forever (seconds part)
+        ("lifetime_nsec", ctypes.c_uint32),              # How long the object should last before being automatically deleted.  0 means forever (nanoseconds part)
+        ("frame_locked", ctypes.c_uint8),                # boolean, If this marker should be frame-locked, i.e. retransformed into its frame every timestep
+        ("points", SickScanPointArray),                  # Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...)
+        ("colors", SickScanColorRGBAArray),              # Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...). Number of colors must either be 0 or equal to the number of points. NOTE: alpha is not yet used
+        ("text", ctypes.c_char * 1024),                  # NOTE: only used for text markers
+        ("mesh_resource", ctypes.c_char * 1024),         # NOTE: only used for MESH_RESOURCE markers
+        ("mesh_use_embedded_materials", ctypes.c_uint8)  # boolean
+    ]
+
+class SickScanVisualizationMarkerBuffer(ctypes.Structure):      # Array of SickScanVisualizationMarkers
+    _fields_ = [
+        ("capacity", ctypes.c_uint64),                          # Number of allocated elements, i.e. max. number of elements in buffer, allocated buffer size is capacity * sizeof(SickScanVisualizationMarker)
+        ("size", ctypes.c_uint64),                              # Number of currently used elements in the buffer
+        ("buffer", ctypes.POINTER(SickScanVisualizationMarker)) # Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
+    ]
+
+class SickScanVisualizationMarkerMsg(ctypes.Structure):         # equivalent to visualization_msgs::MarkerArray
+    _fields_ = [
+        ("markers", SickScanVisualizationMarkerBuffer)          # Array of SickScanVisualizationMarkers
     ]
 
 #
 #  Callback declarations
 #
 
-SickScanPointCloudMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanPointCloudMsg))         # sick_scan_api.h: typedef void(* SickScanPointCloudMsgCallback)(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg);
-SickScanImuMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanImuMsg))                       # sick_scan_api.h: typedef void(* SickScanImuMsgCallback)(SickScanApiHandle apiHandle, const SickScanImuMsg* msg);
-SickScanLFErecMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanLFErecMsg))                 # sick_scan_api.h: typedef void(* SickScanLFErecMsgCallback)(SickScanApiHandle apiHandle, const SickScanLFErecMsg* msg);
-SickScanLIDoutputstateMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanLIDoutputstateMsg)) # sick_scan_api.h: typedef void(* SickScanLIDoutputstateMsgCallback)(SickScanApiHandle apiHandle, const SickScanLIDoutputstateMsg* msg);
-SickScanRadarScanCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanRadarScan))                 # sick_scan_api.h: typedef void(* SickScanRadarScanCallback)(SickScanApiHandle apiHandle, const SickScanRadarScan* msg);
-SickScanLdmrsObjectArrayCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanLdmrsObjectArray))   # sick_scan_api.h: typedef void(* SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
+SickScanPointCloudMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanPointCloudMsg))                 # sick_scan_api.h: typedef void(* SickScanPointCloudMsgCallback)(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg);
+SickScanImuMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanImuMsg))                               # sick_scan_api.h: typedef void(* SickScanImuMsgCallback)(SickScanApiHandle apiHandle, const SickScanImuMsg* msg);
+SickScanLFErecMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanLFErecMsg))                         # sick_scan_api.h: typedef void(* SickScanLFErecMsgCallback)(SickScanApiHandle apiHandle, const SickScanLFErecMsg* msg);
+SickScanLIDoutputstateMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanLIDoutputstateMsg))         # sick_scan_api.h: typedef void(* SickScanLIDoutputstateMsgCallback)(SickScanApiHandle apiHandle, const SickScanLIDoutputstateMsg* msg);
+SickScanRadarScanCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanRadarScan))                         # sick_scan_api.h: typedef void(* SickScanRadarScanCallback)(SickScanApiHandle apiHandle, const SickScanRadarScan* msg);
+SickScanLdmrsObjectArrayCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanLdmrsObjectArray))           # sick_scan_api.h: typedef void(* SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
+SickScanVisualizationMarkerCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanVisualizationMarkerMsg))  # sick_scan_api.h: typedef void(* SickScanVisualizationMarkerCallback)(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg);
+
+#
+#  Functions to initialize and close the API and a lidar
+#
+
+# Load sick_scan_library and functions
+def SickScanApiLoadLibrary(paths, lib_filname):
+   pass # see implementation in sick_scan_api.py
+
+# Unload sick_scan_xd api library
+def SickScanApiUnloadLibrary(sick_scan_library):
+   pass # see implementation in sick_scan_api.py
+
+# Create an instance of sick_scan_xd api.
+# Call SickScanApiInitByLaunchfile or SickScanApiInitByCli to process a lidar.
+def SickScanApiCreate(sick_scan_library):
+   pass # see implementation in sick_scan_api.py
+
+# Release and free all resources of the api handle; the handle is invalid after SickScanApiRelease
+def SickScanApiRelease(sick_scan_library, api_handle):
+   pass # see implementation in sick_scan_api.py
+
+# Initialize a lidar by launchfile and start message receiving and processing
+def SickScanApiInitByLaunchfile(sick_scan_library, api_handle, launchfile_args):
+   pass # see implementation in sick_scan_api.py
+
+# Release and free all resources of the api handle; the handle is invalid after SickScanApiRelease
+def SickScanApiClose(sick_scan_library, api_handle):
+   pass # see implementation in sick_scan_api.py
+
+#
+#  Registration / deregistration of message callbacks
+#
+
+# Register / deregister a callback for cartesian PointCloud messages, pointcloud in cartesian coordinates with fields x, y, z, intensity
+def SickScanApiRegisterCartesianPointCloudMsg(sick_scan_library, api_handle, pointcloud_callback):
+   pass # see implementation in sick_scan_api.py
+def SickScanApiDeregisterCartesianPointCloudMsg(sick_scan_library, api_handle, pointcloud_callback):
+   pass # see implementation in sick_scan_api.py
+
+# Register / deregister a callback for polar PointCloud messages, pointcloud in polar coordinates with fields range, azimuth, elevation, intensity
+def SickScanApiRegisterPolarPointCloudMsg(sick_scan_library, api_handle, pointcloud_callback):
+   pass # see implementation in sick_scan_api.py
+def SickScanApiDeregisterPolarPointCloudMsg(sick_scan_library, api_handle, pointcloud_callback):
+   pass # see implementation in sick_scan_api.py
+
+# Register / deregister a callback for Imu messages
+def SickScanApiRegisterImuMsg(sick_scan_library, api_handle, imu_callback):
+   pass # see implementation in sick_scan_api.py
+def SickScanApiDeregisterImuMsg(sick_scan_library, api_handle, imu_callback):
+   pass # see implementation in sick_scan_api.py
+
+# Register / deregister a callback for LFErec messages
+def SickScanApiRegisterLFErecMsg(sick_scan_library, api_handle, lferec_callback):
+   pass # see implementation in sick_scan_api.py
+def SickScanApiDeregisterLFErecMsg(sick_scan_library, api_handle, lferec_callback):
+   pass # see implementation in sick_scan_api.py
+
+# Register / deregister a callback for LIDoutputstate messages
+def SickScanApiRegisterLIDoutputstateMsg(sick_scan_library, api_handle, lidoutputstate_callback):
+   pass # see implementation in sick_scan_api.py
+def SickScanApiDeregisterLIDoutputstateMsg(sick_scan_library, api_handle, lidoutputstate_callback):
+   pass # see implementation in sick_scan_api.py
+
+# Register / deregister a callback for RadarScan messages
+def SickScanApiRegisterRadarScanMsg(sick_scan_library, api_handle, radarscan_callback):
+   pass # see implementation in sick_scan_api.py
+def SickScanApiDeregisterRadarScanMsg(sick_scan_library, api_handle, radarscan_callback):
+   pass # see implementation in sick_scan_api.py
+
+# Register / deregister a callback for LdmrsObjectArray messages
+def SickScanApiRegisterLdmrsObjectArrayMsg(sick_scan_library, api_handle, ldmrsobjectarray_callback):
+   pass # see implementation in sick_scan_api.py
+def SickScanApiDeregisterLdmrsObjectArrayMsg(sick_scan_library, api_handle, ldmrsobjectarray_callback):
+   pass # see implementation in sick_scan_api.py
+
+# Register / deregister a callback for VisualizationMarker messages
+def SickScanApiRegisterVisualizationMarkerMsg(sick_scan_library, api_handle, ldmrsobjectarray_callback):
+   pass # see implementation in sick_scan_api.py
+def SickScanApiDeregisterVisualizationMarkerMsg(sick_scan_library, api_handle, ldmrsobjectarray_callback):
+   pass # see implementation in sick_scan_api.py
 ```
 
 ## Usage example

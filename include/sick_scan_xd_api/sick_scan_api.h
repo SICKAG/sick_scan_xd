@@ -297,6 +297,54 @@ typedef struct SickScanLdmrsObjectArrayType // equivalent to SickLdmrsObjectArra
   SickScanLdmrsObjectBuffer objects;     // Array of SickScanLdmrsObjects
 } SickScanLdmrsObjectArray;
 
+typedef struct SickScanColorRGBAType // equivalent to std_msgs::ColorRGBA
+{
+  float r;
+  float g;
+  float b;
+  float a;
+} SickScanColorRGBA;
+
+typedef struct SickScanColorRGBAArrayType // Array of SickScanColorRGBA, which can be serialized and imported in C, C++ or python
+{
+  uint64_t capacity; // Number of allocated elements, i.e. max. number of elements in buffer, allocated buffer size is capacity * sizeof(SickScanColorRGBA)
+  uint64_t size;     // Number of currently used elements in the buffer
+  SickScanColorRGBA* buffer;  // Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
+} SickScanColorRGBAArray;
+
+typedef struct SickScanVisualizationMarkerType // equivalent to visualization_msgs::Marker
+{
+  SickScanHeader header;                       // message timestamp
+  char ns[1024];                               // Namespace to place this object in... used in conjunction with id to create a unique name for the object
+  int32_t id;                                  // object ID useful in conjunction with the namespace for manipulating and deleting the object later
+  int32_t type;                                // Type of object
+  int32_t action;                              // 0 add/modify an object, 1 (deprecated), 2 deletes an object, 3 deletes all objects
+  SickScanVector3Msg pose_position;            // Pose of the object (positional part)
+  SickScanQuaternionMsg pose_orientation;      // Pose of the object (rotational part)
+  SickScanVector3Msg scale;                    // Scale of the object 1,1,1 means default (usually 1 meter square)
+  SickScanColorRGBA color;                     // Color [0.0-1.0]
+  uint32_t lifetime_sec;                       // How long the object should last before being automatically deleted.  0 means forever (seconds part)
+  uint32_t lifetime_nsec;                      // How long the object should last before being automatically deleted.  0 means forever (nanoseconds part)
+  uint8_t frame_locked;                        // boolean, If this marker should be frame-locked, i.e. retransformed into its frame every timestep
+  SickScanPointArray points;                   // Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...)
+  SickScanColorRGBAArray colors;               // Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...). Number of colors must either be 0 or equal to the number of points. NOTE: alpha is not yet used
+  char text[1024];                             // NOTE: only used for text markers
+  char mesh_resource[1024];                    // NOTE: only used for MESH_RESOURCE markers
+  uint8_t mesh_use_embedded_materials;         // boolean
+} SickScanVisualizationMarker;
+
+typedef struct SickScanVisualizationMarkerBufferType // Array of SickScanVisualizationMarkers
+{
+  uint64_t capacity; // Number of allocated elements, i.e. max. number of elements in buffer, allocated buffer size is capacity * sizeof(SickScanVisualizationMarker)
+  uint64_t size;     // Number of currently used elements in the buffer
+  SickScanVisualizationMarker* buffer;  // Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
+} SickScanVisualizationMarkerBuffer;
+
+typedef struct SickScanVisualizationMarkerMsgType // equivalent to visualization_msgs::MarkerArray
+{
+  SickScanVisualizationMarkerBuffer markers;      // Array of SickScanVisualizationMarkers
+} SickScanVisualizationMarkerMsg;
+
 /*
 *  Callback declarations
 */
@@ -308,6 +356,7 @@ typedef void(* SickScanLFErecMsgCallback)(SickScanApiHandle apiHandle, const Sic
 typedef void(* SickScanLIDoutputstateMsgCallback)(SickScanApiHandle apiHandle, const SickScanLIDoutputstateMsg* msg);
 typedef void(* SickScanRadarScanCallback)(SickScanApiHandle apiHandle, const SickScanRadarScan* msg);
 typedef void(* SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
+typedef void(* SickScanVisualizationMarkerCallback)(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg);
 
 /*
 *  Functions to initialize and close the API and a lidar
@@ -370,34 +419,42 @@ int32_t SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanR
 int32_t SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
 int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
 
+// Register / deregister a callback for VisualizationMarker messages
+int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+
 /*
 *  Polling functions
 */
 
-// Wait for and return the next cartesian resp. polar PointCloud messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+// Wait for and return the next cartesian resp. polar PointCloud message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
 int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
 int32_t SickScanApiFreePolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg);
 
-// Wait for and return the next Imu messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+// Wait for and return the next Imu message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec);
 int32_t SickScanApiFreeImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg);
 
-// Wait for and return the next LFErec messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+// Wait for and return the next LFErec message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg, double timeout_sec);
 int32_t SickScanApiFreeLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg);
 
-// Wait for and return the next LIDoutputstate messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+// Wait for and return the next LIDoutputstate message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg, double timeout_sec);
 int32_t SickScanApiFreeLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg);
 
-// Wait for and return the next RadarScan messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+// Wait for and return the next RadarScan message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg, double timeout_sec);
 int32_t SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg);
 
-// Wait for and return the next LdmrsObjectArray messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+// Wait for and return the next LdmrsObjectArray message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec);
 int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg);
+
+// Wait for and return the next VisualizationMarker message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
+int32_t SickScanApiFreeVisualizationMarkersg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
 
 /*
 *  Error codes, return values of SickScanApi-functions

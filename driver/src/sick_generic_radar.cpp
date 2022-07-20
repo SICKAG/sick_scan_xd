@@ -1581,7 +1581,7 @@ namespace sick_scan
             }
 #endif
 #else
-            printf("PUBLISH:\n");
+            // printf("PUBLISH:\n");
 #endif
             if (iLoop == RADAR_PROC_RAW_TARGET)
             {
@@ -1638,6 +1638,7 @@ namespace sick_scan
 
       }
 
+      notifyRadarScanListener(node, &radarMsg_);
       rosPublish(radarScan_pub_, radarMsg_);
 
 

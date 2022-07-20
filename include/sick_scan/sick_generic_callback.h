@@ -61,6 +61,13 @@
 
 #include <sick_scan/sick_ros_wrapper.h>
 
+// forward declaration of SickLdmrsObjectArray required for LdmrsObjectArray listener
+#if __ROS_VERSION == 2 // ROS-2 (Linux or Windows)
+#include <sick_scan/msg/sick_ldmrs_object_array.hpp>
+#else
+#include <sick_scan/SickLdmrsObjectArray.h>
+#endif
+
 namespace sick_scan
 {
     struct PointCloud2withEcho
@@ -73,6 +80,11 @@ namespace sick_scan
 
     typedef void(* PointCloud2Callback)(rosNodePtr handle, const PointCloud2withEcho* msg);
     typedef void(* ImuCallback)(rosNodePtr handle, const ros_sensor_msgs::Imu* msg);
+    typedef void(* LIDoutputstateCallback)(rosNodePtr handle, const sick_scan_msg::LIDoutputstateMsg* msg);
+    typedef void(* LFErecCallback)(rosNodePtr handle, const sick_scan_msg::LFErecMsg* msg);
+    typedef void(* SickLdmrsObjectArrayCallback)(rosNodePtr handle, const sick_scan_msg::SickLdmrsObjectArray* msg);
+    typedef void(* RadarScanCallback)(rosNodePtr handle, const sick_scan_msg::RadarScan* msg);
+    typedef void(* VisualizationMarkerCallback)(rosNodePtr handle, const ros_visualization_msgs::MarkerArray* msg);
 
     void addCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
     void notifyCartesianPointcloudListener(rosNodePtr handle, const PointCloud2withEcho* msg);
@@ -85,6 +97,26 @@ namespace sick_scan
     void addImuListener(rosNodePtr handle, ImuCallback listener);
     void notifyImuListener(rosNodePtr handle, const ros_sensor_msgs::Imu* msg);
     void removeImuListener(rosNodePtr handle, ImuCallback listener);
+
+    void addLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener);
+    void notifyLIDoutputstateListener(rosNodePtr handle, const sick_scan_msg::LIDoutputstateMsg* msg);
+    void removeLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener);
+
+    void addLFErecListener(rosNodePtr handle, LFErecCallback listener);
+    void notifyLFErecListener(rosNodePtr handle, const sick_scan_msg::LFErecMsg* msg);
+    void removeLFErecListener(rosNodePtr handle, LFErecCallback listener);
+    
+    void addLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener);
+    void notifyLdmrsObjectArrayListener(rosNodePtr handle, const sick_scan_msg::SickLdmrsObjectArray* msg);
+    void removeLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener);
+
+    void addRadarScanListener(rosNodePtr handle, RadarScanCallback listener);
+    void notifyRadarScanListener(rosNodePtr handle, const sick_scan_msg::RadarScan* msg);
+    void removeRadarScanListener(rosNodePtr handle, RadarScanCallback listener);
+
+    void addVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener);
+    void notifyVisualizationMarkerListener(rosNodePtr handle, const ros_visualization_msgs::MarkerArray* msg);
+    void removeVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener);
 
     /*
     *  Callback template for registration and deregistration of callbacks incl. notification of listeners

@@ -10,8 +10,11 @@ import sick_scan_api
 from sick_scan_api import *
 
 import rospy
+from std_msgs.msg import ColorRGBA
+from geometry_msgs.msg import Point
 from sensor_msgs import point_cloud2
 from sensor_msgs.msg import PointCloud2, PointField
+from visualization_msgs.msg import Marker, MarkerArray
 
 # Convert a cartesian SickScanPointCloudMsg to ros sensor_msgs.msg.PointCloud2
 def SickScanApiConvertPointCloudToROS1(api_pointcloud):
@@ -115,3 +118,90 @@ def SickScanApiConvertPolarPointCloudToROS1(api_pointcloud):
     ros_pointcloud.data = cartesian_point_cloud_buffer.tostring()
     return ros_pointcloud
 
+# Convert radar objects to ros sensor_msgs.msg.PointCloud2
+def SickScanApiConvertRadarObjectsToROS1(header, radar_objects):
+    # Copy pointcloud header
+    ros_pointcloud = PointCloud2()
+    ros_pointcloud.header.seq = header.seq
+    ros_pointcloud.header.stamp.secs = header.timestamp_sec
+    ros_pointcloud.header.stamp.nsecs = header.timestamp_nsec
+    ros_pointcloud.header.frame_id = ctypesCharArrayToString(header.frame_id)
+    ros_pointcloud.width = radar_objects.size
+    ros_pointcloud.height = 1
+    ros_pointcloud.is_bigendian = False
+    ros_pointcloud.is_dense = True
+    # Set field description
+    ros_pointcloud.fields =  [ 
+        PointField("x", 0, PointField.FLOAT32, 1), PointField("y", 4, PointField.FLOAT32, 1), PointField("z", 8, PointField.FLOAT32, 1), 
+        PointField("vx", 12, PointField.FLOAT32, 1), PointField("vy", 16, PointField.FLOAT32, 1), PointField("vz", 20, PointField.FLOAT32, 1) ]
+    ros_pointcloud.point_step = 24
+    ros_pointcloud.row_step = ros_pointcloud.point_step * ros_pointcloud.width
+    # Copy radar object data
+    ros_point_cloud_buffer = np.zeros(6 * ros_pointcloud.width * ros_pointcloud.height, dtype = np.float32)
+    ros_point_cloud_offset = 0
+    for n in range(radar_objects.size):
+        ros_point_cloud_buffer[ros_point_cloud_offset + 0] = radar_objects.buffer[n].object_box_center_position.x
+        ros_point_cloud_buffer[ros_point_cloud_offset + 1] = radar_objects.buffer[n].object_box_center_position.y
+        ros_point_cloud_buffer[ros_point_cloud_offset + 2] = radar_objects.buffer[n].object_box_center_position.z
+        ros_point_cloud_buffer[ros_point_cloud_offset + 3] = radar_objects.buffer[n].velocity_linear.x
+        ros_point_cloud_buffer[ros_point_cloud_offset + 4] = radar_objects.buffer[n].velocity_linear.y
+        ros_point_cloud_buffer[ros_point_cloud_offset + 5] = radar_objects.buffer[n].velocity_linear.z
+
+    ros_pointcloud.data = ros_point_cloud_buffer.tostring()
+    return ros_pointcloud
+
+# Convert SickScanVisualizationMarkerBuffer to ros visualization_msgs.msg.MarkerArray
+def SickScanApiConvertMarkerArrayToROS1(sick_markers):
+    ros_marker = MarkerArray()
+    for n in range(sick_markers.size):
+        sick_marker = sick_markers.buffer[n]
+        marker = Marker()
+        # Copy marker
+        marker.header.seq = sick_marker.header.seq
+        marker.header.stamp.secs = sick_marker.header.timestamp_sec
+        marker.header.stamp.nsecs = sick_marker.header.timestamp_nsec
+        marker.header.frame_id = ctypesCharArrayToString(sick_marker.header.frame_id)
+        marker.ns= ctypesCharArrayToString(sick_marker.ns)
+        marker.id = sick_marker.id
+        marker.type = sick_marker.type
+        marker.action = sick_marker.action
+        marker.pose.position.x = sick_marker.pose_position.x
+        marker.pose.position.y = sick_marker.pose_position.y
+        marker.pose.position.z = sick_marker.pose_position.z
+        marker.pose.orientation.x = sick_marker.pose_orientation.x
+        marker.pose.orientation.y = sick_marker.pose_orientation.y
+        marker.pose.orientation.z = sick_marker.pose_orientation.z
+        marker.pose.orientation.w = sick_marker.pose_orientation.w
+        marker.scale.x = sick_marker.scale.x
+        marker.scale.y = sick_marker.scale.y
+        marker.scale.z = sick_marker.scale.z
+        marker.color.r = sick_marker.color.r
+        marker.color.g = sick_marker.color.g
+        marker.color.b = sick_marker.color.b
+        marker.color.a = sick_marker.color.a
+        marker.lifetime = rospy.Duration(sick_marker.lifetime_sec, sick_marker.lifetime_nsec)
+        marker.frame_locked = sick_marker.frame_locked
+        marker.text = ctypesCharArrayToString(sick_marker.text)
+        marker.mesh_resource = ctypesCharArrayToString(sick_marker.mesh_resource)
+        marker.mesh_use_embedded_materials = sick_marker.mesh_use_embedded_materials
+
+        for m in range(sick_marker.points.size):
+            sick_point = sick_marker.points.buffer[m]
+            ros_point = Point(sick_point.x, sick_point.y, sick_point.z)
+            marker.points.append(ros_point)
+        for m in range(sick_marker.colors.size):
+            sick_color = sick_marker.colors.buffer[m]
+            ros_color = ColorRGBA(sick_color.r, sick_color.g, sick_color.b, sick_color.a)
+            marker.colors.append(ros_color)
+
+        """     
+        marker.= sick_marker.
+        _fields_ = [
+            ("points", SickScanPointArray),                  # Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...)
+            ("colors", SickScanColorRGBAArray),              # Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...). Number of colors must either be 0 or equal to the number of points. NOTE: alpha is not yet used
+        ]
+        """
+
+
+        ros_marker.markers.append(marker)
+    return ros_marker

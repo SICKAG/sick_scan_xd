@@ -93,6 +93,12 @@ static SickScanApiRegisterLdmrsObjectArrayMsg_PROCTYPE ptSickScanApiRegisterLdmr
 typedef int32_t(*SickScanApiDeregisterLdmrsObjectArrayMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
 static SickScanApiDeregisterLdmrsObjectArrayMsg_PROCTYPE ptSickScanApiDeregisterLdmrsObjectArrayMsg = 0;
 
+typedef int32_t(*SickScanApiRegisterVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+static SickScanApiRegisterVisualizationMarkerMsg_PROCTYPE ptSickScanApiRegisterVisualizationMarkerMsg = 0;
+
+typedef int32_t(*SickScanApiDeregisterVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+static SickScanApiDeregisterVisualizationMarkerMsg_PROCTYPE ptSickScanApiDeregisterVisualizationMarkerMsg = 0;
+
 typedef int32_t(*SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
 static SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE ptSickScanApiWaitNextCartesianPointCloudMsg = 0;
 
@@ -203,6 +209,8 @@ int32_t SickScanApiUnloadLibrary()
     ptSickScanApiDeregisterRadarScanMsg = 0;
     ptSickScanApiRegisterLdmrsObjectArrayMsg = 0;
     ptSickScanApiDeregisterLdmrsObjectArrayMsg = 0;
+    ptSickScanApiRegisterVisualizationMarkerMsg = 0;
+    ptSickScanApiDeregisterVisualizationMarkerMsg = 0;
     ptSickScanApiWaitNextCartesianPointCloudMsg = 0;
     ptSickScanApiWaitNextPolarPointCloudMsg = 0;
     ptSickScanApiFreePolarPointCloudMsg = 0;
@@ -415,6 +423,24 @@ int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Si
     int32_t ret = (ptSickScanApiDeregisterLdmrsObjectArrayMsg ? (ptSickScanApiDeregisterLdmrsObjectArrayMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterLdmrsObjectArrayMsg: library call SickScanApiDeregisterLdmrsObjectArrayMsg() failed, error code %d\n", ret);
+    return ret;
+}
+
+// Register / deregister a callback for VisualizationMarker messages
+int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterVisualizationMarkerMsg, "SickScanApiRegisterVisualizationMarkerMsg");
+    int32_t ret = (ptSickScanApiRegisterVisualizationMarkerMsg ? (ptSickScanApiRegisterVisualizationMarkerMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiRegisterVisualizationMarkerMsg: library call SickScanApiRegisterVisualizationMarkerMsg() failed, error code %d\n", ret);
+    return ret;
+}
+int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLdmrsObjectArrayMsg, "SickScanApiDeregisterVisualizationMarkerMsg");
+    int32_t ret = (ptSickScanApiDeregisterVisualizationMarkerMsg ? (ptSickScanApiDeregisterVisualizationMarkerMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiDeregisterVisualizationMarkerMsg: library call SickScanApiDeregisterVisualizationMarkerMsg() failed, error code %d\n", ret);
     return ret;
 }
 

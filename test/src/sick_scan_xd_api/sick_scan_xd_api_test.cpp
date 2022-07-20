@@ -43,9 +43,9 @@ static void apiTestPolarPointCloudMsgCallback(SickScanApiHandle apiHandle, const
 }
 
 // Callback for imu messages
-static void apiTestImMsgCallback(SickScanApiHandle apiHandle, const SickScanImuMsg* msg)
+static void apiTestImuMsgCallback(SickScanApiHandle apiHandle, const SickScanImuMsg* msg)
 {	
-	printf("[Info]: apiTestImMsgCallback(apiHandle:%p): Imu message, orientation=(%.6f,%.6f,%.6f,%.6f), angular_velocity=(%.6f,%.6f,%.6f), linear_acceleration=(%.6f,%.6f,%.6f)\n", 
+	printf("[Info]: apiTestImuMsgCallback(apiHandle:%p): Imu message, orientation=(%.6f,%.6f,%.6f,%.6f), angular_velocity=(%.6f,%.6f,%.6f), linear_acceleration=(%.6f,%.6f,%.6f)\n", 
 	    apiHandle, msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w, 
         msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.y, 
         msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 	    exitOnError("SickScanApiRegisterCartesianPointCloudMsg failed", ret);
 
     // Register a callback for Imu messages
-    if((ret = SickScanApiRegisterImuMsg(apiHandle, apiTestImMsgCallback)) != SICK_SCAN_API_SUCCESS)
+    if((ret = SickScanApiRegisterImuMsg(apiHandle, apiTestImuMsgCallback)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiRegisterImuMsg failed", ret);
 
     // Run main loop
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 	    exitOnError("SickScanApiDeregisterCartesianPointCloudMsg failed", ret);
     if((ret = SickScanApiDeregisterPolarPointCloudMsg(apiHandle, apiTestPolarPointCloudMsgCallback)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiDeregisterPolarPointCloudMsg failed", ret);
-    if((ret = SickScanApiDeregisterImuMsg(apiHandle, apiTestImMsgCallback)) != SICK_SCAN_API_SUCCESS)
+    if((ret = SickScanApiDeregisterImuMsg(apiHandle, apiTestImuMsgCallback)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiDeregisterImuMsg failed", ret);
     if((ret = SickScanApiClose(apiHandle)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiClose failed", ret);

@@ -54,9 +54,14 @@
 */
 #include <sick_scan/sick_generic_callback.h>
 
-static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan::PointCloud2withEcho> s_cartesian_poincloud_callback_handler;
-static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan::PointCloud2withEcho> s_polar_poincloud_callback_handler;
-static sick_scan::SickCallbackHandler<rosNodePtr,ros_sensor_msgs::Imu>           s_imu_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan::PointCloud2withEcho>      s_cartesian_poincloud_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan::PointCloud2withEcho>      s_polar_poincloud_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,ros_sensor_msgs::Imu>                s_imu_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::LIDoutputstateMsg>    s_lidoutputstate_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::LFErecMsg>            s_lferec_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::SickLdmrsObjectArray> s_ldmrsobjectarray_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::RadarScan>            s_radarscan_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,ros_visualization_msgs::MarkerArray> s_visualizationmarker_callback_handler;
 
 namespace sick_scan
 {
@@ -103,6 +108,81 @@ namespace sick_scan
     void removeImuListener(rosNodePtr handle, ImuCallback listener)
     {
         s_imu_callback_handler.removeListener(handle, listener);
+	}
+
+    void addLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener)
+    {
+        s_lidoutputstate_callback_handler.addListener(handle, listener);
+	}
+    
+    void notifyLIDoutputstateListener(rosNodePtr handle, const sick_scan_msg::LIDoutputstateMsg* msg)
+    {
+        s_lidoutputstate_callback_handler.notifyListener(handle, msg);
+	}
+    
+    void removeLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener)
+    {
+        s_lidoutputstate_callback_handler.removeListener(handle, listener);
+	}
+
+    void addLFErecListener(rosNodePtr handle, LFErecCallback listener)
+    {
+        s_lferec_callback_handler.addListener(handle, listener);
+	}
+    
+    void notifyLFErecListener(rosNodePtr handle, const sick_scan_msg::LFErecMsg* msg)
+    {
+        s_lferec_callback_handler.notifyListener(handle, msg);
+	}
+    
+    void removeLFErecListener(rosNodePtr handle, LFErecCallback listener)
+    {
+        s_lferec_callback_handler.removeListener(handle, listener);
+	}
+    
+    void addLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener)
+    {
+        s_ldmrsobjectarray_callback_handler.addListener(handle, listener);
+	}
+    
+    void notifyLdmrsObjectArrayListener(rosNodePtr handle, const sick_scan_msg::SickLdmrsObjectArray* msg)
+    {
+        s_ldmrsobjectarray_callback_handler.notifyListener(handle, msg);
+	}
+    
+    void removeLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener)
+    {
+        s_ldmrsobjectarray_callback_handler.removeListener(handle, listener);
+	}
+
+    void addRadarScanListener(rosNodePtr handle, RadarScanCallback listener)
+    {
+        s_radarscan_callback_handler.addListener(handle, listener);
+	}
+    
+    void notifyRadarScanListener(rosNodePtr handle, const sick_scan_msg::RadarScan* msg)
+    {
+        s_radarscan_callback_handler.notifyListener(handle, msg);
+	}
+    
+    void removeRadarScanListener(rosNodePtr handle, RadarScanCallback listener)
+    {
+        s_radarscan_callback_handler.removeListener(handle, listener);
+	}
+
+    void addVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener)
+    {
+        s_visualizationmarker_callback_handler.addListener(handle, listener);
+	}
+
+    void notifyVisualizationMarkerListener(rosNodePtr handle, const ros_visualization_msgs::MarkerArray* msg)
+    {
+        s_visualizationmarker_callback_handler.notifyListener(handle, msg);
+	}
+
+    void removeVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener)
+    {
+        s_visualizationmarker_callback_handler.removeListener(handle, listener);
 	}
 
 }   // namespace sick_scan

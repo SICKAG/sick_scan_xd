@@ -102,7 +102,7 @@ static ros_std_msgs::ColorRGBA gray(void) // invalid fields (default)
 }
 
 sick_scan::SickScanMarker::SickScanMarker(rosNodePtr nh, const std::string & marker_topic, const std::string & marker_frame_id)
-: m_scan_mon_fieldset(0), m_marker_output_legend_offset_x(-0.5)
+: m_nh(nh), m_scan_mon_fieldset(0), m_marker_output_legend_offset_x(-0.5)
 {
     if(nh)
     {
@@ -237,6 +237,7 @@ void sick_scan::SickScanMarker::publishMarker(void)
         marker_array.markers.push_back(m_scan_outputstate_legend[n]);
     for(int n = 0; n < m_scan_fieldset_legend.size(); n++)
         marker_array.markers.push_back(m_scan_fieldset_legend[n]);
+    notifyVisualizationMarkerListener(m_nh, &marker_array);
     rosPublish(m_marker_publisher, marker_array);
 #ifdef ROSSIMU
     setVisualizationMarkerArray(marker_array.markers); // update ros simu output image

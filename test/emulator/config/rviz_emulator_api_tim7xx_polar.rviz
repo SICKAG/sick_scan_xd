@@ -92,7 +92,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /sick_tim_7xx_1/marker
+      Marker Topic: /sick_scan_xd_api_test/marker
       Name: MarkerArray
       Namespaces:
         {}

@@ -320,6 +320,7 @@ void SickLDMRS::pubObjects(datatypes::ObjectList &objects)
     //std::cout << objects[i].toString() << std::endl;
   }
 
+  notifyLdmrsObjectArrayListener(nh_, &oa);
   rosPublish(object_pub_, oa); // object_pub_->publish(oa); // object_pub_.publish(oa);
 }
 
