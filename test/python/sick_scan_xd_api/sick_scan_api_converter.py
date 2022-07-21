@@ -120,6 +120,7 @@ def SickScanApiConvertPolarPointCloudToROS1(api_pointcloud):
 
 # Convert radar objects to ros sensor_msgs.msg.PointCloud2
 def SickScanApiConvertRadarObjectsToROS1(header, radar_objects):
+
     # Copy pointcloud header
     ros_pointcloud = PointCloud2()
     ros_pointcloud.header.seq = header.seq
@@ -130,12 +131,14 @@ def SickScanApiConvertRadarObjectsToROS1(header, radar_objects):
     ros_pointcloud.height = 1
     ros_pointcloud.is_bigendian = False
     ros_pointcloud.is_dense = True
+
     # Set field description
     ros_pointcloud.fields =  [ 
         PointField("x", 0, PointField.FLOAT32, 1), PointField("y", 4, PointField.FLOAT32, 1), PointField("z", 8, PointField.FLOAT32, 1), 
         PointField("vx", 12, PointField.FLOAT32, 1), PointField("vy", 16, PointField.FLOAT32, 1), PointField("vz", 20, PointField.FLOAT32, 1) ]
     ros_pointcloud.point_step = 24
     ros_pointcloud.row_step = ros_pointcloud.point_step * ros_pointcloud.width
+    
     # Copy radar object data
     ros_point_cloud_buffer = np.zeros(6 * ros_pointcloud.width * ros_pointcloud.height, dtype = np.float32)
     ros_point_cloud_offset = 0
@@ -184,7 +187,6 @@ def SickScanApiConvertMarkerArrayToROS1(sick_markers):
         marker.text = ctypesCharArrayToString(sick_marker.text)
         marker.mesh_resource = ctypesCharArrayToString(sick_marker.mesh_resource)
         marker.mesh_use_embedded_materials = sick_marker.mesh_use_embedded_materials
-
         for m in range(sick_marker.points.size):
             sick_point = sick_marker.points.buffer[m]
             ros_point = Point(sick_point.x, sick_point.y, sick_point.z)
@@ -193,15 +195,5 @@ def SickScanApiConvertMarkerArrayToROS1(sick_markers):
             sick_color = sick_marker.colors.buffer[m]
             ros_color = ColorRGBA(sick_color.r, sick_color.g, sick_color.b, sick_color.a)
             marker.colors.append(ros_color)
-
-        """     
-        marker.= sick_marker.
-        _fields_ = [
-            ("points", SickScanPointArray),                  # Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...)
-            ("colors", SickScanColorRGBAArray),              # Only used if the type specified has some use for them (eg. POINTS, LINE_STRIP, ...). Number of colors must either be 0 or equal to the number of points. NOTE: alpha is not yet used
-        ]
-        """
-
-
         ros_marker.markers.append(marker)
     return ros_marker

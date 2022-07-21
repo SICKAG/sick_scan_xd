@@ -658,6 +658,10 @@ add_executable(sick_scan_xd_api_test
 )
 if(ROS_VERSION EQUAL 1)
     target_link_libraries(sick_scan_xd_api_test ${catkin_LIBRARIES})
+    add_dependencies(sick_scan_xd_api_test
+        ${PROJECT_NAME}_gencfg
+        ${catkin_EXPORTED_TARGETS}
+        ${${PROJECT_NAME}_EXPORTED_TARGETS})
 endif()
 
 if(ROS_VERSION EQUAL 1)

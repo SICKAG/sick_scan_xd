@@ -3,13 +3,16 @@
 #include <sstream>
 
 #include "sick_scan_api.h"
+#include "sick_scan_api_dump.h"
 #include "sick_scan_api_converter.h"
 
 #if __ROS_VERSION == 1
 std::string ros_api_cloud_topic = "api_cloud";
 std::string ros_api_cloud_polar_topic = "api_cloud_polar";
+std::string ros_api_visualizationmarker_topic = "marker";
 ros::Publisher ros_api_cloud_publisher;
 ros::Publisher ros_api_cloud_polar_publisher;
+ros::Publisher ros_api_visualizationmarker_publisher;
 #endif
 
 static void exitOnError(const char* msg, int32_t error_code)
@@ -18,9 +21,7 @@ static void exitOnError(const char* msg, int32_t error_code)
 	exit(EXIT_FAILURE);
 }
 
-// typedef void(* SickScanPointCloudMsgCallback)(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg);
-
-// Callback for cartesian pointcloud messages, converts and publishes a SickScanPointCloudMsg to sensor_msgs::PointCloud2 on ROS-1
+// Example callback for cartesian pointcloud messages, converts and publishes a SickScanPointCloudMsg to sensor_msgs::PointCloud2 on ROS-1
 static void apiTestCartesianPointCloudMsgCallback(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg)
 {	
 	printf("[Info]: apiTestCartesianPointCloudMsgCallback(apiHandle:%p): %dx%d pointcloud callback...\n", apiHandle, msg->width, msg->height);
@@ -28,10 +29,11 @@ static void apiTestCartesianPointCloudMsgCallback(SickScanApiHandle apiHandle, c
     sensor_msgs::PointCloud2 pointcloud = SickScanApiConverter::convertPointCloudMsg(*msg);
 	ros_api_cloud_publisher.publish(pointcloud);
 	ROS_INFO_STREAM("apiTestCartesianPointCloudMsgCallback(apiHandle:" << apiHandle << "): published " << pointcloud.width << "x" << pointcloud.height << " pointcloud on topic \"" << ros_api_cloud_topic << "\"");
+    DUMP_API_POINTCLOUD_MESSAGE("test", pointcloud);
 #endif
 }
 
-// Callback for polar pointcloud messages, converts and publishes a SickScanPointCloudMsg to sensor_msgs::PointCloud2 on ROS-1
+// Example callback for polar pointcloud messages, converts and publishes a SickScanPointCloudMsg to sensor_msgs::PointCloud2 on ROS-1
 static void apiTestPolarPointCloudMsgCallback(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg)
 {	
 	printf("[Info]: apiTestPolarPointCloudMsgCallback(apiHandle:%p): %dx%d pointcloud callback...\n", apiHandle, msg->width, msg->height);
@@ -42,13 +44,76 @@ static void apiTestPolarPointCloudMsgCallback(SickScanApiHandle apiHandle, const
 #endif
 }
 
-// Callback for imu messages
+// Example callback for imu messages
 static void apiTestImuMsgCallback(SickScanApiHandle apiHandle, const SickScanImuMsg* msg)
 {	
 	printf("[Info]: apiTestImuMsgCallback(apiHandle:%p): Imu message, orientation=(%.6f,%.6f,%.6f,%.6f), angular_velocity=(%.6f,%.6f,%.6f), linear_acceleration=(%.6f,%.6f,%.6f)\n", 
 	    apiHandle, msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w, 
         msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.y, 
         msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
+#if __ROS_VERSION == 1
+    sensor_msgs::Imu ros_msg = SickScanApiConverter::convertImuMsg(*msg);
+    DUMP_API_IMU_MESSAGE("test", ros_msg);
+#endif
+}
+
+// Example callback for lferec messages
+static void apiTestLFErecMsgCallback(SickScanApiHandle apiHandle, const SickScanLFErecMsg* msg)
+{	
+	printf("[Info]: apiTestLFErecMsgCallback(apiHandle:%p): LFErec message, %d fields\n", apiHandle, (int)msg->fields_number);
+#if __ROS_VERSION == 1
+    sick_scan::LFErecMsg ros_msg = SickScanApiConverter::convertLFErecMsg(*msg);
+    DUMP_API_LFEREC_MESSAGE("test", ros_msg);
+#endif
+}
+
+// Example callback for LIDoutputstate messages
+static void apiTestLIDoutputstateMsgCallback(SickScanApiHandle apiHandle, const SickScanLIDoutputstateMsg* msg)
+{	
+	printf("[Info]: apiTestLIDoutputstateMsgCallback(apiHandle:%p): LIDoutputstate message, state=(%d,%d,%d,%d,%d,%d,%d,%d), count=(%d,%d,%d,%d,%d,%d,%d,%d)\n", apiHandle, 
+	    (int)msg->output_state[0], (int)msg->output_state[1], (int)msg->output_state[2], (int)msg->output_state[3], (int)msg->output_state[4], (int)msg->output_state[5], (int)msg->output_state[6], (int)msg->output_state[7], 
+	    (int)msg->output_state[0], (int)msg->output_count[1], (int)msg->output_count[2], (int)msg->output_count[3], (int)msg->output_count[4], (int)msg->output_count[5], (int)msg->output_count[6], (int)msg->output_count[7]);
+#if __ROS_VERSION == 1
+    sick_scan::LIDoutputstateMsg ros_msg = SickScanApiConverter::convertLIDoutputstateMsg(*msg);
+    DUMP_API_LIDOUTPUTSTATE_MESSAGE("test", ros_msg);
+#endif
+}
+
+// Example callback for RadarScan messages
+static void apiTestRadarScanMsgCallback(SickScanApiHandle apiHandle, const SickScanRadarScan* msg)
+{	
+	printf("[Info]: apiTestRadarScanMsgCallback(apiHandle:%p): RadarScan message, %d targets, %d objects\n", apiHandle, (int)(msg->targets.width * msg->targets.height), (int)msg->objects.size);
+#if __ROS_VERSION == 1
+    sick_scan::RadarScan ros_msg = SickScanApiConverter::convertRadarScanMsg(*msg);
+	if (ros_msg.targets.width * ros_msg.targets.height > 0)
+	    ros_api_cloud_publisher.publish(ros_msg.targets);
+    sensor_msgs::PointCloud2 ros_pointcloud = SickScanApiConverter::convertRadarObjectsToPointCloud(msg->header, &ros_msg.objects[0], ros_msg.objects.size());
+	if (ros_pointcloud.width * ros_pointcloud.height > 0)
+	    ros_api_cloud_polar_publisher.publish(ros_pointcloud);
+    DUMP_API_RADARSCAN_MESSAGE("test", ros_msg);
+#endif
+}
+
+// Example callback for LdmrsObjectArray messages
+static void apiTestLdmrsObjectArrayCallback(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg)
+{	
+	printf("[Info]: apiTestLdmrsObjectArrayCallback(apiHandle:%p): LdmrsObjectArray message, %d objects\n", apiHandle, (int)msg->objects.size);
+#if __ROS_VERSION == 1
+    sick_scan::SickLdmrsObjectArray ros_msg = SickScanApiConverter::convertLdmrsObjectArray(*msg);
+    DUMP_API_LDMRSOBJECTARRAY_MESSAGE("test", ros_msg);
+#endif
+}
+
+// Example callback for VisualizationMarker messages
+static void apiTestVisualizationMarkerMsgCallback(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg)
+{	
+	printf("[Info]: apiTestVisualizationMarkerMsgCallback(apiHandle:%p): VisualizationMarker message, %d objects\n", apiHandle, (int)msg->markers.size);
+#if __ROS_VERSION == 1
+    visualization_msgs::MarkerArray ros_msg = SickScanApiConverter::convertVisualizationMarkerMsg(*msg);
+    DUMP_API_VISUALIZATIONMARKER_MESSAGE("test", ros_msg);
+	if (ros_msg.markers.size() > 0)
+	    ros_api_visualizationmarker_publisher.publish(ros_msg);
+#endif
 }
 
 int main(int argc, char** argv)
@@ -69,6 +134,7 @@ int main(int argc, char** argv)
     ros::NodeHandle nh("~");
 	ros_api_cloud_publisher = nh.advertise<sensor_msgs::PointCloud2>(ros_api_cloud_topic, 10);
 	ros_api_cloud_polar_publisher = nh.advertise<sensor_msgs::PointCloud2>(ros_api_cloud_polar_topic, 10);
+	ros_api_visualizationmarker_publisher = nh.advertise<visualization_msgs::MarkerArray>(ros_api_visualizationmarker_topic, 10);
 #endif
 	printf("\nsick_scan_xd_api_test started\n");
 
@@ -98,6 +164,26 @@ int main(int argc, char** argv)
     if((ret = SickScanApiRegisterImuMsg(apiHandle, apiTestImuMsgCallback)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiRegisterImuMsg failed", ret);
 
+    // Register a callback for LFErec messages
+    if((ret = SickScanApiRegisterLFErecMsg(apiHandle, apiTestLFErecMsgCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiRegisterLFErecMsg failed", ret);
+
+    // Register a callback for LIDoutputstate messages
+    if((ret = SickScanApiRegisterLIDoutputstateMsg(apiHandle, apiTestLIDoutputstateMsgCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiRegisterLIDoutputstateMsg failed", ret);
+
+    // Register a callback for RadarScan messages
+    if((ret = SickScanApiRegisterRadarScanMsg(apiHandle, apiTestRadarScanMsgCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiRegisterRadarScanMsg failed", ret);
+
+    // Register a callback for LdmrsObjectArray messages
+    if((ret = SickScanApiRegisterLdmrsObjectArrayMsg(apiHandle, apiTestLdmrsObjectArrayCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiRegisterLdmrsObjectArrayMsg failed", ret);
+
+    // Register a callback for VisualizationMarker messages
+    if((ret = SickScanApiRegisterVisualizationMarkerMsg(apiHandle, apiTestVisualizationMarkerMsgCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiRegisterVisualizationMarkerMsg failed", ret);
+
     // Run main loop
 #if __ROS_VERSION == 1
     ros::spin();
@@ -113,6 +199,16 @@ int main(int argc, char** argv)
 	    exitOnError("SickScanApiDeregisterPolarPointCloudMsg failed", ret);
     if((ret = SickScanApiDeregisterImuMsg(apiHandle, apiTestImuMsgCallback)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiDeregisterImuMsg failed", ret);
+    if((ret = SickScanApiDeregisterLFErecMsg(apiHandle, apiTestLFErecMsgCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiDeregisterLFErecMsg failed", ret);
+    if((ret = SickScanApiDeregisterLIDoutputstateMsg(apiHandle, apiTestLIDoutputstateMsgCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiDeregisterLIDoutputstateMsg failed", ret);
+    if((ret = SickScanApiDeregisterRadarScanMsg(apiHandle, apiTestRadarScanMsgCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiDeregisterRadarScanMsg failed", ret);
+    if((ret = SickScanApiDeregisterLdmrsObjectArrayMsg(apiHandle, apiTestLdmrsObjectArrayCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiDeregisterLdmrsObjectArrayMsg failed", ret);
+    if((ret = SickScanApiDeregisterVisualizationMarkerMsg(apiHandle, apiTestVisualizationMarkerMsgCallback)) != SICK_SCAN_API_SUCCESS)
+	    exitOnError("SickScanApiDeregisterVisualizationMarkerMsg failed", ret);
     if((ret = SickScanApiClose(apiHandle)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiClose failed", ret);
     if((ret = SickScanApiRelease(apiHandle)) != SICK_SCAN_API_SUCCESS)

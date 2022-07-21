@@ -1,11 +1,13 @@
 #include <exception>
 #include <iomanip>
+#include <memory>
 #include <signal.h>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "sick_scan_api.h"
+#include "sick_scan_api_dump.h"
 #include "sick_scan/sick_generic_laser.h"
 #include <sick_scan/sick_generic_callback.h>
 
@@ -496,6 +498,7 @@ static void freeVisualizationMarkerMsg(SickScanVisualizationMarkerMsg& msg)
 static void cartesian_pointcloud_callback(rosNodePtr node, const sick_scan::PointCloud2withEcho* msg)
 {
     ROS_DEBUG_STREAM("api_impl cartesian_pointcloud_callback: PointCloud2 message, " << msg->pointcloud.width << "x" << msg->pointcloud.height << " points");
+    DUMP_API_POINTCLOUD_MESSAGE("impl", msg->pointcloud);
     // Convert ros_sensor_msgs::PointCloud2 message to SickScanPointCloudMsg and export (i.e. notify all listeners)
     SickScanPointCloudMsg export_msg = convertPointCloudMsg(*msg);
     SickScanApiHandle apiHandle = castNodeToApiHandle(node);
@@ -516,6 +519,7 @@ static void polar_pointcloud_callback(rosNodePtr node, const sick_scan::PointClo
 static void imu_callback(rosNodePtr node, const ros_sensor_msgs::Imu* msg)
 {
     // ROS_DEBUG_STREAM("api_impl lferec_callback: Imu message = {" << (*msg) << "}");
+    DUMP_API_IMU_MESSAGE("impl", *msg);
     ROS_DEBUG_STREAM("api_impl imu_callback: Imu message, orientation={" << msg->orientation << "}, angular_velocity={" << msg->angular_velocity << "}, linear_acceleration={" << msg->linear_acceleration << "}");
     // Convert ros_sensor_msgs::PointCloud2 message to SickScanPointCloudMsg and export (i.e. notify all listeners)
     SickScanImuMsg export_msg = convertImuMsg(*msg);
@@ -527,6 +531,7 @@ static void imu_callback(rosNodePtr node, const ros_sensor_msgs::Imu* msg)
 static void lferec_callback(rosNodePtr node, const sick_scan_msg::LFErecMsg* msg)
 {
     // ROS_DEBUG_STREAM("api_impl lferec_callback: LFErec message = {" << (*msg) << "}");
+    DUMP_API_LFEREC_MESSAGE("impl", *msg);
     std::stringstream field_info;
     for(int n = 0; n  < msg->fields_number; n++)
     {
@@ -549,6 +554,7 @@ static void lferec_callback(rosNodePtr node, const sick_scan_msg::LFErecMsg* msg
 static void lidoutputstate_callback(rosNodePtr node, const sick_scan_msg::LIDoutputstateMsg* msg)
 {
     // ROS_DEBUG_STREAM("api_impl lidoutputstate_callback: LIDoutputstate message = {" << (*msg) << "}");
+    DUMP_API_LIDOUTPUTSTATE_MESSAGE("impl", *msg);
     std::stringstream state_info;
     state_info << ", outputstate=(";
     for(int n = 0; n  < msg->output_state.size(); n++)
@@ -567,6 +573,7 @@ static void lidoutputstate_callback(rosNodePtr node, const sick_scan_msg::LIDout
 static void radarscan_callback(rosNodePtr node, const sick_scan_msg::RadarScan* msg)
 {
     // ROS_DEBUG_STREAM("api_impl radarscan_callback: RadarScan message = {" << (*msg) << "}");
+    DUMP_API_RADARSCAN_MESSAGE("impl", *msg);
     ROS_DEBUG_STREAM("api_impl radarscan_callback: " << (msg->targets.width * msg->targets.height) << " targets, "  << msg->objects.size() << " objects");
     SickScanRadarScan export_msg = convertRadarScanMsg(*msg);
     SickScanApiHandle apiHandle = castNodeToApiHandle(node);
@@ -577,6 +584,7 @@ static void radarscan_callback(rosNodePtr node, const sick_scan_msg::RadarScan* 
 static void ldmrsobjectarray_callback(rosNodePtr node, const sick_scan_msg::SickLdmrsObjectArray* msg)
 {
     // ROS_DEBUG_STREAM("api_impl ldmrsobjectarray_callback: LdmrsObjectArray message = {" << (*msg) << "}");
+    DUMP_API_LDMRSOBJECTARRAY_MESSAGE("impl", *msg);
     ROS_DEBUG_STREAM("api_impl ldmrsobjectarray_callback: " << msg->objects.size() << " objects");
     SickScanLdmrsObjectArray export_msg = convertLdmrsObjectArrayMsg(*msg);
     SickScanApiHandle apiHandle = castNodeToApiHandle(node);
@@ -587,6 +595,7 @@ static void ldmrsobjectarray_callback(rosNodePtr node, const sick_scan_msg::Sick
 static void visualizationmarker_callback(rosNodePtr node, const ros_visualization_msgs::MarkerArray* msg)
 {
     // ROS_DEBUG_STREAM("api_impl visualizationmarker_callback: MarkerArray message = {" << (*msg) << "}");
+    DUMP_API_VISUALIZATIONMARKER_MESSAGE("impl", *msg);
     std::stringstream marker_info;
     for(int n = 0; n < msg->markers.size(); n++)
         marker_info << ", marker " << msg->markers[n].id << ": pos=(" << msg->markers[n].pose.position.x << "," << msg->markers[n].pose.position.y << "," << msg->markers[n].pose.position.z << ")";

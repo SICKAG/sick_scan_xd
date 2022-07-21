@@ -40,7 +40,15 @@ echo -e "\ncatkin_make errors:"
 cat build/catkin_make_install.log | grep -i "error:"
 
 # print sick_scan binaries
-echo -e "\ninstall_isolated/lib/sick_scan:"
+echo -e "\n"
+echo -e "src/sick_scan_xd/build_linux:"
+ls -al ./src/sick_scan_xd/build_linux/sick_generic_caller
+ls -al ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so
+ls -al ./src/sick_scan_xd/build_linux/sick_scan_xd_api_test
+ldd -r ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so # print undefined symbols in libsick_scan_shared_lib.so
+echo -e "devel_isolated/sick_scan/lib/sick_scan:"
+ls -al ./devel_isolated/sick_scan/lib/sick_scan
+echo -e "install_isolated/lib/sick_scan:"
 ls -al ./install_isolated/lib/sick_scan
 popd
 
