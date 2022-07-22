@@ -11,6 +11,9 @@
 #include "sick_scan/sick_generic_laser.h"
 #include <sick_scan/sick_generic_callback.h>
 
+template <typename HandleType, class MsgType> std::list<sick_scan::SickWaitForMessageHandler<HandleType, MsgType>*> sick_scan::SickWaitForMessageHandler<HandleType, MsgType>::s_wait_for_message_handler_list;
+template <typename HandleType, class MsgType> std::mutex sick_scan::SickWaitForMessageHandler<HandleType, MsgType>::s_wait_for_message_handler_mutex;
+
 static std::string s_scannerName = "sick_scan";
 static std::map<SickScanApiHandle,std::string> s_api_caller;
 static std::vector<void*> s_malloced_resources;
@@ -1202,63 +1205,398 @@ int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle,
 // Wait for and return the next cartesian resp. polar PointCloud messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    int32_t ret_val = SICK_SCAN_API_ERROR;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextCartesianPointCloudMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!sick_scan::isCartesianPointcloudListenerRegistered(node, sick_scan::WaitForCartesianPointCloudMessageHandler::messageCallback))
+            sick_scan::addCartesianPointcloudListener(node, sick_scan::WaitForCartesianPointCloudMessageHandler::messageCallback); // registrate static SickWaitForMessageHandler callback once
+        sick_scan::WaitForCartesianPointCloudMessageHandler wait_message_handler;
+        sick_scan::WaitForCartesianPointCloudMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan::PointCloud2withEcho ros_msg;
+        if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) 
+            && ros_msg.pointcloud.width * ros_msg.pointcloud.height > 0
+            && ros_msg.pointcloud.fields.size() >= 3
+            && ros_msg.pointcloud.fields[0].name == "x"
+            && ros_msg.pointcloud.fields[1].name == "y"
+            && ros_msg.pointcloud.fields[2].name == "z")
+        {
+            // ros_sensor_msgs::PointCloud2 message received, convert to SickScanPointCloudMsg
+            ROS_INFO_STREAM("SickScanApiWaitNextCartesianPointCloudMsg: PointCloud2 message, " << ros_msg.pointcloud.width << "x" << ros_msg.pointcloud.height << " points");
+            *msg = convertPointCloudMsg(ros_msg);
+            ret_val = SICK_SCAN_API_SUCCESS;
+        }
+        else
+        {
+            ret_val = SICK_SCAN_API_TIMEOUT;
+        }
+        sick_scan::WaitForCartesianPointCloudMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextCartesianPointCloudMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextCartesianPointCloudMsg(): unknown exception ");
+    }
+    return ret_val;
 }
 int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    int32_t ret_val = SICK_SCAN_API_ERROR;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextPolarPointCloudMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!sick_scan::isPolarPointcloudListenerRegistered(node, sick_scan::WaitForPolarPointCloudMessageHandler::messageCallback))
+            sick_scan::addPolarPointcloudListener(node, sick_scan::WaitForPolarPointCloudMessageHandler::messageCallback); // registrate static SickWaitForMessageHandler callback once
+        sick_scan::WaitForPolarPointCloudMessageHandler wait_message_handler;
+        sick_scan::WaitForPolarPointCloudMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan::PointCloud2withEcho ros_msg;
+        if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) 
+            && ros_msg.pointcloud.width * ros_msg.pointcloud.height > 0
+            && ros_msg.pointcloud.fields.size() >= 3
+            && ros_msg.pointcloud.fields[0].name == "range"
+            && ros_msg.pointcloud.fields[1].name == "azimuth"
+            && ros_msg.pointcloud.fields[2].name == "elevation")
+        {
+            // ros_sensor_msgs::PointCloud2 message received, convert to SickScanPointCloudMsg
+            ROS_INFO_STREAM("SickScanApiWaitNextPolarPointCloudMsg: PointCloud2 message, " << ros_msg.pointcloud.width << "x" << ros_msg.pointcloud.height << " points");
+            *msg = convertPointCloudMsg(ros_msg);
+            ret_val = SICK_SCAN_API_SUCCESS;
+        }
+        else
+        {
+            ret_val = SICK_SCAN_API_TIMEOUT;
+        }
+        sick_scan::WaitForPolarPointCloudMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextPolarPointCloudMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextPolarPointCloudMsg(): unknown exception ");
+    }
+    return ret_val;
 }
-int32_t SickScanApiFreePolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg)
+int32_t SickScanApiFreePointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    if(apiHandle && msg)
+    {
+        freePointCloudMsg(*msg);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    return SICK_SCAN_API_NOT_INITIALIZED;
 }
 
 // Wait for and return the next Imu messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    int32_t ret_val = SICK_SCAN_API_ERROR;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextImuMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!sick_scan::isImuListenerRegistered(node, sick_scan::WaitForImuMessageHandler::messageCallback))
+            sick_scan::addImuListener(node, sick_scan::WaitForImuMessageHandler::messageCallback);
+        sick_scan::WaitForImuMessageHandler wait_message_handler;
+        sick_scan::WaitForImuMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        ros_sensor_msgs::Imu ros_msg;
+        if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec))
+        {
+            // ros_sensor_msgs::PointCloud2 message received, convert to SickScanPointCloudMsg
+            ROS_INFO_STREAM("SickScanApiWaitNextImuMsg: Imu message");
+            *msg = convertImuMsg(ros_msg);
+            ret_val = SICK_SCAN_API_SUCCESS;
+        }
+        else
+        {
+            ret_val = SICK_SCAN_API_TIMEOUT;
+        }
+        sick_scan::WaitForImuMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextImuMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextImuMsg(): unknown exception ");
+    }
+    return ret_val;
 }
 int32_t SickScanApiFreeImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    if(apiHandle && msg)
+    {
+        freeImuMsg(*msg);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    return SICK_SCAN_API_NOT_INITIALIZED;
 }
 
 // Wait for and return the next LFErec messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg, double timeout_sec)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    int32_t ret_val = SICK_SCAN_API_ERROR;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextLFErecMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!sick_scan::isLFErecListenerRegistered(node, sick_scan::WaitForLFErecMessageHandler::messageCallback))
+            sick_scan::addLFErecListener(node, sick_scan::WaitForLFErecMessageHandler::messageCallback);
+        sick_scan::WaitForLFErecMessageHandler wait_message_handler;
+        sick_scan::WaitForLFErecMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_msg::LFErecMsg ros_msg;
+        if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.fields_number > 0)
+        {
+            // ros_sensor_msgs::PointCloud2 message received, convert to SickScanPointCloudMsg
+            ROS_INFO_STREAM("SickScanApiWaitNextLFErecMsg: LFErec message, " << ros_msg.fields_number << " fields");
+            *msg = convertLFErecMsg(ros_msg);
+            ret_val = SICK_SCAN_API_SUCCESS;
+        }
+        else
+        {
+            ret_val = SICK_SCAN_API_TIMEOUT;
+        }
+        sick_scan::WaitForLFErecMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextLFErecMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextLFErecMsg(): unknown exception ");
+    }
+    return ret_val;
 }
 int32_t SickScanApiFreeLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    if(apiHandle && msg)
+    {
+        freeLFErecMsg(*msg);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    return SICK_SCAN_API_NOT_INITIALIZED;
 }
 
 // Wait for and return the next LIDoutputstate messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg, double timeout_sec)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    int32_t ret_val = SICK_SCAN_API_ERROR;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextLIDoutputstateMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!sick_scan::isLIDoutputstateListenerRegistered(node, sick_scan::WaitForLIDoutputstateMessageHandler::messageCallback))
+            sick_scan::addLIDoutputstateListener(node, sick_scan::WaitForLIDoutputstateMessageHandler::messageCallback);
+        sick_scan::WaitForLIDoutputstateMessageHandler wait_message_handler;
+        sick_scan::WaitForLIDoutputstateMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_msg::LIDoutputstateMsg ros_msg;
+        if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.output_state.size() + ros_msg.output_count.size() > 0)
+        {
+            // ros_sensor_msgs::PointCloud2 message received, convert to SickScanPointCloudMsg
+            ROS_INFO_STREAM("SickScanApiWaitNextLIDoutputstateMsg: LIDoutputstate message, " << ros_msg.output_state.size() << " states, " << ros_msg.output_count.size() << " counters");
+            *msg = convertLIDoutputstateMsg(ros_msg);
+            ret_val = SICK_SCAN_API_SUCCESS;
+        }
+        else
+        {
+            ret_val = SICK_SCAN_API_TIMEOUT;
+        }
+        sick_scan::WaitForLIDoutputstateMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextLIDoutputstateMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextLIDoutputstateMsg(): unknown exception ");
+    }
+    return ret_val;
 }
 int32_t SickScanApiFreeLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    if(apiHandle && msg)
+    {
+        freeLIDoutputstateMsg(*msg);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    return SICK_SCAN_API_NOT_INITIALIZED;
 }
 
 // Wait for and return the next RadarScan messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg, double timeout_sec)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    int32_t ret_val = SICK_SCAN_API_ERROR;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextRadarScanMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!sick_scan::isRadarScanListenerRegistered(node, sick_scan::WaitForRadarScanMessageHandler::messageCallback))
+            sick_scan::addRadarScanListener(node, sick_scan::WaitForRadarScanMessageHandler::messageCallback);
+        sick_scan::WaitForRadarScanMessageHandler wait_message_handler;
+        sick_scan::WaitForRadarScanMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_msg::RadarScan ros_msg;
+        if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.targets.width * ros_msg.targets.height + ros_msg.objects.size() > 0)
+        {
+            // ros_sensor_msgs::PointCloud2 message received, convert to SickScanPointCloudMsg
+            ROS_INFO_STREAM("SickScanApiWaitNextRadarScanMsg: RadarScan message, " << (ros_msg.targets.width * ros_msg.targets.height) << " targets, " << ros_msg.objects.size() << " objects");
+            *msg = convertRadarScanMsg(ros_msg);
+            ret_val = SICK_SCAN_API_SUCCESS;
+        }
+        else
+        {
+            ret_val = SICK_SCAN_API_TIMEOUT;
+        }
+        sick_scan::WaitForRadarScanMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextRadarScanMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextRadarScanMsg(): unknown exception ");
+    }
+    return ret_val;
 }
 int32_t SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    if(apiHandle && msg)
+    {
+        freeRadarScanMsg(*msg);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    return SICK_SCAN_API_NOT_INITIALIZED;
 }
 
 // Wait for and return the next LdmrsObjectArray messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    int32_t ret_val = SICK_SCAN_API_ERROR;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextLdmrsObjectArrayMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!sick_scan::isLdmrsObjectArrayListenerRegistered(node, sick_scan::WaitForLdmrsObjectArrayMessageHandler::messageCallback))
+            sick_scan::addLdmrsObjectArrayListener(node, sick_scan::WaitForLdmrsObjectArrayMessageHandler::messageCallback);
+        sick_scan::WaitForLdmrsObjectArrayMessageHandler wait_message_handler;
+        sick_scan::WaitForLdmrsObjectArrayMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_msg::SickLdmrsObjectArray ros_msg;
+        if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.objects.size() > 0)
+        {
+            // ros_sensor_msgs::PointCloud2 message received, convert to SickScanPointCloudMsg
+            ROS_INFO_STREAM("SickScanApiWaitNextLdmrsObjectArrayMsg: LdmrsObjectArray message, " << ros_msg.objects.size() << " objects");
+            *msg = convertLdmrsObjectArrayMsg(ros_msg);
+            ret_val = SICK_SCAN_API_SUCCESS;
+        }
+        else
+        {
+            ret_val = SICK_SCAN_API_TIMEOUT;
+        }
+        sick_scan::WaitForLdmrsObjectArrayMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextLdmrsObjectArrayMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextLdmrsObjectArrayMsg(): unknown exception ");
+    }
+    return ret_val;
 }
 int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg)
 {
-    return SICK_SCAN_API_NOT_IMPLEMENTED;
+    if(apiHandle && msg)
+    {
+        freeLdmrsObjectArrayMsg(*msg);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    return SICK_SCAN_API_NOT_INITIALIZED;
+}
+
+// Wait for and return the next VisualizationMarker message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec)
+{
+    int32_t ret_val = SICK_SCAN_API_ERROR;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextVisualizationMarkerMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!sick_scan::isVisualizationMarkerListenerRegistered(node, sick_scan::WaitForVisualizationMarkerMessageHandler::messageCallback))
+            sick_scan::addVisualizationMarkerListener(node, sick_scan::WaitForVisualizationMarkerMessageHandler::messageCallback);
+        sick_scan::WaitForVisualizationMarkerMessageHandler wait_message_handler;
+        sick_scan::WaitForVisualizationMarkerMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        ros_visualization_msgs::MarkerArray ros_msg;
+        if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.markers.size() > 0)
+        {
+            // ros_sensor_msgs::PointCloud2 message received, convert to SickScanPointCloudMsg
+            ROS_INFO_STREAM("SickScanApiWaitNextVisualizationMarkerMsg: VisualizationMarker message, " << ros_msg.markers.size() << " markers");
+            *msg = convertVisualizationMarkerMsg(ros_msg);
+            ret_val = SICK_SCAN_API_SUCCESS;
+        }
+        else
+        {
+            ret_val = SICK_SCAN_API_TIMEOUT;
+        }
+        sick_scan::WaitForVisualizationMarkerMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextVisualizationMarkerMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextVisualizationMarkerMsg(): unknown exception ");
+    }
+    return ret_val;
+}
+int32_t SickScanApiFreeVisualizationMarkersg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg)
+{
+    if(apiHandle && msg)
+    {
+        freeVisualizationMarkerMsg(*msg);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    return SICK_SCAN_API_NOT_INITIALIZED;
 }

@@ -80,6 +80,11 @@ namespace sick_scan
         s_cartesian_poincloud_callback_handler.removeListener(handle, listener);
 	}
 
+    bool isCartesianPointcloudListenerRegistered(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        return s_cartesian_poincloud_callback_handler.isListenerRegistered(handle, listener);
+	}
+
     void addPolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
     {
         s_polar_poincloud_callback_handler.addListener(handle, listener);
@@ -93,6 +98,11 @@ namespace sick_scan
     void removePolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
     {
         s_polar_poincloud_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isPolarPointcloudListenerRegistered(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        return s_polar_poincloud_callback_handler.isListenerRegistered(handle, listener);
 	}
 
     void addImuListener(rosNodePtr handle, ImuCallback listener)
@@ -110,6 +120,11 @@ namespace sick_scan
         s_imu_callback_handler.removeListener(handle, listener);
 	}
 
+    bool isImuListenerRegistered(rosNodePtr handle, ImuCallback listener)
+    {
+        return s_imu_callback_handler.isListenerRegistered(handle, listener);
+	}
+
     void addLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener)
     {
         s_lidoutputstate_callback_handler.addListener(handle, listener);
@@ -123,6 +138,11 @@ namespace sick_scan
     void removeLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener)
     {
         s_lidoutputstate_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isLIDoutputstateListenerRegistered(rosNodePtr handle, LIDoutputstateCallback listener)
+    {
+        return s_lidoutputstate_callback_handler.isListenerRegistered(handle, listener);
 	}
 
     void addLFErecListener(rosNodePtr handle, LFErecCallback listener)
@@ -140,6 +160,11 @@ namespace sick_scan
         s_lferec_callback_handler.removeListener(handle, listener);
 	}
     
+    bool isLFErecListenerRegistered(rosNodePtr handle, LFErecCallback listener)
+    {
+        return s_lferec_callback_handler.isListenerRegistered(handle, listener);
+	}
+
     void addLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener)
     {
         s_ldmrsobjectarray_callback_handler.addListener(handle, listener);
@@ -153,6 +178,11 @@ namespace sick_scan
     void removeLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener)
     {
         s_ldmrsobjectarray_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isLdmrsObjectArrayListenerRegistered(rosNodePtr handle, SickLdmrsObjectArrayCallback listener)
+    {
+        return s_ldmrsobjectarray_callback_handler.isListenerRegistered(handle, listener);
 	}
 
     void addRadarScanListener(rosNodePtr handle, RadarScanCallback listener)
@@ -170,6 +200,11 @@ namespace sick_scan
         s_radarscan_callback_handler.removeListener(handle, listener);
 	}
 
+    bool isRadarScanListenerRegistered(rosNodePtr handle, RadarScanCallback listener)
+    {
+        return s_radarscan_callback_handler.isListenerRegistered(handle, listener);
+	}
+
     void addVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener)
     {
         s_visualizationmarker_callback_handler.addListener(handle, listener);
@@ -183,6 +218,11 @@ namespace sick_scan
     void removeVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener)
     {
         s_visualizationmarker_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isVisualizationMarkerListenerRegistered(rosNodePtr handle, VisualizationMarkerCallback listener)
+    {
+        return s_visualizationmarker_callback_handler.isListenerRegistered(handle, listener);
 	}
 
 }   // namespace sick_scan

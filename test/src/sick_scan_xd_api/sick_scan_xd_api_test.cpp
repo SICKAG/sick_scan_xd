@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sstream>
+#include <thread>
 
 #include "sick_scan_api.h"
 #include "sick_scan_api_dump.h"
@@ -15,6 +16,7 @@ ros::Publisher ros_api_cloud_polar_publisher;
 ros::Publisher ros_api_visualizationmarker_publisher;
 #endif
 
+// Exit with error message
 static void exitOnError(const char* msg, int32_t error_code)
 {
 	printf("## ERROR sick_scan_xd_api_test: %s, error code %d\n", msg, error_code);
@@ -116,11 +118,47 @@ static void apiTestVisualizationMarkerMsgCallback(SickScanApiHandle apiHandle, c
 #endif
 }
 
+// Receive lidar message by SickScanApiWaitNext-functions ("message polling")
+static void runSickScanApiWaitNext(SickScanApiHandle* apiHandle, bool* run_flag)
+{
+	double wait_next_message_timeout = 0.1; // wait max. 0.1 seconds for the next message (otherwise SickScanApiWaitNext-function return with timeout)
+    SickScanPointCloudMsg pointcloud_msg;
+	SickScanVisualizationMarkerMsg visualizationmarker_msg;
+	while(run_flag && *run_flag)
+	{
+		// Get/poll the next cartesian PointCloud message
+		int32_t ret = SickScanApiWaitNextCartesianPointCloudMsg(*apiHandle, &pointcloud_msg, wait_next_message_timeout);
+		if (ret == SICK_SCAN_API_SUCCESS)
+            apiTestCartesianPointCloudMsgCallback(*apiHandle, &pointcloud_msg);
+		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextCartesianPointCloudMsg failed\n");
+		SickScanApiFreePointCloudMsg(*apiHandle, &pointcloud_msg);
+		
+		// Get/poll the next polar PointCloud message
+		ret = SickScanApiWaitNextPolarPointCloudMsg(*apiHandle, &pointcloud_msg, wait_next_message_timeout);
+		if (ret == SICK_SCAN_API_SUCCESS)
+            apiTestPolarPointCloudMsgCallback(*apiHandle, &pointcloud_msg);
+		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextPolarPointCloudMsg failed\n");
+		SickScanApiFreePointCloudMsg(*apiHandle, &pointcloud_msg);
+
+		// Get/poll the next VisualizationMarker message
+		ret = SickScanApiWaitNextVisualizationMarkerMsg(*apiHandle, &visualizationmarker_msg, wait_next_message_timeout);
+		if (ret == SICK_SCAN_API_SUCCESS)
+            apiTestVisualizationMarkerMsgCallback(*apiHandle, &visualizationmarker_msg);
+		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextVisualizationMarkerMsg failed\n");
+		SickScanApiFreeVisualizationMarkersg(*apiHandle, &visualizationmarker_msg);
+	}
+}
+
+// sick_scan_api_test main: Initialize, receive and process lidar messages via sick_scan_xd API.
 int main(int argc, char** argv)
 {
 	int32_t ret = SICK_SCAN_API_SUCCESS;
 	SickScanApiHandle apiHandle = 0;
     std::stringstream cli_params;
+	bool polling = false;
 
 #if __ROS_VERSION == 1
     std::string sick_scan_args = "./src/sick_scan_xd/launch/sick_tim_7xx.launch"; // example launch file
@@ -129,6 +167,8 @@ int main(int argc, char** argv)
         printf("%s%s", (n > 0 ? " ": ""), argv[n]);
 		if (strncmp(argv[n],"_sick_scan_args:=", 17) == 0)
 		    sick_scan_args = argv[n] + 17;
+		if (strncmp(argv[n],"_polling:=", 10) == 0 && atoi(argv[n] + 10) > 0)
+		    polling = true;
 	}
     ros::init(argc, argv, "sick_scan_xd_api_test");
     ros::NodeHandle nh("~");
@@ -154,35 +194,44 @@ int main(int argc, char** argv)
 	    exitOnError("SickScanApiInitByCli failed", ret);
 #endif	 
 
-    // Register a callback for PointCloud messages
-    if((ret = SickScanApiRegisterCartesianPointCloudMsg(apiHandle, apiTestCartesianPointCloudMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiRegisterCartesianPointCloudMsg failed", ret);
-    if((ret = SickScanApiRegisterPolarPointCloudMsg(apiHandle, apiTestPolarPointCloudMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiRegisterCartesianPointCloudMsg failed", ret);
+	bool run_polling = polling;
+	std::thread* run_polling_thread = 0;
+    if (polling) // Receive lidar message by SickScanApiWaitNext-functions running in a background thread ("message polling")
+	{
+		run_polling_thread = new std::thread(runSickScanApiWaitNext, &apiHandle, &run_polling);
+	}
+	else
+	{
+		// Register a callback for PointCloud messages
+		if((ret = SickScanApiRegisterCartesianPointCloudMsg(apiHandle, apiTestCartesianPointCloudMsgCallback)) != SICK_SCAN_API_SUCCESS)
+			exitOnError("SickScanApiRegisterCartesianPointCloudMsg failed", ret);
+		if((ret = SickScanApiRegisterPolarPointCloudMsg(apiHandle, apiTestPolarPointCloudMsgCallback)) != SICK_SCAN_API_SUCCESS)
+			exitOnError("SickScanApiRegisterCartesianPointCloudMsg failed", ret);
 
-    // Register a callback for Imu messages
-    if((ret = SickScanApiRegisterImuMsg(apiHandle, apiTestImuMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiRegisterImuMsg failed", ret);
+		// Register a callback for Imu messages
+		if((ret = SickScanApiRegisterImuMsg(apiHandle, apiTestImuMsgCallback)) != SICK_SCAN_API_SUCCESS)
+			exitOnError("SickScanApiRegisterImuMsg failed", ret);
 
-    // Register a callback for LFErec messages
-    if((ret = SickScanApiRegisterLFErecMsg(apiHandle, apiTestLFErecMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiRegisterLFErecMsg failed", ret);
+		// Register a callback for LFErec messages
+		if((ret = SickScanApiRegisterLFErecMsg(apiHandle, apiTestLFErecMsgCallback)) != SICK_SCAN_API_SUCCESS)
+			exitOnError("SickScanApiRegisterLFErecMsg failed", ret);
 
-    // Register a callback for LIDoutputstate messages
-    if((ret = SickScanApiRegisterLIDoutputstateMsg(apiHandle, apiTestLIDoutputstateMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiRegisterLIDoutputstateMsg failed", ret);
+		// Register a callback for LIDoutputstate messages
+		if((ret = SickScanApiRegisterLIDoutputstateMsg(apiHandle, apiTestLIDoutputstateMsgCallback)) != SICK_SCAN_API_SUCCESS)
+			exitOnError("SickScanApiRegisterLIDoutputstateMsg failed", ret);
 
-    // Register a callback for RadarScan messages
-    if((ret = SickScanApiRegisterRadarScanMsg(apiHandle, apiTestRadarScanMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiRegisterRadarScanMsg failed", ret);
+		// Register a callback for RadarScan messages
+		if((ret = SickScanApiRegisterRadarScanMsg(apiHandle, apiTestRadarScanMsgCallback)) != SICK_SCAN_API_SUCCESS)
+			exitOnError("SickScanApiRegisterRadarScanMsg failed", ret);
 
-    // Register a callback for LdmrsObjectArray messages
-    if((ret = SickScanApiRegisterLdmrsObjectArrayMsg(apiHandle, apiTestLdmrsObjectArrayCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiRegisterLdmrsObjectArrayMsg failed", ret);
+		// Register a callback for LdmrsObjectArray messages
+		if((ret = SickScanApiRegisterLdmrsObjectArrayMsg(apiHandle, apiTestLdmrsObjectArrayCallback)) != SICK_SCAN_API_SUCCESS)
+			exitOnError("SickScanApiRegisterLdmrsObjectArrayMsg failed", ret);
 
-    // Register a callback for VisualizationMarker messages
-    if((ret = SickScanApiRegisterVisualizationMarkerMsg(apiHandle, apiTestVisualizationMarkerMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiRegisterVisualizationMarkerMsg failed", ret);
+		// Register a callback for VisualizationMarker messages
+		if((ret = SickScanApiRegisterVisualizationMarkerMsg(apiHandle, apiTestVisualizationMarkerMsgCallback)) != SICK_SCAN_API_SUCCESS)
+			exitOnError("SickScanApiRegisterVisualizationMarkerMsg failed", ret);
+	}
 
     // Run main loop
 #if __ROS_VERSION == 1
@@ -193,22 +242,24 @@ int main(int argc, char** argv)
 
     // Cleanup and exit
 	printf("sick_scan_xd_api_test finishing...\n");
-    if((ret = SickScanApiDeregisterCartesianPointCloudMsg(apiHandle, apiTestCartesianPointCloudMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiDeregisterCartesianPointCloudMsg failed", ret);
-    if((ret = SickScanApiDeregisterPolarPointCloudMsg(apiHandle, apiTestPolarPointCloudMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiDeregisterPolarPointCloudMsg failed", ret);
-    if((ret = SickScanApiDeregisterImuMsg(apiHandle, apiTestImuMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiDeregisterImuMsg failed", ret);
-    if((ret = SickScanApiDeregisterLFErecMsg(apiHandle, apiTestLFErecMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiDeregisterLFErecMsg failed", ret);
-    if((ret = SickScanApiDeregisterLIDoutputstateMsg(apiHandle, apiTestLIDoutputstateMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiDeregisterLIDoutputstateMsg failed", ret);
-    if((ret = SickScanApiDeregisterRadarScanMsg(apiHandle, apiTestRadarScanMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiDeregisterRadarScanMsg failed", ret);
-    if((ret = SickScanApiDeregisterLdmrsObjectArrayMsg(apiHandle, apiTestLdmrsObjectArrayCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiDeregisterLdmrsObjectArrayMsg failed", ret);
-    if((ret = SickScanApiDeregisterVisualizationMarkerMsg(apiHandle, apiTestVisualizationMarkerMsgCallback)) != SICK_SCAN_API_SUCCESS)
-	    exitOnError("SickScanApiDeregisterVisualizationMarkerMsg failed", ret);
+	if (polling)
+	{
+		run_polling = false;
+		run_polling_thread->join();
+		delete run_polling_thread;
+		run_polling_thread = 0;
+	}
+	else
+	{
+		SickScanApiDeregisterCartesianPointCloudMsg(apiHandle, apiTestCartesianPointCloudMsgCallback);
+		SickScanApiDeregisterPolarPointCloudMsg(apiHandle, apiTestPolarPointCloudMsgCallback);
+		SickScanApiDeregisterImuMsg(apiHandle, apiTestImuMsgCallback);
+		SickScanApiDeregisterLFErecMsg(apiHandle, apiTestLFErecMsgCallback);
+		SickScanApiDeregisterLIDoutputstateMsg(apiHandle, apiTestLIDoutputstateMsgCallback);
+		SickScanApiDeregisterRadarScanMsg(apiHandle, apiTestRadarScanMsgCallback);
+		SickScanApiDeregisterLdmrsObjectArrayMsg(apiHandle, apiTestLdmrsObjectArrayCallback);
+		SickScanApiDeregisterVisualizationMarkerMsg(apiHandle, apiTestVisualizationMarkerMsgCallback);
+	}
     if((ret = SickScanApiClose(apiHandle)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiClose failed", ret);
     if((ret = SickScanApiRelease(apiHandle)) != SICK_SCAN_API_SUCCESS)

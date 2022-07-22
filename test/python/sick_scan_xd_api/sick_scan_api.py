@@ -384,9 +384,9 @@ def SickScanApiLoadLibrary(paths, lib_filname):
     # sick_scan_api.h: int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
     sick_scan_library.SickScanApiWaitNextPolarPointCloudMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanPointCloudMsg), ctypes.c_double]
     sick_scan_library.SickScanApiWaitNextPolarPointCloudMsg.restype = ctypes.c_int
-    # sick_scan_api.h: int32_t SickScanApiFreePolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg);
-    sick_scan_library.SickScanApiFreePolarPointCloudMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanPointCloudMsg)]
-    sick_scan_library.SickScanApiFreePolarPointCloudMsg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiFreePointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg);
+    sick_scan_library.SickScanApiFreePointCloudMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanPointCloudMsg)]
+    sick_scan_library.SickScanApiFreePointCloudMsg.restype = ctypes.c_int
     # sick_scan_api.h: int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec);
     sick_scan_library.SickScanApiWaitNextImuMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanImuMsg), ctypes.c_double]
     sick_scan_library.SickScanApiWaitNextImuMsg.restype = ctypes.c_int
@@ -417,6 +417,12 @@ def SickScanApiLoadLibrary(paths, lib_filname):
     # sick_scan_api.h: int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg);
     sick_scan_library.SickScanApiFreeLdmrsObjectArrayMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanLdmrsObjectArray)]
     sick_scan_library.SickScanApiFreeLdmrsObjectArrayMsg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
+    sick_scan_library.SickScanApiWaitNextVisualizationMarkerMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanVisualizationMarkerMsg), ctypes.c_double]
+    sick_scan_library.SickScanApiWaitNextVisualizationMarkerMsg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiFreeVisualizationMarkersg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
+    sick_scan_library.SickScanApiFreeVisualizationMarkersg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanVisualizationMarkerMsg)]
+    sick_scan_library.SickScanApiFreeVisualizationMarkersg.restype = ctypes.c_int
     return sick_scan_library
 
 # Unload sick_scan_xd api library
