@@ -4,13 +4,24 @@
 # Make sure that libsick_scan_xd_api_lib.so is included in the system path, f.e. by
 # python3 sick_scan_xd_api_test.py
 
+import os
 import sys
 import threading
+import time
 from sick_scan_api import *
 
-__ROS_VERSION = 1 # set __ROS_VERSION to 0 (no ROS) or 1 (publish ROS-1 pointclouds)
+# set __ROS_VERSION to 0 (no ROS), 1 (publish ROS-1 pointclouds), or 2 (ROS-2)
+__ROS_VERSION = os.getenv("ROS_VERSION")
+if __ROS_VERSION is None:
+    __ROS_VERSION = 0
+else:
+    __ROS_VERSION = int(__ROS_VERSION)
 if __ROS_VERSION == 1:
     import rospy
+    from sick_scan_api_converter import *
+elif __ROS_VERSION == 2:
+    import rclpy
+    from rclpy.node import Node
     from sick_scan_api_converter import *
 
 # global settings
@@ -32,11 +43,11 @@ def pySickScanCartesianPointCloudMsgCallback(api_handle, pointcloud_msg):
     pointcloud_msg = pointcloud_msg.contents # dereference msg pointer (pointcloud_msg = pointcloud_msg[0])
     print("pySickScanCartesianPointCloudMsgCallback: api_handle={}, {}x{} pointcloud, {} echo(s), segment {}".format(
         api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx))
-    if __ROS_VERSION == 1:
+    if __ROS_VERSION > 0:
         # Copy cartesian pointcloud_msg to cartesian ros pointcloud and publish
         global api_test_settings
         if api_test_settings.ros_pointcloud_publisher is not None and pointcloud_msg.width > 0 and pointcloud_msg.height > 0:
-            ros_pointcloud = SickScanApiConvertPointCloudToROS1(pointcloud_msg)
+            ros_pointcloud = SickScanApiConvertPointCloudToROS(pointcloud_msg)
             api_test_settings.ros_pointcloud_publisher.publish(ros_pointcloud)
 
 # Callback for polar pointcloud messages
@@ -59,7 +70,7 @@ def pySickScanPolarPointCloudMsgCallback(api_handle, pointcloud_msg):
             elif pointcloud_msg.segment_idx < 0 and cur_timestamp > api_test_settings.ros_polar_pointcloud_timestamp_published + rospy.Duration(0.9):
                 publish_polar_pointcloud = True
             if publish_polar_pointcloud:
-                ros_pointcloud = SickScanApiConvertPolarPointCloudToROS1(pointcloud_msg)
+                ros_pointcloud = SickScanApiConvertPolarPointCloudToROS(pointcloud_msg)
                 api_test_settings.ros_polar_pointcloud_publisher.publish(ros_pointcloud)
                 api_test_settings.ros_polar_pointcloud_timestamp_published = cur_timestamp
 
@@ -102,10 +113,10 @@ def pySickScanRadarScanCallback(api_handle, radarscan_msg):
         # Copy radar target pointcloud_msg to ros pointcloud and publish
         global api_test_settings
         if api_test_settings.ros_pointcloud_publisher is not None and radarscan_msg.targets.width > 0 and radarscan_msg.targets.height > 0:
-            ros_pointcloud = SickScanApiConvertPointCloudToROS1(radarscan_msg.targets)
+            ros_pointcloud = SickScanApiConvertPointCloudToROS(radarscan_msg.targets)
             api_test_settings.ros_pointcloud_publisher.publish(ros_pointcloud)
         if api_test_settings.ros_polar_pointcloud_publisher is not None and radarscan_msg.objects.size > 0:
-            ros_pointcloud = SickScanApiConvertRadarObjectsToROS1(radarscan_msg.header, radarscan_msg.objects)
+            ros_pointcloud = SickScanApiConvertRadarObjectsToROS(radarscan_msg.header, radarscan_msg.objects)
             api_test_settings.ros_polar_pointcloud_publisher.publish(ros_pointcloud)
 
 # Callback for LdmrsObjectArray messages
@@ -122,11 +133,11 @@ def pySickScanVisualizationMarkerCallback(api_handle, visualizationmarker_msg):
         marker = visualizationmarker_msg.markers.buffer[n]
         marker_info = marker_info + ", marker {}: pos=({},{},{})".format(marker.id, marker.pose_position.x, marker.pose_position.y, marker.pose_position.z)
     print("pySickScanVisualizationMarkerCallback: api_handle={}, visualizationmarker message: {} marker{}".format(api_handle, visualizationmarker_msg.markers.size, marker_info))
-    if __ROS_VERSION == 1:
+    if __ROS_VERSION > 0:
         # Copy radar target pointcloud_msg to ros pointcloud and publish
         global api_test_settings
         if api_test_settings.ros_visualizationmarker_publisher is not None and visualizationmarker_msg.markers.size > 0:
-            ros_markers = SickScanApiConvertMarkerArrayToROS1(visualizationmarker_msg.markers)
+            ros_markers = SickScanApiConvertMarkerArrayToROS(visualizationmarker_msg.markers)
             api_test_settings.ros_visualizationmarker_publisher.publish(ros_markers)
 
 #
@@ -223,9 +234,17 @@ if __name__ == "__main__":
         api_test_settings.ros_polar_pointcloud_publisher = rospy.Publisher("/sick_scan_xd_api_test/api_cloud_polar", PointCloud2, queue_size=10)
         api_test_settings.ros_visualizationmarker_publisher = rospy.Publisher("/sick_scan_xd_api_test/marker", MarkerArray, queue_size=10)
         api_test_settings.ros_polar_pointcloud_timestamp_published = rospy.Time.now()
+    elif __ROS_VERSION == 2:
+        rclpy.init()
+        ros_node = Node("sick_scan_api_test_py")
+        api_test_settings.ros_pointcloud_publisher = ros_node.create_publisher(PointCloud2, "/sick_scan_xd_api_test/api_cloud", 10)
+        api_test_settings.ros_visualizationmarker_publisher = ros_node.create_publisher(MarkerArray, "/sick_scan_xd_api_test/marker", 10)
 
     # Load sick_scan_library
-    sick_scan_library = SickScanApiLoadLibrary(["build/", "build_linux/", "src/build/", "src/build_linux/", "src/sick_scan_xd/build/", "src/sick_scan_xd/build_linux/", "./", "../"], "libsick_scan_shared_lib.so")
+    if os.name == 'nt': # Load windows dll
+        sick_scan_library = SickScanApiLoadLibrary(["build/Debug/", "build_win64/Debug/", "src/build/Debug/", "src/build_win64/Debug/", "src/sick_scan_xd/build/Debug/", "src/sick_scan_xd/build_win64/Debug/", "./", "../"], "sick_scan_shared_lib.dll")
+    else: # Load linux so
+        sick_scan_library = SickScanApiLoadLibrary(["build/", "build_linux/", "src/build/", "src/build_linux/", "src/sick_scan_xd/build/", "src/sick_scan_xd/build_linux/", "./", "../"], "libsick_scan_shared_lib.so")
     api_handle = SickScanApiCreate(sick_scan_library)
 
     # Initialize lidar by launchfile, e.g. sick_tim_7xx.launch
@@ -278,6 +297,7 @@ if __name__ == "__main__":
     else:
         user_key = 0
         while user_key != "\n":
+            time.sleep(1)
             print("sick_scan_xd_api_test.py running. Press ENTER to exit")
             user_key = sys.stdin.read(1)
 

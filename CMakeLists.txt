@@ -696,16 +696,13 @@ if(ROS_VERSION EQUAL 1)
 endif(ROS_VERSION EQUAL 1)
 
 if(ROS_VERSION EQUAL 2)
-    install(TARGETS
-        sick_generic_caller
+    install(TARGETS sick_generic_caller sick_scan_xd_api_test
         DESTINATION lib/${PROJECT_NAME})
 
-    install(TARGETS
-        sick_scan_lib sick_scan_shared_lib
+    install(TARGETS sick_scan_lib sick_scan_shared_lib
         DESTINATION lib)
 
-    install(DIRECTORY
-        launch
+    install(DIRECTORY launch
         DESTINATION share/${PROJECT_NAME})
         
     ament_package()        

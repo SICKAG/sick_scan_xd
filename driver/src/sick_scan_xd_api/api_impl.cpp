@@ -26,6 +26,14 @@ static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanRadarScan>      
 static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanLdmrsObjectArray>       s_callback_handler_ldmrsobjectarray_messages;
 static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanVisualizationMarkerMsg> s_callback_handler_visualizationmarker_messages;
 
+#if __ROS_VERSION == 2 // workaround for missing imu quaternion operator << in ROS2
+#   define ROS_VECTOR3D_TO_STREAM(msg)   ((msg).x) << "," << ((msg).y) << "," << ((msg).z)
+#   define ROS_QUATERNION_TO_STREAM(msg) ((msg).x) << "," << ((msg).y) << "," << ((msg).z) << "," << ((msg).w)
+#else
+#   define ROS_VECTOR3D_TO_STREAM(msg) (msg)
+#   define ROS_QUATERNION_TO_STREAM(msg) (msg)
+#endif
+
 static SickScanApiHandle castNodeToApiHandle(rosNodePtr node)
 {
     return ((SickScanApiHandle)(&(*node))); // return ((SickScanApiHandle)node);
@@ -523,7 +531,7 @@ static void imu_callback(rosNodePtr node, const ros_sensor_msgs::Imu* msg)
 {
     // ROS_DEBUG_STREAM("api_impl lferec_callback: Imu message = {" << (*msg) << "}");
     DUMP_API_IMU_MESSAGE("impl", *msg);
-    ROS_DEBUG_STREAM("api_impl imu_callback: Imu message, orientation={" << msg->orientation << "}, angular_velocity={" << msg->angular_velocity << "}, linear_acceleration={" << msg->linear_acceleration << "}");
+    ROS_DEBUG_STREAM("api_impl imu_callback: Imu message, orientation={" << ROS_QUATERNION_TO_STREAM(msg->orientation) << "}, angular_velocity={" << ROS_VECTOR3D_TO_STREAM(msg->angular_velocity) << "}, linear_acceleration={" << ROS_VECTOR3D_TO_STREAM(msg->linear_acceleration) << "}");
     // Convert ros_sensor_msgs::PointCloud2 message to SickScanPointCloudMsg and export (i.e. notify all listeners)
     SickScanImuMsg export_msg = convertImuMsg(*msg);
     SickScanApiHandle apiHandle = castNodeToApiHandle(node);

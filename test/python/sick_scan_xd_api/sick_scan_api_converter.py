@@ -9,26 +9,43 @@ import sys
 import sick_scan_api
 from sick_scan_api import *
 
-import rospy
+# set __ROS_VERSION to 0 (no ROS), 1 (publish ROS-1 pointclouds), or 2 (ROS-2)
+__ROS_VERSION = os.getenv("ROS_VERSION")
+if __ROS_VERSION is None:
+    __ROS_VERSION = 0
+else:
+    __ROS_VERSION = int(__ROS_VERSION)
+if __ROS_VERSION == 1:
+    import rospy
+    from rospy import Duration
+    from sensor_msgs import point_cloud2
+elif __ROS_VERSION == 2:
+    from rclpy.duration import Duration
 from std_msgs.msg import ColorRGBA
 from geometry_msgs.msg import Point
-from sensor_msgs import point_cloud2
 from sensor_msgs.msg import PointCloud2, PointField
 from visualization_msgs.msg import Marker, MarkerArray
 
 # Convert a cartesian SickScanPointCloudMsg to ros sensor_msgs.msg.PointCloud2
-def SickScanApiConvertPointCloudToROS1(api_pointcloud):
+def SickScanApiConvertPointCloudToROS(api_pointcloud):
     
+    if __ROS_VERSION == 0:
+        print("## ERROR: SickScanApiConvertPointCloudToROS not implemented (ROS_VERSION = {})".format(__ROS_VERSION))
+        return None
     # Copy pointcloud header and dimensions
     ros_pointcloud = PointCloud2()
-    ros_pointcloud.header.seq = api_pointcloud.header.seq
-    ros_pointcloud.header.stamp.secs = api_pointcloud.header.timestamp_sec
-    ros_pointcloud.header.stamp.nsecs = api_pointcloud.header.timestamp_nsec
+    if __ROS_VERSION == 1:
+        ros_pointcloud.header.seq = api_pointcloud.header.seq
+        ros_pointcloud.header.stamp.secs = api_pointcloud.header.timestamp_sec
+        ros_pointcloud.header.stamp.nsecs = api_pointcloud.header.timestamp_nsec
+    elif __ROS_VERSION == 2:
+        ros_pointcloud.header.stamp.sec = api_pointcloud.header.timestamp_sec
+        ros_pointcloud.header.stamp.nanosec = api_pointcloud.header.timestamp_nsec
     ros_pointcloud.header.frame_id = ctypesCharArrayToString(api_pointcloud.header.frame_id)
     ros_pointcloud.width = api_pointcloud.width
     ros_pointcloud.height = api_pointcloud.height
-    ros_pointcloud.is_bigendian = api_pointcloud.is_bigendian
-    ros_pointcloud.is_dense = api_pointcloud.is_dense
+    ros_pointcloud.is_bigendian = (api_pointcloud.is_bigendian > 0)
+    ros_pointcloud.is_dense = (api_pointcloud.is_dense > 0)
     ros_pointcloud.point_step = api_pointcloud.point_step
     ros_pointcloud.row_step = api_pointcloud.row_step
     
@@ -37,7 +54,7 @@ def SickScanApiConvertPointCloudToROS1(api_pointcloud):
     msg_fields_buffer = api_pointcloud.fields.buffer
     ros_pointcloud.fields =  [PointField()] * num_fields
     for n in range(num_fields):
-        ros_pointcloud.fields[n] = PointField(ctypesCharArrayToString(msg_fields_buffer[n].name), msg_fields_buffer[n].offset, msg_fields_buffer[n].datatype, msg_fields_buffer[n].count)
+        ros_pointcloud.fields[n] = PointField(name = ctypesCharArrayToString(msg_fields_buffer[n].name), offset = msg_fields_buffer[n].offset, datatype = msg_fields_buffer[n].datatype, count = msg_fields_buffer[n].count)
     
     # Copy pointcloud data
     cloud_data_buffer_len = (ros_pointcloud.row_step * ros_pointcloud.height) # length of cloud data in byte
@@ -51,8 +68,11 @@ def SickScanApiConvertPointCloudToROS1(api_pointcloud):
     return ros_pointcloud
 
 # Convert a polar SickScanPointCloudMsg to ros sensor_msgs.msg.PointCloud2
-def SickScanApiConvertPolarPointCloudToROS1(api_pointcloud):
+def SickScanApiConvertPolarPointCloudToROS(api_pointcloud):
     
+    if __ROS_VERSION != 1:
+        print("## ERROR: SickScanApiConvertPointCloudToROS not implemented (ROS_VERSION = {})".format(__ROS_VERSION))
+        return None
     # Copy pointcloud header
     ros_pointcloud = PointCloud2()
     ros_pointcloud.header.seq = api_pointcloud.header.seq
@@ -119,8 +139,11 @@ def SickScanApiConvertPolarPointCloudToROS1(api_pointcloud):
     return ros_pointcloud
 
 # Convert radar objects to ros sensor_msgs.msg.PointCloud2
-def SickScanApiConvertRadarObjectsToROS1(header, radar_objects):
+def SickScanApiConvertRadarObjectsToROS(header, radar_objects):
 
+    if __ROS_VERSION != 1:
+        print("## ERROR: SickScanApiConvertPointCloudToROS not implemented (ROS_VERSION = {})".format(__ROS_VERSION))
+        return None
     # Copy pointcloud header
     ros_pointcloud = PointCloud2()
     ros_pointcloud.header.seq = header.seq
@@ -154,15 +177,25 @@ def SickScanApiConvertRadarObjectsToROS1(header, radar_objects):
     return ros_pointcloud
 
 # Convert SickScanVisualizationMarkerBuffer to ros visualization_msgs.msg.MarkerArray
-def SickScanApiConvertMarkerArrayToROS1(sick_markers):
+def SickScanApiConvertMarkerArrayToROS(sick_markers):
+
+    if __ROS_VERSION == 0:
+        print("## ERROR: SickScanApiConvertPointCloudToROS not implemented (ROS_VERSION = {})".format(__ROS_VERSION))
+        return None
     ros_marker = MarkerArray()
     for n in range(sick_markers.size):
         sick_marker = sick_markers.buffer[n]
         marker = Marker()
         # Copy marker
-        marker.header.seq = sick_marker.header.seq
-        marker.header.stamp.secs = sick_marker.header.timestamp_sec
-        marker.header.stamp.nsecs = sick_marker.header.timestamp_nsec
+        if __ROS_VERSION == 1:
+            marker.header.seq = sick_marker.header.seq
+            marker.header.stamp.secs = sick_marker.header.timestamp_sec
+            marker.header.stamp.nsecs = sick_marker.header.timestamp_nsec
+            marker.lifetime = rospy.Duration(sick_marker.lifetime_sec, sick_marker.lifetime_nsec)
+        elif __ROS_VERSION == 2:
+            marker.header.stamp.sec = sick_marker.header.timestamp_sec
+            marker.header.stamp.nanosec = sick_marker.header.timestamp_nsec
+            # marker.lifetime = Duration(seconds = sick_marker.lifetime_sec, nanoseconds = sick_marker.lifetime_nsec)
         marker.header.frame_id = ctypesCharArrayToString(sick_marker.header.frame_id)
         marker.ns= ctypesCharArrayToString(sick_marker.ns)
         marker.id = sick_marker.id
@@ -182,18 +215,17 @@ def SickScanApiConvertMarkerArrayToROS1(sick_markers):
         marker.color.g = sick_marker.color.g
         marker.color.b = sick_marker.color.b
         marker.color.a = sick_marker.color.a
-        marker.lifetime = rospy.Duration(sick_marker.lifetime_sec, sick_marker.lifetime_nsec)
-        marker.frame_locked = sick_marker.frame_locked
+        marker.frame_locked = (sick_marker.frame_locked > 0)
         marker.text = ctypesCharArrayToString(sick_marker.text)
         marker.mesh_resource = ctypesCharArrayToString(sick_marker.mesh_resource)
-        marker.mesh_use_embedded_materials = sick_marker.mesh_use_embedded_materials
+        marker.mesh_use_embedded_materials = (sick_marker.mesh_use_embedded_materials > 0)
         for m in range(sick_marker.points.size):
             sick_point = sick_marker.points.buffer[m]
-            ros_point = Point(sick_point.x, sick_point.y, sick_point.z)
+            ros_point = Point(x = sick_point.x, y = sick_point.y, z = sick_point.z)
             marker.points.append(ros_point)
         for m in range(sick_marker.colors.size):
             sick_color = sick_marker.colors.buffer[m]
-            ros_color = ColorRGBA(sick_color.r, sick_color.g, sick_color.b, sick_color.a)
+            ros_color = ColorRGBA(r = sick_color.r, g = sick_color.g, b = sick_color.b, a = sick_color.a)
             marker.colors.append(ros_color)
         ros_marker.markers.append(marker)
     return ros_marker

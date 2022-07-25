@@ -36,8 +36,13 @@ static void* GetProcAddress(HINSTANCE hLib, const char* szFunctionName)
 
 static HINSTANCE hinstLib = NULL;
 
+#ifdef WIN32
+typedef SickScanApiHandle(__stdcall* SickScanApiCreate_PROCTYPE)(int argc, char** argv);
+static SickScanApiCreate_PROCTYPE ptSickScanApiCreate = 0;
+#else
 typedef SickScanApiHandle(*SickScanApiCreate_PROCTYPE)(int argc, char** argv);
 static SickScanApiCreate_PROCTYPE ptSickScanApiCreate = 0;
+#endif
 
 typedef int32_t(*SickScanApiRelease_PROCTYPE)(SickScanApiHandle apiHandle);
 static SickScanApiRelease_PROCTYPE ptSickScanApiRelease = 0;
@@ -141,15 +146,15 @@ static SickScanApiFreeLdmrsObjectArrayMsg_PROCTYPE ptSickScanApiFreeLdmrsObjectA
 typedef int32_t(*SickScanApiWaitNextVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
 static SickScanApiWaitNextVisualizationMarkerMsg_PROCTYPE ptSickScanApiWaitNextVisualizationMarkerMsg = 0;
 
-typedef int32_t(*SickScanApiFreeVisualizationMarkersg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
-static SickScanApiFreeVisualizationMarkersg_PROCTYPE ptSickScanApiFreeVisualizationMarkersg = 0;
+typedef int32_t(*SickScanApiFreeVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
+static SickScanApiFreeVisualizationMarkerMsg_PROCTYPE ptSickScanApiFreeVisualizationMarkersg = 0;
 
 /*
 *  Functions and macros to initialize and close the API and a lidar
 */
 
 // load a function by its name using GetProcAddress if not done before (i.e. if ptFunction is 0)
-#define CACHE_FUNCTION_PTR(apiHandle, ptFunction, szFunctionName)                                        \
+#define CACHE_FUNCTION_PTR(apiHandle, ptFunction, szFunctionName, procType)                              \
 do                                                                                                       \
 {                                                                                                        \
     if (hinstLib == 0 || apiHandle == 0)                                                                 \
@@ -159,7 +164,7 @@ do                                                                              
     }                                                                                                    \
     else if (ptFunction == 0)                                                                            \
     {                                                                                                    \
-        ptFunction = GetProcAddress(hinstLib, szFunctionName);                                           \
+        ptFunction = (procType)GetProcAddress(hinstLib, szFunctionName);                                 \
     }                                                                                                    \
     if (ptFunction == 0)                                                                                 \
     {                                                                                                    \
@@ -249,7 +254,7 @@ SickScanApiHandle SickScanApiCreate(int argc, char** argv)
     }
     if (ptSickScanApiCreate == 0)
     {
-        ptSickScanApiCreate = GetProcAddress(hinstLib, "SickScanApiCreate");
+        ptSickScanApiCreate = (SickScanApiCreate_PROCTYPE)GetProcAddress(hinstLib, "SickScanApiCreate");
     }
     if (ptSickScanApiCreate == 0)
     {
@@ -267,7 +272,7 @@ SickScanApiHandle SickScanApiCreate(int argc, char** argv)
 // Release and free all resources of a handle; the handle is invalid after SickScanApiRelease
 int32_t SickScanApiRelease(SickScanApiHandle apiHandle)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRelease, "SickScanApiRelease");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRelease, "SickScanApiRelease", SickScanApiRelease_PROCTYPE);
     int32_t ret = (ptSickScanApiRelease ? (ptSickScanApiRelease(apiHandle)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiRelease: library call SickScanApiRelease() failed, error code %d\n", ret);
@@ -277,7 +282,7 @@ int32_t SickScanApiRelease(SickScanApiHandle apiHandle)
 // Initializes a lidar by launchfile and starts message receiving and processing
 int32_t SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* launchfile_args)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiInitByLaunchfile, "SickScanApiInitByLaunchfile");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiInitByLaunchfile, "SickScanApiInitByLaunchfile", SickScanApiInitByLaunchfile_PROCTYPE);
     int32_t ret = (ptSickScanApiInitByLaunchfile ? (ptSickScanApiInitByLaunchfile(apiHandle, launchfile_args)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiInitByLaunchfile: library call SickScanApiInitByLaunchfile() failed, error code %d\n", ret);
@@ -287,7 +292,7 @@ int32_t SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* lau
 // Initializes a lidar by commandline arguments and starts message receiving and processing
 int32_t SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiInitByCli, "SickScanApiInitByCli");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiInitByCli, "SickScanApiInitByCli", SickScanApiInitByCli_PROCTYPE);
     int32_t ret = (ptSickScanApiInitByCli ? (ptSickScanApiInitByCli(apiHandle, argc, argv)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiInitByCli: library call SickScanApiInitByCli() failed, error code %d\n", ret);
@@ -297,7 +302,7 @@ int32_t SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv)
 // Stops message receiving and processing and closes a lidar
 int32_t SickScanApiClose(SickScanApiHandle apiHandle)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiClose, "SickScanApiClose");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiClose, "SickScanApiClose", SickScanApiClose_PROCTYPE);
     int32_t ret = (ptSickScanApiClose ? (ptSickScanApiClose(apiHandle)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiClose: library call SickScanApiClose() failed, error code %d\n", ret);
@@ -311,7 +316,7 @@ int32_t SickScanApiClose(SickScanApiHandle apiHandle)
 // Register / deregister a callback for cartesian PointCloud messages, pointcloud in cartesian coordinates with fields x, y, z, intensity
 int32_t SickScanApiRegisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterCartesianPointCloudMsg, "SickScanApiRegisterCartesianPointCloudMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterCartesianPointCloudMsg, "SickScanApiRegisterCartesianPointCloudMsg", SickScanApiRegisterCartesianPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterCartesianPointCloudMsg ? (ptSickScanApiRegisterCartesianPointCloudMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiRegisterCartesianPointCloudMsg: library call SickScanApiRegisterCartesianPointCloudMsg() failed, error code %d\n", ret);
@@ -319,7 +324,7 @@ int32_t SickScanApiRegisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, S
 }
 int32_t SickScanApiDeregisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterCartesianPointCloudMsg, "SickScanApiDeregisterCartesianPointCloudMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterCartesianPointCloudMsg, "SickScanApiDeregisterCartesianPointCloudMsg", SickScanApiDeregisterCartesianPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterCartesianPointCloudMsg ? (ptSickScanApiDeregisterCartesianPointCloudMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterCartesianPointCloudMsg: library call SickScanApiDeregisterCartesianPointCloudMsg() failed, error code %d\n", ret);
@@ -329,7 +334,7 @@ int32_t SickScanApiDeregisterCartesianPointCloudMsg(SickScanApiHandle apiHandle,
 // Register / deregister a callback for polar PointCloud messages, pointcloud in polar coordinates with fields range, azimuth, elevation, intensity
 int32_t SickScanApiRegisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterPolarPointCloudMsg, "SickScanApiRegisterPolarPointCloudMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterPolarPointCloudMsg, "SickScanApiRegisterPolarPointCloudMsg", SickScanApiRegisterPolarPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterPolarPointCloudMsg ? (ptSickScanApiRegisterPolarPointCloudMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiRegisterPolarPointCloudMsg: library call SickScanApiRegisterPolarPointCloudMsg() failed, error code %d\n", ret);
@@ -337,7 +342,7 @@ int32_t SickScanApiRegisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickS
 }
 int32_t SickScanApiDeregisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterPolarPointCloudMsg, "SickScanApiDeregisterPolarPointCloudMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterPolarPointCloudMsg, "SickScanApiDeregisterPolarPointCloudMsg", SickScanApiDeregisterPolarPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterPolarPointCloudMsg ? (ptSickScanApiDeregisterPolarPointCloudMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterPolarPointCloudMsg: library call SickScanApiDeregisterPolarPointCloudMsg() failed, error code %d\n", ret);
@@ -347,7 +352,7 @@ int32_t SickScanApiDeregisterPolarPointCloudMsg(SickScanApiHandle apiHandle, Sic
 // Register / deregister a callback for Imu messages
 int32_t SickScanApiRegisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterImuMsg, "SickScanApiRegisterImuMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterImuMsg, "SickScanApiRegisterImuMsg", SickScanApiRegisterImuMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterImuMsg ? (ptSickScanApiRegisterImuMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiRegisterImuMsg: library call SickScanApiRegisterImuMsg() failed, error code %d\n", ret);
@@ -355,7 +360,7 @@ int32_t SickScanApiRegisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCal
 }
 int32_t SickScanApiDeregisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterImuMsg, "SickScanApiDeregisterImuMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterImuMsg, "SickScanApiDeregisterImuMsg", SickScanApiDeregisterImuMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterImuMsg ? (ptSickScanApiDeregisterImuMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterImuMsg: library call SickScanApiDeregisterImuMsg() failed, error code %d\n", ret);
@@ -365,7 +370,7 @@ int32_t SickScanApiDeregisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgC
 // Register / deregister a callback for SickScanLFErecMsg messages
 int32_t SickScanApiRegisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLFErecMsg, "SickScanApiRegisterLFErecMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLFErecMsg, "SickScanApiRegisterLFErecMsg", SickScanApiRegisterLFErecMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterLFErecMsg ? (ptSickScanApiRegisterLFErecMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiRegisterLFErecMsg: library call SickScanApiRegisterLFErecMsg() failed, error code %d\n", ret);
@@ -373,7 +378,7 @@ int32_t SickScanApiRegisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErec
 }
 int32_t SickScanApiDeregisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLFErecMsg, "SickScanApiDeregisterLFErecMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLFErecMsg, "SickScanApiDeregisterLFErecMsg", SickScanApiDeregisterLFErecMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterLFErecMsg ? (ptSickScanApiDeregisterLFErecMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterLFErecMsg: library call SickScanApiDeregisterLFErecMsg() failed, error code %d\n", ret);
@@ -383,7 +388,7 @@ int32_t SickScanApiDeregisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFEr
 // Register / deregister a callback for SickScanLIDoutputstateMsg messages
 int32_t SickScanApiRegisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLIDoutputstateMsg, "SickScanApiRegisterLIDoutputstateMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLIDoutputstateMsg, "SickScanApiRegisterLIDoutputstateMsg", SickScanApiRegisterLIDoutputstateMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterLIDoutputstateMsg ? (ptSickScanApiRegisterLIDoutputstateMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiRegisterLIDoutputstateMsg: library call SickScanApiRegisterLIDoutputstateMsg() failed, error code %d\n", ret);
@@ -391,7 +396,7 @@ int32_t SickScanApiRegisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickSc
 }
 int32_t SickScanApiDeregisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLIDoutputstateMsg, "SickScanApiDeregisterLIDoutputstateMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLIDoutputstateMsg, "SickScanApiDeregisterLIDoutputstateMsg", SickScanApiDeregisterLIDoutputstateMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterLIDoutputstateMsg ? (ptSickScanApiDeregisterLIDoutputstateMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterLIDoutputstateMsg: library call SickScanApiDeregisterLIDoutputstateMsg() failed, error code %d\n", ret);
@@ -401,7 +406,7 @@ int32_t SickScanApiDeregisterLIDoutputstateMsg(SickScanApiHandle apiHandle, Sick
 // Register / deregister a callback for SickScanRadarScan messages
 int32_t SickScanApiRegisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterRadarScanMsg, "SickScanApiRegisterRadarScanMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterRadarScanMsg, "SickScanApiRegisterRadarScanMsg", SickScanApiRegisterRadarScanMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterRadarScanMsg ? (ptSickScanApiRegisterRadarScanMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiRegisterRadarScanMsg: library call SickScanApiRegisterRadarScanMsg() failed, error code %d\n", ret);
@@ -409,7 +414,7 @@ int32_t SickScanApiRegisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRad
 }
 int32_t SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterRadarScanMsg, "SickScanApiDeregisterRadarScanMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterRadarScanMsg, "SickScanApiDeregisterRadarScanMsg", SickScanApiDeregisterRadarScanMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterRadarScanMsg ? (ptSickScanApiDeregisterRadarScanMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterRadarScanMsg: library call SickScanApiDeregisterRadarScanMsg() failed, error code %d\n", ret);
@@ -419,7 +424,7 @@ int32_t SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanR
 // Register / deregister a callback for SickScanLdmrsObjectArray messages
 int32_t SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLdmrsObjectArrayMsg, "SickScanApiRegisterLdmrsObjectArrayMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLdmrsObjectArrayMsg, "SickScanApiRegisterLdmrsObjectArrayMsg", SickScanApiRegisterLdmrsObjectArrayMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterLdmrsObjectArrayMsg ? (ptSickScanApiRegisterLdmrsObjectArrayMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiRegisterLdmrsObjectArrayMsg: library call SickScanApiRegisterLdmrsObjectArrayMsg() failed, error code %d\n", ret);
@@ -427,7 +432,7 @@ int32_t SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Sick
 }
 int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLdmrsObjectArrayMsg, "SickScanApiDeregisterLdmrsObjectArrayMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLdmrsObjectArrayMsg, "SickScanApiDeregisterLdmrsObjectArrayMsg", SickScanApiDeregisterLdmrsObjectArrayMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterLdmrsObjectArrayMsg ? (ptSickScanApiDeregisterLdmrsObjectArrayMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterLdmrsObjectArrayMsg: library call SickScanApiDeregisterLdmrsObjectArrayMsg() failed, error code %d\n", ret);
@@ -437,7 +442,7 @@ int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Si
 // Register / deregister a callback for VisualizationMarker messages
 int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterVisualizationMarkerMsg, "SickScanApiRegisterVisualizationMarkerMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterVisualizationMarkerMsg, "SickScanApiRegisterVisualizationMarkerMsg", SickScanApiRegisterVisualizationMarkerMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterVisualizationMarkerMsg ? (ptSickScanApiRegisterVisualizationMarkerMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiRegisterVisualizationMarkerMsg: library call SickScanApiRegisterVisualizationMarkerMsg() failed, error code %d\n", ret);
@@ -445,7 +450,7 @@ int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, S
 }
 int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLdmrsObjectArrayMsg, "SickScanApiDeregisterVisualizationMarkerMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterVisualizationMarkerMsg, "SickScanApiDeregisterVisualizationMarkerMsg", SickScanApiDeregisterVisualizationMarkerMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterVisualizationMarkerMsg ? (ptSickScanApiDeregisterVisualizationMarkerMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterVisualizationMarkerMsg: library call SickScanApiDeregisterVisualizationMarkerMsg() failed, error code %d\n", ret);
@@ -459,7 +464,7 @@ int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle,
 // Wait for and return the next cartesian resp. polar PointCloud messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextCartesianPointCloudMsg, "SickScanApiWaitNextCartesianPointCloudMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextCartesianPointCloudMsg, "SickScanApiWaitNextCartesianPointCloudMsg", SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextCartesianPointCloudMsg ? (ptSickScanApiWaitNextCartesianPointCloudMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
         printf("## ERROR SickScanApiWaitNextCartesianPointCloudMsg: library call SickScanApiWaitNextCartesianPointCloudMsg() failed, error code %d\n", ret);
@@ -467,7 +472,7 @@ int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, S
 }
 int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextPolarPointCloudMsg, "SickScanApiWaitNextPolarPointCloudMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextPolarPointCloudMsg, "SickScanApiWaitNextPolarPointCloudMsg", SickScanApiWaitNextPolarPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextPolarPointCloudMsg ? (ptSickScanApiWaitNextPolarPointCloudMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
         printf("## ERROR SickScanApiWaitNextPolarPointCloudMsg: library call SickScanApiWaitNextPolarPointCloudMsg() failed, error code %d\n", ret);
@@ -475,7 +480,7 @@ int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickS
 }
 int32_t SickScanApiFreePointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreePointCloudMsg, "SickScanApiFreePointCloudMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreePointCloudMsg, "SickScanApiFreePointCloudMsg", SickScanApiFreePointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreePointCloudMsg ? (ptSickScanApiFreePointCloudMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiFreePointCloudMsg: library call SickScanApiFreePointCloudMsg() failed, error code %d\n", ret);
@@ -485,7 +490,7 @@ int32_t SickScanApiFreePointCloudMsg(SickScanApiHandle apiHandle, SickScanPointC
 // Wait for and return the next Imu messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextImuMsg, "SickScanApiWaitNextImuMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextImuMsg, "SickScanApiWaitNextImuMsg", SickScanApiWaitNextImuMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextImuMsg ? (ptSickScanApiWaitNextImuMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
         printf("## ERROR SickScanApiWaitNextImuMsg: library call SickScanApiWaitNextImuMsg() failed, error code %d\n", ret);
@@ -493,7 +498,7 @@ int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* m
 }
 int32_t SickScanApiFreeImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeImuMsg, "SickScanApiFreeImuMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeImuMsg, "SickScanApiFreeImuMsg", SickScanApiFreeImuMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeImuMsg ? (ptSickScanApiFreeImuMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiFreeImuMsg: library call SickScanApiFreeImuMsg() failed, error code %d\n", ret);
@@ -503,7 +508,7 @@ int32_t SickScanApiFreeImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg)
 // Wait for and return the next LFErec messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg, double timeout_sec)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextLFErecMsg, "SickScanApiWaitNextLFErecMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextLFErecMsg, "SickScanApiWaitNextLFErecMsg", SickScanApiWaitNextLFErecMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextLFErecMsg ? (ptSickScanApiWaitNextLFErecMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
         printf("## ERROR SickScanApiWaitNextLFErecMsg: library call SickScanApiWaitNextLFErecMsg() failed, error code %d\n", ret);
@@ -511,7 +516,7 @@ int32_t SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErec
 }
 int32_t SickScanApiFreeLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeLFErecMsg, "SickScanApiFreeLFErecMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeLFErecMsg, "SickScanApiFreeLFErecMsg", SickScanApiFreeLFErecMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeLFErecMsg ? (ptSickScanApiFreeLFErecMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiFreeLFErecMsg: library call SickScanApiFreeLFErecMsg() failed, error code %d\n", ret);
@@ -521,7 +526,7 @@ int32_t SickScanApiFreeLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg*
 // Wait for and return the next LIDoutputstate messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg, double timeout_sec)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextLIDoutputstateMsg, "SickScanApiWaitNextLIDoutputstateMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextLIDoutputstateMsg, "SickScanApiWaitNextLIDoutputstateMsg", SickScanApiWaitNextLIDoutputstateMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextLIDoutputstateMsg ? (ptSickScanApiWaitNextLIDoutputstateMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
         printf("## ERROR SickScanApiWaitNextLIDoutputstateMsg: library call SickScanApiWaitNextLIDoutputstateMsg() failed, error code %d\n", ret);
@@ -529,7 +534,7 @@ int32_t SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickSc
 }
 int32_t SickScanApiFreeLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeLIDoutputstateMsg, "SickScanApiFreeLIDoutputstateMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeLIDoutputstateMsg, "SickScanApiFreeLIDoutputstateMsg", SickScanApiFreeLIDoutputstateMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeLIDoutputstateMsg ? (ptSickScanApiFreeLIDoutputstateMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiFreeLIDoutputstateMsg: library call SickScanApiFreeLIDoutputstateMsg() failed, error code %d\n", ret);
@@ -539,7 +544,7 @@ int32_t SickScanApiFreeLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLI
 // Wait for and return the next RadarScan messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg, double timeout_sec)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextRadarScanMsg, "SickScanApiWaitNextRadarScanMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextRadarScanMsg, "SickScanApiWaitNextRadarScanMsg", SickScanApiWaitNextRadarScanMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextRadarScanMsg ? (ptSickScanApiWaitNextRadarScanMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
         printf("## ERROR SickScanApiWaitNextRadarScanMsg: library call SickScanApiWaitNextRadarScanMsg() failed, error code %d\n", ret);
@@ -547,7 +552,7 @@ int32_t SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRad
 }
 int32_t SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeRadarScanMsg, "SickScanApiFreeRadarScanMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeRadarScanMsg, "SickScanApiFreeRadarScanMsg", SickScanApiFreeRadarScanMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeRadarScanMsg ? (ptSickScanApiFreeRadarScanMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiFreeRadarScanMsg: library call SickScanApiFreeRadarScanMsg() failed, error code %d\n", ret);
@@ -557,7 +562,7 @@ int32_t SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarSc
 // Wait for and return the next LdmrsObjectArray messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextLdmrsObjectArrayMsg, "SickScanApiWaitNextLdmrsObjectArrayMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextLdmrsObjectArrayMsg, "SickScanApiWaitNextLdmrsObjectArrayMsg", SickScanApiWaitNextLdmrsObjectArrayMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextLdmrsObjectArrayMsg ? (ptSickScanApiWaitNextLdmrsObjectArrayMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
         printf("## ERROR SickScanApiWaitNextLdmrsObjectArrayMsg: library call SickScanApiWaitNextLdmrsObjectArrayMsg() failed, error code %d\n", ret);
@@ -565,7 +570,7 @@ int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Sick
 }
 int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeLdmrsObjectArrayMsg, "SickScanApiFreeLdmrsObjectArrayMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeLdmrsObjectArrayMsg, "SickScanApiFreeLdmrsObjectArrayMsg", SickScanApiFreeLdmrsObjectArrayMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeLdmrsObjectArrayMsg ? (ptSickScanApiFreeLdmrsObjectArrayMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiFreeLdmrsObjectArrayMsg: library call SickScanApiFreeLdmrsObjectArrayMsg() failed, error code %d\n", ret);
@@ -575,7 +580,7 @@ int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScan
 // Wait for and return the next VisualizationMarker message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextVisualizationMarkerMsg, "SickScanApiWaitNextVisualizationMarkerMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextVisualizationMarkerMsg, "SickScanApiWaitNextVisualizationMarkerMsg", SickScanApiWaitNextVisualizationMarkerMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextVisualizationMarkerMsg ? (ptSickScanApiWaitNextVisualizationMarkerMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
         printf("## ERROR SickScanApiWaitNextVisualizationMarkerMsg: library call SickScanApiWaitNextVisualizationMarkerMsg() failed, error code %d\n", ret);
@@ -583,7 +588,7 @@ int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, S
 }
 int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeVisualizationMarkersg, "SickScanApiFreeVisualizationMarkerMsg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeVisualizationMarkersg, "SickScanApiFreeVisualizationMarkerMsg", SickScanApiFreeVisualizationMarkerMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeVisualizationMarkersg ? (ptSickScanApiFreeVisualizationMarkersg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiFreeVisualizationMarkerMsg: library call SickScanApiFreeVisualizationMarkerMsg() failed, error code %d\n", ret);

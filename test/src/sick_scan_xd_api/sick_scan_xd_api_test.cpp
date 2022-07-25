@@ -223,7 +223,11 @@ int main(int argc, char** argv)
 #endif
 	printf("\nsick_scan_xd_api_test started\n");
 
-    const char* sick_scan_api_lib = "libsick_scan_shared_lib.so";
+#ifdef _MSC_VER
+	const char* sick_scan_api_lib = "sick_scan_shared_lib.dll";
+#else
+	const char* sick_scan_api_lib = "libsick_scan_shared_lib.so";
+#endif
     if((ret = SickScanApiLoadLibrary(sick_scan_api_lib)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiLoadLibrary failed", ret);
 

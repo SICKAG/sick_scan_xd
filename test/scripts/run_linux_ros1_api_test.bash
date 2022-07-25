@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Run example ros service calls
-
 # Start tim7xx emulator and rviz
 function start_tim7xx_emulator()
 {
