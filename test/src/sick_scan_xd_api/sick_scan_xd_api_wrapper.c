@@ -581,11 +581,11 @@ int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, S
         printf("## ERROR SickScanApiWaitNextVisualizationMarkerMsg: library call SickScanApiWaitNextVisualizationMarkerMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiFreeVisualizationMarkersg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg)
+int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg)
 {
-    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeVisualizationMarkersg, "SickScanApiFreeVisualizationMarkersg");
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeVisualizationMarkersg, "SickScanApiFreeVisualizationMarkerMsg");
     int32_t ret = (ptSickScanApiFreeVisualizationMarkersg ? (ptSickScanApiFreeVisualizationMarkersg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
-        printf("## ERROR SickScanApiFreeVisualizationMarkersg: library call SickScanApiFreeVisualizationMarkersg() failed, error code %d\n", ret);
+        printf("## ERROR SickScanApiFreeVisualizationMarkerMsg: library call SickScanApiFreeVisualizationMarkerMsg() failed, error code %d\n", ret);
     return ret;
 }

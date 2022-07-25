@@ -27,14 +27,19 @@ class SickScanUint8Array(ctypes.Structure):          # sick_scan_api: struct Sic
     ]
 
 class SickScanNativeDataType(Enum): # This message holds the description of one point entry in the PointCloud2 message format, equivalent to type enum im ros::sensor_msgs::PointField
-    SICK_SCAN_POINTFIELD_DATATYPE_INT8    = 1,
-    SICK_SCAN_POINTFIELD_DATATYPE_UINT8   = 2,
-    SICK_SCAN_POINTFIELD_DATATYPE_INT16   = 3,
-    SICK_SCAN_POINTFIELD_DATATYPE_UINT16  = 4,
-    SICK_SCAN_POINTFIELD_DATATYPE_INT32   = 5,
-    SICK_SCAN_POINTFIELD_DATATYPE_UINT32  = 6,
-    SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32 = 7,
-    SICK_SCAN_POINTFIELD_DATATYPE_FLOAT64 = 8
+    SICK_SCAN_POINTFIELD_DATATYPE_INT8    = 1, "SICK_SCAN_POINTFIELD_DATATYPE_INT8"
+    SICK_SCAN_POINTFIELD_DATATYPE_UINT8   = 2, "SICK_SCAN_POINTFIELD_DATATYPE_UINT8"
+    SICK_SCAN_POINTFIELD_DATATYPE_INT16   = 3, "SICK_SCAN_POINTFIELD_DATATYPE_INT16"
+    SICK_SCAN_POINTFIELD_DATATYPE_UINT16  = 4, "SICK_SCAN_POINTFIELD_DATATYPE_UINT16"
+    SICK_SCAN_POINTFIELD_DATATYPE_INT32   = 5, "SICK_SCAN_POINTFIELD_DATATYPE_INT32"
+    SICK_SCAN_POINTFIELD_DATATYPE_UINT32  = 6, "SICK_SCAN_POINTFIELD_DATATYPE_UINT32"
+    SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32 = 7, "SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32"
+    SICK_SCAN_POINTFIELD_DATATYPE_FLOAT64 = 8, "SICK_SCAN_POINTFIELD_DATATYPE_FLOAT64"
+    def __int__(self):
+        return self.value[0]
+    def __str__(self):
+        return self.value[1]
+
 
 class SickScanPointFieldMsg(ctypes.Structure):       # sick_scan_api: struct SickScanPointFieldMsg, equivalent to ros::sensor_msgs::PointField
     # SickScanPointFieldArray is an array of SickScanPointFieldMsg, which defines the structure of the binary data of a SickScanPointCloudMsg.
@@ -284,6 +289,18 @@ class SickScanVisualizationMarkerMsg(ctypes.Structure):         # equivalent to 
         ("markers", SickScanVisualizationMarkerBuffer)          # Array of SickScanVisualizationMarkers
     ]
 
+class SickScanApiErrorCodes(Enum): # Error codes, return values of SickScanApi-functions
+    SICK_SCAN_API_SUCCESS = 0, "SICK_SCAN_API_SUCCESS"                 # function executed successfully
+    SICK_SCAN_API_ERROR = 1, "SICK_SCAN_API_ERROR"                     # general (unspecified) error
+    SICK_SCAN_API_NOT_LOADED = 2, "SICK_SCAN_API_NOT_LOADED"           # sick_scan_xd library not loaded
+    SICK_SCAN_API_NOT_INITIALIZED = 3, "SICK_SCAN_API_NOT_INITIALIZED" # API not initialized
+    SICK_SCAN_API_NOT_IMPLEMENTED = 4, "SICK_SCAN_API_NOT_IMPLEMENTED" # function not implemented in sick_scan_xd library
+    SICK_SCAN_API_TIMEOUT = 5, "SICK_SCAN_API_TIMEOUT"                 # timeout during wait for response
+    def __int__(self):
+        return self.value[0]
+    def __str__(self):
+        return self.value[1]
+
 #
 #  Callback declarations
 #
@@ -420,9 +437,9 @@ def SickScanApiLoadLibrary(paths, lib_filname):
     # sick_scan_api.h: int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
     sick_scan_library.SickScanApiWaitNextVisualizationMarkerMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanVisualizationMarkerMsg), ctypes.c_double]
     sick_scan_library.SickScanApiWaitNextVisualizationMarkerMsg.restype = ctypes.c_int
-    # sick_scan_api.h: int32_t SickScanApiFreeVisualizationMarkersg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
-    sick_scan_library.SickScanApiFreeVisualizationMarkersg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanVisualizationMarkerMsg)]
-    sick_scan_library.SickScanApiFreeVisualizationMarkersg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
+    sick_scan_library.SickScanApiFreeVisualizationMarkerMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanVisualizationMarkerMsg)]
+    sick_scan_library.SickScanApiFreeVisualizationMarkerMsg.restype = ctypes.c_int
     return sick_scan_library
 
 # Unload sick_scan_xd api library
@@ -499,3 +516,51 @@ def SickScanApiRegisterVisualizationMarkerMsg(sick_scan_library, api_handle, ldm
     return sick_scan_library.SickScanApiRegisterVisualizationMarkerMsg(api_handle, ldmrsobjectarray_callback)
 def SickScanApiDeregisterVisualizationMarkerMsg(sick_scan_library, api_handle, ldmrsobjectarray_callback):
     return sick_scan_library.SickScanApiDeregisterVisualizationMarkerMsg(api_handle, ldmrsobjectarray_callback)
+
+#
+#  Polling functions
+#
+
+# Wait for and return the next cartesian resp. polar PointCloud message
+def SickScanApiWaitNextCartesianPointCloudMsg(sick_scan_library, api_handle, msg, timeout_sec):
+    return sick_scan_library.SickScanApiWaitNextCartesianPointCloudMsg(api_handle, msg, timeout_sec)
+def SickScanApiWaitNextPolarPointCloudMsg(sick_scan_library, api_handle, msg, timeout_sec):
+    return sick_scan_library.SickScanApiWaitNextPolarPointCloudMsg(api_handle, msg, timeout_sec)
+def SickScanApiFreePointCloudMsg(sick_scan_library, api_handle, msg):
+    return sick_scan_library.SickScanApiFreePointCloudMsg(api_handle, msg)
+
+# Wait for and return the next Imu message
+def SickScanApiWaitNextImuMsg(sick_scan_library, api_handle, msg, timeout_sec):
+    return sick_scan_library.SickScanApiWaitNextImuMsg(api_handle, msg, timeout_sec)
+def SickScanApiFreeImuMsg(sick_scan_library, api_handle, msg):
+    return sick_scan_library.SickScanApiFreeImuMsg(api_handle, msg)
+
+# Wait for and return the next LFErec message
+def SickScanApiWaitNextLFErecMsg(sick_scan_library, api_handle, msg, timeout_sec):
+    return sick_scan_library.SickScanApiWaitNextLFErecMsg(api_handle, msg, timeout_sec)
+def SickScanApiFreeLFErecMsg(sick_scan_library, api_handle, msg):
+    return sick_scan_library.SickScanApiFreeLFErecMsg(api_handle, msg)
+
+# Wait for and return the next LIDoutputstate message
+def SickScanApiWaitNextLIDoutputstateMsg(sick_scan_library, api_handle, msg, timeout_sec):
+    return sick_scan_library.SickScanApiWaitNextLIDoutputstateMsg(api_handle, msg, timeout_sec)
+def SickScanApiFreeLIDoutputstateMsg(sick_scan_library, api_handle, msg):
+    return sick_scan_library.SickScanApiFreeLIDoutputstateMsg(api_handle, msg)
+
+# Wait for and return the next RadarScan message
+def SickScanApiWaitNextRadarScanMsg(sick_scan_library, api_handle, msg, timeout_sec):
+    return sick_scan_library.SickScanApiWaitNextRadarScanMsg(api_handle, msg, timeout_sec)
+def SickScanApiFreeRadarScanMsg(sick_scan_library, api_handle, msg):
+    return sick_scan_library.SickScanApiFreeRadarScanMsg(api_handle, msg)
+
+# Wait for and return the next LdmrsObjectArray message
+def SickScanApiWaitNextLdmrsObjectArrayMsg(sick_scan_library, api_handle, msg, timeout_sec):
+    return sick_scan_library.SickScanApiWaitNextLdmrsObjectArrayMsg(api_handle, msg, timeout_sec)
+def SickScanApiFreeLdmrsObjectArrayMsg(sick_scan_library, api_handle, msg):
+    return sick_scan_library.SickScanApiFreeLdmrsObjectArrayMsg(api_handle, msg)
+
+# Wait for and return the next VisualizationMarker message
+def SickScanApiWaitNextVisualizationMarkerMsg(sick_scan_library, api_handle, msg, timeout_sec):
+    return sick_scan_library.SickScanApiWaitNextVisualizationMarkerMsg(api_handle, msg, timeout_sec)
+def SickScanApiFreeVisualizationMarkerMsg(sick_scan_library, api_handle, msg):
+    return sick_scan_library.SickScanApiFreeVisualizationMarkerMsg(api_handle, msg)

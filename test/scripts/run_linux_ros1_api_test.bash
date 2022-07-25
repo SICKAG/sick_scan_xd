@@ -112,54 +112,6 @@ if [ $roscore_running -lt 1 ] ; then
   sleep 3
 fi
 
-
-
-
-#
-# Run cpp examples with polling
-#
-
-# Start tim7xx emulator and run sick_scan_xd_api_test (cpp example)
-start_tim7xx_emulator
-# rosrun --prefix 'gdb -ex run --args' sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" _polling:=1
-rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" _polling:=1 &
-waitUntilRvizClosed 40
-kill_simu
-
-exit
-
-# Start mrs100 (multiscan136) emulator and run sick_scan_xd_api_test (cpp example)
-start_mrs100_emulator
-rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_frame_id:=cloud" &
-# Play pcapng-files to emulate MRS100 output
-python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=2
-python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
-waitUntilRvizClosed 1
-kill_simu
-
-# Start ldmrs emulator and run sick_scan_xd_api_test (cpp example)
-start_ldmrs_emulator
-rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_ldmrs.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" &
-waitUntilRvizClosed 15
-kill_simu
-
-# Start mrs1xxx emulator with imu messages and run sick_scan_xd_api_test (cpp example)
-start_mrs1xxx_emulator
-rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_mrs_1xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" &
-waitUntilRvizClosed 10
-kill_simu
-
-# Start rms3xx radar emulator and run sick_scan_xd_api_test (cpp example)
-start_rms3xx_emulator
-rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" &
-waitUntilRvizClosed 10
-kill_simu
-
-exit
-
-
-
-
 #
 # Run python examples
 #
@@ -209,8 +161,6 @@ rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/laun
 waitUntilRvizClosed 40
 kill_simu
 
-exit
-
 # Start mrs100 (multiscan136) emulator and run sick_scan_xd_api_test (cpp example)
 start_mrs100_emulator
 rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_frame_id:=cloud" &
@@ -235,6 +185,81 @@ kill_simu
 # Start rms3xx radar emulator and run sick_scan_xd_api_test (cpp example)
 start_rms3xx_emulator
 rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" &
+waitUntilRvizClosed 10
+kill_simu
+
+#
+# Run python examples with polling
+#
+
+# Start tim7xx emulator and run sick_scan_xd_api_test (python example)
+start_tim7xx_emulator
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py _polling:=1 ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+waitUntilRvizClosed 40
+kill_simu
+
+# Start mrs100 (multiscan136) emulator and run sick_scan_xd_api_test (python example)
+start_mrs100_emulator
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py _polling:=1 ./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_frame_id:=cloud &
+# Play pcapng-files to emulate MRS100 output
+python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=2
+python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
+waitUntilRvizClosed 1
+kill_simu
+
+# Start ldmrs emulator and run sick_scan_xd_api_test (python example)
+start_ldmrs_emulator
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py _polling:=1 ./src/sick_scan_xd/launch/sick_ldmrs.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+waitUntilRvizClosed 15
+kill_simu
+
+# Start mrs1xxx emulator with imu messages and run sick_scan_xd_api_test (python example)
+start_mrs1xxx_emulator
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py _polling:=1 ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+waitUntilRvizClosed 10
+kill_simu
+
+# Start rms3xx radar emulator and run sick_scan_xd_api_test (python example)
+start_rms3xx_emulator
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py _polling:=1 ./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+waitUntilRvizClosed 10
+kill_simu
+
+#
+# Run cpp examples with polling
+#
+
+# Start tim7xx emulator and run sick_scan_xd_api_test (cpp example)
+start_tim7xx_emulator
+# rosrun --prefix 'gdb -ex run --args' sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" _polling:=1
+rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" _polling:=1 &
+waitUntilRvizClosed 40
+kill_simu
+
+# Start mrs100 (multiscan136) emulator and run sick_scan_xd_api_test (cpp example)
+start_mrs100_emulator
+rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_frame_id:=cloud" _polling:=1 &
+# Play pcapng-files to emulate MRS100 output
+python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=2
+python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
+waitUntilRvizClosed 1
+kill_simu
+
+# Start ldmrs emulator and run sick_scan_xd_api_test (cpp example)
+start_ldmrs_emulator
+rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_ldmrs.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" _polling:=1 &
+waitUntilRvizClosed 15
+kill_simu
+
+# Start mrs1xxx emulator with imu messages and run sick_scan_xd_api_test (cpp example)
+start_mrs1xxx_emulator
+rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_mrs_1xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" _polling:=1 &
+waitUntilRvizClosed 10
+kill_simu
+
+# Start rms3xx radar emulator and run sick_scan_xd_api_test (cpp example)
+start_rms3xx_emulator
+rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" _polling:=1 &
 waitUntilRvizClosed 10
 kill_simu
 

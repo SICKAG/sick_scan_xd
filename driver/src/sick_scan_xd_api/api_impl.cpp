@@ -1591,7 +1591,7 @@ int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, S
     }
     return ret_val;
 }
-int32_t SickScanApiFreeVisualizationMarkersg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg)
+int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg)
 {
     if(apiHandle && msg)
     {

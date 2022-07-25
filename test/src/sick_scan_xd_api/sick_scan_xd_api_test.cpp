@@ -119,10 +119,15 @@ static void apiTestVisualizationMarkerMsgCallback(SickScanApiHandle apiHandle, c
 }
 
 // Receive lidar message by SickScanApiWaitNext-functions ("message polling")
-static void runSickScanApiWaitNext(SickScanApiHandle* apiHandle, bool* run_flag)
+static void runSickScanApiTestWaitNext(SickScanApiHandle* apiHandle, bool* run_flag)
 {
 	double wait_next_message_timeout = 0.1; // wait max. 0.1 seconds for the next message (otherwise SickScanApiWaitNext-function return with timeout)
     SickScanPointCloudMsg pointcloud_msg;
+	SickScanImuMsg imu_msg;
+	SickScanLFErecMsg lferec_msg;
+    SickScanLIDoutputstateMsg lidoutputstate_msg;
+    SickScanRadarScan radarscan_msg;
+    SickScanLdmrsObjectArray ldmrsobjectarray_msg;
 	SickScanVisualizationMarkerMsg visualizationmarker_msg;
 	while(run_flag && *run_flag)
 	{
@@ -142,13 +147,53 @@ static void runSickScanApiWaitNext(SickScanApiHandle* apiHandle, bool* run_flag)
 			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextPolarPointCloudMsg failed\n");
 		SickScanApiFreePointCloudMsg(*apiHandle, &pointcloud_msg);
 
+		// Get/poll the next Imu message
+		ret = SickScanApiWaitNextImuMsg(*apiHandle, &imu_msg, wait_next_message_timeout);
+		if (ret == SICK_SCAN_API_SUCCESS)
+            apiTestImuMsgCallback(*apiHandle, &imu_msg);
+		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextImuMsg failed\n");
+		SickScanApiFreeImuMsg(*apiHandle, &imu_msg);
+
+		// Get/poll the next LFErec message
+		ret = SickScanApiWaitNextLFErecMsg(*apiHandle, &lferec_msg, wait_next_message_timeout);
+		if (ret == SICK_SCAN_API_SUCCESS)
+            apiTestLFErecMsgCallback(*apiHandle, &lferec_msg);
+		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextLFErecMsg failed\n");
+		SickScanApiFreeLFErecMsg(*apiHandle, &lferec_msg);
+
+		// Get/poll the next LIDoutputstate message
+		ret = SickScanApiWaitNextLIDoutputstateMsg(*apiHandle, &lidoutputstate_msg, wait_next_message_timeout);
+		if (ret == SICK_SCAN_API_SUCCESS)
+            apiTestLIDoutputstateMsgCallback(*apiHandle, &lidoutputstate_msg);
+		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextLIDoutputstateMsg failed\n");
+		SickScanApiFreeLIDoutputstateMsg(*apiHandle, &lidoutputstate_msg);
+
+		// Get/poll the next RadarScan message
+		ret = SickScanApiWaitNextRadarScanMsg(*apiHandle, &radarscan_msg, wait_next_message_timeout);
+		if (ret == SICK_SCAN_API_SUCCESS)
+            apiTestRadarScanMsgCallback(*apiHandle, &radarscan_msg);
+		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextRadarScanMsg failed\n");
+		SickScanApiFreeRadarScanMsg(*apiHandle, &radarscan_msg);
+
+		// Get/poll the next LdmrsObjectArray message
+		ret = SickScanApiWaitNextLdmrsObjectArrayMsg(*apiHandle, &ldmrsobjectarray_msg, wait_next_message_timeout);
+		if (ret == SICK_SCAN_API_SUCCESS)
+            apiTestLdmrsObjectArrayCallback(*apiHandle, &ldmrsobjectarray_msg);
+		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextLdmrsObjectArrayMsg failed\n");
+		SickScanApiFreeLdmrsObjectArrayMsg(*apiHandle, &ldmrsobjectarray_msg);
+
 		// Get/poll the next VisualizationMarker message
 		ret = SickScanApiWaitNextVisualizationMarkerMsg(*apiHandle, &visualizationmarker_msg, wait_next_message_timeout);
 		if (ret == SICK_SCAN_API_SUCCESS)
             apiTestVisualizationMarkerMsgCallback(*apiHandle, &visualizationmarker_msg);
 		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
 			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextVisualizationMarkerMsg failed\n");
-		SickScanApiFreeVisualizationMarkersg(*apiHandle, &visualizationmarker_msg);
+		SickScanApiFreeVisualizationMarkerMsg(*apiHandle, &visualizationmarker_msg);
 	}
 }
 
@@ -198,7 +243,7 @@ int main(int argc, char** argv)
 	std::thread* run_polling_thread = 0;
     if (polling) // Receive lidar message by SickScanApiWaitNext-functions running in a background thread ("message polling")
 	{
-		run_polling_thread = new std::thread(runSickScanApiWaitNext, &apiHandle, &run_polling);
+		run_polling_thread = new std::thread(runSickScanApiTestWaitNext, &apiHandle, &run_polling);
 	}
 	else
 	{

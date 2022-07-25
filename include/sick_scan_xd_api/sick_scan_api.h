@@ -454,7 +454,7 @@ int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScan
 
 // Wait for and return the next VisualizationMarker message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
-int32_t SickScanApiFreeVisualizationMarkersg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
+int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
 
 /*
 *  Error codes, return values of SickScanApi-functions

@@ -480,7 +480,7 @@ int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScan
 
 // Wait for and return the next VisualizationMarker message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
-int32_t SickScanApiFreeVisualizationMarkersg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
+int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
 
 /*
 *  Error codes, return values of SickScanApi-functions
@@ -773,6 +773,18 @@ class SickScanVisualizationMarkerMsg(ctypes.Structure):         # equivalent to 
     _fields_ = [
         ("markers", SickScanVisualizationMarkerBuffer)          # Array of SickScanVisualizationMarkers
     ]
+
+class SickScanApiErrorCodes(Enum): # Error codes, return values of SickScanApi-functions
+    SICK_SCAN_API_SUCCESS = 0, "SICK_SCAN_API_SUCCESS"                 # function executed successfully
+    SICK_SCAN_API_ERROR = 1, "SICK_SCAN_API_ERROR"                     # general (unspecified) error
+    SICK_SCAN_API_NOT_LOADED = 2, "SICK_SCAN_API_NOT_LOADED"           # sick_scan_xd library not loaded
+    SICK_SCAN_API_NOT_INITIALIZED = 3, "SICK_SCAN_API_NOT_INITIALIZED" # API not initialized
+    SICK_SCAN_API_NOT_IMPLEMENTED = 4, "SICK_SCAN_API_NOT_IMPLEMENTED" # function not implemented in sick_scan_xd library
+    SICK_SCAN_API_TIMEOUT = 5, "SICK_SCAN_API_TIMEOUT"                 # timeout during wait for response
+    def __int__(self):
+        return self.value[0]
+    def __str__(self):
+        return self.value[1]
 
 #
 #  Callback declarations
