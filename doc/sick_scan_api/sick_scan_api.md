@@ -16,44 +16,188 @@ The generic sick_scan_xd API ships with the API-header, the library (binary or s
 
 ## Build and test shared library
 
-The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../../README.md/#build-on-linux-generic-without-ros) for Linux. To avoid potential relocation issues, building without LDMRS and Multiscan support is currently recommended (but will be supported in the next release). Run the following commands to build the shared library `libsick_scan_shared_lib.so` on Linux:
+The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../../README.md/#build-on-linux-generic-without-ros) for Linux resp. [Build on Windows](../../README.md/#build-on-windows) for Windows.
 
+### Build the shared library on Linux
+
+Run the following commands to build the shared library `libsick_scan_shared_lib.so` on Linux:
 ```
-git clone <repository>/sick_scan_xd.git
+# Clone repositories
+git clone https://github.com/SICKAG/libsick_ldmrs.git
+git clone https://github.com/SICKAG/msgpack11.git
+git clone https://github.com/SICKAG/sick_scan_xd.git
+# Build libraries libsick_ldmrs, msgpack and libsick_scan_shared_lib.so
 mkdir -p ./build
-pushd ./build
-cmake -DROS_VERSION=0 -DLDMRS=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ../sick_scan_xd
+mkdir -p ./libsick_ldmrs/build
+pushd libsick_ldmrs/build
+cmake -G "Unix Makefiles" ..
 make -j4
-ls -al libsick_scan_shared_lib.so sick_scan_xd_api_test sick_generic_caller
+sudo make -j4 install    
+popd
+pushd ./build
+cmake -G "Unix Makefiles" -D MSGPACK11_BUILD_TESTS=0 ../msgpack11
+make -j4
+sudo make install
+export ROS_VERSION=0
+cmake -DROS_VERSION=0 -G "Unix Makefiles" ../sick_scan_xd
+make -j4
+# Check build and library dependencies
+ls -al ./sick_generic_caller
+ls -al ./libsick_scan_shared_lib.so
+ls -al ./sick_scan_xd_api_test
+ldd -r ./libsick_scan_shared_lib.so
 popd
 ```
+After successfull build, the shared library `libsick_scan_shared_lib.so` and a tiny test executable `sick_scan_xd_api_test` are created. 
 
-After successfull build, the shared library `libsick_scan_shared_lib.so` and a tiny test executable `sick_scan_xd_api_test` are created. Run `sick_scan_xd_api_test <launchfile> hostname:=<ip-address>` to test the API against a lidar, e.g.:
+### Build the shared library on Windows
 
+Run the following commands to build the shared library `sick_scan_shared_lib.dll` with Visual Studio 2019 on Windows:
+```
+# Clone repositories
+git clone https://github.com/SICKAG/msgpack11.git
+git clone https://github.com/SICKAG/sick_scan_xd.git
+# Build libraries msgpack and sick_scan_shared_lib.dll
+call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
+set _os=x64
+set _cmake_string=Visual Studio 16
+set _msvc=Visual Studio 2019
+set _cmake_build_dir=build
+if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
+if not exist %_cmake_build_dir%\msgpack11 mkdir %_cmake_build_dir%\msgpack11
+pushd %_cmake_build_dir%\msgpack11
+cmake -DMSGPACK11_BUILD_TESTS=0 -G "%_cmake_string%" ../../../msgpack11
+if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 with cmake & @pause )
+devenv msgpack11.sln /clean     "Debug|x64"
+devenv msgpack11.sln /rebuild   "Debug|x64"
+devenv msgpack11.sln /clean     "Release|x64"
+devenv msgpack11.sln /rebuild   "Release|x64"
+popd
+pushd %_cmake_build_dir%
+cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -G "%_cmake_string%" ..
+if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% sick_scan_xd with cmake & @pause )
+devenv sick_scan.sln /clean     "Debug|x64"
+devenv sick_scan.sln /rebuild   "Debug|x64"
+```
+After successfull build, the shared library `sick_scan_shared_lib.dll` and a tiny test executable `sick_scan_xd_api_test.exe` are created. Note that LDMRS is not supported on Windows.
+
+### Test the shared library
+
+The executable file `sick_scan_xd_api_test` provides a minimalistic API test. Run `sick_scan_xd_api_test <launchfile> hostname:=<ip-address>` to test the API against a lidar, e.g. on Linux:
 ```
 cd ./build
-export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH
-./sick_scan_xd_api_test ../sick_scan_xd/launch/sick_lms_1xx.launch hostname:=192.168.0.111
+export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH
+./sick_scan_xd_api_test ../sick_scan_xd/launch/sick_tim_7xx.launch hostname:=192.168.0.1
+```
+On Windows, run e.g.
+```
+cd .\build
+set PATH=.;.\Debug;%PATH%
+.\Debug\sick_scan_xd_api_test.exe ../launch/sick_lms_5xx.launch hostname:=192.168.0.1
 ```
 
-The executable binary `sick_scan_xd_api_test` will just load library `libsick_scan_shared_lib.so`, start the lidar and print a message when receiving lidar messages, e.g. `sick_scan_xd_api_test: pointcloud callback`. Replace `sick_lms_1xx.launch` in the example by the launchfile corresponding to your type of lidar.
+The executable binary `sick_scan_xd_api_test` will just load library `libsick_scan_shared_lib.so` resp. `sick_scan_shared_lib.dll`, start the lidar and print a message when receiving lidar messages, e.g. `sick_scan_xd_api_test: pointcloud callback`. Replace `sick_lms_1xx.launch` in the example by the launchfile corresponding to your type of lidar.
 
-To load the library, the build folder has to be included in `LD_LIBRARY_PATH`. Set environment variable `LD_LIBRARY_PATH` to your build folder, e.g.
+To load the library, the build folder has to be included in `LD_LIBRARY_PATH` (Linux) resp. `PATH` (Windows). Set this environment variable to your build folder, e.g. on Linux using
 ```
 export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH
 ```
+resp. on Windows
+```
+set PATH=.;.\build;.\build\Debug;%PATH%
+```
+
+## Usage example
+
+The sick_scan_xd API can be used on Linux or Windows in any language with support of C-bindings. There are 3 steps required to use the API:
+
+1. API- and lidar-initialization by
+    * SickScanApiLoadLibrary
+    * SickScanApiCreate
+    * SickScanApiInitByLaunchfile or SickScanApiInitByCli
+
+2. Receive messages by registration of callbacks using `SickScanApiRegister<MsgType>Msg`-functions (recommended) or by polling using `SickScanApiWaitNext<MsgType>Msg`-functions
+
+3. Close lidar and API by
+    * `SickScanApiDeregister<MsgType>Msg`-functions
+    * SickScanApiClose
+    * SickScanApiRelease
+
+The following code snippet shows a minimalistic example of a C/C++ application using the sick_scan_xd API:
+
+```
+#include "sick_scan_api.h"
+
+// Implement a callback to process pointcloud messages
+void customizedPointCloudMsgCb(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg)
+{
+    printf("pointcloud message received\n"); // data processing to be done
+}
+
+// Create a sick_scan instance and initialize a LMS-511
+SickScanApiLoadLibrary("libsick_scan_shared_lib.so");
+SickScanApiHandle apiHandle = SickScanApiCreate(argc, argv);
+SickScanApiInitByLaunchfile(apiHandle, "sick_lms_5xx.launch");
+
+// Register for pointcloud messages
+SickScanApiRegisterPointCloudMsg(apiHandle, &customizedPointCloudMsgCb);
+
+// Register for pointcloud messages
+SickScanApiRegisterCartesianPointCloudMsg(apiHandle, customizedPointCloudMsgCallback);
+
+// Run application or main loop
+getchar();
+
+// Close lidar and release sick_scan api
+SickScanApiDeregisterPointCloudMsg(apiHandle, customizedPointCloudMsgCallback);
+SickScanApiClose(apiHandle);
+SickScanApiRelease(apiHandle);
+SickScanApiUnloadLibrary();
+```
+
+Note: All functions named `SickScanApi` are implemented within the library file ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux). A small wrapper is included in the examples, which loads and unloads the library (functions `SickScanApiLoadLibrary` and `SickScanApiUnloadLibrary`) and delegates the function calls to the binary.
+
+A complete C/C++ usage example is implemented in [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp).
+
+A complete python usage example is implemented in [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py).
 
 ### Python example
 
-Python example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) is handy to test the library in python. Like its C++ counterpart, it just loads library `libsick_scan_shared_lib.so`, starts a lidar and receives the lidar pointcloud via API. On ROS-1, the pointcloud is converted to ROS and published on topic "/sick_scan_xd_api_test/api_cloud".
+The following code snippet shows a minimalistic example of a python application using the sick_scan_xd API:
+
+```
+import sick_scan_api.py
+
+# Implement a callback to process pointcloud messages
+def pyCustomizedPointCloudMsgCb(api_handle, msg):
+    print("pointcloud message received") # data processing to be done
+
+# Create a sick_scan instance and initialize a LMS-511
+sick_scan_library = SickScanApiLoadLibrary(["build/", "./"], "libsick_scan_shared_lib.so")
+api_handle = SickScanApiCreate(sick_scan_library)
+SickScanApiInitByLaunchfile(sick_scan_library, api_handle, "sick_lms_5xx.launch")
+
+# Register for pointcloud messages
+cartesian_pointcloud_callback = SickScanPointCloudMsgCallback(pyCustomizedPointCloudMsgCb)
+SickScanApiRegisterCartesianPointCloudMsg(sick_scan_library, api_handle, cartesian_pointcloud_callback)
+
+# Run application or main loop
+time.sleep(60)
+
+# Close lidar and release sick_scan api
+SickScanApiDeregisterCartesianPointCloudMsg(sick_scan_library, api_handle, cartesian_pointcloud_callback)
+SickScanApiClose(sick_scan_library, api_handle)
+SickScanApiRelease(sick_scan_library, api_handle)
+SickScanApiUnloadLibrary(sick_scan_library)
+```
+
+Python example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) is handy to test the sick_scan_xd library. Like its C++ counterpart [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp), it just loads library `libsick_scan_shared_lib.so` resp. `sick_scan_shared_lib.dll`, starts a lidar and receives the lidar pointcloud and messages via API. On ROS-1, the lidar pointcloud and messages are converted to ROS and published. The lidar pointcloud can be visualized by rviz using topic "/sick_scan_xd_api_test/api_cloud".
 
 Run `python3 sick_scan_xd_api_test.py <launchfile> hostname:=<ip-address>` to test the API against a lidar, e.g.:
 
 ```
-cd ./build
-export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH
-source /opt/ros/noetic/setup.bash
-python3 ../sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ../sick_scan_xd/launch/sick_lms_1xx.launch hostname:=192.168.0.111
+source /opt/ros/noetic/setup.bash # replace by noetic by your ros version
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_lms_1xx.launch hostname:=192.168.0.1
 ```
 
 ### Simulation and unittest
@@ -67,7 +211,7 @@ Open a new terminal and run the following steps to test the api against a TiM7xx
    mkdir -p ./src/build
    pushd ./src/build
    rm -rf ./*
-   cmake -DROS_VERSION=0 -DLDMRS=0 -DSCANSEGMENT_XD=0 -DCMAKE_ENABLE_EMULATOR=1 -G "Unix Makefiles" ../sick_scan_xd
+   cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -G "Unix Makefiles" ../sick_scan_xd
    make -j4
    ls -al libsick_scan_shared_lib.so sick_scan_xd_api_test sick_generic_caller sick_scan_emulator
    popd
@@ -879,43 +1023,6 @@ def SickScanApiRegisterVisualizationMarkerMsg(sick_scan_library, api_handle, ldm
 def SickScanApiDeregisterVisualizationMarkerMsg(sick_scan_library, api_handle, ldmrsobjectarray_callback):
    pass # see implementation in sick_scan_api.py
 ```
-
-## Usage example
-
-The following code snippet shows a simple example of a customized C/C++ application using the sick_scan_xd API:
-
-```
-#include "sick_scan_api.h"
-
-// Implement a callback to process pointcloud messages
-void customizedPointCloudMsgCallback(SickScanApiHandle apiHandle, const SickScanPointCloudMsgCallback* msg)
-{
-  printf("Pointcloud message received\n");
-}
-
-// Create a sick_scan instance and initialize a LMS-511
-SickScanApiLoadLibrary("sick_scan_api.dll");
-SickScanApiHandle apiHandle = SickScanApiCreate();
-SickScanApiInitByLaunchfile(apiHandle, "sick_lms_5xx.launch");
-
-// Register for pointcloud messages
-SickScanApiRegisterCartesianPointCloudMsg(apiHandle, customizedPointCloudMsgCallback);
-
-// Run application or main loop
-getchar();
-
-// Close lidar and release sick_scan api
-SickScanApiDeregisterPointCloudMsg(apiHandle, customizedPointCloudMsgCallback);
-SickScanApiClose(apiHandle);
-SickScanApiRelease(apiHandle);
-SickScanApiUnloadLibrary();
-```
-
-Note: All functions named `SickScanApi` are implemented within the library file ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux). A small wrapper is included in the examples, which loads and unloads the library (functions `SickScanApiLoadLibrary` and `SickScanApiUnloadLibrary`) and delegates the function calls to the binary.
-
-A C/C++ usage example is implemented in [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp).
-
-A python usage example is implemented in [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py).
 
 ## Useful links
 

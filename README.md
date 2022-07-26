@@ -181,7 +181,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-5. Build sick_generic_caller:
+5. Build sick_generic_caller and libsick_scan_shared_lib.so:
    ```
    mkdir -p ./build
    pushd ./build
@@ -331,7 +331,7 @@ To install sick_scan_xd on Windows, follow the steps below:
    ```
    Open file `build\msgpack11.sln` in Visual Studio and build all targets (shortcut F7).
 
-6. Build sick_generic_caller with cmake and Visual Studio 2019:
+6. Build sick_generic_caller and sick_scan_shared_lib.dll with cmake and Visual Studio 2019:
    ```
    cd sick_scan_xd
    set _os=x64
