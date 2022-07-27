@@ -582,7 +582,7 @@ namespace sick_scan
 
     // Pointcloud2 publisher
     //
-    ROS_INFO_STREAM("Publishing laserscan-pointcloud2 to " << cloud_topic_val);
+    ROS_INFO_STREAM("Publishing lidar pointcloud2 to " << cloud_topic_val);
     cloud_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, cloud_topic_val, 100);
 
     imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, nodename + "/imu", 100);
@@ -614,6 +614,13 @@ namespace sick_scan
     config_.time_offset = 0; // to avoid uninitialized variable
 #endif
 
+    // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+    // Note: add_transform_xyz_rpy is specified by 6D pose x,y,z,roll,pitch,yaw in [m] resp. [rad]
+    // It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates:
+    // add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud
+    // The additional transform applies to cartesian lidar pointclouds and visualization marker (fields)
+    // It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages
+    m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh);
   }
 
   /*!
@@ -4481,9 +4488,12 @@ namespace sick_scan
                   {
                     phi_used = angleCompensator->compensateAngleInRadFromRos(phi_used);
                   }
-                  fptr[idx_x] = rangeCos * (float)cos(phi_used) * mirror_factor;  // copy x value in pointcloud
-                  fptr[idx_y] = rangeCos * (float)sin(phi_used) * mirror_factor;  // copy y value in pointcloud
-                  fptr[idx_z] = range_meter * sinAlphaTablePtr[i] * mirror_factor;// copy z value in pointcloud
+                  float phi2_used = phi_used + m_add_transform_xyz_rpy.azimuthOffset();
+                  fptr[idx_x] = rangeCos * (float)cos(phi2_used) * mirror_factor;  // copy x value in pointcloud
+                  fptr[idx_y] = rangeCos * (float)sin(phi2_used) * mirror_factor;  // copy y value in pointcloud
+                  fptr[idx_z] = range_meter * sinAlphaTablePtr[i] * mirror_factor; // copy z value in pointcloud
+
+                  m_add_transform_xyz_rpy.applyTransform(fptr[idx_x], fptr[idx_y], fptr[idx_z]);
 
                   fptr_polar[idx_x] = range_meter; // range in meter
                   fptr_polar[idx_y] = phi_used;    // azimuth in radians

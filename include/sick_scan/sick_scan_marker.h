@@ -62,6 +62,7 @@
 #define SICK_SCAN_MARKER_H_
 
 #include <sick_scan/sick_ros_wrapper.h>
+#include <sick_scan/sick_cloud_transform.h>
 #include "sick_scan/sick_generic_field_mon.h"
 
 
@@ -111,6 +112,7 @@ namespace sick_scan
     std::vector<ros_visualization_msgs::Marker> m_scan_fieldset_legend;
     std::vector<ros_visualization_msgs::Marker> m_scan_outputstate_legend;
     double m_marker_output_legend_offset_x;
+    sick_scan::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 
   }; /* class SickScanMarker */
 

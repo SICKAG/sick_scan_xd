@@ -106,6 +106,8 @@ namespace sick_scan
     cloud_radar_track_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, nodename + "/cloud_radar_track", 100);
 
     radarScan_pub_ = rosAdvertise<sick_scan_msg::RadarScan>(nh, nodename + "/radar", 100);
+    
+    m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, true); // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 
   }
 
@@ -1559,6 +1561,8 @@ namespace sick_scan
                 valSingle[7] = objectList[i].ObjId();
                 break;
             }
+
+            m_add_transform_xyz_rpy.applyTransform(valSingle[0], valSingle[1], valSingle[2]); // apply optional transform to (x, y, z)
 
             for (int j = 0; j < numChannels; j++)
             {

@@ -447,6 +447,7 @@ std::string sick_scansegment_xd::MsgPackParser::MsgpackToHexDump(const std::vect
  *
  * @param[in+out] msgpack_ifstream the binary input stream delivering the binary msgpack data
  * @param[in] msgpack_timestamp receive timestamp of msgpack_data
+ * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
  * @param[out] result msgpack data converted to scanlines of type MsgPackParserOutput
  * @param[in+out] msgpack_validator_data_collector collects MsgPackValidatorData over N msgpacks
  * @param[in] msgpack_validator msgpack validation, see MsgPackValidator for details
@@ -455,7 +456,8 @@ std::string sick_scansegment_xd::MsgPackParser::MsgpackToHexDump(const std::vect
  * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
-bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result,
+bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, 
+    const sick_scan::SickCloudTransform& add_transform_xyz_rpy, MsgPackParserOutput& result,
     sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
 	bool use_software_pll, bool verbose)
@@ -471,7 +473,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
 	// std::cout << std::endl << "MsgPack hexdump: " << std::endl << msgpack_hexdump << std::endl << std::endl;
 	std::string msgpack_string((char*)msgpack_data.data(), msgpack_data.size());
 	std::istringstream msgpack_istream(msgpack_string);
-	return Parse(msgpack_istream, msgpack_timestamp, result, msgpack_validator_data_collector, msgpack_validator, msgpack_validator_enabled, discard_msgpacks_not_validated, use_software_pll, verbose);
+	return Parse(msgpack_istream, msgpack_timestamp, add_transform_xyz_rpy, result, msgpack_validator_data_collector, msgpack_validator, msgpack_validator_enabled, discard_msgpacks_not_validated, use_software_pll, verbose);
 }
 
 /*
@@ -502,6 +504,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
  *
  * @param[in+out] msgpack_ifstream the binary input stream delivering the binary msgpack data
  * @param[in] msgpack_timestamp receive timestamp of msgpack_data
+ * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
  * @param[out] result msgpack data converted to scanlines of type MsgPackParserOutput
  * @param[in] discard_msgpacks_not_validated true: msgpacks are discarded if not validated, false: error message if a msgpack is not validated
  * @param[in] msgpack_validator msgpack validation, see MsgPackValidator for details
@@ -510,8 +513,10 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
  * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
-bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result,
-    sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
+bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, 
+	const sick_scan::SickCloudTransform& add_transform_xyz_rpy, MsgPackParserOutput& result,
+    sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, 
+	const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
 	bool use_software_pll, bool verbose)
 {
@@ -686,7 +691,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			std::vector<float> sin_azimuth(iPointCount);
 			for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 			{
-				const float& azimuth = channelTheta.data[pointIdx];
+				float azimuth = channelTheta.data[pointIdx] + add_transform_xyz_rpy.azimuthOffset();
 				cos_azimuth[pointIdx] = std::cos(azimuth);
 				sin_azimuth[pointIdx] = std::sin(azimuth);
                 // if (pointIdx > 0)
@@ -705,6 +710,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 					float x = dist * cos_azimuth[pointIdx] * cos_elevation;
 					float y = dist * sin_azimuth[pointIdx] * cos_elevation;
 					float z = dist * sin_elevation;
+					add_transform_xyz_rpy.applyTransform(x, y, z);
     				float azimuth = channelTheta.data[pointIdx];
 					float azimuth_norm = normalizeAngle(azimuth);
 					if (msgpack_validator_enabled)

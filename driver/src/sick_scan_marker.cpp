@@ -108,6 +108,7 @@ sick_scan::SickScanMarker::SickScanMarker(rosNodePtr nh, const std::string & mar
     {
         m_frame_id = marker_frame_id.empty() ? "/cloud" : marker_frame_id;
         m_marker_publisher = rosAdvertise<ros_visualization_msgs::MarkerArray>(nh, marker_topic.empty() ? "sick_scan/marker" : marker_topic, 1);
+        m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, true);
     }
 }
 
@@ -335,6 +336,11 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
         {
             appendTrianglePoints(point_count, points_x, points_y, marker_point, triangle_idx, nr_triangles, field_color);
         }
+    }
+    // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+    for(int n = 0; n < marker_point.points.size(); n++)
+    {
+		m_add_transform_xyz_rpy.applyTransform(marker_point.points[n].x, marker_point.points[n].y, marker_point.points[n].z);
     }
 
     std::vector<ros_visualization_msgs::Marker> marker_array;

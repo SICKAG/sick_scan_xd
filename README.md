@@ -661,7 +661,7 @@ ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.7
    ```
    By default, radar objects are tracked.
 
-
+- **Coordinate transform**: An optional coordinate transform can be applied to the pointcloud. See [coordinate transforms](./doc/coordinate_transforms.md) for details.
 
 ### ROS services
 

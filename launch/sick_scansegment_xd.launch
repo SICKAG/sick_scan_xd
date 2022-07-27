@@ -9,6 +9,7 @@
     <arg name="publish_topic" type="string" value="/cloud" />                         <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
     <arg name="publish_topic_all_segments" type="string" value="/cloud_360" />        <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360" -->
     <arg name="publish_frame_id" type="string" value="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_scansegment_xd"/>
 
@@ -35,6 +36,14 @@
         <param name="send_udp_start_string" type="string" value="magicalActivate" />        <!-- udp string to start multiScan136 -->
         <param name="udp_timeout_ms" type="int" value="60000" />                            <!-- Timeout for udp messages in milliseconds, default: 60*1000 -->
         
+        <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
+        <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
+        <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: --> 
+        <!-- add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud -->
+        <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
+        <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
+        <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+
         <!-- SOPAS settings: -->
         <param name="sopas_tcp_port" type="string" value="2111" />                          <!-- TCP port for SOPAS commands, default port: 2111 -->
         <param name="start_sopas_service" type="bool" value="True" />                       <!-- True: sopas services for CoLa-commands are started (ROS only), default: true -->

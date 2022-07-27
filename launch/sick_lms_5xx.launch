@@ -15,6 +15,7 @@ Check IP-address, if you scanner is not found after roslaunch.
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="nodename" default="sick_lms_5xx"/>
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <!-- launch file for the lms_5xx series -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- launch-prefix="gdb -ex run - -args" -->
@@ -56,6 +57,15 @@ Check IP-address, if you scanner is not found after roslaunch.
         <param name="ang_res" type="double" value="0.1667" />
         <param name="scan_freq" type="double" value="25" />
          -->
+
+        <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
+        <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
+        <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: --> 
+        <!-- add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud -->
+        <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
+        <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
+        <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+
         <param name="start_services" type="bool" value="True"/> <!-- start ros service for cola commands -->
         <param name="activate_lferec" type="bool" value="True"/> <!-- activate field monitoring by lferec messages -->
         <param name="activate_lidoutputstate" type="bool" value="True"/> <!-- activate field monitoring by lidoutputstate messages -->

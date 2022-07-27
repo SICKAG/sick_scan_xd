@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#
-# Set environment
-#
-
 function simu_killall()
 {
   sleep 1 ; pkill -f sick_scan_xd_api_test.py

@@ -57,6 +57,7 @@
 #define __SICK_SCANSEGMENT_XD_CONFIG_H
 
 #include "sick_scan/sick_ros_wrapper.h"
+#include <sick_scan/sick_cloud_transform.h>
 #include "sick_scansegment_xd/common.h"
 
 namespace sick_scansegment_xd
@@ -164,6 +165,9 @@ namespace sick_scansegment_xd
         int msgpack_validator_check_missing_scandata_interval; // check msgpack for missing scandata after collecting N msgpacks, default: N = 12 segments. Increase this value to tolerate udp packet drops. Use 12 to check each full scan.
         MsgpackValidatorFilterConfig msgpack_validator_filter_settings; // required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
         std::vector<int> msgpack_validator_valid_segments; // indices of valid segmentes, default for full scan: 12 segments, i.e. { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }
+
+        // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+        sick_scan::SickCloudTransform add_transform_xyz_rpy;
 
         rosNodePtr node; // NodePtr node; // ROS node handle (always 0 on non-ros-targets)
 

@@ -76,6 +76,7 @@
 #include <thread>
 #include <mutex>
 
+#include <sick_scan/sick_cloud_transform.h>
 #include <sick_scan/sick_scan_common_nw.h>
 #include <sick_scan/helper/angle_compensator.h>
 
@@ -459,6 +460,8 @@ namespace sick_scan
 
     int m_read_timeout_millisec_default;
     int m_read_timeout_millisec_startup;
+
+    sick_scan::SickCloudTransform m_add_transform_xyz_rpy;
 
     rosNodePtr m_nh;
   };

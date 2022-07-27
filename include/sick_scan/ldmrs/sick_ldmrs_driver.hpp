@@ -52,6 +52,7 @@
 // #include <dynamic_reconfigure/server.h>
 // #include <sick_ldmrs_driver/SickLDMRSDriverConfig.h>
 #include "sick_scan/ldmrs/sick_ldmrs_config.hpp"
+#include <sick_scan/sick_cloud_transform.h>
 
 #include <sick_ldmrs/manager.hpp>
 #include <sick_ldmrs/application/BasicApplication.hpp>
@@ -141,6 +142,7 @@ private:
   double expected_frequency_;
 
   bool initialized_;
+  sick_scan::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 };
 
 } /* namespace sick_ldmrs_driver */

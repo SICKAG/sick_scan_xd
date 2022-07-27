@@ -37,7 +37,6 @@ function start_mrs100_emulator()
 {
     echo -e "\n----------------------------------------------------------"
     echo -e "run_api_test: starting mrs100 (multiscan136) emulation ...\n"
-    # roslaunch sick_scan test_server_ldmrs.launch &
     python3 ./src/sick_scan_xd/test/python/mrs100_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_api_mrs100.rviz --opengl 210 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_api_mrs100_polar.rviz --opengl 210 &
