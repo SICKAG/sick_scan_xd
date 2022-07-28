@@ -8,6 +8,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.7.5 - 
+  - **Fixed** MRS6124 pointcloud error #88
+
 ### v2.7.4 - 
   - **Fixed** ROS2 compilation error #83
 
