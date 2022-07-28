@@ -314,8 +314,8 @@ namespace sick_scan
     rosPublisher<ros_sensor_msgs::PointCloud2> cloud_pub_;
     rosPublisher<ros_sensor_msgs::Imu> imuScan_pub_;
     rosPublisher<sick_scan_msg::Encoder> Encoder_pub;
-    // sensor_msgs::PointCloud cloud_;
-    // ros_sensor_msgs::PointCloud2 cloud_;
+    ros_sensor_msgs::PointCloud2 cloud_;
+    ros_sensor_msgs::PointCloud2 cloud_polar_;
     //////
     // Dynamic Reconfigure
     SickScanConfig config_;

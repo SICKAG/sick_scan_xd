@@ -459,6 +459,16 @@ sick_scan::SickLocColaTelegramMsg sick_scan::TestcaseGenerator::createColaRespon
       s_mapped_responses[sick_scan::ColaParser::sRN]["LMPoutputRange"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LMPoutputRange", {"000100001388fff922330022550d"});
       s_mapped_responses[sick_scan::ColaParser::sRN]["LMDscandatacfg"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LMDscandatacfg", {"01000000000000000000010001"});
     }
+    if(scanner_type == "sick_mrs_6xxx") // overwrite for MRS6124
+    {
+      s_mapped_responses[sick_scan::ColaParser::sRN]["DeviceIdent"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "DeviceIdent", {"00084d52533631323452000a312e312e302e36333452"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["FirmwareVersion"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "FirmwareVersion", {"000a312e312e302e36333452"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["ODoprh"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "ODoprh", {"00000874"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["ODpwrc"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "ODpwrc", {"0000001d"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["LocationName"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LocationName", {"000b6e6f7420646566696e6564"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["LMPoutputRange"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LMPoutputRange", {"000100000515000494510016e2ef"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["LMDscandatacfg"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LMDscandatacfg", {"1f000001000000000000010001"});
+    }
     s_mapped_responses_initialized = true;
   }
 

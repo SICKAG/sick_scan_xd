@@ -422,7 +422,7 @@ namespace sick_scan
     public:
         std::string frame_id = "cloud";
         std::string imu_frame_id = "imu_link";
-        bool intensity = false;
+        bool intensity = true; // false;
         bool auto_reboot = false;
         double min_ang = -M_PI / 2;
         double max_ang = +M_PI / 2;

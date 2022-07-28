@@ -4357,7 +4357,6 @@ namespace sick_scan
               int numTmpLayer = numOfLayers;
 
 
-              ros_sensor_msgs::PointCloud2 cloud_;
               cloud_.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
               // ROS_DEBUG_STREAM("laser_scan timestamp: " << msg.header.stamp << ", pointclound timestamp: " << cloud_.header.stamp);
               cloud_.header.frame_id = config_.frame_id;
@@ -4377,17 +4376,23 @@ namespace sick_scan
                 cloud_.fields[i].count = 1;
                 cloud_.fields[i].datatype = ros_sensor_msgs::PointField::FLOAT32;
               }
-
               cloud_.data.resize(cloud_.row_step * cloud_.height);
 
-              ros_sensor_msgs::PointCloud2 cloud_polar = cloud_;
-              cloud_polar.fields[0].name = "range";
-              cloud_polar.fields[1].name = "azimuth";
-              cloud_polar.fields[2].name = "elevation";
+              cloud_polar_.header = cloud_.header;
+              cloud_polar_.height = cloud_.height;
+              cloud_polar_.width = cloud_.width;
+              cloud_polar_.is_bigendian = cloud_.is_bigendian;
+              cloud_polar_.is_dense = cloud_.is_dense;
+              cloud_polar_.point_step = cloud_.point_step;
+              cloud_polar_.row_step = cloud_.row_step;
+              cloud_polar_.fields = cloud_.fields;
+              cloud_polar_.fields[0].name = "range";
+              cloud_polar_.fields[1].name = "azimuth";
+              cloud_polar_.fields[2].name = "elevation";
+              cloud_polar_.data.resize(cloud_.data.size());
 
               unsigned char *cloudDataPtr = &(cloud_.data[0]);
-              unsigned char *cloudDataPtr_polar = &(cloud_polar.data[0]);
-
+              unsigned char *cloudDataPtr_polar = &(cloud_polar_.data[0]);
 
               // prepare lookup for elevation angle table
 
@@ -4470,6 +4475,13 @@ namespace sick_scan
                   }
                   // ROS_DEBUG_STREAM("alpha:" << alpha << " elevPreCalc:" << std::to_string(elevationPreCalculated) << " layer:" << layer << " elevDeg:" << elevationAngleDegree
                   //   << " numOfLayers:" << numOfLayers << " elevAngleX200:" << elevAngleX200);
+                  /* if(useGivenElevationAngle) // MRS6124
+                  {
+                    // if (i == 0)
+                    //   ROS_INFO_STREAM("layer=" << layer << ", iEcho=" << iEcho << ", vang[0]=" << vang_vec[0] << ", vang[" << rangeNum-1 << "]=" << vang_vec[rangeNum-1] << ", alpha=" << rad2deg(alpha) << " deg");
+                    // if(layer ==1)
+                    //   ROS_INFO_STREAM("layer=" << layer << ", range[" << i << "]=" << range_meter);
+                  } */
 
                   if (iEcho == 0)
                   {
@@ -4498,7 +4510,7 @@ namespace sick_scan
                   fptr_polar[idx_x] = range_meter; // range in meter
                   fptr_polar[idx_y] = phi_used;    // azimuth in radians
                   fptr_polar[idx_z] = alpha;       // elevation in radians
-
+                  
                   fptr[idx_intensity] = 0.0;
                   if (config_.intensity)
                   {
@@ -4547,7 +4559,7 @@ namespace sick_scan
               if (shallIFire) // shall i fire the signal???
               {
                 sick_scan::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0);
-                sick_scan::PointCloud2withEcho cloud_msg_polar(&cloud_polar, numValidEchos, 0);
+                sick_scan::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0);
 #ifdef ROSSIMU
                 notifyPolarPointcloudListener(nh, &cloud_msg_polar);
                 notifyCartesianPointcloudListener(nh, &cloud_msg);
