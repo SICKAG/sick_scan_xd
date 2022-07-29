@@ -27,7 +27,7 @@ source ./install/setup.bash
 
 echo -e "run_linux_ros2_api_test.bash: starting TiM7xx emulation ...\n"
 cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng_full.json /tmp/lmd_scandata.pcapng.json
-sleep  1 ; ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch &
+sleep  1 ; ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch scanner_type:=sick_tim_7xx &
 
 echo -e "run_linux_ros2_api_test.bash: starting sick_scan_xd_api_test (python example) ...\n"
 # sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 &

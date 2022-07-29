@@ -16,7 +16,7 @@ source ./install/setup.bash
 
 # Start sick_scan emulator and sick_generic_caller
 echo -e "run_linux_ros2_simu_service_examples\n"
-sleep  1 ; ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch > /dev/null &
+sleep  1 ; ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch scanner_type:=sick_tim_7xx > /dev/null &
 sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False & 
 
 # Run example ros service calls

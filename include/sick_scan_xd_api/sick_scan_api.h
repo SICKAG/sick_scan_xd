@@ -70,7 +70,7 @@ extern "C" {
 #ifdef _MSC_VER
 #define SICK_SCAN_API_DECLSPEC_EXPORT __declspec(dllexport)
 #else
-#define SICK_SCAN_API_DECLSPEC_EXPORT
+#define SICK_SCAN_API_DECLSPEC_EXPORT __attribute__ ((visibility ("default")))
 #endif
 
 /*

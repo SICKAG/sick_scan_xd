@@ -771,7 +771,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
-        basicParams[i].setScanAngleShift(-15.0 * M_PI / 180.0); // (-M_PI/2);
+        basicParams[i].setScanAngleShift(-M_PI/2);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);

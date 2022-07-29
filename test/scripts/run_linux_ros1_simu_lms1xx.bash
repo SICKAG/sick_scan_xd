@@ -1,13 +1,34 @@
 #!/bin/bash
+
+
+# Wait for max 30 seconds, or until 'q' or 'Q' pressed, or until rviz is closed
+function waitUntilRvizClosed()
+{
+    duration_sec=$1
+    sleep 1
+    for ((cnt=1;cnt<=$duration_sec;cnt++)) ; do  
+        echo -e "sick_scan_xd running. Close rviz or press 'q' to exit..." ; read -t 1.0 -n1 -s key
+        if [[ $key = "q" ]] || [[ $key = "Q" ]]; then break ; fi
+        rviz_running=`(ps -elf | grep rviz | grep -v grep | wc -l)`
+        if [ $rviz_running -lt 1 ] ; then break ; fi
+    done
+}
+
+# Shutdown simulation, kill all nodes and processes
+function kill_simu()
+{
+    rosnode kill -a ; sleep 1
+    killall sick_generic_caller ; sleep 1
+    killall sick_scan_emulator ; sleep 1
+}
+
 printf "\033c"
 pushd ../../../..
 if [ -f /opt/ros/melodic/setup.bash   ] ; then source /opt/ros/melodic/setup.bash   ; fi
 if [ -f /opt/ros/noetic/setup.bash    ] ; then source /opt/ros/noetic/setup.bash    ; fi
 if [ -f ./devel_isolated/setup.bash   ] ; then source ./devel_isolated/setup.bash   ; fi
-#if [ -f ./install_isolated/setup.bash ] ; then source ./install_isolated/setup.bash ; fi
-#if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
 
-echo -e "run_simu_lms5xx.bash: starting lms1xx emulation\n"
+echo -e "run_simu_lms1xx.bash: starting lms1xx emulation\n"
 
 # Start roscore if not yet running
 roscore_running=`(ps -elf | grep roscore | grep -v grep | wc -l)`
@@ -16,35 +37,26 @@ if [ $roscore_running -lt 1 ] ; then
   sleep 3
 fi
 
-# Start sick_scan emulator
-roslaunch sick_scan emulator_lms1xx.launch &
-sleep 1
-
+# Start sick_scan emulator with field settings for sick_lms_1xx, play 20210302_lms111.pcapng_full.json
+roslaunch sick_scan emulator_lms1xx.launch scanner_type:=sick_lms_1xx &
 # Start rviz
-# Note: Due to a bug in opengl 3 in combination with rviz and VMware, opengl 2 should be used by rviz option --opengl 210
-# See https://github.com/ros-visualization/rviz/issues/1444 and https://github.com/ros-visualization/rviz/issues/1508 for further details
-
-rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
-sleep 1
-
+sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
 # Start sick_scan driver for lms1xx
-echo -e "Launching sick_scan sick_lms_1xx.launch\n"
-# roslaunch sick_scan sick_lms_1xx.launch hostname:=192.168.0.111 &
-roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 &
-sleep 1
+sleep 1 ; echo -e "Launching sick_scan sick_lms_1xx.launch\n"
+roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed
-while true ; do  
-  echo -e "lms1xx emulation running. Close rviz or press 'q' to exit..." ; read -t 1.0 -n1 -s key
-  if [[ $key = "q" ]] || [[ $key = "Q" ]]; then break ; fi
-  rviz_running=`(ps -elf | grep rviz | grep -v grep | wc -l)`
-  if [ $rviz_running -lt 1 ] ; then break ; fi
-done
+waitUntilRvizClosed 60
+
+# Shutdown and restart with 20220712_lms111.pcapng.json
+# kill_simu
+# echo -e "Restart sick_scan lms111 simulation with 20220712_lms111.pcapng.json\n"
+# roslaunch sick_scan emulator_lms111_20220712.launch scanner_type:=sick_lms_111 &
+# sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
+# sleep 1 ; roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 
 # Shutdown
 echo -e "Finishing lms1xx emulation, shutdown ros nodes\n"
-rosnode kill -a ; sleep 1
-killall sick_generic_caller ; sleep 1
-killall sick_scan_emulator ; sleep 1
+kill_simu
 popd
 

@@ -46,6 +46,9 @@ ls -al ./src/sick_scan_xd/build_linux/sick_generic_caller
 ls -al ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so
 ls -al ./src/sick_scan_xd/build_linux/sick_scan_xd_api_test
 ldd -r ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so # print undefined symbols in libsick_scan_shared_lib.so
+echo -e "exported symbols in libsick_scan_shared_lib.so:"
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so | grep -i tinyxml # print exported symbos in libsick_scan_shared_lib.so
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so | grep -i SickScanApi # print exported symbos in libsick_scan_shared_lib.so
 echo -e "devel_isolated/sick_scan/lib/sick_scan:"
 ls -al ./devel_isolated/sick_scan/lib/sick_scan
 echo -e "install_isolated/lib/sick_scan:"
