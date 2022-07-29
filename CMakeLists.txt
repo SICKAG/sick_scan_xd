@@ -39,8 +39,8 @@ option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (develo
 
 if(NOT WIN32)
     add_compile_options(-O3)
-    add_compile_options(-fvisibility=hidden)
-    add_link_options(-fvisibility=hidden)
+    # add_compile_options(-fvisibility=hidden)
+    # add_link_options(-fvisibility=hidden)
 endif()
 
 # Added CMP0048 to avoid unstable warning of build process
