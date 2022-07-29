@@ -31,6 +31,17 @@ distribution.
 #include <assert.h>
 #include <string.h>
 
+/* Hide tiny xml functions from export in shared libraries.
+* This way sick_scan_xd libraries can be dynamically loaded into applications
+* using tiny xml lib itself.
+* See https://gcc.gnu.org/wiki/Visibility for details
+*/
+#ifdef _MSC_VER
+  #define TINYXML_EXPORT_ATTR
+#else
+  #define TINYXML_EXPORT_ATTR __attribute__ ((visibility ("hidden")))
+#endif
+
 /*	The support for explicit isn't that universal, and it isn't really
 	required - it is used to check that the TiXmlString class isn't incorrectly
 	used. Be nice to old compilers and macro it here:
@@ -53,7 +64,7 @@ distribution.
    The buffer allocation is made by a simplistic power of 2 like mechanism : if we increase
    a string and there's no more room, we allocate a buffer twice as big as we need.
 */
-class TiXmlString
+class TINYXML_EXPORT_ATTR TiXmlString
 {
 public :
   // The size type used
@@ -314,7 +325,7 @@ TiXmlString operator+(const char *a, const TiXmlString &b);
    TiXmlOutStream is an emulation of std::ostream. It is based on TiXmlString.
    Only the operators that we need for TinyXML have been developped.
 */
-class TiXmlOutStream : public TiXmlString
+class TINYXML_EXPORT_ATTR TiXmlOutStream : public TiXmlString
 {
 public :
 

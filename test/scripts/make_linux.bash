@@ -69,6 +69,7 @@ ls -al ./libsick_scan_shared_lib.so
 ls -al ./sick_scan_xd_api_test
 ldd -r ./libsick_scan_shared_lib.so # print undefined symbols in libsick_scan_shared_lib.so
 echo -e "exported symbols in libsick_scan_shared_lib.so:"
+nm -C -D ./libsick_scan_shared_lib.so | grep -i tixml # print exported symbos in libsick_scan_shared_lib.so
 nm -C -D ./libsick_scan_shared_lib.so | grep -i tinyxml # print exported symbos in libsick_scan_shared_lib.so
 nm -C -D ./libsick_scan_shared_lib.so | grep -i SickScanApi # print exported symbos in libsick_scan_shared_lib.so
 echo -e "\n" 

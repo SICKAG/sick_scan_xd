@@ -28,6 +28,13 @@ else()
     option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build sick_scan_xd with SCANSEGMENT_XD support" ON)
 endif()
 
+# Linker option visibilty
+if(VISIBILITY EQUAL 0)
+    option(BUILD_LIB_HIDE_FUNCTIONS "Build sick_scan_xd library with function hiding except for SickScanApi-functions" ON)
+else()
+    option(BUILD_LIB_HIDE_FUNCTIONS "Build sick_scan_xd library with function hiding except for SickScanApi-functions" OFF)
+endif()
+
 # Debug or Release build options
 option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (development)
 
@@ -39,10 +46,7 @@ option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (develo
 
 if(NOT WIN32)
     add_compile_options(-O3)
-    add_compile_options(-fvisibility=hidden)
-    add_link_options(-fvisibility=hidden)
 endif()
-
 # Added CMP0048 to avoid unstable warning of build process
 if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
@@ -59,6 +63,12 @@ if(BUILD_DEBUG_TARGET)
         set(CMAKE_BUILD_TYPE Debug) #uncomment to activate debug mode for lib_sick as well
         set(CMAKE_ENABLE_EXPORTS 1) #uncomment to activate debug mode for lib_sick as well
 endif(BUILD_DEBUG_TARGET)
+
+# Build sick_scan_xd library hiding all functions except for SickScanApi-functions, see https://gcc.gnu.org/wiki/Visibility for details
+if(BUILD_LIB_HIDE_FUNCTIONS AND NOT WIN32)
+    add_compile_options(-fvisibility=hidden)
+    add_link_options(-fvisibility=hidden)
+endif()
 
 # Switch on, if you use c11-specific commands
 if(NOT WIN32)
