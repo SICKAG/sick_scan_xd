@@ -1,12 +1,18 @@
 #
 # Transform example
 #
+# This python script demonstrates how a transform by a 6D pose (x,y,z,roll,pitch,yaw) is computed.
+# See coordinate_transforms.md for more details.
+#
 
 import math
 import numpy as np
 
-# Converts roll (X), pitch (Y), yaw (Z) to 3x3 rotation matrix
-def eulerToRot3x3(roll, pitch, yaw):
+# Converts roll (rotation about X-axis), pitch (rotation about Y-axis), yaw (rotation about Z-axis)
+# to a 3x3 rotation matrix. Note: This function uses the "ZYX" notation, i.e. it compute the rotation
+# by rotation = rot_z * rot_y * rot_x
+# Input angles roll, pitch, yaw in radians.
+def eulerZYXToRot3x3(roll, pitch, yaw):
     # roll: rotation about x axis
     rot_x = np.array([
         [1.0, 0.0, 0.0],
@@ -26,8 +32,11 @@ def eulerToRot3x3(roll, pitch, yaw):
     rot_3x3 = rot_z @ rot_y @ rot_x
     return rot_3x3;
 
- # Converts roll (X), pitch (Y), yaw (Z) to quaternion (x, y, z, w)
-def eulerToQuaternion(roll, pitch, yaw):
+# Converts roll (rotation about X-axis), pitch (rotation about Y-axis), yaw (rotation about Z-axis)
+# to quaternion (x, y, z, w). Note: This function uses the "ZYX" notation, i.e. it compute the rotation
+# by rotation = rot_z * rot_y * rot_x
+# Input angles roll, pitch, yaw in radians.
+def eulerZYXToQuaternion(roll, pitch, yaw):
     cy = math.cos(yaw * 0.5);
     sy = math.sin(yaw * 0.5);
     cp = math.cos(pitch * 0.5);
@@ -42,6 +51,12 @@ def eulerToQuaternion(roll, pitch, yaw):
 
 # Example: rotation by roll = 5, pitch = -10, yaw = 15 degree
 roll, pitch, yaw = 5, -10, 15
-rot3x3 = eulerToRot3x3(roll * math.pi / 180, pitch * math.pi / 180, yaw * math.pi / 180)
-quat = eulerToQuaternion(roll * math.pi / 180, pitch * math.pi / 180, yaw * math.pi / 180)
+rot3x3 = eulerZYXToRot3x3(np.deg2rad(roll), np.deg2rad(pitch), np.deg2rad(yaw))
+quat = eulerZYXToQuaternion(np.deg2rad(roll), np.deg2rad(pitch), np.deg2rad(yaw))
 print("roll = {}, pitch = {}, yaw = {}:\nrot3x3 = {}\nquaternion = {}".format(roll, pitch, yaw, rot3x3, quat))
+# Example output:
+# roll = 5, pitch = -10, yaw = 15:
+# rot3x3 = [[ 0.95125124 -0.2724529  -0.14453543]
+#  [ 0.254887    0.95833311 -0.12895841]
+#  [ 0.17364818  0.08583165  0.98106026]]
+# quaternion = (0.05444693224342944, -0.08065606284759969, 0.1336748975829986, 0.9862358505202384)

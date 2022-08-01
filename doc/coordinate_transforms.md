@@ -30,3 +30,16 @@ The additional transform applies to cartesian lidar pointclouds and visualizatio
 It is **NOT** applied to polar pointclouds, radarscans, ldmrs objects or other messages.
 
 Note that sick_scan_xd configures an additional transform using (x, y, z, roll, pitch, yaw). In contrast, the ROS static_transform_publisher uses commandline arguments in order x, y, z, yaw, pitch, roll. 
+
+Example using ROS static_transform_publisher with x=0, y=0, z=0, roll=15, pitch=-10, yaw=5 [deg]:
+
+```
+source /opt/ros/noetic/setup.bash
+# static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_in_ms
+# tf_echo <source_frame> <target_frame>
+# rot_x = 5 deg: 0.0872665, rot_y = -10 deg: -0.1745329, rot_z = 15 deg: 0.2617994
+rosrun tf static_transform_publisher 0 0 0 0.2617994 -0.1745329 0.0872665 parent_frame child_frame 100
+rosrun tf tf_echo parent_frame child_frame
+```
+
+File [trafo_example.py](sick_scan_api/trafo_example.py) demonstrates how a transform can be computed. 
