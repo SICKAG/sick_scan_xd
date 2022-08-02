@@ -79,8 +79,6 @@ The msgpack validation is configured in file [sick_scansegment_xd.launch](../lau
 
 Msgpack validation leads to error messages in case of udp packet drops. Increase the value `msgpack_validator_check_missing_scandata_interval` to tolerate udp packet drops. Higher values increase the number of msgpacks collected for verification.
 
-Note: A Multiscan136 can be simulated by the SICK emulator (Windows only). If the scans are visualized with an internet browser using Sopas Air, the visualization can cause high cpu usage leading to udp package drops or errors on msgpack validation. Make sure that Sopas Air is minimized and its cpu usage is normal.
-
 ## Firewall configuration
 
 By default, UDP communication is allowed on localhosts. To enable udp communication between 2 different machines, firewalls have to be configured.

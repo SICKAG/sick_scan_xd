@@ -41,6 +41,7 @@ sudo make install
 export ROS_VERSION=0
 cmake -DROS_VERSION=0 -G "Unix Makefiles" ../sick_scan_xd
 make -j4
+sudo make -j4 install    
 # Check build and library dependencies
 ls -al ./sick_generic_caller
 ls -al ./libsick_scan_shared_lib.so
@@ -68,18 +69,15 @@ if not exist %_cmake_build_dir%\msgpack11 mkdir %_cmake_build_dir%\msgpack11
 pushd %_cmake_build_dir%\msgpack11
 cmake -DMSGPACK11_BUILD_TESTS=0 -G "%_cmake_string%" ../../../msgpack11
 if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 with cmake & @pause )
-devenv msgpack11.sln /clean     "Debug|x64"
-devenv msgpack11.sln /rebuild   "Debug|x64"
-devenv msgpack11.sln /clean     "Release|x64"
-devenv msgpack11.sln /rebuild   "Release|x64"
+cmake --build . --clean-first --config Debug
+cmake --build . --clean-first --config Release
 popd
 pushd %_cmake_build_dir%
 cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -G "%_cmake_string%" ..
 if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% sick_scan_xd with cmake & @pause )
-devenv sick_scan.sln /clean     "Debug|x64"
-devenv sick_scan.sln /rebuild   "Debug|x64"
+cmake --build . --clean-first --config Debug
 ```
-After successfull build, the shared library `sick_scan_shared_lib.dll` and a tiny test executable `sick_scan_xd_api_test.exe` are created. Note that LDMRS is not supported on Windows.
+After successfull build, the shared library `sick_scan_shared_lib.dll` and a tiny test executable `sick_scan_xd_api_test.exe` are created. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. Note that LDMRS is not supported on Windows.
 
 ### Test the shared library
 

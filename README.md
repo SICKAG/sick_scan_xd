@@ -188,6 +188,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    export ROS_VERSION=0
    cmake -DROS_VERSION=0 -G "Unix Makefiles" ../sick_scan_xd
    make -j4
+   sudo make -j4 install    
    popd
    ```
 
@@ -327,9 +328,11 @@ To install sick_scan_xd on Windows, follow the steps below:
    mkdir build\msgpack11
    pushd build\msgpack11
    cmake -DMSGPACK11_BUILD_TESTS=0 -G "Visual Studio 16 2019" ../../../msgpack11
+   cmake --build . --clean-first --config Debug
+   cmake --build . --clean-first --config Release
    popd
    ```
-   Open file `build\msgpack11.sln` in Visual Studio and build all targets (shortcut F7).
+   For development or debugging, open file `build\msgpack11.sln` in Visual Studio.
 
 6. Build sick_generic_caller and sick_scan_shared_lib.dll with cmake and Visual Studio 2019:
    ```
@@ -341,9 +344,11 @@ To install sick_scan_xd on Windows, follow the steps below:
    if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
    pushd %_cmake_build_dir%
    cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
+   cmake --build . --clean-first --config Debug
+   cmake --build . --clean-first --config Release
    popd
    ```
-   Open file `build\sick_scan_xd.sln` in Visual Studio and build all targets (shortcut F7).
+   For development or debugging, open file `build\sick_scan_xd.sln` in Visual Studio. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. 
 
 Note: LDMRS sensors are currently not supported on Windows.
 
