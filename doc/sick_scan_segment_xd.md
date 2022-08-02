@@ -13,9 +13,9 @@ The following describes the configuration, validation and test in more detail.
 
 MultiScan136/sick_scan_segment_xd is configured by launch file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch).
 
-Modify file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch) to change configuration. Note that the ip adress of the udp receiver __must__ be configured on each system. This is the ip address of the computer running sick_scan_xd.
+Modify file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch) to change configuration. Note that the ip address of the udp receiver __must__ be configured on each system. This is the ip address of the computer running sick_scan_xd.
 
-The ip adress of the lidar and the udp receiver can be configured in the launch file by e.g.
+The ip address of the lidar and the udp receiver can be configured in the launch file by e.g.
 ```
 <arg name="hostname" default="192.168.0.1"/>
 <arg name="udp_receiver_ip" default="192.168.0.100"/>

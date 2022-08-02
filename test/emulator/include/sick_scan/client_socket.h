@@ -81,11 +81,11 @@ namespace sick_scan
   
     /*!
      * Connects to a server.
-     * @param[in] server_adress ip adress of the localization controller, default: 192.168.0.1
+     * @param[in] server_address ip address of the localization controller, default: 192.168.0.1
      * @param[in] tcp_port tcp port for command requests, default: 2111 for command requests and 2112 for  command responses
      * @return true on success, false on failure (server unknown or unreachable)
      */
-    virtual bool connect(const std::string & server_adress, int tcp_port);
+    virtual bool connect(const std::string & server_address, int tcp_port);
   
     /*!
      * Closes the tcp connection to the server.

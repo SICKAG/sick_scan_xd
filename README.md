@@ -175,7 +175,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    ```
    mkdir -p ./build
    pushd ./build
-   cmake -G "Unix Makefiles" -D MSGPACK11_BUILD_TESTS=0 ../msgpack11
+   cmake -G "Unix Makefiles" -DMSGPACK11_BUILD_TESTS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=ON ../msgpack11
    make -j4
    sudo make install
    popd

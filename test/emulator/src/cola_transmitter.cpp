@@ -67,12 +67,12 @@ static std::mutex s_ColaTransmitterSendMutex; // mutex to lock ColaTransmitter::
 
 /*!
  * Constructor.
- * @param[in] server_adress ip adress of the localization controller, default: 192.168.0.1
+ * @param[in] server_address ip address of the localization controller, default: 192.168.0.1
  * @param[in] tcp_port tcp port for command requests, default: 2111 for command requests and 2112 for  command responses
  * @param[in] default_receive_timeout default timeout in seconds for receive functions
  */
-sick_scan::ColaTransmitter::ColaTransmitter(const std::string & server_adress, int tcp_port, double default_receive_timeout)
-: m_server_adress(server_adress), m_tcp_port(tcp_port), 
+sick_scan::ColaTransmitter::ColaTransmitter(const std::string & server_address, int tcp_port, double default_receive_timeout)
+: m_server_address(server_address), m_tcp_port(tcp_port), 
   m_receive_timeout(default_receive_timeout), m_receiver_thread_running(false), m_receiver_thread(0)
 {
 
@@ -94,7 +94,7 @@ sick_scan::ColaTransmitter::~ColaTransmitter()
  */
 bool sick_scan::ColaTransmitter::connect(void)
 {
-  return m_tcp_socket.connect(m_server_adress, m_tcp_port);
+  return m_tcp_socket.connect(m_server_address, m_tcp_port);
 }
 
 /*!

@@ -1711,7 +1711,7 @@ namespace sick_scan
     rosGetParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
     // rosDeclareParam(nh, "min_intensity", m_min_intensity);
     rosGetParam(nh, "min_intensity", m_min_intensity); // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
-    //check new ip adress and add cmds to write ip to comand chain
+    //check new ip address and add cmds to write ip to comand chain
     std::string sNewIPAddr = "";
     std::string ipNewIPAddr;
     bool setNewIPAddr = false;

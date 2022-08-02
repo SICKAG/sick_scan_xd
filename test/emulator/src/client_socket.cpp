@@ -77,11 +77,11 @@ sick_scan::ClientSocket::~ClientSocket()
 
 /*!
  * Connects to a server.
- * @param[in] server_adress ip adress of the localization controller, default: 192.168.0.1
+ * @param[in] server_address ip address of the localization controller, default: 192.168.0.1
  * @param[in] tcp_port tcp port for command requests, default: 2111 for command requests and 2112 for  command responses
  * @return true on success, false on failure (server unknown or unreachable)
  */
-bool sick_scan::ClientSocket::connect(const std::string & server_adress, int tcp_port)
+bool sick_scan::ClientSocket::connect(const std::string & server_address, int tcp_port)
 {
   try
   {
@@ -89,13 +89,13 @@ bool sick_scan::ClientSocket::connect(const std::string & server_adress, int tcp
 		m_tcp_socket = ::socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if( m_tcp_socket == INVALID_SOCKET )
     {
-      ROS_ERROR_STREAM("## ERROR ClientSocket::connect(" << server_adress << ":" << tcp_port << "): can't create socket");
+      ROS_ERROR_STREAM("## ERROR ClientSocket::connect(" << server_address << ":" << tcp_port << "): can't create socket");
       return false;
     }
 
     struct sockaddr_in addr;
     struct hostent *server;
-    server = gethostbyname(server_adress.c_str());
+    server = gethostbyname(server_address.c_str());
     memset(&addr, 0, sizeof(addr));     		// Zero out structure
     addr.sin_family = AF_INET;
   #ifdef _MSC_VER
@@ -106,7 +106,7 @@ bool sick_scan::ClientSocket::connect(const std::string & server_adress, int tcp
     addr.sin_port = htons(tcp_port);				// Host-2-Network byte order
     if (::connect(m_tcp_socket, (sockaddr*)(&addr), sizeof(addr)) < 0)
     {
-      ROS_ERROR_STREAM("## ERROR ClientSocket::connect(" << server_adress << ":" << tcp_port << "): connect failed");
+      ROS_ERROR_STREAM("## ERROR ClientSocket::connect(" << server_address << ":" << tcp_port << "): connect failed");
       return false;
     }
 
@@ -133,18 +133,18 @@ bool sick_scan::ClientSocket::connect(const std::string & server_adress, int tcp
     
     if(socket_option_errorcodes[0] || socket_option_errorcodes[1] || socket_option_errorcodes[2])
     {
-      ROS_WARN_STREAM("## ClientSocket::connect(): socket connected to " << server_adress << ":" << tcp_port << ", but socket::get_option() failed, "
+      ROS_WARN_STREAM("## ClientSocket::connect(): socket connected to " << server_address << ":" << tcp_port << ", but socket::get_option() failed, "
         << " socket options error messages: no_delay=" << socket_option_errorcodes[0].message() << ", send_buffer_size=" << socket_option_errorcodes[1].message()
         << ", receive_buffer_size=" << socket_option_errorcodes[2].message());
     }
-    ROS_INFO_STREAM("ClientSocket::connect(): socket connected to " << server_adress << ":" << tcp_port << ", socket options values: no_delay=" << socket_option_no_delay.value()
+    ROS_INFO_STREAM("ClientSocket::connect(): socket connected to " << server_address << ":" << tcp_port << ", socket options values: no_delay=" << socket_option_no_delay.value()
       << ", send_buffer_size=" << socket_option_send_buffer_size.value() << ", receive_buffer_size=" << socket_option_receive_buffer_size.value());
     */
     return true;
   }
   catch(std::exception & exc)
   {
-    ROS_WARN_STREAM("## ERROR ClientSocket::connect(): connect to " << server_adress << ":" << tcp_port << " failed, exception " << exc.what());
+    ROS_WARN_STREAM("## ERROR ClientSocket::connect(): connect to " << server_address << ":" << tcp_port << " failed, exception " << exc.what());
   }
   return false;
 }

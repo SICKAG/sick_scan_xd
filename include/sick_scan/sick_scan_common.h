@@ -281,9 +281,9 @@ namespace sick_scan
      */
     virtual bool rebootScanner();
 
-    /// Send a SOPAS command to the scanner that logs in the authorized client, changes the ip adress and the reboots the scanner
+    /// Send a SOPAS command to the scanner that logs in the authorized client, changes the ip address and the reboots the scanner
     /**
-     * \param IpAdress new IP adress
+     * \param IpAdress new IP address
      * \returns true if ip was changed and scanner is rebooting
      */
     bool changeIPandreboot(const std::string& IpAdress);

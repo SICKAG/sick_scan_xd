@@ -116,7 +116,7 @@ public:
 	/**
 	 * \brief
 	 * \param protocol
-	 * \param ipAddress IP-adress of the Scanner
+	 * \param ipAddress IP-address of the Scanner
 	 * \param portNumber port for SOPAS comunication
 	 * \param weWantScanData
 	 * \param weWantFieldData

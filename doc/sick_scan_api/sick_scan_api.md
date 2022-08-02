@@ -26,7 +26,7 @@ Run the following commands to build the shared library `libsick_scan_shared_lib.
 git clone https://github.com/SICKAG/libsick_ldmrs.git
 git clone https://github.com/SICKAG/msgpack11.git
 git clone https://github.com/SICKAG/sick_scan_xd.git
-# Build libraries libsick_ldmrs, msgpack and libsick_scan_shared_lib.so
+# Build libsick_ldmrs library
 mkdir -p ./build
 mkdir -p ./libsick_ldmrs/build
 pushd libsick_ldmrs/build
@@ -34,6 +34,14 @@ cmake -G "Unix Makefiles" ..
 make -j4
 sudo make -j4 install    
 popd
+# Build msgpack library
+mkdir -p ./msgpack11/build
+pushd msgpack11/build
+cmake -DMSGPACK11_BUILD_TESTS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -G "Unix Makefiles" ..
+make -j4
+sudo make -j4 install    
+popd
+# Build libsick_scan_shared_lib.so
 pushd ./build
 cmake -G "Unix Makefiles" -D MSGPACK11_BUILD_TESTS=0 ../msgpack11
 make -j4

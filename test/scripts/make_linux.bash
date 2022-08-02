@@ -19,8 +19,22 @@ if [ -d ../../../libsick_ldmrs ] ; then
   if [ ! -d ./build ] ; then mkdir -p ./build ; fi
   cd ./build
   cmake -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
-  make -j$USECORES                        2>&1 | tee -a $BUILDLOGFILE
+  make -j$USECORES             2>&1 | tee -a $BUILDLOGFILE
   echo -e "build libsick_ldmrs: run \"make install\" requires sudo ..."
+  sudo make -j$USECORES install
+  popd
+fi
+
+# 
+# Build msgpack11 on Linux
+# 
+if [ -d ../../../msgpack11 ] ; then
+  pushd ../../../msgpack11
+  if [ ! -d ./build ] ; then mkdir -p ./build ; fi
+  cd ./build
+  cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
+  make -j$USECORES             2>&1 | tee -a $BUILDLOGFILE
+  echo -e "build msgpack11: run \"make install\" requires sudo ..."
   sudo make -j$USECORES install
   popd
 fi
