@@ -4,6 +4,7 @@
 # Make sure that libsick_scan_xd_api_lib.so is included in the system path, f.e. by
 # python3 sick_scan_xd_api_test.py
 
+import numpy as np
 import os
 import sys
 import threading
@@ -16,7 +17,11 @@ if __ROS_VERSION is None:
     __ROS_VERSION = 0
 else:
     __ROS_VERSION = int(__ROS_VERSION)
-if __ROS_VERSION == 1:
+
+if __ROS_VERSION == 0:
+    from mpl_toolkits import mplot3d
+    import matplotlib.pyplot as plt
+elif __ROS_VERSION == 1:
     import rospy
     from sick_scan_api_converter import *
 elif __ROS_VERSION == 2:
@@ -32,7 +37,49 @@ class ApiTestSettings:
         self.ros_polar_pointcloud_timestamp_published = None
         self.ros_polar_pointcloud_is_multi_segment_scanner = False
         self.ros_visualizationmarker_publisher = None
+        self.plot_figure = None
+        self.plot_axes = None
+        self.plot_points_x = []
+        self.plot_points_y = []
+        self.plot_points_z = []
         self.polling = False
+
+# Convert a SickScanCartesianPointCloudMsg to 3D arrays
+def pySickScanCartesianPointCloudMsgToXYZ(pointcloud_msg):
+    # get pointcloud fields
+    num_fields = pointcloud_msg.fields.size
+    msg_fields_buffer = pointcloud_msg.fields.buffer
+    field_offset_x = -1
+    field_offset_y = -1
+    field_offset_z = -1
+    for n in range(num_fields):
+        field_name = ctypesCharArrayToString(msg_fields_buffer[n].name)
+        field_offset = msg_fields_buffer[n].offset
+        if field_name == "x":
+            field_offset_x = msg_fields_buffer[n].offset
+        elif field_name == "y":
+            field_offset_y = msg_fields_buffer[n].offset
+        elif field_name == "z":
+            field_offset_z = msg_fields_buffer[n].offset
+    # Extract x,y,z
+    cloud_data_buffer_len = (pointcloud_msg.row_step * pointcloud_msg.height) # length of polar cloud data in byte
+    assert(pointcloud_msg.data.size == cloud_data_buffer_len and field_offset_x >= 0 and field_offset_y >= 0 and field_offset_z >= 0)
+    cloud_data_buffer = bytearray(cloud_data_buffer_len)
+    for n in range(cloud_data_buffer_len):
+        cloud_data_buffer[n] = pointcloud_msg.data.buffer[n]
+    points_x = np.zeros(pointcloud_msg.width * pointcloud_msg.height, dtype = np.float32)
+    points_y = np.zeros(pointcloud_msg.width * pointcloud_msg.height, dtype = np.float32)
+    points_z = np.zeros(pointcloud_msg.width * pointcloud_msg.height, dtype = np.float32)
+    point_idx = 0
+    for row_idx in range(pointcloud_msg.height):
+        for col_idx in range(pointcloud_msg.width):
+            # Get lidar point in polar coordinates (range, azimuth and elevation)
+            pointcloud_offset = row_idx * pointcloud_msg.row_step + col_idx * pointcloud_msg.point_step
+            points_x[point_idx] = np.frombuffer(cloud_data_buffer, dtype = np.float32, count = 1, offset = pointcloud_offset + field_offset_x)[0]
+            points_y[point_idx] = np.frombuffer(cloud_data_buffer, dtype = np.float32, count = 1, offset = pointcloud_offset + field_offset_y)[0]
+            points_z[point_idx] = np.frombuffer(cloud_data_buffer, dtype = np.float32, count = 1, offset = pointcloud_offset + field_offset_z)[0]
+            point_idx = point_idx + 1
+    return points_x, points_y, points_z
 
 #
 # Python examples for SickScanApi-callbacks
@@ -43,9 +90,11 @@ def pySickScanCartesianPointCloudMsgCallback(api_handle, pointcloud_msg):
     pointcloud_msg = pointcloud_msg.contents # dereference msg pointer (pointcloud_msg = pointcloud_msg[0])
     print("pySickScanCartesianPointCloudMsgCallback: api_handle={}, {}x{} pointcloud, {} echo(s), segment {}".format(
         api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx))
-    if __ROS_VERSION > 0:
+    global api_test_settings
+    if __ROS_VERSION == 0:
+        api_test_settings.plot_points_x, api_test_settings.plot_points_y, api_test_settings.plot_points_z = pySickScanCartesianPointCloudMsgToXYZ(pointcloud_msg)
+    elif __ROS_VERSION > 0:
         # Copy cartesian pointcloud_msg to cartesian ros pointcloud and publish
-        global api_test_settings
         if api_test_settings.ros_pointcloud_publisher is not None and pointcloud_msg.width > 0 and pointcloud_msg.height > 0:
             ros_pointcloud = SickScanApiConvertPointCloudToROS(pointcloud_msg)
             api_test_settings.ros_pointcloud_publisher.publish(ros_pointcloud)
@@ -228,7 +277,11 @@ if __name__ == "__main__":
             if int(cli_arg[10:]) > 0:
                 api_test_settings.polling = True
     cli_args = " ".join(sys.argv[cli_arg_start_idx:])
-    if __ROS_VERSION == 1:
+    if __ROS_VERSION == 0:
+        api_test_settings.plot_figure = plt.figure()
+        api_test_settings.plot_axes = plt.axes(projection="3d")
+        pass
+    elif __ROS_VERSION == 1:
         rospy.init_node("sick_scan_api_test_py")
         api_test_settings.ros_pointcloud_publisher = rospy.Publisher("/sick_scan_xd_api_test/api_cloud", PointCloud2, queue_size=10)
         api_test_settings.ros_polar_pointcloud_publisher = rospy.Publisher("/sick_scan_xd_api_test/api_cloud_polar", PointCloud2, queue_size=10)
@@ -290,7 +343,19 @@ if __name__ == "__main__":
         SickScanApiRegisterVisualizationMarkerMsg(sick_scan_library, api_handle, visualizationmarker_callback)
 
     # Run main loop
-    if __ROS_VERSION == 1:
+    if __ROS_VERSION == 0:
+        while True:
+            try:
+                if len(api_test_settings.plot_points_x) > 0 and len(api_test_settings.plot_points_y) > 0  and len(api_test_settings.plot_points_z) > 0:
+                    api_test_settings.plot_axes.scatter(api_test_settings.plot_points_x, api_test_settings.plot_points_y, api_test_settings.plot_points_z, c='r', marker='.')
+                    api_test_settings.plot_axes.set_xlabel("x")
+                    api_test_settings.plot_axes.set_ylabel("y")
+                    plt.draw()
+                    plt.pause(0.5)
+                    api_test_settings.plot_axes.clear()
+            except:
+                break
+    elif __ROS_VERSION == 1:
         # rospy.spin()
         while not rospy.is_shutdown():
             rospy.sleep(0.1)

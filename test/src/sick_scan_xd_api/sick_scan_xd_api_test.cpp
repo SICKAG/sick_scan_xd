@@ -70,8 +70,8 @@ static void plotPointcloudToJpeg(const std::string& jpegfilepath, const SickScan
 			if (img_x >= 0 && img_x < img_width && img_y >= 0 && img_y < img_height) // point within the image area
 			{
 				img_pixel[3 * img_y * img_width + 3 * img_x + 0] = 255; // R
-				img_pixel[3 * img_y * img_width + 3 * img_x + 1] = 0;   // G
-				img_pixel[3 * img_y * img_width + 3 * img_x + 2] = 0;   // B
+				img_pixel[3 * img_y * img_width + 3 * img_x + 1] = 255; // G
+				img_pixel[3 * img_y * img_width + 3 * img_x + 2] = 255; // B
 			}
 		}
 	}

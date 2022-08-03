@@ -4,6 +4,7 @@ REM
 
 rem set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python36_64;%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python37_64;%PATH%
 rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
+if not exist \tmp mkdir \tmp
 
 REM 
 REM Start test server
@@ -15,6 +16,12 @@ REM Default LMS 511 scandata testset
 start "python ../test/emulator/test_server.py" cmd /k python ../test/emulator/test_server.py --scandata_file=../test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112
 @timeout /t 3
 popd
+
+REM
+REM Start image viewer (simple standalone pointcloud visualization)
+REM
+
+start "image_viewer" ..\..\demo\image_viewer_api_test.html
 
 REM 
 REM Run sick_generic_caller

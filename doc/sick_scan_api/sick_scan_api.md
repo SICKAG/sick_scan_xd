@@ -158,7 +158,16 @@ SickScanApiUnloadLibrary();
 
 Note: All functions named `SickScanApi` are implemented within the library file ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux). A small wrapper is included in the examples, which loads and unloads the library (functions `SickScanApiLoadLibrary` and `SickScanApiUnloadLibrary`) and delegates the function calls to the binary.
 
-A complete C/C++ usage example is implemented in [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp).
+A complete C/C++ usage example is implemented in [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp). Note that the shared library ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux) has no dependencies to ROS. The usage example on the other hand supports both ROS-1, ROS-2 and native Linux or Windows. When build on ROS, it converts the SickScanApi-messages into ROS-messages. On ROS, they can be visualized by rviz. The following screenshot shows a pointcloud published by `rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch"`:
+
+![api_test_linux_ros1_tim7xx.png](api_test_linux_ros1_tim7xx.png)
+
+Without ROS, sick_scan_xd_api_test plots a jpeg-file to enable a simple visualization of a pointcloud. E.g.:
+```
+firefox ./demo/image_viewer_api_test.html &
+./build_linux/sick_scan_xd_api_test ./launch/sick_tim_7xx.launch
+```
+![api_test_linux_tim7xx.png](api_test_linux_tim7xx.png)
 
 A complete python usage example is implemented in [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py).
 
@@ -201,7 +210,11 @@ source /opt/ros/noetic/setup.bash # replace by noetic by your ros version
 python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_lms_1xx.launch hostname:=192.168.0.1
 ```
 
-Note: The shared library ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux) works standalone and does not have any ROS dependancies. The usage example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) converts API- to ROS-messages for visualization and is therefore dependent on ROS, if ROS is installed. If ROS is not installed, it is restricted to log messages.
+Note: The shared library ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux) works standalone and does not have any ROS dependancies. The usage example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) converts API- to ROS-messages for visualization and is therefore dependent on ROS, if ROS is installed. 
+
+If ROS is not installed, [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) uses matplotlib to visualize the pointcloud. The following screenshot shows a TiM-7xx pointcloud on Linux without ROS:
+
+![api_test_python_tim7xx.png](api_test_python_tim7xx.png)
 
 ### Simulation and unittest
 
