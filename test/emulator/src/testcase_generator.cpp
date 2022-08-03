@@ -459,6 +459,42 @@ sick_scan::SickLocColaTelegramMsg sick_scan::TestcaseGenerator::createColaRespon
       s_mapped_responses[sick_scan::ColaParser::sRN]["LMPoutputRange"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LMPoutputRange", {"000100001388fff922330022550d"});
       s_mapped_responses[sick_scan::ColaParser::sRN]["LMDscandatacfg"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LMDscandatacfg", {"01000000000000000000010001"});
     }
+    if(scanner_type == "sick_lms_111") // overwrite for LMS111
+    {
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field000"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field000", {"3f8000000000000000001388fff922300101000000010000000005dc00000000000001f4000001f400000000000100064649454c44310000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field001"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field001", {"3f8000000000000000001388fff9223002000000000000000000000100000000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field002"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field002", {"3f8000000000000000001388fff9223002000000000000000000000100000000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field003"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field003", {"3f8000000000000000001388fff9223002000000000000000000000100000000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field004"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field004", {"3f8000000000000000001388fff9223002000000000000000000000100000000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field005"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field005", {"3f8000000000000000001388fff9223002000000000000000000000100000000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field006"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field006", {"3f8000000000000000001388fff9223002000000000000000000000100000000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field007"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field007", {"3f8000000000000000001388fff9223002000000000000000000000100000000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field008"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field008", {"3f8000000000000000001388fff9223002000000000000000000000100000000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field009"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field009", {"3f8000000000000000001388fff9223002000000000000000000000100000000"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field010"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field010", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field011"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field011", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field012"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field012", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field013"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field013", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field014"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field014", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field015"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field015", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field016"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field016", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field017"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field017", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field018"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field018", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field019"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field019", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field020"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field020", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field021"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field021", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field022"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field022", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field023"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field023", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field024"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field024", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field025"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field025", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field026"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field026", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field027"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field027", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field028"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field028", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["field029"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "field029", {"00"});
+      s_mapped_responses[sick_scan::ColaParser::sMN]["mLMPsetscancfg"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sAN"), "mLMPsetscancfg", {"0000001388000100001388fff9223000225510"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["LMPscancfg"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LMPscancfg", {"00001388000100001388fff9223000225510"});
+      s_mapped_responses[sick_scan::ColaParser::sRN]["LMPoutputRange"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "LMPoutputRange", {"000100001388fff922330022550d"});
+    }
     if(scanner_type == "sick_mrs_6xxx") // overwrite for MRS6124
     {
       s_mapped_responses[sick_scan::ColaParser::sRN]["DeviceIdent"] = sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand("sRA"), "DeviceIdent", {"00084d52533631323452000a312e312e302e36333452"});

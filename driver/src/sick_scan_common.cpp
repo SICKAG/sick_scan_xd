@@ -2915,6 +2915,7 @@ namespace sick_scan
       if (this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
       {
         ROS_INFO("Reading safety fields");
+        float rectFieldAngleRefPointOffsetRad = this->parser_->getCurrentParamPtr()->getRectEvalFieldAngleRefPointOffsetRad();
         SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
         int maxFieldnum = this->parser_->getCurrentParamPtr()->getMaxEvalFields();
         for(int fieldnum=0;fieldnum<maxFieldnum;fieldnum++)
@@ -2928,12 +2929,12 @@ namespace sick_scan
             this->convertAscii2BinaryCmd(requestFieldcfg, &reqBinary);
             result = sendSopasAndCheckAnswer(reqBinary, &fieldcfgReply);
             RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, fieldcfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
-            fieldMon->parseBinaryDatagram(fieldcfgReply);
+            fieldMon->parseBinaryDatagram(fieldcfgReply, rectFieldAngleRefPointOffsetRad);
           } else {
             std::vector<unsigned char> fieldcfgReply;
             result = sendSopasAndCheckAnswer(requestFieldcfg, &fieldcfgReply);
             RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, fieldcfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
-            fieldMon->parseAsciiDatagram(fieldcfgReply);
+            fieldMon->parseAsciiDatagram(fieldcfgReply, rectFieldAngleRefPointOffsetRad);
           }
         }
         if(cloud_marker_)

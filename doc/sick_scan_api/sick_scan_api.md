@@ -43,9 +43,6 @@ sudo make -j4 install
 popd
 # Build libsick_scan_shared_lib.so
 pushd ./build
-cmake -G "Unix Makefiles" -D MSGPACK11_BUILD_TESTS=0 ../msgpack11
-make -j4
-sudo make install
 export ROS_VERSION=0
 cmake -DROS_VERSION=0 -G "Unix Makefiles" ../sick_scan_xd
 make -j4

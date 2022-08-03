@@ -172,6 +172,9 @@ namespace sick_scan
     
     void setMaxEvalFields(int _maxEvalFields);
 
+    void setRectEvalFieldAngleRefPointOffsetRad(float _rectFieldAngleRefPointOffsetRad);
+    float getRectEvalFieldAngleRefPointOffsetRad(void);
+
     void setUseScancfgList (bool _useScancfgList );
 
     bool getUseScancfgList();
@@ -208,6 +211,7 @@ namespace sick_scan
     bool imuEnabled;
     EVAL_FIELD_SUPPORT useEvalFields;
     int maxEvalFields;
+    float rectFieldAngleRefPointOffsetRad;
     bool useScancfgList;
     bool useWriteOutputRanges;
     bool waitForReady;

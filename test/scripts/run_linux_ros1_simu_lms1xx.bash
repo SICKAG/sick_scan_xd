@@ -48,12 +48,13 @@ roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:
 # Wait for 'q' or 'Q' to exit or until rviz is closed
 waitUntilRvizClosed 60
 
-# Shutdown and restart with 20220712_lms111.pcapng.json
-# kill_simu
-# echo -e "Restart sick_scan lms111 simulation with 20220712_lms111.pcapng.json\n"
-# roslaunch sick_scan emulator_lms111_20220712.launch scanner_type:=sick_lms_111 &
-# sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
-# sleep 1 ; roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+# Shutdown and restart with 20220802_lms111.pcapng.json
+kill_simu
+echo -e "Restart sick_scan lms111 simulation with 20220802_lms111.pcapng.json\n"
+roslaunch sick_scan emulator_lms111.launch scanner_type:=sick_lms_111 &
+sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
+sleep 1 ; roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+waitUntilRvizClosed 60
 
 # Shutdown
 echo -e "Finishing lms1xx emulation, shutdown ros nodes\n"

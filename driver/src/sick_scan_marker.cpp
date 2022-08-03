@@ -275,11 +275,14 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
     for(int field_info_idx = 0; field_info_idx < field_info.size(); field_info_idx++)
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
-        SickScanMonFieldType field_typ = m_scan_mon_fields[field_idx].fieldType();
+        const sick_scan::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
+        SickScanMonFieldType field_typ = mon_field.fieldType();
         if(field_typ == MON_FIELD_DYNAMIC) // dynamic fields have two rectangle (first rectangle for v = max, second rectangle for v = 0)
-            nr_triangles += 2 * MAX(0, m_scan_mon_fields[field_idx].getPointCount()/2 - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
+            nr_triangles += 2 * MAX(0, mon_field.getPointCount()/2 - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
         else
-            nr_triangles += MAX(0, m_scan_mon_fields[field_idx].getPointCount() - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
+            nr_triangles += MAX(0, mon_field.getPointCount() - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
+        // std::map<SickScanMonFieldType,std::string> field_type_str = { {MON_FIELD_RADIAL, "MON_FIELD_RADIAL"}, {MON_FIELD_RECTANGLE, "MON_FIELD_RECTANGLE"}, {MON_FIELD_SEGMENTED, "MON_FIELD_SEGMENTED"}, {MON_FIELD_DYNAMIC, "MON_FIELD_DYNAMIC"} };
+        // ROS_INFO_STREAM("sick_scan::SickScanMarker::createMonFieldMarker(): field[" << field_info_idx << "]: type=" << field_type_str[field_typ] << ", " << (mon_field.getPointCount()) << " points");
     }
 
     // Draw fields using marker triangles
@@ -311,10 +314,11 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
         ros_std_msgs::ColorRGBA field_color = field_info[field_info_idx].field_color;
-        int point_count = m_scan_mon_fields[field_idx].getPointCount();
-        const std::vector<float>& points_x = m_scan_mon_fields[field_idx].getFieldPointsX();
-        const std::vector<float>& points_y = m_scan_mon_fields[field_idx].getFieldPointsY();
-        SickScanMonFieldType field_typ = m_scan_mon_fields[field_idx].fieldType();
+        const sick_scan::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
+        int point_count = mon_field.getPointCount();
+        const std::vector<float>& points_x = mon_field.getFieldPointsX();
+        const std::vector<float>& points_y = mon_field.getFieldPointsY();
+        SickScanMonFieldType field_typ = mon_field.fieldType();
         if(field_typ == MON_FIELD_DYNAMIC) // dynamic fields have two rectangle (first rectangle for v = max, second rectangle for v = 0)
         {
             std::vector<float> field1_points_x(point_count/2), field1_points_y(point_count/2), field2_points_x(point_count/2), field2_points_y(point_count/2);
@@ -351,21 +355,22 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
     for(int field_info_idx = 0; field_info_idx < field_info.size(); field_info_idx++)
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
-        if(m_scan_mon_fields[field_idx].getPointCount() >= 3)
+        const sick_scan::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
+        if(mon_field.getPointCount() >= 3)
         {
             ros_geometry_msgs::Point triangle_centroid;
             triangle_centroid.x = 0;
             triangle_centroid.y = 0;
             triangle_centroid.z = 0;
-            const std::vector<float>& points_x = m_scan_mon_fields[field_idx].getFieldPointsX();
-            const std::vector<float>& points_y = m_scan_mon_fields[field_idx].getFieldPointsY();
-            for(int point_idx = 0; point_idx < m_scan_mon_fields[field_idx].getPointCount(); point_idx++)
+            const std::vector<float>& points_x = mon_field.getFieldPointsX();
+            const std::vector<float>& points_y = mon_field.getFieldPointsY();
+            for(int point_idx = 0; point_idx < mon_field.getPointCount(); point_idx++)
             {
                 triangle_centroid.x += points_x[point_idx];
                 triangle_centroid.y += points_y[point_idx];
             }
-            triangle_centroid.x /= (float)(m_scan_mon_fields[field_idx].getPointCount());
-            triangle_centroid.y /= (float)(m_scan_mon_fields[field_idx].getPointCount());
+            triangle_centroid.x /= (float)(mon_field.getPointCount());
+            triangle_centroid.y /= (float)(mon_field.getPointCount());
             ros_visualization_msgs::Marker marker_field_name;
             marker_field_name.header.stamp = rosTimeNow();
             marker_field_name.header.frame_id = m_frame_id;

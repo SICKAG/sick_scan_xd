@@ -173,9 +173,9 @@ namespace sick_scan
     int parseAsciiLIDinputstateMsg(unsigned char* datagram, int datagram_length);
     int parseBinaryLIDinputstateMsg(unsigned char* datagram, int datagram_length);
 
-    int parseBinaryDatagram(std::vector<unsigned char> datagramm);
+    int parseBinaryDatagram(std::vector<unsigned char> datagramm, float rectFieldAngleRefPointOffsetRad);
 
-    int parseAsciiDatagram(std::vector<unsigned char> datagramm); /* , SickScanConfig &config, */ // sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask);
+    int parseAsciiDatagram(std::vector<unsigned char> datagramm, float rectFieldAngleRefPointOffsetRad);
   };
 
 
