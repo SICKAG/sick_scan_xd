@@ -6,6 +6,10 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.8.1 - 
+  - **Added** Generic API implementation
+  - **Fixed** LMS-111 field marker
+
 ### v2.8.0 - 
   - **Added** Generic interface, C-API
   - **Changed** merge pull request #85 (adapt to ROS2 Humble)
