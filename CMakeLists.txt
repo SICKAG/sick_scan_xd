@@ -668,8 +668,10 @@ endif(ROS_VERSION EQUAL 2)
 add_executable(sick_scan_xd_api_test 
     test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp
     test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c
+    test/src/sick_scan_xd_api/toojpeg/toojpeg.cpp
     driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
 )
+target_include_directories(sick_scan_xd_api_test PUBLIC test/src/sick_scan_xd_api/toojpeg)
 if(ROS_VERSION EQUAL 1)
     target_link_libraries(sick_scan_xd_api_test ${catkin_LIBRARIES})
     add_dependencies(sick_scan_xd_api_test

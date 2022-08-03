@@ -36,8 +36,18 @@ if [ $roscore_running -lt 1 ] ; then
   sleep 3
 fi
 
+#
+# Run LMS_1xx, LMS_5xx and TIM_7xx with field monitoring
+#
 kill_simu
 echo -e "\nrun_linux_ros1_simu_field_monitoring.bash: starting field monitoring test\n"
+
+
+# Run sick_lms_5xx with 20220803_lms511.pcapng.json (lms511 reference file, see sopas screenshots 20220803_lms511_fields*.png)
+roslaunch sick_scan emulator_lms5xx.launch scanner_type:=sick_lms_511 scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20220803_lms511.pcapng.json &
+sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms5xx.rviz --opengl 210 &
+sleep 1 ; roslaunch sick_scan sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+waitUntilRvizClosed 30
 
 # Run sick_lms_1xx with 20210302_lms111.pcapng_full.json
 roslaunch sick_scan emulator_lms1xx.launch scanner_type:=sick_lms_1xx scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20210302_lms111.pcapng_full.json &

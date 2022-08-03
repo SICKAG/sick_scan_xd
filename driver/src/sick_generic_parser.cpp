@@ -703,11 +703,11 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
-        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(-50 * M_PI / 180.0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
-        basicParams[i].setFREchoFilterAvailable(true); // (false) // LMS uses echo filter settings to configure number of echos: "sWN FREchoFilter N" with N=0: first echo, N=1: all echos, N=2: last echo
+        basicParams[i].setFREchoFilterAvailable(true); // LMS uses echo filter settings to configure number of echos: "sWN FREchoFilter N" with N=0: first echo, N=1: all echos, N=2: last echo
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0) // LMS_1xx - 1 Layer
       {

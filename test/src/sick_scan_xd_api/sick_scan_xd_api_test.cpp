@@ -14,6 +14,89 @@ std::string ros_api_visualizationmarker_topic = "marker";
 ros::Publisher ros_api_cloud_publisher;
 ros::Publisher ros_api_cloud_polar_publisher;
 ros::Publisher ros_api_visualizationmarker_publisher;
+#else
+#include <stdio.h>
+#include <algorithm>
+#include <cassert>
+#include <cstring>
+#include "toojpeg.h"
+static FILE *foutJpg = 0;
+#endif
+
+#if __ROS_VERSION != 1
+// jpeg callback, just writes one byte
+void jpegOutputCallback(unsigned char oneByte)
+{
+    assert(foutJpg != 0);
+    fwrite(&oneByte, 1, 1, foutJpg);
+}
+// Simple plot function for pointcloud data, just demonstrates how to use a SickScanPointCloudMsg
+static void plotPointcloudToJpeg(const std::string& jpegfilepath, const SickScanPointCloudMsg& msg)
+{
+    // Get offsets for x, y, z, intensity values
+    SickScanPointFieldMsg* msg_fields_buffer = (SickScanPointFieldMsg*)msg.fields.buffer;
+    int field_offset_x = -1, field_offset_y = -1, field_offset_z = -1, field_offset_intensity = -1;
+    for(int n = 0; n < msg.fields.size; n++)
+    {
+        if (strcmp(msg_fields_buffer[n].name, "x") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+            field_offset_x = msg_fields_buffer[n].offset;
+        else if (strcmp(msg_fields_buffer[n].name, "y") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+            field_offset_y = msg_fields_buffer[n].offset;
+        else if (strcmp(msg_fields_buffer[n].name, "z") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+            field_offset_z = msg_fields_buffer[n].offset;
+        else if (strcmp(msg_fields_buffer[n].name, "intensity") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+            field_offset_intensity = msg_fields_buffer[n].offset;
+    }
+	assert(field_offset_x >= 0 && field_offset_y >= 0 && field_offset_z >= 0);
+	// Create an image with 250 pixel/meter, max. +/-2 meter
+	int img_width = 250 * 4, img_height = 250 * 4;
+	uint8_t* img_pixel = (uint8_t*)calloc(3 * img_width * img_height, sizeof(uint8_t)); // allocate 3 byte RGB array
+	// Plot all points in pointcloud
+    for (int row_idx = 0; row_idx < msg.height; row_idx++)
+    {
+        for (int col_idx = 0; col_idx < msg.width; col_idx++)
+        {
+            // Get cartesian point coordinates
+            int polar_point_offset = row_idx * msg.row_step + col_idx * msg.point_step;
+            float point_x = *((float*)(msg.data.buffer + polar_point_offset + field_offset_x));
+            float point_y = *((float*)(msg.data.buffer + polar_point_offset + field_offset_y));
+            float point_z = *((float*)(msg.data.buffer + polar_point_offset + field_offset_z));
+            float point_intensity = 0;
+            if (field_offset_intensity >= 0)
+                point_intensity = *((float*)(msg.data.buffer + polar_point_offset + field_offset_intensity));
+			// Convert point coordinates in meter to image coordinates in pixel
+			int img_x = (int)(250.0f * (-point_y + 2.0f)); // img_x := -pointcloud.y
+			int img_y = (int)(250.0f * (-point_x + 2.0f)); // img_y := -pointcloud.x
+			if (img_x >= 0 && img_x < img_width && img_y >= 0 && img_y < img_height) // point within the image area
+			{
+				img_pixel[3 * img_y * img_width + 3 * img_x + 0] = 255; // R
+				img_pixel[3 * img_y * img_width + 3 * img_x + 1] = 0;   // G
+				img_pixel[3 * img_y * img_width + 3 * img_x + 2] = 0;   // B
+			}
+		}
+	}
+	// Write image to jpeg-file
+	std::string jpeg_filename = jpegfilepath;
+#ifdef _MSC_VER
+    std::replace(jpeg_filename.begin(), jpeg_filename.end(), '/', '\\');
+#else
+    std::replace(jpeg_filename.begin(), jpeg_filename.end(), '\\', '/');
+#endif
+    std::string jpeg_filename_tmp = jpeg_filename + "_tmp";
+    foutJpg = fopen(jpeg_filename_tmp.c_str(), "wb");
+	if (foutJpg)
+	{
+        TooJpeg::writeJpeg(jpegOutputCallback, img_pixel, img_width, img_height, true, 99);
+		fclose(foutJpg);
+#ifdef _MSC_VER
+		_unlink(jpegfilepath.c_str());
+		rename(jpeg_filename_tmp.c_str(), jpegfilepath.c_str());
+#else
+		rename(jpeg_filename_tmp.c_str(), jpegfilepath.c_str());
+#endif
+	}
+    free(img_pixel);
+}
 #endif
 
 // Exit with error message
@@ -32,6 +115,8 @@ static void apiTestCartesianPointCloudMsgCallback(SickScanApiHandle apiHandle, c
 	ros_api_cloud_publisher.publish(pointcloud);
 	ROS_INFO_STREAM("apiTestCartesianPointCloudMsgCallback(apiHandle:" << apiHandle << "): published " << pointcloud.width << "x" << pointcloud.height << " pointcloud on topic \"" << ros_api_cloud_topic << "\"");
     DUMP_API_POINTCLOUD_MESSAGE("test", pointcloud);
+#else
+    plotPointcloudToJpeg("/tmp/sick_scan_api_demo.jpg", *msg);
 #endif
 }
 
