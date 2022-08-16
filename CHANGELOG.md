@@ -6,6 +6,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.8.2 - 
+  - **Fixed** Update build instructions in README.md 
+
 ### v2.8.1 - 
   - **Added** Generic API implementation
   - **Fixed** LMS-111 field marker

@@ -325,14 +325,15 @@ To install sick_scan_xd on Windows, follow the steps below:
 
 5. Build mspack with cmake and Visual Studio 2019:
    ```
-   mkdir build\msgpack11
-   pushd build\msgpack11
+   mkdir sick_scan_xd\build\msgpack11
+   pushd sick_scan_xd\build\msgpack11
    cmake -DMSGPACK11_BUILD_TESTS=0 -G "Visual Studio 16 2019" ../../../msgpack11
    cmake --build . --clean-first --config Debug
    cmake --build . --clean-first --config Release
+   REM open msgpack11.sln in Visual Studio 2019
    popd
    ```
-   For development or debugging, open file `build\msgpack11.sln` in Visual Studio.
+   For development or debugging, open file `sick_scan_xd\build\msgpack11\msgpack11.sln` in Visual Studio.
 
 6. Build sick_generic_caller and sick_scan_shared_lib.dll with cmake and Visual Studio 2019:
    ```
@@ -346,9 +347,12 @@ To install sick_scan_xd on Windows, follow the steps below:
    cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
    cmake --build . --clean-first --config Debug
    cmake --build . --clean-first --config Release
+   REM open sick_scan.sln in Visual Studio 2019 for development and debugging
    popd
    ```
-   For development or debugging, open file `build\sick_scan_xd.sln` in Visual Studio. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. 
+   For development or debugging, open file `sick_scan_xd\build\sick_scan.sln` in Visual Studio. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. 
+
+After successful build, binary files `sick_generic_caller.exe` and `sick_scan_shared_lib.dll` are created in folders `sick_scan_xd\build\Debug` and `sick_scan_xd\build\Release`.
 
 Note: LDMRS sensors are currently not supported on Windows.
 
