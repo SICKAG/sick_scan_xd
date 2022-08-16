@@ -4,6 +4,7 @@
 # Make sure that libsick_scan_xd_api_lib.so is included in the system path, f.e. by
 # python3 sick_scan_xd_api_test.py
 
+import datetime
 import numpy as np
 import os
 import sys
@@ -32,9 +33,10 @@ elif __ROS_VERSION == 2:
 # global settings
 class ApiTestSettings:
     def __init__(self):
+        self.cartesian_pointcloud_timestamp_published = datetime.datetime.now()
+        self.polar_pointcloud_timestamp_published = datetime.datetime.now()
         self.ros_pointcloud_publisher = None
         self.ros_polar_pointcloud_publisher = None
-        self.ros_polar_pointcloud_timestamp_published = None
         self.ros_polar_pointcloud_is_multi_segment_scanner = False
         self.ros_visualizationmarker_publisher = None
         self.plot_figure = None
@@ -91,13 +93,16 @@ def pySickScanCartesianPointCloudMsgCallback(api_handle, pointcloud_msg):
     print("pySickScanCartesianPointCloudMsgCallback: api_handle={}, {}x{} pointcloud, {} echo(s), segment {}".format(
         api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx))
     global api_test_settings
-    if __ROS_VERSION == 0:
+    # Note: Pointcloud conversion and visualization consumes cpu time, therefore we convert and publish the cartesian pointcloud with low frequency.
+    cur_timestamp = datetime.datetime.now()
+    if __ROS_VERSION == 0 and cur_timestamp >= api_test_settings.cartesian_pointcloud_timestamp_published + datetime.timedelta(seconds=0.5):
         api_test_settings.plot_points_x, api_test_settings.plot_points_y, api_test_settings.plot_points_z = pySickScanCartesianPointCloudMsgToXYZ(pointcloud_msg)
-    elif __ROS_VERSION > 0:
+        api_test_settings.cartesian_pointcloud_timestamp_published = cur_timestamp
+    elif __ROS_VERSION > 0 and api_test_settings.ros_pointcloud_publisher is not None and pointcloud_msg.width > 0 and pointcloud_msg.height > 0 and cur_timestamp >= api_test_settings.cartesian_pointcloud_timestamp_published + datetime.timedelta(seconds=0.2):
         # Copy cartesian pointcloud_msg to cartesian ros pointcloud and publish
-        if api_test_settings.ros_pointcloud_publisher is not None and pointcloud_msg.width > 0 and pointcloud_msg.height > 0:
-            ros_pointcloud = SickScanApiConvertPointCloudToROS(pointcloud_msg)
-            api_test_settings.ros_pointcloud_publisher.publish(ros_pointcloud)
+        ros_pointcloud = SickScanApiConvertPointCloudToROS(pointcloud_msg)
+        api_test_settings.ros_pointcloud_publisher.publish(ros_pointcloud)
+        api_test_settings.cartesian_pointcloud_timestamp_published = cur_timestamp
 
 # Callback for polar pointcloud messages
 def pySickScanPolarPointCloudMsgCallback(api_handle, pointcloud_msg):
@@ -107,21 +112,21 @@ def pySickScanPolarPointCloudMsgCallback(api_handle, pointcloud_msg):
     if __ROS_VERSION == 1:
         # Convert polar pointcloud_msg to cartesian ros pointcloud and publish.
         # Note: Pointcloud conversion from polar to cartesian is too cpu-intensive to process all segments from a Multiscan136.
-        # In case of multi-segment scanners, we just publish segment with index -1 (i.e. the 360-degree pointcloud) from time to time.
+        # In case of multi-segment scanners, we just publish segment with index -1 (i.e. the 360-degree pointcloud) with low frequency.
         global api_test_settings
         if pointcloud_msg.segment_idx < 0:
             api_test_settings.ros_polar_pointcloud_is_multi_segment_scanner = True
         if api_test_settings.ros_polar_pointcloud_publisher is not None and pointcloud_msg.width > 0 and pointcloud_msg.height > 0:
-            cur_timestamp = rospy.Time.now()
+            cur_timestamp = datetime.datetime.now()
             publish_polar_pointcloud = False
-            if api_test_settings.ros_polar_pointcloud_is_multi_segment_scanner == False:
+            if api_test_settings.ros_polar_pointcloud_is_multi_segment_scanner == False and cur_timestamp >= api_test_settings.polar_pointcloud_timestamp_published + datetime.timedelta(seconds=1.0):
                 publish_polar_pointcloud = True
-            elif pointcloud_msg.segment_idx < 0 and cur_timestamp > api_test_settings.ros_polar_pointcloud_timestamp_published + rospy.Duration(0.9):
+            elif pointcloud_msg.segment_idx < 0 and cur_timestamp >= api_test_settings.polar_pointcloud_timestamp_published + datetime.timedelta(seconds=1.0):
                 publish_polar_pointcloud = True
             if publish_polar_pointcloud:
                 ros_pointcloud = SickScanApiConvertPolarPointCloudToROS(pointcloud_msg)
                 api_test_settings.ros_polar_pointcloud_publisher.publish(ros_pointcloud)
-                api_test_settings.ros_polar_pointcloud_timestamp_published = cur_timestamp
+                api_test_settings.polar_pointcloud_timestamp_published = cur_timestamp
 
 # Callback for Imu messages
 def pySickScanImuMsgCallback(api_handle, imu_msg):
@@ -173,7 +178,6 @@ def pySickScanLdmrsObjectArrayCallback(api_handle, ldmrsobjectarray_msg):
     ldmrsobjectarray_msg = ldmrsobjectarray_msg.contents # dereference msg pointer
     print("pySickScanLdmrsObjectArrayCallback: api_handle={}, ldmrsobjectarray message: {} objects".format(api_handle, ldmrsobjectarray_msg.objects.size))
 
-    
 # Callback for VisualizationMarker messages
 def pySickScanVisualizationMarkerCallback(api_handle, visualizationmarker_msg):
     visualizationmarker_msg = visualizationmarker_msg.contents # dereference msg pointer
@@ -280,13 +284,11 @@ if __name__ == "__main__":
     if __ROS_VERSION == 0:
         api_test_settings.plot_figure = plt.figure()
         api_test_settings.plot_axes = plt.axes(projection="3d")
-        pass
     elif __ROS_VERSION == 1:
         rospy.init_node("sick_scan_api_test_py")
         api_test_settings.ros_pointcloud_publisher = rospy.Publisher("/sick_scan_xd_api_test/api_cloud", PointCloud2, queue_size=10)
         api_test_settings.ros_polar_pointcloud_publisher = rospy.Publisher("/sick_scan_xd_api_test/api_cloud_polar", PointCloud2, queue_size=10)
         api_test_settings.ros_visualizationmarker_publisher = rospy.Publisher("/sick_scan_xd_api_test/marker", MarkerArray, queue_size=10)
-        api_test_settings.ros_polar_pointcloud_timestamp_published = rospy.Time.now()
     elif __ROS_VERSION == 2:
         rclpy.init()
         ros_node = Node("sick_scan_api_test_py")
@@ -347,12 +349,22 @@ if __name__ == "__main__":
         while True:
             try:
                 if len(api_test_settings.plot_points_x) > 0 and len(api_test_settings.plot_points_y) > 0  and len(api_test_settings.plot_points_z) > 0:
-                    api_test_settings.plot_axes.scatter(api_test_settings.plot_points_x, api_test_settings.plot_points_y, api_test_settings.plot_points_z, c='r', marker='.')
+                    print("sick_scan_xd_api_test.py plotting pointcloud by matplotlib")
+                    plot_points_x = np.copy(api_test_settings.plot_points_x)
+                    plot_points_y = np.copy(api_test_settings.plot_points_y)
+                    plot_points_z = np.copy(api_test_settings.plot_points_z)
+                    # Depending on the system, it can be recommended to close all figures instead of just clearing.
+                    plt.close("all")
+                    api_test_settings.plot_figure = plt.figure()
+                    api_test_settings.plot_axes = plt.axes(projection="3d")                   
+                    # api_test_settings.plot_axes.clear()
+                    api_test_settings.plot_axes.scatter(plot_points_x, plot_points_y, plot_points_z, c='r', marker='.')
                     api_test_settings.plot_axes.set_xlabel("x")
                     api_test_settings.plot_axes.set_ylabel("y")
                     plt.draw()
-                    plt.pause(0.5)
-                    api_test_settings.plot_axes.clear()
+                    plt.pause(2.0)
+                else:
+                    time.sleep(0.1)
             except:
                 break
     elif __ROS_VERSION == 1:
