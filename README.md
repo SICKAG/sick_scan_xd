@@ -185,6 +185,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    ```
    mkdir -p ./build
    pushd ./build
+   rm -rf ./*
    export ROS_VERSION=0
    cmake -DROS_VERSION=0 -G "Unix Makefiles" ../sick_scan_xd
    make -j4
