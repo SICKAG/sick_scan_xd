@@ -7,7 +7,7 @@ features that will be removed in future versions **Removed** for deprecated feat
 ## Unreleased ##
 
 ### v2.8.2 - 
-  - **Fixed** Update build instructions in README.md 
+  - **Fixed** Update build instructions in README.md, visualization in python API-example with low frequency to reduce cpu usage.
 
 ### v2.8.1 - 
   - **Added** Generic API implementation
