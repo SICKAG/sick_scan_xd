@@ -102,7 +102,8 @@ The executable binary `sick_scan_xd_api_test` will just load library `libsick_sc
 
 To load the library, the build folder has to be included in `LD_LIBRARY_PATH` (Linux) resp. `PATH` (Windows). Set this environment variable to your build folder, e.g. on Linux using
 ```
-export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH # append relative path to build folder
+export LD_LIBRARY_PATH=.:`pwd`/build:$LD_LIBRARY_PATH  # append absolute path to build folder
 ```
 resp. on Windows
 ```
