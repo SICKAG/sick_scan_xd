@@ -88,7 +88,8 @@ After successfull build, the shared library `sick_scan_shared_lib.dll` and a tin
 
 The executable file `sick_scan_xd_api_test` provides a minimalistic API test. Run `sick_scan_xd_api_test <launchfile> hostname:=<ip-address>` to test the API against a lidar, e.g. on Linux:
 ```
-export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH # append relative path to build folder
+export LD_LIBRARY_PATH=.:`pwd`/build:$LD_LIBRARY_PATH  # append absolute path to build folder
 ./build/sick_scan_xd_api_test ./sick_scan_xd/launch/sick_tim_7xx.launch hostname:=192.168.0.1
 ```
 On Windows, run e.g.
