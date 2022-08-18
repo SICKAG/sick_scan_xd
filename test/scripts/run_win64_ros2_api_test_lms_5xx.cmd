@@ -1,4 +1,12 @@
 REM 
+REM Build and run minimalistic api usage examples (Python, C, C++)
+REM 
+
+pushd ..\..\examples\scripts
+call .\build_run_api_examples_windows.cmd
+popd
+
+REM 
 REM Run sick_scan_xd API test on ROS-2 Windows with lms5xx emulator
 REM 
 
@@ -26,6 +34,8 @@ start "python ../test/emulator/test_server.py" .\src\sick_scan_xd\test\emulator\
 REM 
 REM Run sick_scan_xd API test on ROS-2 Windows
 REM 
+
+set PYTHONPATH=.;.\src\sick_scan_xd\python\api;%PYTHONPATH%
 
 rem ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
 rem set PATH=%PATH%;.\src\sick_scan_xd\build_win64\Debug;.\src\sick_scan_xd\build\Debug

@@ -92,6 +92,7 @@ std::string Time::toLongString() const
 void Time::set(double time)
 {
 	m_time.tv_sec = (UINT32)time;
+    #pragma warning(suppress: 4244) // conversion to long
 	m_time.tv_usec = (time - (double)((UINT32)time)) * 1000000;
 }
 
@@ -115,7 +116,9 @@ void Time::set(UINT64 ntpTime)
 void Time::set(UINT64 ntpSeconds, UINT32 ntpFractionalSeconds)
 {
 //	const UINT32 startUnixEpoche = 2208988800; // seconds from 1.1.1900 to 1.1.1900
+    #pragma warning(suppress: 4244) // conversion to long
 	m_time.tv_sec = ntpSeconds - secondsFrom1900to1970;
+    #pragma warning(suppress: 4244) // conversion to long
 	m_time.tv_usec = ntpFractionalSeconds * m_secondFractionNTPtoNanoseconds / 1000;
 }
 

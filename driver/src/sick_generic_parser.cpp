@@ -726,7 +726,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
-        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(-45 * M_PI / 180.0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad((float)(-45 * M_PI / 180.0));
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true); // changed from false to true, see comment in sick_lms1xx.launch

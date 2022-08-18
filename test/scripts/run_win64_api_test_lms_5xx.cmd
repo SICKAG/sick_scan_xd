@@ -7,6 +7,14 @@ rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 if not exist \tmp mkdir \tmp
 
 REM 
+REM Build and run minimalistic api usage examples (Python, C, C++)
+REM 
+
+pushd ..\..\examples\scripts
+call .\build_run_api_examples_windows.cmd
+popd
+
+REM 
 REM Start test server
 REM 
 

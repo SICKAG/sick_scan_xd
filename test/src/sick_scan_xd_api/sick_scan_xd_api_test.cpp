@@ -52,9 +52,9 @@ static void plotPointcloudToJpeg(const std::string& jpegfilepath, const SickScan
 	int img_width = 250 * 4, img_height = 250 * 4;
 	uint8_t* img_pixel = (uint8_t*)calloc(3 * img_width * img_height, sizeof(uint8_t)); // allocate 3 byte RGB array
 	// Plot all points in pointcloud
-    for (int row_idx = 0; row_idx < msg.height; row_idx++)
+    for (int row_idx = 0; row_idx < (int)msg.height; row_idx++)
     {
-        for (int col_idx = 0; col_idx < msg.width; col_idx++)
+        for (int col_idx = 0; col_idx < (int)msg.width; col_idx++)
         {
             // Get cartesian point coordinates
             int polar_point_offset = row_idx * msg.row_step + col_idx * msg.point_step;

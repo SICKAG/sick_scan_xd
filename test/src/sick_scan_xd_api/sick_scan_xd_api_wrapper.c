@@ -15,7 +15,7 @@
 #include <string.h>
 #include  <ctype.h>
 
-#include "sick_scan_api.h"
+#include "sick_scan_xd_api/sick_scan_api.h"
 
 #ifdef WIN32
 #else

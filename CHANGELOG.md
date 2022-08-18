@@ -6,6 +6,12 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.8.3 - 
+  - **Update** Integrate API feedback
+  - **Added** Minimalistic API usage examples (Python, C, C++)
+  - **Update** Documentation
+  - **Fixed** Compiler warnings (Visual Studio)
+  
 ### v2.8.2 - 
   - **Fixed** Update build instructions in README.md, visualization in python API-example with low frequency to reduce cpu usage.
 

@@ -86,12 +86,20 @@ function kill_simu()
     pkill -9 -f sick_scan_xd_api_test.py
 }
 
+kill_simu
+printf "\033c"
+
+# 
+# Build and run minimalistic api usage examples (Python, C, C++)
+# 
+pushd ../../examples/scripts
+./build_run_api_examples_linux.bash
+popd
+
 #
 # API test against simulated TiM7xx, MRS100, LDMRS, MRS1xxx and RMS3xx
 #
 
-kill_simu
-printf "\033c"
 pushd ../../../..
 if [ -d ./log    ] ; then rm -rf ./log ; fi ; mkdir -p ./log
 if [ -f /opt/ros/melodic/setup.bash     ] ; then source /opt/ros/melodic/setup.bash   ; fi
@@ -101,6 +109,7 @@ if [ -f ./devel_isolated/setup.bash     ] ; then source ./devel_isolated/setup.b
 # if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
 
 export LD_LIBRARY_PATH=.:./build_linux:./src/sick_scan_xd/build_linux:$LD_LIBRARY_PATH
+export PYTHONPATH=.:./src/sick_scan_xd/python/api:$PYTHONPATH
 
 # Start roscore if not yet running
 roscore_running=`(ps -elf | grep roscore | grep -v grep | wc -l)`

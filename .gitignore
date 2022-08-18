@@ -95,6 +95,7 @@ test/emulator/scandata
 test/scripts/run_win64_ros1_simu_lms5xx.cmd
 test/scripts/make_win64_vs2022.cmd
 test/python/sick_scan_xd_api/__pycache__/
+python/api/__pycache__/
 
 doc/backlog.md
 doc/20210712_sick_scan_xd.pptx
@@ -114,3 +115,4 @@ doc/sick_scan_api/20220714_sick_scan_xd_api_update.pptx
 doc/sick_scan_api/20220812_sick_scan_xd_api_update.pptx
 doc/sick_scan_api/20220801_Anmerkungen_Manuel_technical_pretest.pdf
 doc/sick_scan_api/20220817_Anmerkungen_Manuel_technical_pretest.pdf
+doc/sick_scan_api/20220818_API_Anpassungen.txt

@@ -203,6 +203,10 @@ Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If y
    cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
 
+cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build without LDMRS and scansegment_xd support:
+   ```
+   cmake -DROS_VERSION=0 -DLDMRS=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ../sick_scan_xd
+   ```
 
 ## Build on Linux ROS1
 
@@ -250,7 +254,12 @@ Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not nee
 
 Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
-   catkin_make_isolated --install --cmake-args -DROS_VERSION=1  -DSCANSEGMENT_XD=0
+   catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DSCANSEGMENT_XD=0
+   ```
+
+cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build without LDMRS and scansegment_xd support:
+   ```
+   catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0 -DSCANSEGMENT_XD=0
    ```
 
 ## Build on Linux ROS2
@@ -291,6 +300,11 @@ Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not nee
 Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
+   ```
+
+cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build without LDMRS and scansegment_xd support:
+   ```
+   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
 ## Build on Windows
@@ -389,6 +403,8 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    call .\install\setup.bat
    ```
+
+Note: LDMRS sensors are currently not supported on Windows.
 
 Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```

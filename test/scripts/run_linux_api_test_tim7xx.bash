@@ -1,10 +1,18 @@
 #!/bin/bash
 
+printf "\033c"
+
 # 
-# Run sick_generic_caller with sick_tim_7xx.launch (Linux native with test server)
+# Build and run minimalistic api usage examples (Python, C, C++)
+# 
+pushd ../../examples/scripts
+./build_run_api_examples_linux.bash
+popd
+
+# 
+# Run sick_scan_xd_api_test with sick_tim_7xx.launch (Linux native with test server)
 # 
 
-printf "\033c"
 pushd ../..
 export LD_LIBRARY_PATH=.:./build_linux:$LD_LIBRARY_PATH
 

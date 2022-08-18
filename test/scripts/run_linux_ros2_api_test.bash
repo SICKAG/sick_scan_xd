@@ -15,15 +15,23 @@ function simu_killall()
 
 simu_killall
 printf "\033c"
-pushd ../../../..
-if [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash ; fi
-if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash     ; fi
-source ./install/setup.bash
+
+# 
+# Build and run minimalistic api usage examples (Python, C, C++)
+# 
+pushd ../../examples/scripts
+./build_run_api_examples_linux.bash
+popd
 
 #
 #
 # Run API test (python example) against simulated TiM7xx
 #
+pushd ../../../..
+if [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash ; fi
+if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash     ; fi
+source ./install/setup.bash
+export PYTHONPATH=.:./src/sick_scan_xd/python/api:$PYTHONPATH
 
 echo -e "run_linux_ros2_api_test.bash: starting TiM7xx emulation ...\n"
 cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng_full.json /tmp/lmd_scandata.pcapng.json
