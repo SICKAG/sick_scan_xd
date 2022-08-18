@@ -208,6 +208,12 @@ cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build w
    cmake -DROS_VERSION=0 -DLDMRS=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
 
+Note: To create source code documentation by doxygen, run
+```
+cd ./doxygen
+doxygen ./docs/Doxyfile
+```
+
 ## Build on Linux ROS1
 
 Run the following steps to build sick_scan_xd on Linux with ROS 1:
@@ -262,6 +268,12 @@ cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build w
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0 -DSCANSEGMENT_XD=0
    ```
 
+Note: To create source code documentation by doxygen, run
+```
+cd ./doxygen
+doxygen ./docs/Doxyfile
+```
+
 ## Build on Linux ROS2
 
 Run the following steps to build sick_scan_xd on Linux with ROS 2:
@@ -306,6 +318,12 @@ cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build w
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
+
+Note: To create source code documentation by doxygen, run
+```
+cd ./doxygen
+doxygen ./docs/Doxyfile
+```
 
 ## Build on Windows
 

@@ -6,10 +6,11 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
-### v2.8.3 - 
+### v2.8.3 - API feedback, documentation and minimalistic usage examples
   - **Update** Integrate API feedback
   - **Added** Minimalistic API usage examples (Python, C, C++)
   - **Update** Documentation
+  - **Update** Doxygen and numpy.docstring support
   - **Fixed** Compiler warnings (Visual Studio)
   
 ### v2.8.2 - 
