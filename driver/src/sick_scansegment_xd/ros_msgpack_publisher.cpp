@@ -167,10 +167,10 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t tim
   
   // set pointcloud data values
   pointcloud_msg.data.clear();
-  pointcloud_msg.data.resize(pointcloud_msg.row_step * pointcloud_msg.height);
+  pointcloud_msg.data.resize(pointcloud_msg.row_step * pointcloud_msg.height, 0);
   float* pfdata = reinterpret_cast<float*>(&pointcloud_msg.data[0]);
   pointcloud_msg_polar.data.clear();
-  pointcloud_msg_polar.data.resize(pointcloud_msg_polar.row_step * pointcloud_msg_polar.height);
+  pointcloud_msg_polar.data.resize(pointcloud_msg_polar.row_step * pointcloud_msg_polar.height, 0);
   float* pfdata_polar = reinterpret_cast<float*>(&pointcloud_msg_polar.data[0]);
   size_t data_cnt = 0;
   for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)

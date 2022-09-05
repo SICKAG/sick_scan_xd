@@ -206,8 +206,8 @@ File [minimum_sick_scan_api_client.py](../../examples/python/minimum_sick_scan_a
 
 Alternatively, follow the run instructions on Linux:
 ```
-export LD_LIBRARY_PATH=.:./build:$LD_LIBRARY_PATH
-export PYTHONPATH=.:./python/api:$PYTHONPATH
+export LD_LIBRARY_PATH=`pwd`:`pwd`/build:$LD_LIBRARY_PATH
+export PYTHONPATH=`pwd`:`pwd`/python/api:$PYTHONPATH
 python3 ./examples/python/minimum_sick_scan_api_client.py <launchfile> hostname:=<lidar-ip-address>
 ```
 
@@ -235,17 +235,22 @@ firefox ./demo/image_viewer_api_test.html &
 
 A complete python usage example is implemented in [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py). It is handy to test the sick_scan_xd library. Like its C++ counterpart [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp), it just loads library `libsick_scan_shared_lib.so` resp. `sick_scan_shared_lib.dll`, starts a lidar and receives the lidar pointcloud and messages via API. On ROS-1, the lidar pointcloud and messages are converted to ROS and published. The lidar pointcloud can be visualized by rviz using topic "/sick_scan_xd_api_test/api_cloud".
 
-Run `python3 sick_scan_xd_api_test.py <launchfile> hostname:=<ip-address>` to test the API against a lidar, e.g.:
-
+Run `python3 sick_scan_xd_api_test.py <launchfile> hostname:=<ip-address>` to test the API against a lidar. 
+On Linux e.g.:
 ```
-export PYTHONPATH=.:./src/sick_scan_xd/python/api:$PYTHONPATH
+export PYTHONPATH=`pwd`:`pwd`/src/sick_scan_xd/python/api:$PYTHONPATH
 source /opt/ros/noetic/setup.bash # replace by noetic by your ros version
 python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_lms_1xx.launch hostname:=192.168.0.1
+```
+On Windows e.g.:
+```
+set PYTHONPATH=.;.\src\sick_scan_xd\python\api;%PYTHONPATH%
+python ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_lms_1xx.launch hostname:=192.168.0.1
 ```
 
 The pthon usage example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) imports [sick_scan_api.py](../../python/api/sick_scan_api.py), which contains the python definitions of the sick_scan_xd API. Make sure that sick_scan_api.py can be imported, e.g. by including folder `python/api` in PYTHONPATH by:
 
-`export PYTHONPATH=.:./src/sick_scan_xd/python/api:$PYTHONPATH` on Linux, resp. <br/>
+`export PYTHONPATH=`pwd`:`pwd`/src/sick_scan_xd/python/api:$PYTHONPATH` on Linux, resp. <br/>
 `set PYTHONPATH=.;.\src\sick_scan_xd\python\api;%PYTHONPATH%` on Windows
 
 Note: The shared library ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux) works standalone and does not have any ROS dependancies. The usage example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) converts API- to ROS-messages for visualization and is therefore dependent on ROS, if ROS is installed. 

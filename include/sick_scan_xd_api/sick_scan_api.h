@@ -132,6 +132,10 @@ typedef struct SickScanPointFieldArrayType // Array of SickScanPointFieldMsg, wh
 
 typedef struct SickScanPointCloudMsgType // equivalent to ros::std_msgs::PointCloud2
 {
+  // SickScanPointCloudMsg contains the polar or cartesian pointcloud data.
+  // A SickScanPointCloudMsg in cartesian coordinates has fields (x, y, z, intensity).
+  // A SickScanPointCloudMsg in polar coordinates has fields (range, azimuth, elevation, intensity).
+  // Note: The pointcloud contains always <num_echos> echos. Invalid echos are filled with 0 values in the data array.
   SickScanHeader header;          // message timestamp
   uint32_t height;                // 2D structure of the point cloud. If the cloud is unordered, height is 1
   uint32_t width;                 // and width is the length of the point cloud.

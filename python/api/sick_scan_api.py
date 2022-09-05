@@ -127,6 +127,10 @@ class SickScanPointFieldArray(ctypes.Structure):
 class SickScanPointCloudMsg(ctypes.Structure):
     """ 
     sick_scan_api: struct SickScanPointCloudMsg, equivalent to ros::std_msgs::PointCloud2
+    SickScanPointCloudMsg contains the polar or cartesian pointcloud data.
+    A SickScanPointCloudMsg in cartesian coordinates has fields (x, y, z, intensity).
+    A SickScanPointCloudMsg in polar coordinates has fields (range, azimuth, elevation, intensity).
+    Note: The pointcloud contains always <num_echos> echos. Invalid echos are filled with 0 values in the data array.
 
     Attributes
     ----------

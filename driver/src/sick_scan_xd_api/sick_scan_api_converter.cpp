@@ -83,7 +83,7 @@ sensor_msgs::PointCloud2 SickScanApiConverter::convertPointCloudMsg(const SickSc
         pointcloud.fields[n].datatype = msg_fields_buffer[n].datatype;
     }
     // Copy pointcloud data
-    pointcloud.data.resize(msg.row_step * msg.height);
+    pointcloud.data.resize(msg.row_step * msg.height, 0);
     memcpy(&pointcloud.data[0], msg.data.buffer, msg.row_step * msg.height);
     // Return converted pointcloud
     return pointcloud;
@@ -129,7 +129,7 @@ sensor_msgs::PointCloud2 SickScanApiConverter::convertPolarPointCloudMsg(const S
     pointcloud.point_step = pointcloud.fields.size() * sizeof(float); // i.e. point_step := 16 byte
     pointcloud.row_step = pointcloud.point_step * pointcloud.width;
     // Convert pointcloud data
-    pointcloud.data.resize(pointcloud.row_step * pointcloud.height);
+    pointcloud.data.resize(pointcloud.row_step * pointcloud.height, 0);
     int cartesian_point_cloud_offset = 0;
     float* cartesian_point_cloud_buffer = (float*)pointcloud.data.data();
     for (int row_idx = 0; row_idx < msg.height; row_idx++)
@@ -362,7 +362,7 @@ sensor_msgs::PointCloud2 SickScanApiConverter::convertRadarObjectsToPointCloud(c
     ros_pointcloud.point_step = ros_pointcloud.fields.size() * sizeof(float);
     ros_pointcloud.row_step = ros_pointcloud.point_step * ros_pointcloud.width;
     // Copy radar object data
-    ros_pointcloud.data.resize(ros_pointcloud.row_step * ros_pointcloud.height);
+    ros_pointcloud.data.resize(ros_pointcloud.row_step * ros_pointcloud.height, 0);
     float* dst_data_p = (float*)ros_pointcloud.data.data();
     for(int n = 0; n < num_objects; n++, dst_data_p+=6)
     {
