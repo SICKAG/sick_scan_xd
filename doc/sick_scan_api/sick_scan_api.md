@@ -16,7 +16,7 @@ The generic sick_scan_xd API ships with the API-header, the library (binary or s
 
 ## Build and test shared library
 
-The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../../README.md/#build-on-linux-generic-without-ros) for Linux resp. [Build on Windows](../../README.md/#build-on-windows) for Windows.
+The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../../INSTALL-GENERIC.md#build-on-linux-generic-without-ros) for Linux resp. [Build on Windows](../../INSTALL-GENERIC.md#build-on-windows) for Windows.
 
 ### Build the shared library on Linux
 
@@ -256,7 +256,7 @@ If ROS is not installed, [sick_scan_xd_api_test.py](../../test/python/sick_scan_
 
 ### Simulation and unittest
 
-sick_scan_xd provides a tiny server for offline tests which simulates a basic lidar. It just accepts TCP connections, responds to sopas requests with predefined responses and sends lidar data from file. See [Simulation](../../README.md/#simulation) for further details. Note that the simulation does not emulate or replace a lidar, it just supports basic unittests.
+sick_scan_xd provides a tiny server for offline tests which simulates a basic lidar. It just accepts TCP connections, responds to sopas requests with predefined responses and sends lidar data from file. See [Simulation](../../USAGE.md#simulation) for further details. Note that the simulation does not emulate or replace a lidar, it just supports basic unittests.
 
 Open a new terminal and run the following steps to test the api against a TiM7xx simulation using the python example mentioned above:
 
@@ -271,7 +271,7 @@ Open a new terminal and run the following steps to test the api against a TiM7xx
    popd
    ```
 
-2. Build sick_scan_xd for ROS-1 on Linux, see [Build on Linux ROS1](../../README.md/#build-on-linux-ros1)
+2. Build sick_scan_xd for ROS-1 on Linux, see [Build on Linux ROS1](../../INSTALL-ROS1.md#build-on-linux-ros1)
 
 3. Start the TiM7xx simulator:
    ```

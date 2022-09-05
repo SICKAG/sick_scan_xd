@@ -6,27 +6,29 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
-### v2.8.3 - API feedback, documentation and minimalistic usage examples
-  - **Update** Integrate API feedback
+## Released ##
+
+### v2.8.3 - Generic API
+  - **Update** Integrate API feedback, documentation and minimalistic usage examples
   - **Added** Minimalistic API usage examples (Python, C, C++)
   - **Update** Documentation
   - **Update** Doxygen and numpy.docstring support
   - **Fixed** Compiler warnings (Visual Studio)
+  - **Update** README.md restructured
+  - **Update** Collected update including previous v2.8.x changes
   
-### v2.8.2 - 
+### v2.8.2 - development branch 
   - **Fixed** Update build instructions in README.md, visualization in python API-example with low frequency to reduce cpu usage.
 
-### v2.8.1 - 
+### v2.8.1 - development branch
   - **Added** Generic API implementation
   - **Fixed** LMS-111 field marker
 
-### v2.8.0 - 
+### v2.8.0 - development branch
   - **Added** Generic interface, C-API
   - **Changed** merge pull request #85 (adapt to ROS2 Humble)
   - **Changed** Changed to namespace roswrap in ros wrapper classes
   - **Fixed** Library linker flag #91
-
-## Released ##
 
 ### v2.7.5 - 
   - **Fixed** MRS6124 pointcloud error #88
