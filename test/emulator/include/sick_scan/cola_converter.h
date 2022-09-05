@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief sim_loc_cola_converter converts between Cola-ASCII and Cola-Binary telegrams.
  * See Operation-Instruction-v1.1.0.241R.pdf, chapter 5.8 "About CoLa-A telegrams", page 46-48,

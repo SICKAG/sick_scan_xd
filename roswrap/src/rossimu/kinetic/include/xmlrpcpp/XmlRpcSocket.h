@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 // this file modified by Morgan Quigley on 22 Apr 2008.
 // added features: server can be opened on port 0 and you can read back
 // what port the OS gave you

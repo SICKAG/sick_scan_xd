@@ -71,7 +71,7 @@
  ** Namespaces
  *********************************************************************/
 
-namespace ros
+namespace roswrap
 {
 
 	/*********************************************************************
@@ -92,7 +92,7 @@ namespace ros
 	// of time.h from including mutex
 	static std::mutex g_sim_time_mutex;
 
-	static bool g_initialized(true); // 
+	static bool g_initialized(true); //
 	static bool g_use_sim_time(true);
 	static Time g_sim_time(0, 0);
 

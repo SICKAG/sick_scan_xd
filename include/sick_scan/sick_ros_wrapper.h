@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief Wrapper for systemdependent API to Windows/Linux native, ROS-1 and ROS-2
  *
@@ -73,6 +74,7 @@
 #include <sstream>
 #include <thread>
 #include <vector>
+#include <chrono>
 
 #if !defined __ROS_VERSION
 #define __ROS_VERSION 0 // default: native Linux or Windows
@@ -155,6 +157,8 @@ typedef ros::Time rosTime;
 inline rosTime rosTimeNow(void) { return ros::Time::now(); }
 inline uint32_t sec(const rosTime& time) { return time.sec; }   // return seconds part of ros::Time
 inline uint32_t nsec(const rosTime& time) { return time.nsec; } // return nanoseconds part of ros::Time
+inline uint32_t sec(const rosDuration& time) { return time.sec; }   // return seconds part of ros::Duration
+inline uint32_t nsec(const rosDuration& time) { return time.nsec; } // return nanoseconds part of ros::Duration
 inline uint64_t rosNanosecTimestampNow(void) { rosTime now = rosTimeNow(); return (((uint64_t)sec(now)) * (uint64_t)1000000000) + std::min((uint64_t)nsec(now), (uint64_t)1000000000); }
 
 template <class T> class rosPublisher : public ros::Publisher
@@ -292,6 +296,8 @@ typedef rclcpp::Time rosTime; // typedef builtin_interfaces::msg::Time rosTime;
 inline rosTime rosTimeNow(void) { return rclcpp::Clock().now(); }
 inline uint32_t sec(const rosTime& time) { return (uint32_t)(time.nanoseconds() / 1000000000); }              // return seconds part of rclcpp::Time
 inline uint32_t nsec(const rosTime& time) { return (uint32_t)(time.nanoseconds() - 1000000000 * sec(time)); } // return nanoseconds part of rclcpp::Time
+inline uint32_t sec(const rosDuration& time) { return (uint32_t)(time.nanoseconds() / 1000000000); }              // return seconds part of rclcpp::Duration
+inline uint32_t nsec(const rosDuration& time) { return (uint32_t)(time.nanoseconds() - 1000000000 * sec(time)); } // return nanoseconds part of rclcpp::Duration
 inline uint64_t rosNanosecTimestampNow(void) { rosTime now = rosTimeNow(); return (((uint64_t)sec(now)) * (uint64_t)1000000000) + std::min((uint64_t)nsec(now), (uint64_t)1000000000); }
 
 template <class T> class rosPublisher : public rclcpp::Publisher<T>::SharedPtr
@@ -357,7 +363,7 @@ public:
 ** dynamic reconfiguration and diagnostic_updater currently supported on ROS-Linux only, todo...
 */
 #if __ROS_VERSION == 2 // ROS 2
-#ifndef WIN32
+#ifdef ROS_DIAGNOSTICS_UPDATER_AVAILABLE
 #include <diagnostic_updater/diagnostic_updater.hpp> // part of diagnostic_msgs of ROS2, not available on ROS2-Windows until foxy patch 4
 #include <diagnostic_updater/publisher.hpp>
 #include <rcl_interfaces/msg/set_parameters_result.hpp>
@@ -393,7 +399,7 @@ namespace sick_scan
     DiagnosedPublisherT publisher_;
     };
 }
-#endif // WIN32
+#endif // ROS_DIAGNOSTICS_UPDATER_AVAILABLE
 #elif __ROS_VERSION == 1 // ROS 1
 #ifndef WIN32
 #include <dynamic_reconfigure/server.h>
@@ -416,7 +422,7 @@ namespace sick_scan
     public:
         std::string frame_id = "cloud";
         std::string imu_frame_id = "imu_link";
-        bool intensity = false;
+        bool intensity = true; // false;
         bool auto_reboot = false;
         double min_ang = -M_PI / 2;
         double max_ang = +M_PI / 2;

@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -34,7 +35,7 @@
 #include "ros/serialization.h"
 //#include <boost/bind.hpp>
 
-namespace ros
+namespace roswrap
 {
   /**
    * \brief Manages an advertisement on a specific topic.
@@ -167,8 +168,8 @@ namespace ros
 
   private:
 
-    Publisher(const std::string& topic, const std::string& md5sum, 
-              const std::string& datatype, const NodeHandle& node_handle, 
+    Publisher(const std::string& topic, const std::string& md5sum,
+              const std::string& datatype, const NodeHandle& node_handle,
               const SubscriberCallbacksPtr& callbacks);
 
     void publish(const std::function<SerializedMessage(void)>& serfunc, SerializedMessage& m) const;

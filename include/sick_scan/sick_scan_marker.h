@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief Implementation of object markers for sick_scan
  *
@@ -61,6 +62,7 @@
 #define SICK_SCAN_MARKER_H_
 
 #include <sick_scan/sick_ros_wrapper.h>
+#include <sick_scan/sick_cloud_transform.h>
 #include "sick_scan/sick_generic_field_mon.h"
 
 
@@ -100,6 +102,7 @@ namespace sick_scan
     std::vector<ros_visualization_msgs::Marker> createMonFieldsetLegend(int fieldset);
     std::vector<ros_visualization_msgs::Marker> createOutputStateLegend(const std::vector<std::string>& output_state, const std::vector<std::string>& output_count, const std::vector<ros_std_msgs::ColorRGBA>& output_colors);
 
+    rosNodePtr m_nh;
     std::string m_frame_id;
     rosPublisher<ros_visualization_msgs::MarkerArray> m_marker_publisher;
     int m_scan_mon_fieldset;
@@ -109,6 +112,7 @@ namespace sick_scan
     std::vector<ros_visualization_msgs::Marker> m_scan_fieldset_legend;
     std::vector<ros_visualization_msgs::Marker> m_scan_outputstate_legend;
     double m_marker_output_legend_offset_x;
+    sick_scan::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 
   }; /* class SickScanMarker */
 

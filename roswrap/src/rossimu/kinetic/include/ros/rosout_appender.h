@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Software License Agreement (BSD License)
  *
@@ -48,7 +49,7 @@ namespace rosgraph_msgs
 ROS_DECLARE_MESSAGE(Log);
 }
 
-namespace ros
+namespace roswrap
 {
 
 class Publication;
@@ -79,6 +80,6 @@ protected:
   std::thread publish_thread_;
 };
 
-} // namespace ros
+} // namespace roswrap
 
 #endif

@@ -1,10 +1,11 @@
 #!/bin/bash
 printf "\033c"
 pushd ../../../..
-if [ -f /opt/ros/melodic/setup.bash   ] ; then source /opt/ros/melodic/setup.bash   ; fi
-if [ -f /opt/ros/noetic/setup.bash    ] ; then source /opt/ros/noetic/setup.bash    ; fi
-if [ -f ./install_isolated/setup.bash ] ; then source ./install_isolated/setup.bash ; fi
-if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
+if [ -f /opt/ros/melodic/setup.bash     ] ; then source /opt/ros/melodic/setup.bash   ; fi
+if [ -f /opt/ros/noetic/setup.bash      ] ; then source /opt/ros/noetic/setup.bash    ; fi
+if [ -f ./devel_isolated/setup.bash     ] ; then source ./devel_isolated/setup.bash ; fi
+# if [ -f ./install_isolated/setup.bash ] ; then source ./install_isolated/setup.bash ; fi
+# if [ -f ./install/setup.bash          ] ; then source ./install/setup.bash          ; fi
 
 echo -e "run_simu_mrs1xxx_imu.bash: starting mrs1xxx emulation\n"
 

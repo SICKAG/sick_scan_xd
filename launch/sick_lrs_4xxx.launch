@@ -7,6 +7,7 @@
     <arg name="scan_cfg_list_entry" default="1"/>
     <arg name="skip" default="0"/>
     <arg name="nodename" default="sick_lrs_4xxx"/>
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_lrs_4xxx"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>
@@ -37,6 +38,14 @@
         64   25Hz & 0.200 deg 0x   25 Hz   25 Hz 0.200 deg 0.200 deg 360 deg
         65   25Hz & 0.240 deg 0x   25 Hz   25 Hz 0.240 deg 0.240 deg 360 deg
          -->
+
+        <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
+        <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
+        <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: --> 
+        <!-- add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud -->
+        <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
+        <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
+        <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
 
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->

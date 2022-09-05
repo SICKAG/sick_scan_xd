@@ -582,7 +582,7 @@ namespace sick_scan
 
     // Pointcloud2 publisher
     //
-    ROS_INFO_STREAM("Publishing laserscan-pointcloud2 to " << cloud_topic_val);
+    ROS_INFO_STREAM("Publishing lidar pointcloud2 to " << cloud_topic_val);
     cloud_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, cloud_topic_val, 100);
 
     imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, nodename + "/imu", 100);
@@ -614,6 +614,13 @@ namespace sick_scan
     config_.time_offset = 0; // to avoid uninitialized variable
 #endif
 
+    // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+    // Note: add_transform_xyz_rpy is specified by 6D pose x,y,z,roll,pitch,yaw in [m] resp. [rad]
+    // It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates:
+    // add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud
+    // The additional transform applies to cartesian lidar pointclouds and visualization marker (fields)
+    // It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages
+    m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh);
   }
 
   /*!
@@ -1621,7 +1628,7 @@ namespace sick_scan
       if (lfp_medianfilter_arg >= 0)
       {
         // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
-        sopasCmdVec[CMD_SET_LFPMEDIANFILTER] = "\x02sWN LFPmedianfilter "+ toString((lfp_medianfilter_arg > 0) ? 1 : 0) + " 3\x03"; 
+        sopasCmdVec[CMD_SET_LFPMEDIANFILTER] = "\x02sWN LFPmedianfilter "+ toString((lfp_medianfilter_arg > 0) ? 1 : 0) + " 3\x03";
         sopasCmdChain.push_back(CMD_SET_LFPMEDIANFILTER);
         // ROS_INFO_STREAM("lfp_medianfilter set to " << lfp_medianfilter_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LFPMEDIANFILTER] << "\"");
       }
@@ -1636,7 +1643,7 @@ namespace sick_scan
       {
         // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
         std::string scalefactor_hex = sick_scan::SickScanServices::convertFloatToHexString((float)lmd_scandatascalefactor_arg, true);
-        sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor " + scalefactor_hex + "\x03"; 
+        sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor " + scalefactor_hex + "\x03";
         sopasCmdChain.push_back(CMD_SET_LMDSCANDATASCALEFACTOR);
         // ROS_INFO_STREAM("lmd_scandatascalefactor set to " << lmd_scandatascalefactor_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LMDSCANDATASCALEFACTOR] << "\"");
       }
@@ -1704,7 +1711,7 @@ namespace sick_scan
     rosGetParam(nh, "intensity_resolution_16bit", rssiResolutionIs16Bit);
     // rosDeclareParam(nh, "min_intensity", m_min_intensity);
     rosGetParam(nh, "min_intensity", m_min_intensity); // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
-    //check new ip adress and add cmds to write ip to comand chain
+    //check new ip address and add cmds to write ip to comand chain
     std::string sNewIPAddr = "";
     std::string ipNewIPAddr;
     bool setNewIPAddr = false;
@@ -2908,6 +2915,7 @@ namespace sick_scan
       if (this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
       {
         ROS_INFO("Reading safety fields");
+        float rectFieldAngleRefPointOffsetRad = this->parser_->getCurrentParamPtr()->getRectEvalFieldAngleRefPointOffsetRad();
         SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
         int maxFieldnum = this->parser_->getCurrentParamPtr()->getMaxEvalFields();
         for(int fieldnum=0;fieldnum<maxFieldnum;fieldnum++)
@@ -2921,12 +2929,12 @@ namespace sick_scan
             this->convertAscii2BinaryCmd(requestFieldcfg, &reqBinary);
             result = sendSopasAndCheckAnswer(reqBinary, &fieldcfgReply);
             RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, fieldcfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
-            fieldMon->parseBinaryDatagram(fieldcfgReply);
+            fieldMon->parseBinaryDatagram(fieldcfgReply, rectFieldAngleRefPointOffsetRad);
           } else {
             std::vector<unsigned char> fieldcfgReply;
             result = sendSopasAndCheckAnswer(requestFieldcfg, &fieldcfgReply);
             RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, fieldcfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
-            fieldMon->parseAsciiDatagram(fieldcfgReply);
+            fieldMon->parseAsciiDatagram(fieldcfgReply, rectFieldAngleRefPointOffsetRad);
           }
         }
         if(cloud_marker_)
@@ -3858,7 +3866,7 @@ namespace sick_scan
         return errorCode; // return success to continue looping
       }
 
-      static SickScanImu scanImu(this); // todo remove static
+      static SickScanImu scanImu(this, nh); // todo remove static
       if (scanImu.isImuDatagram((char *) receiveBuffer, actual_length))
       {
         int errorCode = ExitSuccess;
@@ -3886,6 +3894,7 @@ namespace sick_scan
         if (sick_scan::SickScanMessages::parseLIDoutputstateMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, scanner_name, outputstate_msg))
         {
           // Publish LIDoutputstate message
+          notifyLIDoutputstateListener(nh, &outputstate_msg);
           if(publish_lidoutputstate_)
           {
               rosPublish(lidoutputstate_pub_, outputstate_msg);
@@ -3927,6 +3936,7 @@ namespace sick_scan
         if (sick_scan::SickScanMessages::parseLFErecMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, eval_field_logic, scanner_name, lferec_msg))
         {
           // Publish LFErec message
+          notifyLFErecListener(nh, &lferec_msg);
           if(publish_lferec_)
           {
             rosPublish(lferec_pub_, lferec_msg);
@@ -3953,12 +3963,12 @@ namespace sick_scan
 
         ros_sensor_msgs::LaserScan msg;
         sick_scan_msg::Encoder EncoderMsg;
-        EncoderMsg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
+        EncoderMsg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
         //TODO remove this hardcoded variable
         bool FireEncoder = false;
         EncoderMsg.header.frame_id = "Encoder";
         ROS_HEADER_SEQ(EncoderMsg.header, numPacketsProcessed);
-        msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // default: ros-timestamp at message received, will be updated by software-pll
+        msg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset); // default: ros-timestamp at message received, will be updated by software-pll
         double elevationAngleInRad = 0.0;
         short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
         // F5B2h -> -2638/200= -13.19°
@@ -4037,13 +4047,13 @@ namespace sick_scan
                 }
                 else
                 {
-                  if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevationAngleInRad, recvTimeStamp, 
+                  if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevationAngleInRad, recvTimeStamp,
                     config_.sw_pll_only_publish, config_.use_generation_timestamp, parser_, FireEncoder, EncoderMsg, numEchos, vang_vec, msg))
                   {
                       dataToProcess = false;
                       break;
                   }
-                  msg.header.stamp = recvTimeStamp + rosDuration(config_.time_offset); // recvTimeStamp updated by software-pll
+                  msg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset); // recvTimeStamp updated by software-pll
                   timeIncrement = msg.time_increment;
                   echoMask = (1 << numEchos) - 1;
                 }
@@ -4348,7 +4358,7 @@ namespace sick_scan
               int numTmpLayer = numOfLayers;
 
 
-              cloud_.header.stamp = recvTimeStamp + rosDuration(config_.time_offset);
+              cloud_.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
               // ROS_DEBUG_STREAM("laser_scan timestamp: " << msg.header.stamp << ", pointclound timestamp: " << cloud_.header.stamp);
               cloud_.header.frame_id = config_.frame_id;
               ROS_HEADER_SEQ(cloud_.header, 0);
@@ -4367,11 +4377,23 @@ namespace sick_scan
                 cloud_.fields[i].count = 1;
                 cloud_.fields[i].datatype = ros_sensor_msgs::PointField::FLOAT32;
               }
-
               cloud_.data.resize(cloud_.row_step * cloud_.height);
 
-              unsigned char *cloudDataPtr = &(cloud_.data[0]);
+              cloud_polar_.header = cloud_.header;
+              cloud_polar_.height = cloud_.height;
+              cloud_polar_.width = cloud_.width;
+              cloud_polar_.is_bigendian = cloud_.is_bigendian;
+              cloud_polar_.is_dense = cloud_.is_dense;
+              cloud_polar_.point_step = cloud_.point_step;
+              cloud_polar_.row_step = cloud_.row_step;
+              cloud_polar_.fields = cloud_.fields;
+              cloud_polar_.fields[0].name = "range";
+              cloud_polar_.fields[1].name = "azimuth";
+              cloud_polar_.fields[2].name = "elevation";
+              cloud_polar_.data.resize(cloud_.data.size());
 
+              unsigned char *cloudDataPtr = &(cloud_.data[0]);
+              unsigned char *cloudDataPtr_polar = &(cloud_polar_.data[0]);
 
               // prepare lookup for elevation angle table
 
@@ -4380,7 +4402,7 @@ namespace sick_scan
 
               size_t rangeNumAllEchos = rangeTmp.size(); // rangeTmp.size() := number of range values in all echos (max. 5 echos)
               size_t rangeNumAllEchosCloud = cloud_.height * cloud_.width; // number of points allocated in the point cloud
-              rangeNumAllEchos = std::min(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
+              rangeNumAllEchos = MIN(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
               size_t rangeNum = rangeNumAllEchos / numValidEchos;
               // ROS_INFO_STREAM("numValidEchos=" << numValidEchos << ", numEchos=" << numEchos << ", cloud_.height * cloud_.width=" << cloud_.height * cloud_.width << ", rangeNum=" << rangeNum);
 
@@ -4427,8 +4449,10 @@ namespace sick_scan
 
                   unsigned char *ptr = cloudDataPtr + adroff;
                   float *fptr = (float *) (cloudDataPtr + adroff);
-
+                  
                   assert(adroff < cloud_.data.size()); // issue #49
+
+                  float *fptr_polar = (float *) (cloudDataPtr_polar + adroff);
 
                   ros_geometry_msgs::Point32 point;
                   float range_meter = rangeTmpPtr[iEcho * rangeNum + i];
@@ -4452,6 +4476,13 @@ namespace sick_scan
                   }
                   // ROS_DEBUG_STREAM("alpha:" << alpha << " elevPreCalc:" << std::to_string(elevationPreCalculated) << " layer:" << layer << " elevDeg:" << elevationAngleDegree
                   //   << " numOfLayers:" << numOfLayers << " elevAngleX200:" << elevAngleX200);
+                  /* if(useGivenElevationAngle) // MRS6124
+                  {
+                    // if (i == 0)
+                    //   ROS_INFO_STREAM("layer=" << layer << ", iEcho=" << iEcho << ", vang[0]=" << vang_vec[0] << ", vang[" << rangeNum-1 << "]=" << vang_vec[rangeNum-1] << ", alpha=" << rad2deg(alpha) << " deg");
+                    // if(layer ==1)
+                    //   ROS_INFO_STREAM("layer=" << layer << ", range[" << i << "]=" << range_meter);
+                  } */
 
                   if (iEcho == 0)
                   {
@@ -4470,10 +4501,17 @@ namespace sick_scan
                   {
                     phi_used = angleCompensator->compensateAngleInRadFromRos(phi_used);
                   }
-                  fptr[idx_x] = rangeCos * (float)cos(phi_used) * mirror_factor;  // copy x value in pointcloud
-                  fptr[idx_y] = rangeCos * (float)sin(phi_used) * mirror_factor;  // copy y value in pointcloud
-                  fptr[idx_z] = range_meter * sinAlphaTablePtr[i] * mirror_factor;// copy z value in pointcloud
+                  float phi2_used = phi_used + m_add_transform_xyz_rpy.azimuthOffset();
+                  fptr[idx_x] = rangeCos * (float)cos(phi2_used) * mirror_factor;  // copy x value in pointcloud
+                  fptr[idx_y] = rangeCos * (float)sin(phi2_used) * mirror_factor;  // copy y value in pointcloud
+                  fptr[idx_z] = range_meter * sinAlphaTablePtr[i] * mirror_factor; // copy z value in pointcloud
 
+                  m_add_transform_xyz_rpy.applyTransform(fptr[idx_x], fptr[idx_y], fptr[idx_z]);
+
+                  fptr_polar[idx_x] = range_meter; // range in meter
+                  fptr_polar[idx_y] = phi_used;    // azimuth in radians
+                  fptr_polar[idx_z] = alpha;       // elevation in radians
+                  
                   fptr[idx_intensity] = 0.0;
                   if (config_.intensity)
                   {
@@ -4484,6 +4522,7 @@ namespace sick_scan
                       fptr[idx_intensity] = intensityTmpPtr[intensityIndex]; // copy intensity value in pointcloud
                     }
                   }
+                  fptr_polar[idx_intensity] = fptr[idx_intensity];
                   angle += msg.angle_increment;
                 }
                 // Publish
@@ -4520,15 +4559,19 @@ namespace sick_scan
 
               if (shallIFire) // shall i fire the signal???
               {
+                sick_scan::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0);
+                sick_scan::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0);
 #ifdef ROSSIMU
-                notifyPointcloudListener(nh, &cloud_);
-                plotPointCloud(cloud_);
+                notifyPolarPointcloudListener(nh, &cloud_msg_polar);
+                notifyCartesianPointcloudListener(nh, &cloud_msg);
+                // plotPointCloud(cloud_);
 #else
                 // ROS_DEBUG_STREAM("publishing cloud " << cloud_.height << " x " << cloud_.width << " data, cloud_output_mode=" << config_.cloud_output_mode);
                 if (config_.cloud_output_mode==0)
                 {
                   // standard handling of scans
-                  notifyPointcloudListener(nh, &cloud_);
+                  notifyPolarPointcloudListener(nh, &cloud_msg_polar);
+                  notifyCartesianPointcloudListener(nh, &cloud_msg);
                   rosPublish(cloud_pub_, cloud_);
 
                 }
@@ -4618,6 +4661,8 @@ namespace sick_scan
                     assert(partialCloud.data.size() == partialCloud.width * partialCloud.point_step);
 
 
+                    sick_scan::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0);
+                    notifyCartesianPointcloudListener(nh, &partial_cloud_msg);
                     rosPublish(cloud_pub_, partialCloud);
                     //memcpy(&(partialCloud.data[0]), &(cloud_.data[0]) + i * cloud_.point_step, cloud_.point_step * numPartialShots);
                     //cloud_pub_.publish(partialCloud);

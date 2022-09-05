@@ -31,7 +31,7 @@ distribution.
 
 #include "tinyxml/tinyxml.h"
 
-FILE* TiXmlFOpen( const char* filename, const char* mode );
+TINYXML_EXPORT_ATTR FILE* TiXmlFOpen( const char* filename, const char* mode );
 
 bool TiXmlBase::condenseWhiteSpace = true;
 

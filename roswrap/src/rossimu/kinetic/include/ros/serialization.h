@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -91,7 +92,7 @@ inline static void allInOne(Stream& stream, T t)
     return stream.getLength(); \
   }
 
-namespace ros
+namespace roswrap
 {
 namespace serialization
 {
@@ -462,7 +463,7 @@ struct VectorSerializer<T, ContainerAllocator, typename std::enable_if<mt::IsSim
  * \brief Vector serializer, specialized for fixed-size non-simple types
  */
 template<typename T, class ContainerAllocator>
-struct VectorSerializer<T, ContainerAllocator, typename std::enable_if<mt::IsFixedSize<T>::value && !mt::IsSimple<T>::value >::type > 
+struct VectorSerializer<T, ContainerAllocator, typename std::enable_if<mt::IsFixedSize<T>::value && !mt::IsSimple<T>::value >::type >
 // typename std::enable_if<std::__and_<mt::IsFixedSize<T>::value, std::__not_<mt::IsSimple<T>::value > > >::type >
 {
   typedef std::vector<T, typename ContainerAllocator::template rebind<T>::other> VecType;
@@ -622,7 +623,7 @@ struct ArraySerializer<T, N, typename std::enable_if<mt::IsSimple<T>::value >::t
  * \brief Array serializer, specialized for fixed-size, non-simple types
  */
 template<typename T, size_t N>
-struct ArraySerializer<T, N, typename std::enable_if<mt::IsFixedSize<T>::value && !mt::IsSimple<T>::value >::type > 
+struct ArraySerializer<T, N, typename std::enable_if<mt::IsFixedSize<T>::value && !mt::IsSimple<T>::value >::type >
 // typename std::enable_if<std::__and_<mt::IsFixedSize<T>::value, std::__not_<mt::IsSimple<T>::value > > >::type>
 {
   typedef std::array<T, N > ArrayType;
@@ -924,6 +925,6 @@ struct PreDeserialize
 
 } // namespace serialization
 
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCPP_SERIALIZATION_H

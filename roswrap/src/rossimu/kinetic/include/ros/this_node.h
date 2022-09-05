@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -31,7 +32,7 @@
 #include "common.h"
 #include "forwards.h"
 
-namespace ros
+namespace roswrap
 {
 
 /**
@@ -63,7 +64,7 @@ ROSCPP_DECL void getSubscribedTopics(V_string& topics);
 
 } // namespace this_node
 
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCPP_THIS_NODE_H
 

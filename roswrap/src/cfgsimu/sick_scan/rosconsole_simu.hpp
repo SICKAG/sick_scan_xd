@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 #ifndef ROSCONSOLE_SIMU_HPP
 #define ROSCONSOLE_SIMU_HPP
 
@@ -18,7 +19,7 @@
 //int fork();
 void sleep(int secs);
 
-namespace ros
+namespace roswrap
 {
 	namespace console
 	{
@@ -30,8 +31,8 @@ namespace ros
 #undef ROS_ERROR
 #undef ROS_ERROR_THROTTLE
 #undef ROS_WARN_ONCE
-#define ROS_WARN(...) fprintf(stderr,"ROS_WARN: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n") 
-#define ROS_INFO(...) fprintf(stderr,"ROS_INFO: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n") 
+#define ROS_WARN(...) fprintf(stderr,"ROS_WARN: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n")
+#define ROS_INFO(...) fprintf(stderr,"ROS_INFO: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n")
 #define ROS_DEBUG(...) fprintf(stderr,"ROS_DEBUG: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n")
 #define ROS_FATAL(...)
 #define ROS_ERROR(...)  fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n") // #define eprintf(format, �) fprintf (stderr, format, __VA_ARGS__)

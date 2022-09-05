@@ -38,7 +38,7 @@ function killRestartEmulator () {
   killall -9 sick_scan_emulator
   sleep $delay
   echo -e "run_simu_reconnnect.bash: restarting sick_scan_emulator...\n"
-  ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch &
+  ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch scanner_type:=sick_mrs_1xxx &
 }
 
 # killRestartEmulatorOnce delay kills sick_scan_emulator, restarts sick_scan_emulator after a given delay in seconds and waits for the pointcloud messages
@@ -97,7 +97,7 @@ echo -e "run_simu_reconnnect.bash: starting mrs1104 emulation\n"
 
 # Start sick_scan emulator
 cp -f ./src/sick_scan_xd/test/emulator/scandata/20210722_143600_ros2_mrs1104_sick_scan_xd.pcapng.json /tmp/lmd_scandata.pcapng.json
-ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch &
+ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch scanner_type:=sick_mrs_1xxx &
 sleep 1
 
 # Start rviz

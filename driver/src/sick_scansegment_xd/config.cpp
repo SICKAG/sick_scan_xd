@@ -264,7 +264,10 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "msgpack_validator_layer_filter", str_msgpack_validator_layer_filter);
     sick_scansegment_xd::util::parseVector(str_msgpack_validator_valid_segments, msgpack_validator_valid_segments);
     sick_scansegment_xd::util::parseVector(str_msgpack_validator_layer_filter, msgpack_validator_filter_settings.msgpack_validator_layer_filter);
-
+    // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+    std::string str_add_transform_xyz_rpy = "0,0,0,0,0,0";
+    ROS_DECL_GET_PARAMETER(node, "add_transform_xyz_rpy", str_add_transform_xyz_rpy);
+    add_transform_xyz_rpy = sick_scan::SickCloudTransform(str_add_transform_xyz_rpy);
     return true;
 }
 

@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief RosMsgpackPublisher publishes PointCloud2 messages with msgpack data
  * received from multiScan136.
@@ -63,16 +64,20 @@
 namespace sick_scansegment_xd
 {
     /*
-     * class PointXYZI32f is just a container for a single multiScan136 point in cartesian coordinates x, y, z and intensity i
+     * class PointXYZRAEI32f is just a container for a single multiScan136 point in cartesian coordinates (x, y, z), polar coordinates (range, azimuth, elevation), and intensity i
      */
-    class PointXYZI32f
+    class PointXYZRAEI32f
     {
     public:
-        PointXYZI32f() : x(0), y(0), z(0), i(0) {}
-        PointXYZI32f(float _x, float _y, float _z, float _i) : x(_x), y(_y), z(_z), i(_i) {}
+        PointXYZRAEI32f() : x(0), y(0), z(0), range(0), azimuth(0), elevation(0), i(0) {}
+        PointXYZRAEI32f(float _x, float _y, float _z, float _range, float _azimuth, float _elevation, float _i) 
+            : x(_x), y(_y), z(_z), range(_range), azimuth(_azimuth), elevation(_elevation), i(_i) {}
         float x;
         float y;
         float z;
+        float range;
+        float azimuth;
+        float elevation;
         float i;
     };
   
@@ -147,7 +152,7 @@ namespace sick_scansegment_xd
                  segment_list.reserve(12);
                  telegram_list.reserve(12);
              }
-             void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
+             void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
              {
                  for (int echoIdx = 0; echoIdx < points.size() && echoIdx < lidar_points.size(); echoIdx++)
                      lidar_points[echoIdx].insert(lidar_points[echoIdx].end(), points[echoIdx].begin(), points[echoIdx].end());
@@ -162,7 +167,7 @@ namespace sick_scansegment_xd
              float min_azimuth;        // min azimuth of all points in radians
              float max_azimuth;        // max azimuth of all points in radians
              size_t total_point_count; // total number of points in all segments
-             std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>> lidar_points; // list of PointXYZI32f: lidar_points[echoIdx] are the points of all segments of an echo (idx echoIdx)
+             std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>> lidar_points; // list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of all segments of an echo (idx echoIdx)
              std::vector<int32_t> segment_list; // list of all collected segment indices
              std::vector<int32_t> telegram_list; // list of all collected telegram counters
          };
@@ -171,20 +176,21 @@ namespace sick_scansegment_xd
           * Converts the lidarpoints from a msgpack to a PointCloud2Msg.
           * @param[in] timestamp_sec seconds part of timestamp
           * @param[in] timestamp_nsec  nanoseconds part of timestamp
-          * @param[in] lidar_points list of PointXYZI32f: lidar_points[echoIdx] are the points of one echo
+          * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
           * @param[in] total_point_count total number of points in all echos
           * @param[in] echo_count number of echos
           * @param[out] pointcloud_msg PointCloud2Msg result
           */
-         void convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>>& lidar_points,
-            size_t total_point_count, PointCloud2Msg& pointcloud_msg);
+         void convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points,
+            size_t total_point_count, PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar);
       
         /*
          * Shortcut to publish a PointCloud2Msg
          */
-        void publish(PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg);
+        void publish(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, int32_t num_echos, int32_t segment_idx);
 
         bool m_active; // activate publishing
+        rosNodePtr m_node; // ros node handle
         std::string m_frame_id;    // frame id of ros PointCloud2 messages, default: "world"
         int m_segment_count = 12;  // number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
         float m_min_azimuth; // min azimuth of a full scan in radians, default: -M_PI

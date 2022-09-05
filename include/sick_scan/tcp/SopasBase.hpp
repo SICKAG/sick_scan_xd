@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 //
 // SopasBase.h
 //
@@ -115,7 +116,7 @@ public:
 	/**
 	 * \brief
 	 * \param protocol
-	 * \param ipAddress IP-adress of the Scanner
+	 * \param ipAddress IP-address of the Scanner
 	 * \param portNumber port for SOPAS comunication
 	 * \param weWantScanData
 	 * \param weWantFieldData

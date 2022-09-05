@@ -359,7 +359,7 @@ bool sick_scan::SickScanServices::sendMRS100StartCmd(const std::string& hostname
   }
   if (ip_tokens.size() != 4)
   {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd() failed: can't split ip address \"" << hostname << "\" into 4 tokens, check ip adress");
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd() failed: can't split ip address \"" << hostname << "\" into 4 tokens, check ip address");
     return false;
   }
   std::stringstream eth_settings_cmd;

@@ -80,7 +80,7 @@ namespace sick_scan
 
     /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
     bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double& elevationAngleInRad, rosTime& recvTimeStamp,
-        bool config_sw_pll_only_publish, bool use_generation_timestamp, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos,
+        bool config_sw_pll_only_publish, bool use_generation_timestamp, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos, 
         std::vector<float>& vang_vec, ros_sensor_msgs::LaserScan & msg)
     {
                   elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24

@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief sim_loc_test_server_thread implements a simple tcp server thread,
  * simulating a localization controller for unittests. It runs a thread to listen
@@ -82,7 +83,7 @@ namespace sick_scan
      * @param[in] ip_port_results ip port for result telegrams, default: 2201
      * @param[in] ip_port_cola ip port for command requests and responses, default: 2111
      */
-    TestServerThread(ROS::NodePtr nh = 0, int ip_port_results = 2201, int ip_port_cola = 2111);
+    TestServerThread(ROS::NodePtr nh = 0, int ip_port_results = 2201, int ip_port_cola = 2111, const std::string& scanner_type = "");
   
     /*!
      * Destructor. Stops the server thread and closes all tcp connections.

@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2008, Morgan Quigley and Willow Garage, Inc.
  *
@@ -33,7 +34,7 @@
 
 //#include <boost/thread/recursive_mutex.hpp>
 
-namespace ros
+namespace roswrap
 {
 class Subscription;
 typedef std::shared_ptr<Subscription> SubscriptionPtr;
@@ -72,7 +73,7 @@ private:
 };
 typedef std::shared_ptr<IntraProcessPublisherLink> IntraProcessPublisherLinkPtr;
 
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCPP_INTRAPROCESS_PUBLISHER_LINK_H
 

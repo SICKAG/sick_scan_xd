@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2008, Morgan Quigley and Willow Garage, Inc.
  *
@@ -41,7 +42,7 @@
 #include <memory>
 #include <memory>
 
-namespace ros
+namespace roswrap
 {
 
 class PublisherLink;
@@ -119,7 +120,7 @@ public:
   uint32_t getNumCallbacks() const { return  (uint32_t)callbacks_.size(); }
   uint32_t getNumPublishers();
 
-  // We'll keep a list of these objects, representing in-progress XMLRPC 
+  // We'll keep a list of these objects, representing in-progress XMLRPC
   // connections to other nodes.
   class ROSCPP_DECL PendingConnection : public ASyncXMLRPCConnection
   {

@@ -115,6 +115,7 @@ namespace sick_scan
       points_x[n] += refPointX;
       points_y[n] += refPointY;
     }
+    // ROS_DEBUG_STREAM("rectangularFieldToCarthesian: distRefPointMeter=" << distRefPointMeter << ", angleRefPoint=" << (angleRefPointRad * 180.0 / M_PI) << ", rotAngle=" << (rotAngleRad * 180.0 / M_PI) << ", rectWidthMeter=" << rectWidthMeter << ", rectLengthMeter=" << rectLengthMeter);
   }
 
   /*
@@ -209,14 +210,14 @@ namespace sick_scan
   \param datagram: Pointer to datagram data
   \param datagram_length: Number of bytes in datagram
   */
-  int SickScanFieldMonSingleton::parseAsciiDatagram(std::vector<unsigned char> datagramm)
+  int SickScanFieldMonSingleton::parseAsciiDatagram(std::vector<unsigned char> datagramm, float rectFieldAngleRefPointOffsetRad)
   {
     ROS_ERROR("SickScanFieldMonSingleton::parseAsciiDatagram not implemented.");
     int exitCode=ExitSuccess;
     return (exitCode);
   }
 
-  int SickScanFieldMonSingleton::parseBinaryDatagram(std::vector<unsigned char> datagram)
+  int SickScanFieldMonSingleton::parseBinaryDatagram(std::vector<unsigned char> datagram, float rectFieldAngleRefPointOffsetRad)
   {
     int exitCode = ExitSuccess;
     int fieldNumberFromCMD=0;
@@ -294,7 +295,7 @@ namespace sick_scan
       swap_endian((unsigned char *) &rotAngle, 4);
       swap_endian((unsigned char *) &rectWidth, 4);
       swap_endian((unsigned char *) &rectLength, 4);
-      float angleRefPointRad= (float)((angleRefPoint/1e4+angScaleFactorOffset/1e4)*deg2rad);
+      float angleRefPointRad= (float)((angleRefPoint/1e4+angScaleFactorOffset/1e4)*deg2rad) - rectFieldAngleRefPointOffsetRad;
       float distRefPointMeter=(distRefPoint*distScaleFactor+distScaleFactorOffset)/1000.0f;
       float rotAngleRad= (float)((rotAngle/1e4)*deg2rad);
       float rectWidthMeter=(rectWidth)/1000.0f;
@@ -331,7 +332,7 @@ namespace sick_scan
       swap_endian((unsigned char *) &rectLength, 4);
       swap_endian((unsigned char *) &maxSpeed, 2);
       swap_endian((unsigned char *) &maxLength, 4);
-      float angleRefPointRad= (float)((angleRefPoint/1e4+angScaleFactorOffset/1e4)*deg2rad);
+      float angleRefPointRad= (float)((angleRefPoint/1e4+angScaleFactorOffset/1e4)*deg2rad) - rectFieldAngleRefPointOffsetRad;
       float distRefPointMeter=(distRefPoint*distScaleFactor+distScaleFactorOffset)/1000.0f;
       float rotAngleRad= (float)((rotAngle/1e4)*deg2rad);
       float rectWidthMeter=(rectWidth)/1000.0f;

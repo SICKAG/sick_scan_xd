@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 //
 // Created by michael on 10/4/18.
 //
@@ -188,9 +189,10 @@ namespace sick_scan
   class SickScanImu
   {
   public:
-    SickScanImu(SickScanCommon *commonPtr_)
+    SickScanImu(SickScanCommon *commonPtr_, rosNodePtr nh_)
     {
       commonPtr = commonPtr_;
+      nh = nh_;
     }
 
     bool isImuDatagram(char *datagram, size_t datagram_length);
@@ -215,6 +217,7 @@ namespace sick_scan
 
   private:
     SickScanCommon *commonPtr;
+    rosNodePtr nh;
     bool emul;
   };
 

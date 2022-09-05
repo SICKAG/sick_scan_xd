@@ -38,7 +38,7 @@
 #include <vector>
 #include <map>
 
-namespace ros
+namespace roswrap
 {
 
 namespace param
@@ -471,12 +471,12 @@ bool getCached(const std::string& key, XmlRpc::XmlRpcValue& v)
 	return getImpl(key, v, true);
 }
 
-template <class T> T xml_cast(XmlRpc::XmlRpcValue xml_value) 
+template <class T> T xml_cast(XmlRpc::XmlRpcValue xml_value)
 {
   return static_cast<T>(xml_value);
 }
 
-template <class T> bool xml_castable(int XmlType) 
+template <class T> bool xml_castable(int XmlType)
 {
   return false;
 }
@@ -488,7 +488,7 @@ template<> bool xml_castable<std::string>(int XmlType)
 
 template<> bool xml_castable<double>(int XmlType)
 {
-  return ( 
+  return (
       XmlType == XmlRpc::XmlRpcValue::TypeDouble ||
       XmlType == XmlRpc::XmlRpcValue::TypeInt ||
       XmlType == XmlRpc::XmlRpcValue::TypeBoolean );
@@ -496,7 +496,7 @@ template<> bool xml_castable<double>(int XmlType)
 
 template<> bool xml_castable<float>(int XmlType)
 {
-  return ( 
+  return (
       XmlType == XmlRpc::XmlRpcValue::TypeDouble ||
       XmlType == XmlRpc::XmlRpcValue::TypeInt ||
       XmlType == XmlRpc::XmlRpcValue::TypeBoolean );
@@ -504,7 +504,7 @@ template<> bool xml_castable<float>(int XmlType)
 
 template<> bool xml_castable<int>(int XmlType)
 {
-  return ( 
+  return (
       XmlType == XmlRpc::XmlRpcValue::TypeDouble ||
       XmlType == XmlRpc::XmlRpcValue::TypeInt ||
       XmlType == XmlRpc::XmlRpcValue::TypeBoolean );
@@ -512,7 +512,7 @@ template<> bool xml_castable<int>(int XmlType)
 
 template<> bool xml_castable<bool>(int XmlType)
 {
-  return ( 
+  return (
       XmlType == XmlRpc::XmlRpcValue::TypeDouble ||
       XmlType == XmlRpc::XmlRpcValue::TypeInt ||
       XmlType == XmlRpc::XmlRpcValue::TypeBoolean );
@@ -577,7 +577,7 @@ template<> bool xml_cast(XmlRpc::XmlRpcValue xml_value)
       return false;
   };
 }
-  
+
 template <class T>
   bool getImpl(const std::string& key, std::vector<T>& vec, bool cached)
 {
@@ -882,4 +882,4 @@ void init(const M_string& remappings)
 
 } // namespace param
 
-} // namespace ros
+} // namespace roswrap

@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -43,7 +44,7 @@ namespace std_msgs
 }
 
 #define ROS_IMPLEMENT_SIMPLE_TOPIC_TRAITS(msg, md5sum, datatype, definition) \
-  namespace ros \
+  namespace roswrap \
   { \
   namespace message_traits \
   { \
@@ -66,7 +67,7 @@ namespace std_msgs
   }
 
 
-namespace ros
+namespace roswrap
 {
 namespace message_traits
 {
@@ -355,6 +356,6 @@ inline bool hasHeader()
 }
 
 } // namespace message_traits
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSLIB_MESSAGE_TRAITS_H

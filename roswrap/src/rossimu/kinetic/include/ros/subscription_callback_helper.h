@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -46,7 +47,7 @@
 //#include <boost/utility/enable_if.hpp>
 //#include <boost/make_shared.hpp>
 
-namespace ros
+namespace roswrap
 {
 
 struct SubscriptionCallbackHelperDeserializeParams
@@ -99,7 +100,7 @@ public:
   typedef std::function<void(typename Adapter::Parameter)> Callback;
   typedef std::function<NonConstTypePtr()> CreateFunction;
 
-  SubscriptionCallbackHelperT(const Callback& callback, 
+  SubscriptionCallbackHelperT(const Callback& callback,
 			      const CreateFunction& create = DefaultMessageCreator<NonConstType>())
     : callback_(callback)
     , create_(create)

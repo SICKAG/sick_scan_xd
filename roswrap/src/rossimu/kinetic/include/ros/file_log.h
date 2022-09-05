@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -35,7 +36,7 @@
 #define ROSCPP_LOG_DEBUG(...) ROS_DEBUG_NAMED("roscpp_internal", __VA_ARGS__)
 #define ROSCPP_CONN_LOG_DEBUG(...) ROS_DEBUG_NAMED("roscpp_internal.connections", __VA_ARGS__)
 
-namespace ros
+namespace roswrap
 {
 
 /**

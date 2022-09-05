@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -38,7 +39,7 @@
 //#include <boost/type_traits/is_base_of.hpp>
 //#include <boost/utility/enable_if.hpp>
 
-namespace ros
+namespace roswrap
 {
 struct ROSCPP_DECL ServiceCallbackHelperCallParams
 {
@@ -154,12 +155,12 @@ public:
   typedef std::function<RequestPtr()> ReqCreateFunction;
   typedef std::function<ResponsePtr()> ResCreateFunction;
 
-  ServiceCallbackHelperT(const Callback& callback, 
-                         const ReqCreateFunction& create_req = 
+  ServiceCallbackHelperT(const Callback& callback,
+                         const ReqCreateFunction& create_req =
                          // these static casts are legally unnecessary, but
                          // here to keep clang 2.8 from getting confused
-                         static_cast<RequestPtr(*)()>(defaultServiceCreateFunction<RequestType>), 
-                         const ResCreateFunction& create_res = 
+                         static_cast<RequestPtr(*)()>(defaultServiceCreateFunction<RequestType>),
+                         const ResCreateFunction& create_res =
                          static_cast<ResponsePtr(*)()>(defaultServiceCreateFunction<ResponseType>))
   : callback_(callback)
   , create_req_(create_req)

@@ -95,7 +95,7 @@
 
 
 
-class paramEntryAscii
+class TINYXML_EXPORT_ATTR paramEntryAscii
 {
 public:
 	paramEntryAscii(std::string _nameVal, std::string _typeVal, std::string _valueVal)

@@ -67,7 +67,7 @@ static std::vector<ros_visualization_msgs::Marker> s_visualization_marker_array;
 
 static unsigned char s_fontCharBlock8x12[] =
 {
-	  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00	 , //  
+	  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00	 , //
 	 0x00,0x18,0x18,0x18,0x18,0x18,0x18,0x00,0x18,0x18,0x00,0x00	 , // !
 	 0x00,0x36,0x36,0x36,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00	 , // "
 	 0x00,0x00,0x14,0x14,0x3E,0x14,0x14,0x3E,0x14,0x14,0x00,0x00	 , // #
@@ -193,7 +193,7 @@ static void drawLine(unsigned char *pixel, int wi, int hi, int numColorChannel, 
 	int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
 	int dy = abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
 	int err = (dx > dy ? dx : -dy) / 2, e2;
-	for (;;) 
+	for (;;)
   {
 		setPixel(pixel, wi, hi, numColorChannel, x0, y0, rgb_color);
 		if (x0 == x1 && y0 == y1) break;
@@ -238,7 +238,7 @@ void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall, c
 {
                 static int cnt = 0;
                 cnt++;
-                
+
                 ROS_DEBUG_STREAM("plotPointCloud: outputfolder=\"" << outputfolder << "\"");
                 const unsigned char *cloudDataPtr = &(cloud_.data[0]);
                 int w = cloud_.width;
@@ -359,13 +359,13 @@ void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall, c
                     {
                       int text_pos[2] = { (int)(2 * marker_pos[1] * scaleFac + xic), (int)(3 * marker_pos[0] * scaleFac + yic) };
                       int text_bias = ((text_pos[0] < xic) ? -1 : 0) * 8 * marker_text.length(); // ROS: marker position is the center of the text area
-                      text_pos[0] += text_bias; 
+                      text_pos[0] += text_bias;
                       float text_color[3] = { (float)marker_rgba.r, (float)marker_rgba.g, (float)marker_rgba.b };
                       drawText(pixel, wi, hi, numColorChannel, marker_text, text_pos, text_color);
                     }
                     else // currently supported types are ros_visualization_msgs::Marker::TEXT_VIEW_FACING and ros_visualization_msgs::Marker::TRIANGLE_LIST
                     {
-                      ROS_INFO_STREAM("visualization_marker[" << marker_idx << "]: type=" << (int)marker.type << " NOT supported, text=" << marker_text << ", pos=(" << marker_pos[0] << "," << marker_pos[1] << "," << marker_pos[1] << "), " 
+                      ROS_INFO_STREAM("visualization_marker[" << marker_idx << "]: type=" << (int)marker.type << " NOT supported, text=" << marker_text << ", pos=(" << marker_pos[0] << "," << marker_pos[1] << "," << marker_pos[1] << "), "
                         << ", color_rgb=(" << marker_rgba.r << "," << marker_rgba.g << "," << marker_rgba.b << "), " << (marker.points.size()) << " points.");
                     }
                   }
@@ -374,7 +374,7 @@ void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall, c
                   foutJpg = fopen(jpgFileName_tmp.c_str(), "wb");
                   if (foutJpg == NULL)
                   {
-                    ROS_INFO_STREAM("PANIC: Can not open " << jpgFileName_tmp << " for writing. Check existience of demo dir. or patch  code.\n");
+                    ROS_INFO_STREAM("Demo file " << jpgFileName_tmp << " not created. Check existience of demo dir. or patch code.\n");
                   }
                   else
                   {
@@ -435,7 +435,7 @@ void plotPointCloud(const ros_sensor_msgs::PointCloud2& cloud_, int intervall, c
                   }
                   else
                   {
-                        ROS_INFO_STREAM("PANIC: Can not open " << csvFileNameTmp << " for writing. Check existience of demo dir. or patch  code.\n");
+                        ROS_INFO_STREAM("Demo file " << csvFileNameTmp << " not created. Check existience of demo dir. or patch code.\n");
                   }
                   cnt = 0;
                 }

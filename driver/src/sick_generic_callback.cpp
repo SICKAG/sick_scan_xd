@@ -54,18 +54,175 @@
 */
 #include <sick_scan/sick_generic_callback.h>
 
-static sick_scan::SickCallbackHandler<rosNodePtr,ros_sensor_msgs::PointCloud2> s_poincloud_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan::PointCloud2withEcho>      s_cartesian_poincloud_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan::PointCloud2withEcho>      s_polar_poincloud_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,ros_sensor_msgs::Imu>                s_imu_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::LIDoutputstateMsg>    s_lidoutputstate_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::LFErecMsg>            s_lferec_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::SickLdmrsObjectArray> s_ldmrsobjectarray_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::RadarScan>            s_radarscan_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,ros_visualization_msgs::MarkerArray> s_visualizationmarker_callback_handler;
 
 namespace sick_scan
 {
-    void addPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
+    void addCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
     {
-        s_poincloud_callback_handler.addListener(handle, listener);
+        s_cartesian_poincloud_callback_handler.addListener(handle, listener);
 	}
 
-    void notifyPointcloudListener(rosNodePtr handle, const ros_sensor_msgs::PointCloud2* msg)
+    void notifyCartesianPointcloudListener(rosNodePtr handle, const sick_scan::PointCloud2withEcho* msg)
     {
-        s_poincloud_callback_handler.notifyListener(handle, msg);
+        s_cartesian_poincloud_callback_handler.notifyListener(handle, msg);
+	}
+
+    void removeCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        s_cartesian_poincloud_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isCartesianPointcloudListenerRegistered(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        return s_cartesian_poincloud_callback_handler.isListenerRegistered(handle, listener);
+	}
+
+    void addPolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        s_polar_poincloud_callback_handler.addListener(handle, listener);
+	}
+
+    void notifyPolarPointcloudListener(rosNodePtr handle, const sick_scan::PointCloud2withEcho* msg)
+    {
+        s_polar_poincloud_callback_handler.notifyListener(handle, msg);
+	}
+
+    void removePolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        s_polar_poincloud_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isPolarPointcloudListenerRegistered(rosNodePtr handle, PointCloud2Callback listener)
+    {
+        return s_polar_poincloud_callback_handler.isListenerRegistered(handle, listener);
+	}
+
+    void addImuListener(rosNodePtr handle, ImuCallback listener)
+    {
+        s_imu_callback_handler.addListener(handle, listener);
+	}
+
+    void notifyImuListener(rosNodePtr handle, const ros_sensor_msgs::Imu* msg)
+    {
+        s_imu_callback_handler.notifyListener(handle, msg);
+	}
+
+    void removeImuListener(rosNodePtr handle, ImuCallback listener)
+    {
+        s_imu_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isImuListenerRegistered(rosNodePtr handle, ImuCallback listener)
+    {
+        return s_imu_callback_handler.isListenerRegistered(handle, listener);
+	}
+
+    void addLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener)
+    {
+        s_lidoutputstate_callback_handler.addListener(handle, listener);
+	}
+    
+    void notifyLIDoutputstateListener(rosNodePtr handle, const sick_scan_msg::LIDoutputstateMsg* msg)
+    {
+        s_lidoutputstate_callback_handler.notifyListener(handle, msg);
+	}
+    
+    void removeLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener)
+    {
+        s_lidoutputstate_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isLIDoutputstateListenerRegistered(rosNodePtr handle, LIDoutputstateCallback listener)
+    {
+        return s_lidoutputstate_callback_handler.isListenerRegistered(handle, listener);
+	}
+
+    void addLFErecListener(rosNodePtr handle, LFErecCallback listener)
+    {
+        s_lferec_callback_handler.addListener(handle, listener);
+	}
+    
+    void notifyLFErecListener(rosNodePtr handle, const sick_scan_msg::LFErecMsg* msg)
+    {
+        s_lferec_callback_handler.notifyListener(handle, msg);
+	}
+    
+    void removeLFErecListener(rosNodePtr handle, LFErecCallback listener)
+    {
+        s_lferec_callback_handler.removeListener(handle, listener);
+	}
+    
+    bool isLFErecListenerRegistered(rosNodePtr handle, LFErecCallback listener)
+    {
+        return s_lferec_callback_handler.isListenerRegistered(handle, listener);
+	}
+
+    void addLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener)
+    {
+        s_ldmrsobjectarray_callback_handler.addListener(handle, listener);
+	}
+    
+    void notifyLdmrsObjectArrayListener(rosNodePtr handle, const sick_scan_msg::SickLdmrsObjectArray* msg)
+    {
+        s_ldmrsobjectarray_callback_handler.notifyListener(handle, msg);
+	}
+    
+    void removeLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener)
+    {
+        s_ldmrsobjectarray_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isLdmrsObjectArrayListenerRegistered(rosNodePtr handle, SickLdmrsObjectArrayCallback listener)
+    {
+        return s_ldmrsobjectarray_callback_handler.isListenerRegistered(handle, listener);
+	}
+
+    void addRadarScanListener(rosNodePtr handle, RadarScanCallback listener)
+    {
+        s_radarscan_callback_handler.addListener(handle, listener);
+	}
+    
+    void notifyRadarScanListener(rosNodePtr handle, const sick_scan_msg::RadarScan* msg)
+    {
+        s_radarscan_callback_handler.notifyListener(handle, msg);
+	}
+    
+    void removeRadarScanListener(rosNodePtr handle, RadarScanCallback listener)
+    {
+        s_radarscan_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isRadarScanListenerRegistered(rosNodePtr handle, RadarScanCallback listener)
+    {
+        return s_radarscan_callback_handler.isListenerRegistered(handle, listener);
+	}
+
+    void addVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener)
+    {
+        s_visualizationmarker_callback_handler.addListener(handle, listener);
+	}
+
+    void notifyVisualizationMarkerListener(rosNodePtr handle, const ros_visualization_msgs::MarkerArray* msg)
+    {
+        s_visualizationmarker_callback_handler.notifyListener(handle, msg);
+	}
+
+    void removeVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener)
+    {
+        s_visualizationmarker_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isVisualizationMarkerListenerRegistered(rosNodePtr handle, VisualizationMarkerCallback listener)
+    {
+        return s_visualizationmarker_callback_handler.isListenerRegistered(handle, listener);
 	}
 
 }   // namespace sick_scan

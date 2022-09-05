@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2008, Morgan Quigley and Willow Garage, Inc.
  *
@@ -39,7 +40,7 @@
 
 #include <queue>
 
-namespace ros
+namespace roswrap
 {
 class Header;
 class Message;
@@ -101,7 +102,7 @@ protected:
   std::string md5sum_;
 };
 
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCPP_PUBLISHER_LINK_H
 

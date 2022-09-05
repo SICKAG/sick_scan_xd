@@ -15,6 +15,7 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="imu_frame_id" default="imu_link"/> 
     <arg name="nodename" default="sick_mrs_1xxx"/>
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- launch-prefix="gdb -ex run - -args" -->
         <!-- default values: -->
@@ -46,6 +47,14 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="imu_enable" type="bool" value="True"/>
         <param name="imu_enable_additional_info" type="bool" value="True"/>                 
         
+        <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
+        <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
+        <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: --> 
+        <!-- add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud -->
+        <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
+        <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
+        <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
         <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->

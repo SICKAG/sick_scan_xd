@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -38,7 +39,7 @@
 #include <memory>
 #include <deque>
 
-namespace ros
+namespace roswrap
 {
 
 class MessageDeserializer;
@@ -67,8 +68,8 @@ public:
   SubscriptionQueue(const std::string& topic, int32_t queue_size, bool allow_concurrent_callbacks);
   ~SubscriptionQueue();
 
-  void push(const SubscriptionCallbackHelperPtr& helper, const MessageDeserializerPtr& deserializer, 
-	    bool has_tracked_object, const VoidConstWPtr& tracked_object, bool nonconst_need_copy, 
+  void push(const SubscriptionCallbackHelperPtr& helper, const MessageDeserializerPtr& deserializer,
+	    bool has_tracked_object, const VoidConstWPtr& tracked_object, bool nonconst_need_copy,
 	    ros::Time receipt_time = ros::Time(), bool* was_full = 0);
   void clear();
 

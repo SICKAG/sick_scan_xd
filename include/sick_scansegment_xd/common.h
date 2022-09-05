@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief common.h contains basic and common definition for project sick_scansegment_xd
  * to support the sick 3D lidar multiScan136.

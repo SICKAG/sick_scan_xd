@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
@@ -73,7 +74,7 @@ namespace boost
 template<typename T> class shared_array;
 }
 
-namespace ros
+namespace roswrap
 {
 namespace console
 {
@@ -154,7 +155,7 @@ class FilterBase;
  * @param fmt Format string
  */
 ROSCONSOLE_DECL void print(FilterBase* filter, void* logger, Level level,
-	   const char* file, int line, 
+	   const char* file, int line,
 	   const char* function, const char* fmt, ...) ROSCONSOLE_PRINTF_ATTRIBUTE(7, 8);
 
 ROSCONSOLE_DECL void print(FilterBase* filter, void* logger, Level level,
@@ -269,7 +270,7 @@ ROSCONSOLE_DECL void formatToBuffer(boost::shared_array<char>& buffer, size_t& b
 ROSCONSOLE_DECL std::string formatToString(const char* fmt, ...);
 
 } // namespace console
-} // namespace ros
+} // namespace roswrap
 
 #ifdef WIN32
 #define ROS_LIKELY(x)       (x)

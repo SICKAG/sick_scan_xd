@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
@@ -30,7 +31,7 @@
 #define STD_MSGS_TRAIT_MACROS_H
 
 #define STD_MSGS_DEFINE_BUILTIN_TRAITS(builtin, msg, static_md5sum1, static_md5sum2) \
-  namespace ros \
+  namespace roswrap \
   { \
   namespace message_traits \
   { \

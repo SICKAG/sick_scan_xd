@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief sim_loc_cola_transmitter connects to the localization controller, sends cola command requests,
  * and waits for the response with timeout.
@@ -72,11 +73,11 @@ namespace sick_scan
     
     /*!
      * Constructor.
-     * @param[in] server_adress ip adress of the localization controller, default: 192.168.0.1
+     * @param[in] server_address ip address of the localization controller, default: 192.168.0.1
      * @param[in] tcp_port tcp port for command requests, default: 2111 for command requests and 2112 for  command responses
      * @param[in] default_receive_timeout default timeout in seconds for receive functions
      */
-    ColaTransmitter(const std::string & server_adress = "192.168.0.1", int tcp_port = 2111, double default_receive_timeout = 1);
+    ColaTransmitter(const std::string & server_address = "192.168.0.1", int tcp_port = 2111, double default_receive_timeout = 1);
     
     /*!
      * Destructor, closes all tcp connections.
@@ -188,7 +189,7 @@ namespace sick_scan
      * member data
      */
 
-    std::string m_server_adress;                        ///< ip adress of the localization controller, default: 192.168.0.1
+    std::string m_server_address;                        ///< ip address of the localization controller, default: 192.168.0.1
     int m_tcp_port;                                     ///< tcp port of the localization controller, default: 2111 for command requests and 2112 for  command responses
     sick_scan::ClientSocket m_tcp_socket;               ///< tcp socket connected to the localization controller
     double m_receive_timeout;                           ///< default timeout in seconds for receive functions

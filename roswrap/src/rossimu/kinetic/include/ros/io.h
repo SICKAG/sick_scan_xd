@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Software License Agreement (BSD License)
  *
@@ -112,7 +113,7 @@
 ** Namespaces
 *****************************************************************************/
 
-namespace ros {
+namespace roswrap {
 
 /*****************************************************************************
 ** Cross Platform Types
@@ -202,7 +203,7 @@ inline void close_signal_pair(signal_fd_t signal_pair[2]) {
 	}
 #endif
 
-} // namespace ros
+} // namespace roswrap
 
 #endif /* ROSCPP_IO_H_ */
 

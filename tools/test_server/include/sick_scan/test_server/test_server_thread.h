@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief sick_scan2 test_server_thread implements a simple tcp server thread,
  * simulating a lidar device for unittests. It runs a thread to listen

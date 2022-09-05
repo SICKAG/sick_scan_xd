@@ -52,6 +52,7 @@
  *
  */
 
+#include <sick_scan/sick_generic_callback.h>
 #include "sick_scansegment_xd/ros_msgpack_publisher.h"
 #if defined ROSSIMU
 #include "sick_scan/pointcloud_utils.h"
@@ -77,6 +78,7 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 	m_publish_topic = config.publish_topic;
 	m_publish_topic_all_segments = config.publish_topic_all_segments;
 	m_segment_count = config.segment_count;
+	m_node = config.node;
 	m_min_azimuth = (float)-M_PI;
 	m_max_azimuth = (float)+M_PI;
 #if defined __ROS_VERSION && __ROS_VERSION > 1 // ROS-2 publisher
@@ -87,9 +89,9 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 	  m_publisher_all_segments = create_publisher<PointCloud2Msg>(m_publish_topic_all_segments, qos);
 #elif defined __ROS_VERSION && __ROS_VERSION > 0 // ROS-1 publisher
 	if(m_publish_topic != "")
-		m_publisher_cur_segment = config.node->advertise<PointCloud2Msg>(m_publish_topic, qos);
+		m_publisher_cur_segment = m_node->advertise<PointCloud2Msg>(m_publish_topic, qos);
 	if(m_publish_topic_all_segments != "")
-		m_publisher_all_segments = config.node->advertise<PointCloud2Msg>(m_publish_topic_all_segments, qos);
+		m_publisher_all_segments = m_node->advertise<PointCloud2Msg>(m_publish_topic_all_segments, qos);
 #endif
 }
 
@@ -103,14 +105,18 @@ sick_scansegment_xd::RosMsgpackPublisher::~RosMsgpackPublisher()
 /*
  * Shortcut to publish a PointCloud2Msg
  */
-void sick_scansegment_xd::RosMsgpackPublisher::publish(PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg)
+void sick_scansegment_xd::RosMsgpackPublisher::publish(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, int32_t num_echos, int32_t segment_idx)
 {
+    sick_scan::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
+    sick_scan::PointCloud2withEcho cloud_msg_polar_with_echo(&pointcloud_msg_polar, num_echos, segment_idx);
+    notifyPolarPointcloudListener(node, &cloud_msg_polar_with_echo);
+    notifyCartesianPointcloudListener(node, &cloud_msg_with_echo);
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 	publisher->publish(pointcloud_msg);
 #elif defined __ROS_VERSION && __ROS_VERSION > 0
 	publisher.publish(pointcloud_msg);
 #elif defined ROSSIMU
-    plotPointCloud(pointcloud_msg);
+    // plotPointCloud(pointcloud_msg);
 #endif
 }
 
@@ -118,13 +124,13 @@ void sick_scansegment_xd::RosMsgpackPublisher::publish(PointCloud2MsgPublisher& 
  * Converts the lidarpoints from a msgpack to a PointCloud2Msg.
  * @param[in] timestamp_sec seconds part of timestamp
  * @param[in] timestamp_nsec  nanoseconds part of timestamp
- * @param[in] lidar_points list of PointXYZI32f: lidar_points[echoIdx] are the points of one echo
+ * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
  * @param[in] total_point_count total number of points in all echos
  * @param[in] echo_count number of echos
  * @param[out] pointcloud_msg PointCloud2Msg result
  */
-void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>>& lidar_points,
-  size_t total_point_count, PointCloud2Msg& pointcloud_msg)
+void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points,
+  size_t total_point_count, PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar)
 {
   // set pointcloud header
   // pointcloud_msg.header.stamp = rosTimeNow();
@@ -153,20 +159,32 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t tim
     pointcloud_msg.fields[i].count = 1;
     pointcloud_msg.fields[i].datatype = PointField::FLOAT32;
   }
+
+  pointcloud_msg_polar = pointcloud_msg;
+  pointcloud_msg_polar.fields[0].name = "range";
+  pointcloud_msg_polar.fields[1].name = "azimuth";
+  pointcloud_msg_polar.fields[2].name = "elevation";
   
   // set pointcloud data values
   pointcloud_msg.data.clear();
   pointcloud_msg.data.resize(pointcloud_msg.row_step * pointcloud_msg.height);
   float* pfdata = reinterpret_cast<float*>(&pointcloud_msg.data[0]);
+  pointcloud_msg_polar.data.clear();
+  pointcloud_msg_polar.data.resize(pointcloud_msg_polar.row_step * pointcloud_msg_polar.height);
+  float* pfdata_polar = reinterpret_cast<float*>(&pointcloud_msg_polar.data[0]);
   size_t data_cnt = 0;
   for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
   {
-    for (int pointIdx = 0; data_cnt < numChannels * pointcloud_msg.width && pointIdx < lidar_points[echoIdx].size(); pointIdx++)
+    for (int pointIdx = 0; data_cnt < numChannels * pointcloud_msg.width && pointIdx < lidar_points[echoIdx].size(); pointIdx++, data_cnt+=4)
     {
-      pfdata[data_cnt++] = lidar_points[echoIdx][pointIdx].x;
-      pfdata[data_cnt++] = lidar_points[echoIdx][pointIdx].y;
-      pfdata[data_cnt++] = lidar_points[echoIdx][pointIdx].z;
-      pfdata[data_cnt++] = lidar_points[echoIdx][pointIdx].i;
+      pfdata[data_cnt + 0] = lidar_points[echoIdx][pointIdx].x;
+      pfdata[data_cnt + 1] = lidar_points[echoIdx][pointIdx].y;
+      pfdata[data_cnt + 2] = lidar_points[echoIdx][pointIdx].z;
+      pfdata[data_cnt + 3] = lidar_points[echoIdx][pointIdx].i;
+      pfdata_polar[data_cnt + 0] = lidar_points[echoIdx][pointIdx].range;
+      pfdata_polar[data_cnt + 1] = lidar_points[echoIdx][pointIdx].azimuth;
+      pfdata_polar[data_cnt + 2] = lidar_points[echoIdx][pointIdx].elevation;
+      pfdata_polar[data_cnt + 3] = lidar_points[echoIdx][pointIdx].i;
     }
   }
 
@@ -197,7 +215,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		}
 	}
 	float lidar_points_min_azimuth = +2.0f * (float)M_PI, lidar_points_max_azimuth = -2.0f * (float)M_PI;
-	std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>> lidar_points(echo_count);
+	std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>> lidar_points(echo_count);
 	for (int echoIdx = 0; echoIdx < echo_count; echoIdx++)
 	{
 		lidar_points[echoIdx].reserve(point_count_per_echo);
@@ -210,7 +228,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 			{
 				const sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
-				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZI32f(point.x, point.y, point.z, point.i));
+				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZRAEI32f(point.x, point.y, point.z, point.range, point.azimuth, point.elevation, point.i));
 				lidar_points_min_azimuth = std::min(lidar_points_min_azimuth, point.azimuth);
 				lidar_points_max_azimuth = std::max(lidar_points_max_azimuth, point.azimuth);
 			}
@@ -246,9 +264,9 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 					publish_cloud_360 = true;
 				if (publish_cloud_360) // publish 360 degree point cloud
 				{
-					PointCloud2Msg pointcloud_msg;
-					convertPointsToCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, m_points_collector.total_point_count, pointcloud_msg);
-					publish(m_publisher_all_segments, pointcloud_msg);
+					PointCloud2Msg pointcloud_msg, pointcloud_msg_polar;
+					convertPointsToCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, m_points_collector.total_point_count, pointcloud_msg, pointcloud_msg_polar);
+					publish(m_node, m_publisher_all_segments, pointcloud_msg, pointcloud_msg_polar, std::max(1, (int)echo_count), -1); // pointcloud, number of echos, segment index (or -1 if pointcloud contains data from multiple segments)
 					// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): cloud_360 published, " << m_points_collector.total_point_count << " points, " << pointcloud_msg.data.size() << " byte, "
 					//     << m_points_collector.segment_list.size() << " segments (" << sick_scansegment_xd::util::printVector(m_points_collector.segment_list, ",") << "), "
 					//     << m_points_collector.telegram_list.size() << " telegrams (" << sick_scansegment_xd::util::printVector(m_points_collector.telegram_list, ",") << "), "
@@ -261,7 +279,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			m_points_collector.timestamp_sec = msgpack_data.timestamp_sec;
 			m_points_collector.timestamp_nsec = msgpack_data.timestamp_nsec;
 			m_points_collector.total_point_count = total_point_count;
-			m_points_collector.lidar_points = std::vector<std::vector<sick_scansegment_xd::PointXYZI32f>>(lidar_points.size());
+			m_points_collector.lidar_points = std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>(lidar_points.size());
 			for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
 				m_points_collector.lidar_points[echoIdx].reserve(12 * lidar_points[echoIdx].size());
 			m_points_collector.appendLidarPoints(lidar_points, segment_idx, telegram_cnt);
@@ -292,11 +310,9 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
     // Publish PointCloud2 message for the current segment
     if(m_publish_topic != "")
 	{
-		PointCloud2Msg pointcloud_msg_segment;
-		convertPointsToCloud(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, total_point_count, pointcloud_msg_segment);
-		#if __ROS_VERSION > 0
-		publish(m_publisher_cur_segment, pointcloud_msg_segment);
-		#endif
+		PointCloud2Msg pointcloud_msg_segment, pointcloud_msg_segment_polar;
+		convertPointsToCloud(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, total_point_count, pointcloud_msg_segment, pointcloud_msg_segment_polar);
+		publish(m_node, m_publisher_cur_segment, pointcloud_msg_segment, pointcloud_msg_segment_polar, std::max(1, (int)echo_count), segment_idx); // pointcloud, number of echos, segment index (or -1 if pointcloud contains data from multiple segments)
 	}
 	
 }

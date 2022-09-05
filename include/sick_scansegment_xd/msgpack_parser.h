@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief msgpack_parser unpacks and parses msgpack data for the sick 3D lidar multiScan136.
  *
@@ -79,6 +80,7 @@
 #define __SICK_SCANSEGMENT_XD_MSGPACK_PARSER_H
 
 #include "sick_scan/sick_ros_wrapper.h"
+#include <sick_scan/sick_cloud_transform.h>
 #include "sick_scansegment_xd/common.h"
 #include "sick_scansegment_xd/fifo.h"
 #include "sick_scansegment_xd/msgpack_validator.h"
@@ -184,6 +186,7 @@ namespace sick_scansegment_xd
          *
          * @param[in+out] msgpack_ifstream the binary input stream delivering the binary msgpack data
          * @param[in] msgpack_timestamp receive timestamp of msgpack_data
+         * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
          * @param[out] result msgpack data converted to scanlines of type MsgPackParserOutput
          * @param[in+out] msgpack_validator_data_collector collects MsgPackValidatorData over N msgpacks
          * @param[in] msgpack_validator msgpack validation, see MsgPackValidator for details
@@ -192,7 +195,7 @@ namespace sick_scansegment_xd
          * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
-        static bool Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
+        static bool Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, MsgPackParserOutput& result, 
             sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(), 
             bool msgpack_validator_enabled = false, bool discard_msgpacks_not_validated = false,
             bool use_software_pll = true, bool verbose = false);
@@ -225,6 +228,7 @@ namespace sick_scansegment_xd
 		 *
 		 * @param[in+out] msgpack_ifstream the binary input stream delivering the binary msgpack data
          * @param[in] msgpack_timestamp receive timestamp of msgpack_data
+         * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
          * @param[out] result msgpack data converted to scanlines of type MsgPackParserOutput
          * @param[in+out] msgpack_validator_data_collector collects MsgPackValidatorData over N msgpacks
          * @param[in] msgpack_validator msgpack validation, see MsgPackValidator for details
@@ -233,7 +237,7 @@ namespace sick_scansegment_xd
          * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
-        static bool Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, MsgPackParserOutput& result, 
+        static bool Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, MsgPackParserOutput& result, 
             sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(),
             bool msgpack_validator_enabled = false, bool discard_msgpacks_not_validated = false, 
             bool use_software_pll = true, bool verbose = false);

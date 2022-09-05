@@ -33,7 +33,7 @@ Node name, ip-address and pointcloud topic can be configured in the launch-file 
     ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2
     ```
 
-Scripts [run_linux_ros1_simu_tim7xx_twin.bash](../test/scripts/run_linux_ros1_simu_tim7xx_twin.bash) and [run_linux_ros2_simu_tim7xx_twin.bash](../test/scripts/run_linux_ros2_simu_tim7xx_twin.bash) show a complete example with emulation of two TiM7xx sensors and two sick_scan nodes running concurrently using different nodenames and topics.
+Scripts [run_linux_ros1_simu_tim7xx_twin.bash](./test/scripts/run_linux_ros1_simu_tim7xx_twin.bash) and [run_linux_ros2_simu_tim7xx_twin.bash](./test/scripts/run_linux_ros2_simu_tim7xx_twin.bash) show a complete example with emulation of two TiM7xx sensors and two sick_scan nodes running concurrently using different nodenames and topics.
 
 ## Driver restarts again and again after "sFA" message
 
@@ -152,7 +152,7 @@ rosrun rviz rviz
 :question: The angular resolution/ number of shots is too small
 
 :white_check_mark: Possibly Mean or Median filters are activated. Use Sopas ET to deactivate them and store this settings permanent on the device, see picture.
-![Sopas_filter](tim5xxx_filter.PNG)
+![Sopas_filter](doc/tim5xxx_filter.PNG)
 Further information can be found at http://wiki.ros.org/rviz/Troubleshooting.
 
 ## "ERROR: Tcp::open: Failed to open TCP connection to 192.168.0.1, aborting."

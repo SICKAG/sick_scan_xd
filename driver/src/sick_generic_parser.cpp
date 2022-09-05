@@ -385,6 +385,16 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     this->maxEvalFields = _maxEvalFields;
   }
 
+  void ScannerBasicParam::setRectEvalFieldAngleRefPointOffsetRad(float _rectFieldAngleRefPointOffsetRad)
+  {
+    this->rectFieldAngleRefPointOffsetRad = _rectFieldAngleRefPointOffsetRad;
+  }
+  
+  float ScannerBasicParam::getRectEvalFieldAngleRefPointOffsetRad(void)
+  {
+    return this->rectFieldAngleRefPointOffsetRad;
+  }
+
   void ScannerBasicParam::setUseScancfgList (bool _useScancfgList )
   {
     this->useScancfgList = _useScancfgList;
@@ -430,7 +440,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
   ScannerBasicParam::ScannerBasicParam()
   : numberOfLayers(0), numberOfShots(0), numberOfMaximumEchos(0), elevationDegreeResolution(0), angleDegressResolution(0), expectedFrequency(0),
      useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceIsRadar(false), useSafetyPasWD(false), encoderMode(0),
-     CartographerCompatibility(false), scanMirroredAndShifted(false), useEvalFields(EVAL_FIELD_UNSUPPORTED), maxEvalFields(0),
+     CartographerCompatibility(false), scanMirroredAndShifted(false), useEvalFields(EVAL_FIELD_UNSUPPORTED), maxEvalFields(0), rectFieldAngleRefPointOffsetRad(0),
      imuEnabled (false), scanAngleShift(0), useScancfgList(false), useWriteOutputRanges(false)
   {
     this->elevationDegreeResolution = 0.0;
@@ -528,6 +538,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
@@ -552,6 +563,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
@@ -575,6 +587,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -598,6 +611,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -620,6 +634,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -642,6 +657,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_TIM7XX_LOGIC);
         basicParams[i].setMaxEvalFields(48);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -664,6 +680,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_TIM7XX_LOGIC);
         basicParams[i].setMaxEvalFields(48);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -686,10 +703,11 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
-        basicParams[i].setFREchoFilterAvailable(true); // (false) // LMS uses echo filter settings to configure number of echos: "sWN FREchoFilter N" with N=0: first echo, N=1: all echos, N=2: last echo
+        basicParams[i].setFREchoFilterAvailable(true); // LMS uses echo filter settings to configure number of echos: "sWN FREchoFilter N" with N=0: first echo, N=1: all echos, N=2: last echo
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0) // LMS_1xx - 1 Layer
       {
@@ -708,6 +726,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(USE_EVAL_FIELD_LMS5XX_LOGIC);
         basicParams[i].setMaxEvalFields(30);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad((float)(-45 * M_PI / 180.0));
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true); // changed from false to true, see comment in sick_lms1xx.launch
@@ -730,6 +749,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(true);// TODO Check this
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);// TODO Check this
         basicParams[i].setMaxEvalFields(30);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
@@ -752,6 +772,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);// TODO Check this
         basicParams[i].setMaxEvalFields(30);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
@@ -775,6 +796,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -797,6 +819,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(true); // false // LRS4000 sets scan rate and angular resolution set by "sMN mCLsetscancfglist <mode>"
         basicParams[i].setUseWriteOutputRanges(true); // false // LRS4000 sets the scan configuration by both "sMN mCLsetscancfglist <mode>" AND "sWN LMPoutputRange" (default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry)
         basicParams[i].setWaitForReady(false);
@@ -820,6 +843,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -843,6 +867,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -865,6 +890,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(true);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
@@ -887,6 +913,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -909,6 +936,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(true);
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
@@ -931,6 +959,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
@@ -953,6 +982,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
+        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
         basicParams[i].setUseScancfgList(false);
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);

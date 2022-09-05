@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2013, Osnabrueck University
  * Copyright (C) 2017, Ing.-Buero Dr. Michael Lehning, Hildesheim
@@ -75,6 +76,7 @@
 #include <thread>
 #include <mutex>
 
+#include <sick_scan/sick_cloud_transform.h>
 #include <sick_scan/sick_scan_common_nw.h>
 #include <sick_scan/helper/angle_compensator.h>
 
@@ -279,9 +281,9 @@ namespace sick_scan
      */
     virtual bool rebootScanner();
 
-    /// Send a SOPAS command to the scanner that logs in the authorized client, changes the ip adress and the reboots the scanner
+    /// Send a SOPAS command to the scanner that logs in the authorized client, changes the ip address and the reboots the scanner
     /**
-     * \param IpAdress new IP adress
+     * \param IpAdress new IP address
      * \returns true if ip was changed and scanner is rebooting
      */
     bool changeIPandreboot(const std::string& IpAdress);
@@ -312,8 +314,8 @@ namespace sick_scan
     rosPublisher<ros_sensor_msgs::PointCloud2> cloud_pub_;
     rosPublisher<ros_sensor_msgs::Imu> imuScan_pub_;
     rosPublisher<sick_scan_msg::Encoder> Encoder_pub;
-    // sensor_msgs::PointCloud cloud_;
     ros_sensor_msgs::PointCloud2 cloud_;
+    ros_sensor_msgs::PointCloud2 cloud_polar_;
     //////
     // Dynamic Reconfigure
     SickScanConfig config_;
@@ -458,6 +460,8 @@ namespace sick_scan
 
     int m_read_timeout_millisec_default;
     int m_read_timeout_millisec_startup;
+
+    sick_scan::SickCloudTransform m_add_transform_xyz_rpy;
 
     rosNodePtr m_nh;
   };

@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief msgpack_converter runs a background thread to unpack and parses msgpack data for the sick 3D lidar multiScan136.
  * msgpack_converter pops binary msgpack data from an input fifo, converts the data to scanlines using MsgPackParser::Parse()
@@ -66,6 +67,7 @@
 #define __SICK_SCANSEGMENT_XD_MSGPACK_CONVERTER_H
 
 #include "sick_scan/sick_ros_wrapper.h"
+#include <sick_scan/sick_cloud_transform.h>
 #include "sick_scansegment_xd/common.h"
 #include "sick_scansegment_xd/fifo.h"
 #include "sick_scansegment_xd/msgpack_parser.h"
@@ -89,11 +91,12 @@ namespace sick_scansegment_xd
 
         /*
          * @brief Initializing constructor
+         * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
          * @param[in] input_fifo input fifo buffering udp packages
          * @param[in] msgpack_output_fifolength max. output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
          * @param[in] verbose true: enable debug output, false: quiet mode (default)
          */
-         MsgPackConverter(sick_scansegment_xd::PayloadFifo* input_fifo, int msgpack_output_fifolength = 20, bool verbose = false);
+         MsgPackConverter(const sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scansegment_xd::PayloadFifo* input_fifo, int msgpack_output_fifolength = 20, bool verbose = false);
 
         /*
          * @brief Default destructor.
@@ -148,6 +151,8 @@ namespace sick_scansegment_xd
        sick_scansegment_xd::MsgPackValidator m_msgpack_validator;      // msgpack validation, see MsgPackValidator for details
        bool m_discard_msgpacks_not_validated;                   // true: msgpacks are discarded if scan data out of bounds detected, false: error message if a msgpack is not validated
        int m_msgpack_validator_check_missing_scandata_interval; // check msgpack for missing scandata after collecting N msgpacks, default: N = 12 segments. Increase this value to tolerate udp packet drops. Use 12 to check each full scan.
+       sick_scan::SickCloudTransform m_add_transform_xyz_rpy;   // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+
 
 	};  // class MsgPackConverter
 

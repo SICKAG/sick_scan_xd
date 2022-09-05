@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -43,7 +44,7 @@
 #include <vector>
 #include <list>
 
-namespace ros
+namespace roswrap
 {
 
 template<class T, class D, class E>
@@ -431,12 +432,12 @@ void TimerManager<T, D, E>::setPeriod(int32_t handle, const D& period, bool rese
 
   {
     std::lock_guard<std::mutex> lock(waiting_mutex_);
-  
+
     if(reset)
     {
       info->next_expected = T::now() + period;
     }
-    
+
     // else if some time has elapsed since last cb (called outside of cb)
     else if( (T::now() - info->last_real) < info->period)
     {
@@ -446,17 +447,17 @@ void TimerManager<T, D, E>::setPeriod(int32_t handle, const D& period, bool rese
       {
         info->next_expected = T::now();
       }
-   
+
       // else, account for elapsed time by using last_real+period
       else
       {
         info->next_expected = info->last_real + period;
       }
     }
-    
+
     // Else if called in a callback, last_real has not been updated yet => (now - last_real) > period
     // In this case, let next_expected be updated only in updateNext
-    
+
     info->period = period;
     waiting_.sort(std::bind(&TimerManager::waitingCompare, this, std::placeholders::_1, std::placeholders::_2));
   }

@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * @brief udp_receiver receives msgpack raw data by udp.
  * It implements a udp client, connects to multiScan136 (or any other udp-) sender,

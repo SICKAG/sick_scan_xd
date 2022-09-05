@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2010, Willow Garage, Inc.
  *
@@ -32,7 +33,7 @@
 #include <ros/time.h>
 #include "common.h"
 
-namespace ros
+namespace roswrap
 {
 
 template<typename T, typename D, typename E> class TimerManager;
@@ -42,6 +43,6 @@ typedef std::shared_ptr<InternalTimerManager> InternalTimerManagerPtr;
 ROSCPP_DECL void initInternalTimerManager();
 ROSCPP_DECL InternalTimerManagerPtr getInternalTimerManager();
 
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCPP_INTERNAL_TIMER_MANAGER_H

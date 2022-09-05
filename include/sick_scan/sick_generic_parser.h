@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2013, Osnabrueck University
  * All rights reserved.
@@ -171,6 +172,9 @@ namespace sick_scan
     
     void setMaxEvalFields(int _maxEvalFields);
 
+    void setRectEvalFieldAngleRefPointOffsetRad(float _rectFieldAngleRefPointOffsetRad);
+    float getRectEvalFieldAngleRefPointOffsetRad(void);
+
     void setUseScancfgList (bool _useScancfgList );
 
     bool getUseScancfgList();
@@ -207,6 +211,7 @@ namespace sick_scan
     bool imuEnabled;
     EVAL_FIELD_SUPPORT useEvalFields;
     int maxEvalFields;
+    float rectFieldAngleRefPointOffsetRad;
     bool useScancfgList;
     bool useWriteOutputRanges;
     bool waitForReady;

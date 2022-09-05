@@ -75,6 +75,7 @@ int main(int argc, char** argv)
   // Create a server to simulate a localization controller, incl. a listener thread to accept tcp connections
   int tcp_port_results = 2201; // Default: The localization controller uses IP port number 2201 to send localization results
   int tcp_port_cola = 2111;    // For requests and to transmit settings to the localization controller: IP port number 2111 and 2112 to send telegrams and to request data, SOPAS CoLa-A or CoLa-B protocols
+  std::string scanner_type = "";
   ROS::param<int>(nh, "/sick_scan/test_server/result_telegrams_tcp_port", tcp_port_results, tcp_port_results);
   ROS::param<int>(nh, "/sick_scan/test_server/cola_telegrams_tcp_port", tcp_port_cola, tcp_port_cola);
   for(int n = 1; n < argc; n++)
@@ -84,8 +85,10 @@ int main(int argc, char** argv)
       tcp_port_results = atoi(argv[n] + 27);
     if (strncmp(argv[n], "cola_telegrams_tcp_port:=", 25) == 0)
       tcp_port_cola = atoi(argv[n] + 25);
+    if (strncmp(argv[n], "scanner_type:=", 14) == 0)
+      scanner_type = argv[n] + 14;
   }
-  sick_scan::TestServerThread test_server_thread(nh, tcp_port_results, tcp_port_cola);
+  sick_scan::TestServerThread test_server_thread(nh, tcp_port_results, tcp_port_cola, scanner_type);
   
   // Subscribe to sim_loc_driver messages to monitor sim_loc_driver in error simulation mode
   std::string result_telegrams_topic = "/sick_scan/driver/result_telegrams";      // default topic to publish result port telegram messages (type SickLocResultPortTelegramMsg)

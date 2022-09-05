@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
  * Copyright (C) 2009, Willow Garage, Inc.
  *
@@ -31,7 +32,7 @@
 //#include <boost/type_traits/remove_reference.hpp>
 //#include <boost/type_traits/remove_const.hpp>
 
-namespace ros
+namespace roswrap
 {
 namespace service_traits
 {
@@ -107,6 +108,6 @@ inline const char* datatype(const M& m)
 }
 
 } // namespace service_traits
-} // namespace ros
+} // namespace roswrap
 
 #endif // ROSCPP_SERVICE_TRAITS_H

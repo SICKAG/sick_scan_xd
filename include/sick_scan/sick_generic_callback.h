@@ -1,3 +1,4 @@
+#include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
 * Copyright (C) 2022, Ing.-Buero Dr. Michael Lehning, Hildesheim
 * Copyright (C) 2022, SICK AG, Waldkirch
@@ -55,16 +56,80 @@
 #ifndef __SICK_GENERIC_CALLBACK_H_INCLUDED
 #define __SICK_GENERIC_CALLBACK_H_INCLUDED
 
+#include <condition_variable>
+#include <mutex>
 #include <string>
 #include <vector>
 
 #include <sick_scan/sick_ros_wrapper.h>
 
+// forward declaration of SickLdmrsObjectArray required for LdmrsObjectArray listener
+#if __ROS_VERSION == 2 // ROS-2 (Linux or Windows)
+#include <sick_scan/msg/sick_ldmrs_object_array.hpp>
+#else
+#include <sick_scan/SickLdmrsObjectArray.h>
+#endif
+
 namespace sick_scan
 {
-    typedef void(* PointCloud2Callback)(rosNodePtr handle, const ros_sensor_msgs::PointCloud2* msg);
-    void addPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
-    void notifyPointcloudListener(rosNodePtr handle, const ros_sensor_msgs::PointCloud2* msg);
+    struct PointCloud2withEcho
+    {
+        PointCloud2withEcho(const ros_sensor_msgs::PointCloud2* msg = 0, int32_t _num_echos = 0, int32_t _segment_idx = 0) : num_echos(_num_echos), segment_idx(_segment_idx) 
+        {
+            pointcloud = ((msg) ? (*msg) : (ros_sensor_msgs::PointCloud2()));
+        }
+        ros_sensor_msgs::PointCloud2 pointcloud; // ROS PointCloud2
+        int32_t num_echos;                       // number of echos
+        int32_t segment_idx;                     // segment index (or -1 if pointcloud contains data from multiple segments)
+    };
+
+    typedef void(* PointCloud2Callback)(rosNodePtr handle, const PointCloud2withEcho* msg);
+    typedef void(* ImuCallback)(rosNodePtr handle, const ros_sensor_msgs::Imu* msg);
+    typedef void(* LIDoutputstateCallback)(rosNodePtr handle, const sick_scan_msg::LIDoutputstateMsg* msg);
+    typedef void(* LFErecCallback)(rosNodePtr handle, const sick_scan_msg::LFErecMsg* msg);
+    typedef void(* SickLdmrsObjectArrayCallback)(rosNodePtr handle, const sick_scan_msg::SickLdmrsObjectArray* msg);
+    typedef void(* RadarScanCallback)(rosNodePtr handle, const sick_scan_msg::RadarScan* msg);
+    typedef void(* VisualizationMarkerCallback)(rosNodePtr handle, const ros_visualization_msgs::MarkerArray* msg);
+
+    void addCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
+    void notifyCartesianPointcloudListener(rosNodePtr handle, const PointCloud2withEcho* msg);
+    void removeCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
+    bool isCartesianPointcloudListenerRegistered(rosNodePtr handle, PointCloud2Callback listener);
+
+    void addPolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
+    void notifyPolarPointcloudListener(rosNodePtr handle, const PointCloud2withEcho* msg);
+    void removePolarPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
+    bool isPolarPointcloudListenerRegistered(rosNodePtr handle, PointCloud2Callback listener);
+
+    void addImuListener(rosNodePtr handle, ImuCallback listener);
+    void notifyImuListener(rosNodePtr handle, const ros_sensor_msgs::Imu* msg);
+    void removeImuListener(rosNodePtr handle, ImuCallback listener);
+    bool isImuListenerRegistered(rosNodePtr handle, ImuCallback listener);
+
+    void addLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener);
+    void notifyLIDoutputstateListener(rosNodePtr handle, const sick_scan_msg::LIDoutputstateMsg* msg);
+    void removeLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener);
+    bool isLIDoutputstateListenerRegistered(rosNodePtr handle, LIDoutputstateCallback listener);
+
+    void addLFErecListener(rosNodePtr handle, LFErecCallback listener);
+    void notifyLFErecListener(rosNodePtr handle, const sick_scan_msg::LFErecMsg* msg);
+    void removeLFErecListener(rosNodePtr handle, LFErecCallback listener);
+    bool isLFErecListenerRegistered(rosNodePtr handle, LFErecCallback listener);
+    
+    void addLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener);
+    void notifyLdmrsObjectArrayListener(rosNodePtr handle, const sick_scan_msg::SickLdmrsObjectArray* msg);
+    void removeLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener);
+    bool isLdmrsObjectArrayListenerRegistered(rosNodePtr handle, SickLdmrsObjectArrayCallback listener);
+
+    void addRadarScanListener(rosNodePtr handle, RadarScanCallback listener);
+    void notifyRadarScanListener(rosNodePtr handle, const sick_scan_msg::RadarScan* msg);
+    void removeRadarScanListener(rosNodePtr handle, RadarScanCallback listener);
+    bool isRadarScanListenerRegistered(rosNodePtr handle, RadarScanCallback listener);
+
+    void addVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener);
+    void notifyVisualizationMarkerListener(rosNodePtr handle, const ros_visualization_msgs::MarkerArray* msg);
+    void removeVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener);
+    bool isVisualizationMarkerListenerRegistered(rosNodePtr handle, VisualizationMarkerCallback listener);
 
     /*
     *  Callback template for registration and deregistration of callbacks incl. notification of listeners
@@ -77,26 +142,165 @@ namespace sick_scan
 
         void addListener(HandleType handle, callbackFunctionPtr listener)
         {
-            m_listeners[handle].push_back(listener);
+            if (listener)
+            {
+                std::unique_lock<std::mutex> lock(m_listeners_mutex);
+                m_listeners[handle].push_back(listener);
+            }
         }
 
         void notifyListener(HandleType handle, const MsgType* msg)
         {
-            std::vector<callbackFunctionPtr> & listeners = m_listeners[handle];
-            for(int n = 0; n < listeners.size(); n++)
+            std::list<callbackFunctionPtr> listeners = getListener(handle);
+            for(typename std::list<callbackFunctionPtr>::iterator iter_listener = listeners.begin(); iter_listener != listeners.end(); iter_listener++)
             {
-                if (listeners[n])
+                if (*iter_listener)
                 {
-                    listeners[n](handle, msg);
+                    (*iter_listener)(handle, msg);
                 }
+            }
+        }
+
+        void removeListener(HandleType handle, callbackFunctionPtr listener)
+        {
+            std::unique_lock<std::mutex> lock(m_listeners_mutex);
+            std::list<callbackFunctionPtr> & listeners = m_listeners[handle];
+            for(typename std::list<callbackFunctionPtr>::iterator iter_listener = listeners.begin(); iter_listener != listeners.end(); )
+            {
+                if (*iter_listener == listener)
+                {
+                    iter_listener = listeners.erase(iter_listener);
+                }
+                else
+                {
+                    iter_listener++;
+                }
+            }
+        }
+
+        bool isListenerRegistered(HandleType handle, callbackFunctionPtr listener)
+        {
+            if (listener)
+            {
+                std::unique_lock<std::mutex> lock(m_listeners_mutex);
+                std::list<callbackFunctionPtr> & listeners = m_listeners[handle];
+                for(typename std::list<callbackFunctionPtr>::iterator iter_listener = listeners.begin(); iter_listener != listeners.end(); iter_listener++)
+                {
+                    if (*iter_listener == listener)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        void clear()
+        {
+            std::unique_lock<std::mutex> lock(m_listeners_mutex);
+            m_listeners.clear();
+        }
+
+    protected:
+
+        std::list<callbackFunctionPtr> getListener(HandleType handle)
+        {
+            std::unique_lock<std::mutex> lock(m_listeners_mutex);
+            return m_listeners[handle];
+        }
+
+        std::map<HandleType, std::list<callbackFunctionPtr>> m_listeners; // list of listeners
+        std::mutex m_listeners_mutex; // mutex to protect access to m_listeners
+
+    };  // class SickCallbackHandler
+
+    /*
+    *  Utility template to wait for a message
+    */
+    template<typename HandleType, class MsgType> class SickWaitForMessageHandler
+    {
+    public:
+
+        typedef SickWaitForMessageHandler<HandleType, MsgType>* SickWaitForMessageHandlerPtr;
+
+        bool waitForNextMessage(MsgType& msg, double timeout_sec)
+        {
+            uint64_t timeout_microsec = MAX((uint64_t)(1), (uint64_t)(timeout_sec * 1.0e6));
+            std::chrono::system_clock::time_point wait_end_time = std::chrono::system_clock::now() + std::chrono::microseconds(timeout_microsec);
+            std::unique_lock<std::mutex> lock(m_message_mutex);
+            m_message_valid = false;
+            while(!m_message_valid)
+            {
+                if (m_message_cond.wait_until(lock, wait_end_time) == std::cv_status::timeout || std::chrono::system_clock::now() >= wait_end_time)
+                    break;
+            }
+            if (m_message_valid)
+            {
+                msg = m_message;
+            }
+            return m_message_valid;
+        }
+
+        static void messageCallback(HandleType node, const MsgType* msg)
+        {
+            if (msg)
+            {
+                std::unique_lock<std::mutex> lock(s_wait_for_message_handler_mutex);
+                for(typename std::list<SickWaitForMessageHandlerPtr>::iterator iter_handler = s_wait_for_message_handler_list.begin(); iter_handler != s_wait_for_message_handler_list.end(); iter_handler++)
+                {
+                    if (*iter_handler)
+                        (*iter_handler)->message_callback(node, msg);
+                }
+            }
+        }
+
+        static void addWaitForMessageHandlerHandler(SickWaitForMessageHandlerPtr handler)
+        {
+            std::unique_lock<std::mutex> lock(s_wait_for_message_handler_mutex);
+            s_wait_for_message_handler_list.push_back(handler);
+        }
+
+        static void removeWaitForMessageHandlerHandler(SickWaitForMessageHandlerPtr handler)
+        {
+            std::unique_lock<std::mutex> lock(s_wait_for_message_handler_mutex);
+            for(typename std::list<SickWaitForMessageHandlerPtr>::iterator iter_handler = s_wait_for_message_handler_list.begin(); iter_handler != s_wait_for_message_handler_list.end(); iter_handler++)
+            {
+                if (*iter_handler == handler)
+                    iter_handler = s_wait_for_message_handler_list.erase(iter_handler);
+                else
+                    iter_handler++;
             }
         }
 
     protected:
 
-        std::map<HandleType, std::vector<callbackFunctionPtr>> m_listeners;
+        void message_callback(HandleType node, const MsgType* msg)
+        {
+            if (msg)
+            {
+                ROS_INFO_STREAM("SickScanApiWaitEventHandler::message_callback(): message recceived");
+                std::unique_lock<std::mutex> lock(m_message_mutex);
+                m_message = *msg;
+                m_message_valid = true;
+                m_message_cond.notify_all();
+            }
+        }
 
-    };  // class SickCallbackHandler
+        bool m_message_valid = false;             // becomes true after message has been received
+        MsgType m_message;                        // the received message
+        std::mutex m_message_mutex;               // mutex to protect access to m_message
+        std::condition_variable m_message_cond;   // condition to wait for resp. notify when a message is received
+
+        static std::list<SickWaitForMessageHandler<HandleType, MsgType>*> s_wait_for_message_handler_list; // list of all instances of SickWaitForMessageHandler
+        static std::mutex s_wait_for_message_handler_mutex; // mutex to protect access to s_wait_for_message_handler_list
+    };  // class SickWaitForMessageHandler
+
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan::PointCloud2withEcho>      WaitForCartesianPointCloudMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan::PointCloud2withEcho>      WaitForPolarPointCloudMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, ros_sensor_msgs::Imu>                WaitForImuMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::LFErecMsg>            WaitForLFErecMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::LIDoutputstateMsg>    WaitForLIDoutputstateMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::RadarScan>            WaitForRadarScanMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::SickLdmrsObjectArray> WaitForLdmrsObjectArrayMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, ros_visualization_msgs::MarkerArray> WaitForVisualizationMarkerMessageHandler;
 
 }   // namespace sick_scan
 #endif // __SICK_GENERIC_CALLBACK_H_INCLUDED

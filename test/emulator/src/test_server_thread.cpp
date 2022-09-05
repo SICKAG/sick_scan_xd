@@ -79,8 +79,8 @@
  * @param[in] ip_port_results ip port for result telegrams, default: 2201
  * @param[in] ip_port_cola ip port for command requests and responses, default: 2111
  */
-sick_scan::TestServerThread::TestServerThread(ROS::NodePtr nh, int ip_port_results, int ip_port_cola)
-: m_ip_port_results(ip_port_results), m_ip_port_cola(ip_port_cola), 
+sick_scan::TestServerThread::TestServerThread(ROS::NodePtr nh, int ip_port_results, int ip_port_cola, const std::string& scanner_type)
+: m_ip_port_results(ip_port_results), m_ip_port_cola(ip_port_cola), m_scanner_type(scanner_type),
   m_tcp_connection_thread_results(0), m_tcp_connection_thread_cola(0), m_tcp_send_scandata_thread(0),
   m_tcp_connection_thread_running(false), m_worker_thread_running(false), m_tcp_send_scandata_thread_running(false),
   m_start_scandata_delay(1), m_result_telegram_rate(10), m_demo_move_in_circles(false), m_error_simulation_enabled(false), m_error_simulation_flag(SIMU_NO_ERROR),
@@ -92,7 +92,8 @@ sick_scan::TestServerThread::TestServerThread(ROS::NodePtr nh, int ip_port_resul
   {
     ROS::param<std::string>(nh, "/sick_scan_emulator/scandatafiles", m_scandatafiles, m_scandatafiles); // comma separated list of jsonfiles to emulate scandata messages, f.e. "tim781s_scandata.pcapng.json,tim781s_sopas.pcapng.json"
     ROS::param<std::string>(nh, "/sick_scan_emulator/scandatatypes", m_scandatatypes, m_scandatatypes); // comma separated list of scandata message types, f.e. "sSN LMDscandata,sSN LMDscandatamon"
-    ROS::param<std::string>(nh, "/sick_scan_emulator/scanner_type", m_scanner_type, m_scanner_type);    // currently supported: "sick_lms_5xx", "sick_tim_7xx"
+    ROS::param<std::string>(nh, "/sick_scan_emulator/scanner_type", m_scanner_type, m_scanner_type);    // currently supported: "sick_lms_5xx", "sick_tim_7xx", "sick_mrs_6xxx"
+    ROS_INFO_STREAM("TestServerThread: scanner_type=\"" << m_scanner_type << "\"");
     ROS::param<double>(nh, "/sick_scan/test_server/start_scandata_delay", m_start_scandata_delay, m_start_scandata_delay); // delay between scandata activation ("LMCstartmeas" request) and first scandata message, default: 1 second
     std::string result_testcases_topic = "/sick_scan/test_server/result_testcases"; // default topic to publish testcases with result port telegrams (type SickLocResultPortTestcaseMsg)
     ROS::param<double>(nh, "/sick_scan/test_server/result_telegrams_rate", m_result_telegram_rate, m_result_telegram_rate);
@@ -488,7 +489,7 @@ void sick_scan::TestServerThread::runWorkerThreadColaCb(socket_ptr p_socket)
       std::string ascii_response = sick_scan::ColaAsciiBinaryConverter::ConvertColaAscii(binary_response);
       if(cola_binary) // binary_response = sick_scan::ColaAsciiBinaryConverter::ColaAsciiToColaBinary(binary_response);
         binary_response = sick_scan::ColaAsciiBinaryConverter::ColaTelegramToColaBinary(telegram_answer);
-      ROS_INFO_STREAM("TestServerThread: sending cola response " << ascii_response << (cola_binary ? " (Cola-Binary)" : " (Cola-ASCII)"));
+      ROS_INFO_STREAM("TestServerThread: sending cola response " << ascii_response << " (" << m_scanner_type << ", " << (cola_binary ? "Cola-Binary)" : "Cola-ASCII)"));
       // Send command response to tcp client
       if(cola_binary)
         ROS_DEBUG_STREAM("TestServerThread: sending cola hex response " << sick_scan::Utils::toHexString(binary_response));
