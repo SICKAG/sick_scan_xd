@@ -1532,7 +1532,7 @@ namespace sick_scan
             cloud_.fields[i].datatype = ros_sensor_msgs::PointField::FLOAT32;
           }
 
-          cloud_.data.resize(cloud_.row_step * cloud_.height);
+          cloud_.data.resize(cloud_.row_step * cloud_.height, 0);
           float *valPtr = (float *) (&(cloud_.data[0]));
           int off = 0;
           for (int i = 0; i < numTargets; i++)

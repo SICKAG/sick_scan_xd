@@ -4377,7 +4377,7 @@ namespace sick_scan
                 cloud_.fields[i].count = 1;
                 cloud_.fields[i].datatype = ros_sensor_msgs::PointField::FLOAT32;
               }
-              cloud_.data.resize(cloud_.row_step * cloud_.height);
+              cloud_.data.resize(cloud_.row_step * cloud_.height, 0);
 
               cloud_polar_.header = cloud_.header;
               cloud_polar_.height = cloud_.height;
@@ -4390,7 +4390,7 @@ namespace sick_scan
               cloud_polar_.fields[0].name = "range";
               cloud_polar_.fields[1].name = "azimuth";
               cloud_polar_.fields[2].name = "elevation";
-              cloud_polar_.data.resize(cloud_.data.size());
+              cloud_polar_.data.resize(cloud_.data.size(), 0);
 
               unsigned char *cloudDataPtr = &(cloud_.data[0]);
               unsigned char *cloudDataPtr_polar = &(cloud_polar_.data[0]);
@@ -4628,7 +4628,7 @@ namespace sick_scan
                       partialCloud.fields[ii].datatype = ros_sensor_msgs::PointField::FLOAT32;
                     }
 
-                    partialCloud.data.resize(partialCloud.row_step);
+                    partialCloud.data.resize(partialCloud.row_step, 0);
 
                     int partOff = 0;
                     for (int j = 0; j < 4; j++)

@@ -8,7 +8,6 @@ MultiScan136 / sick_scan_segment_xd lidars are supported by sick_scan_xd. See [R
 
 The following describes the configuration, validation and test in more detail.
 
-
 ## Configuration
 
 MultiScan136/sick_scan_segment_xd is configured by launch file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch).
@@ -64,6 +63,10 @@ The Multiscan136 scans can be visualized by rviz. The following screenshots show
 Note that sick_scan_xd publishes 2 pointclouds:
 * The pointcloud on topic `/cloud` is published for each scan segment.
 * The pointcloud on topic `/cloud_360` collects all segments for a complete 360 degree full scan.
+
+Pointcloud callbacks defined in the [API](sick_scan_api/sick_scan_api.md) are called the same way: A callback registered with SickScanApiRegisterPolarPointCloudMsg is called
+* with a segment_idx >= 0 for each scan segment, and
+* with segment_idx := -1 for the complete 360 degree full scan.
 
 ## Msgpack validation
 
