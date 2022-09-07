@@ -682,7 +682,7 @@ endif()
 
 # install sick_scan_shared_lib incl. API headerfiles
 if(ROS_VERSION EQUAL 0)
-    set_target_properties(sick_scan_shared_lib PROPERTIES PUBLIC_HEADER "include/sick_scan_xd_api/sick_scan_api.h;test/python/sick_scan_xd_api/sick_scan_api.py")
+    set_target_properties(sick_scan_shared_lib PROPERTIES PUBLIC_HEADER "include/sick_scan_xd_api/sick_scan_api.h;python/api/sick_scan_api.py")
     install(TARGETS sick_scan_shared_lib 
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}

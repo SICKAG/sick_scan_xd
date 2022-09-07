@@ -39,12 +39,12 @@ static void binPrintchar(char **str, int c)
 
 static int binPrints(char **out, const char *string, int width, int pad)
 {
-  register int pc = 0, padchar = ' ';
+  int pc = 0, padchar = ' ';
 
   if (width > 0)
   {
-    register int len = 0;
-    register const char *ptr;
+    int len = 0;
+    const char *ptr;
     for (ptr = string; *ptr; ++ptr) ++len;
     if (len >= width)
     { width = 0; }
@@ -81,9 +81,9 @@ static int binPrints(char **out, const char *string, int width, int pad)
 static int binPrinti(char **out, int i, int b, int sg, int width, int pad, int letbase)
 {
   char print_buf[PRINT_BUF_LEN];
-  register char *s;
-  register int t, neg = 0, pc = 0;
-  register unsigned int u = i;
+  char *s;
+  int t, neg = 0, pc = 0;
+  unsigned int u = i;
 
   if (b == 1)
   {
@@ -177,7 +177,7 @@ static int binPrint(char **out, long long *varg)
       }
       if (*format == 's')
       {
-        register char *s = *((char **) varg++);
+        char *s = *((char **) varg++);
         pc += binPrints(out, s ? s : "(null)", width, pad);
         continue;
       }

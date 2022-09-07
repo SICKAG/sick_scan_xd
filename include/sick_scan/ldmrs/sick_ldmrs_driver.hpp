@@ -60,6 +60,8 @@
 
 #if __ROS_VERSION == 2 // ROS-2 (Linux or Windows)
 #include <sick_scan/msg/sick_ldmrs_object_array.hpp>
+#include <diagnostic_updater/diagnostic_updater.hpp> // part of diagnostic_msgs of ROS2, not available on ROS2-Windows until foxy patch 4
+#include <diagnostic_updater/publisher.hpp>
 #else
 #include <sick_scan/SickLdmrsObjectArray.h>
 #endif
