@@ -5,6 +5,7 @@ features that will be removed in future versions **Removed** for deprecated feat
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
 ## Unreleased ##
+  - **Added** ROS-2 usage example
 
 ## Released ##
 

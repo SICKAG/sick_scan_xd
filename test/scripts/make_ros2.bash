@@ -17,9 +17,17 @@ if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash   
 colcon build --packages-select libsick_ldmrs --cmake-args " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 source ./install/setup.bash
 colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
-# colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
 colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 source ./install/setup.bash
+
+# Optional build ros2_example_application
+if [ -d ./src/ros2_example_application ] ; then
+  source /opt/ros/$ROS_DISTRO/setup.bash
+  colcon build --packages-select sick_scan_ros2_example --event-handlers console_direct+
+  source ./install/setup.bash
+  ls -al ./build/sick_scan_ros2_example/sick_scan_ros2_example ./install/sick_scan_ros2_example/lib/sick_scan_ros2_example/sick_scan_ros2_example
+  if [ ! -f ./build/sick_scan_ros2_example/sick_scan_ros2_example ] ; then echo -e "\n## ERROR building sick_scan_ros2_example\n"        ; else echo -e "build sick_scan_ros2_example finished successfully."     ; fi
+fi
 
 # print sick_scan binaries
 echo -e "\n"
