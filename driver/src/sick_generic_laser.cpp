@@ -93,7 +93,7 @@
 
 #define SICK_GENERIC_MAJOR_VER "2"
 #define SICK_GENERIC_MINOR_VER "8"
-#define SICK_GENERIC_PATCH_LEVEL "3"
+#define SICK_GENERIC_PATCH_LEVEL "4"
 
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
