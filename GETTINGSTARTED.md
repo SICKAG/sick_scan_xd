@@ -41,7 +41,7 @@ Run the following steps for a quick start:
 
    * For **Windows without ROS**: Use the sick_scan API and run `sick_scan_xd_api_test <launchfile> hostname:=<lidar-ip-address>`, e.g.:
       ```
-      cd .\sick_scan_ws
+      cd .\sick_scan_ws\sick_scan_xd
       set PATH=.;.\build;..\build\Debug;%PATH%
       .\build\Debug\sick_scan_xd_api_test.exe launch/sick_tim_7xx.launch hostname:=192.168.0.1
       ```
