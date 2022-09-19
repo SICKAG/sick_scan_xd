@@ -5,10 +5,12 @@ features that will be removed in future versions **Removed** for deprecated feat
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
 ## Unreleased ##
+  - **Added** ROS-2 usage example
 
 ## Released ##
 
 ### v2.8.3 - Generic API
+  - **Update** Update for ROS-2 Humble and docker container
   - **Update** Integrate API feedback, documentation and minimalistic usage examples
   - **Added** Minimalistic API usage examples (Python, C, C++)
   - **Update** Documentation

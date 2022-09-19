@@ -17,6 +17,7 @@ if [ -f /opt/ros/noetic/setup.bash  ] ; then source /opt/ros/noetic/setup.bash  
 rosclean purge -y
 rm -rf ./build ./devel ./install ./build_isolated ./devel_isolated ./install_isolated
 rm -rf ~/.ros/*
+if [ -d ./ros2_example_application ] ; then rm -rf ./ros2_example_application ; fi
 # catkin clean --yes --all-profiles --verbose
 # catkin_make clean
 mkdir -p ./build_isolated ./devel_isolated ./install_isolated

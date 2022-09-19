@@ -43,6 +43,15 @@ cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build w
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
+Note: Depeneding on the ROS-2 distribution, package diagnostic_updater might not be found (compiler error: `diagnostic_updater.hpp not found`). In this case package diagnostic_updater has to be installed by
+```
+sudo apt install ros-${ROS_DISTRO}-diagnostic-updater
+sudo apt install ros-${ROS_DISTRO}-diagnostic-msgs
+# E.g. to install diagnostic_updater on foxy, run
+# sudo apt-get install ros-foxy-diagnostic-updater
+# sudo apt install ros-foxy-diagnostic-msgs
+```
+
 Note: To create source code documentation by doxygen, run
 ```
 cd ./doxygen
