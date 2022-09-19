@@ -86,10 +86,10 @@ SickLDMRS::SickLDMRS(rosNodePtr nh, Manager *manager, std::shared_ptr<diagnostic
   #if defined USE_DIAGNOSTIC_UPDATER
   diagnostics_->setHardwareID("none");   // set from device after connection
   diagnostics_->add("device info", this, &SickLDMRS::produce_diagnostics);
-  diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::PointCloud2>>(pub_, *diagnostics_, 
+  diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::PointCloud2>>(pub_, *diagnostics_,
       diagnostic_updater::FrequencyStatusParam(&expected_frequency_, &expected_frequency_, 0.1, 10), // frequency should be target +- 10%
       diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0 / 12.5)); // timestamp delta can be from -1 seconds to 1.3x what it ideally is at the lowest frequency
-  #endif      
+  #endif
 }
 
 SickLDMRS::~SickLDMRS()
@@ -114,7 +114,7 @@ void SickLDMRS::init()
 #elif defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr parameter_cb_handle =
     nh_->add_on_set_parameters_callback(std::bind(&SickLDMRS::update_config_cb, this, std::placeholders::_1));
-#endif  
+#endif
 }
 
 void SickLDMRS::produce_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat)
@@ -281,8 +281,13 @@ void SickLDMRS::pubObjects(datatypes::ObjectList &objects)
   for (int i = 0; i < objects.size(); i++)
   {
     oa.objects[i].id = objects[i].getObjectId();
-    oa.objects[i].tracking_time = rosTimeNow() - rosDuration(objects[i].getObjectAge() / expected_frequency_); // s_rclcpp_clock.now() - rclcpp::Duration(objects[i].getObjectAge() / expected_frequency_); // ros::Time::now() - ros::Duration(objects[i].getObjectAge() / expected_frequency_);
-    oa.objects[i].last_seen = rosTimeNow() - rosDuration(objects[i].getHiddenStatusAge() / expected_frequency_); // s_rclcpp_clock.now() - rclcpp::Duration(objects[i].getHiddenStatusAge() / expected_frequency_); // ros::Time::now() - ros::Duration(objects[i].getHiddenStatusAge() / expected_frequency_);
+#if __ROS_VERSION == 2 // ROS-2 (Linux or Windows)
+    oa.objects[i].tracking_time = rosTimeNow() - rosDuration(std::chrono::nanoseconds((uint64_t)(1.0e9 * objects[i].getObjectAge() / expected_frequency_)));
+    oa.objects[i].last_seen = rosTimeNow() - rosDuration(std::chrono::nanoseconds((uint64_t)(1.0e9 * objects[i].getHiddenStatusAge() / expected_frequency_)));
+#else
+    oa.objects[i].tracking_time = rosTimeNow() - rosDuration(objects[i].getObjectAge() / expected_frequency_);
+    oa.objects[i].last_seen = rosTimeNow() - rosDuration(objects[i].getHiddenStatusAge() / expected_frequency_);
+#endif
     oa.objects[i].velocity.twist.linear.x = objects[i].getAbsoluteVelocity().getX();
     oa.objects[i].velocity.twist.linear.y = objects[i].getAbsoluteVelocity().getY();
     oa.objects[i].velocity.twist.linear.x = objects[i].getAbsoluteVelocity().getX();
@@ -367,8 +372,8 @@ void SickLDMRS::update_config_cb(sick_scan::SickLDMRSDriverConfig &new_config, u
   cfg.sync_angle_offset = new_config.sync_angle_offset;
   cfg.angular_resolution_type = new_config.angular_resolution_type;
   cfg.layer_range_reduction = new_config.layer_range_reduction;
-  cfg.ignore_near_range = new_config.ignore_near_range;   
-  cfg.sensitivity_control = new_config.sensitivity_control; 
+  cfg.ignore_near_range = new_config.ignore_near_range;
+  cfg.sensitivity_control = new_config.sensitivity_control;
   cfg.flexres_start_angle1 = new_config.flexres_start_angle1;
   cfg.flexres_start_angle2 = new_config.flexres_start_angle2;
   cfg.flexres_start_angle3 = new_config.flexres_start_angle3;

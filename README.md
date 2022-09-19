@@ -8,6 +8,7 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 
 - [Executive Summary](#executive-summary)
 - [Supported hardware and platforms](REQUIREMENTS.md)
+- [Getting started](GETTINGSTARTED.md)
 - [Build targets](#build-targets)
 - [Build on Linux generic without ROS](INSTALL-GENERIC.md#build-on-linux-generic-without-ros)
 - [Build on Linux ROS1](INSTALL-ROS1.md#build-on-linux-ros1)

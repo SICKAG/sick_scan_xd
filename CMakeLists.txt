@@ -89,7 +89,6 @@ if(WIN32 AND EXISTS "c:/vcpkg/installed/x64-windows")
 endif()
 
 if(WIN32)
-    # add_compile_options(-DBOOST_BIND_GLOBAL_PLACEHOLDERS -D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
     add_compile_options(-D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
     link_libraries(ws2_32)    
 else()
@@ -299,7 +298,6 @@ if(ROS_VERSION EQUAL 2)
         ${ROSIDL_EMULATOR_FILES}
         DEPENDENCIES builtin_interfaces std_msgs nav_msgs geometry_msgs sensor_msgs
     )
-    # find_package(Boost REQUIRED COMPONENTS filesystem system serialization) # rosidl_generate_interfaces overwrites ${Boost_LIBRARIES}. Workaround: Do find_package(Boost) after calling rosidl_generate_interfaces in CMakeLists.txt
 endif(ROS_VERSION EQUAL 2)
 
 # Support for LDMRS
@@ -307,12 +305,9 @@ if(BUILD_WITH_LDMRS_SUPPORT)
     message(STATUS "Building sick_scan with LDMRS support")
     add_compile_options(-DLDMRS_SUPPORT=1)
     find_package(SickLDMRS REQUIRED)
-    # find_package(Boost REQUIRED COMPONENTS filesystem system serialization)
-    # find_package(PCL REQUIRED) # workaround https://github.com/ros2/rosidl/issues/402 : Do find_package(PCL) after calling rosidl_generate_interfaces in your CMakeLists.txt
-    set(LDMRS_INCLUDES ${SICK_LDMRS_INCLUDE_DIRS}) # ${PCL_INCLUDE_DIRS})
+    set(LDMRS_INCLUDES ${SICK_LDMRS_INCLUDE_DIRS})
     set(LDMRS_SOURCES driver/src/ldmrs/sick_ldmrs_config.cpp driver/src/ldmrs/sick_ldmrs_driver.cpp driver/src/ldmrs/sick_ldmrs_node.cpp)
     set(LDMRS_TARGET_DEPENDENCIES SickLDMRS)
-    # set(SICK_LDMRS_LIBRARIES ${SICK_LDMRS_LIBRARIES} ${Boost_LIBRARIES})
     message(STATUS "LDMRS_INCLUDES: ${LDMRS_INCLUDES}")
     message(STATUS "LDMRS_SOURCES: ${LDMRS_SOURCES}")
     message(STATUS "LDMRS_TARGET_DEPENDENCIES: ${LDMRS_TARGET_DEPENDENCIES}")
@@ -608,7 +603,6 @@ if(ROS_VERSION EQUAL 2)
 
     ament_target_dependencies(
         sick_scan_lib
-        # "Boost"
         "rclcpp"
         "sensor_msgs"
         "std_msgs"
@@ -623,7 +617,6 @@ if(ROS_VERSION EQUAL 2)
 
     ament_target_dependencies(
         sick_scan_shared_lib
-        # "Boost"
         "rclcpp"
         "sensor_msgs"
         "std_msgs"
@@ -638,7 +631,6 @@ if(ROS_VERSION EQUAL 2)
 
     ament_target_dependencies(
             sick_generic_caller
-            # "Boost"
             "rclcpp"
             "sensor_msgs"
             "std_msgs"
@@ -682,7 +674,7 @@ endif()
 
 # install sick_scan_shared_lib incl. API headerfiles
 if(ROS_VERSION EQUAL 0)
-    set_target_properties(sick_scan_shared_lib PROPERTIES PUBLIC_HEADER "include/sick_scan_xd_api/sick_scan_api.h;test/python/sick_scan_xd_api/sick_scan_api.py")
+    set_target_properties(sick_scan_shared_lib PROPERTIES PUBLIC_HEADER "include/sick_scan_xd_api/sick_scan_api.h;python/api/sick_scan_api.py")
     install(TARGETS sick_scan_shared_lib 
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -799,7 +791,7 @@ if(ENABLE_EMULATOR)
     target_link_libraries(test_server sick_scan_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES} ${LIB_JSONCPP})
     target_include_directories(test_server PUBLIC test test/emulator/include)
     if(ROS_VERSION EQUAL 2)
-        ament_target_dependencies(test_server "rclcpp" ) # "Boost")
+        ament_target_dependencies(test_server "rclcpp" )
     endif(ROS_VERSION EQUAL 2)
     install(TARGETS 
         test_server
