@@ -197,6 +197,9 @@ namespace sick_scan
       CMD_SET_LFPMEDIANFILTER, // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
       CMD_SET_LMDSCANDATASCALEFACTOR, // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
 
+      // Supported by sick_generic_caller version 2.8.4 and above:
+      CMD_SET_GLARE_DETECTION_SENS, // Glare Detection Sensitivity (LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter
+
       // ML: Add above new CMD-Identifier
       //
       //
