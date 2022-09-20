@@ -189,7 +189,7 @@ if(ROS_VERSION EQUAL 2)
 
     find_package(ament_cmake REQUIRED)
     if(NOT WIN32)
-        # still check if diagnostics updater is available (not the case for current some versions)
+        # still check if diagnostics updater is available (depends on ros distribution)
         find_package(diagnostic_updater)
         if (${diagnostic_updater_FOUND})
             set(diagnostic_updater_pkg diagnostic_updater)

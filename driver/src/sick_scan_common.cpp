@@ -1361,6 +1361,7 @@ namespace sick_scan
     sopasCmdVec[CMD_SET_LFPMEANFILTER] = "\x02sWN LFPmeanfilter 0 0 0\x03"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
     sopasCmdVec[CMD_SET_LFPMEDIANFILTER] = "\x02sWN LFPmedianfilter 0 3\x03"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
     sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor 3F800000\x03"; // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
+    sopasCmdVec[CMD_SET_GLARE_DETECTION_SENS] = "\x02sWN GlareDetectionSens 0\x03"; // Glare Detection Sensitivity (LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter
 
     /*
      *  Angle Compensation Command
@@ -1473,6 +1474,7 @@ namespace sick_scan
     sopasCmdErrMsg[CMD_SET_LFPMEANFILTER] = "Error setting sopas command \"sWN LFPmeanfilter ...\"";
     sopasCmdErrMsg[CMD_SET_LFPMEDIANFILTER] = "Error setting sopas command \"sWN LFPmedianfilter ...\"";
     sopasCmdErrMsg[CMD_SET_LMDSCANDATASCALEFACTOR] = "Error setting  sopas command\"sWN LMDscandatascalefactor ...\"";
+    sopasCmdErrMsg[CMD_SET_GLARE_DETECTION_SENS] = "Error setting sopas command \"sWN GlareDetectionSens ...\"";
 
     // ML: Add here more useful cmd and mask entries
 
@@ -1487,14 +1489,17 @@ namespace sick_scan
       sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3);
     }
 
-    if (parser_->getCurrentParamPtr()->getUseBinaryProtocol())
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) != 0) // "sWN EIHstCola" currently not supported by LRS-4xxx
     {
-      sopasCmdChain.push_back(CMD_SET_TO_COLA_B_PROTOCOL);
-    }
-    else
-    {
-      //for binary Mode Testing
-      sopasCmdChain.push_back(CMD_SET_TO_COLA_A_PROTOCOL);
+      if (parser_->getCurrentParamPtr()->getUseBinaryProtocol())
+      {
+        sopasCmdChain.push_back(CMD_SET_TO_COLA_B_PROTOCOL);
+      }
+      else
+      {
+        //for binary Mode Testing
+        sopasCmdChain.push_back(CMD_SET_TO_COLA_A_PROTOCOL);
+      }
     }
 
     //TODO add basicParam for this
@@ -1623,14 +1628,27 @@ namespace sick_scan
         else
           sopasCmdVec[CMD_SET_LFPMEANFILTER] = "\x02sWN LFPmeanfilter 1 " + toString(lfp_meanfilter_arg) + " 0\x03";
         sopasCmdChain.push_back(CMD_SET_LFPMEANFILTER);
-        // ROS_INFO_STREAM("lfp_meanfilter set to " << lfp_meanfilter_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LFPMEANFILTER] << "\"");
+        // ROS_INFO_STREAM("lfp_meanfilter set to " << lfp_meanfilter_arg << ", sopas command is \"" << sopasCmdVec[CMD_SET_LFPMEANFILTER] << "\"");
       }
       if (lfp_medianfilter_arg >= 0)
       {
         // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
         sopasCmdVec[CMD_SET_LFPMEDIANFILTER] = "\x02sWN LFPmedianfilter "+ toString((lfp_medianfilter_arg > 0) ? 1 : 0) + " 3\x03";
         sopasCmdChain.push_back(CMD_SET_LFPMEDIANFILTER);
-        // ROS_INFO_STREAM("lfp_medianfilter set to " << lfp_medianfilter_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LFPMEDIANFILTER] << "\"");
+        // ROS_INFO_STREAM("lfp_medianfilter set to " << lfp_medianfilter_arg << ", sopas command is \"" << sopasCmdVec[CMD_SET_LFPMEDIANFILTER] << "\"");
+      }
+    }
+    // Support for "sWN GlareDetectionSens" (Glare Detection Sensitivity, LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0)
+    {
+      int glare_detection_sens_arg = -1;
+      rosDeclareParam(nh, "glare_detection_sens", glare_detection_sens_arg);
+      rosGetParam(nh, "glare_detection_sens", glare_detection_sens_arg);
+      if (glare_detection_sens_arg >= 0)
+      {
+        sopasCmdVec[CMD_SET_GLARE_DETECTION_SENS] = "\x02sWN GlareDetectionSens " + toString(glare_detection_sens_arg) + "\x03";
+        sopasCmdChain.push_back(CMD_SET_GLARE_DETECTION_SENS);
+        // ROS_INFO_STREAM("glare_detection_sens set to " << glare_detection_sens_arg << ", sopas command is \"" << sopasCmdVec[CMD_SET_GLARE_DETECTION_SENS] << "\"");
       }
     }
     // Support for "sWN LMDscandatascalefactor" (LRS4xxx)
@@ -4815,6 +4833,7 @@ namespace sick_scan
     std::string KeyWord14 = "sWN LFPmeanfilter"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
     std::string KeyWord15 = "sWN LFPmedianfilter"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
     std::string KeyWord16 = "sWN LMDscandatascalefactor"; // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
+    std::string KeyWord17 = "sWN GlareDetectionSens"; // LRS4xxx: "sWN GlareDetectionSens"  + { 1 byte sensitivity }  + { 2 byte 0x03 }
 
     //BBB
 
@@ -5135,6 +5154,15 @@ namespace sick_scan
       buffer[3] = (unsigned char) (0xFF & (args >> 0));
       bufferLen = 4;
     }
+    if (cmdAscii.find(KeyWord17) != std::string::npos) // LRS4xxx: "sWN GlareDetectionSens"  + { 1 byte sensitivity }  + { 2 byte 0x03 }
+    {
+      // ROS_INFO_STREAM("convertAscii2BinaryCmd: requestAscii=" << requestAscii);
+      int args[1] = { 0 };
+      sscanf(requestAscii + KeyWord17.length() + 1, " %d", &(args[0]));
+      buffer[0] = (unsigned char) (0xFF & args[0]);
+      bufferLen = 1;
+    }
+
 
     // copy base command string to buffer
     bool switchDoBinaryData = false;

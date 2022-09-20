@@ -5,9 +5,12 @@ features that will be removed in future versions **Removed** for deprecated feat
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
 ## Unreleased ##
-  - **Added** ROS-2 usage example
 
 ## Released ##
+
+### v2.8.5 - LRS4000 update
+  - **Update** LRS4000 extended configuration (glare detection sensitivity, echo-, mean-, median-filter)
+  - **Added** ROS-2 usage example
 
 ### v2.8.4 - Generic API
   - **Update** Fix of version number
