@@ -30,7 +30,7 @@ def extractMessageStart(payload):
         payload = payload[stx_index:]
     return payload
 
-def readPcapngFile(pcap_filename):
+def readPcapngFile(pcap_filename, verbose):
     blocks_payload = []
     blocks_timestamp = []
     with open(pcap_filename, 'rb') as pcap_file:
@@ -62,7 +62,8 @@ def readPcapngFile(pcap_filename):
                     payload = bytes(block_decoded.payload)
                     if len(payload) < 64000:
                         payload = extractMessageStart(payload)
-                        # print("pcap block {}: {} byte payload".format(block_cnt, len(payload)))
+                        if verbose > 0:
+                            print("pcap block {}: {} byte payload".format(block_cnt, len(payload)))
                         blocks_payload.append(payload)
                         blocks_timestamp.append(block.timestamp)
     return blocks_payload, blocks_timestamp
@@ -74,6 +75,7 @@ if __name__ == "__main__":
     udp_send_rate = 0 # send rate in msgpacks per second, 240 for MRS100, or 0 to send corresponding to pcap-timestamps, or udp_send_rate > 1000 for max. rate
     udp_dst_ip = "<broadcast>"
     num_repetitions = 1
+    verbose = 0
 
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--pcap_filename", help="pcapng filepath", default=pcap_filename, type=str)
@@ -81,16 +83,18 @@ if __name__ == "__main__":
     arg_parser.add_argument("--send_rate", help="udp send rate in msgpacks per second, 240 for MRS100, or 0 to send by pcap-timestamps, or > 10000 for max. rate", default=udp_send_rate, type=int)
     arg_parser.add_argument("--dst_ip", help="udp destination ip, e.g. 127.0.0.1 or <broadcast>", default=udp_dst_ip, type=str)
     arg_parser.add_argument("--repeat", help="number of repetitions", default=num_repetitions, type=int)
+    arg_parser.add_argument("--verbose", help="print verbose messages", default=verbose, type=int)
     cli_args = arg_parser.parse_args()
     pcap_filename = cli_args.pcap_filename
     udp_port = cli_args.udp_port
     udp_send_rate = cli_args.send_rate
     udp_dst_ip = cli_args.dst_ip
     num_repetitions = cli_args.repeat
+    verbose = cli_args.verbose
     
     # Read and parse pcap file, extract udp raw data
     print("mrs100_pcap_player: reading pcapfile \"{}\" ...".format(pcap_filename))
-    blocks_payload, blocks_timestamp = readPcapngFile(pcap_filename)
+    blocks_payload, blocks_timestamp = readPcapngFile(pcap_filename, verbose)
     print("mrs100_pcap_player: sending {} udp packets ...".format(len(blocks_payload)))
     
     # Init upd sender
@@ -103,7 +107,8 @@ if __name__ == "__main__":
         send_timestamp = 0
         for block_cnt, payload in enumerate(blocks_payload):
             # Send payload
-            # print("pcap message {}: sending {} byte udp block".format(block_cnt, len(payload)))
+            if verbose > 0:
+                print("pcap message {}: sending {} byte udp block ({}:{})".format(block_cnt, len(payload), udp_dst_ip, udp_port))
             # udp_sender_socket.sendto(payload, ('<broadcast>', udp_port))
             # udp_sender_socket.sendto(payload, ('127.0.0.1', udp_port))
             udp_sender_socket.sendto(payload, (udp_dst_ip, udp_port))

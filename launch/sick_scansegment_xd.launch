@@ -6,9 +6,9 @@
     <arg name="hostname" default="192.168.0.1"/>  <!-- IP address of multiScan136, overwrites default ip address "192.168.0.1" in sick_scansegment_xd.yaml -->
     <arg name="udp_receiver_ip" default=""/>        <!-- UDP destination IP address (ip address of udp receiver), overwrites default in sick_scansegment_xd.yaml -->
     <arg name="nodename" default="sick_scansegment_xd"/>
-    <arg name="publish_topic" type="string" value="/cloud" />                         <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
-    <arg name="publish_topic_all_segments" type="string" value="/cloud_360" />        <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360" -->
-    <arg name="publish_frame_id" type="string" value="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
+    <arg name="publish_topic" default="/cloud" />                         <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
+    <arg name="publish_topic_all_segments" default="/cloud_360" />        <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360" -->
+    <arg name="publish_frame_id" default="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_scansegment_xd"/>

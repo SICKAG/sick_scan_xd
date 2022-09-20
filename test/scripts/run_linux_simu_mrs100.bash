@@ -15,13 +15,6 @@ pushd ../..
 printf "\033c"
 killall_cleanup
 
-# Display scandata
-pushd ./demo
-rm -f ./scan.jpg ./scan.csv
-firefox ./image_viewer.html &
-sleep 1
-popd
-
 # Run mrs100 emulator (sopas test server)
 python3 ./test/python/mrs100_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
 sleep 1
@@ -31,6 +24,8 @@ sleep 1
 sleep 3
 
 # Play pcapng-files to emulate MRS100 output
+echo -e "\nPlaying pcapng-files to emulate MRS100. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...\n"
+python3 ./test/python/mrs100_pcap_player.py --pcap_filename=./test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
 python3 ./test/python/mrs100_pcap_player.py --pcap_filename=./test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=2
 python3 ./test/python/mrs100_pcap_player.py --pcap_filename=./test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
 sleep 3

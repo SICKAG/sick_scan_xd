@@ -21,7 +21,12 @@ The ip address of the lidar and the udp receiver can be configured in the launch
 ```
 or by command line by e.g.
 ```
-hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100
+# Run sick_scansegment_xd generic without ROS:
+sick_generic_caller ./launch/sick_scansegment_xd.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
+# Run sick_scansegment_xd on ROS-1:
+roslaunch sick_scan sick_scansegment_xd.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
+# Run sick_scansegment_xd on ROS-2:
+ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
 ```
 
 ## SOPAS support
@@ -128,3 +133,48 @@ Make sure you have only one network adapter activated with custom NAT:
 - If Linux or Windows is running in a virtual machine, make sure UDP port 2115 is forwarded. See [Firewall configuration](#firewall__configuration).
 
 - Depending on ROS2 system settings, log messages might be buffered. To really see all log messages of sick_generic_caller, terminate sick_scan_xd/sick_generic_caller (Ctrl-C or kill) and view the ros logfile by `cat ~/.ros/log/sick_scan_*.log`
+
+### Convert pcapng-files to msgpack or json
+
+:question: How can I convert a pcapng-file with scandata to a msgpack- or json-file?
+
+:white_check_mark: Run the following steps:
+* Install python msgpack package with `pip install msgpack`
+* Play the pcapng-file using mrs100_pcap_player.py
+* Receive and convert to msgpack using mrs100_receiver.py
+* Convert to json using online-converter https://toolslick.com/conversion/data/messagepack-to-json
+
+Linux example:
+```
+pushd sick_scan_xd/test/python
+python3 python mrs100_receiver.py &
+python3 mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20210929_mrs100_token_udp.pcapng
+mv ./mrs100_dump_12472.msgpack     20210929_mrs100_token_udp.msgpack
+mv ./mrs100_dump_12472.msgpack.hex 20210929_mrs100_token_udp.msgpack.hex 
+popd
+```
+Then paste the content of file `20210929_mrs100_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.
+
+Windows example:
+```
+pushd sick_scan_xd\test\python
+python --version
+REM Convert 20220915_mrs100_msgpack_output.pcapng (16-bit RSSI record) to msgpack resp. json
+del /f/q mrs100_dump*.msgpack
+del /f/q mrs100_dump*.msgpack.hex
+start python mrs100_receiver.py
+python mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
+move /y .\mrs100_dump_23644.msgpack     20220915_mrs100_msgpack_output.msgpack
+move /y .\mrs100_dump_23644.msgpack.hex 20220915_mrs100_msgpack_output.msgpack.hex
+REM Convert 20210929_mrs100_token_udp.pcapng (8-bit RSSI record) to msgpack resp. json
+del /f/q mrs100_dump*.msgpack
+del /f/q mrs100_dump*.msgpack.hex
+start python mrs100_receiver.py
+python mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20210929_mrs100_token_udp.pcapng --verbose=0
+move /y .\mrs100_dump_12472.msgpack     20210929_mrs100_token_udp.msgpack
+move /y .\mrs100_dump_12472.msgpack.hex 20210929_mrs100_token_udp.msgpack.hex 
+del /f/q mrs100_dump*.msgpack
+del /f/q mrs100_dump*.msgpack.hex
+popd
+```
+Then paste the content of files `20220915_mrs100_msgpack_output.msgpack.hex` resp. `20210929_mrs100_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.

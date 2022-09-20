@@ -377,7 +377,9 @@ bool sick_scan::SickScanServices::sendMRS100StartCmd(const std::string& hostname
     return false;
   }
 
-  if (!sendSopasCmdCheckResponse("sWN ScanDataFormatSettings 1 1", "sWA ScanDataFormatSettings")) // set scan data output format to MSGPACK
+  // if (!sendSopasCmdCheckResponse("sWN ScanDataFormatSettings 1 1", "sWA ScanDataFormatSettings")) // set scan data output format to MSGPACK
+  if (!sendSopasCmdCheckResponse("sWN ScanDataFormatSettings 1", "sWA ScanDataFormatSettings") // set scan data output format to MSGPACK
+   || !sendSopasCmdCheckResponse("sWN ScanDataPreformattingSettings 1", "sWA ScanDataPreformattingSettings"))
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataFormatSettings 1 1\") failed.");
     return false;
