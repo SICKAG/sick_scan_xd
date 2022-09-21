@@ -91,7 +91,7 @@ demo/scan.jpg_tmp
 demo/scan.jpg
 demo/scan.csv
 
-test/emulator/scandata
+test/emulator/scandata/*.*
 test/scripts/run_win64_ros1_simu_lms5xx.cmd
 test/scripts/make_win64_vs2022.cmd
 test/python/sick_scan_xd_api/__pycache__/
