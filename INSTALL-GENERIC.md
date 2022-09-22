@@ -10,12 +10,12 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
 
 2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
-   git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
-   git clone https://github.com/SICKAG/msgpack11.git     # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/libsick_ldmrs.git
+   git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-3. Build libsick_ldmrs (only required once for LDMRS sensors):
+3. Build libsick_ldmrs (required only once for LDMRS sensors):
    ```
    pushd libsick_ldmrs
    mkdir -p ./build
@@ -26,7 +26,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-4. Build msgpack library (only required once for Multiscan136/sick_scansegment_xd):
+4. Build msgpack11 library (required only once for Multiscan136/sick_scansegment_xd):
    ```
    mkdir -p ./build
    pushd ./build
@@ -53,7 +53,7 @@ Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not nee
    cmake -DROS_VERSION=0 -DLDMRS=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
 
-Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: msgpack11 is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
@@ -96,7 +96,7 @@ To install sick_scan_xd on Windows, follow the steps below:
 
 4. Clone repositories https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
-   git clone https://github.com/SICKAG/msgpack11.git     # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
@@ -133,7 +133,7 @@ After successful build, binary files `sick_generic_caller.exe` and `sick_scan_sh
 
 Note: LDMRS sensors are currently not supported on Windows.
 
-Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: msgpack11 is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "%_cmake_string%" ..
    ```

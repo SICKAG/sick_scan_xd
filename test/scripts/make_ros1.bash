@@ -26,7 +26,7 @@ popd
 #
 
 # catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 -DSCANSEGMENT_XD=0 2>&1 | tee -a ./build/catkin_make_install.log
-catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 2>&1 | tee -a ./build/catkin_make_install.log
+catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 -Wno-dev 2>&1 | tee -a ./build/catkin_make_install.log
 source ./install_isolated/setup.bash
 
 #

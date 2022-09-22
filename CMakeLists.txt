@@ -47,7 +47,10 @@ option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (develo
 if(NOT WIN32)
     add_compile_options(-O3)
 endif()
-# Added CMP0048 to avoid unstable warning of build process
+# Added CMP0022 and CMP0048 to avoid cmake warnings
+if (POLICY CMP0022)
+    cmake_policy(SET CMP0022 NEW)
+endif (POLICY CMP0022)
 if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
@@ -95,6 +98,18 @@ else()
     link_libraries(pthread) # std::thread requires pthread on linux
     link_libraries(dl)      # dynamic loading of libraries
 endif()
+
+# Checks and prints a message, if a header file does not exist
+function(check_header_exists headerfilepath headerfilename packagename)
+    if(NOT EXISTS ${headerfilepath})
+        message(STATUS "${packagename} check: file ${headerfilepath} not found.")
+        message(STATUS "If you encounter problems with missing ${headerfilename}, please checkout the following repositories:")
+        message(STATUS "git clone https://github.com/SICKAG/libsick_ldmrs.git")
+        message(STATUS "git clone https://github.com/SICKAG/msgpack11.git")
+        message(STATUS "git clone https://github.com/SICKAG/sick_scan_xd.git")
+        message(STATUS "and rebuild. See the build instructions in INSTALL-GENERIC.md, INSTALL-ROS1.md and INSTALL-ROS2.md for further details.")
+    endif()
+endfunction()
 
 # By uncommenting the following lines you can list all variable names ...
 # --- CUT ---
@@ -312,6 +327,7 @@ if(BUILD_WITH_LDMRS_SUPPORT)
     message(STATUS "LDMRS_SOURCES: ${LDMRS_SOURCES}")
     message(STATUS "LDMRS_TARGET_DEPENDENCIES: ${LDMRS_TARGET_DEPENDENCIES}")
     message(STATUS "SICK_LDMRS_LIBRARIES: ${SICK_LDMRS_LIBRARIES}")
+    check_header_exists(${LDMRS_INCLUDES}/sick_ldmrs/manager.hpp sick_ldmrs/manager.hpp sick_ldmrs)
 else()
     message(STATUS "Building sick_scan without ldmrs support")
 endif()
@@ -335,6 +351,7 @@ if(BUILD_WITH_SCANSEGMENT_XD_SUPPORT)
         link_directories("${PROJECT_BINARY_DIR}/../msgpack11")
     endif()
     include_directories(${MSGPACK11_INCLUDE_DIR})
+    check_header_exists(${PROJECT_SOURCE_DIR}/../msgpack11/msgpack11.hpp msgpack11.hpp msgpack11)
     # sick_scansegment_xd sources
     file(GLOB SCANSEGMENT_XD_SOURCES driver/src/sick_scansegment_xd/*.cpp)
 else()

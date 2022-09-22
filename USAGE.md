@@ -133,7 +133,7 @@ Common commandline options are
 
 Further (common and scanner specific) options can be set via launchfile, see [Common parameters](#common-parameters) and configure the settings in the launchfile corresponding to the scanner type.
 
-Note: After modifying a launch-file, it has to be installed by running `catkin_make_isolated --install --cmake-args -DROS_VERSION=1`
+Note: After modifying a launch-file, it has to be installed by running `catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -Wno-dev`
 to be located and used by `roslaunch`.
 
 On ROS-2 you can launch sick_generic_caller by python-launchfiles, too. Use

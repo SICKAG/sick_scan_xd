@@ -12,7 +12,7 @@ REM Emulator version vom 21.09.2022 (mrs100_0.10.2.18pre.rar):
 REM Unpack mrs100_0.10.2.18pre.rar
 REM Start subsysBase and then subsyApp
 REM Login as Developer
-REM For playback: load file 30_Datenemulator\navlayer_prototype.sdr.msgpack
+REM For playback: load file 30_Datenemulator\realData_20220817_155932.sdr.msgpack
 
 pushd ..\..\..\..\..\30_LieferantenDokumente\30_Datenemulator\20220921_mrs100_0.10.2.18pre
 cd subsysBase
@@ -25,8 +25,8 @@ start http:\\127.0.0.1:80
 popd
 
 @echo.
-@echo Login as Authorized Client, pw client
-@echo Start playback: load file 30_Datenemulator\navlayer_prototype.sdr.msgpack
+@echo Login as Developer
+@echo Start playback: load file 30_Datenemulator\realData_20220817_155932.sdr.msgpack
 @echo.
 @timeout /t 10
 rem @pause
