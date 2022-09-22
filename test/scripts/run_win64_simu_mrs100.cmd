@@ -55,7 +55,11 @@ REM   20220915_mrs100_msgpack_output.pcapng: 16-bit RSSI
 REM   20210929_mrs100_token_udp.pcapng and 20210929_mrs100_cola-a-start-stop-scandata-output.pcapng: 8-bit RSSI
 REM 
 
+@echo.
+@echo Playing pcapng-files to emulate MRS100. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...
+@echo.
 rem python ../test/python/mrs100_pcap_player.py --pcap_filename=../test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --verbose=1
+rem python ../test/python/mrs100_pcap_player.py --pcap_filename=../test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --send_rate=240
 python ../test/python/mrs100_pcap_player.py --pcap_filename=../test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
 @timeout /t 3
 python ../test/python/mrs100_pcap_player.py --pcap_filename=../test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115

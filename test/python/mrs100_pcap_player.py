@@ -23,6 +23,12 @@ import scapy.all
 import scapy.packet
 from scapy.layers.l2 import Ether
 
+# Force a delay by active polling. Brute-force alternative if timing in time.sleep is not accurate enough
+def forced_delay(seconds):
+    timestamp_end = time.perf_counter() + seconds
+    while time.perf_counter() < timestamp_end:
+        pass
+
 # Returns the payload starting from STX = '\x02\x02\x02\x02' (or unmodified payload if STX not found)
 def extractMessageStart(payload):
     stx_index = payload.find(b'\x02\x02\x02\x02')
@@ -120,5 +126,7 @@ if __name__ == "__main__":
                 else: # delay from configured rate
                     delay = 1.0 / udp_send_rate
                 time.sleep(delay)
+            # else: # brute force delay, for performance tests on 2. PC only
+            #     forced_delay(2.0e-4)
             send_timestamp = msg_timestamp
     print("mrs100_pcap_player finished.")

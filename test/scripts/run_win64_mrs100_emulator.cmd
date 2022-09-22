@@ -1,10 +1,25 @@
 REM Emulator version vom 06.12.2021:
 REM Start subsysApp.Win64.Release.exe only
-REM Login as Authorized Client, pw client
+REM Login as Authorized Client
+REM For playback: load file 30_Datenemulator\navlayer_prototype.sdr.msgpack
+REM pushd ..\..\..\..\..\30_LieferantenDokumente\30_Datenemulator\20211206_MRS100_Emulator
+REM start subsysApp.Win64.Release.exe
+REM @timeout /t 3
+REM start http:\\127.0.0.1:80
+REM popd
+
+REM Emulator version vom 21.09.2022 (mrs100_0.10.2.18pre.rar):
+REM Unpack mrs100_0.10.2.18pre.rar
+REM Start subsysBase and then subsyApp
+REM Login as Developer
 REM For playback: load file 30_Datenemulator\navlayer_prototype.sdr.msgpack
 
-pushd ..\..\..\..\..\30_LieferantenDokumente\30_Datenemulator\20211206_MRS100_Emulator
-start subsysApp.Win64.Release.exe
+pushd ..\..\..\..\..\30_LieferantenDokumente\30_Datenemulator\20220921_mrs100_0.10.2.18pre
+cd subsysBase
+start "subsysBase" subsysBase.Release.exe
+@timeout /t 3
+cd ..\subsysApp
+start "subsysApp" subsysApp.Release.exe
 @timeout /t 3
 start http:\\127.0.0.1:80
 popd

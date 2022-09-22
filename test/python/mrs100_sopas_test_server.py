@@ -54,7 +54,9 @@ class ColaResponseMap:
                 "sMN LMCstartmeas": "\x02sAN LMCstartmeas\x03",                     # "sMN LMCstartmeas" -> "sAN LMCstartmeas"
                 "sWN ScanDataEnable": "\x02sWA ScanDataEnable\x03",                 # "sWN ScanDataEnable 1" -> "sWA ScanDataEnable"
                 "sWN ScanDataFormatSettings": "\x02sWA ScanDataFormatSettings\x03", # "sWN ScanDataFormatSettings 1" -> "sWA ScanDataFormatSettings"
-                "sWN ScanDataPreformattingSettings": "\x02sWA ScanDataPreformattingSettings\x03", # "sWN ScanDataPreformattingSettings 1" -> "sWA ScanDataPreformattingSettings"
+                "sWN ScanDataPreformattingSettings": "\x02sWA ScanDataPreformattingSettings\x03", # "sWN ScanDataPreformattingSettings 1" -> "sWA ScanDataPreformattingSettings"  
+                "sWN ScanDataFormat": "\x02sWA ScanDataFormat\x03",                               # "sWN ScanDataFormat 1" -> "sWA ScanDataFormat"
+                "sWN ScanDataPreformatting": "\x02sWA ScanDataPreformatting\x03",                 # "sWN ScanDataPreformatting 1" -> "sWA ScanDataPreformatting"
                 "sWN ScanDataEthSettings": "\x02sWA ScanDataEthSettings\x03",       # "sWN ScanDataEthSettings 1 +127 +0 +0 +1 +2115" -> "sWA ScanDataEthSettings"
                 "sRN FREchoFilter": "\x02sRA FREchoFilter 0\x03",                                                      # "sRN FREchoFilter" -> "sRA FREchoFilter 0" (default: 0, i.e. first echo only, echo_count = 1)
                 "sRN LFPangleRangeFilter": "\x02sRA LFPangleRangeFilter 0 C0490FF9 40490FF9 BFC90FF9 3FC90FF9 1\x03",  # "sRN LFPangleRangeFilter" -> "sRA LFPangleRangeFilter 0 C0490FF9 40490FF9 BFC90FF9 3FC90FF9 1"

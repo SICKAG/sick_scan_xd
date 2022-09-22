@@ -42,12 +42,13 @@ The driver sends the following SOPAS start and stop sequence at program start re
 ```
 // Prerequirement: measurement is active, but no UDP data is sent
 // Start sending scan data output
-sMN SetAccessMode   3 F4724744   // set authorization level for writing settings
-sWN ScanDataEthSettings 1 +192 +168 +0 +1 +2115   // configure destination scan data output destination to 192.168.0.52 port 2115
-sWN ScanDataFormatSettings 1 1   // set scan data output format to MSGPACK
+sMN SetAccessMode 3 F4724744  // set authorization level for writing settings
+sWN ScanDataEthSettings 1 +192 +168 +0 +1 +2115  // configure destination scan data output destination to 192.168.0.52 port 2115
+sWN ScanDataFormat 1   // set scan data output format to MSGPACK
+sWN ScanDataPreformatting 1
 sWN ScanDataEnable 1   // enable scan data ouput
-sMN LMCstartmeas // start measurement
-sMN Run   // apply the settings and logout
+sMN LMCstartmeas       // start measurement
+sMN Run                // apply the settings and logout
 // ...
 // UDP data is sent
 // ...
