@@ -5,38 +5,38 @@ cmake_minimum_required(VERSION 3.5)
 
 # Emulator build options
 if(CMAKE_ENABLE_EMULATOR EQUAL 1)
-    option(ENABLE_EMULATOR "Build emulator for offline and unittests" ON) # OFF (release) or ON (development)
+    option(ENABLE_EMULATOR "Build emulator for offline and unittests (ON) or without emulator (OFF)" ON) # OFF (release) or ON (development)
     message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building sick_scan with emulator support")
 else()
-    option(ENABLE_EMULATOR "Build emulator for offline and unittests" OFF) # OFF (release) or ON (development)
+    option(ENABLE_EMULATOR "Build emulator for offline and unittests (ON) or without emulator (OFF)" OFF) # OFF (release) or ON (development)
     message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building sick_scan without emulator support")
 endif()
 
 # LDMRS build options
 if(WIN32)
-    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF)
+    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" OFF)
 elseif(LDMRS EQUAL 0)
-    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF)
+    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" OFF)
 else()
-    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" ON)
+    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" ON)
 endif()
 
 # MRS100/SCANSEGMENT_XD/MULTISCAN136 build options
 if(SCANSEGMENT_XD EQUAL 0)
-    option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build sick_scan_xd without SCANSEGMENT_XD support" OFF)
+    option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build sick_scan_xd with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" OFF)
 else()
-    option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build sick_scan_xd with SCANSEGMENT_XD support" ON)
+    option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build sick_scan_xd with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" ON)
 endif()
 
 # Linker option visibilty
 if(VISIBILITY EQUAL 0)
-    option(BUILD_LIB_HIDE_FUNCTIONS "Build sick_scan_xd library with function hiding except for SickScanApi-functions" ON)
+    option(BUILD_LIB_HIDE_FUNCTIONS "Build sick_scan_xd library with function hiding except for SickScanApi-functions (ON) or without function hiding (OFF)" ON)
 else()
-    option(BUILD_LIB_HIDE_FUNCTIONS "Build sick_scan_xd library with function hiding except for SickScanApi-functions" OFF)
+    option(BUILD_LIB_HIDE_FUNCTIONS "Build sick_scan_xd library with function hiding except for SickScanApi-functions (ON) or without function hiding (OFF)" OFF)
 endif()
 
 # Debug or Release build options
-option(BUILD_DEBUG_TARGET "Build debug target" ON) # OFF (release) or ON (development)
+option(BUILD_DEBUG_TARGET "Build debug target (ON) or release (OFF)" ON) # OFF (release) or ON (development)
 
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
