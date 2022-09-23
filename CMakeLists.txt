@@ -14,9 +14,9 @@ endif()
 
 # LDMRS build options
 if(WIN32)
-    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF)
+    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd without LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF)
 elseif(LDMRS EQUAL 0)
-    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF)
+    option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd without LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" OFF)
 else()
     option(BUILD_WITH_LDMRS_SUPPORT "Build sick_scan_xd with LDMRS support (requires libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs" ON)
 endif()
@@ -32,7 +32,7 @@ endif()
 if(VISIBILITY EQUAL 0)
     option(BUILD_LIB_HIDE_FUNCTIONS "Build sick_scan_xd library with function hiding except for SickScanApi-functions" ON)
 else()
-    option(BUILD_LIB_HIDE_FUNCTIONS "Build sick_scan_xd library with function hiding except for SickScanApi-functions" OFF)
+    option(BUILD_LIB_HIDE_FUNCTIONS "Build sick_scan_xd library without function hiding except for SickScanApi-functions" OFF)
 endif()
 
 # Debug or Release build options
