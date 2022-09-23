@@ -338,7 +338,7 @@ if(BUILD_WITH_SCANSEGMENT_XD_SUPPORT)
     # sick_scansegment_xd sources
     file(GLOB SCANSEGMENT_XD_SOURCES driver/src/sick_scansegment_xd/*.cpp)
 else()
-    message(STATUS "Building sick_scan without lidar3d support")
+    message(STATUS "Building sick_scan without SCANSEGMENT_XD support")
 endif()
  
 if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
