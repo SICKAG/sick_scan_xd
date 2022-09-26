@@ -6,10 +6,10 @@ cmake_minimum_required(VERSION 3.5)
 # Emulator build options
 if(CMAKE_ENABLE_EMULATOR EQUAL 1)
     option(ENABLE_EMULATOR "Build emulator for offline and unittests (ON) or without emulator (OFF)" ON) # OFF (release) or ON (development)
-    message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building sick_scan with emulator support")
+    message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building sick_scan with emulator support, ENABLE_EMULATOR=${ENABLE_EMULATOR}")
 else()
     option(ENABLE_EMULATOR "Build emulator for offline and unittests (ON) or without emulator (OFF)" OFF) # OFF (release) or ON (development)
-    message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building sick_scan without emulator support")
+    message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building sick_scan without emulator support, ENABLE_EMULATOR=${ENABLE_EMULATOR}")
 endif()
 
 # LDMRS build options
@@ -59,7 +59,7 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
-if(BUILD_DEBUG_TARGET EQUAL ON)
+if(${BUILD_DEBUG_TARGET} OR BUILD_DEBUG_TARGET EQUAL ON)
         set(CMAKE_BUILD_TYPE Debug) #uncomment to activate debug mode for lib_sick as well
         set(CMAKE_ENABLE_EXPORTS 1) #uncomment to activate debug mode for lib_sick as well
 endif()
@@ -106,7 +106,7 @@ endif()
 # --- CUT ---
 
 # jsoncpp required for emulator and lidar3d
-if(ENABLE_EMULATOR EQUAL ON)
+if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
     # emulator requires jsoncpp for pcapng and other files
     find_package(jsoncpp REQUIRED) # install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" (Linux) resp. "vcpkg install jsoncpp:x64-windows" (Windows) 
     if(WIN32)
@@ -206,7 +206,7 @@ if(ROS_VERSION EQUAL 2)
     find_package(visualization_msgs REQUIRED)
     find_package(tf2_ros REQUIRED)
     find_package(rosidl_default_generators REQUIRED)
-    if(ENABLE_EMULATOR EQUAL ON)
+    if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
         set(ROSIDL_EMULATOR_FILES
             # emulator messages
             "test/emulator/msg/SickLocColaTelegramMsg.msg"
@@ -301,7 +301,7 @@ if(ROS_VERSION EQUAL 2)
 endif(ROS_VERSION EQUAL 2)
 
 # Support for LDMRS
-if(BUILD_WITH_LDMRS_SUPPORT EQUAL ON)
+if(${BUILD_WITH_LDMRS_SUPPORT} OR BUILD_WITH_LDMRS_SUPPORT EQUAL ON)
     message(STATUS "Building sick_scan with LDMRS support")
     add_compile_options(-DLDMRS_SUPPORT=1)
     find_package(SickLDMRS REQUIRED)
@@ -317,7 +317,7 @@ else()
 endif()
 
 # Support for MRS100/SCANSEGMENT_XD/MULTISCAN136
-if(BUILD_WITH_SCANSEGMENT_XD_SUPPORT EQUAL ON)
+if(${BUILD_WITH_SCANSEGMENT_XD_SUPPORT} OR BUILD_WITH_SCANSEGMENT_XD_SUPPORT EQUAL ON)
     message(STATUS "Building sick_scan with SCANSEGMENT_XD support")
     add_compile_options(-DSCANSEGMENT_XD_SUPPORT=1)
     # msgpack11
@@ -341,7 +341,7 @@ else()
     message(STATUS "Building sick_scan without SCANSEGMENT_XD support")
 endif()
  
-if(ENABLE_EMULATOR EQUAL ON AND ROS_VERSION EQUAL 1)
+if((${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) AND ROS_VERSION EQUAL 1)
     # emulator messages
     add_message_files(
         DIRECTORY test/emulator/msg
@@ -728,7 +728,7 @@ endif(ROS_VERSION EQUAL 2)
 #
 # build and install sick_scan_emulator
 #
-if(ENABLE_EMULATOR EQUAL ON AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator not supported on native Windows
+if((${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator not supported on native Windows
     add_executable(sick_scan_emulator
         test/emulator/src/test_server.cpp
         test/emulator/src/test_server_thread.cpp
@@ -781,7 +781,7 @@ endif()
 #
 # build and install test_server
 #
-if(ENABLE_EMULATOR EQUAL ON)
+if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
     add_executable(test_server 
         tools/test_server/src/test_server.cpp 
         tools/test_server/src/test_server_cola_msg.cpp 
