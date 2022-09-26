@@ -109,6 +109,17 @@ namespace sick_scan
     
     m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, true); // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 
+    float range_min = 0, range_max = 100;
+    int range_filter_handling = 0;
+    rosDeclareParam(nh, "range_min", range_min);
+    rosGetParam(nh, "range_min", range_min);
+    rosDeclareParam(nh, "range_max", range_max);
+    rosGetParam(nh, "range_max", range_max);
+    rosDeclareParam(nh, "range_filter_handling", range_filter_handling);
+    rosGetParam(nh, "range_filter_handling", range_filter_handling);
+    m_range_filter = sick_scan::SickRangeFilter(range_min, range_max, (sick_scan::RangeFilterResultHandling)range_filter_handling);
+    ROS_INFO_STREAM("Range filter configuration for SickScanRadar: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
+
   }
 
 
@@ -1535,19 +1546,26 @@ namespace sick_scan
           cloud_.data.resize(cloud_.row_step * cloud_.height, 0);
           float *valPtr = (float *) (&(cloud_.data[0]));
           int off = 0;
+          size_t numFilteredTargets = 0;
           for (int i = 0; i < numTargets; i++)
           {
+            bool tgt_valid = true;
             switch (iLoop)
             {
               case 0:
-              {
-                float angle = deg2rad * rawTargetList[i].Azimuth();
-                valSingle[0] = rawTargetList[i].Dist() * cos(angle);
-                valSingle[1] = rawTargetList[i].Dist() * sin(angle);
-                valSingle[2] = 0.0;
-                valSingle[3] = rawTargetList[i].Vrad();
-                valSingle[4] = rawTargetList[i].Ampl();
-              }
+                {
+                  float angle = deg2rad * rawTargetList[i].Azimuth();
+                  float range = rawTargetList[i].Dist();
+                  tgt_valid = m_range_filter.apply(range);
+                  if (tgt_valid)
+                  {
+                    valSingle[0] = range * cos(angle);
+                    valSingle[1] = range * sin(angle);
+                    valSingle[2] = 0.0;
+                    valSingle[3] = rawTargetList[i].Vrad();
+                    valSingle[4] = rawTargetList[i].Ampl();
+                  }
+                }
                 break;
 
               case 1:
@@ -1561,7 +1579,9 @@ namespace sick_scan
                 valSingle[7] = objectList[i].ObjId();
                 break;
             }
-
+            if (!tgt_valid)
+              continue;
+            numFilteredTargets++;
             m_add_transform_xyz_rpy.applyTransform(valSingle[0], valSingle[1], valSingle[2]); // apply optional transform to (x, y, z)
 
             for (int j = 0; j < numChannels; j++)
@@ -1571,6 +1591,7 @@ namespace sick_scan
             }
 #ifndef ROSSIMU
 #if 1 // just for debugging
+            // TODO: check - publish each target?
             sick_scan::PointCloud2withEcho sick_cloud_msg(&cloud_, 1, 0);
             switch (iLoop)
             {
@@ -1593,6 +1614,10 @@ namespace sick_scan
               radarMsg_.targets = cloud_;
             }
           }
+          if (numFilteredTargets < numTargets)
+            m_range_filter.resizePointCloud(numFilteredTargets, cloud_); // targets dropped by range filter, resize pointcloud
+          // TODO: check - publish pointcloud here?
+
         }
       }
       // Publishing radar messages

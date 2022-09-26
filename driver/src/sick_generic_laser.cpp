@@ -93,7 +93,7 @@
 
 #define SICK_GENERIC_MAJOR_VER "2"
 #define SICK_GENERIC_MINOR_VER "8"
-#define SICK_GENERIC_PATCH_LEVEL "6"
+#define SICK_GENERIC_PATCH_LEVEL "7"
 
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
@@ -454,6 +454,14 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   {
     parser->set_range_max(range_max);
   }
+  int range_filter_handling = parser->get_range_filter_config();
+  rosDeclareParam(nhPriv, "range_filter_handling", range_filter_handling);
+  if (rosGetParam(nhPriv, "range_filter_handling", range_filter_handling))
+  {
+    parser->set_range_filter_config((sick_scan::RangeFilterResultHandling)range_filter_handling);
+  }
+  ROS_INFO_STREAM("Range filter configuration: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
+
   float time_increment = parser->get_time_increment();
   rosDeclareParam(nhPriv, "time_increment", time_increment);
   if (rosGetParam(nhPriv, "time_increment", time_increment))

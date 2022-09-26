@@ -77,6 +77,7 @@
 #include <mutex>
 
 #include <sick_scan/sick_cloud_transform.h>
+#include <sick_scan/sick_range_filter.h>
 #include <sick_scan/sick_scan_common_nw.h>
 #include <sick_scan/helper/angle_compensator.h>
 

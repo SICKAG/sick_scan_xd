@@ -1552,6 +1552,22 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
   }
 
   /*!
+   \brief Set range filter handling (range filter deactivated, drop, set to nan, etc.pp.)
+   */
+  void SickGenericParser::set_range_filter_config(RangeFilterResultHandling range_filter_handling)
+  {
+    m_range_filter_handling = range_filter_handling;
+  }
+  
+  /*!
+   \brief Get range filter handling (range filter deactivated, drop, set to nan, etc.pp.)
+   */
+  RangeFilterResultHandling SickGenericParser::get_range_filter_config(void) const
+  {
+    return m_range_filter_handling;
+  }
+
+  /*!
 \brief setting time increment between shots
 
 \param time increment

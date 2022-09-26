@@ -6,6 +6,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.8.7 - Range filter
+  - **Update** Range filter settings, #98 and #108
+
 ### v2.8.6 - Multiscan update
   - **Update** Multiscan update for 16-bit RSSI and modified SOPAS startup sequence
 
