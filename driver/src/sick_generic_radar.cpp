@@ -1589,9 +1589,15 @@ namespace sick_scan
               valPtr[off] = valSingle[j];
               off++;
             }
+            if (iLoop == RADAR_PROC_RAW_TARGET)
+            {
+              // is this a deep copy ???
+              radarMsg_.targets = cloud_;
+            }
+          }
+          if (numFilteredTargets < numTargets)
+            m_range_filter.resizePointCloud(numFilteredTargets, cloud_); // targets dropped by range filter, resize pointcloud
 #ifndef ROSSIMU
-#if 1 // just for debugging
-            // TODO: check - publish each target?
             sick_scan::PointCloud2withEcho sick_cloud_msg(&cloud_, 1, 0);
             switch (iLoop)
             {
@@ -1605,18 +1611,6 @@ namespace sick_scan
                 break;
             }
 #endif
-#else
-            // printf("PUBLISH:\n");
-#endif
-            if (iLoop == RADAR_PROC_RAW_TARGET)
-            {
-              // is this a deep copy ???
-              radarMsg_.targets = cloud_;
-            }
-          }
-          if (numFilteredTargets < numTargets)
-            m_range_filter.resizePointCloud(numFilteredTargets, cloud_); // targets dropped by range filter, resize pointcloud
-          // TODO: check - publish pointcloud here?
 
         }
       }
