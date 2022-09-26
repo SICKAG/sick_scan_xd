@@ -59,10 +59,10 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
 endif()
 
-if(BUILD_DEBUG_TARGET)
+if(BUILD_DEBUG_TARGET EQUAL ON)
         set(CMAKE_BUILD_TYPE Debug) #uncomment to activate debug mode for lib_sick as well
         set(CMAKE_ENABLE_EXPORTS 1) #uncomment to activate debug mode for lib_sick as well
-endif(BUILD_DEBUG_TARGET)
+endif()
 
 # Build sick_scan_xd library hiding all functions except for SickScanApi-functions, see https://gcc.gnu.org/wiki/Visibility for details
 if(BUILD_LIB_HIDE_FUNCTIONS AND NOT WIN32)
@@ -106,7 +106,7 @@ endif()
 # --- CUT ---
 
 # jsoncpp required for emulator and lidar3d
-if(ENABLE_EMULATOR)
+if(ENABLE_EMULATOR EQUAL ON)
     # emulator requires jsoncpp for pcapng and other files
     find_package(jsoncpp REQUIRED) # install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" (Linux) resp. "vcpkg install jsoncpp:x64-windows" (Windows) 
     if(WIN32)
@@ -206,7 +206,7 @@ if(ROS_VERSION EQUAL 2)
     find_package(visualization_msgs REQUIRED)
     find_package(tf2_ros REQUIRED)
     find_package(rosidl_default_generators REQUIRED)
-    if(ENABLE_EMULATOR)
+    if(ENABLE_EMULATOR EQUAL ON)
         set(ROSIDL_EMULATOR_FILES
             # emulator messages
             "test/emulator/msg/SickLocColaTelegramMsg.msg"
@@ -269,7 +269,7 @@ if(ROS_VERSION EQUAL 2)
             "test/emulator/srv/SickDevSetIMUActiveSrv.srv"
             "test/emulator/srv/SickDevIMUActiveSrv.srv"
         )
-    endif(ENABLE_EMULATOR)
+    endif()
     rosidl_generate_interfaces(${PROJECT_NAME}
         # message files
         "msg/Encoder.msg"
@@ -301,7 +301,7 @@ if(ROS_VERSION EQUAL 2)
 endif(ROS_VERSION EQUAL 2)
 
 # Support for LDMRS
-if(BUILD_WITH_LDMRS_SUPPORT)
+if(BUILD_WITH_LDMRS_SUPPORT EQUAL ON)
     message(STATUS "Building sick_scan with LDMRS support")
     add_compile_options(-DLDMRS_SUPPORT=1)
     find_package(SickLDMRS REQUIRED)
@@ -317,7 +317,7 @@ else()
 endif()
 
 # Support for MRS100/SCANSEGMENT_XD/MULTISCAN136
-if(BUILD_WITH_SCANSEGMENT_XD_SUPPORT)
+if(BUILD_WITH_SCANSEGMENT_XD_SUPPORT EQUAL ON)
     message(STATUS "Building sick_scan with SCANSEGMENT_XD support")
     add_compile_options(-DSCANSEGMENT_XD_SUPPORT=1)
     # msgpack11
@@ -338,10 +338,10 @@ if(BUILD_WITH_SCANSEGMENT_XD_SUPPORT)
     # sick_scansegment_xd sources
     file(GLOB SCANSEGMENT_XD_SOURCES driver/src/sick_scansegment_xd/*.cpp)
 else()
-    message(STATUS "Building sick_scan without lidar3d support")
+    message(STATUS "Building sick_scan without SCANSEGMENT_XD support")
 endif()
  
-if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
+if(ENABLE_EMULATOR EQUAL ON AND ROS_VERSION EQUAL 1)
     # emulator messages
     add_message_files(
         DIRECTORY test/emulator/msg
@@ -411,7 +411,7 @@ if(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
         SickDevSetIMUActiveSrv.srv
         SickDevIMUActiveSrv.srv
     ) 
-endif(ENABLE_EMULATOR AND ROS_VERSION EQUAL 1)
+endif()
 
 if(ROS_VERSION EQUAL 1)
     generate_messages(
@@ -427,7 +427,7 @@ if(ROS_VERSION EQUAL 1)
         LIBRARIES sick_scan_lib sick_scan_shared_lib
         INCLUDE_DIRS include
     )
-endif(ROS_VERSION EQUAL 1)
+endif()
 
 include_directories(include include/sick_scan_xd_api include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include/launchparser)
 if(ROS_VERSION EQUAL 0)
@@ -728,7 +728,7 @@ endif(ROS_VERSION EQUAL 2)
 #
 # build and install sick_scan_emulator
 #
-if(ENABLE_EMULATOR AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator not supported on native Windows
+if(ENABLE_EMULATOR EQUAL ON AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator not supported on native Windows
     add_executable(sick_scan_emulator
         test/emulator/src/test_server.cpp
         test/emulator/src/test_server_thread.cpp
@@ -781,7 +781,7 @@ endif()
 #
 # build and install test_server
 #
-if(ENABLE_EMULATOR)
+if(ENABLE_EMULATOR EQUAL ON)
     add_executable(test_server 
         tools/test_server/src/test_server.cpp 
         tools/test_server/src/test_server_cola_msg.cpp 
