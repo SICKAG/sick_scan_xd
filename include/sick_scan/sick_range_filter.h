@@ -151,7 +151,7 @@ namespace sick_scan
             resized_pointcloud.fields = cloud.fields;
             resized_pointcloud.row_step = resized_pointcloud.point_step * resized_pointcloud.width;
             resized_pointcloud.data.resize(resized_pointcloud.row_step * resized_pointcloud.height, 0);
-            for(int n = 0; n < resized_pointcloud.height; n++) // copy pointcloud data to flat array
+            for(size_t n = 0; n < resized_pointcloud.height; n++) // copy pointcloud data to flat array
             {
                 memcpy(&resized_pointcloud.data[n * resized_pointcloud.row_step], &cloud.data[n * cloud.row_step], resized_pointcloud.row_step);
             }

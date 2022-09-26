@@ -4541,7 +4541,7 @@ namespace sick_scan
                   }
                   angle += msg.angle_increment;
                 }
-                rangeNumPointcloudAllEchos = std::max(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
+                rangeNumPointcloudAllEchos = MAX(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
 
                 // Publish
                 //static int cnt = 0;
