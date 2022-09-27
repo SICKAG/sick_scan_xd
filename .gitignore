@@ -97,6 +97,7 @@ test/scripts/make_win64_vs2022.cmd
 test/python/msgpack_output/
 test/python/common/__pycache__/
 test/python/sick_scan_xd_api/__pycache__/
+test/python/common/
 python/api/__pycache__/
 
 doc/backlog.md

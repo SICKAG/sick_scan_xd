@@ -323,11 +323,6 @@ public:
 			uint16_t u16_bytes;
 		};
 
-		// std::cout << std::endl
-		// 	<< "msgpack.data = " << (msgpack.data ? printMsgPack(*msgpack.data) : "NULL") << std::endl
-		// 	<< "msgpack.elemSz = " << (msgpack.elemSz ? printMsgPack(*msgpack.elemSz) : "NULL") << std::endl
-		// 	<< "msgpack.elemTypes = " << (msgpack.elemTypes ? printMsgPack(*msgpack.elemTypes) : "NULL") << std::endl
-		// 	<< "msgpack.endian = " << (msgpack.endian ? printMsgPack(*msgpack.endian) : "NULL") << std::endl;
 		assert(msgpack.data && msgpack.elemSz && msgpack.elemTypes && msgpack.endian
 			&& msgpack.elemSz->is_number()
 			&& msgpack.data->binary_items().size() > 0
@@ -339,7 +334,7 @@ public:
 		const msgpack11::MsgPack::binary& binary_items = msgpack.data->binary_items();
 		int elem_size = msgpack.elemSz->int_value();
 		int binary_size = (int)(binary_items.size());
-		data.reserve(binary_size / elem_size);
+		m_data.reserve(binary_size / elem_size);
 		if (msgpack.elemSz->int_value() == 4 && msgpack.elemTypes->int_value() == MsgpackKeyToInt_float32) // Decode 4 bytes as float
 		{
 			FLOAT_4BYTE_UNION elem_buffer;
@@ -348,7 +343,7 @@ public:
 				for (int n = 0; n < binary_size; n += 4)
 				{
 					elem_buffer.u32_bytes = *((uint32_t*)(&binary_items[n]));
-					data.push_back(elem_buffer.value);
+					m_data.push_back(elem_buffer.value);
 				}
 			}
 			else // src and dst have different endianess: reorder 4 bytes and interprete as float
@@ -359,7 +354,7 @@ public:
 					elem_buffer.u8_bytes[2] = binary_items[n + 1];
 					elem_buffer.u8_bytes[1] = binary_items[n + 2];
 					elem_buffer.u8_bytes[0] = binary_items[n + 3];
-					data.push_back(elem_buffer.value);
+					m_data.push_back(elem_buffer.value);
 				}
 			}
 		}
@@ -371,7 +366,7 @@ public:
 				for (int n = 0; n < binary_size; n += 2)
 				{
 					elem_buffer.u16_bytes = *((uint16_t*)(&binary_items[n]));
-					data.push_back((float)elem_buffer.u16_bytes);
+					m_data.push_back((float)elem_buffer.u16_bytes);
 				}
 			}
 			else // src and dst have different endianess: reorder 2 bytes (uint16) and convert to float
@@ -380,7 +375,7 @@ public:
 				{
 					elem_buffer.u8_bytes[1] = binary_items[n + 0];
 					elem_buffer.u8_bytes[0] = binary_items[n + 1];
-					data.push_back((float)elem_buffer.u16_bytes);
+					m_data.push_back((float)elem_buffer.u16_bytes);
 				}
 			}
 		}
@@ -396,15 +391,20 @@ public:
 	std::string print(void)
 	{
 		std::stringstream s;
-		if (!data.empty())
+		if (!m_data.empty())
 		{
-			s << data[0];
-			for(int n = 1; n < data.size(); n++)
-				s << "," << data[n];
+			s << m_data[0];
+			for(int n = 1; n < m_data.size(); n++)
+				s << "," << m_data[n];
 		}
 		return s.str();
 	}
-	std::vector<float> data;
+	std::vector<float>& data(void)
+	{
+		return m_data;
+	}
+protected:
+	std::vector<float> m_data;
 };
 
 /*
@@ -719,7 +719,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				distValues[n] = MsgPackFloat32Data(distValuesDataMsg[n], dstIsBigEndian);
 			for (int n = 0; n < rssiValuesDataMsg.size(); n++)
 				rssiValues[n] = MsgPackFloat32Data(rssiValuesDataMsg[n], dstIsBigEndian);
-			assert(channelPhi.data.size() == 1 && channelTheta.data.size() > 0 && distValues.size() == iEchoCount && rssiValues.size() == iEchoCount);
+			assert(channelPhi.data().size() == 1 && channelTheta.data().size() > 0 && distValues.size() == iEchoCount && rssiValues.size() == iEchoCount);
 
 			// Convert to cartesian coordinates
 			result.scandata.push_back(sick_scansegment_xd::MsgPackParserOutput::Scangroup());
@@ -731,16 +731,16 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			iEchoCount = std::min((int)rssiValuesDataMsg.size(), iEchoCount);
 			std::vector<sick_scansegment_xd::MsgPackParserOutput::Scanline>& groupData = result.scandata.back().scanlines;
 			groupData.reserve(iEchoCount);
-			int iPointCount = (int)channelTheta.data.size();
+			int iPointCount = (int)channelTheta.data().size();
 			// Precompute sin and cos values of azimuth and elevation
-			float elevation = -channelPhi.data[0]; // elevation must be negated, a positive pitch-angle yields negative z-coordinates
+			float elevation = -channelPhi.data()[0]; // elevation must be negated, a positive pitch-angle yields negative z-coordinates
 			float cos_elevation = std::cos(elevation);
 			float sin_elevation = std::sin(elevation);
 			std::vector<float> cos_azimuth(iPointCount);
 			std::vector<float> sin_azimuth(iPointCount);
 			for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 			{
-				float azimuth = channelTheta.data[pointIdx] + add_transform_xyz_rpy.azimuthOffset();
+				float azimuth = channelTheta.data()[pointIdx] + add_transform_xyz_rpy.azimuthOffset();
 				cos_azimuth[pointIdx] = std::cos(azimuth);
 				sin_azimuth[pointIdx] = std::sin(azimuth);
                 // if (pointIdx > 0)
@@ -748,21 +748,21 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			}
 			for (int echoIdx = 0; echoIdx < iEchoCount; echoIdx++)
 			{
-				assert(iPointCount == channelTheta.data.size() && iPointCount == distValues[echoIdx].data.size() && iPointCount == rssiValues[echoIdx].data.size());
+				assert(iPointCount == channelTheta.data().size() && iPointCount == distValues[echoIdx].data().size() && iPointCount == rssiValues[echoIdx].data().size());
 				groupData.push_back(sick_scansegment_xd::MsgPackParserOutput::Scanline());
 				sick_scansegment_xd::MsgPackParserOutput::Scanline& scanline = groupData.back();
 				scanline.reserve(iPointCount);
 				for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 				{
-					float dist = 0.001f * distValues[echoIdx].data[pointIdx]; // convert distance to meter
+					float dist = 0.001f * distValues[echoIdx].data()[pointIdx]; // convert distance to meter
                     if (range_filter.apply(dist)) // otherwise point dropped by range filter
                     {
-						float intensity = rssiValues[echoIdx].data[pointIdx];
+						float intensity = rssiValues[echoIdx].data()[pointIdx];
 						float x = dist * cos_azimuth[pointIdx] * cos_elevation;
 						float y = dist * sin_azimuth[pointIdx] * cos_elevation;
 						float z = dist * sin_elevation;
 						add_transform_xyz_rpy.applyTransform(x, y, z);
-						float azimuth = channelTheta.data[pointIdx];
+    				float azimuth = channelTheta.data()[pointIdx];
 						float azimuth_norm = normalizeAngle(azimuth);
 						if (msgpack_validator_enabled)
 						{
@@ -778,14 +778,14 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			if (verbose)
 			{
 				ROS_INFO_STREAM((groupIdx + 1) << ". group: EchoCount = " << iEchoCount);
-				ROS_INFO_STREAM((groupIdx + 1) << ". group: phi = [" << channelPhi.print() << "], " << channelPhi.data.size() << " element");
-				ROS_INFO_STREAM((groupIdx + 1) << ". group: theta = [" << channelTheta.print() << "], " << channelTheta.data.size() << " elements");
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: phi = [" << channelPhi.print() << "], " << channelPhi.data().size() << " element");
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: theta = [" << channelTheta.print() << "], " << channelTheta.data().size() << " elements");
 				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStart = " << u32TimestampStart << " = " << Timestamp(u32TimestampStart_sec, u32TimestampStart_nsec));
 				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStop = " << u32TimestampStop << " = " << Timestamp(u32TimestampStop_sec, u32TimestampStop_nsec));
 				for (int n = 0; n < distValues.size(); n++)
-					ROS_INFO_STREAM((groupIdx + 1) << ". group: dist[" << n << "] = [" << distValues[n].print() << "], " << distValues[n].data.size() << " elements");
+					ROS_INFO_STREAM((groupIdx + 1) << ". group: dist[" << n << "] = [" << distValues[n].print() << "], " << distValues[n].data().size() << " elements");
 				for (int n = 0; n < rssiValues.size(); n++)
-					ROS_INFO_STREAM((groupIdx + 1) << ". group: rssi[" << n << "] = [" << rssiValues[n].print() << "], " << rssiValues[n].data.size() << " elements");
+					ROS_INFO_STREAM((groupIdx + 1) << ". group: rssi[" << n << "] = [" << rssiValues[n].print() << "], " << rssiValues[n].data().size() << " elements");
 				// std::cout << (groupIdx + 1) << ". group: ChannelPhiMsg.data = " << printMsgPack(*channelPhiMsgElement.data) << std::endl;
 				// std::cout << (groupIdx + 1) << ". group: ChannelPhiMsg.elemSz = " << printMsgPack(*channelPhiMsgElement.elemSz) << std::endl;
 				// std::cout << (groupIdx + 1) << ". group: ChannelPhiMsg.elemType = " << printMsgPack(*channelPhiMsgElement.elemTypes) << std::endl;
