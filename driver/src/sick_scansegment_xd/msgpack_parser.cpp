@@ -302,13 +302,13 @@ public:
 };
 
 /*
- * @brief class MsgPackFloat32Data decodes a MsgPackElement into an array of float data.
+ * @brief class MsgPackToFloat32VectorConverter decodes a MsgPackElement into an array of float data.
  */
-class MsgPackFloat32Data
+class MsgPackToFloat32VectorConverter
 {
 public:
-	MsgPackFloat32Data() {}
-	MsgPackFloat32Data(const MsgPackElement& msgpack, bool dstIsBigEndian)
+	MsgPackToFloat32VectorConverter() {}
+	MsgPackToFloat32VectorConverter(const MsgPackElement& msgpack, bool dstIsBigEndian)
 	{
 		union FLOAT_4BYTE_UNION
 		{
@@ -381,7 +381,7 @@ public:
 		}
 		else
 		{
-			std::cerr << "## ERROR MsgPackFloat32Data: invalid or unsupported elemSz or elemTypes:" << std::endl
+			std::cerr << "## ERROR MsgPackToFloat32VectorConverter: invalid or unsupported elemSz or elemTypes:" << std::endl
 				<< "    msgpack.data = " << (msgpack.data ? printMsgPack(*msgpack.data) : "NULL") << std::endl
 				<< "    msgpack.elemSz = " << (msgpack.elemSz ? printMsgPack(*msgpack.elemSz) : "NULL") << std::endl
 				<< "    msgpack.elemTypes = " << (msgpack.elemTypes ? printMsgPack(*msgpack.elemTypes) : "NULL") << std::endl
@@ -711,14 +711,14 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 
 			// Convert all data to float values
 			int iEchoCount = echoCountMsg->second.int32_value();
-			MsgPackFloat32Data channelPhi(channelPhiMsgElement, dstIsBigEndian);
-			MsgPackFloat32Data channelTheta(channelThetaMsgElement, dstIsBigEndian);
-			std::vector<MsgPackFloat32Data> distValues(distValuesDataMsg.size());
-			std::vector<MsgPackFloat32Data> rssiValues(rssiValuesDataMsg.size());
+			MsgPackToFloat32VectorConverter channelPhi(channelPhiMsgElement, dstIsBigEndian);
+			MsgPackToFloat32VectorConverter channelTheta(channelThetaMsgElement, dstIsBigEndian);
+			std::vector<MsgPackToFloat32VectorConverter> distValues(distValuesDataMsg.size());
+			std::vector<MsgPackToFloat32VectorConverter> rssiValues(rssiValuesDataMsg.size());
 			for (int n = 0; n < distValuesDataMsg.size(); n++)
-				distValues[n] = MsgPackFloat32Data(distValuesDataMsg[n], dstIsBigEndian);
+				distValues[n] = MsgPackToFloat32VectorConverter(distValuesDataMsg[n], dstIsBigEndian);
 			for (int n = 0; n < rssiValuesDataMsg.size(); n++)
-				rssiValues[n] = MsgPackFloat32Data(rssiValuesDataMsg[n], dstIsBigEndian);
+				rssiValues[n] = MsgPackToFloat32VectorConverter(rssiValuesDataMsg[n], dstIsBigEndian);
 			assert(channelPhi.data().size() == 1 && channelTheta.data().size() > 0 && distValues.size() == iEchoCount && rssiValues.size() == iEchoCount);
 
 			// Convert to cartesian coordinates
