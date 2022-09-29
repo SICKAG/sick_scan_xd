@@ -17,7 +17,11 @@ def generate_launch_description():
     for arg in sys.argv:
         if len(arg.split(":=")) == 2:
             node_arguments.append(arg)
-    
+    node_arguments.append("publish_topic:=/cloud")
+    node_arguments.append("publish_topic_all_segments:=/cloud_360")
+    node_arguments.append("publish_frame_id:=world")
+    node_arguments.append("add_transform_xyz_rpy:=0,0,0,0,0,0")
+
     ROS_DISTRO = os.environ.get('ROS_DISTRO') # i.e. 'eloquent', 'foxy', etc.
     if ROS_DISTRO[0] <= "e": # ROS versions eloquent and earlier require "node_executable", ROS foxy and later use "executable"
         node = Node(

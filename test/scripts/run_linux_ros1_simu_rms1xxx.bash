@@ -24,6 +24,8 @@ sleep 1
 # Note: Due to a bug in opengl 3 in combination with rviz and VMware, opengl 2 should be used by rviz option --opengl 210
 # See https://github.com/ros-visualization/rviz/issues/1444 and https://github.com/ros-visualization/rviz/issues/1508 for further details
 
+#rosrun rviz rviz -d ./src/sick_scan_xd/launch/rviz/radar_rawtarget_vrad.rviz --opengl 210 &
+#rosrun rviz rviz -d ./src/sick_scan_xd/launch/rviz/radar_rawtarget_amplitude.rviz --opengl 210 &
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_rms1xxx.rviz --opengl 210 &
 sleep 1
 

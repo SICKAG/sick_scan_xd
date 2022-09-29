@@ -295,13 +295,13 @@ namespace sick_scansegment_xd
          * @brief Returns the tokenized integer of a msgpack key.
          * Example: MsgpackKeyToInt("data") returns 0x11.
          */
-        static int MsgpackKeyToInt(const std::string& key);
+        // static int MsgpackKeyToInt(const std::string& key); // replaced by MsgpackKeyToInt preprocessor defines for performance 
 
         /*
          * @brief Returns the name of a tokenized msgpack key.
          * Example: MsgpackKeyToStr(0x11) returns "data".
          */
-        static std::string MsgpackKeyToStr(int key);
+        // static std::string MsgpackKeyToStr(int key);
 
     protected:
 

@@ -12,8 +12,8 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    ```
    mkdir ./src
    pushd ./src
-   git clone https://github.com/SICKAG/libsick_ldmrs.git # only required for LDMRS sensors
-   git clone https://github.com/SICKAG/msgpack11.git     # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/libsick_ldmrs.git
+   git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
@@ -33,7 +33,7 @@ Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not nee
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
    ```
-Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: msgpack11 is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
@@ -43,7 +43,7 @@ cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build w
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
-Note: Depeneding on the ROS-2 distribution, package diagnostic_updater might not be found (compiler error: `diagnostic_updater.hpp not found`). In this case package diagnostic_updater has to be installed by
+Note: Depending on the ROS-2 distribution, package diagnostic_updater might not be found (compiler error: `diagnostic_updater.hpp not found`). In this case package diagnostic_updater has to be installed by
 ```
 sudo apt install ros-${ROS_DISTRO}-diagnostic-updater
 sudo apt install ros-${ROS_DISTRO}-diagnostic-msgs
@@ -74,7 +74,7 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
    ```
    mkdir ./src
    pushd ./src
-   git clone https://github.com/SICKAG/msgpack11.git     # only required for Multiscan136 (sick_scansegment_xd)
+   git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
@@ -88,7 +88,7 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
 
 Note: LDMRS sensors are currently not supported on Windows.
 
-Note: msgpack is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: msgpack11 is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```

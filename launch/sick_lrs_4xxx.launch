@@ -55,11 +55,11 @@
         <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
 
         <!-- Supported by sick_generic_caller version 2.7.3 and above: -->
-        <param name="lfp_meanfilter" type="int" value="-1" />              <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->
-        <param name="lfp_medianfilter" type="int" value="-1" />            <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_medianfilter<0: do not apply, lfp_medianfilter==0: deactivate LFPmedianfilter, lfp_medianfilter==1: activate LFPmedianfilter -->
+        <param name="lfp_meanfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->
+        <param name="lfp_medianfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_medianfilter<0: do not apply, lfp_medianfilter==0: deactivate LFPmedianfilter, lfp_medianfilter==1: activate LFPmedianfilter -->
         <param name="lmd_scandatascalefactor" type="double" value="0.0" /> <!-- LRS4xxx: lmd_scandatascalefactor==0: do not apply, lmd_scandatascalefactor>0: set distance value in mm per digit -->
         <!-- Supported by sick_generic_caller version 2.8.4 and above: -->
-        <param name="glare_detection_sens" type="int" value="-1" />        <!-- Glare Detection Sensitivity (LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter -->
+        <param name="glare_detection_sens" type="int" value="-1" /> <!-- Glare Detection Sensitivity (LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter -->
 
     </node>
 </launch>

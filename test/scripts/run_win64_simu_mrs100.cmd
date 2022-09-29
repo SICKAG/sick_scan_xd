@@ -6,14 +6,32 @@ rem set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python36_64;%Pro
 rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 
 REM 
-REM Start html view
+REM Convert pcapng-files to msgpack and json
+REM pip install msgpack
 REM 
-
-pushd ..\..\demo
-del /f/q scan.jpg scan.csv
-start "ImageViewer" image_viewer.html
-@timeout /t 1
-popd
+REM pushd ..\python
+REM python --version
+REM REM 
+REM REM Convert 20220915_mrs100_msgpack_output.pcapng to msgpack/json (16-bit RSSI record)
+REM REM 
+REM del /f/q mrs100_dump*.msgpack
+REM del /f/q mrs100_dump*.msgpack.hex
+REM start python mrs100_receiver.py
+REM python mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --verbose=1
+REM move /y .\mrs100_dump_23644.msgpack     20220915_mrs100_msgpack_output.msgpack
+REM move /y .\mrs100_dump_23644.msgpack.hex 20220915_mrs100_msgpack_output.msgpack.hex 
+REM REM 
+REM REM Convert 20210929_mrs100_token_udp.pcapng to msgpack/json (8-bit RSSI record)
+REM REM 
+REM del /f/q mrs100_dump*.msgpack
+REM del /f/q mrs100_dump*.msgpack.hex
+REM start python mrs100_receiver.py
+REM python mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20210929_mrs100_token_udp.pcapng --verbose=0
+REM move /y .\mrs100_dump_12472.msgpack     20210929_mrs100_token_udp.msgpack
+REM move /y .\mrs100_dump_12472.msgpack.hex 20210929_mrs100_token_udp.msgpack.hex 
+REM del /f/q mrs100_dump*.msgpack
+REM del /f/q mrs100_dump*.msgpack.hex
+REM popd
 
 REM 
 REM Start sopas test server
@@ -32,10 +50,20 @@ start "sick_generic_caller" cmd /k .\Debug\sick_generic_caller.exe ../launch/sic
 @timeout /t 3
 
 REM 
-REM Run pcapng player
+REM Run pcapng player:
+REM   20220915_mrs100_msgpack_output.pcapng: 16-bit RSSI
+REM   20210929_mrs100_token_udp.pcapng and 20210929_mrs100_cola-a-start-stop-scandata-output.pcapng: 8-bit RSSI
 REM 
 
+@echo.
+@echo Playing pcapng-files to emulate MRS100. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...
+@echo.
+rem python ../test/python/mrs100_pcap_player.py --pcap_filename=../test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --verbose=1
+rem python ../test/python/mrs100_pcap_player.py --pcap_filename=../test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --send_rate=240
+python ../test/python/mrs100_pcap_player.py --pcap_filename=../test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
+@timeout /t 3
 python ../test/python/mrs100_pcap_player.py --pcap_filename=../test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115
+@timeout /t 3
 python ../test/python/mrs100_pcap_player.py --pcap_filename=../test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
 @timeout /t 3
 

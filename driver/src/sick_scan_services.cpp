@@ -346,7 +346,7 @@ bool sick_scan::SickScanServices::sendSopasCmdCheckResponse(const std::string& s
 
 #if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
 /*!
-* Sends the multiScan136 start commands "sWN ScanDataFormatSettings", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
+* Sends the multiScan136 start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
 */
 bool sick_scan::SickScanServices::sendMRS100StartCmd(const std::string& hostname, int port)
 {
@@ -377,9 +377,11 @@ bool sick_scan::SickScanServices::sendMRS100StartCmd(const std::string& hostname
     return false;
   }
 
-  if (!sendSopasCmdCheckResponse("sWN ScanDataFormatSettings 1 1", "sWA ScanDataFormatSettings")) // set scan data output format to MSGPACK
+  // if (!sendSopasCmdCheckResponse("sWN ScanDataFormatSettings 1 1", "sWA ScanDataFormatSettings")) // set scan data output format to MSGPACK
+  if (!sendSopasCmdCheckResponse("sWN ScanDataFormat 1", "sWA ScanDataFormat") // set scan data output format to MSGPACK
+   || !sendSopasCmdCheckResponse("sWN ScanDataPreformatting 1", "sWA ScanDataPreformatting"))
   {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataFormatSettings 1 1\") failed.");
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataFormat 1\") and/or sendSopasCmdCheckResponse(\"sWN ScanDataPreformatting 1\") failed.");
     return false;
   }
   if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 1", "sWA ScanDataEnable")) // enable scan data output

@@ -5,17 +5,8 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Status1
-        - /Axes1
         - /PointCloud21
-        - /Pose1
-        - /Marker1
         - /Marker1/Namespaces1
-        - /Image1
-        - /Grid1
-        - /Marker2
-        - /Image2
-        - /Image3
       Splitter Ratio: 0.5
     Tree Height: 391
   - Class: rviz/Views
@@ -39,6 +30,7 @@ Visualization Manager:
       Name: Axes
       Radius: 0.10000000149011612
       Reference Frame: <Fixed Frame>
+      Show Trail: false
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: false
@@ -47,7 +39,7 @@ Visualization Manager:
         Min Value: -10
         Value: true
       Axis: Z
-      Channel Name: vrad
+      Channel Name: amplitude
       Class: rviz/PointCloud2
       Color: 255; 255; 255
       Color Transformer: Intensity
@@ -55,9 +47,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 24
+      Max Intensity: 20
       Min Color: 0; 0; 0
-      Min Intensity: 18
+      Min Intensity: 0
       Name: PointCloud2
       Position Transformer: XYZ
       Queue Size: 10
@@ -198,11 +190,11 @@ Window Geometry:
   Hide Right Dock: false
   Image:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000001000000000000026f00000336fc0200000005fb000000100044006900730070006c006100790073010000003d000001c4000000c900fffffffc000002070000016c000000a400fffffffa000000010100000002fb0000000a0049006d0061006700650000000000ffffffff0000005e00fffffffb0000000a0056006900650077007301000000000000026f0000010000fffffffb0000000a0049006d00610067006502000003c70000003d000003b9000001b6fb0000001200530065006c0065006300740069006f006e0000000273000000840000005c00fffffffb0000000a0049006d00610067006502000003cc0000020f000003b400000229000002f50000033600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000001000000000000026f00000336fc0200000005fb000000100044006900730070006c006100790073010000003d000001c4000000c900fffffffc000002070000016c000000a400fffffffa000000010100000002fb0000000a0049006d0061006700650000000000ffffffff0000005e00fffffffb0000000a0056006900650077007301000000000000026f0000010000fffffffb0000000a0049006d00610067006502000003c70000003d00000280000001e0fb0000001200530065006c0065006300740069006f006e0000000273000000840000005c00fffffffb0000000a0049006d00610067006502000003cc0000020f00000280000001e0000002f50000033600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Views:
     collapsed: false
   Width: 1386
-  X: 312
-  Y: 78
+  X: 892
+  Y: 311

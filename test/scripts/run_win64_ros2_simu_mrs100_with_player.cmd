@@ -30,7 +30,9 @@ REM
 REM Start sick_scan on ROS-2 Windows
 REM 
 
-start "ros2 sick_generic_caller" ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1
+rem start "ros2 sick_generic_caller" ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_topic:=/cloud publish_topic_all_segments:=/cloud_360 publish_frame_id:=world add_transform_xyz_rpy:=0,0,0,0,0,0
+start "ros2 sick_scan" ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1
+
 @timeout /t 3
 
 REM 
@@ -38,6 +40,11 @@ REM Run pcapng player
 REM 
 
 rem set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python39_64;%PATH%
+@echo.
+@echo Playing pcapng-files to emulate MRS100. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...
+@echo.
+rem python ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --verbose=1
+python ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
 python ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115
 python ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
 @timeout /t 3

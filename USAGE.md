@@ -122,9 +122,9 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
 - For Multiscan136 (sick_scansegement_xd):
     * Linux native:   `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * Linux ROS-1:    `roslaunch sick_scan sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-2:    `ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * Windows native: `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows ROS-2:  `ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * `hostname` is the ip-address of the lidar, `udp_receiver_ip` is the ip-address of the receiver (i.e. the ip of the computer running sick_generic_caller).
 
 Common commandline options are
@@ -133,7 +133,7 @@ Common commandline options are
 
 Further (common and scanner specific) options can be set via launchfile, see [Common parameters](#common-parameters) and configure the settings in the launchfile corresponding to the scanner type.
 
-Note: After modifying a launch-file, it has to be installed by running `catkin_make_isolated --install --cmake-args -DROS_VERSION=1`
+Note: After modifying a launch-file, it has to be installed by running `catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -Wno-dev`
 to be located and used by `roslaunch`.
 
 On ROS-2 you can launch sick_generic_caller by python-launchfiles, too. Use

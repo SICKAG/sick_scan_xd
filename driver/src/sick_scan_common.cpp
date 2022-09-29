@@ -1628,14 +1628,12 @@ namespace sick_scan
         else
           sopasCmdVec[CMD_SET_LFPMEANFILTER] = "\x02sWN LFPmeanfilter 1 " + toString(lfp_meanfilter_arg) + " 0\x03";
         sopasCmdChain.push_back(CMD_SET_LFPMEANFILTER);
-        // ROS_INFO_STREAM("lfp_meanfilter set to " << lfp_meanfilter_arg << ", sopas command is \"" << sopasCmdVec[CMD_SET_LFPMEANFILTER] << "\"");
       }
       if (lfp_medianfilter_arg >= 0)
       {
         // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
         sopasCmdVec[CMD_SET_LFPMEDIANFILTER] = "\x02sWN LFPmedianfilter "+ toString((lfp_medianfilter_arg > 0) ? 1 : 0) + " 3\x03";
         sopasCmdChain.push_back(CMD_SET_LFPMEDIANFILTER);
-        // ROS_INFO_STREAM("lfp_medianfilter set to " << lfp_medianfilter_arg << ", sopas command is \"" << sopasCmdVec[CMD_SET_LFPMEDIANFILTER] << "\"");
       }
     }
     // Support for "sWN GlareDetectionSens" (Glare Detection Sensitivity, LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter
@@ -1648,7 +1646,6 @@ namespace sick_scan
       {
         sopasCmdVec[CMD_SET_GLARE_DETECTION_SENS] = "\x02sWN GlareDetectionSens " + toString(glare_detection_sens_arg) + "\x03";
         sopasCmdChain.push_back(CMD_SET_GLARE_DETECTION_SENS);
-        // ROS_INFO_STREAM("glare_detection_sens set to " << glare_detection_sens_arg << ", sopas command is \"" << sopasCmdVec[CMD_SET_GLARE_DETECTION_SENS] << "\"");
       }
     }
     // Support for "sWN LMDscandatascalefactor" (LRS4xxx)
@@ -1663,7 +1660,6 @@ namespace sick_scan
         std::string scalefactor_hex = sick_scan::SickScanServices::convertFloatToHexString((float)lmd_scandatascalefactor_arg, true);
         sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor " + scalefactor_hex + "\x03";
         sopasCmdChain.push_back(CMD_SET_LMDSCANDATASCALEFACTOR);
-        // ROS_INFO_STREAM("lmd_scandatascalefactor set to " << lmd_scandatascalefactor_arg << ", sopas command is \"" << sopasCmdMaskVec[CMD_SET_LMDSCANDATASCALEFACTOR] << "\"");
       }
     }
 

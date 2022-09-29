@@ -23,7 +23,9 @@ REM
 REM Start sick_scan on ROS-2 Windows
 REM 
 
-ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1
+rem ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_topic:=/cloud publish_topic_all_segments:=/cloud_360 publish_frame_id:=world add_transform_xyz_rpy:=0,0,0,0,0,0
+ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1
+
 popd
 @pause
 

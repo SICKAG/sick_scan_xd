@@ -141,7 +141,7 @@ namespace sick_scan
 
 #if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
     /*!
-     * Sends the MRS100 start commands "sWN ScanDataFormatSettings", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
+     * Sends the MRS100 start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
      * @param[in] hostname IP address of multiScan136, default 192.168.0.1
      * @param[in] port IP port of multiScan136, default 2115
      */
