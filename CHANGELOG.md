@@ -6,6 +6,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.8.8 - RMS1xxx Cola-ASCII support
+  - **Update** Update for RMS1xxx Cola-ASCII support
+
 ## Released ##
 
 ### v2.8.7 - Range filter
