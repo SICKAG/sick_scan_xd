@@ -162,7 +162,7 @@ namespace sick_scan
     int32_t i32_val[1];
   };
   
-  // Convert a hex string to 32, 16 or 8 bit signed integer
+  // Convert a hex string to 32, 16 or 8 bit signed integer (2er compliment)
   static int getHexValue_32_16_8_signed(std::string str)
   {
     INT_4BYTE_UNION conv;
@@ -183,7 +183,7 @@ namespace sick_scan
     return 0;
   }
 
-  // Convert a hex string to 32 or 16 bit signed integer
+  // Convert a hex string to 32 or 16 bit signed integer (2er compliment)
   static int getHexValue_32_16_signed(std::string str)
   {
     INT_4BYTE_UNION conv;
@@ -204,27 +204,33 @@ namespace sick_scan
 
   int getHexValue(std::string str)
   {
-    // TODO: switch to getHexValue_32_16_signed after clarification, see issue #65 (ASCII support RMS 1xxx)
-    // return getHexValue_32_16_signed(str);
+    // Hexvalues < 0x8000 are always positiv (unsigned), but hexvalues >= 0x8000 are interpreted as signed values (2er compliment)
+    return getHexValue_32_16_signed(str);
     // return getHexValue_32_16_8_signed(str);
-    return getHexValue_32_signed(str);
+    // return getHexValue_32_signed(str);
   }
 
-  /* Basic unittest for hex string to signed integer conversion (8, 16 or 32 bit signed values).
+#if 0 // Basic unittests, disabled by default
+  // Basic unittest for hex string to signed integer conversion (8, 16 or 32 bit signed values in 2er compliment).
   static void unittestHex2Int_32_16_8_signed(const char* hexstr, int value)
   {
     int val = getHexValue_32_16_8_signed(hexstr);
     if (val == value)
-    {
       std::cout << hexstr << " = " << val << " OK" << std::endl;
-    }
     else
-    {
       std::cerr << "## ERROR: " << hexstr << " = " << val << ", expected " << value << std::endl;
-    }
-  } */
-
-  /* Some basic unittests for hex string to signed integer conversion (8, 16 or 32 bit signed values). See online converter e.g. https://www.rapidtables.com/convert/number/hex-to-decimal.html
+  }
+  // Basic unittest for hex string to signed integer conversion (16 or 32 bit signed values in 2er compliment).
+  static void unittestHex2Int_32_16_signed(const char* hexstr, int value)
+  {
+    int val = getHexValue_32_16_signed(hexstr);
+    if (val == value)
+      std::cout << hexstr << " = " << val << " OK" << std::endl;
+    else
+      std::cerr << "## ERROR: " << hexstr << " = " << val << ", expected " << value << std::endl;
+  }
+  // Some basic unittests for hex string to signed integer conversion (8, 16 or 32 bit signed values in 2er compliment). 
+  // See online converter e.g. https://www.rapidtables.com/convert/number/hex-to-decimal.html
   static void unittestsHex2Int()
   {
     unittestHex2Int_32_16_8_signed("B", 11);
@@ -244,7 +250,27 @@ namespace sick_scan
     unittestHex2Int_32_16_8_signed("7AAB1235", 2058031669);
     unittestHex2Int_32_16_8_signed("8AAB1235", -1968500171);
     unittestHex2Int_32_16_8_signed("AAAB1235", -1431629259);
-  } */
+    unittestHex2Int_32_16_signed("B", 11);
+    unittestHex2Int_32_16_signed("0B", 11);
+    unittestHex2Int_32_16_signed("7B", 123);
+    unittestHex2Int_32_16_signed("A1", 161);
+    unittestHex2Int_32_16_signed("123", 291);
+    unittestHex2Int_32_16_signed("0123", 291);
+    unittestHex2Int_32_16_signed("7123", 28963);
+    unittestHex2Int_32_16_signed("7FFF", 32767);
+    unittestHex2Int_32_16_signed("8000", -32768);
+    unittestHex2Int_32_16_signed("9123", -28381);
+    unittestHex2Int_32_16_signed("71235", 463413);
+    unittestHex2Int_32_16_signed("A1235", 660021);
+    unittestHex2Int_32_16_signed("AB1235", 11211317);
+    unittestHex2Int_32_16_signed("7AB1235", 128651829);
+    unittestHex2Int_32_16_signed("AAB1235", 178983477);
+    unittestHex2Int_32_16_signed("1AAB1235", 447418933);
+    unittestHex2Int_32_16_signed("7AAB1235", 2058031669);
+    unittestHex2Int_32_16_signed("8AAB1235", -1968500171);
+    unittestHex2Int_32_16_signed("AAAB1235", -1431629259);
+  }
+#endif // Basic unittests, disabled by default
 
   float convertScaledIntValue(int value, float scale, float offset)
   {
@@ -341,7 +367,7 @@ namespace sick_scan
 
   static int32_t radarFieldToInt32(const RadarDatagramField& field, bool useBinaryProtocol)
   {
-    // unittestsHex2Int();
+    // unittestsHex2Int(); // Basic unittests, disabled by default
     int32_t i32_value = 0;
     if(useBinaryProtocol)
     {
