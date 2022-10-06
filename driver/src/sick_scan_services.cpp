@@ -360,6 +360,8 @@ bool sick_scan::SickScanServices::sendMRS100StartCmd(const std::string& hostname
   if (ip_tokens.size() != 4)
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMRS100StartCmd() failed: can't split ip address \"" << hostname << "\" into 4 tokens, check ip address");
+    ROS_ERROR_STREAM("## ERROR parsing ip address, check configuration of parameter \"hostname\" (launch file or commandline).");
+    ROS_ERROR_STREAM("## In case of multiscan/sick_scansegment_xd lidars, check parameter \"udp_receiver_ip\", too.");
     return false;
   }
   std::stringstream eth_settings_cmd;

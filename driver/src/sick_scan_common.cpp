@@ -4334,8 +4334,7 @@ namespace sick_scan
                 {
                   sendMsg = false; // too many layers for publish as scan message. Only pointcloud messages will be pub.
                 }
-                if (sendMsg &
-                    outputChannelFlagId)  // publish only configured channels - workaround for cfg-bug MRS1104
+                if (sendMsg & outputChannelFlagId)  // publish only configured channels - workaround for cfg-bug MRS1104
                 {
 
                   // rosPublish(pub_, msg);
@@ -4430,6 +4429,8 @@ namespace sick_scan
 //                angleShift = +M_PI/2.0; // add 90 deg for NAV3xx-series
               }
 
+              size_t rangeNumPointcloudAllEchos = 0;
+              SickRangeFilter range_filter(this->parser_->get_range_min(), this->parser_->get_range_max(), this->parser_->get_range_filter_config());
               for (size_t iEcho = 0; iEcho < numValidEchos; iEcho++)
               {
 
@@ -4439,13 +4440,15 @@ namespace sick_scan
                 float *cosAlphaTablePtr = &cosAlphaTable[0];
                 float *sinAlphaTablePtr = &sinAlphaTable[0];
 
-				float *vangPtr = NULL;
-				float *rangeTmpPtr = &rangeTmp[0];
-				if (vang_vec.size() > 0)
-				{
-					vangPtr = &vang_vec[0];
-				}
-                for (size_t i = 0; i < rangeNum; i++)
+                float *vangPtr = NULL;
+                float *rangeTmpPtr = &rangeTmp[0];
+                if (vang_vec.size() > 0)
+                {
+                  vangPtr = &vang_vec[0];
+                }
+
+                size_t rangeNumPointcloudCurEcho = 0;
+                for (size_t rangeIdxScan = 0; rangeIdxScan < rangeNum; rangeIdxScan++)
                 {
                   enum enum_index_descr
                   {
@@ -4455,27 +4458,21 @@ namespace sick_scan
                     idx_intensity,
                     idx_num
                   };
-                  long adroff = i * (numChannels * (int) sizeof(float));
+                  long pointcloud_adroff = rangeNumPointcloudCurEcho * (numChannels * (int) sizeof(float));
+                  pointcloud_adroff += (layer - baseLayer) * cloud_.row_step;
+                  pointcloud_adroff += iEcho * cloud_.row_step * numTmpLayer;
+                  assert(pointcloud_adroff < cloud_.data.size()); // issue #49
 
-                  adroff += (layer - baseLayer) * cloud_.row_step;
+                  unsigned char *ptr = cloudDataPtr + pointcloud_adroff;
+                  float *fptr = (float *) (cloudDataPtr + pointcloud_adroff);
+                  float *fptr_polar = (float *) (cloudDataPtr_polar + pointcloud_adroff);
 
-                  adroff += iEcho * cloud_.row_step * numTmpLayer;
-
-                  unsigned char *ptr = cloudDataPtr + adroff;
-                  float *fptr = (float *) (cloudDataPtr + adroff);
-                  
-                  assert(adroff < cloud_.data.size()); // issue #49
-
-                  float *fptr_polar = (float *) (cloudDataPtr_polar + adroff);
-
-                  ros_geometry_msgs::Point32 point;
-                  float range_meter = rangeTmpPtr[iEcho * rangeNum + i];
                   float phi = angle; // azimuth angle
                   float alpha = 0.0;  // elevation angle
 
                   if (useGivenElevationAngle) // FOR MRS6124
                   {
-                    alpha = -vangPtr[i] * deg2rad_const;
+                    alpha = -vangPtr[rangeIdxScan] * deg2rad_const;
                   }
                   else
                   {
@@ -4488,62 +4485,66 @@ namespace sick_scan
                       alpha = (float)(layer * elevationAngleDegree); // for MRS1104
                     }
                   }
-                  // ROS_DEBUG_STREAM("alpha:" << alpha << " elevPreCalc:" << std::to_string(elevationPreCalculated) << " layer:" << layer << " elevDeg:" << elevationAngleDegree
-                  //   << " numOfLayers:" << numOfLayers << " elevAngleX200:" << elevAngleX200);
-                  /* if(useGivenElevationAngle) // MRS6124
-                  {
-                    // if (i == 0)
-                    //   ROS_INFO_STREAM("layer=" << layer << ", iEcho=" << iEcho << ", vang[0]=" << vang_vec[0] << ", vang[" << rangeNum-1 << "]=" << vang_vec[rangeNum-1] << ", alpha=" << rad2deg(alpha) << " deg");
-                    // if(layer ==1)
-                    //   ROS_INFO_STREAM("layer=" << layer << ", range[" << i << "]=" << range_meter);
-                  } */
 
                   if (iEcho == 0)
                   {
-                    cosAlphaTablePtr[i] = cos(alpha); // for z-value (elevation)
-                    sinAlphaTablePtr[i] = sin(alpha);
+                    cosAlphaTablePtr[rangeIdxScan] = cos(alpha); // for z-value (elevation)
+                    sinAlphaTablePtr[rangeIdxScan] = sin(alpha);
                   }
                   else
                   {
-                    // Just for Debugging: printf("%3d %8.3lf %8.3lf\n", (int)i, cosAlphaTablePtr[i], sinAlphaTablePtr[i]);
+                    // Just for Debugging: printf("%3d %8.3lf %8.3lf\n", (int)rangeIdxScan, cosAlphaTablePtr[rangeIdxScan], sinAlphaTablePtr[rangeIdxScan]);
                   }
-                  // Thanks to Sebastian Pütz <spuetz@uos.de> for his hint
-                  float rangeCos = range_meter * cosAlphaTablePtr[i];
 
-                  double phi_used = phi  + angleShift;
-                  if (this->angleCompensator != NULL)
+                  // Apply range filter
+                  float range_meter = rangeTmpPtr[iEcho * rangeNum + rangeIdxScan];
+                  if (range_filter.apply(range_meter)) // otherwise point dropped by range filter
                   {
-                    phi_used = angleCompensator->compensateAngleInRadFromRos(phi_used);
-                  }
-                  float phi2_used = phi_used + m_add_transform_xyz_rpy.azimuthOffset();
-                  fptr[idx_x] = rangeCos * (float)cos(phi2_used) * mirror_factor;  // copy x value in pointcloud
-                  fptr[idx_y] = rangeCos * (float)sin(phi2_used) * mirror_factor;  // copy y value in pointcloud
-                  fptr[idx_z] = range_meter * sinAlphaTablePtr[i] * mirror_factor; // copy z value in pointcloud
+                    // ROS_DEBUG_STREAM("alpha:" << alpha << " elevPreCalc:" << std::to_string(elevationPreCalculated) << " layer:" << layer << " elevDeg:" << elevationAngleDegree
+                    //   << " numOfLayers:" << numOfLayers << " elevAngleX200:" << elevAngleX200);
 
-                  m_add_transform_xyz_rpy.applyTransform(fptr[idx_x], fptr[idx_y], fptr[idx_z]);
+                    // Thanks to Sebastian Pütz <spuetz@uos.de> for his hint
+                    float rangeCos = range_meter * cosAlphaTablePtr[rangeIdxScan];
 
-                  fptr_polar[idx_x] = range_meter; // range in meter
-                  fptr_polar[idx_y] = phi_used;    // azimuth in radians
-                  fptr_polar[idx_z] = alpha;       // elevation in radians
-                  
-                  fptr[idx_intensity] = 0.0;
-                  if (config_.intensity)
-                  {
-                    int intensityIndex = aiValidEchoIdx[iEcho] * rangeNum + i;
-                    // intensity values available??
-                    if (intensityIndex < intensityTmpNum)
+                    double phi_used = phi  + angleShift;
+                    if (this->angleCompensator != NULL)
                     {
-                      fptr[idx_intensity] = intensityTmpPtr[intensityIndex]; // copy intensity value in pointcloud
+                      phi_used = angleCompensator->compensateAngleInRadFromRos(phi_used);
                     }
+                    float phi2_used = phi_used + m_add_transform_xyz_rpy.azimuthOffset();
+                    fptr[idx_x] = rangeCos * (float)cos(phi2_used) * mirror_factor;  // copy x value in pointcloud
+                    fptr[idx_y] = rangeCos * (float)sin(phi2_used) * mirror_factor;  // copy y value in pointcloud
+                    fptr[idx_z] = range_meter * sinAlphaTablePtr[rangeIdxScan] * mirror_factor; // copy z value in pointcloud
+
+                    m_add_transform_xyz_rpy.applyTransform(fptr[idx_x], fptr[idx_y], fptr[idx_z]);
+
+                    fptr_polar[idx_x] = range_meter; // range in meter
+                    fptr_polar[idx_y] = phi_used;    // azimuth in radians
+                    fptr_polar[idx_z] = alpha;       // elevation in radians
+                    
+                    fptr[idx_intensity] = 0.0;
+                    if (config_.intensity)
+                    {
+                      int intensityIndex = aiValidEchoIdx[iEcho] * rangeNum + rangeIdxScan;
+                      // intensity values available??
+                      if (intensityIndex < intensityTmpNum)
+                      {
+                        fptr[idx_intensity] = intensityTmpPtr[intensityIndex]; // copy intensity value in pointcloud
+                      }
+                    }
+                    fptr_polar[idx_intensity] = fptr[idx_intensity];
+                    rangeNumPointcloudCurEcho++;
                   }
-                  fptr_polar[idx_intensity] = fptr[idx_intensity];
                   angle += msg.angle_increment;
                 }
+                rangeNumPointcloudAllEchos = MAX(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
+
                 // Publish
                 //static int cnt = 0;
                 int layerOff = (layer - baseLayer);
 
               }
+
               // if ( (msg.header.seq == 0) || (layerOff == 0)) // FIXEN!!!!
               bool shallIFire = false;
               if ((elevAngleX200 == 0) || (elevAngleX200 == 237)) // if ((msg.header.seq == 0) || (msg.header.seq == 237)) // msg.header.seq := elevAngleX200
@@ -4573,6 +4574,13 @@ namespace sick_scan
 
               if (shallIFire) // shall i fire the signal???
               {
+                if (this->parser_->get_range_filter_config() == RangeFilterResultHandling::RANGE_FILTER_DROP && rangeNumPointcloudAllEchos < rangeNum)
+                {
+                  // Points have been dropped, resize point cloud to number of points after applying the range filter
+                  range_filter.resizePointCloud(rangeNumPointcloudAllEchos, cloud_);
+                  range_filter.resizePointCloud(rangeNumPointcloudAllEchos, cloud_polar_);
+                }
+
                 sick_scan::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0);
                 sick_scan::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0);
 #ifdef ROSSIMU

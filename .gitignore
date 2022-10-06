@@ -95,9 +95,9 @@ test/emulator/scandata/*.*
 test/scripts/run_win64_ros1_simu_lms5xx.cmd
 test/scripts/make_win64_vs2022.cmd
 test/python/msgpack_output/
-test/python/common/
 test/python/common/__pycache__/
 test/python/sick_scan_xd_api/__pycache__/
+test/python/common/
 python/api/__pycache__/
 
 doc/backlog.md
@@ -109,6 +109,7 @@ doc/20220407_sick_scan_xd_nav350.pptx
 doc/nav350_ros1_screenshot1.jpg
 doc/nav350_ros2_screenshot1.jpg
 doc/nav350_ros2_screenshot2.jpg
+doc/combination_rms_1xxx_lms_1xx/rms_1xxx_lms_1xx_movement_on.bag
 doc/sick_scansegment_xd_emulator_test.md
 doc/sick_scan_api/GBC08_Specification_Export_2528general_template.docx
 doc/sick_scan_api/20220701_Review API gegen Requ_2cd4d185f7d849b7a0e0dcdf3858a360-010722-1540-312.pdf

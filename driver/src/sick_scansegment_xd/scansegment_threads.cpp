@@ -201,7 +201,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
 
         // Initialize msgpack converter and connect to udp receiver
-        sick_scansegment_xd::MsgPackConverter msgpack_converter(m_config.add_transform_xyz_rpy, udp_receiver->Fifo(), m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
+        sick_scansegment_xd::MsgPackConverter msgpack_converter(m_config.add_transform_xyz_rpy, m_config.range_filter, udp_receiver->Fifo(), m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
         assert(udp_receiver->Fifo());
         assert(msgpack_converter.Fifo());
 

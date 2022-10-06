@@ -58,6 +58,7 @@
 
 #include "sick_scan/sick_ros_wrapper.h"
 #include <sick_scan/sick_cloud_transform.h>
+#include "sick_scan/sick_range_filter.h"
 #include "sick_scansegment_xd/common.h"
 
 namespace sick_scansegment_xd
@@ -168,6 +169,7 @@ namespace sick_scansegment_xd
 
         // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
         sick_scan::SickCloudTransform add_transform_xyz_rpy;
+        sick_scan::SickRangeFilter range_filter;
 
         rosNodePtr node; // NodePtr node; // ROS node handle (always 0 on non-ros-targets)
 

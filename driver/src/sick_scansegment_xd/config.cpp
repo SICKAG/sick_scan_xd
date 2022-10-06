@@ -268,6 +268,14 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     std::string str_add_transform_xyz_rpy = "0,0,0,0,0,0";
     ROS_DECL_GET_PARAMETER(node, "add_transform_xyz_rpy", str_add_transform_xyz_rpy);
     add_transform_xyz_rpy = sick_scan::SickCloudTransform(str_add_transform_xyz_rpy);
+    // Optional range filter
+    float range_min = 0, range_max = 100;
+    int range_filter_handling = 0;
+    ROS_DECL_GET_PARAMETER(node, "range_min", range_min);
+    ROS_DECL_GET_PARAMETER(node, "range_max", range_max);
+    ROS_DECL_GET_PARAMETER(node, "range_filter_handling", range_filter_handling);
+    range_filter = sick_scan::SickRangeFilter(range_min, range_max, (sick_scan::RangeFilterResultHandling)range_filter_handling);
+    ROS_INFO_STREAM("Range filter configuration for sick_scansegment_xd: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
     return true;
 }
 

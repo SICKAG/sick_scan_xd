@@ -109,6 +109,17 @@ namespace sick_scan
     
     m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, true); // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 
+    float range_min = 0, range_max = 100;
+    int range_filter_handling = 0;
+    rosDeclareParam(nh, "range_min", range_min);
+    rosGetParam(nh, "range_min", range_min);
+    rosDeclareParam(nh, "range_max", range_max);
+    rosGetParam(nh, "range_max", range_max);
+    rosDeclareParam(nh, "range_filter_handling", range_filter_handling);
+    rosGetParam(nh, "range_filter_handling", range_filter_handling);
+    m_range_filter = sick_scan::SickRangeFilter(range_min, range_max, (sick_scan::RangeFilterResultHandling)range_filter_handling);
+    ROS_INFO_STREAM("Range filter configuration for SickScanRadar: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
+
   }
 
 
@@ -127,7 +138,8 @@ namespace sick_scan
 
   }
 
-  int getHexValue(std::string str)
+  // Convert a hex string to 32 bit signed integer
+  static int getHexValue_32_signed(std::string str)
   {
     int val = 0;
     if (1 == sscanf(str.c_str(), "%x", &val))
@@ -142,6 +154,97 @@ namespace sick_scan
 
   }
 
+  union INT_4BYTE_UNION
+  {
+    unsigned int u32_val;
+    int8_t i8_val[4];
+    int16_t i16_val[2];
+    int32_t i32_val[1];
+  };
+  
+  // Convert a hex string to 32, 16 or 8 bit signed integer
+  static int getHexValue_32_16_8_signed(std::string str)
+  {
+    INT_4BYTE_UNION conv;
+    conv.u32_val = 0;
+    if (1 == sscanf(str.c_str(), "%x", &conv.u32_val))
+    {
+      if (str.size() <= 2)
+        return conv.i8_val[0];
+      else if (str.size() <= 4)
+        return conv.i16_val[0];
+      else
+        return conv.i32_val[0];
+    }
+    else
+    {
+        ROS_WARN_STREAM("getHexValue(): Problems parsing " << str << "\n");
+    }
+    return 0;
+  }
+
+  // Convert a hex string to 32 or 16 bit signed integer
+  static int getHexValue_32_16_signed(std::string str)
+  {
+    INT_4BYTE_UNION conv;
+    conv.u32_val = 0;
+    if (1 == sscanf(str.c_str(), "%x", &conv.u32_val))
+    {
+      if (str.size() <= 4)
+        return conv.i16_val[0];
+      else
+        return conv.i32_val[0];
+    }
+    else
+    {
+        ROS_WARN_STREAM("getHexValue(): Problems parsing " << str << "\n");
+    }
+    return 0;
+  }
+
+  int getHexValue(std::string str)
+  {
+    // TODO: switch to getHexValue_32_16_signed after clarification, see issue #65 (ASCII support RMS 1xxx)
+    // return getHexValue_32_16_signed(str);
+    // return getHexValue_32_16_8_signed(str);
+    return getHexValue_32_signed(str);
+  }
+
+  /* Basic unittest for hex string to signed integer conversion (8, 16 or 32 bit signed values).
+  static void unittestHex2Int_32_16_8_signed(const char* hexstr, int value)
+  {
+    int val = getHexValue_32_16_8_signed(hexstr);
+    if (val == value)
+    {
+      std::cout << hexstr << " = " << val << " OK" << std::endl;
+    }
+    else
+    {
+      std::cerr << "## ERROR: " << hexstr << " = " << val << ", expected " << value << std::endl;
+    }
+  } */
+
+  /* Some basic unittests for hex string to signed integer conversion (8, 16 or 32 bit signed values). See online converter e.g. https://www.rapidtables.com/convert/number/hex-to-decimal.html
+  static void unittestsHex2Int()
+  {
+    unittestHex2Int_32_16_8_signed("B", 11);
+    unittestHex2Int_32_16_8_signed("0B", 11);
+    unittestHex2Int_32_16_8_signed("7B", 123);
+    unittestHex2Int_32_16_8_signed("A1", -95);
+    unittestHex2Int_32_16_8_signed("123", 291);
+    unittestHex2Int_32_16_8_signed("0123", 291);
+    unittestHex2Int_32_16_8_signed("7123", 28963);
+    unittestHex2Int_32_16_8_signed("9123", -28381);
+    unittestHex2Int_32_16_8_signed("71235", 463413);
+    unittestHex2Int_32_16_8_signed("A1235", 660021);
+    unittestHex2Int_32_16_8_signed("AB1235", 11211317);
+    unittestHex2Int_32_16_8_signed("7AB1235", 128651829);
+    unittestHex2Int_32_16_8_signed("AAB1235", 178983477);
+    unittestHex2Int_32_16_8_signed("1AAB1235", 447418933);
+    unittestHex2Int_32_16_8_signed("7AAB1235", 2058031669);
+    unittestHex2Int_32_16_8_signed("8AAB1235", -1968500171);
+    unittestHex2Int_32_16_8_signed("AAAB1235", -1431629259);
+  } */
 
   float convertScaledIntValue(int value, float scale, float offset)
   {
@@ -238,6 +341,7 @@ namespace sick_scan
 
   static int32_t radarFieldToInt32(const RadarDatagramField& field, bool useBinaryProtocol)
   {
+    // unittestsHex2Int();
     int32_t i32_value = 0;
     if(useBinaryProtocol)
     {
@@ -1535,19 +1639,26 @@ namespace sick_scan
           cloud_.data.resize(cloud_.row_step * cloud_.height, 0);
           float *valPtr = (float *) (&(cloud_.data[0]));
           int off = 0;
+          size_t numFilteredTargets = 0;
           for (int i = 0; i < numTargets; i++)
           {
+            bool tgt_valid = true;
             switch (iLoop)
             {
               case 0:
-              {
-                float angle = deg2rad * rawTargetList[i].Azimuth();
-                valSingle[0] = rawTargetList[i].Dist() * cos(angle);
-                valSingle[1] = rawTargetList[i].Dist() * sin(angle);
-                valSingle[2] = 0.0;
-                valSingle[3] = rawTargetList[i].Vrad();
-                valSingle[4] = rawTargetList[i].Ampl();
-              }
+                {
+                  float angle = deg2rad * rawTargetList[i].Azimuth();
+                  float range = rawTargetList[i].Dist();
+                  tgt_valid = m_range_filter.apply(range);
+                  if (tgt_valid)
+                  {
+                    valSingle[0] = range * cos(angle);
+                    valSingle[1] = range * sin(angle);
+                    valSingle[2] = 0.0;
+                    valSingle[3] = rawTargetList[i].Vrad();
+                    valSingle[4] = rawTargetList[i].Ampl();
+                  }
+                }
                 break;
 
               case 1:
@@ -1561,7 +1672,9 @@ namespace sick_scan
                 valSingle[7] = objectList[i].ObjId();
                 break;
             }
-
+            if (!tgt_valid)
+              continue;
+            numFilteredTargets++;
             m_add_transform_xyz_rpy.applyTransform(valSingle[0], valSingle[1], valSingle[2]); // apply optional transform to (x, y, z)
 
             for (int j = 0; j < numChannels; j++)
@@ -1569,8 +1682,15 @@ namespace sick_scan
               valPtr[off] = valSingle[j];
               off++;
             }
+            if (iLoop == RADAR_PROC_RAW_TARGET)
+            {
+              // is this a deep copy ???
+              radarMsg_.targets = cloud_;
+            }
+          }
+          if (numFilteredTargets < numTargets)
+            m_range_filter.resizePointCloud(numFilteredTargets, cloud_); // targets dropped by range filter, resize pointcloud
 #ifndef ROSSIMU
-#if 1 // just for debugging
             sick_scan::PointCloud2withEcho sick_cloud_msg(&cloud_, 1, 0);
             switch (iLoop)
             {
@@ -1584,15 +1704,7 @@ namespace sick_scan
                 break;
             }
 #endif
-#else
-            // printf("PUBLISH:\n");
-#endif
-            if (iLoop == RADAR_PROC_RAW_TARGET)
-            {
-              // is this a deep copy ???
-              radarMsg_.targets = cloud_;
-            }
-          }
+
         }
       }
       // Publishing radar messages

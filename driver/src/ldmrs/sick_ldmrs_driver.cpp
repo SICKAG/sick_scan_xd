@@ -55,7 +55,7 @@
 #endif
 
 // Convert lmdrs scan to PointCloud2
-void ldmrsScanToPointCloud2(const datatypes::Scan* scan, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar);
+void ldmrsScanToPointCloud2(const datatypes::Scan* scan, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar);
 
 namespace sick_ldmrs_driver
 {
@@ -79,6 +79,18 @@ SickLDMRS::SickLDMRS(rosNodePtr nh, Manager *manager, std::shared_ptr<diagnostic
   rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
   rosGetParam(nh, "cloud_topic", cloud_topic_val);
   m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, true);
+
+  float range_min = 0, range_max = 100;
+  int range_filter_handling = 0;
+  rosDeclareParam(nh, "range_min", range_min);
+  rosGetParam(nh, "range_min", range_min);
+  rosDeclareParam(nh, "range_max", range_max);
+  rosGetParam(nh, "range_max", range_max);
+  rosDeclareParam(nh, "range_filter_handling", range_filter_handling);
+  rosGetParam(nh, "range_filter_handling", range_filter_handling);
+  m_range_filter = sick_scan::SickRangeFilter(range_min, range_max, (sick_scan::RangeFilterResultHandling)range_filter_handling);
+  ROS_INFO_STREAM("Range filter configuration for sick_scansegment_xd: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
+  
   // point cloud publisher
   pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh_, cloud_topic_val);
   object_pub_ = rosAdvertise<sick_scan_msg::SickLdmrsObjectArray>(nh_, nodename + "/objects");
@@ -156,7 +168,7 @@ void SickLDMRS::setData(BasicData &data)
       ROS_DEBUG_STREAM("setData(): Scan start time: " << time.toString() << " (" << time.toLongString() << ")");
 
       ros_sensor_msgs::PointCloud2 msg, msg_polar;
-      ldmrsScanToPointCloud2(scan, m_add_transform_xyz_rpy, scannerInfos[0].isRearMirrorSide(), config_.frame_id, msg, msg_polar);
+      ldmrsScanToPointCloud2(scan, m_add_transform_xyz_rpy, m_range_filter, scannerInfos[0].isRearMirrorSide(), config_.frame_id, msg, msg_polar);
       sick_scan::PointCloud2withEcho sick_cloud_msg(&msg, 1, 0);
       sick_scan::PointCloud2withEcho sick_cloud_msg_polar(&msg_polar, 1, 0);
       notifyPolarPointcloudListener(nh_, &sick_cloud_msg_polar);
@@ -598,7 +610,7 @@ std::string SickLDMRS::flexres_err_to_string(const UINT32 code) const
 } // namespace sick_ldmrs_driver
 
 // Convert lmdrs scan to PointCloud2
-void ldmrsScanToPointCloud2(const datatypes::Scan* scan, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar)
+void ldmrsScanToPointCloud2(const datatypes::Scan* scan, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar)
 {
   typedef struct SICK_LDMRS_Point
   {
@@ -666,20 +678,45 @@ void ldmrsScanToPointCloud2(const datatypes::Scan* scan, const sick_scan::SickCl
   std::fill(msg_polar.data.begin(), msg_polar.data.end(), 0);
   SICK_LDMRS_Point* polar_data_p = (SICK_LDMRS_Point*)(&msg_polar.data[0]);
 
-  for (size_t i = 0; i < scan->size(); i++, data_p++, polar_data_p++)
+  size_t rangeNumPointcloud = 0;
+  for (size_t i = 0; i < scan->size(); i++)
   {
     const ScanPoint& p = (*scan)[i];
-    data_p->x = p.getX();
-    data_p->y = p.getY();
-    data_p->z = p.getZ();
-    add_transform_xyz_rpy.applyTransform(data_p->x, data_p->y, data_p->z);
-    data_p->echowidth = p.getEchoWidth();
-    data_p->layer = p.getLayer() + (isRearMirrorSide ? 4 : 0);
-    data_p->echo = p.getEchoNum();
-    data_p->flags = p.getFlags();
-    *polar_data_p = *data_p;
-    polar_data_p->x = p.getDist();
-    polar_data_p->y = p.getHAngle();
-    polar_data_p->z = -p.getVAngle();
+    float range = p.getDist();
+    if (range_filter.apply(range)) // otherwise point dropped by range filter
+    {
+      float azi = p.getHAngle(), ele = -p.getVAngle();
+      if (fabs(range - p.getDist()) > FLT_EPSILON) // range modified, transform polar to cartesian
+      {
+        data_p->x = range * cos(ele) * cos(azi);
+        data_p->y = range * cos(ele) * sin(azi);
+        data_p->z = range * sin(ele);
+      }
+      else
+      {
+        data_p->x = p.getX();
+        data_p->y = p.getY();
+        data_p->z = p.getZ();
+      }
+      add_transform_xyz_rpy.applyTransform(data_p->x, data_p->y, data_p->z);
+      data_p->echowidth = p.getEchoWidth();
+      data_p->layer = p.getLayer() + (isRearMirrorSide ? 4 : 0);
+      data_p->echo = p.getEchoNum();
+      data_p->flags = p.getFlags();
+      *polar_data_p = *data_p;
+      polar_data_p->x = range;
+      polar_data_p->y = azi;
+      polar_data_p->z = ele;
+      rangeNumPointcloud++;
+      data_p++;
+      polar_data_p++;
+    }
   }
+  if (rangeNumPointcloud < scan->size())
+  {
+    // Points have been dropped, resize point cloud to number of points after applying the range filter
+    range_filter.resizePointCloud(rangeNumPointcloud, msg);
+    range_filter.resizePointCloud(rangeNumPointcloud, msg_polar);
+  }
+
 }

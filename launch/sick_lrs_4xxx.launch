@@ -18,7 +18,22 @@
         <param name="min_ang" type="double" value="-3.1415926"/>
         <param name="max_ang" type="double" value="3.1415926"/>
         <param name="use_binary_protocol" type="bool" value="true"/>
+        
+        <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->
+        <!-- Depending on parameter range_filter_handling, the following filter can be applied for points with a range not within [range_min, range_max],   -->
+        <!-- see enumeration RangeFilterResultHandling in range_filter.h:                                           -->
+        <!--   0: RANGE_FILTER_DEACTIVATED,  do not apply range filter (default)                                    -->
+        <!--   1: RANGE_FILTER_DROP,         drop point, if range is not within [range_min, range_max]              -->
+        <!--   2: RANGE_FILTER_TO_ZERO,      set range to 0, if range is not within [range_min, range_max]          -->
+        <!--   3: RANGE_FILTER_TO_RANGE_MAX, set range to range_max, if range is not within [range_min, range_max]  -->
+        <!--   4: RANGE_FILTER_TO_FLT_MAX,   set range to FLT_MAX, if range is not within [range_min, range_max]    -->
+        <!--   5: RANGE_FILTER_TO_NAN        set range to NAN, if range is not within [range_min, range_max]        -->
+        <!-- Note: Range filter applies only to Pointcloud messages, not to LaserScan messages.                     -->
+        <!-- Using range_filter_handling 4 or 5 requires handling of FLT_MAX and NAN values in an application.      -->
+        <param name="range_min" type="double" value="0.0"/>
         <param name="range_max" type="double" value="100.0"/>
+        <param name="range_filter_handling" type="int" value="0"/>
+        
         <param name="intensity" type="bool" value="True"/>
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
         <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->
@@ -55,11 +70,11 @@
         <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
 
         <!-- Supported by sick_generic_caller version 2.7.3 and above: -->
-        <param name="lfp_meanfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->
-        <param name="lfp_medianfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_medianfilter<0: do not apply, lfp_medianfilter==0: deactivate LFPmedianfilter, lfp_medianfilter==1: activate LFPmedianfilter -->
+        <param name="lfp_meanfilter" type="int" value="-1" />              <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->
+        <param name="lfp_medianfilter" type="int" value="-1" />            <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_medianfilter<0: do not apply, lfp_medianfilter==0: deactivate LFPmedianfilter, lfp_medianfilter==1: activate LFPmedianfilter -->
         <param name="lmd_scandatascalefactor" type="double" value="0.0" /> <!-- LRS4xxx: lmd_scandatascalefactor==0: do not apply, lmd_scandatascalefactor>0: set distance value in mm per digit -->
         <!-- Supported by sick_generic_caller version 2.8.4 and above: -->
-        <param name="glare_detection_sens" type="int" value="-1" /> <!-- Glare Detection Sensitivity (LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter -->
+        <param name="glare_detection_sens" type="int" value="-1" />        <!-- Glare Detection Sensitivity (LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter -->
 
     </node>
 </launch>
