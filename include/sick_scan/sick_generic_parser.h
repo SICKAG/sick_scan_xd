@@ -84,6 +84,7 @@
 #include "abstract_parser.h"
 
 #include "sick_scan/sick_scan_common.h"
+#include "sick_scan/sick_range_filter.h"
 #include "sick_scan/dataDumper.h"
 // namespace sensor_msgs
 namespace sick_scan
@@ -241,6 +242,9 @@ namespace sick_scan
 
     float get_range_max(void);
 
+    void set_range_filter_config(RangeFilterResultHandling range_filter_handling);
+    RangeFilterResultHandling get_range_filter_config(void) const;
+
     void set_time_increment(float time);
 
     float get_time_increment(void);
@@ -267,6 +271,7 @@ namespace sick_scan
     std::vector<std::string> allowedScannerNames;
     std::vector<ScannerBasicParam> basicParams;
     ScannerBasicParam *currentParamSet;
+    RangeFilterResultHandling m_range_filter_handling = RANGE_FILTER_DEACTIVATED;
   };
 
 } /* namespace sick_scan */

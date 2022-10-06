@@ -81,6 +81,7 @@
 
 #include "sick_scan/sick_ros_wrapper.h"
 #include <sick_scan/sick_cloud_transform.h>
+#include "sick_scan/sick_range_filter.h"
 #include "sick_scansegment_xd/common.h"
 #include "sick_scansegment_xd/fifo.h"
 #include "sick_scansegment_xd/msgpack_validator.h"
@@ -195,7 +196,8 @@ namespace sick_scansegment_xd
          * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
-        static bool Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, MsgPackParserOutput& result, 
+        static bool Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
+            sick_scan::SickRangeFilter& range_filter, MsgPackParserOutput& result, 
             sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(), 
             bool msgpack_validator_enabled = false, bool discard_msgpacks_not_validated = false,
             bool use_software_pll = true, bool verbose = false);
@@ -237,8 +239,10 @@ namespace sick_scansegment_xd
          * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
-        static bool Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, MsgPackParserOutput& result, 
-            sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(),
+        static bool Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
+            sick_scan::SickRangeFilter& range_filter, MsgPackParserOutput& result, 
+            sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector,
+            const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(),
             bool msgpack_validator_enabled = false, bool discard_msgpacks_not_validated = false, 
             bool use_software_pll = true, bool verbose = false);
 

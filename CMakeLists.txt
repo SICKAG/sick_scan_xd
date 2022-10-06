@@ -47,7 +47,10 @@ option(BUILD_DEBUG_TARGET "Build debug target (ON) or release (OFF)" ON) # OFF (
 if(NOT WIN32)
     add_compile_options(-O3)
 endif()
-# Added CMP0048 to avoid unstable warning of build process
+# Added CMP0022 and CMP0048 to avoid cmake warnings
+if (POLICY CMP0022)
+    cmake_policy(SET CMP0022 NEW)
+endif (POLICY CMP0022)
 if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif (POLICY CMP0048)
@@ -95,6 +98,18 @@ else()
     link_libraries(pthread) # std::thread requires pthread on linux
     link_libraries(dl)      # dynamic loading of libraries
 endif()
+
+# Checks and prints a message, if a header file does not exist
+function(check_header_exists headerfilepath headerfilename packagename)
+    if(NOT EXISTS ${headerfilepath})
+        message(STATUS "${packagename} check: file ${headerfilepath} not found.")
+        message(STATUS "If you encounter problems with missing ${headerfilename}, please checkout the following repositories:")
+        message(STATUS "git clone https://github.com/SICKAG/libsick_ldmrs.git")
+        message(STATUS "git clone https://github.com/SICKAG/msgpack11.git")
+        message(STATUS "git clone https://github.com/SICKAG/sick_scan_xd.git")
+        message(STATUS "and rebuild. See the build instructions in INSTALL-GENERIC.md, INSTALL-ROS1.md and INSTALL-ROS2.md for further details.")
+    endif()
+endfunction()
 
 # By uncommenting the following lines you can list all variable names ...
 # --- CUT ---
@@ -312,6 +327,7 @@ if(${BUILD_WITH_LDMRS_SUPPORT} OR BUILD_WITH_LDMRS_SUPPORT EQUAL ON)
     message(STATUS "LDMRS_SOURCES: ${LDMRS_SOURCES}")
     message(STATUS "LDMRS_TARGET_DEPENDENCIES: ${LDMRS_TARGET_DEPENDENCIES}")
     message(STATUS "SICK_LDMRS_LIBRARIES: ${SICK_LDMRS_LIBRARIES}")
+    check_header_exists(${LDMRS_INCLUDES}/sick_ldmrs/manager.hpp sick_ldmrs/manager.hpp sick_ldmrs)
 else()
     message(STATUS "Building sick_scan without ldmrs support")
 endif()
@@ -643,7 +659,7 @@ if(ROS_VERSION EQUAL 2)
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
-    if(WIN32 OR EXISTS "/opt/ros/eloquent" OR EXISTS "/opt/ros/foxy" OR EXISTS "/opt/ros/galactic") # rosidl_typesupport for ROS2 eloquent, foxy, galaxy
+    if(WIN32 OR EXISTS "/opt/ros/eloquent" OR EXISTS "/opt/ros/foxy") # rosidl_typesupport for ROS2 eloquent and foxy
         rosidl_target_interfaces(sick_scan_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
 	rosidl_target_interfaces(sick_scan_shared_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
         # rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_cpp")

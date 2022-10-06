@@ -63,6 +63,7 @@
 
 #include <sick_scan/sick_ros_wrapper.h>
 #include <sick_scan/sick_cloud_transform.h>
+#include "sick_scan/sick_range_filter.h"
 #include "sick_scan/sick_generic_field_mon.h"
 
 

@@ -53,6 +53,7 @@
 // #include <sick_ldmrs_driver/SickLDMRSDriverConfig.h>
 #include "sick_scan/ldmrs/sick_ldmrs_config.hpp"
 #include <sick_scan/sick_cloud_transform.h>
+#include "sick_scan/sick_range_filter.h"
 
 #include <sick_ldmrs/manager.hpp>
 #include <sick_ldmrs/application/BasicApplication.hpp>
@@ -145,6 +146,7 @@ private:
 
   bool initialized_;
   sick_scan::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+  sick_scan::SickRangeFilter m_range_filter;
 };
 
 } /* namespace sick_ldmrs_driver */

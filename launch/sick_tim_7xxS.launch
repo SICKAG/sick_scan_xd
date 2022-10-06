@@ -33,7 +33,22 @@
         <param name="min_ang" type="double" value="-2.35619449"/> <!-- -135 deg -->
         <param name="max_ang" type="double" value="2.35619449"/>  <!-- +135 deg -->
         <param name="use_binary_protocol" type="bool" value="true"/>
+        
+        <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->
+        <!-- Depending on parameter range_filter_handling, the following filter can be applied for points with a range not within [range_min, range_max],   -->
+        <!-- see enumeration RangeFilterResultHandling in range_filter.h:                                           -->
+        <!--   0: RANGE_FILTER_DEACTIVATED,  do not apply range filter (default)                                    -->
+        <!--   1: RANGE_FILTER_DROP,         drop point, if range is not within [range_min, range_max]              -->
+        <!--   2: RANGE_FILTER_TO_ZERO,      set range to 0, if range is not within [range_min, range_max]          -->
+        <!--   3: RANGE_FILTER_TO_RANGE_MAX, set range to range_max, if range is not within [range_min, range_max]  -->
+        <!--   4: RANGE_FILTER_TO_FLT_MAX,   set range to FLT_MAX, if range is not within [range_min, range_max]    -->
+        <!--   5: RANGE_FILTER_TO_NAN        set range to NAN, if range is not within [range_min, range_max]        -->
+        <!-- Note: Range filter applies only to Pointcloud messages, not to LaserScan messages.                     -->
+        <!-- Using range_filter_handling 4 or 5 requires handling of FLT_MAX and NAN values in an application.      -->
+        <param name="range_min" type="double" value="0.0"/>
         <param name="range_max" type="double" value="100.0"/>
+        <param name="range_filter_handling" type="int" value="0"/>
+        
         <param name="intensity" type="bool" value="True"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
