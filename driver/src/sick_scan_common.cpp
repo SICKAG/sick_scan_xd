@@ -3986,6 +3986,11 @@ namespace sick_scan
         double elevationAngleInRad = 0.0;
         short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
         // F5B2h -> -2638/200= -13.19°
+        double elevAngleTelegramValToDeg = 1.0 / 200.0; // MRS-6000: elevation angle in deg := (layer angle value from lidar scan telegram) / 200
+        if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0)
+        {
+          elevAngleTelegramValToDeg = 1.0 / 100.0; // MRS-1000: elevation angle in deg := (layer angle value from lidar scan telegram) / 100
+        }
         /*
          * datagrams are enclosed in <STX> (0x02), <ETX> (0x03) pairs
          */
@@ -4061,7 +4066,7 @@ namespace sick_scan
                 }
                 else
                 {
-                  if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevationAngleInRad, recvTimeStamp,
+                  if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevAngleTelegramValToDeg, elevationAngleInRad, recvTimeStamp,
                     config_.sw_pll_only_publish, config_.use_generation_timestamp, parser_, FireEncoder, EncoderMsg, numEchos, vang_vec, msg))
                   {
                       dataToProcess = false;
