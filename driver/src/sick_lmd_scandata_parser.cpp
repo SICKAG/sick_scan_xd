@@ -79,14 +79,13 @@ namespace sick_scan
 
 
     /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
-    bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double& elevationAngleInRad, rosTime& recvTimeStamp,
+    bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double elevAngleTelegramValToDeg, double& elevationAngleInRad, rosTime& recvTimeStamp,
         bool config_sw_pll_only_publish, bool use_generation_timestamp, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos, 
         std::vector<float>& vang_vec, ros_sensor_msgs::LaserScan & msg)
     {
                   elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
                   // F5B2h -> -2638/200= -13.19°
                   int scanFrequencyX100 = 0;
-                  double elevAngle = 0.00;
                   double scanFrequency = 0.0;
                   long measurementFrequencyDiv100 = 0; // multiply with 100
                   int numOfEncoders = 0;
@@ -99,7 +98,9 @@ namespace sick_scan
                   memcpy(&elevAngleX200, receiveBuffer + 50, 2);
                   swap_endian((unsigned char *) &elevAngleX200, 2);
 
-                  elevationAngleInRad = -elevAngleX200 / 200.0 * deg2rad_const;
+                  // elevationAngleInRad = -elevAngleX200 / 200.0 * deg2rad_const;
+                  elevationAngleInRad = -elevAngleX200 * elevAngleTelegramValToDeg * deg2rad_const; // MRS-6000: elevAngleTelegramValToDeg=1./200, MRS-1000: elevAngleTelegramValToDeg=1./100
+                  // ROS_INFO_STREAM("LMDscandata: elevAngleX200=" << elevAngleX200 << " / " << (1/elevAngleTelegramValToDeg) << "  = " << (elevationAngleInRad / deg2rad_const) << " [deg]");
                   ROS_HEADER_SEQ(msg.header, elevAngleX200); // should be multiple of 0.625° starting with -2638 (corresponding to 13.19°)
 
                   // Time since start up in microseconds: Counting the time since power up the device; starting with 0. In the output telegram this is the time at the zero index before the measurement itself starts.
@@ -175,7 +176,7 @@ namespace sick_scan
                   }
 
 #ifdef DEBUG_DUMP_ENABLED
-                  double elevationAngleInDeg = elevationAngleInRad = -elevAngleX200 / 200.0;
+                  double elevationAngleInDeg = elevationAngleInRad / deg2rad_const;
                   // DataDumper::instance().pushData((double)SystemCountScan, "LAYER", elevationAngleInDeg);
                   //DataDumper::instance().pushData((double)SystemCountScan, "LASESCANTIME", SystemCountScan);
                   //DataDumper::instance().pushData((double)SystemCountTransmit, "LASERTRANSMITTIME", SystemCountTransmit);
@@ -568,7 +569,7 @@ namespace sick_scan
                   }
 #endif
 
-                  elevAngle = elevAngleX200 / 200.0;
+                  // double elevAngle = elevationAngleInRad; // elevAngleX200 / 200.0;
                   scanFrequency = scanFrequencyX100 / 100.0;
 
                   return true;
