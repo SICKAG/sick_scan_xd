@@ -6,10 +6,13 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
-### v2.8.9 - MRS-1000 layer angle conversion
-  - **Fixed** MRS-1000 layer angle conversion for slam support
+### v2.8.10.1 - RMS ascii emulator and tests
+  - **Update** RMS ascii emulator and tests
 
 ## Released ##
+
+### v2.8.9 - MRS-1000 layer angle conversion, improved MRS 1xxx support
+  - **Fixed** MRS-1000 layer angle conversion for slam support
 
 ### v2.8.8 - RMS1xxx Cola-ASCII support
   - **Update** Update for RMS1xxx Cola-ASCII support
