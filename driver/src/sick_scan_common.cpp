@@ -3085,6 +3085,7 @@ namespace sick_scan
           else
           {
             if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0
+            || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0
             || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
             {
               // "sMN mLMPsetscancfg" for lms1xx and lms5xx:
@@ -3102,6 +3103,11 @@ namespace sick_scan
               {
                 lmp_scancfg_sector.start_angle = -450000;
                 lmp_scancfg_sector.stop_angle = +2250000;
+              }
+              else if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
+              {
+                lmp_scancfg_sector.start_angle = -480000;
+                lmp_scancfg_sector.stop_angle = +2280000;
               }
               else if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
               {
