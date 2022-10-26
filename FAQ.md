@@ -80,6 +80,27 @@ to be located and used by `roslaunch`.
 ```
 Thanks to user JWhitleyWork.
 
+## Timestamps
+
+:question: What timestamp is provided in the pointcloud and laserscan messages?
+
+:white_check_mark: Details about timestamps are given in [timing.md](doc/timing.md) and [software_pll.md](doc/software_pll.md).
+
+In a nutshell:
+The lidars do not work with absolute time stamps but with "ticks". There are two types of tick timestamps:
+* Tick timestamps for the generation
+* Tick timestamps for sending the message
+To match the tick timestamps against the system time, a straight line equation is estimated via the so-called software PLL, which can be used to calculate from the system time to the ticks in the lidar (and vice versa). The assumption is that the tick timestamp for sending the message corresponds to the system time when receiving the message. In reality there will be a tiny delay here. This delay can be ignored.
+
+With the help of this straight line equation, one can now calculate the system time at which the data is generated in the lidar.
+
+Summary:
+1. lidar: stamp with ticks the generation (first shot in the scan) (TICK_GEN)
+2. lidar: stamp with ticks the sending of the scan message (TICK_TRANSMIT)
+3. PC: Stamp with system time the receiving of the message
+4. PC: Calculate back to system time of generation:
+System time of generation = System time of receiving - (TICK_TRANSMIT - TICK_GEN)/TICK_FREQUENCY
+
 ## Compilation errors
 
 :question: Compiler reports errors in file `/opt/ros/<distro>/include/sick_scan`
