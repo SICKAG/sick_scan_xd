@@ -501,8 +501,9 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     allowedScannerNames.push_back(SICK_SCANNER_MRS_6XXX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LMS_4XXX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LRS_4XXX_NAME);
-    allowedScannerNames.push_back(SICK_SCANNER_RMS_3XX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_RMS_1XXX_NAME); // Radar scanner
+    allowedScannerNames.push_back(SICK_SCANNER_RMS_2XXX_NAME); // Radar scanner
+    allowedScannerNames.push_back(SICK_SCANNER_RMS_3XX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_NAV_3XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_350_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_2XX_NAME);
@@ -825,7 +826,8 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(true); // (false) // LRS4XXX uses echo filter settings to configure 1 echo, use filter_echos = 0 (first echo) for LRS4xxx
       }
-      if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_3XX_NAME) == 0) // Radar
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_2XXX_NAME) == 0 
+       || basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_3XX_NAME) == 0) // Radar
       {
         basicParams[i].setNumberOfMaximumEchos(1);
         basicParams[i].setNumberOfLayers(0); // for radar scanner

@@ -494,10 +494,10 @@ namespace sick_scan
     success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Amount of 16 bit channels
     uint16_t num_16_bit_channels = 0;
     fields.back().toInteger(num_16_bit_channels);
-    if(num_16_bit_channels > 4) // max 4 16-bit channel
-    {
-      return std::vector<RadarDatagramField>(); // unrecoverable parse error
-    }
+    // if(num_16_bit_channels > 4) // max 4 16-bit channel in case of RMS1xxx and RMS3xx
+    // {
+    //   return std::vector<RadarDatagramField>(); // unrecoverable parse error
+    // }
     for(int channel_idx = 0; channel_idx < num_16_bit_channels; channel_idx++)
     {
       success = success && appendRadarDatagramField(datagram, datagram_length, 5, fields); // 5 byte Content string (identifier)

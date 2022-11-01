@@ -17,17 +17,16 @@ if [ $roscore_running -lt 1 ] ; then
 fi
 
 # Start sick_scan emulator
-# roslaunch sick_scan emulator_rms3xx.launch &
 python3 ./src/sick_scan_xd/test/python/sopas_json_test_server.py --tcp_port=2112 --json_file=./src/sick_scan_xd/test/emulator/scandata/20221018_rms_1xxx_ascii_rms2_objects.pcapng.json --scandata_id="sSN LMDradardata" --send_rate=10 --verbosity=2 &
 sleep 1
 
 # Start rviz
-rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_rms3xx.rviz --opengl 210 &
+rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_rms2xxx.rviz --opengl 210 &
 sleep 1
 
 # Start sick_scan driver for rms
-echo -e "Launching sick_scan sick_rms_1xxx.launch\n"
-roslaunch sick_scan sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+echo -e "Launching sick_scan sick_rms_2xxx.launch\n"
+roslaunch sick_scan sick_rms_2xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 sleep 1
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed
