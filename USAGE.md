@@ -107,18 +107,24 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
     * Windows native: `sick_generic_caller sick_nav_3xx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
-- For RMS3xx-family:
-    * Linux native:   `sick_generic_caller sick_rms_3xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_rms_3xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
-    * Windows native: `sick_generic_caller sick_rms_3xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
 - For RMS1xxx-family:
     * Linux native:   `sick_generic_caller sick_rms_1xxx.launch`
     * Linux ROS-1:    `roslaunch sick_scan sick_rms_1xxx.launch`
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_1xxx.launch`
     * Windows native: `sick_generic_caller sick_rms_1xxx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_1xxx.launch`
+- For RMS2xx-family:
+    * Linux native:   `sick_generic_caller sick_rms_2xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_rms_2xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_2xxx.launch`
+    * Windows native: `sick_generic_caller sick_rms_2xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_2xxx.launch`
+- For RMS3xx-family:
+    * Linux native:   `sick_generic_caller sick_rms_3xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_rms_3xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
+    * Windows native: `sick_generic_caller sick_rms_3xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
 - For Multiscan136 (sick_scansegement_xd):
     * Linux native:   `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * Linux ROS-1:    `roslaunch sick_scan sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`

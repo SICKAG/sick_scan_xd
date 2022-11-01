@@ -6,6 +6,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.8.11 - RMS2xxx support
+  - **Update** RMS2xxx support
+
 ## Released ##
 
 ### v2.8.10 - RMS ascii emulator and tests
