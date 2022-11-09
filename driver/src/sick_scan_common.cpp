@@ -2563,7 +2563,7 @@ namespace sick_scan
       // special for LMS1000 TODO unify this
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
       {
-        ROS_INFO("Angular settings for LMS 1000 not reliable.\n");
+        ROS_INFO("Angular start/stop settings for LMS 1000 not reliable.\n");
         double askAngleStart = -137.0;
         double askAngleEnd = +137.0;
 
@@ -3149,6 +3149,7 @@ namespace sick_scan
               std::string lmp_scancfg_sopas;
               if (sick_scan::SickScanParseUtil::LMPscancfgToSopas(lmp_scancfg, lmp_scancfg_sopas))
               {
+                ROS_INFO_STREAM("Sending mLMPsetscancfg request: { " << lmp_scancfg.print() << " }");
                 std::vector<unsigned char> reqBinary, lmp_scancfg_reply;
                 if (useBinaryCmd)
                 {
@@ -3160,6 +3161,14 @@ namespace sick_scan
                 {
                   result = sendSopasAndCheckAnswer(lmp_scancfg_sopas, &lmp_scancfg_reply);
                   RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmp_scancfg_reply); // No response, non-recoverable connection error (return error and do not try other commands)
+                }
+                std::string sopasReplyString = replyToString(lmp_scancfg_reply);
+                if (strncmp(sopasReplyString.c_str(), "sAN mLMPsetscancfg ", 19) == 0)
+                {
+                  sick_scan::SickScanParseUtil::LMPscancfg scancfg_response;
+                  sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
+                  ROS_INFO_STREAM("sAN mLMPsetscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = " 
+                    << (scancfg_response.sector_cfg.size() > 0 ? (scancfg_response.sector_cfg[0].angular_resolution / 10000.0) : -1.0) << " deg.");
                 }
               }
               else
@@ -3205,6 +3214,14 @@ namespace sick_scan
               this->convertAscii2BinaryCmd(requestLMDscancfgRead, &reqBinary);
               result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]);
               RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
+              std::string sopasReplyString = replyToString(sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]);
+              if (strncmp(sopasReplyString.c_str(), "sRA LMPscancfg ", 15) == 0)
+              {
+                sick_scan::SickScanParseUtil::LMPscancfg scancfg_response;
+                sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
+                ROS_INFO_STREAM("sRA LMPscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = " 
+                  << (scancfg_response.sector_cfg.size() > 0 ? (scancfg_response.sector_cfg[0].angular_resolution / 10000.0) : -1.0) << " deg.");
+              }
             }
             else
             {

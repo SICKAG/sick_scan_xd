@@ -51,6 +51,10 @@
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
         <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->
 
+        <!--- Valid combinations of angular resolution ang_res and scan_freq for LMS-1xxx are:
+              150 Hz - 0.75 deg, or
+              75 Hz - 0.375 deg, or
+              37.5 Hz - 0.1875 deg -->
         <param name="ang_res" type="double" value="0.75" /> <!-- Supported values are "0.1875", "0.375" and "0.75" -->
         <param name="scan_freq" type="double" value="75" /> <!-- Supported values are "37.5", "75" and "150" -->
 
