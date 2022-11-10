@@ -3070,10 +3070,10 @@ namespace sick_scan
       // set scanning angle for lms1xx and lms5xx
       double scan_freq = 0;
       double ang_res = 0;
-      rosDeclareParam(nh, "scan_freq", scan_freq); // filter_echos
-      rosGetParam(nh, "scan_freq", scan_freq); // filter_echos
-      rosDeclareParam(nh, "ang_res", ang_res); // filter_echos
-      rosGetParam(nh, "ang_res", ang_res); // filter_echos
+      rosDeclareParam(nh, "scan_freq", scan_freq);
+      rosGetParam(nh, "scan_freq", scan_freq);
+      rosDeclareParam(nh, "ang_res", ang_res);
+      rosGetParam(nh, "ang_res", ang_res);
       if (scan_freq != 0 || ang_res != 0)
       {
         if (scan_freq != 0 && ang_res != 0)
@@ -4006,6 +4006,7 @@ namespace sick_scan
         EncoderMsg.header.frame_id = "Encoder";
         ROS_HEADER_SEQ(EncoderMsg.header, numPacketsProcessed);
         msg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset); // default: ros-timestamp at message received, will be updated by software-pll
+        msg.header.frame_id = config_.frame_id; // Use configured frame_id for both laser scan and pointcloud messages
         double elevationAngleInRad = 0.0;
         short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
         // F5B2h -> -2638/200= -13.19°
@@ -4280,7 +4281,7 @@ namespace sick_scan
                 {
                   // numEchos
                   char szTmp[255] = {0};
-                  if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() > 1)
+                  if (false) // if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() > 1) // Use configured frame_id for both laser scan and pointcloud messages
                   {
                     const char *cpFrameId = config_.frame_id.c_str();
 #if 0
@@ -4397,6 +4398,12 @@ namespace sick_scan
               const int numChannels = 4; // x y z i (for intensity)
 
               int numTmpLayer = numOfLayers;
+              if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
+              {
+                numTmpLayer = 1; // LMS_1XXX has 4 interlaced layer, each layer published in one pointcloud message
+                baseLayer = 0;
+                layer = 0;
+              }
 
 
               cloud_.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
@@ -4463,7 +4470,10 @@ namespace sick_scan
               {
 
                 float angle = (float)config_.min_ang;
-
+                if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0) // Can we use msg.angle_min this for all lidars?
+                {
+                  angle = msg.angle_min - angleShift; // LMS-1xxx has 4 interlaced layer with different start angle in each layer, start angle parsed from LMDscandata and set in msg.angle_min
+                }
 
                 float *cosAlphaTablePtr = &cosAlphaTable[0];
                 float *sinAlphaTablePtr = &sinAlphaTable[0];

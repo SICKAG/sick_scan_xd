@@ -36,12 +36,18 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch`
     * Windows native: `sick_generic_caller sick_mrs_1xxx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch`
-- For LMS1104:
+- For LMS1104 with firmware 1.x:
     * Linux native:   `sick_generic_caller sick_lms_1xxx.launch`
     * Linux ROS-1:    `roslaunch sick_scan sick_lms_1xxx.launch`
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx.launch`
     * Windows native: `sick_generic_caller sick_lms_1xxx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx.launch`
+- For LMS1104 with firmware 2.x:
+    * Linux native:   `sick_generic_caller sick_lms_1xxx_v2.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lms_1xxx_v2.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx_v2.launch`
+    * Windows native: `sick_generic_caller sick_lms_1xxx_v2.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx_v2.launch`
 - For TiM240-prototype:
     * Linux native:   `sick_generic_caller sick_tim_240.launch`
     * Linux ROS-1:    `roslaunch sick_scan sick_tim_240.launch`

@@ -13,6 +13,9 @@ echo PYTHON_DIR=%PYTHON_DIR%
 python --version
 @echo.
 
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20221110-LMS1xxx-150hz-0.75deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20221110-LMS1xxx-75hz-0.375deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20221110-LMS1xxx-37.5hz-0.1875deg.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20221018_rms_1xxx_ascii_rawtarget_object.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20220803_lms511.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20220802_lms111.pcapng

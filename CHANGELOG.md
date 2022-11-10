@@ -6,10 +6,13 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
-### v2.8.10.1 - RMS ascii emulator and tests
-  - **Update** RMS ascii emulator and tests
-
 ## Released ##
+
+### v2.8.11 - LMS 1xxx support
+  - **Update** LMS 1xxx support with scan configuration (scan frequency and angular resolution for firmware 2.x)
+
+### v2.8.10 - RMS ascii emulator and tests
+  - **Update** RMS ascii emulator and tests
 
 ### v2.8.9 - MRS-1000 layer angle conversion, improved MRS 1xxx support
   - **Fixed** MRS-1000 layer angle conversion for slam support
