@@ -2563,7 +2563,7 @@ namespace sick_scan
       // special for LMS1000 TODO unify this
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
       {
-        ROS_INFO("Angular settings for LMS 1000 not reliable.\n");
+        ROS_INFO("Angular start/stop settings for LMS 1000 not reliable.\n");
         double askAngleStart = -137.0;
         double askAngleEnd = +137.0;
 
@@ -3070,10 +3070,10 @@ namespace sick_scan
       // set scanning angle for lms1xx and lms5xx
       double scan_freq = 0;
       double ang_res = 0;
-      rosDeclareParam(nh, "scan_freq", scan_freq); // filter_echos
-      rosGetParam(nh, "scan_freq", scan_freq); // filter_echos
-      rosDeclareParam(nh, "ang_res", ang_res); // filter_echos
-      rosGetParam(nh, "ang_res", ang_res); // filter_echos
+      rosDeclareParam(nh, "scan_freq", scan_freq);
+      rosGetParam(nh, "scan_freq", scan_freq);
+      rosDeclareParam(nh, "ang_res", ang_res);
+      rosGetParam(nh, "ang_res", ang_res);
       if (scan_freq != 0 || ang_res != 0)
       {
         if (scan_freq != 0 && ang_res != 0)
@@ -3085,6 +3085,7 @@ namespace sick_scan
           else
           {
             if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0
+            || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0
             || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
             {
               // "sMN mLMPsetscancfg" for lms1xx and lms5xx:
@@ -3102,6 +3103,11 @@ namespace sick_scan
               {
                 lmp_scancfg_sector.start_angle = -450000;
                 lmp_scancfg_sector.stop_angle = +2250000;
+              }
+              else if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
+              {
+                lmp_scancfg_sector.start_angle = -480000;
+                lmp_scancfg_sector.stop_angle = +2280000;
               }
               else if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
               {
@@ -3143,6 +3149,7 @@ namespace sick_scan
               std::string lmp_scancfg_sopas;
               if (sick_scan::SickScanParseUtil::LMPscancfgToSopas(lmp_scancfg, lmp_scancfg_sopas))
               {
+                ROS_INFO_STREAM("Sending mLMPsetscancfg request: { " << lmp_scancfg.print() << " }");
                 std::vector<unsigned char> reqBinary, lmp_scancfg_reply;
                 if (useBinaryCmd)
                 {
@@ -3154,6 +3161,14 @@ namespace sick_scan
                 {
                   result = sendSopasAndCheckAnswer(lmp_scancfg_sopas, &lmp_scancfg_reply);
                   RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmp_scancfg_reply); // No response, non-recoverable connection error (return error and do not try other commands)
+                }
+                std::string sopasReplyString = replyToString(lmp_scancfg_reply);
+                if (strncmp(sopasReplyString.c_str(), "sAN mLMPsetscancfg ", 19) == 0)
+                {
+                  sick_scan::SickScanParseUtil::LMPscancfg scancfg_response;
+                  sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
+                  ROS_INFO_STREAM("sAN mLMPsetscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = " 
+                    << (scancfg_response.sector_cfg.size() > 0 ? (scancfg_response.sector_cfg[0].angular_resolution / 10000.0) : -1.0) << " deg.");
                 }
               }
               else
@@ -3199,6 +3214,14 @@ namespace sick_scan
               this->convertAscii2BinaryCmd(requestLMDscancfgRead, &reqBinary);
               result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]);
               RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
+              std::string sopasReplyString = replyToString(sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]);
+              if (strncmp(sopasReplyString.c_str(), "sRA LMPscancfg ", 15) == 0)
+              {
+                sick_scan::SickScanParseUtil::LMPscancfg scancfg_response;
+                sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
+                ROS_INFO_STREAM("sRA LMPscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = " 
+                  << (scancfg_response.sector_cfg.size() > 0 ? (scancfg_response.sector_cfg[0].angular_resolution / 10000.0) : -1.0) << " deg.");
+              }
             }
             else
             {
@@ -3983,6 +4006,7 @@ namespace sick_scan
         EncoderMsg.header.frame_id = "Encoder";
         ROS_HEADER_SEQ(EncoderMsg.header, numPacketsProcessed);
         msg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset); // default: ros-timestamp at message received, will be updated by software-pll
+        msg.header.frame_id = config_.frame_id; // Use configured frame_id for both laser scan and pointcloud messages
         double elevationAngleInRad = 0.0;
         short elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
         // F5B2h -> -2638/200= -13.19°
@@ -4257,7 +4281,7 @@ namespace sick_scan
                 {
                   // numEchos
                   char szTmp[255] = {0};
-                  if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() > 1)
+                  if (false) // if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() > 1) // Use configured frame_id for both laser scan and pointcloud messages
                   {
                     const char *cpFrameId = config_.frame_id.c_str();
 #if 0
@@ -4374,6 +4398,12 @@ namespace sick_scan
               const int numChannels = 4; // x y z i (for intensity)
 
               int numTmpLayer = numOfLayers;
+              if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
+              {
+                numTmpLayer = 1; // LMS_1XXX has 4 interlaced layer, each layer published in one pointcloud message
+                baseLayer = 0;
+                layer = 0;
+              }
 
 
               cloud_.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
@@ -4440,7 +4470,10 @@ namespace sick_scan
               {
 
                 float angle = (float)config_.min_ang;
-
+                if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0) // Can we use msg.angle_min this for all lidars?
+                {
+                  angle = msg.angle_min - angleShift; // LMS-1xxx has 4 interlaced layer with different start angle in each layer, start angle parsed from LMDscandata and set in msg.angle_min
+                }
 
                 float *cosAlphaTablePtr = &cosAlphaTable[0];
                 float *sinAlphaTablePtr = &sinAlphaTable[0];
