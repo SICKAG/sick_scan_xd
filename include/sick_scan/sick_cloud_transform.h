@@ -88,7 +88,7 @@ namespace sick_scan
 
         SickCloudTransform();
         SickCloudTransform(rosNodePtr nh, bool cartesian_input_only = false);
-        SickCloudTransform(const std::string& add_transform_xyz_rpy, bool cartesian_input_only = false);
+        SickCloudTransform(rosNodePtr nh, const std::string& add_transform_xyz_rpy, bool cartesian_input_only = false);
 
         /*
         * Apply an optional transform to point (x, y, z).
@@ -97,8 +97,22 @@ namespace sick_scan
         * @param[in+out] y input y in child coordinates, output y in parent coordinates
         * @param[in+out] z input z in child coordinates, output z in parent coordinates
         */
-        template<typename float_type> inline void applyTransform(float_type& x, float_type& y, float_type& z) const // 
+        template<typename float_type> inline void applyTransform(float_type& x, float_type& y, float_type& z)
         {
+            // Check parameter and re-init if parameter "add_transform_xyz_rpy" changed
+            if (m_nh)
+            {
+                std::string add_transform_xyz_rpy = m_add_transform_xyz_rpy;
+                rosGetParam(m_nh, "add_transform_xyz_rpy", add_transform_xyz_rpy);
+                if (m_add_transform_xyz_rpy != add_transform_xyz_rpy)
+                {
+                    if (!init(add_transform_xyz_rpy, m_cartesian_input_only))
+                    {
+                        ROS_ERROR_STREAM("## ERROR SickCloudTransform(): Re-Initialization by \"" << add_transform_xyz_rpy << "\" failed, use 6D pose \"x,y,z,roll,pitch,yaw\" in [m] resp. [rad]");
+                    }
+                }
+            }
+            // Apply transform
             if (m_apply_3x3_rotation)
             {
                 float_type u = x * m_rotation_matrix[0][0] + y * m_rotation_matrix[0][1] + z * m_rotation_matrix[0][2];
@@ -135,6 +149,9 @@ namespace sick_scan
         // Multiply two 3x3 matrices, return a * b
         static Matrix3x3 multiply3x3(const Matrix3x3& a, const Matrix3x3& b);
 
+        rosNodePtr m_nh = 0; // ros node handle
+        std::string m_add_transform_xyz_rpy = ""; // currently configured ros parameter "add_transform_xyz_rpy"
+        bool m_cartesian_input_only = false;;     // currently configured parameter cartesian_input_only
         bool m_apply_3x3_rotation = false;                            // true, if the 3x3 rotation_matrix has to be applied, otherwise false (default)
         Vector3D m_translation_vector = { 0, 0, 0 };                  // translational part x,y,z of the 6D pose, default: 0
         Matrix3x3 m_rotation_matrix = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };  // rotational part roll,pitch,yaw by 3x3 rotation matrix, default: 3x3 identity
