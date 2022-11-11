@@ -196,7 +196,7 @@ namespace sick_scansegment_xd
          * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
-        static bool Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
+        static bool Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
             sick_scan::SickRangeFilter& range_filter, MsgPackParserOutput& result, 
             sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(), 
             bool msgpack_validator_enabled = false, bool discard_msgpacks_not_validated = false,
@@ -239,7 +239,7 @@ namespace sick_scansegment_xd
          * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
-        static bool Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
+        static bool Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
             sick_scan::SickRangeFilter& range_filter, MsgPackParserOutput& result, 
             sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector,
             const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(),

@@ -72,6 +72,7 @@ sick_scan::SickCloudTransform::SickCloudTransform()
 
 sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, bool cartesian_input_only)
 {
+    m_nh = nh;
     std::string add_transform_xyz_rpy = "0,0,0,0,0,0";
     rosDeclareParam(nh, "add_transform_xyz_rpy", add_transform_xyz_rpy);
     rosGetParam(nh, "add_transform_xyz_rpy", add_transform_xyz_rpy);
@@ -81,8 +82,9 @@ sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, bool cartesian_
     }
 }
 
-sick_scan::SickCloudTransform::SickCloudTransform(const std::string& add_transform_xyz_rpy, bool cartesian_input_only)
+sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, const std::string& add_transform_xyz_rpy, bool cartesian_input_only)
 {
+    m_nh = nh;
     if (!init(add_transform_xyz_rpy, cartesian_input_only))
     {
         ROS_ERROR_STREAM("## ERROR SickCloudTransform(): Initialization by \"" << add_transform_xyz_rpy << "\" failed, use 6D pose \"x,y,z,roll,pitch,yaw\" in [m] resp. [rad]");
@@ -98,7 +100,20 @@ bool sick_scan::SickCloudTransform::init(const std::string& add_transform_xyz_rp
     std::vector<float> config_values;
     while (getline(config_stream, config_arg, ','))
     {
-        config_values.push_back(std::stof(config_arg));
+        // ROS-2 interpretes parameter values configured by "ros2 param set <node> <arg> <value>" as yaml content, 
+        // but does not remove yaml escape characters required for negative numbers. Any '\\' is removed here.
+        std::string::size_type n = 0;
+        while ((n = config_arg.find('\\', n)) != std::string::npos)
+            config_arg.replace( n, 1, "");
+        try
+        {
+            float arg_value = std::stof(config_arg);
+            config_values.push_back(arg_value);
+        }
+        catch(const std::exception& e)
+        {
+            ROS_ERROR_STREAM("## ERROR SickCloudTransform(): parse error in string \"" << add_transform_xyz_rpy << "\", arg=\"" << config_arg << "\", exception " << e.what());
+        }
     }
     if(config_values.size() != 6)
     {
@@ -136,9 +151,9 @@ bool sick_scan::SickCloudTransform::init(const std::string& add_transform_xyz_rp
             m_azimuth_offset = 0;
         }
     }
-
-    // Configuration is given by 6D pose with P_world = T[world,cloud] * P_cloud. By applying the transform, we compute 
-
+    // Initialization successful
+    m_add_transform_xyz_rpy = add_transform_xyz_rpy;
+    m_cartesian_input_only = cartesian_input_only;
     ROS_INFO_STREAM("SickCloudTransform: add_transform_xyz_rpy = (" << add_transform_xyz_rpy << ")");
     ROS_INFO_STREAM("SickCloudTransform: azimuth_offset = " << (m_azimuth_offset * 180.0 / M_PI) << " [deg]");
     ROS_INFO_STREAM("SickCloudTransform: additional 3x3 rotation matrix = { (" 
