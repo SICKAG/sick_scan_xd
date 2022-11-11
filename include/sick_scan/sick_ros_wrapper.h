@@ -169,12 +169,17 @@ public:
 };
 template <typename T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string& topic, uint32_t queue_size = 10, rosQoS qos = 10)
 {
+    int qos_val = -1;
+    rosDeclareParam(nh, "ros_qos", qos_val);
+    rosGetParam(nh, "ros_qos", qos_val);
+    if (qos_val >= 0)
+        qos = qos_val;
     std::string topic2;
     if(topic.empty() || topic[0] != '/')
       topic2 = std::string("/") + topic;
     else
       topic2 = topic;
-    ROS_INFO_STREAM("Publishing on topic \"" << topic2 << "\"");
+    ROS_INFO_STREAM("Publishing on topic \"" << topic2 << "\", qos=" << qos);
     ros::Publisher publisher = nh->advertise<T>(topic2, queue_size);
     return rosPublisher<T>(publisher);
 }
@@ -300,6 +305,27 @@ inline uint32_t sec(const rosDuration& time) { return (uint32_t)(time.nanosecond
 inline uint32_t nsec(const rosDuration& time) { return (uint32_t)(time.nanoseconds() - 1000000000 * sec(time)); } // return nanoseconds part of rclcpp::Duration
 inline uint64_t rosNanosecTimestampNow(void) { rosTime now = rosTimeNow(); return (((uint64_t)sec(now)) * (uint64_t)1000000000) + std::min((uint64_t)nsec(now), (uint64_t)1000000000); }
 
+class QoSConverter
+{
+public:
+    int convert(const rosQoS& qos) const
+    {
+        for (std::map<int,rosQoS>::const_iterator qos_iter = m_qos_map.cbegin(); qos_iter != m_qos_map.cend(); qos_iter++)
+            if (qos_iter->second == qos)
+                return qos_iter->first;
+        return 0;
+    }
+    rosQoS convert(const int& qos) const
+    {
+        for (std::map<int,rosQoS>::const_iterator qos_iter = m_qos_map.cbegin(); qos_iter != m_qos_map.cend(); qos_iter++)
+            if (qos_iter->first == qos)
+                return qos_iter->second;
+        return rclcpp::SystemDefaultsQoS();
+    }
+protected:
+    std::map<int,rosQoS> m_qos_map = { {0, rclcpp::SystemDefaultsQoS()}, {1, rclcpp::ParameterEventsQoS()}, {2, rclcpp::ServicesQoS()}, {3, rclcpp::ParametersQoS()}, {4, rclcpp::SensorDataQoS()} };
+};
+
 template <class T> class rosPublisher : public rclcpp::Publisher<T>::SharedPtr
 {
 public:
@@ -308,7 +334,13 @@ public:
 };
 template <class T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string& topic, uint32_t queue_size = 10, rosQoS qos = rclcpp::SystemDefaultsQoS())
 {
-    ROS_INFO_STREAM("Publishing on topic \"" << topic << "\"");
+    QoSConverter qos_converter;
+    int qos_val = -1;
+    rosDeclareParam(nh, "ros_qos", qos_val);
+    rosGetParam(nh, "ros_qos", qos_val);
+    if (qos_val >= 0)
+        qos = qos_converter.convert(qos_val);
+    ROS_INFO_STREAM("Publishing on topic \"" << topic << "\", qos=" << qos_converter.convert(qos));
     auto publisher = nh->create_publisher<T>(topic, qos);
     return rosPublisher<T>(publisher);
 }

@@ -6,6 +6,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.8.13 - QoS configuration
+  - **Update** Configuration of ROS quality of service by launchfile, #101
+
 ### v2.8.12 - Dynamical pointcloud transform
   - **Update** Dynamical configuration of an additional pointcloud transform by rosparam, #104
 
