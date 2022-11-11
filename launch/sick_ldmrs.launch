@@ -88,5 +88,13 @@
         <param name="min_object_age" type="int" value="0"/>                   <!-- # gen.add("min_object_age",        int_t,    0, "Minimum tracking age (number of scans) of an object to be transmitted.",        0,               0,               65535) -->
         <param name="max_prediction_age" type="int" value="0"/>               <!-- # gen.add("max_prediction_age",    int_t,    0, "Maximum prediction age (number of scans) of an object to be transmitted.",      0,               0,               65535) -->
             
+        <!-- Configuration of ROS quality of service: -->
+        <!-- On ROS-1, parameter "ros_qos" sets the queue_size of ros publisher -->
+        <!-- On ROS-2, parameter "ros_qos" sets the QoS of ros publisher to one of the following predefined values: -->
+        <!-- 0: rclcpp::SystemDefaultsQoS(), 1: rclcpp::ParameterEventsQoS(), 2: rclcpp::ServicesQoS(), 3: rclcpp::ParametersQoS(), 4: rclcpp::SensorDataQoS() -->
+        <!-- See e.g. https://docs.ros2.org/dashing/api/rclcpp/classrclcpp_1_1QoS.html#ad7e932d8e2f636c80eff674546ec3963 for further details about ROS2 QoS -->
+        <!-- Default value is -1, i.e. queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 is used.-->
+        <param name="ros_qos" type="int" value="-1"/>  <!-- Default QoS=-1, i.e. do not overwrite, use queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 -->
+
     </node>
 </launch>

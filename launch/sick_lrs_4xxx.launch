@@ -76,5 +76,13 @@
         <!-- Supported by sick_generic_caller version 2.8.4 and above: -->
         <param name="glare_detection_sens" type="int" value="-1" />        <!-- Glare Detection Sensitivity (LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter -->
 
+        <!-- Configuration of ROS quality of service: -->
+        <!-- On ROS-1, parameter "ros_qos" sets the queue_size of ros publisher -->
+        <!-- On ROS-2, parameter "ros_qos" sets the QoS of ros publisher to one of the following predefined values: -->
+        <!-- 0: rclcpp::SystemDefaultsQoS(), 1: rclcpp::ParameterEventsQoS(), 2: rclcpp::ServicesQoS(), 3: rclcpp::ParametersQoS(), 4: rclcpp::SensorDataQoS() -->
+        <!-- See e.g. https://docs.ros2.org/dashing/api/rclcpp/classrclcpp_1_1QoS.html#ad7e932d8e2f636c80eff674546ec3963 for further details about ROS2 QoS -->
+        <!-- Default value is -1, i.e. queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 is used.-->
+        <param name="ros_qos" type="int" value="-1"/>  <!-- Default QoS=-1, i.e. do not overwrite, use queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 -->
+
     </node>
 </launch>

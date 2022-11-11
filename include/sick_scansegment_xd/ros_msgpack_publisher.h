@@ -103,7 +103,7 @@ namespace sick_scansegment_xd
          *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
          * @param[in] qos quality of service profile for the ros publisher, default: 1
          */
-        RosMsgpackPublisher(const std::string& node_name = "sick_scansegment_xd", const sick_scansegment_xd::Config& config = sick_scansegment_xd::Config(), const rosQoS& qos = 1);
+        RosMsgpackPublisher(const std::string& node_name = "sick_scansegment_xd", const sick_scansegment_xd::Config& config = sick_scansegment_xd::Config(), rosQoS qos = 1);
 
         /*
          * @brief RosMsgpackPublisher destructor
