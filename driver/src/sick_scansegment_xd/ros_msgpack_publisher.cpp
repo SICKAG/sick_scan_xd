@@ -221,8 +221,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		echo_count = std::max(msgpack_data.scandata[groupIdx].scanlines.size(), echo_count);
 		for (int echoIdx = 0; echoIdx < msgpack_data.scandata[groupIdx].scanlines.size(); echoIdx++)
 		{
-			total_point_count += msgpack_data.scandata[groupIdx].scanlines[echoIdx].size();
-			point_count_per_echo = std::max(msgpack_data.scandata[groupIdx].scanlines[echoIdx].size(), point_count_per_echo);
+			total_point_count += msgpack_data.scandata[groupIdx].scanlines[echoIdx].points.size();
+			point_count_per_echo = std::max(msgpack_data.scandata[groupIdx].scanlines[echoIdx].points.size(), point_count_per_echo);
 		}
 	}
 	float lidar_points_min_azimuth = +2.0f * (float)M_PI, lidar_points_max_azimuth = -2.0f * (float)M_PI;
@@ -235,7 +235,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	{
 		for (int echoIdx = 0; echoIdx < msgpack_data.scandata[groupIdx].scanlines.size(); echoIdx++)
 		{
-			const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_data.scandata[groupIdx].scanlines[echoIdx];
+			const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_data.scandata[groupIdx].scanlines[echoIdx].points;
 			for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 			{
 				const sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
