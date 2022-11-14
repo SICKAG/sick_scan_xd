@@ -8,6 +8,7 @@
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="nodename" default="sick_lms_1xx"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
+    <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="intensity" type="bool" value="False"/>
         <param name="intensity_resolution_16bit" type="bool" value="false"/>
@@ -61,6 +62,7 @@
         <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
         <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
         <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+        <param name="add_transform_check_dynamic_updates" type="bool" value="$(arg add_transform_check_dynamic_updates)" />
 
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
         <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->

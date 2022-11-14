@@ -23,6 +23,7 @@
     <arg name="cloud_topic" default="cloud"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
+    <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <node name="sick_lms_4xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
 
         <!-- Default: min_angle = -135 degree, max_angle = 135 -->
@@ -82,6 +83,7 @@
         <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
         <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
         <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+        <param name="add_transform_check_dynamic_updates" type="bool" value="$(arg add_transform_check_dynamic_updates)" />
 
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->

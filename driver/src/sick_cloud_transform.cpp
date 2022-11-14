@@ -76,23 +76,26 @@ sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, bool cartesian_
     std::string add_transform_xyz_rpy = "0,0,0,0,0,0";
     rosDeclareParam(nh, "add_transform_xyz_rpy", add_transform_xyz_rpy);
     rosGetParam(nh, "add_transform_xyz_rpy", add_transform_xyz_rpy);
-    if (!init(add_transform_xyz_rpy, cartesian_input_only))
+    bool add_transform_check_dynamic_updates = false;
+    rosDeclareParam(nh, "add_transform_check_dynamic_updates", add_transform_check_dynamic_updates);
+    rosGetParam(nh, "add_transform_check_dynamic_updates", add_transform_check_dynamic_updates);
+    if (!init(add_transform_xyz_rpy, cartesian_input_only, add_transform_check_dynamic_updates))
     {
         ROS_ERROR_STREAM("## ERROR SickCloudTransform(): Initialization by \"" << add_transform_xyz_rpy << "\" failed, use 6D pose \"x,y,z,roll,pitch,yaw\" in [m] resp. [rad]");
     }
 }
 
-sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, const std::string& add_transform_xyz_rpy, bool cartesian_input_only)
+sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, const std::string& add_transform_xyz_rpy, bool cartesian_input_only, bool add_transform_check_dynamic_updates)
 {
     m_nh = nh;
-    if (!init(add_transform_xyz_rpy, cartesian_input_only))
+    if (!init(add_transform_xyz_rpy, cartesian_input_only, add_transform_check_dynamic_updates))
     {
         ROS_ERROR_STREAM("## ERROR SickCloudTransform(): Initialization by \"" << add_transform_xyz_rpy << "\" failed, use 6D pose \"x,y,z,roll,pitch,yaw\" in [m] resp. [rad]");
     }
 }
 
 // Initializes rotation matrix and translation vector from a 6D pose configuration (x,y,z,roll,pitch,yaw) in [m] resp. [rad]
-bool sick_scan::SickCloudTransform::init(const std::string& add_transform_xyz_rpy, bool cartesian_input_only)
+bool sick_scan::SickCloudTransform::init(const std::string& add_transform_xyz_rpy, bool cartesian_input_only, bool add_transform_check_dynamic_updates)
 {
     // Split string add_transform_xyz_rpy to 6D pose x,y,z,roll,pitch,yaw in [m] resp. [rad]
     std::istringstream config_stream(add_transform_xyz_rpy);
@@ -154,6 +157,7 @@ bool sick_scan::SickCloudTransform::init(const std::string& add_transform_xyz_rp
     // Initialization successful
     m_add_transform_xyz_rpy = add_transform_xyz_rpy;
     m_cartesian_input_only = cartesian_input_only;
+    m_add_transform_check_dynamic_updates = add_transform_check_dynamic_updates;
     ROS_INFO_STREAM("SickCloudTransform: add_transform_xyz_rpy = (" << add_transform_xyz_rpy << ")");
     ROS_INFO_STREAM("SickCloudTransform: azimuth_offset = " << (m_azimuth_offset * 180.0 / M_PI) << " [deg]");
     ROS_INFO_STREAM("SickCloudTransform: additional 3x3 rotation matrix = { (" 
@@ -162,6 +166,7 @@ bool sick_scan::SickCloudTransform::init(const std::string& add_transform_xyz_rp
         << m_rotation_matrix[2][0] << "," << m_rotation_matrix[2][1] << "," << m_rotation_matrix[2][2] << ") }");
     ROS_INFO_STREAM("SickCloudTransform: apply 3x3 rotation = " << (m_apply_3x3_rotation ? "true" : "false"));
     ROS_INFO_STREAM("SickCloudTransform: additional translation = (" << m_translation_vector[0] << "," << m_translation_vector[1] << "," << m_translation_vector[2] << ")");
+    ROS_INFO_STREAM("SickCloudTransform: check_dynamic_updates = " << (m_add_transform_check_dynamic_updates ? "true" : "false"));
     return true;
 }
 

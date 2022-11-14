@@ -18,6 +18,7 @@
     <arg name="hostname1" default="192.168.0.1"/>
     <arg name="hostname2" default="192.168.0.2"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
+    <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_scan)/urdf/example.urdf.xacro'"/>
     <node pkg="tf" type="static_transform_publisher" name="scanner1_to_map" args="0 0 0 0 0 0 map laser_1 100"/>
     <node pkg="tf" type="static_transform_publisher" name="scanner2_to_map" args="2 0 0 0 0 0 map laser_2 100"/>
@@ -58,6 +59,7 @@
         <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
         <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
         <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+        <param name="add_transform_check_dynamic_updates" type="bool" value="$(arg add_transform_check_dynamic_updates)" />
 
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
         <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
