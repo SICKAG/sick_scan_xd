@@ -100,7 +100,7 @@ function run_simu_tim7xx()
 {
     start_tim7xx_emulator
     echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_tim_7xx.launch, no transform\n"
-    roslaunch sick_scan sick_tim_7xx.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 &
+    roslaunch sick_scan sick_tim_7xx.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
     sleep 5
     run_simu_transforms sick_tim_7xx/add_transform_xyz_rpy 0.3
     kill_simu
@@ -111,10 +111,10 @@ function run_simu_mrs100()
 {
     start_mrs100_emulator
     echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_scansegment_xd.launch, no transform\n"
-    roslaunch sick_scan sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 &
+    roslaunch sick_scan sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
     sleep 5
-    run_simu_transforms sick_scansegment_xd/add_transform_xyz_rpy 2.0 &
-    python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=10
+    python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=10 &
+    run_simu_transforms sick_scansegment_xd/add_transform_xyz_rpy 2.0
     kill_simu
 }
 
@@ -123,7 +123,7 @@ function run_simu_ldmrs()
 {
     start_ldmrs_emulator
     echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_ldmrs.launch, no transform\n"
-    roslaunch sick_scan sick_ldmrs.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 &
+    roslaunch sick_scan sick_ldmrs.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
     sleep 5
     run_simu_transforms sick_ldmrs/add_transform_xyz_rpy 1.0 
     kill_simu
@@ -134,7 +134,7 @@ function run_simu_rms3xx()
 {
     start_rms3xx_emulator
     echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_rms_3xx.launch, no transform\n"
-    roslaunch sick_scan sick_rms_3xx.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 &
+    roslaunch sick_scan sick_rms_3xx.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
     sleep 5
     run_simu_transforms sick_rms_3xx/add_transform_xyz_rpy 3.0 
     kill_simu

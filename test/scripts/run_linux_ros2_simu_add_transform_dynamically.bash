@@ -61,7 +61,7 @@ function run_simu_tim7xx()
 {
     start_tim7xx_emulator
     echo -e "\nrun_linux_ros2_simu_add_transform.bash: starting sick_scan sick_tim_7xx.launch, no transform\n"
-    ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 add_transform_xyz_rpy:=0,0,0,0,0,0 &
+    ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
     sleep 5
     run_simu_transforms sick_scan add_transform_xyz_rpy 0.3
     simu_killall

@@ -87,8 +87,8 @@ namespace sick_scan
     public:
 
         SickCloudTransform();
-        SickCloudTransform(rosNodePtr nh, bool cartesian_input_only = false);
-        SickCloudTransform(rosNodePtr nh, const std::string& add_transform_xyz_rpy, bool cartesian_input_only = false);
+        SickCloudTransform(rosNodePtr nh, bool cartesian_input_only /* = false */);
+        SickCloudTransform(rosNodePtr nh, const std::string& add_transform_xyz_rpy, bool cartesian_input_only /* = false */, bool add_transform_check_dynamic_updates /* = false */);
 
         /*
         * Apply an optional transform to point (x, y, z).
@@ -100,13 +100,13 @@ namespace sick_scan
         template<typename float_type> inline void applyTransform(float_type& x, float_type& y, float_type& z)
         {
             // Check parameter and re-init if parameter "add_transform_xyz_rpy" changed
-            if (m_nh)
+            if (m_add_transform_check_dynamic_updates && m_nh)
             {
                 std::string add_transform_xyz_rpy = m_add_transform_xyz_rpy;
                 rosGetParam(m_nh, "add_transform_xyz_rpy", add_transform_xyz_rpy);
                 if (m_add_transform_xyz_rpy != add_transform_xyz_rpy)
                 {
-                    if (!init(add_transform_xyz_rpy, m_cartesian_input_only))
+                    if (!init(add_transform_xyz_rpy, m_cartesian_input_only, m_add_transform_check_dynamic_updates))
                     {
                         ROS_ERROR_STREAM("## ERROR SickCloudTransform(): Re-Initialization by \"" << add_transform_xyz_rpy << "\" failed, use 6D pose \"x,y,z,roll,pitch,yaw\" in [m] resp. [rad]");
                     }
@@ -141,7 +141,7 @@ namespace sick_scan
         typedef std::array<std::array<float, 3>, 3> Matrix3x3; // 3x3 rotation matrix
 
         // Initializes rotation matrix and translation vector from a 6D pose configuration (x,y,z,roll,pitch,yaw) in [m] resp. [rad]
-        bool init(const std::string& add_transform_xyz_rpy, bool cartesian_input_only);
+        bool init(const std::string& add_transform_xyz_rpy, bool cartesian_input_only, bool add_transform_check_dynamic_updates);
 
         // Converts roll (rotation about X), pitch (rotation about Y), yaw (rotation about Z) to 3x3 rotation matrix
         static Matrix3x3 eulerToRot3x3(float roll, float pitch, float yaw);
@@ -150,8 +150,9 @@ namespace sick_scan
         static Matrix3x3 multiply3x3(const Matrix3x3& a, const Matrix3x3& b);
 
         rosNodePtr m_nh = 0; // ros node handle
-        std::string m_add_transform_xyz_rpy = ""; // currently configured ros parameter "add_transform_xyz_rpy"
-        bool m_cartesian_input_only = false;;     // currently configured parameter cartesian_input_only
+        std::string m_add_transform_xyz_rpy = "";                     // currently configured ros parameter "add_transform_xyz_rpy"
+        bool m_add_transform_check_dynamic_updates = false;           // True: ros parameter "add_transform_xyz_rpy" can be updated during runtime by "rosparam set", False: parameter "add_transform_xyz_rpy" configured by launchfile only
+        bool m_cartesian_input_only = false;                          // currently configured parameter cartesian_input_only
         bool m_apply_3x3_rotation = false;                            // true, if the 3x3 rotation_matrix has to be applied, otherwise false (default)
         Vector3D m_translation_vector = { 0, 0, 0 };                  // translational part x,y,z of the 6D pose, default: 0
         Matrix3x3 m_rotation_matrix = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };  // rotational part roll,pitch,yaw by 3x3 rotation matrix, default: 3x3 identity

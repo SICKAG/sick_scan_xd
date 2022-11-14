@@ -267,7 +267,9 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
     std::string str_add_transform_xyz_rpy = "0,0,0,0,0,0";
     ROS_DECL_GET_PARAMETER(node, "add_transform_xyz_rpy", str_add_transform_xyz_rpy);
-    add_transform_xyz_rpy = sick_scan::SickCloudTransform(node, str_add_transform_xyz_rpy);
+    bool add_transform_check_dynamic_updates = false;
+    ROS_DECL_GET_PARAMETER(node, "add_transform_check_dynamic_updates", add_transform_check_dynamic_updates);
+    add_transform_xyz_rpy = sick_scan::SickCloudTransform(node, str_add_transform_xyz_rpy, false, add_transform_check_dynamic_updates);
     // Optional range filter
     float range_min = 0, range_max = 100;
     int range_filter_handling = 0;
