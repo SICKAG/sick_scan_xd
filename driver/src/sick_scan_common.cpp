@@ -4281,7 +4281,7 @@ namespace sick_scan
                 {
                   // numEchos
                   char szTmp[255] = {0};
-                  if (false) // if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() > 1) // Use configured frame_id for both laser scan and pointcloud messages
+                  if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() > 1)
                   {
                     const char *cpFrameId = config_.frame_id.c_str();
 #if 0
@@ -4304,7 +4304,7 @@ namespace sick_scan
                   }
                   else
                   {
-                    strcpy(szTmp, config_.frame_id.c_str());
+                    strcpy(szTmp, config_.frame_id.c_str());  // Use configured frame_id for both laser scan and pointcloud messages
                   }
 
                   msg.header.frame_id = std::string(szTmp);
@@ -4403,8 +4403,8 @@ namespace sick_scan
                 numTmpLayer = 1; // LMS_1XXX has 4 interlaced layer, each layer published in one pointcloud message
                 baseLayer = 0;
                 layer = 0;
+                msg.header.frame_id = config_.frame_id; // Use configured frame_id for both laser scan and pointcloud messages
               }
-
 
               cloud_.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
               // ROS_DEBUG_STREAM("laser_scan timestamp: " << msg.header.stamp << ", pointclound timestamp: " << cloud_.header.stamp);

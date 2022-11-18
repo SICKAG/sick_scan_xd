@@ -172,6 +172,7 @@ bool sick_scan::SickScanServices::sendSopasAndCheckAnswer(const std::string& sop
 {
   if(m_common_tcp)
   {
+    ROS_INFO_STREAM("SickScanServices: Sending request \"" << sopasCmd << "\"");
     std::string sopasRequest = std::string("\x02") + sopasCmd + "\x03";
     int result = -1;
     if (m_cola_binary)

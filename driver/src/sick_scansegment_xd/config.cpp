@@ -163,6 +163,12 @@ sick_scansegment_xd::Config::Config()
     msgpack_validator_filter_settings.msgpack_validator_layer_filter = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }; // default for full scan: 16 layer active, i.e. { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
     msgpack_validator_valid_segments = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }; // default for full scan: 12 segments, i.e. { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }
 
+    // Configuration of laserscan messages (ROS only):
+    // Parameter "laserscan_layer_filter" sets a mask to create laserscan messages for configured layer (0: no laserscan message, 1: create laserscan messages for this layer)
+    // Use "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" to activate resp. "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" to activate laserscan messages for all 16 layers of the Multiscan136
+    // Default is "0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0", i.e. laserscan messages for layer 5, (elevation -0.07 degree, max number of scan points)
+    laserscan_layer_filter = { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
 }
 
 /*
@@ -278,6 +284,12 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "range_filter_handling", range_filter_handling);
     range_filter = sick_scan::SickRangeFilter(range_min, range_max, (sick_scan::RangeFilterResultHandling)range_filter_handling);
     ROS_INFO_STREAM("Range filter configuration for sick_scansegment_xd: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
+
+    // Configuration of laserscan messages (ROS only), activate/deactivate laserscan messages for each layer
+    std::string str_laserscan_layer_filter = "0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0";
+    ROS_DECL_GET_PARAMETER(node, "laserscan_layer_filter", str_laserscan_layer_filter);
+    sick_scansegment_xd::util::parseVector(str_laserscan_layer_filter, laserscan_layer_filter);
+
     return true;
 }
 
@@ -363,7 +375,7 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "msgpack_validator_verbose", msgpack_validator_verbose);
     setOptionalArgument(cli_parameter_map, "msgpack_validator_discard_msgpacks_out_of_bounds", msgpack_validator_discard_msgpacks_out_of_bounds);
     setOptionalArgument(cli_parameter_map, "msgpack_validator_check_missing_scandata_interval", msgpack_validator_check_missing_scandata_interval);
-    std::string cli_msgpack_validator_required_echos, cli_msgpack_validator_valid_segments, cli_msgpack_validator_layer_filter;
+    std::string cli_msgpack_validator_required_echos, cli_msgpack_validator_valid_segments, cli_msgpack_validator_layer_filter, cli_laserscan_layer_filter;
     float cli_msgpack_validator_azimuth_start_deg, cli_msgpack_validator_azimuth_end_deg, cli_msgpack_validator_elevation_start_deg, cli_msgpack_validator_elevation_end_deg;
     if (setOptionalArgument(cli_parameter_map, "msgpack_validator_required_echos", cli_msgpack_validator_required_echos))
         sick_scansegment_xd::util::parseVector(cli_msgpack_validator_required_echos, msgpack_validator_filter_settings.msgpack_validator_required_echos);
@@ -379,6 +391,8 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
         sick_scansegment_xd::util::parseVector(cli_msgpack_validator_valid_segments, msgpack_validator_valid_segments);
     if (setOptionalArgument(cli_parameter_map, "msgpack_validator_layer_filter", cli_msgpack_validator_layer_filter))
         sick_scansegment_xd::util::parseVector(cli_msgpack_validator_layer_filter, msgpack_validator_filter_settings.msgpack_validator_layer_filter);
+    if (setOptionalArgument(cli_parameter_map, "laserscan_layer_filter", cli_laserscan_layer_filter))
+        sick_scansegment_xd::util::parseVector(cli_laserscan_layer_filter, laserscan_layer_filter);
 
     PrintConfig();
 
@@ -422,6 +436,7 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     ROS_INFO_STREAM("host_set_LFPangleRangeFilter:     " << host_set_LFPangleRangeFilter);
     ROS_INFO_STREAM("host_LFPlayerFilter:              " << host_LFPlayerFilter);
     ROS_INFO_STREAM("host_set_LFPlayerFilter:          " << host_set_LFPlayerFilter);
+    ROS_INFO_STREAM("laserscan_layer_filter:           " << sick_scansegment_xd::util::printVector(laserscan_layer_filter));
     ROS_INFO_STREAM("msgpack_validator_enabled:                         " << msgpack_validator_enabled);
     ROS_INFO_STREAM("msgpack_validator_verbose:                         " << msgpack_validator_verbose);
     ROS_INFO_STREAM("msgpack_validator_discard_msgpacks_out_of_bounds:  " << msgpack_validator_discard_msgpacks_out_of_bounds);
