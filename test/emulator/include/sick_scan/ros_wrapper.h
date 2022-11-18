@@ -311,6 +311,7 @@ namespace ROS
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 
@@ -408,6 +409,9 @@ namespace sick_scan
 
   typedef sensor_msgs::msg::PointCloud2 PointCloud2Msg;
   typedef rclcpp::Publisher<PointCloud2Msg>::SharedPtr PointCloud2MsgPublisher;
+
+  typedef sensor_msgs::msg::LaserScan LaserScanMsg;
+  typedef rclcpp::Publisher<LaserScanMsg>::SharedPtr LaserscanMsgPublisher;
 
   typedef nav_msgs::msg::Odometry OdomMsg;
   typedef rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr OdomMsgSubscriber;

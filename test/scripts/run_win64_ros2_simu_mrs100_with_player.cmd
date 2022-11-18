@@ -12,6 +12,7 @@ rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 pushd ..\..\..\..
 call .\install\setup.bat
 rem start "ros2 echo cloud" ros2 topic echo /cloud
+start "rviz2 mrs100" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_mrs100_windows_laserscan.rviz
 start "rviz2 mrs100" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_mrs100_windows.rviz
 start "rviz2 mrs100 360" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_mrs100_windows_360.rviz
 @timeout /t 3
@@ -25,6 +26,14 @@ python --version
 where python
 start "python mrs100_sopas_test_server.py" cmd /k python ./src/sick_scan_xd/test/python/mrs100_sopas_test_server.py --tcp_port=2111 --cola_binary=0
 @timeout /t 3
+
+REM Note: To verify laserscan messages, we configure laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", i.e. a laserscan message is published for each segment, each layer and each echo.
+REM By default, laserscan messages are only activated for layer 5 (elevation -0.07 degree, max number of scan points)
+REM All laserscan messages are converted to pointcloud by mrs100_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
+REM Note: Option laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" should not be used for performance tests.
+REM ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
+REM start "python mrs100_laserscan_msg_to_pointcloud.py" cmd /k python ./src/sick_scan_xd/test/python/mrs100_laserscan_msg_to_pointcloud.py
+REM @timeout /t 1
 
 REM 
 REM Start sick_scan on ROS-2 Windows

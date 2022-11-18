@@ -171,6 +171,9 @@ namespace sick_scansegment_xd
         sick_scan::SickCloudTransform add_transform_xyz_rpy;
         sick_scan::SickRangeFilter range_filter;
 
+        // Configuration of laserscan messages (ROS only), activate/deactivate laserscan messages for each layer
+        std::vector<int> laserscan_layer_filter; // Default: { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, i.e. laserscan messages for layer 5 activated (elevation -0.07 degree, max number of scan points)
+
         rosNodePtr node; // NodePtr node; // ROS node handle (always 0 on non-ros-targets)
 
     }; // class Config

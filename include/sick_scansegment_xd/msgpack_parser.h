@@ -117,7 +117,7 @@ namespace sick_scansegment_xd
             float range;     // polar coordinate range in meter
             float azimuth;   // polar coordinate azimuth in radians
             float elevation; // polar coordinate elevation in radians
-            int groupIdx;    // group index, 0 <= groupIdx < 16 for multiScan136
+            int groupIdx;    // group index (layer), 0 <= groupIdx < 16 for multiScan136
             int echoIdx;     // echo index, 0 <= echoIdx < 3 for multiScan136
             int pointIdx;    // point index, 0 <= pointIdx < 30 resp. 0 <= pointIdx < 240 for multiScan136
         };
@@ -129,11 +129,6 @@ namespace sick_scansegment_xd
         {
         public:
             std::vector<LidarPoint> points; // list of all scan points
-            float angle_min = 0;        // start angle of the scan [rad]
-            float angle_max = 0;        // end angle of the scan [rad]
-            float angle_increment = 0;  // angular distance between measurements [rad]
-            float range_min = 0;        // minimum range value [m]
-            float range_max = 0;        // maximum range value [m]
         };
 
         /*
