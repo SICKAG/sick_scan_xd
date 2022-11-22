@@ -125,7 +125,16 @@ namespace sick_scansegment_xd
         /*
          * @brief type Scanline is a vector of LidarPoint data. multiScan136 transmits 3 echos, each echo is a Scanline.
          */
-        typedef std::vector<LidarPoint> Scanline;
+        class Scanline
+        {
+        public:
+            std::vector<LidarPoint> points; // list of all scan points
+            float angle_min = 0;        // start angle of the scan [rad]
+            float angle_max = 0;        // end angle of the scan [rad]
+            float angle_increment = 0;  // angular distance between measurements [rad]
+            float range_min = 0;        // minimum range value [m]
+            float range_max = 0;        // maximum range value [m]
+        };
 
         /*
          * @brief type Scangroup is a vector of Scanlines. multiScan136 transmits 16 groups, each group has 3 echos (3 scanlines).
@@ -140,7 +149,6 @@ namespace sick_scansegment_xd
             uint32_t timestampStop_nsec;
             std::vector<Scanline> scanlines;
         };
-        // typedef std::vector<Scanline> Scangroup;
 
         /*
          * @brief scandata contains all data of a MsgPack.
@@ -196,7 +204,7 @@ namespace sick_scansegment_xd
          * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
-        static bool Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
+        static bool Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
             sick_scan::SickRangeFilter& range_filter, MsgPackParserOutput& result, 
             sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(), 
             bool msgpack_validator_enabled = false, bool discard_msgpacks_not_validated = false,
@@ -239,7 +247,7 @@ namespace sick_scansegment_xd
          * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
          * @param[in] verbose true: enable debug output, false: quiet mode
          */
-        static bool Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
+        static bool Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, sick_scan::SickCloudTransform& add_transform_xyz_rpy, 
             sick_scan::SickRangeFilter& range_filter, MsgPackParserOutput& result, 
             sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector,
             const sick_scansegment_xd::MsgPackValidator& msgpack_validator = sick_scansegment_xd::MsgPackValidator(),

@@ -8,6 +8,10 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.8.13 - Dynamical pointcloud transform and QoS configuration
+  - **Update** Dynamical configuration of an additional pointcloud transform by rosparam, #104
+  - **Update** Configuration of ROS quality of service by launchfile, #101
+
 ### v2.8.11 - LMS 1xxx support
   - **Update** LMS 1xxx support with scan configuration (scan frequency and angular resolution for firmware 2.x)
 

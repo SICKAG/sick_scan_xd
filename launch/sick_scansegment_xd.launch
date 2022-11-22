@@ -10,6 +10,7 @@
     <arg name="publish_topic_all_segments" default="/cloud_360" />        <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360" -->
     <arg name="publish_frame_id" default="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
+    <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_scansegment_xd"/>
 
@@ -59,6 +60,7 @@
         <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
         <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
         <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+        <param name="add_transform_check_dynamic_updates" type="bool" value="$(arg add_transform_check_dynamic_updates)" />
 
         <!-- SOPAS settings: -->
         <param name="sopas_tcp_port" type="string" value="2111" />                          <!-- TCP port for SOPAS commands, default port: 2111 -->
@@ -89,6 +91,14 @@
         <param name="msgpack_validator_elevation_end" type="double" value="+90.0" />                          <!-- default for full scan: +-90 degree -->
         <param name="msgpack_validator_valid_segments" type="string" value="0 1 2 3 4 5 6 7 8 9 10 11" />     <!-- indices of valid segmentes, default for full scan: 12 segments -->
         <param name="msgpack_validator_layer_filter" type="string" value="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" /> <!-- default for full scan: 16 layer active, i.e. "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" -->
+
+        <!-- Configuration of ROS quality of service: -->
+        <!-- On ROS-1, parameter "ros_qos" sets the queue_size of ros publisher -->
+        <!-- On ROS-2, parameter "ros_qos" sets the QoS of ros publisher to one of the following predefined values: -->
+        <!-- 0: rclcpp::SystemDefaultsQoS(), 1: rclcpp::ParameterEventsQoS(), 2: rclcpp::ServicesQoS(), 3: rclcpp::ParametersQoS(), 4: rclcpp::SensorDataQoS() -->
+        <!-- See e.g. https://docs.ros2.org/dashing/api/rclcpp/classrclcpp_1_1QoS.html#ad7e932d8e2f636c80eff674546ec3963 for further details about ROS2 QoS -->
+        <!-- Default value is -1, i.e. queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 is used.-->
+        <param name="ros_qos" type="int" value="-1"/>  <!-- Default QoS=-1, i.e. do not overwrite, use queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 -->
 
     </node>
 
