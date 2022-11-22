@@ -57,15 +57,15 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 1.1244667768478394
+      Max Intensity: 2.1479885578155518
       Min Color: 0; 0; 0
-      Min Intensity: -0.3241482377052307
+      Min Intensity: -1.7411752939224243
       Name: PointCloud2
       Position Transformer: XYZ
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.009999999776482582
-      Style: Flat Squares
+      Style: Points
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -74,6 +74,13 @@ Visualization Manager:
         Value: /cloud
       Use Fixed Frame: true
       Use rainbow: true
+      Value: true
+    - Class: rviz_default_plugins/Axes
+      Enabled: true
+      Length: 1
+      Name: Axes
+      Radius: 0.05000000074505806
+      Reference Frame: <Fixed Frame>
       Value: true
   Enabled: true
   Global Options:
@@ -152,5 +159,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1087
-  X: 1403
+  X: 1271
   Y: 49

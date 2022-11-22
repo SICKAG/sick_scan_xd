@@ -69,16 +69,19 @@ namespace sick_scansegment_xd
     class PointXYZRAEI32f
     {
     public:
-        PointXYZRAEI32f() : x(0), y(0), z(0), range(0), azimuth(0), elevation(0), i(0) {}
-        PointXYZRAEI32f(float _x, float _y, float _z, float _range, float _azimuth, float _elevation, float _i) 
-            : x(_x), y(_y), z(_z), range(_range), azimuth(_azimuth), elevation(_elevation), i(_i) {}
-        float x;
-        float y;
-        float z;
-        float range;
-        float azimuth;
-        float elevation;
-        float i;
+        PointXYZRAEI32f() : x(0), y(0), z(0), range(0), azimuth(0), elevation(0), i(0), layer(0), echo(0) {}
+        PointXYZRAEI32f(float _x, float _y, float _z, float _range, float _azimuth, float _elevation, float _i, int _layer, int _echo) 
+            : x(_x), y(_y), z(_z), range(_range), azimuth(_azimuth), elevation(_elevation), i(_i), layer(_layer), echo(_echo) {}
+        float x;         // cartesian x coordinate in meter
+        float y;         // cartesian y coordinate in meter
+        float z;         // cartesian z coordinate in meter
+        float range;     // polar coordinate range in meter
+        float azimuth;   // polar coordinate azimuth in radians
+        float elevation; // polar coordinate elevation in radians
+        float i;         // intensity
+        int layer;       // group index (layer), 0 <= layer < 16 for multiScan136
+        int echo;        // echo index, 0 <= echo < 3 for multiScan136
+
     };
   
     /*
@@ -103,7 +106,7 @@ namespace sick_scansegment_xd
          *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
          * @param[in] qos quality of service profile for the ros publisher, default: 1
          */
-        RosMsgpackPublisher(const std::string& node_name = "sick_scansegment_xd", const sick_scansegment_xd::Config& config = sick_scansegment_xd::Config(), rosQoS qos = 1);
+        RosMsgpackPublisher(const std::string& node_name = "sick_scansegment_xd", const sick_scansegment_xd::Config& config = sick_scansegment_xd::Config());
 
         /*
          * @brief RosMsgpackPublisher destructor
@@ -140,6 +143,8 @@ namespace sick_scansegment_xd
         }
 
     protected:
+
+        typedef std::map<int,std::map<int,ros_sensor_msgs::LaserScan>> LaserScanMsgMap; // LaserScanMsgMap[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
       
          /*
           * Container to collect all points of 12 segments (12 segments * 30 deg = 360 deg)
@@ -173,21 +178,27 @@ namespace sick_scansegment_xd
          };
   
          /*
-          * Converts the lidarpoints from a msgpack to a PointCloud2Msg.
+          * Converts the lidarpoints from a msgpack to a PointCloud2Msg and to LaserScan messages for each layer.
+          * Note: For performance reasons, LaserScan messages are not created for the collected 360-degree scans (i.e. is_cloud_360 is true).
           * @param[in] timestamp_sec seconds part of timestamp
           * @param[in] timestamp_nsec  nanoseconds part of timestamp
+          * @param[in] last_timestamp_sec seconds part of last timestamp
+          * @param[in] last_timestamp_nsec  nanoseconds part of last timestamp
           * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
           * @param[in] total_point_count total number of points in all echos
           * @param[in] echo_count number of echos
-          * @param[out] pointcloud_msg PointCloud2Msg result
+          * @param[out] pointcloud_msg cartesian pointcloud message
+          * @param[out] pointcloud_msg_polar polar pointcloud message
+          * @param[out] laser_scan_msg_map laserscan message: ros_sensor_msgs::LaserScan for each echo and layer is laser_scan_msg_map[echo][layer]
           */
-         void convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points,
-            size_t total_point_count, PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar);
+         void convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count, 
+            PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, LaserScanMsgMap& laser_scan_msg_map, bool is_cloud_360);
       
         /*
          * Shortcut to publish a PointCloud2Msg
          */
-        void publish(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, int32_t num_echos, int32_t segment_idx);
+        void publish(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, 
+            LaserscanMsgPublisher& laserscan_publisher, LaserScanMsgMap& laser_scan_msg_map, int32_t num_echos, int32_t segment_idx);
 
         bool m_active; // activate publishing
         rosNodePtr m_node; // ros node handle
@@ -196,10 +207,15 @@ namespace sick_scansegment_xd
         float m_min_azimuth; // min azimuth of a full scan in radians, default: -M_PI
         float m_max_azimuth; // max azimuth of a full scan in radians, default: +M_PI
         SegmentPointsCollector m_points_collector; // collects all points of 12 segments (12 segments * 30 deg = 360 deg)
-        std::string m_publish_topic; // ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
-        std::string m_publish_topic_all_segments; // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
-        PointCloud2MsgPublisher m_publisher_cur_segment; // ros publisher to publish PointCloud2 message of the current segment
-        PointCloud2MsgPublisher m_publisher_all_segments; // ros publisher to publish PointCloud2 message of all segments (360 degree)
+        std::string m_publish_topic;                         // ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
+        std::string m_publish_topic_all_segments;            // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
+        PointCloud2MsgPublisher m_publisher_cur_segment;     // ros publisher to publish PointCloud2 messages of the current segment
+        PointCloud2MsgPublisher m_publisher_all_segments;    // ros publisher to publish PointCloud2 messages of all segments (360 degree)
+        LaserscanMsgPublisher m_publisher_laserscan_segment; // ros publisher to publish LaserScan messages of the current segment
+        LaserscanMsgPublisher m_publisher_laserscan_360;     // ros publisher to publish LaserScan messages of all segments (360 degree)
+        double m_scan_time = 0;                              // scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
+        std::vector<int> m_laserscan_layer_filter;           // Configuration of laserscan messages (ROS only), activate/deactivate laserscan messages for each layer
+
 
     };  // class RosMsgpackPublisher
 

@@ -752,8 +752,6 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				groupData.push_back(sick_scansegment_xd::MsgPackParserOutput::Scanline());
 				sick_scansegment_xd::MsgPackParserOutput::Scanline& scanline = groupData.back();
 				scanline.points.reserve(iPointCount);
-				scanline.range_min = +FLT_MAX;
-				scanline.range_max = -FLT_MAX;
 				for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 				{
 					float dist = 0.001f * distValues[echoIdx].data()[pointIdx]; // convert distance to meter
@@ -771,20 +769,8 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 							msgpack_validator_data.update(echoIdx, segment_idx, azimuth_norm, elevation);
 							msgpack_validator_data_collector.update(echoIdx, segment_idx, azimuth_norm, elevation);
 						}
-						scanline.range_min = std::min(dist, scanline.range_min);
-						scanline.range_max = std::min(dist, scanline.range_max);
 						scanline.points.push_back(sick_scansegment_xd::MsgPackParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx));
 				    }
-				}
-				if (iPointCount > 0)
-				{
-					scanline.angle_min = normalizeAngle(scanline.points.front().azimuth);
-					scanline.angle_max = normalizeAngle(scanline.points.back().azimuth);
-					scanline.angle_increment = (scanline.angle_max - scanline.angle_min) / (float)iPointCount;
-				}
-				else
-				{
-					scanline = sick_scansegment_xd::MsgPackParserOutput::Scanline();
 				}
 			}
 
