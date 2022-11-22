@@ -11,6 +11,7 @@
     <arg name="publish_frame_id" default="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
+    <arg name="laserscan_layer_filter" default="0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0" /> <!-- Configuration of laserscan messages (ROS only), default: laserscan messages for layer 5 activated (elevation -0.07 degree, max number of scan points) -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_scansegment_xd"/>
 
@@ -97,8 +98,14 @@
         <!-- On ROS-2, parameter "ros_qos" sets the QoS of ros publisher to one of the following predefined values: -->
         <!-- 0: rclcpp::SystemDefaultsQoS(), 1: rclcpp::ParameterEventsQoS(), 2: rclcpp::ServicesQoS(), 3: rclcpp::ParametersQoS(), 4: rclcpp::SensorDataQoS() -->
         <!-- See e.g. https://docs.ros2.org/dashing/api/rclcpp/classrclcpp_1_1QoS.html#ad7e932d8e2f636c80eff674546ec3963 for further details about ROS2 QoS -->
-        <!-- Default value is -1, i.e. queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 is used.-->
-        <param name="ros_qos" type="int" value="-1"/>  <!-- Default QoS=-1, i.e. do not overwrite, use queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 -->
+        <!-- Default value is -1, i.e. queue_size=32 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 is used.-->
+        <param name="ros_qos" type="int" value="-1"/>  <!-- Default QoS=-1, i.e. do not overwrite, use queue_size=32 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 -->
+
+        <!-- Configuration of laserscan messages (ROS only): -->
+        <!-- Parameter "laserscan_layer_filter" sets a mask to create laserscan messages for configured layer (0: no laserscan message, 1: create laserscan messages for this layer) -->
+        <!-- Use "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" to activate resp. "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" to activate laserscan messages for all 16 layers of the Multiscan136 -->
+        <!-- Default is "0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0", i.e. laserscan messages for layer 5, (elevation -0.07 degree, max number of scan points) -->
+        <param name="laserscan_layer_filter" type="string" value="$(arg laserscan_layer_filter)" />
 
     </node>
 

@@ -207,7 +207,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 
         // Initialize msgpack exporter and publisher
         sick_scansegment_xd::MsgPackExporter msgpack_exporter(udp_receiver->Fifo(), msgpack_converter.Fifo(), m_config.logfolder, m_config.export_csv, m_config.verbose_level > 0, m_config.measure_timing);
-        std::shared_ptr<sick_scansegment_xd::RosMsgpackPublisher> ros_msgpack_publisher = std::make_shared<sick_scansegment_xd::RosMsgpackPublisher>("sick_scansegment_xd", m_config, 1);
+        std::shared_ptr<sick_scansegment_xd::RosMsgpackPublisher> ros_msgpack_publisher = std::make_shared<sick_scansegment_xd::RosMsgpackPublisher>("sick_scansegment_xd", m_config);
         msgpack_exporter.AddExportListener(ros_msgpack_publisher->ExportListener());
         sick_scansegment_xd::MsgPackExportListenerIF* listener = ros_msgpack_publisher->ExportListener();
 
@@ -230,11 +230,18 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         bool mrs100_write_filtersettings = m_config.host_set_FREchoFilter || m_config.host_set_LFPangleRangeFilter || m_config.host_set_LFPlayerFilter;
         if (m_config.start_sopas_service || m_config.send_sopas_start_stop_cmd || m_config.host_read_filtersettings || mrs100_write_filtersettings)
         {
+            ROS_INFO_STREAM("MsgPackThreads: initializing sopas tcp (" << m_config.hostname << ":" << m_config.sopas_tcp_port << ", timeout:" << (0.001*m_config.sopas_timeout_ms) << ", binary:" << m_config.sopas_cola_binary << ")");
             sopas_tcp = new sick_scan::SickScanCommonTcp(m_config.hostname, m_config.sopas_tcp_port, m_config.sopas_timeout_ms, m_config.node, &parser, m_config.sopas_cola_binary ? 'B' : 'A');
+            ROS_INFO_STREAM("MsgPackThreads: initializing device");
             sopas_tcp->init_device(); // sopas_tcp->init();
             sopas_tcp->setReadTimeOutInMs(m_config.sopas_timeout_ms);
+            ROS_INFO_STREAM("MsgPackThreads: initializing services");
             sopas_service = new sick_scan::SickScanServices(m_config.node, sopas_tcp, &basic_param);
-            ROS_INFO_STREAM("SickScanServices: ros services initialized");
+            ROS_INFO_STREAM("MsgPackThreads: ros services initialized");
+        }
+        else
+        {
+            ROS_INFO_STREAM("MsgPackThreads: ros services not initialized");
         }
 
         // Send SOPAS commands to read or optionally write filter settings for (FREchoFilter, LFPangleRangeFilter, LFPlayerFilter)
