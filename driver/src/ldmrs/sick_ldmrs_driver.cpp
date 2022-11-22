@@ -55,7 +55,7 @@
 #endif
 
 // Convert lmdrs scan to PointCloud2
-void ldmrsScanToPointCloud2(const datatypes::Scan* scan, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar);
+void ldmrsScanToPointCloud2(const datatypes::Scan* scan, sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar);
 
 namespace sick_ldmrs_driver
 {
@@ -610,7 +610,7 @@ std::string SickLDMRS::flexres_err_to_string(const UINT32 code) const
 } // namespace sick_ldmrs_driver
 
 // Convert lmdrs scan to PointCloud2
-void ldmrsScanToPointCloud2(const datatypes::Scan* scan, const sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar)
+void ldmrsScanToPointCloud2(const datatypes::Scan* scan, sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, bool isRearMirrorSide, const std::string& frame_id, ros_sensor_msgs::PointCloud2& msg, ros_sensor_msgs::PointCloud2& msg_polar)
 {
   typedef struct SICK_LDMRS_Point
   {

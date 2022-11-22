@@ -68,7 +68,7 @@
  *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
  * @param[in] qos quality of service profile for the ros publisher, default: 1
  */
-sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string& node_name, const sick_scansegment_xd::Config& config, const rosQoS& qos)
+sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string& node_name, const sick_scansegment_xd::Config& config, rosQoS qos)
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 	: Node(node_name)
 #endif
@@ -82,12 +82,23 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 	m_min_azimuth = (float)-M_PI;
 	m_max_azimuth = (float)+M_PI;
 #if defined __ROS_VERSION && __ROS_VERSION > 1 // ROS-2 publisher
+    QoSConverter qos_converter;
+    int qos_val = -1;
+    rosDeclareParam(m_node, "ros_qos", qos_val);
+    rosGetParam(m_node, "ros_qos", qos_val);
+    if (qos_val >= 0)
+        qos = qos_converter.convert(qos_val);
 	m_points_collector = SegmentPointsCollector(m_segment_count);
 	if(m_publish_topic != "")
 	  m_publisher_cur_segment = create_publisher<PointCloud2Msg>(m_publish_topic, qos);
 	if(m_publish_topic_all_segments != "")
 	  m_publisher_all_segments = create_publisher<PointCloud2Msg>(m_publish_topic_all_segments, qos);
 #elif defined __ROS_VERSION && __ROS_VERSION > 0 // ROS-1 publisher
+    int qos_val = -1;
+    rosDeclareParam(m_node, "ros_qos", qos_val);
+    rosGetParam(m_node, "ros_qos", qos_val);
+    if (qos_val >= 0)
+        qos = qos_val;
 	if(m_publish_topic != "")
 		m_publisher_cur_segment = m_node->advertise<PointCloud2Msg>(m_publish_topic, qos);
 	if(m_publish_topic_all_segments != "")
@@ -210,8 +221,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		echo_count = std::max(msgpack_data.scandata[groupIdx].scanlines.size(), echo_count);
 		for (int echoIdx = 0; echoIdx < msgpack_data.scandata[groupIdx].scanlines.size(); echoIdx++)
 		{
-			total_point_count += msgpack_data.scandata[groupIdx].scanlines[echoIdx].size();
-			point_count_per_echo = std::max(msgpack_data.scandata[groupIdx].scanlines[echoIdx].size(), point_count_per_echo);
+			total_point_count += msgpack_data.scandata[groupIdx].scanlines[echoIdx].points.size();
+			point_count_per_echo = std::max(msgpack_data.scandata[groupIdx].scanlines[echoIdx].points.size(), point_count_per_echo);
 		}
 	}
 	float lidar_points_min_azimuth = +2.0f * (float)M_PI, lidar_points_max_azimuth = -2.0f * (float)M_PI;
@@ -224,7 +235,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	{
 		for (int echoIdx = 0; echoIdx < msgpack_data.scandata[groupIdx].scanlines.size(); echoIdx++)
 		{
-			const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_data.scandata[groupIdx].scanlines[echoIdx];
+			const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_data.scandata[groupIdx].scanlines[echoIdx].points;
 			for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 			{
 				const sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];

@@ -620,7 +620,7 @@ namespace sick_scan
     // add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud
     // The additional transform applies to cartesian lidar pointclouds and visualization marker (fields)
     // It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages
-    m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh);
+    m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, false);
   }
 
   /*!
