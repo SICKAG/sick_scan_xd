@@ -6,6 +6,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### v2.8.15 - Update Win64 build instructions
+  - **Update** Update Win64 build instructions #130
+
 ## Released ##
 
 ### v2.8.14 - Laserscan messages for Multiscan
