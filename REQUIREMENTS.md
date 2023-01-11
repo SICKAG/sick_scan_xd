@@ -29,11 +29,11 @@ Driver for SICK lidar and radar sensors - supported scanner types:
 |                    |                                                                                                                                  | Scan-Rate: 100 Hz   |                 |
 | LMS1104            | [1092445](https://www.sick.com/ag/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1000/c/g387151)                         | 1 layer max. range: 64 m, ang. resol. 0.25 [deg] |  [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 150 Hz, 4x37.5 Hz   |
-| LMS1xx-Family      | [e.g. 1041114](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1xx/c/g91901) | 1 layer max. range: 28 m, ang. resol. 0.25 [deg]| [stable]|
+| LMS1xx      | [e.g. 1041114](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1xx/c/g91901) | 1 layer max. range: 28 m, ang. resol. 0.25 [deg]| [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 15 Hz   |                 |
-| LMS4xxx-Family     | [e.g. 1091423](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/lms4000/lms4111r-13000/p/p578044?ff_data) | 1 layer max. range: 3 m, ang. resol. 0,0833 [deg], opening angle: +/- 50 [deg] | [stable]|
+| LMS4000     | [e.g. 1091423](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/lms4000/lms4111r-13000/p/p578044?ff_data) | 1 layer max. range: 3 m, ang. resol. 0,0833 [deg], opening angle: +/- 50 [deg] | [stable]|
 |                    |                                                                                                                                  | Scan-Rate: 600 Hz   |                 |
-| LDMRS |   | 4 or 8 layer, max. range: 50/320 m, ang. resol. 0.025°/.../0.25 [deg] | [stable]|
+| LDMRS |   | 4 or 8 layer, max. range: 50/320 m, ang. resol. 0.025/.../0.25 [deg] | [stable]|
 |       |   | Scan-Rate: 12.5-50 Hz | |
 | LRS4000 | [1098855](https://www.sick.com/no/en/detection-and-ranging-solutions/2d-lidar-sensors/lrs4000/c/g555594)  | 1 layer, max. range: 130 m, ang. resol. 0.125/0.25/0.5 [deg]  | [stable]|
 |       |   | Scan-Rate: 12.5-25 Hz | |
