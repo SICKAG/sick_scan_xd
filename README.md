@@ -38,6 +38,7 @@ This project provides a driver for the SICK LiDARs and Radar sensors mentioned [
 * sick_scan_xd is designed to easily integrate new devices, features and improvements on all targets.
 * sick_scan_xd has no dependencies to 3rd party libraries like boost or pthread.
 * sick_scan_xd offers all features on all targets if the devices support the features.
+* sick_scan_xd is developed and tested for x86 architecture. ARM architecture (e.g. Raspberry platform) are neither fully tested nor officially supported.
 
 ## Build targets
 
@@ -139,4 +140,3 @@ NAV310
 LDMRS
 LRS4000
 multiScan100
-
