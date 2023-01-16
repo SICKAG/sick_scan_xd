@@ -3,14 +3,14 @@
 [*] --> Initialization
 
 Initialization --> Measurement : Succeeded
-Initialization --> Close : Timeout (120 sec.)
-Initialization --> Error : Timeout (150 sec.)
+Initialization --> Close : startup timeout
+Initialization --> Error : error timeout
 
 Close --> Initialization
 
 Measurement --> Success : Succeeded
-Measurement --> Close : Timeout (5 sec.)
-Measurement --> Error : Timeout (150 sec.)
+Measurement --> Close : measurement timeout
+Measurement --> Error : error timeout
 
 Success --> [*]
 Error --> [*]
@@ -27,5 +27,12 @@ Measurement : - Handle service calls
 
 Success : - Exit
 Error : - Exit
+
+legend bottom
+  Timeouts:
+  * startup timeout: parameter read_timeout_millisec_startup, default: 120 sec.
+  * error timeout: parameter read_timeout_millisec_kill_node, default: 150 sec.
+  * measurement timeout: parameter read_timeout_millisec_default, default: 5 sec.
+end legend 
 
 @enduml
