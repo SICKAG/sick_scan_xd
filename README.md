@@ -1,13 +1,11 @@
 # sick_scan_xd
 
-This project provides the driver for the SICK lidar and radar sensors mentioned in the following list.
-
-Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_scan2 and sick_scan_base repositories. The driver supports both Linux (native, ROS1, ROS2) and Windows (native and ROS2). See the [CHANGELOG.md](CHANGELOG.md) for the latest updates.
+This project provides a driver for the SICK LiDARs and Radar sensors mentioned [here](REQUIREMENTS.md). The driver supports both Linux (native, ROS1, ROS2) and Windows (native and ROS2). See the [CHANGELOG.md](CHANGELOG.md) for the latest updates.
 
 ## Table of Contents
 
 - [Executive Summary](#executive-summary)
-- [Supported hardware and platforms](REQUIREMENTS.md)
+- [Supported SICK LIDAR and Radar sensors](REQUIREMENTS.md)
 - [Getting started](GETTINGSTARTED.md)
 - [Build targets](#build-targets)
 - [Build on Linux generic without ROS](INSTALL-GENERIC.md#build-on-linux-generic-without-ros)
@@ -16,12 +14,12 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 - [Build on Windows](INSTALL-GENERIC.md#build-on-windows)
 - [Build on Windows ROS2](INSTALL-ROS2.md#build-on-windows-ros2)
 - [USAGE](USAGE.md)
-- [API](#api)
+- [Driver API](#api)
 - [IMU-Support](#imu-Support)
 - [Radar](doc/radar.md)
-- [Multiscan136](doc/sick_scan_segment_xd.md)
+- [multiScan100](doc/sick_scan_segment_xd.md)
 - [Software PLL](#software-pll)
-- [Field extensions](#field-extensions)
+- [Field Evaluation Information](#field-extensions)
 - [SLAM-Support](doc/slam.md)
 - [Profiling](doc/profiling.md)
 - [Software Overview](#software-overview)
@@ -32,29 +30,14 @@ Based on the sick_scan drivers for ROS1, sick_scan_xd merges sick_scan, sick_sca
 ## Executive Summary
 
 * sick_scan_xd supports
-    * generic use (Linux and Windows native)
-    * Linux-ROS1
+    * ROS1 (Linux)
     * ROS2 (Linux and Windows)
-  
-  for the devices listed below.
-
-* sick_scan_xd improves quality and consistency
-* All features are available on all targets.
-* The sick_scan_xd repository supports and maintains generic use, ROS1 and ROS2:
-    * sick_scan_xd merges projects  sick_scan, sick_scan2 and sick_scan_base
-    * Simplifies the use of devices, as there is only one github entry point for the supported devices
-    * Simplifies integration of new devices
-    * Avoids inconsistencies between different platforms
-    * Simplifies and centralizes integration of new features, improvements, issues and bugfixes
-* Identical sources for all targets are more transparent and clearer for developer and user
-* sick_scan_xd has no dependencies to 3rd party libraries like boost or pthread
-
-We recommend using sick_scan_xd instead of sick_scan, sick_scan2 or sick_scan_base for all new projects using one or multiple devices listed below. 
-In the medium term, it's generally recommended to migrate to sick_scan_xd.
-
-## Supported hardware and platforms
-
-See [REQUIREMENTS](./REQUIREMENTS.md) for supported hardware and platforms.
+    * a Driver for generic use (Linux and Windows native)
+    * a API for C/C++ or python applications
+* sick_scan_xd provides a driver for the SICK LiDARs and Radar sensors mentioned [here](REQUIREMENTS.md).
+* sick_scan_xd is designed to easily integrate new devices, features and improvements on all targets.
+* sick_scan_xd has no dependencies to 3rd party libraries like boost or pthread.
+* sick_scan_xd offers all features on all targets if the devices support the features.
 
 ## Build targets
 
@@ -84,7 +67,7 @@ See the build descriptions for more details:
 * [Build on Windows](INSTALL-GENERIC.md#build-on-windows)
 * [Build on Windows ROS2](INSTALL-ROS2.md#build-on-windows-ros2)
 
-## API
+## Driver API
 
 sick_scan_xd provides a C API, which can be used by any programming language with C-bindings, e.g. in C/C++ or python applications. See [sick_scan_api.md](doc/sick_scan_api/sick_scan_api.md) for further details.
 
@@ -97,15 +80,15 @@ Further information on the implementation and use of the experimental Imu suppor
 
 See [radar documentation](doc/radar.md) for RMS1xxx and RMS3xx support.
 
-## Multiscan136 support
+## Multiscan100 support
 
-See [sick_scan_segment_xd](doc/sick_scan_segment_xd.md) for Multiscan136 support.
+See [sick_scan_segment_xd](doc/sick_scan_segment_xd.md) for Multiscan100 support.
 
 ## Software PLL
 
-A software pll is used to convert lidar timestamps in ticks to the ros system time. See [software_pll](doc/software_pll.md) for further details.
+A software pll is used to convert LiDAR timestamps in ticks to the ros system time. See [software_pll](doc/software_pll.md) for further details.
 
-## Field extensions
+## Field Evaluation Information
 
 The LMS1xx, LMS5xx, TiM7xx and TiM7xxS families support extensions for field monitoring. See [field_monitoring_extensions](doc/field_monitoring_extensions.md) for further details.
 
@@ -155,5 +138,5 @@ NAV245
 NAV310
 LDMRS
 LRS4000
-Multiscan136
+multiScan100
 
