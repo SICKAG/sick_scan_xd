@@ -101,6 +101,32 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
     * Linux ROS-1:    `roslaunch sick_scan sick_ldmrs.launch`
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_ldmrs.launch`
     * Note that LDMRS are currently not supported on Windows
+- For LRS36x0:
+    * Linux native:   `sick_generic_caller sick_lrs_36x0.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_36x0.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0.launch`
+    * Windows native: `sick_generic_caller sick_lrs_36x0.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0.launch`
+- For LRS36x0 mounted upside down:
+    * Linux native:   `sick_generic_caller sick_lrs_36x0_upside_down.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_36x0_upside_down.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0_upside_down.launch`
+    * Windows native: `sick_generic_caller sick_lrs_36x0_upside_down.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0_upside_down.launch`
+    <br/>For upside down mounted devices, the pointcloud is rotated by 180 deg about the x axis (180 deg roll angle). This additional rotation is configured in the launch file using parameter `add_transform_xyz_rpy` with value `"0,0,0,3.141592,0,0"`.
+- For LRS36x1:
+    * Linux native:   `sick_generic_caller sick_lrs_36x1.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_36x1.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1.launch`
+    * Windows native: `sick_generic_caller sick_lrs_36x1.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1.launch`
+- For LRS36x1 mounted upside down:
+    * Linux native:   `sick_generic_caller sick_lrs_36x1_upside_down.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_36x1_upside_down.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1_upside_down.launch`
+    * Windows native: `sick_generic_caller sick_lrs_36x1_upside_down.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1_upside_down.launch`
+    <br/>For upside down mounted devices, the pointcloud is rotated by 180 deg about the x axis (180 deg roll angle). This additional rotation is configured in the launch file using parameter `add_transform_xyz_rpy` with value `"0,0,0,3.141592,0,0"`.
 - For NAV210 and NAV245:
     * Linux native:   `sick_generic_caller sick_nav_2xx.launch`
     * Linux ROS-1:    `roslaunch sick_scan sick_nav_2xx.launch`
@@ -125,13 +151,7 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
     * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_2xxx.launch`
     * Windows native: `sick_generic_caller sick_rms_2xxx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_2xxx.launch`
-- For RMS3xx-family:
-    * Linux native:   `sick_generic_caller sick_rms_3xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_rms_3xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
-    * Windows native: `sick_generic_caller sick_rms_3xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_3xx.launch`
-- For Multiscan136 (sick_scansegement_xd):
+- For Multiscan130 (sick_scansegement_xd):
     * Linux native:   `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * Linux ROS-1:    `roslaunch sick_scan sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * Linux ROS-2:    `ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`

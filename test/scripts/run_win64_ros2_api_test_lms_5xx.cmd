@@ -2,9 +2,9 @@ REM
 REM Build and run minimalistic api usage examples (Python, C, C++)
 REM 
 
-pushd ..\..\examples\scripts
-call .\build_run_api_examples_windows.cmd
-popd
+rem pushd ..\..\examples\scripts
+rem call .\build_run_api_examples_windows.cmd
+rem popd
 
 REM 
 REM Run sick_scan_xd API test on ROS-2 Windows with lms5xx emulator
