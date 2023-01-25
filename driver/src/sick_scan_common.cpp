@@ -1006,7 +1006,7 @@ namespace sick_scan
     std::vector<unsigned char> replyVec;
     replyStr = "<STX>" + replyStr + "<ETX>";
     replyVec = stringToVector(replyStr);
-    ROS_INFO_STREAM("Receiving: " << stripControl(replyVec, 64));
+    ROS_INFO_STREAM("Receiving: " << stripControl(replyVec, 96));
 
     if (result != 0)
     {
@@ -1579,6 +1579,13 @@ namespace sick_scan
       }
 
     }
+    
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0
+    || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0)
+    {    
+        sopasCmdChain.push_back(CMD_DEVICE_IDENT);
+    }
+    
     sopasCmdChain.push_back(CMD_FIRMWARE_VERSION);  // read firmware
     sopasCmdChain.push_back(CMD_DEVICE_STATE); // read device state
     sopasCmdChain.push_back(CMD_OPERATION_HOURS); // read operation hours
@@ -3773,6 +3780,12 @@ namespace sick_scan
       supported = true;
     }
 
+
+    if (identStr.find("LD-LRSxx") !=    std::string::npos)
+    {
+      ROS_INFO_STREAM("Deviceinfo " << identStr << " found and supported by this driver.");
+      supported = true;
+    }
 
     if (supported == false)
     {
