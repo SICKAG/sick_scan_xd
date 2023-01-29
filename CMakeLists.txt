@@ -690,10 +690,21 @@ endif()
 
 # install sick_scan_shared_lib incl. API headerfiles
 if(ROS_VERSION EQUAL 0)
+    include(GNUInstallDirs)
+
     set_target_properties(sick_scan_shared_lib PROPERTIES PUBLIC_HEADER "include/sick_scan_xd_api/sick_scan_api.h;python/api/sick_scan_api.py")
     install(TARGETS sick_scan_shared_lib 
+        EXPORT sick_scan_xd_Export
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/sick_scan_xd"
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+
+    # Export sick_scan_shared_lib target to be used by other projects
+    install(EXPORT sick_scan_xd_Export
+        FILE sick_scan_xd-config.cmake
+        NAMESPACE sick_scan_xd::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sick_scan_xd
     )
 endif()
 
