@@ -75,32 +75,19 @@ To install sick_scan_xd on Windows, follow the steps below:
 
 1. If not yet done, install Visual Studio. Visual Studio 2019 Community or Professional Edition is recommended.
 
-2. If not yet done, install Visual Studios package manager vcpkg:
-   * Download vcpkg-master.zip from https://github.com/microsoft/vcpkg/archive/master.zip and unzip to `c:\vcpkg`. Alternatively, run "git clone https://github.com/microsoft/vcpkg"
-   * Install vcpkg by running the following commands:
-      ```
-     cd c:/vcpkg
-     bootstrap-vcpkg.bat
-     vcpkg integrate install
-     ```
-   * Include vcpkg in your path:
-      ```
-     set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
-     ```
-
-3. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
+2. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
    ```
    mkdir sick_scan_ws
    cd sick_scan_ws
    ```
 
-4. Clone repositories https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+3. Clone repositories https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
    git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-5. Build mspack with cmake and Visual Studio 2019:
+4. Build mspack with cmake and Visual Studio 2019:
    ```
    mkdir sick_scan_xd\build\msgpack11
    pushd sick_scan_xd\build\msgpack11
@@ -112,7 +99,7 @@ To install sick_scan_xd on Windows, follow the steps below:
    ```
    For development or debugging, open file `sick_scan_xd\build\msgpack11\msgpack11.sln` in Visual Studio.
 
-6. Build sick_generic_caller and sick_scan_shared_lib.dll with cmake and Visual Studio 2019:
+5. Build sick_generic_caller and sick_scan_shared_lib.dll with cmake and Visual Studio 2019:
    ```
    cd sick_scan_xd
    set _os=x64

@@ -389,7 +389,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
   {
     this->rectFieldAngleRefPointOffsetRad = _rectFieldAngleRefPointOffsetRad;
   }
-  
+
   float ScannerBasicParam::getRectEvalFieldAngleRefPointOffsetRad(void)
   {
     return this->rectFieldAngleRefPointOffsetRad;
@@ -746,8 +746,8 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
-        basicParams[i].setScanAngleShift(-M_PI/2);// TODO Check this
-        basicParams[i].setScanMirroredAndShifted(true);// TODO Check this
+        basicParams[i].setScanAngleShift(+M_PI/2);
+        basicParams[i].setScanMirroredAndShifted(true);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);// TODO Check this
         basicParams[i].setMaxEvalFields(30);
         basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
@@ -769,7 +769,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
-        basicParams[i].setScanAngleShift(-M_PI/2);
+        basicParams[i].setScanAngleShift(-M_PI);
         basicParams[i].setScanMirroredAndShifted(false);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);// TODO Check this
         basicParams[i].setMaxEvalFields(30);
@@ -826,7 +826,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(true); // (false) // LRS4XXX uses echo filter settings to configure 1 echo, use filter_echos = 0 (first echo) for LRS4xxx
       }
-      if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_2XXX_NAME) == 0 
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_2XXX_NAME) == 0
        || basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_3XX_NAME) == 0) // Radar
       {
         basicParams[i].setNumberOfMaximumEchos(1);
@@ -1560,7 +1560,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
   {
     m_range_filter_handling = range_filter_handling;
   }
-  
+
   /*!
    \brief Get range filter handling (range filter deactivated, drop, set to nan, etc.pp.)
    */

@@ -13,7 +13,7 @@
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="intensity" type="bool" value="True"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
-        <param name="use_binary_protocol" type="bool" value="True"/>
+        <param name="use_binary_protocol" type="bool" value="true"/>
         <param name="scanner_type" type="string" value="sick_lrs_36x0"/>
         
         <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->
@@ -40,7 +40,7 @@
         <param name="start_services" type="bool" value="True"/> <!-- start ros service for cola commands -->
         <param name="activate_lferec" type="bool" value="True"/> <!-- activate field monitoring by lferec messages -->
         <param name="activate_lidinputstate" type="bool" value="False"/>
-        <param name="activate_lidoutputstate" type="bool" value="False"/>        
+        <param name="activate_lidoutputstate" type="bool" value="False"/>
         <param name="scan_cfg_list_entry" type="int" value="$(arg scan_cfg_list_entry)"/> <!-- only mode 1 is currently supported -->
         <param name="skip" type="int" value="$(arg skip)"/> <!-- Default: 0 (i.e. publish each scan), otherwise only each n.th scan is published -->
 

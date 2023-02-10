@@ -13,6 +13,23 @@ echo PYTHON_DIR=%PYTHON_DIR%
 python --version
 @echo.
 
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_01_mrs1000_layer_1111_50hz_0.25deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_02_mrs1000_layer_1000_50hz_0.25deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_03_mrs1000_layer_0100_50hz_0.25deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_04_mrs1000_layer_0010_50hz_0.25deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_05_mrs1000_layer_0001_50hz_0.25deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_06_mrs1000_layer_0101_50hz_0.25deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_07_mrs1000_layer_1010_50hz_0.25deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_08_mrs1000_layer_1111_25hz_0.125deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_09_mrs1000_layer_0101_25hz_0.125deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_10_mrs1000_layer_1010_25hz_0.125deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_11_mrs1000_layer_1111_12.5hz_0.0625deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_12_mrs1000_layer_0101_12.5hz_0.0625deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_13_mrs1000_layer_1010_12.5hz_0.0625deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_14_mrs1000_layer_1000_12.5hz_0.0625deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_15_mrs1000_layer_0100_12.5hz_0.0625deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_16_mrs1000_layer_0010_12.5hz_0.0625deg.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_17_mrs1000_layer_0001_12.5hz_0.0625deg.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20221110-LMS1xxx-150hz-0.75deg.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20221110-LMS1xxx-75hz-0.375deg.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20221110-LMS1xxx-37.5hz-0.1875deg.pcapng

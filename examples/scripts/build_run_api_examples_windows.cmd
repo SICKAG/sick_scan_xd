@@ -45,6 +45,11 @@ pushd ..\..
 set PATH=.;.\build;.\build\Debug;.\build_win64;.\build_win64\Debug;%PATH%
 set PYTHONPATH=.;.\python\api;%PATH%
 
+REM Use python 3.9.13 installation from https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe
+if exist \Python39 set PATH=\Python39;%PATH%
+where python
+python --version
+
 REM Run minimalistic python api example
 start "test_server.py" cmd /k python ./test/emulator/test_server.py --scandata_file=./test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112
 @timeout /t 2

@@ -1006,7 +1006,7 @@ namespace sick_scan
     std::vector<unsigned char> replyVec;
     replyStr = "<STX>" + replyStr + "<ETX>";
     replyVec = stringToVector(replyStr);
-    ROS_INFO_STREAM("Receiving: " << stripControl(replyVec, 64));
+    ROS_INFO_STREAM("Receiving: " << stripControl(replyVec, 96));
 
     if (result != 0)
     {
@@ -1158,6 +1158,30 @@ namespace sick_scan
     return ExitSuccess;
   }
 
+  bool SickScanCommon::sendSopasRunSetAccessMode(bool useBinaryCmd)
+  {
+    bool result = true;
+    if (useBinaryCmd)
+    {
+      std::vector<unsigned char> reqBinary;
+      reqBinary.clear();
+      this->convertAscii2BinaryCmd(sopasCmdVec[CMD_RUN].c_str(), &reqBinary);
+      result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_RUN]));
+      reqBinary.clear();
+      this->convertAscii2BinaryCmd(sopasCmdVec[CMD_SET_ACCESS_MODE_3].c_str(), &reqBinary);
+      result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ACCESS_MODE_3]));
+      reqBinary.clear();
+    }
+    else
+    {
+      std::vector<unsigned char> resetReply;
+      std::string runCmd = sopasCmdVec[CMD_RUN];
+      std::string UserLvlCmd = sopasCmdVec[CMD_SET_ACCESS_MODE_3];
+      result &= (0 == sendSopasAndCheckAnswer(runCmd, &resetReply));
+      result &= (0 == sendSopasAndCheckAnswer(UserLvlCmd, &resetReply));
+    }
+    return result;
+  }
 
   /*!
   \brief set timeout in milliseconds
@@ -1363,6 +1387,11 @@ namespace sick_scan
     sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor 3F800000\x03"; // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
     sopasCmdVec[CMD_SET_GLARE_DETECTION_SENS] = "\x02sWN GlareDetectionSens 0\x03"; // Glare Detection Sensitivity (LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter
 
+    // Supported for MRS-1000 layer activation
+    // sopasCmdVec[CMD_SET_ALIGNMENT_MODE] = "\x02sWN MMAlignmentMode 0\x03"; // MRS-1000 layer activation (alignment mode): do not overwrite: -1, all Layer: 0 (default), red Layer (-2.5 deg): 1, blue Layer (0 deg): 2, green Layer (+2.5 deg): 3, yellow Layer (+5 deg): 4
+    sopasCmdVec[CMD_SET_SCAN_LAYER_FILTER] = "\x02sWN ScanLayerFilter 4 1 1 1 1\x03"; // MRS-1000 scan layer activation mask, "sWN ScanLayerFilter <number of layers> <layer 1: on/off> … <layer N: on/off>"",  default: all layer activated: "sWN ScanLayerFilter 4 1 1 1 1"
+
+
     /*
      *  Angle Compensation Command
      *
@@ -1372,7 +1401,8 @@ namespace sick_scan
     sopasCmdMaskVec[CMD_SET_PARTIAL_SCAN_CFG] = "\x02sMN mLMPsetscancfg %+d 1 %+d 0 0\x03";//scanfreq [1/100 Hz],angres [1/10000°],
     sopasCmdMaskVec[CMD_SET_PARTICLE_FILTER] = "\x02sWN LFPparticle %d %d\x03";
     sopasCmdMaskVec[CMD_SET_MEAN_FILTER] = "\x02sWN LFPmeanfilter %d %d 0\x03";
-    sopasCmdMaskVec[CMD_ALIGNMENT_MODE] = "\x02sWN MMAlignmentMode %d\x03";
+    // sopasCmdMaskVec[CMD_ALIGNMENT_MODE] = "\x02sWN MMAlignmentMode %d\x03";
+    sopasCmdMaskVec[CMD_SCAN_LAYER_FILTER] = "\x02sWN ScanLayerFilter %s\x03";
     sopasCmdMaskVec[CMD_APPLICATION_MODE] = "\x02sWN SetActiveApplications 1 %s %d\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES] = "\x02sWN LMPoutputRange 1 %X %X %X\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES_NAV3] = "\x02sWN LMPoutputRange 1 %X %X %X %X %X %X %X %X %X %X %X %X\x03";
@@ -1434,10 +1464,11 @@ namespace sick_scan
     sopasCmdErrMsg[CMD_ACTIVATE_STANDBY] = "Error acticvating Standby";
     sopasCmdErrMsg[CMD_SET_PARTICLE_FILTER] = "Error setting Particelefilter";
     sopasCmdErrMsg[CMD_SET_MEAN_FILTER] = "Error setting Meanfilter";
-    sopasCmdErrMsg[CMD_ALIGNMENT_MODE] = "Error setting Alignmentmode";
+    // sopasCmdErrMsg[CMD_ALIGNMENT_MODE] = "Error setting Alignmentmode";
+    sopasCmdErrMsg[CMD_SCAN_LAYER_FILTER] = "Error setting ScanLayerFilter";
     sopasCmdErrMsg[CMD_APPLICATION_MODE] = "Error setting Meanfilter";
-    sopasCmdErrMsg[CMD_SET_ACCESS_MODE_3] = "Error Access Mode";
-    sopasCmdErrMsg[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER] = "Error Access Mode";
+    sopasCmdErrMsg[CMD_SET_ACCESS_MODE_3] = "Error Access Mode Client";
+    sopasCmdErrMsg[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER] = "Error Access Mode Client";
     sopasCmdErrMsg[CMD_SET_OUTPUT_RANGES] = "Error setting angular ranges";
     sopasCmdErrMsg[CMD_GET_OUTPUT_RANGES] = "Error reading angle range";
     sopasCmdErrMsg[CMD_RUN] = "FATAL ERROR unable to start RUN mode!";
@@ -1475,6 +1506,10 @@ namespace sick_scan
     sopasCmdErrMsg[CMD_SET_LFPMEDIANFILTER] = "Error setting sopas command \"sWN LFPmedianfilter ...\"";
     sopasCmdErrMsg[CMD_SET_LMDSCANDATASCALEFACTOR] = "Error setting  sopas command\"sWN LMDscandatascalefactor ...\"";
     sopasCmdErrMsg[CMD_SET_GLARE_DETECTION_SENS] = "Error setting sopas command \"sWN GlareDetectionSens ...\"";
+
+    // Supported for MRS-1000 layer activation (alignment mode)
+    // sopasCmdErrMsg[CMD_SET_ALIGNMENT_MODE] = "Error setting sopas command \"sWN MMAlignmentMode ...\"";
+    sopasCmdErrMsg[CMD_SET_SCAN_LAYER_FILTER] = "Error setting sopas command \"sWN ScanLayerFilter ...\"";
 
     // ML: Add here more useful cmd and mask entries
 
@@ -1579,6 +1614,11 @@ namespace sick_scan
       }
 
     }
+    if ((parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0)
+    || (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0))
+    {
+        sopasCmdChain.push_back(CMD_DEVICE_IDENT);
+    }
     sopasCmdChain.push_back(CMD_FIRMWARE_VERSION);  // read firmware
     sopasCmdChain.push_back(CMD_DEVICE_STATE); // read device state
     sopasCmdChain.push_back(CMD_OPERATION_HOURS); // read operation hours
@@ -1648,6 +1688,23 @@ namespace sick_scan
         sopasCmdChain.push_back(CMD_SET_GLARE_DETECTION_SENS);
       }
     }
+
+    // Support for MRS-1000 scan layer activation mask, "sWN ScanLayerFilter <number of layers> <layer 1: on/off> … <layer N: on/off>"",  default: all layer activated: "sWN ScanLayerFilter 4 1 1 1 1"
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0)
+    {
+      std::string scan_layer_filter = "";
+      rosDeclareParam(nh, "scan_layer_filter", scan_layer_filter);
+      rosGetParam(nh, "scan_layer_filter", scan_layer_filter);
+      if (!scan_layer_filter.empty())
+      {
+        m_scan_layer_filter_cfg = ScanLayerFilterCfg(scan_layer_filter);
+        sopasCmdVec[CMD_SET_SCAN_LAYER_FILTER] = "\x02sWN ScanLayerFilter " + scan_layer_filter + "\x03";
+        sopasCmdChain.push_back(CMD_SET_SCAN_LAYER_FILTER); // set scan layer activation
+        sopasCmdChain.push_back(CMD_RUN); // Apply changes
+        sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
+      }
+    }
+
     // Support for "sWN LMDscandatascalefactor" (LRS4xxx)
     if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0)
     {
@@ -3086,7 +3143,8 @@ namespace sick_scan
           {
             if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0
             || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0
-            || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
+            || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0
+            || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0)
             {
               // "sMN mLMPsetscancfg" for lms1xx and lms5xx:
               // scan frequencies lms1xx: 25 or 50 Hz, lms5xx: 25, 35, 50, 75 or 100 Hz
@@ -3099,7 +3157,13 @@ namespace sick_scan
               lmp_scancfg.scan_frequency = std::lround(100.0 * scan_freq);
               lmp_scancfg.active_sector_cnt = 1; // this->parser_->getCurrentParamPtr()->getNumberOfLayers();
               lmp_scancfg_sector.angular_resolution = std::lround(10000.0 * ang_res);
-              if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0)
+
+              if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0)
+              {
+                lmp_scancfg_sector.start_angle = -475000;
+                lmp_scancfg_sector.stop_angle = +2275000;
+              }
+              else if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0)
               {
                 lmp_scancfg_sector.start_angle = -450000;
                 lmp_scancfg_sector.stop_angle = +2250000;
@@ -3123,27 +3187,11 @@ namespace sick_scan
 
                 lmp_scancfg_sector.start_angle = start_angle_in_10000th;  // -5 [deg]
                 lmp_scancfg_sector.stop_angle = stop_angle_in_10000th; // +185 [deg]
-
-                if (useBinaryCmd)
-                {
-                  std::vector<unsigned char> reqBinary;
-                  reqBinary.clear();
-                  this->convertAscii2BinaryCmd(sopasCmdVec[CMD_RUN].c_str(), &reqBinary);
-                  result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_RUN]));
-                  reqBinary.clear();
-                  this->convertAscii2BinaryCmd(sopasCmdVec[CMD_SET_ACCESS_MODE_3].c_str(), &reqBinary);
-                  result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ACCESS_MODE_3]));
-                  reqBinary.clear();
-                }
-                else
-                {
-                  std::vector<unsigned char> resetReply;
-                  std::string runCmd = sopasCmdVec[CMD_RUN];
-                  std::string UserLvlCmd = sopasCmdVec[CMD_SET_ACCESS_MODE_3];
-                  result &= (0 == sendSopasAndCheckAnswer(runCmd, &resetReply));
-                  result &= (0 == sendSopasAndCheckAnswer(UserLvlCmd, &resetReply));
-                }
-
+              }
+              if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0
+              || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
+              {
+                result &= sendSopasRunSetAccessMode(useBinaryCmd);
               }
               lmp_scancfg.sector_cfg.push_back(lmp_scancfg_sector);
               std::string lmp_scancfg_sopas;
@@ -3167,7 +3215,7 @@ namespace sick_scan
                 {
                   sick_scan::SickScanParseUtil::LMPscancfg scancfg_response;
                   sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
-                  ROS_INFO_STREAM("sAN mLMPsetscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = " 
+                  ROS_INFO_STREAM("sAN mLMPsetscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = "
                     << (scancfg_response.sector_cfg.size() > 0 ? (scancfg_response.sector_cfg[0].angular_resolution / 10000.0) : -1.0) << " deg.");
                 }
               }
@@ -3219,7 +3267,7 @@ namespace sick_scan
               {
                 sick_scan::SickScanParseUtil::LMPscancfg scancfg_response;
                 sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
-                ROS_INFO_STREAM("sRA LMPscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = " 
+                ROS_INFO_STREAM("sRA LMPscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = "
                   << (scancfg_response.sector_cfg.size() > 0 ? (scancfg_response.sector_cfg[0].angular_resolution / 10000.0) : -1.0) << " deg.");
               }
             }
@@ -3774,6 +3822,12 @@ namespace sick_scan
     }
 
 
+    if (identStr.find("LD-LRSxx") !=    std::string::npos)
+    {
+      ROS_INFO_STREAM("Deviceinfo " << identStr << " found and supported by this driver.");
+      supported = true;
+    }
+
     if (supported == false)
     {
       ROS_WARN_STREAM("Device " << device_string << "s V" << version_major << "." << version_minor << " found and maybe unsupported by this driver.");
@@ -4192,6 +4246,7 @@ namespace sick_scan
             int layer = 0;
             int baseLayer = 0;
             bool useGivenElevationAngle = false;
+
             switch (numOfLayers)
             {
               case 1: // TIM571 etc.
@@ -4470,9 +4525,10 @@ namespace sick_scan
               {
 
                 float angle = (float)config_.min_ang;
-                if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0) // Can we use msg.angle_min this for all lidars?
+                if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0  // Check and todo: Can we use msg.angle_min for all lidars?
+                || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0) // Can we use this for all lidars where msg.angle_min is not 0?
                 {
-                  angle = msg.angle_min - angleShift; // LMS-1xxx has 4 interlaced layer with different start angle in each layer, start angle parsed from LMDscandata and set in msg.angle_min
+                  angle = msg.angle_min - angleShift; // LMS-1xxx and MRS-1xxx have 4 interlaced layer with different start angle in each layer, start angle parsed from LMDscandata and set in msg.angle_min
                 }
 
                 float *cosAlphaTablePtr = &cosAlphaTable[0];
@@ -4559,7 +4615,7 @@ namespace sick_scan
                     fptr_polar[idx_x] = range_meter; // range in meter
                     fptr_polar[idx_y] = phi_used;    // azimuth in radians
                     fptr_polar[idx_z] = alpha;       // elevation in radians
-                    
+
                     fptr[idx_intensity] = 0.0;
                     if (config_.intensity)
                     {
@@ -4583,13 +4639,17 @@ namespace sick_scan
 
               }
 
-              // if ( (msg.header.seq == 0) || (layerOff == 0)) // FIXEN!!!!
               bool shallIFire = false;
-              if ((elevAngleX200 == 0) || (elevAngleX200 == 237)) // if ((msg.header.seq == 0) || (msg.header.seq == 237)) // msg.header.seq := elevAngleX200
+              if ((elevAngleX200 == 0) || (elevAngleX200 == 237))
               {
                 shallIFire = true;
               }
-
+              if(!m_scan_layer_filter_cfg.scan_layer_filter.empty()) // If scan_layer_filter is activated: fire when last activated layer received
+              {
+                int cur_layer = (layer - baseLayer);
+                shallIFire = (cur_layer == m_scan_layer_filter_cfg.last_active_layer);
+                // ROS_INFO_STREAM("scan_layer_filter activated: scan_layer_filter = " << m_scan_layer_filter_cfg.scan_layer_filter << ", elevAngleX200 = " << elevAngleX200 << ", layer = " << cur_layer << ", last_active_layer = " << m_scan_layer_filter_cfg.last_active_layer << ", shallIFire = " << shallIFire);
+              }
 
               static int layerCnt = 0;
               static int layerSeq[4];
@@ -4876,6 +4936,7 @@ namespace sick_scan
     std::string KeyWord15 = "sWN LFPmedianfilter"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmedianfilter" (3x1 median filter) + { 1 byte 0|1 active/inactive } + { 2 byte 0x03 }
     std::string KeyWord16 = "sWN LMDscandatascalefactor"; // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
     std::string KeyWord17 = "sWN GlareDetectionSens"; // LRS4xxx: "sWN GlareDetectionSens"  + { 1 byte sensitivity }  + { 2 byte 0x03 }
+    std::string KeyWord18 = "sWN ScanLayerFilter"; // MRS-1000 scan layer activation mask, "sWN ScanLayerFilter <number of layers> <layer 1: on/off> … <layer N: on/off>",  default: all layer activated: "sWN ScanLayerFilter 4 1 1 1 1"
 
     //BBB
 
@@ -5204,7 +5265,21 @@ namespace sick_scan
       buffer[0] = (unsigned char) (0xFF & args[0]);
       bufferLen = 1;
     }
-
+    if (cmdAscii.find(KeyWord18) != std::string::npos && strlen(requestAscii) > KeyWord18.length() + 1) // MRS-1000 scan layer activation mask, "sWN ScanLayerFilter <number of layers> <layer 1: on/off> … <layer N: on/off>",  default: all layer activated: "sWN ScanLayerFilter 4 1 1 1 1"
+    {
+      // Convert ascii integer args to binary, e.g. "4 1 1 1 1" to 0x000401010101
+      ScanLayerFilterCfg scan_filter_cfg(requestAscii + KeyWord18.length() + 1);
+      int num_layers = scan_filter_cfg.scan_layer_activated.size();
+      if (num_layers > 0)
+      {
+        bufferLen = 0;
+        // 2 byte <number of layers>
+        buffer[bufferLen++] = (unsigned char) (0xFF & (num_layers >> 8));
+        buffer[bufferLen++] = (unsigned char) (0xFF & num_layers);
+        for(int n = 0; n < num_layers; n++)
+          buffer[bufferLen++] = (unsigned char) (0xFF & (scan_filter_cfg.scan_layer_activated[n])); // 1 byte <layer on/off>
+      }
+    }
 
     // copy base command string to buffer
     bool switchDoBinaryData = false;
@@ -5433,6 +5508,50 @@ namespace sick_scan
   bool SickScanCommon::getSensorIsRadar(void)
   {
     return (sensorIsRadar);
+  }
+
+  void SickScanCommon::ScanLayerFilterCfg::parse(const std::string& parameter)
+  {
+    // parse ascii integer args "<number of layers> <layer 1 on/off> ... <layer N on/off>", e.g. "4 1 1 1 1"
+    scan_layer_filter = parameter;
+    scan_layer_activated.clear();
+    first_active_layer = INT_MAX;
+    last_active_layer = -1;
+    std::istringstream ascii_args(parameter);
+    std::string ascii_arg;
+    for (int arg_cnt = 0, num_layers = 0; getline(ascii_args, ascii_arg, ' '); arg_cnt++)
+    {
+      int arg_val = -1;
+      if (sscanf(ascii_arg.c_str(), "%d", &arg_val) == 1 && arg_val >= 0)
+      {
+        if (num_layers == 0) // i.e. parameter <number of layers>
+        {
+          num_layers = arg_val;
+        }
+        else // i.e. parameter <layer n on/off>
+        {
+          int layer = scan_layer_activated.size();
+          scan_layer_activated.push_back(arg_val);
+          if (arg_val > 0)
+          {
+            first_active_layer = MIN(layer, first_active_layer);
+            last_active_layer = MAX(layer, last_active_layer);
+          }
+        }
+      }
+    }
+    print();
+  }
+
+  void SickScanCommon::ScanLayerFilterCfg::print()
+  {
+    std::stringstream s;
+    s << "ScanLayerFilterCfg: filter_settings=\"" << scan_layer_filter << "\", " << scan_layer_activated.size() << " layers, layer_activation=[";
+    for(int n = 0; n < scan_layer_activated.size(); n++)
+      s << (n > 0 ? "," : "") << scan_layer_activated[n];
+    s << "], ";
+    s << "first_active_layer=" << first_active_layer << ", last_active_layer=" << last_active_layer;
+    ROS_INFO_STREAM(s.str());
   }
 
   // SopasProtocol m_protocolId;
