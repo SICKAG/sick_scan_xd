@@ -83,6 +83,7 @@ namespace sick_scan
         bool config_sw_pll_only_publish, bool use_generation_timestamp, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos, 
         std::vector<float>& vang_vec, ros_sensor_msgs::LaserScan & msg)
     {
+                  // bool lms1000_debug = true; // LMS-1000 diagnosis
                   elevAngleX200 = 0;  // signed short (F5 B2  -> Layer 24
                   // F5B2h -> -2638/200= -13.19°
                   int scanFrequencyX100 = 0;
@@ -104,7 +105,7 @@ namespace sick_scan
                   ROS_HEADER_SEQ(msg.header, elevAngleX200); // should be multiple of 0.625° starting with -2638 (corresponding to 13.19°)
 
                   // Time since start up in microseconds: Counting the time since power up the device; starting with 0. In the output telegram this is the time at the zero index before the measurement itself starts.
-                  memcpy(&SystemCountScan, receiveBuffer + 0x26, 4);
+                  memcpy(&SystemCountScan, receiveBuffer + 0x26, 4); // 0x26 = 38 dec
                   swap_endian((unsigned char *) &SystemCountScan, 4);
 
                   // Time of transmission in microseconds: Time in μs when the complete scan is transmitted to the buffer for data output; starting with 0 at scanner bootup.
@@ -432,6 +433,14 @@ namespace sick_scan
                         swap_endian((unsigned char *) &startAngleDiv10000, 4);
                         swap_endian((unsigned char *) &sizeOfSingleAngularStepDiv10000, 2);
                         swap_endian((unsigned char *) &numberOfItems, 2);
+
+                        /* if (lms1000_debug) // LMS-1000 diagnosis
+                        {
+                          ROS_INFO_STREAM("LMDscandata: lidar_scan_time=" << SystemCountScan << " microsec, lidar_transmit_time=" << SystemCountTransmit << " microsec, "
+                            << "scan_frequency=" << (0.01 * scanFrequencyX100) << " Hz, measurement_frequency=" << measurementFrequencyDiv100 << " Hz,"
+                            << "start_angle=" << (0.0001 * startAngleDiv10000) << " [deg], angular_step="<< (0.0001 * sizeOfSingleAngularStepDiv10000) << " [deg]");
+                          lms1000_debug = false;
+                        } */
 
                         if (processData)
                         {

@@ -11,6 +11,15 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.8.15 - Release Jan. 2023
+  - **Update** Win64 build instructions
+  - **Update** API documentation, driver states diagrams and typos
+  - **Added**  LRS-36xx configuration for upside-down mounting
+  - **Removed** Obsolete service commands and RMS3xx support     
+  - **Fix** LRS-36xx angle configuration
+  - **Fix** catkin_lint warnings
+  - **Fix** ROS-2 Humble build
+
 ### v2.8.14 - Laserscan messages for Multiscan
   - **Update** Laserscan messages for Multiscan lidar, #96
 
@@ -55,7 +64,7 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **Fixed** Compiler warnings (Visual Studio)
   - **Update** README.md restructured
   - **Update** Collected update including previous v2.8.x changes
-  
+
 ### v2.8.2 - development branch 
   - **Fixed** Update build instructions in README.md, visualization in python API-example with low frequency to reduce cpu usage.
 
@@ -139,7 +148,7 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **Added** Automatic switch to specified SOPAS mode (binary vs. ASCII) during startup
 
 ## Releases previously logged in CHANGELOG.rst ##
-  
+
 ### v1.10.1 (2021-03-18)
 * Update ipconfig.md
 * Update ipconfig.md

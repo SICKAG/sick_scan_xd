@@ -52,6 +52,9 @@
  *  Copyright 2021 Ing.-Buero Dr. Michael Lehning
  *
  */
+#include <chrono>
+#include <thread>
+
 #include "sick_scan/ros_wrapper.h"
 #include "sick_scan/server_socket.h"
 
@@ -63,7 +66,7 @@
 #define SD_BOTH 0x02
 #endif
 
-#ifndef _MSC_VER	
+#ifndef _MSC_VER
   typedef struct sockaddr    SOCKADDR;
   typedef struct sockaddr_in SOCKADDR_IN;
   static int closesocket ( int fd )
@@ -220,7 +223,7 @@ int sick_scan::ServerSocket::read(int num_bytes, std::vector<uint8_t>& out_buffe
   int recv_flags = 0;
 # ifdef _MSC_VER
   u_long recv_mode = (read_blocking ? 0 : 1); // FIONBIO enables or disables the blocking mode for the socket. If iMode = 0, blocking is enabled, if iMode != 0, non-blocking mode is enabled.
-  ioctlsocket(m_tConnectedSocket, FIONBIO, &recv_mode); 
+  ioctlsocket(m_tConnectedSocket, FIONBIO, &recv_mode);
 # else
   if(!read_blocking)
     recv_flags |= MSG_DONTWAIT;
