@@ -117,7 +117,8 @@ namespace sick_scan
       CMD_ACTIVATE_STANDBY,
       CMD_SET_PARTICLE_FILTER,
       CMD_SET_MEAN_FILTER,
-      CMD_ALIGNMENT_MODE,
+      // CMD_ALIGNMENT_MODE,
+      CMD_SCAN_LAYER_FILTER,
       CMD_APPLICATION_MODE,
       CMD_APPLICATION_MODE_FIELD_ON,
       CMD_APPLICATION_MODE_FIELD_OFF,
@@ -201,6 +202,9 @@ namespace sick_scan
       // Supported by sick_generic_caller version 2.8.4 and above:
       CMD_SET_GLARE_DETECTION_SENS, // Glare Detection Sensitivity (LRS4xxx only): glare_detection_sens<0: do not apply, glare_detection_sens==0: deactivate glare_detection_filter, glare_detection_sens==5: medium glare detection sensitivity, glare_detection_sens==10: sensitive glare detection filter
 
+      // CMD_SET_ALIGNMENT_MODE, // Support for MRS-1000 layer activation (alignment mode): do not overwrite: -1, all Layer: 0 (default), red Layer (-2.5 deg): 1, blue Layer (0 deg): 2, green Layer (+2.5 deg): 3, yellow Layer (+5 deg): 4
+      CMD_SET_SCAN_LAYER_FILTER, // MRS-1000 scan layer activation mask, "sWN ScanLayerFilter <number of layers> <layer 1: on/off> … <layer N: on/off>"",  default: all layer activated: "sWN ScanLayerFilter 4 1 1 1 1"
+
       // ML: Add above new CMD-Identifier
       //
       //
@@ -232,6 +236,8 @@ namespace sick_scan
     int sendSopasAorBgetAnswer(const std::string& request, std::vector<unsigned char> *reply, bool useBinaryCmd);
 
     ExitCode checkColaTypeAndSwitchToConfigured(bool useBinaryCmd);
+
+    bool sendSopasRunSetAccessMode(bool useBinaryCmd);
 
     int setAligmentMode(int _AligmentMode);
 
@@ -466,6 +472,22 @@ namespace sick_scan
     int m_read_timeout_millisec_startup;
 
     sick_scan::SickCloudTransform m_add_transform_xyz_rpy;
+
+    struct ScanLayerFilterCfg // Optional ScanLayerFilter setting
+    {
+      ScanLayerFilterCfg(const std::string& parameter = "") // parameter for ScanLayerFilter, e.g. "4 1 1 1 1"
+      {
+        if (!parameter.empty())
+          parse(parameter);
+      }
+      std::string scan_layer_filter = ""; // Optional ScanLayerFilter setting from launchfile
+      std::vector<int> scan_layer_activated = std::vector<int>();
+      int first_active_layer = -1;
+      int last_active_layer = -1;
+      void parse(const std::string& parameter);
+      void print();
+    };
+    ScanLayerFilterCfg m_scan_layer_filter_cfg; // Optional ScanLayerFilter setting
 
     rosNodePtr m_nh;
   };

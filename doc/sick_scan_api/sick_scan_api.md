@@ -69,6 +69,7 @@ set _os=x64
 set _cmake_string=Visual Studio 16
 set _msvc=Visual Studio 2019
 set _cmake_build_dir=build
+cd sick_scan_xd
 if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
 if not exist %_cmake_build_dir%\msgpack11 mkdir %_cmake_build_dir%\msgpack11
 pushd %_cmake_build_dir%\msgpack11
@@ -78,11 +79,15 @@ cmake --build . --clean-first --config Debug
 cmake --build . --clean-first --config Release
 popd
 pushd %_cmake_build_dir%
-cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -G "%_cmake_string%" ..
+cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
 if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% sick_scan_xd with cmake & @pause )
 cmake --build . --clean-first --config Debug
 ```
 After successfull build, the shared library `sick_scan_shared_lib.dll` and a tiny test executable `sick_scan_xd_api_test.exe` are created. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. Note that LDMRS is not supported on Windows.
+
+Note: sick_scan_xd builds and runs with both Visual Studio 2019 and 2022. Visual Studio 2019 is recommended, since ROS on Windows requires VS 2019.
+
+Replace `cmake -DROS_VERSION=0 -G "%_cmake_string%" ..` by  `cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -G "%_cmake_string%" ..` to build emulators for unittests without lidar hardware, see [Simulation and unittest](#simulation-and-unittest).
 
 ### Test the shared library
 
@@ -119,7 +124,63 @@ The sick_scan_xd API can be used on Linux or Windows in any language with suppor
     * SickScanApiCreate
     * SickScanApiInitByLaunchfile or SickScanApiInitByCli
 
-2. Receive messages by registration of callbacks using `SickScanApiRegister<MsgType>Msg`-functions (recommended) or by polling using `SickScanApiWaitNext<MsgType>Msg`-functions
+2. Receive messages by registration of callbacks using `SickScanApiRegister<MsgType>Msg`-functions (recommended) or by polling using `SickScanApiWaitNext<MsgType>Msg`-functions.
+   
+   Alternative examples to receive lidar scan data as a pointcloud:
+   * Register a callback for cartesian pointcloud data using SickScanApiRegisterCartesianPointCloudMsg, or
+   * register a callback for polar pointcloud data using SickScanApiRegisterPolarPointCloudMsg.
+
+   The registered callback will be executed whenever the lidar has sent new scan data and receives the (cartesian or polar) pointcloud by a parameter of type SickScanPointCloudMsg. The SickScanPointCloudMsg in sick_scan_xd API corresponds to ROS pointcloud: The cartesian pointcloud  (registered by SickScanApiRegisterCartesianPointCloudMsg) contains the fields (x, y, z, intensity). The polar pointcloud (registered by SickScanApiRegisterPolarPointCloudMsg) contains the fields (range, azimuth, elevation, intensity). Each field contains its name (i.e. x, y, z, range, azimuth, elevation, or intensity) and offset. The scan data is a flat buffer of size width x height fields:
+
+   ![apiPointCloudMsg](apiPointCloudMsg.png)
+
+   The following python code shows how to convert a cartesian pointcloud to 3D points (x, y, z):
+   ```
+    # Convert a SickScanCartesianPointCloudMsg to points
+    def pySickScanCartesianPointCloudMsgToXYZ(pointcloud_msg):
+        # get pointcloud fields
+        num_fields = pointcloud_msg.fields.size
+        msg_fields_buffer = pointcloud_msg.fields.buffer
+        field_offset_x = -1
+        field_offset_y = -1
+        field_offset_z = -1
+        for n in range(num_fields):
+            field_name = ctypesCharArrayToString(msg_fields_buffer[n].name)
+            field_offset = msg_fields_buffer[n].offset
+            if field_name == "x":
+                field_offset_x = msg_fields_buffer[n].offset
+            elif field_name == "y":
+                field_offset_y = msg_fields_buffer[n].offset
+            elif field_name == "z":
+                field_offset_z = msg_fields_buffer[n].offset
+        # Extract x,y,z
+        cloud_data_buffer_len = (pointcloud_msg.row_step * pointcloud_msg.height) # length of polar cloud data in byte
+        assert(pointcloud_msg.data.size == cloud_data_buffer_len and field_offset_x >= 0 and field_offset_y >= 0 and field_offset_z >= 0)
+        cloud_data_buffer = bytearray(cloud_data_buffer_len)
+        for n in range(cloud_data_buffer_len):
+            cloud_data_buffer[n] = pointcloud_msg.data.buffer[n]
+        points_x = np.zeros(pointcloud_msg.width * pointcloud_msg.height, dtype = np.float32)
+        points_y = np.zeros(pointcloud_msg.width * pointcloud_msg.height, dtype = np.float32)
+        points_z = np.zeros(pointcloud_msg.width * pointcloud_msg.height, dtype = np.float32)
+        point_idx = 0
+        for row_idx in range(pointcloud_msg.height):
+            for col_idx in range(pointcloud_msg.width):
+                # Get lidar point in polar coordinates (range, azimuth and elevation)
+                pointcloud_offset = row_idx * pointcloud_msg.row_step + col_idx * pointcloud_msg.point_step
+                points_x[point_idx] = np.frombuffer(cloud_data_buffer, dtype = np.float32, count = 1, offset = pointcloud_offset + field_offset_x)[0]
+                points_y[point_idx] = np.frombuffer(cloud_data_buffer, dtype = np.float32, count = 1, offset = pointcloud_offset + field_offset_y)[0]
+                points_z[point_idx] = np.frombuffer(cloud_data_buffer, dtype = np.float32, count = 1, offset = pointcloud_offset + field_offset_z)[0]
+                point_idx = point_idx + 1
+        return points_x, points_y, points_z
+   ```
+   Exchange field names ("x", "y", "z") by ("range", "azimuth", "elevation") to get 3D polar points (range, azimuth, elevation).
+
+   For further details, see
+   * [Minimalistic usage example in C](#minimalistic-usage-example-in-c)
+   * [Minimalistic usage example in C++](#minimalistic-usage-example-in-c-1)
+   * [Minimalistic usage example in Python](#minimalistic-usage-example-in-python)
+   * [Complete usage example in C++](#complete-usage-example-in-c)
+   * [Complete usage example in Python](#complete-usage-example-in-python)
 
 3. Close lidar and API by
     * `SickScanApiDeregister<MsgType>Msg`-functions
@@ -127,6 +188,9 @@ The sick_scan_xd API can be used on Linux or Windows in any language with suppor
     * SickScanApiRelease
 
 All functions named `SickScanApi` are implemented within the library file ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux). A small wrapper is provided ([sick_scan_xd_api_wrapper.c](../../test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c) for C/C++, [sick_scan_api.py](../../python/api/sick_scan_api.py) for python), which loads and unloads the library (functions `SickScanApiLoadLibrary` and `SickScanApiUnloadLibrary`) and delegates the function calls to the binary.
+
+Note: [sick_scan_api.py](../../python/api/sick_scan_api.py) requires python module numpy. On Windows, we recommend to install and use Python either with Visual Studio 2019 or by installing from https://www.python.org/downloads/windows/ (python installer, embedded version not recommended). Otherwise, please install numpy with `python -m pip install numpy` if numpy is not yet installed.
+
 
 ### Minimalistic usage example in C
 
@@ -218,6 +282,8 @@ set PYTHONPATH=.;.\python\api;%PATH%
 python ./examples/python/minimum_sick_scan_api_client.py <launchfile> hostname:=<lidar-ip-address>
 ```
 
+Note: [sick_scan_api.py](../../python/api/sick_scan_api.py) requires python module numpy. On Windows, we recommend to install and use Python either with Visual Studio 2019 or by installing from https://www.python.org/downloads/windows/ (python installer, embedded version not recommended). Otherwise, please install numpy with `python -m pip install numpy` if numpy is not yet installed.
+
 ### Complete usage example in C++
 
 A complete C/C++ usage example is implemented in [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp). Note that the shared library ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux) has no dependencies to ROS. The usage example on the other hand supports both ROS-1, ROS-2 and native Linux or Windows. When build on ROS, it converts the SickScanApi-messages into ROS-messages. On ROS, they can be visualized by rviz. The following screenshot shows a pointcloud published by `rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch"`:
@@ -259,6 +325,9 @@ If ROS is not installed, [sick_scan_xd_api_test.py](../../test/python/sick_scan_
 
 ![api_test_python_tim7xx.png](api_test_python_tim7xx.png)
 
+Note: [sick_scan_api.py](../../python/api/sick_scan_api.py) requires python module numpy. On Windows without ROS, [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) requires numpy and matplotlib. On Windows, we recommend to install and use Python either with Visual Studio 2019 or by installing from https://www.python.org/downloads/windows/ (python installer, embedded version not recommended). These python distributions provide the necessary packages and tools. Otherwise, please install numpy and matplotlib with `python -m pip install numpy` and `python -m pip install matplotlib` if not yet done.
+
+
 ### Simulation and unittest
 
 sick_scan_xd provides a tiny server for offline tests which simulates a basic lidar. It just accepts TCP connections, responds to sopas requests with predefined responses and sends lidar data from file. See [Simulation](../../USAGE.md#simulation) for further details. Note that the simulation does not emulate or replace a lidar, it just supports basic unittests.
@@ -275,6 +344,21 @@ Open a new terminal and run the following steps to test the api against a TiM7xx
    ls -al libsick_scan_shared_lib.so sick_scan_xd_api_test sick_generic_caller sick_scan_emulator # list size and date of the binaries
    popd
    ```
+   Building sick_scan_xd with option `-DCMAKE_ENABLE_EMULATOR=1` requires jsoncpp. Install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" on Linux resp. "vcpkg install jsoncpp:x64-windows" on Windows (vcpkg required). Run the following steps to install Visual Studios package manager vcpkg on Windows:
+      * Download vcpkg-master.zip from https://github.com/microsoft/vcpkg/archive/master.zip and unzip to `c:\vcpkg`. Alternatively, run "git clone https://github.com/microsoft/vcpkg"
+      * Install vcpkg by running the following commands:
+         ```
+        cd c:/vcpkg
+        bootstrap-vcpkg.bat
+        vcpkg integrate install
+        ```
+      * Include vcpkg in your path:
+         ```
+        set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
+        ```
+
+3. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
+
 
 2. Build sick_scan_xd for ROS-1 on Linux, see [Build on Linux ROS1](../../INSTALL-ROS1.md#build-on-linux-ros1)
 

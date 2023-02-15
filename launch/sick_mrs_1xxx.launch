@@ -17,6 +17,9 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="nodename" default="sick_mrs_1xxx"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
+    <arg name="ang_res" default="0" />                   <!-- Supported values are "0.0625", "0.125" and "0.25". Default: "0", i.e. do not set or overwrite angular resolution and scan frequency -->
+    <arg name="scan_freq" default="0" />                 <!-- Supported values are "12.5", "25" and "50". Default: "0", i.e. do not set or overwrite angular resolution and scan frequency -->
+    <arg name="scan_layer_filter" default="4 1 1 1 1"/>  <!-- Optional ScanLayerFilter settings: "<number of layers> <layer 1: on/off> … <layer N: on/off>", e.g. "4 1 1 1 1" (default) for all layers,  "4 0 1 0 0" for layer 2 at 0 deg ot "" to disable ScanLayerFilter settings --> 
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- launch-prefix="gdb -ex run - -args" -->
         <!-- default values: -->
@@ -64,6 +67,14 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="range_max" type="double" value="100.0"/>
         <param name="range_filter_handling" type="int" value="0"/>
         
+        <param name="ang_res" type="double" value="$(arg ang_res)" />     <!-- Supported values are "0.0625", "0.125" and "0.25". Default: "0", i.e. do not set or overwrite angular resolution and scan frequency -->
+        <param name="scan_freq" type="double" value="$(arg scan_freq)" /> <!-- Supported values are "12.5", "25" and "50". Default: "0", i.e. do not set or overwrite angular resolution and scan frequency -->
+        <!-- Setting a scan configuation by parameter "ang_res" and "scan_freq" requires MRS1000 firmware version >= 2.x and hardware version 2 -->
+
+        <!-- MRS-1000 scan layer activation mask (parameter for sopas command "sWN ScanLayerFilter"): "<number of layers> <layer 1: on/off> … <layer N: on/off>" --> 
+        <!-- default: all layer activated by value="4 1 1 1 1", example: use "4 0 1 0 0" to activate layer 2 at 0 deg, use empty string "" to disable scan layer activation -->        
+        <param name="scan_layer_filter" type="string" value="$(arg scan_layer_filter)" />
+
         <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
         <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
         <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: --> 
@@ -81,9 +92,12 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
         
         <!-- Supported by sick_generic_caller version 2.7.3 and above: -->
-        <param name="lfp_meanfilter" type="int" value="2" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->
-        <param name="lfp_medianfilter" type="int" value="1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_medianfilter<0: do not apply, lfp_medianfilter==0: deactivate LFPmedianfilter, lfp_medianfilter==1: activate LFPmedianfilter -->
-
+        <param name="lfp_meanfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->
+        <param name="lfp_medianfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_medianfilter<0: do not apply, lfp_medianfilter==0: deactivate LFPmedianfilter, lfp_medianfilter==1: activate LFPmedianfilter -->
+        <!-- Note on lfp_meanfilter and lfp_medianfilter for MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: -->
+        <!-- Default value is -1, which means: "do not apply". This default value does not overwrite the device settings, -->
+        <!-- i.e. the default factory settings resp. filter settings configured by SOPAS ET are used. -->
+        <!-- Use value "0" to deactivate mean or median filter. Use values > 0 to set a mean or median filter. -->
         <!-- Configuration of ROS quality of service: -->
         <!-- On ROS-1, parameter "ros_qos" sets the queue_size of ros publisher -->
         <!-- On ROS-2, parameter "ros_qos" sets the QoS of ros publisher to one of the following predefined values: -->

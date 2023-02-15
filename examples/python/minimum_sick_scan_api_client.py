@@ -14,7 +14,20 @@ See doc/sick_scan_api/sick_scan_api.md for further information.
 import os
 import sys
 import time
-from sick_scan_api import *
+
+# Make sure sick_scan_api is searched in all folders configured in environment variable PYTHONPATH
+def appendPythonPath():
+    pythonpath = os.environ['PYTHONPATH']
+    for folder in pythonpath.split(";"):
+        sys.path.append(os.path.abspath(folder))
+try:
+    # import sick_scan_api
+    from sick_scan_api import *
+except ModuleNotFoundError:
+    print("import sick_scan_api failed, module sick_scan_api not found, trying with importlib...")
+    appendPythonPath()
+    import importlib
+    sick_scan_api = importlib.import_module("sick_scan_api")
 
 def pyCustomizedPointCloudMsgCb(api_handle, msg):
     """
@@ -28,9 +41,9 @@ cli_args = " ".join(sys.argv[1:])
 
 # Load sick_scan_library
 if os.name == "nt": # Load windows dll
-    sick_scan_library = SickScanApiLoadLibrary(["build/Debug/", "build_win64/Debug/", "./", "../"], "sick_scan_shared_lib.dll")
+    sick_scan_library = SickScanApiLoadLibrary(["build/Debug/", "build_win64/Debug/", "../../build/Debug/", "../../build_win64/Debug/", "./", "../"], "sick_scan_shared_lib.dll")
 else: # Load linux so
-    sick_scan_library = SickScanApiLoadLibrary(["build/", "build_linux/", "./", "../"], "libsick_scan_shared_lib.so")
+    sick_scan_library = SickScanApiLoadLibrary(["build/", "build_linux/", "../../build/", "../../build_linux/", "./", "../"], "libsick_scan_shared_lib.so")
 
 # Create a sick_scan instance and initialize a TiM-7xx
 api_handle = SickScanApiCreate(sick_scan_library)

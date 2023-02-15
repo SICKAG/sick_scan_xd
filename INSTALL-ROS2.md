@@ -62,7 +62,7 @@ doxygen ./docs/Doxyfile
 
 To install sick_scan_xd on Windows with ROS-2, follow the steps below:
 
-1. If not yet done, install Visual Studio 2019 and vcpkg as described in [Build on Windows](INSTALL-GENERIC.md#build-on-windows).
+1. If not yet done, install Visual Studio. Visual Studio 2019 Community or Professional Edition is recommended.
 
 2. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
    ```

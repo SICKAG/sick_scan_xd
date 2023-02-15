@@ -19,9 +19,14 @@ if __ROS_VERSION is None:
 else:
     __ROS_VERSION = int(__ROS_VERSION)
 
+plt_enabled = False
 if __ROS_VERSION == 0:
-    from mpl_toolkits import mplot3d
-    import matplotlib.pyplot as plt
+    try:
+        from mpl_toolkits import mplot3d
+        import matplotlib.pyplot as plt
+        plt_enabled = True
+    except ModuleNotFoundError:
+        print("import matplotlib failed, visualization disabled")
 elif __ROS_VERSION == 1:
     import rospy
     from sick_scan_api_converter import *
@@ -281,7 +286,7 @@ if __name__ == "__main__":
             if int(cli_arg[10:]) > 0:
                 api_test_settings.polling = True
     cli_args = " ".join(sys.argv[cli_arg_start_idx:])
-    if __ROS_VERSION == 0:
+    if __ROS_VERSION == 0 and plt_enabled:
         api_test_settings.plot_figure = plt.figure()
         api_test_settings.plot_axes = plt.axes(projection="3d")
     elif __ROS_VERSION == 1:
@@ -348,7 +353,7 @@ if __name__ == "__main__":
     if __ROS_VERSION == 0:
         while True:
             try:
-                if len(api_test_settings.plot_points_x) > 0 and len(api_test_settings.plot_points_y) > 0  and len(api_test_settings.plot_points_z) > 0:
+                if plt_enabled and len(api_test_settings.plot_points_x) > 0 and len(api_test_settings.plot_points_y) > 0  and len(api_test_settings.plot_points_z) > 0:
                     print("sick_scan_xd_api_test.py plotting pointcloud by matplotlib")
                     plot_points_x = np.copy(api_test_settings.plot_points_x)
                     plot_points_y = np.copy(api_test_settings.plot_points_y)

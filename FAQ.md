@@ -110,7 +110,7 @@ System time of generation = System time of receiving - (TICK_TRANSMIT - TICK_GEN
 2. Remove the folders sick_scan_xd/build, sick_scan_xd/build_isolated, sick_scan_xd/devel, sick_scan_xd/devel_isolated, sick_scan_xd/install and sick_scan_xd/install_isolated
 3. Rebuild
 
-:question: cmake can't find diagnostic_updater
+:question: cmake cannot find diagnostic_updater
 
 :white_check_mark: On ROS-2 foxy, package diagnostic_updater needs to be installed by
 ```
@@ -121,10 +121,11 @@ sudo apt-get install ros-$ROS_DISTRO-diagnostic-updater # install diagnostic_upd
 ```
 
 :question: catkin gives me the following error message:
-`By not providing “FindSICKLDMRS.cmake” in CMAKE_MODULE_PATH this project ……, but CMake did not find one.”`
+`By not providing "FindSICKLDMRS.cmake" in CMAKE_MODULE_PATH this project ..., but CMake did not find one."`
 
 :white_check_mark:  One problem with ROS is that it doesn't automatically rebuild everything if you just append "-DLMRRS=0".
 If you accidentally did the following call before
+
 ```
 catkin_make_isolated --install --cmake-args -DROS_VERSION=1
 ```
@@ -140,6 +141,7 @@ rm -rf devel
 It is possible that not all directories are present in this list. But that does not matter.
 The only subdirectory left should be "src".
 You can check this with the following command:
+
 ```
 ls */ -d
 ```
@@ -150,7 +152,7 @@ src/
 After doing this please rerun the command
 catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0
 
-:question: cmake can't find header msgpack11.hpp
+:question: cmake cannot find header msgpack11.hpp
 
 :white_check_mark: You probably forgot to checkout https://github.com/SICKAG/msgpack11.git. Please clone the following repositories:
 ```
@@ -187,6 +189,33 @@ rosrun rviz rviz
 ![Sopas_filter](doc/tim5xxx_filter.PNG)
 Further information can be found at http://wiki.ros.org/rviz/Troubleshooting.
 
+## LMS1xxx angular resolution
+
+:question: Independent of the configuration, the LMS1xxx pointcloud always displays 0.75 [deg] angular resolution
+
+:white_check_mark: Using higher resolutions, the LMS1xxx sends scan data interlaced. With configuration ang_res=0.75, the angular resolution of each scan is 0.75 [deg]. This means that each point cloud message also has a resolution of 0.75 [deg]. With configuration ang_res=0.375, the scan is generated interlaced: Each scan still has 0.75 [deg] resolution, but 2 consecutive scans are rotated by 0.375 [deg] against each other. I.e. 2 consecutive Pointcloud messages each have an angular resolution of 0.375 [deg] at half the frequency. Within a point cloud message the angular resolution is still 0.75 [deg].
+
+With configuration ang_res=0.1875 the scan is generated quadruple interlaced, i.e. 4 consecutive scans are each rotated by 0.1875 [deg]. Each scan is resolved with 0.75 [deg]; 4 scans or 4 pointclouds together (accumulated) result in a resolution of 0.1875 [deg] at a quarter of the frequency.
+
+You can see this in rviz by increasing the decay time to e.g. 4/75=0.054 or higher. The screenshot shows an example with the default setting ang_res=0.75:
+
+![LMS1xxx_0.7500_deg.png](doc/screenshots/LMS1xxx_0.7500_deg.png)
+
+The angular resolution is (just roughly measured) about atan(0.11/0.9) / 9 points = 0.77 [deg]. With ang_res=0.375 and decay=0.1 rviz shows twice the resolution:
+
+![LMS1xxx_0.7500_deg.png](doc/screenshots/LMS1xxx_0.3750_deg.png)
+
+Correspondingly, rviz shows four times the resolution with ang_res=0.1875 and decay=0.1:
+
+![LMS1xxx_0.7500_deg.png](doc/screenshots/LMS1xxx_0.1875_deg.png)
+
+To use the full angular resolution, the pointcloud must be accumulated by 2 resp. 4 messages. 
+
+The active configuration can be seen in the log output during scanner initialization, e.g.:
+```
+[ INFO] [1669294673.078608968]: sRA LMPscancfg: scan frequency = 75 Hz, angular resolution = 0.375 deg.
+```
+
 ## "ERROR: Tcp::open: Failed to open TCP connection to 192.168.0.1, aborting."
 
 :question: Question:
@@ -204,7 +233,7 @@ sick_generic_caller gives you an answer like:
 
    ```bash
    ping 192.168.0.1
-   ```  
+   ```
    The result of ping contains a pattern like
    ```bash
     ... Destination Host Unreachable
@@ -232,6 +261,7 @@ The result is similar to:
 ```
 and a lot of unreachable entries.
 In the example the ip address 192.168.0.4 is the laserscanner MRS1104 and the ip address 192.168.0.22 is the computer running linux. Check this with
+
 ```bash
 ifconfig|grep 192.168.0.22
 ```
@@ -244,6 +274,7 @@ My scanner does not use the default ip address. What shall I do?
 
 :white_check_mark: Answer:
 There are two options doing this:
+
 * Permanently:  
 Replace the following entry with your ip address.
 ```bash
@@ -259,6 +290,7 @@ Use a command line argument in addition to the launch file argument:
 
 :question: Question:
 During start phase the are warning/error message like
+
 ```bash
 no answer received after 5000 ms. Maybe sopas mode is wrong.
 ```

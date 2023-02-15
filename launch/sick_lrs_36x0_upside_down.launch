@@ -7,14 +7,14 @@
     <arg name="sw_pll_only_publish" default="True"/>
     <arg name="scan_cfg_list_entry" default="1"/>
     <arg name="skip" default="0"/>
-    <arg name="nodename" default="sick_lrs_36x1"/>
+    <arg name="nodename" default="sick_lrs_36x0"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="intensity" type="bool" value="True"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
-        <param name="use_binary_protocol" type="bool" value="True"/>
-        <param name="scanner_type" type="string" value="sick_lrs_36x1"/>
+        <param name="use_binary_protocol" type="bool" value="true"/>
+        <param name="scanner_type" type="string" value="sick_lrs_36x0"/>
         
         <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->
         <!-- Depending on parameter range_filter_handling, the following filter can be applied for points with a range not within [range_min, range_max],   -->
@@ -40,12 +40,13 @@
         <param name="start_services" type="bool" value="True"/> <!-- start ros service for cola commands -->
         <param name="activate_lferec" type="bool" value="True"/> <!-- activate field monitoring by lferec messages -->
         <param name="activate_lidinputstate" type="bool" value="False"/>
-        <param name="activate_lidoutputstate" type="bool" value="False"/>        
+        <param name="activate_lidoutputstate" type="bool" value="False"/>
         <param name="scan_cfg_list_entry" type="int" value="$(arg scan_cfg_list_entry)"/> <!-- only mode 1 is currently supported -->
         <param name="skip" type="int" value="$(arg skip)"/> <!-- Default: 0 (i.e. publish each scan), otherwise only each n.th scan is published -->
 
-        <param name="min_ang" type="double" value="-3.141592"/> <!-- default start angle for LRS 36x1: 0 deg, please do not change  -->
-        <param name="max_ang" type="double" value="3.141592"/> <!-- default stop angle for LRS 36x1: 360 deg, please do not change  -->
+        <!-- future support for min and max angle configuration (currently not supported): -->
+        <!-- param name="min_ang" type="double" value="-3.1415927"/ --> <!-- default start angle for LRS 36x0: -180 deg incl. angle offset (-90 deg excl. angle offset, angle offset = -90 deg) -->
+        <!-- param name="max_ang" type="double" value="3.1415927"/ -->  <!-- default stop angle for LRS 36x0:  +180 deg incl. angle offset (+270 deg excl. angle offset, angle offset = -90 deg)  -->
 
         <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
         <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
@@ -53,7 +54,7 @@
         <!-- add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud -->
         <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
         <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
-        <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+        <param name="add_transform_xyz_rpy" type="string" value="0,0,0,3.141592,0,0" /> 
         <param name="add_transform_check_dynamic_updates" type="bool" value="$(arg add_transform_check_dynamic_updates)" />
 
         <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
