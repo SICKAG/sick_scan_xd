@@ -16,6 +16,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
+   rm -rf ./build ./build_isolated/ ./devel ./devel_isolated/ ./install ./install_isolated/ ./log/ # remove any files from a previous build
    ```
 
 3. Build sick_generic_caller:
@@ -24,6 +25,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    colcon build --packages-select libsick_ldmrs --event-handlers console_direct+
    source ./install/setup.bash
    colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+
+   source ./install/setup.bash
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    source ./install/setup.bash
    ```
@@ -38,7 +40,7 @@ Note: msgpack11 is only required to support Multiscan136/sick_scansegment_xd. If
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
-cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build without LDMRS and scansegment_xd support:
+cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build **without LDMRS** and **without scansegment_xd support**:
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
@@ -51,6 +53,27 @@ sudo apt install ros-${ROS_DISTRO}-diagnostic-msgs
 # sudo apt-get install ros-foxy-diagnostic-updater
 # sudo apt install ros-foxy-diagnostic-msgs
 ```
+
+### Summary for the different build options:
+
+* **Without LDMRS-support** and **without Multiscan136 support**
+
+```
+colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
+```
+* **Without LDMRS-support** and **with Multiscan136 support**
+```
+colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
+```
+* **with LDMRS-support** and **without Multiscan136 support**
+```
+colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
+```
+* **with LDMRS-support** and **with Multiscan136 support**
+```
+ colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " --event-handlers console_direct+
+```
+
 
 Note: To create source code documentation by doxygen, run
 ```

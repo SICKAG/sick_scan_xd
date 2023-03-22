@@ -6,35 +6,39 @@ cmake_minimum_required(VERSION 3.5)
 project(sick_scan)
 
 # Emulator build options
+option(ENABLE_EMULATOR "Build emulator for offline and unittests (ON) or without emulator (OFF)" ON)
 if(CMAKE_ENABLE_EMULATOR EQUAL 1)
-    option(ENABLE_EMULATOR "Build emulator for offline and unittests (ON) or without emulator (OFF)" ON) # OFF (release) or ON (development)
+    set(ENABLE_EMULATOR ON CACHE BOOL "Build emulator for offline and unittests (ON) or without emulator (OFF)" FORCE) # OFF (release) or ON (development)
     message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building ${PROJECT_NAME} with emulator support, ENABLE_EMULATOR=${ENABLE_EMULATOR}")
 else()
-    option(ENABLE_EMULATOR "Build emulator for offline and unittests (ON) or without emulator (OFF)" OFF) # OFF (release) or ON (development)
+    set(ENABLE_EMULATOR OFF CACHE BOOL "Build emulator for offline and unittests (ON) or without emulator (OFF)" FORCE) # OFF (release) or ON (development)
     message(STATUS "Option CMAKE_ENABLE_EMULATOR = ${CMAKE_ENABLE_EMULATOR}, building ${PROJECT_NAME} without emulator support, ENABLE_EMULATOR=${ENABLE_EMULATOR}")
 endif()
 
 # LDMRS build options
+option(BUILD_WITH_LDMRS_SUPPORT "Build ${PROJECT_NAME} with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" OFF)
 if(WIN32)
-    option(BUILD_WITH_LDMRS_SUPPORT "Build ${PROJECT_NAME} with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" OFF)
+    set(BUILD_WITH_LDMRS_SUPPORT OFF CACHE BOOL "Build ${PROJECT_NAME} with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" FORCE)
 elseif(LDMRS EQUAL 0)
-    option(BUILD_WITH_LDMRS_SUPPORT "Build ${PROJECT_NAME} with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" OFF)
+    set(BUILD_WITH_LDMRS_SUPPORT OFF CACHE BOOL "Build ${PROJECT_NAME} with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" FORCE)
 else()
-    option(BUILD_WITH_LDMRS_SUPPORT "Build ${PROJECT_NAME} with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" ON)
+    set(BUILD_WITH_LDMRS_SUPPORT ON CACHE BOOL "Build ${PROJECT_NAME} with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" FORCE)
 endif()
 
 # MRS100/SCANSEGMENT_XD/MULTISCAN136 build options
+option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build ${PROJECT_NAME} with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" ON)
 if(SCANSEGMENT_XD EQUAL 0)
-    option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build ${PROJECT_NAME} with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" OFF)
+    set(BUILD_WITH_SCANSEGMENT_XD_SUPPORT OFF CACHE BOOL "Build ${PROJECT_NAME} with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" FORCE)
 else()
-    option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build ${PROJECT_NAME} with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" ON)
+    set(BUILD_WITH_SCANSEGMENT_XD_SUPPORT ON CACHE BOOL "Build ${PROJECT_NAME} with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" FORCE)
 endif()
 
 # Linker option visibilty
+option(BUILD_LIB_HIDE_FUNCTIONS "Build ${PROJECT_NAME} library with function hiding except for SickScanApi-functions (ON) or without function hiding (OFF)" ON)
 if(VISIBILITY EQUAL 0)
-    option(BUILD_LIB_HIDE_FUNCTIONS "Build ${PROJECT_NAME} library with function hiding except for SickScanApi-functions (ON) or without function hiding (OFF)" ON)
+    set(BUILD_LIB_HIDE_FUNCTIONS ON CACHE BOOL "Build ${PROJECT_NAME} library with function hiding except for SickScanApi-functions (ON) or without function hiding (OFF)" FORCE)
 else()
-    option(BUILD_LIB_HIDE_FUNCTIONS "Build ${PROJECT_NAME} library with function hiding except for SickScanApi-functions (ON) or without function hiding (OFF)" OFF)
+    set(BUILD_LIB_HIDE_FUNCTIONS OFF CACHE BOOL "Build ${PROJECT_NAME} library with function hiding except for SickScanApi-functions (ON) or without function hiding (OFF)" FORCE)
 endif()
 
 # Debug or Release build options
@@ -332,7 +336,7 @@ else()
 endif()
 
 # Support for MRS100/SCANSEGMENT_XD/MULTISCAN136
-if(BUILD_WITH_SCANSEGMENT_XD_SUPPORT EQUAL ON)
+if(${BUILD_WITH_SCANSEGMENT_XD_SUPPORT} OR BUILD_WITH_SCANSEGMENT_XD_SUPPORT EQUAL ON)
     message(STATUS "Building ${PROJECT_NAME} with SCANSEGMENT_XD support")
     add_compile_options(-DSCANSEGMENT_XD_SUPPORT=1)
     # msgpack11
@@ -675,7 +679,7 @@ if(ROS_VERSION EQUAL 2)
 
     if(WIN32 OR EXISTS "/opt/ros/eloquent" OR EXISTS "/opt/ros/foxy" OR EXISTS "/opt/ros/galactic") # rosidl_typesupport for ROS2 eloquent, foxy, galaxy
         rosidl_target_interfaces(${PROJECT_NAME}_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
-	    rosidl_target_interfaces(${PROJECT_NAME}_shared_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
+        rosidl_target_interfaces(${PROJECT_NAME}_shared_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
         # rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_cpp")
     else() # rosidl_typesupport for ROS2 humble or later
         rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
