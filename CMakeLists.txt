@@ -25,7 +25,7 @@ else()
     set(BUILD_WITH_LDMRS_SUPPORT ON CACHE BOOL "Build ${PROJECT_NAME} with LDMRS support (ON, libsick_ldmrs from https://github.com/SICKAG/libsick_ldmrs required) or without LDMRS support (OFF)" FORCE)
 endif()
 
-# MRS100/SCANSEGMENT_XD/MULTISCAN136 build options
+# SCANSEGMENT_XD/MULTISCAN136 build options
 option(BUILD_WITH_SCANSEGMENT_XD_SUPPORT "Build ${PROJECT_NAME} with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" ON)
 if(SCANSEGMENT_XD EQUAL 0)
     set(BUILD_WITH_SCANSEGMENT_XD_SUPPORT OFF CACHE BOOL "Build ${PROJECT_NAME} with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" FORCE)
@@ -335,7 +335,7 @@ else()
     message(STATUS "Building ${PROJECT_NAME} without ldmrs support")
 endif()
 
-# Support for MRS100/SCANSEGMENT_XD/MULTISCAN136
+# Support for SCANSEGMENT_XD/MULTISCAN136
 if(${BUILD_WITH_SCANSEGMENT_XD_SUPPORT} OR BUILD_WITH_SCANSEGMENT_XD_SUPPORT EQUAL ON)
     message(STATUS "Building ${PROJECT_NAME} with SCANSEGMENT_XD support")
     add_compile_options(-DSCANSEGMENT_XD_SUPPORT=1)

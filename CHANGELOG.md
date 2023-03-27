@@ -20,8 +20,8 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **Fix** catkin_lint warnings
   - **Fix** ROS-2 Humble build
 
-### v2.8.14 - Laserscan messages for Multiscan
-  - **Update** Laserscan messages for Multiscan lidar, #96
+### v2.8.14 - Laserscan messages for multiScan136
+  - **Update** Laserscan messages for multiScan136 lidar, #96
 
 ### v2.8.13 - Dynamical pointcloud transform and QoS configuration
   - **Update** Configuration of ROS quality of service by launchfile, #101
@@ -44,8 +44,8 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **Update** Range filter settings, #98 and #108
   - **Update** Preparation for RMS1xxx support (tutorial, preparation for RMS1/RMS2, not activated)
 
-### v2.8.6 - Multiscan update
-  - **Update** Multiscan update for 16-bit RSSI and modified SOPAS startup sequence
+### v2.8.6 - multiScan136 update
+  - **Update** multiScan136 update for 16-bit RSSI and modified SOPAS startup sequence
 
 ### v2.8.5 - LRS4000 update
   - **Update** LRS4000 extended configuration (glare detection sensitivity, echo-, mean-, median-filter)
@@ -89,7 +89,7 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **Added** Supported for LMDscandatascalefactor (LRS4xxx)
 
 ### v2.7.0 - 
-  - **Added** V2.7.0: Support for Multiscan136 (sick_scansegment_xd)
+  - **Added** V2.7.0: Support for multiScan136 (sick_scansegment_xd)
   - **Fixed** Timestamp LaserScan-message corrected (identical timestamps in LaserScan- and PointCloud2-messages, both by Software-PLL)
 
 ### v2.6.8 - 

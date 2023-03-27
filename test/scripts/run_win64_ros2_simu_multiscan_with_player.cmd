@@ -1,5 +1,5 @@
 REM 
-REM Run sick_scan on ROS-2 Windows with mrs100 pcapng player
+REM Run sick_scan on ROS-2 Windows with multiScan pcapng player
 REM 
 
 if exist "c:\dev\ros2_foxy\local_setup.bat" ( call C:\dev\ros2_foxy\local_setup.bat )
@@ -12,9 +12,9 @@ rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 pushd ..\..\..\..
 call .\install\setup.bat
 rem start "ros2 echo cloud" ros2 topic echo /cloud
-start "rviz2 mrs100" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_mrs100_windows_laserscan.rviz
-start "rviz2 mrs100" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_mrs100_windows.rviz
-start "rviz2 mrs100 360" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_mrs100_windows_360.rviz
+start "rviz2 multiscan" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_multiscan_windows_laserscan.rviz
+start "rviz2 multiscan" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_multiscan_windows.rviz
+start "rviz2 multiscan 360" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_multiscan_windows_360.rviz
 @timeout /t 3
 
 REM 
@@ -24,15 +24,15 @@ REM
 set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python39_64;%PATH%
 python --version
 where python
-start "python mrs100_sopas_test_server.py" cmd /k python ./src/sick_scan_xd/test/python/mrs100_sopas_test_server.py --tcp_port=2111 --cola_binary=0
+start "python multiscan_sopas_test_server.py" cmd /k python ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0
 @timeout /t 3
 
 REM Note: To verify laserscan messages, we configure laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", i.e. a laserscan message is published for each segment, each layer and each echo.
 REM By default, laserscan messages are only activated for layer 5 (elevation -0.07 degree, max number of scan points)
-REM All laserscan messages are converted to pointcloud by mrs100_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
+REM All laserscan messages are converted to pointcloud by multiscan_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
 REM Note: Option laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" should not be used for performance tests.
 REM ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
-REM start "python mrs100_laserscan_msg_to_pointcloud.py" cmd /k python ./src/sick_scan_xd/test/python/mrs100_laserscan_msg_to_pointcloud.py
+REM start "python multiscan_laserscan_msg_to_pointcloud.py" cmd /k python ./src/sick_scan_xd/test/python/multiscan_laserscan_msg_to_pointcloud.py
 REM @timeout /t 1
 
 REM 
@@ -50,12 +50,12 @@ REM
 
 rem set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python39_64;%PATH%
 @echo.
-@echo Playing pcapng-files to emulate MRS100. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...
+@echo Playing pcapng-files to emulate multiScan. Note: Start of UDP msgpacks in 20220915_multiscan_msgpack_output.pcapng takes a while...
 @echo.
-rem python ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --verbose=1
-python ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
-python ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115
-python ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
+rem python ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_multiscan_msgpack_output.pcapng --udp_port=2115 --verbose=1
+python ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_multiscan_msgpack_output.pcapng --udp_port=2115
+python ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_multiscan_token_udp.pcapng --udp_port=2115
+python ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_multiscan_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
 @timeout /t 3
 popd
 

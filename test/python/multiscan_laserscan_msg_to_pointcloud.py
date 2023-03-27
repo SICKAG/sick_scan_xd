@@ -30,14 +30,14 @@ class LaserScanSubscriber(Node):
     def __init__(self, __ROS_VERSION, num_messages_decay):
         self.__ROS_VERSION = __ROS_VERSION
         if self.__ROS_VERSION == 2: # ROS-2
-            super().__init__("mrs100_laserscan_msg_to_pointcloud")
+            super().__init__("multiscan_laserscan_msg_to_pointcloud")
         self.num_messages_decay = num_messages_decay
         self.scan_msg_array = []
         if self.__ROS_VERSION == 2: # ROS-2
             self.scan_subscription = self.create_subscription(LaserScan, "/sick_scansegment_xd/scan_segment", self.listener_callback, 10) # QoSProfile(depth=16*12*3,reliability=QoSReliabilityPolicy.RELIABLE))
             self.cloud_publisher = self.create_publisher(PointCloud2, "/laserscan_msg_cloud", 10)
         else: # ROS-1
-            self.scan_subscription = rospy.Subscriber("/sick_scansegment_xd/scan_segment", LaserScan, self.listener_callback, queue_size=16*12*3) # MRS100: 16 layer, 12 segments, 3 echos
+            self.scan_subscription = rospy.Subscriber("/sick_scansegment_xd/scan_segment", LaserScan, self.listener_callback, queue_size=16*12*3) # multiScan: 16 layer, 12 segments, 3 echos
             self.cloud_publisher = rospy.Publisher("/laserscan_msg_cloud", PointCloud2, queue_size=10)
         self.frame_id_elevation_table = { # Elevation table for Multiscan 136 (16 layer):
             "world_0":  -22.71 * math.pi / 180, # layer:0  elevation: -22.71 deg
@@ -99,7 +99,7 @@ class LaserScanSubscriber(Node):
 
 def main(args=None):
     global __ROS_VERSION
-    num_messages_decay = 3 * 12 * 16 # decay over one complete fullscan, MRS100: 16 layer, 12 segments, 3 echos
+    num_messages_decay = 3 * 12 * 16 # decay over one complete fullscan, multiScan: 16 layer, 12 segments, 3 echos
     if __ROS_VERSION == 2: # ROS-2
         rclpy.init()
         subscriber = LaserScanSubscriber(__ROS_VERSION, num_messages_decay)
@@ -107,7 +107,7 @@ def main(args=None):
         rclpy.shutdown()
         
     else: # ROS-1
-        node = rospy.init_node("mrs100_laserscan_msg_to_pointcloud")
+        node = rospy.init_node("multiscan_laserscan_msg_to_pointcloud")
         subscriber = LaserScanSubscriber(__ROS_VERSION, num_messages_decay)
         # rospy.spin()
         while not rospy.is_shutdown():

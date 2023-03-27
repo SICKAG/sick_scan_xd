@@ -1,27 +1,27 @@
 <?xml version="1.0"?>
 <launch>
 
-    <!-- Launch sick_scansegment_xd -->
+    <!-- Launch multiScan -->
     <!-- env name="ROSCONSOLE_CONFIG_FILE" value="/tmp/rosconsole_loglevel_warn.conf" / -->
-    <arg name="hostname" default="192.168.0.1"/>  <!-- IP address of multiScan136, overwrites default ip address "192.168.0.1" in sick_scansegment_xd.yaml -->
-    <arg name="udp_receiver_ip" default=""/>        <!-- UDP destination IP address (ip address of udp receiver), overwrites default in sick_scansegment_xd.yaml -->
-    <arg name="nodename" default="sick_scansegment_xd"/>
+    <arg name="hostname" default="192.168.0.1"/>  <!-- IP address of sensor -->
+    <arg name="udp_receiver_ip" default=""/>        <!-- UDP destination IP address (ip address of udp receiver) -->
+    <arg name="nodename" default="multiScan"/>
     <arg name="publish_topic" default="/cloud" />                         <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
-    <arg name="publish_topic_all_segments" default="/cloud_360" />        <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360" -->
+    <arg name="publish_topic_all_segments" default="/cloud_fullframe" />        <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe" -->
     <arg name="publish_frame_id" default="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="laserscan_layer_filter" default="0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0" /> <!-- Configuration of laserscan messages (ROS only), default: laserscan messages for layer 5 activated (elevation -0.07 degree, max number of scan points) -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
-        <param name="scanner_type" type="string" value="sick_scansegment_xd"/>
+        <param name="scanner_type" type="string" value="sick_multiscan"/>
 
         <!-- network settings: -->
         <param name="hostname" type="string" value="$(arg hostname)" />                     <!-- IP address of multiScan136 to post start and stop commands, f.e. "192.168.0.1" (default) -->
         <param name="port" type="int" value="2115" />                                       <!-- IP port of multiScan136 to post start and stop commands -->
         <param name="udp_receiver_ip" type="string" value="$(arg udp_receiver_ip)" />       <!-- UDP destination IP address (ip address of udp receiver), f.e. "192.168.0.140" -->
 
-        <!-- sick_scansegment_xd basic settings: -->
-        <param name="udp_sender" type="string" value="" />                                  <!-- Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a MRS100 lidar or MRS100 emulator -->
+        <!-- sick_multiscan basic settings: -->
+        <param name="udp_sender" type="string" value="" />                                  <!-- Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan lidar or multiScan136 emulator -->
         <param name="udp_port" type="int" value="2115" />                                   <!-- default udp port for multiScan136 resp. multiScan136 emulator is 2115 -->
         <param name="publish_topic" type="string" value="$(arg publish_topic)" />           <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
         <param name="publish_topic_all_segments" type="string" value="$(arg publish_topic_all_segments)" />  <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360" -->

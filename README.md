@@ -81,9 +81,9 @@ Further information on the implementation and use of the experimental Imu suppor
 
 See [radar documentation](doc/radar.md) for RMS1xxx and RMS3xx support.
 
-## Multiscan100 support
+## multiScan100 support
 
-See [sick_scan_segment_xd](doc/sick_scan_segment_xd.md) for Multiscan100 support.
+See [sick_scan_segment_xd](doc/sick_scan_segment_xd.md) for multiScan100 support.
 
 ## Software PLL
 

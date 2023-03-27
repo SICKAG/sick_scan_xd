@@ -13,13 +13,13 @@ package "sick_scansegment_xd" {
 
 note top of MsgPackThreads
   Init and run all sick_scansegment_xd components
-  * SOPAS startup (MRS100, TiMTwo)
+  * SOPAS startup (multiScan100)
   * Run UDP receiver thread
   * Parse and convert msgpacks
   * Collect scan segments
   * Validate msgpacks and scansegments
   * Publish pointcloud (single segments)
-  * Publish cloud_360 (360 pointcloud)
+  * Publish cloud_fullframe (full frame pointcloud)
 end note
 
 @enduml

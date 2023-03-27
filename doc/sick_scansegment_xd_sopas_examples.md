@@ -1,6 +1,6 @@
 # SOPAS support for sick_scan_segment_xd
 
-On ROS-1 and ROS-2, sick_scan_segment_xd provides ros service `ColaMsg` to send CoLa commands to the lidar. Using this service, filters can be applied to Multiscan136 lidars during runtime. 
+On ROS-1 and ROS-2, sick_scan_segment_xd provides ros service `ColaMsg` to send CoLa commands to the lidar. Using this service, filters can be applied to multiScan136 lidars during runtime. 
 
 Examples on ROS-1:
 ```

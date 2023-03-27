@@ -5,8 +5,8 @@ function killall_cleanup()
 {
   sleep 1 ; killall -SIGINT rviz2
   sleep 1 ; killall -SIGINT sick_generic_caller
-  sleep 1 ; pkill -f mrs100_sopas_test_server.py
-  sleep 1 ; pkill -f mrs100_laserscan_msg_to_pointcloud.py
+  sleep 1 ; pkill -f multiscan_sopas_test_server.py
+  sleep 1 ; pkill -f multiscan_laserscan_msg_to_pointcloud.py
   sleep 1 ; killall -9 rviz2
   sleep 1 ; killall -9 sick_generic_caller
 }
@@ -55,25 +55,25 @@ sleep 1
 rm -rf ~/.ros/log
 sleep 1
 
-# Run mrs100 emulator (sopas test server)
-python3 ./src/sick_scan_xd/test/python/mrs100_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
-ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_mrs100_emu_laserscan.rviz & 
+# Run multiscan emulator (sopas test server)
+python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
+ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_multiscan_emu_laserscan.rviz & 
 sleep 1
-ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_mrs100_emu.rviz & 
+ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_multiscan_emu.rviz & 
 sleep 1
-ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_mrs100_emu_360.rviz & 
+ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_multiscan_emu_360.rviz & 
 sleep 1
 
 # Start sick_generic_caller with sick_scansegment_xd
 # Note: To verify laserscan messages, we configure laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", i.e. a laserscan message is published for each segment, each layer and each echo.
 # By default, laserscan messages are only activated for layer 5 (elevation -0.07 degree, max number of scan points)
-# All laserscan messages are converted to pointcloud by mrs100_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
+# All laserscan messages are converted to pointcloud by multiscan_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
 # Note: Option laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" should not be used for performance tests.
 # ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" &
 echo -e "run_lidar3d.bash: sick_scan sick_scansegment_xd.launch.py ..."
-ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" &
+ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" &
 sleep 3 
-# python3 ./src/sick_scan_xd/test/python/mrs100_laserscan_msg_to_pointcloud.py &
+# python3 ./src/sick_scan_xd/test/python/multiscan_laserscan_msg_to_pointcloud.py &
 # sleep 1
 
 # Run example ros service calls
@@ -81,11 +81,12 @@ sleep 3
 #call_service_filter_examples
 #sleep 3
 
-# Play pcapng-files to emulate MRS100 output
-echo -e "\nPlaying pcapng-files to emulate MRS100. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...\n"
-python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --repeat=1
-python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=1
-python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115 --repeat=1
+# Play pcapng-files to emulate multiScan output
+echo -e "\nPlaying pcapng-files to emulate multiScan. Note: Start of UDP msgpacks in 20220915_multiscan_msgpack_output.pcapng takes a while...\n"
+python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --repeat=1
+# python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_multiscan_msgpack_output.pcapng --udp_port=2115 --repeat=1
+# python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_multiscan_token_udp.pcapng --udp_port=2115 --repeat=1
+# python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_multiscan_cola-a-start-stop-scandata-output.pcapng --udp_port=2115 --repeat=1
 sleep 3
 
 # Shutdown

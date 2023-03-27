@@ -1,6 +1,6 @@
 @startuml
 
-"MRS100" -> "UDP receiver thread": UDP datagram
+"multiScan100" -> "UDP receiver thread": UDP datagram
 "UDP receiver thread" -> "UDP receiver thread": recv message header
 "UDP receiver thread" -> "UDP receiver thread": recv message payload
 "UDP receiver thread" -> "UDP receiver thread": check CRC
@@ -21,6 +21,6 @@
 
 "MsgPackPublisher" -> "MsgPackPublisher": collect scan segments
 "MsgPackPublisher" -> "ROS": pointcloud
-"MsgPackPublisher" -> "ROS": 360 degree pointcloud 
+"MsgPackPublisher" -> "ROS": full frame pointcloud 
 
 @enduml

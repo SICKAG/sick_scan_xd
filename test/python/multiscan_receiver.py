@@ -93,7 +93,7 @@ msgpack_tokenized_keys_int2str = {
 def msgpackKeyToken(s):
     return msgpack_tokenized_keys_str2int[s]
 
-class MRS100Receiver:
+class MultiScanReceiver:
     
     def __init__(self, scannerIP = "192.168.0.1", hostIP = "192.168.0.102", port=2115, nbScans = 100, writeMsgpackFile = ""):
         self.scannerIP = scannerIP
@@ -231,7 +231,7 @@ class MRS100Receiver:
             #     print("phi =", phi0)
             # end debugging
         except Exception:
-            print("mrs100_receiver: parseData failed")
+            print("multiscan_receiver: parseData failed")
         return segmentData
         
     def convertToPointCloud(self, scanVector):
@@ -295,7 +295,7 @@ class MRS100Receiver:
         else:
             self.ax.clear()
             
-        self.ax.set_title('MRS100 Emulation Segment {}'.format(self.showCount))
+        self.ax.set_title('multiScan Emulation Segment {}'.format(self.showCount))
         self.ax.set_xlim(-1, 1)
         self.ax.set_ylim(-1, 1)
         self.ax.set_zlim(-1, 1)
@@ -343,7 +343,7 @@ class MRS100Receiver:
     
         
 if __name__ == "__main__":
-    receiver = MRS100Receiver(scannerIP = "127.0.0.1", hostIP = "127.0.0.1", port = 2115, nbScans = 1000, writeMsgpackFile = "./mrs100_dump")
+    receiver = MultiScanReceiver(scannerIP = "127.0.0.1", hostIP = "127.0.0.1", port = 2115, nbScans = 1000, writeMsgpackFile = "./multiscan_dump")
     
     mode = 'live'
     

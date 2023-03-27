@@ -1,5 +1,5 @@
 /*
- * @brief lidar3d_mrs100_recv implements a ROS node to receive and publish data from the new sick 3D lidar multiScan136.
+ * @brief lidar3d_multiscan_recv implements a ROS node to receive and publish data from the new sick 3D lidar multiScan136.
  *
  * Copyright (C) 2020 Ing.-Buero Dr. Michael Lehning, Hildesheim
  * Copyright (C) 2020 SICK AG, Waldkirch
@@ -56,7 +56,7 @@
 #include "sick_scansegment_xd/scansegement_threads.h"
 
 /*
- * main runs lidar3d_mrs100_recv:
+ * main runs lidar3d_multiscan_recv:
  * - Initialize udp receiver, msgpack converter and ros publisher,
  * - Run threads to receive, convert, export and publish msgpack data,
  * - Optionally save to csv-file,
@@ -68,22 +68,22 @@ int main(int argc, char** argv)
     // Configuration
     sick_scansegment_xd::Config config;
     if (!config.Init(argc, argv))
-        ROS_ERROR_STREAM("## ERROR lidar3d_mrs100_recv: Config::Init() failed, using default values.");
-    ROS_INFO_STREAM("lidar3d_mrs100_recv started.");
+        ROS_ERROR_STREAM("## ERROR lidar3d_multiscan_recv: Config::Init() failed, using default values.");
+    ROS_INFO_STREAM("lidar3d_multiscan_recv started.");
 
     sick_scansegment_xd::MsgPackThreads msgpack_threads;
     if(!msgpack_threads.start(config))
     {
-        ROS_ERROR_STREAM("## ERROR lidar3d_mrs100_recv: sick_scansegment_xd::MsgPackThreads::start() failed");
+        ROS_ERROR_STREAM("## ERROR lidar3d_multiscan_recv: sick_scansegment_xd::MsgPackThreads::start() failed");
     }
 
     // Run event loop
 #if defined __ROS_VERSION && __ROS_VERSION > 1
     rclcpp::spin(config.node);
-    ROS_INFO_STREAM("lidar3d_mrs100_recv finishing, ros shutdown.");
+    ROS_INFO_STREAM("lidar3d_multiscan_recv finishing, ros shutdown.");
 #elif defined __ROS_VERSION && __ROS_VERSION > 0
     ros::spin();
-    ROS_INFO_STREAM("lidar3d_mrs100_recv finishing, ros shutdown.");
+    ROS_INFO_STREAM("lidar3d_multiscan_recv finishing, ros shutdown.");
 #else // Run background task until ENTER key pressed
     while(true)
     {
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
         int c;
         if (KBHIT() && ((c = GETCH()) == 27 || c == 'q' || c == 'Q'))
         {
-            ROS_INFO_STREAM("lidar3d_mrs100_recv: key " << c << " pressed, aborting...");
+            ROS_INFO_STREAM("lidar3d_multiscan_recv: key " << c << " pressed, aborting...");
             break;
         }
     }
@@ -100,8 +100,8 @@ int main(int argc, char** argv)
 
     if(!msgpack_threads.stop())
     {
-        ROS_ERROR_STREAM("## ERROR lidar3d_mrs100_recv: sick_scansegment_xd::MsgPackThreads::stop() failed");
+        ROS_ERROR_STREAM("## ERROR lidar3d_multiscan_recv: sick_scansegment_xd::MsgPackThreads::stop() failed");
     }
-    ROS_INFO_STREAM("lidar3d_mrs100_recv finished.");
+    ROS_INFO_STREAM("lidar3d_multiscan_recv finished.");
     return 0;
 }

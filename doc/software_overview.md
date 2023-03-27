@@ -14,7 +14,7 @@ The sick_scan_xd software is essentially affected by its use cases:
     * The most common use case is to run lidar + sick_scan_xd to get a pointcloud.
 
 * Software requirements:
-    * Support different lidars (LMS, LRS, LDMRS, MRS, NAV, TiM, RMS, Multiscan, etc.) 
+    * Support different lidars (LMS, LRS, LDMRS, MRS, NAV, TiM, RMS, multiScan, etc.) 
     * Support different OS (Linux, Windows)
     * Support different targets (ROS-1, ROS-2, generic)
     * Support different protocols (Cola-A, Cola-B, TCP, UDP, msgpack)
@@ -55,7 +55,7 @@ sick_scan_xd contains 6 main functional blocks:
     * Process telegrams: parse and convert to pointcloud
     * Publish pointcloud
 * sick_ldmrs for LDMRS support using the ldmrs-library from https://github.com/SICKAG/libsick_ldmrs.git
-* sick_scansegment_xd for Multiscan136 lidars using SOPAS, msgpack and UDP-communication
+* sick_scansegment_xd for multiScan136 lidars using SOPAS, msgpack and UDP-communication
 * sick_scan_services for ros services
 * sick_generic_monitoring for monitoring and re-initialization in case of errors (e.g. network errors).
 
@@ -83,11 +83,11 @@ Incoming TCP messages and exported pointcloud messages are monitored. sick_scan_
 
 ## sick_scansegment_xd
 
-sick_scansegment_xd implements support for Multiscan136 lidars using SOPAS, msgpack and UDP-communication. It has 5 functional blocks:
+sick_scansegment_xd implements support for multiScan136 lidars using SOPAS, msgpack and UDP-communication. It has 5 functional blocks:
 
 * class `sick_scansegment_xd::MsgPackThreads`:
     * Init and run all sick_scansegment_xd components
-    * SOPAS startup (Multiscan136, TiMTwo)
+    * SOPAS startup (multiScan136, picoScan)
 * class `sick_scansegment_xd::UdpReceiver`:
     * Run UDP receiver thread
 * class `sick_scansegment_xd::MsgPackConverter`:
@@ -105,7 +105,7 @@ The following figure shows the compoenent diagram for sick_scansegment_xd:
 
 Message receiving, converting and publishing run in 3 separate threads and exchange their messages via a FIFO-buffer.
 
-The following figure shows the sequence diagram for a Multiscan136 msgpacks:
+The following figure shows the sequence diagram for a multiScan136 msgpacks:
 
 ![messageSequenceDiagram2](messageSequenceDiagram2.png)
 

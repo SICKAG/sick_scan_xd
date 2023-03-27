@@ -1,6 +1,6 @@
 """
-    MRS100 test emulator to parse pcapng files recorded from MRS100 and replay the UDP packages
-    to emulate a local MRS100 lidar.
+    multiScan test emulator to parse pcapng files recorded from multiScan and replay the UDP packages
+    to emulate a local multiScan lidar.
 
     The UDP Sender sends packets via UDP over localhost, Port:2115
 
@@ -45,7 +45,7 @@ def readPcapngFile(pcap_filename, verbose):
             if isinstance(block, EnhancedPacket):
                 # Decode a single pcap block
                 if block.captured_len != block.packet_len:
-                    print("## mrs100_pcap_player block {}: {} byte block truncated to {} bytes".format(block_cnt, block.packet_len, block.captured_len))
+                    print("## multiscan_pcap_player block {}: {} byte block truncated to {} bytes".format(block_cnt, block.packet_len, block.captured_len))
                 block_data = Ether(block.packet_data)
                 block_decoded = block_data
                 for n in range(0,10):
@@ -56,9 +56,9 @@ def readPcapngFile(pcap_filename, verbose):
                   else:
                       break                    
                 # if len(block_decoded.payload) <= 0:
-                #     print("## mrs100_pcap_player block {}: empty payload ignored in data {}".format(block_cnt, block_data))
+                #     print("## multiscan_pcap_player block {}: empty payload ignored in data {}".format(block_cnt, block_data))
                 # if not isinstance(block_decoded.payload, scapy.packet.Raw):
-                #     print("## mrs100_pcap_player block {}: block_decoded.payload = {} is no instance of scapy.packet.Raw".format(block_cnt, block_decoded.payload))
+                #     print("## multiscan_pcap_player block {}: block_decoded.payload = {} is no instance of scapy.packet.Raw".format(block_cnt, block_decoded.payload))
                 # print("block {}: timestamp = {}".format(block_cnt, block.timestamp))
                 # print("block {}: packet_data = {}".format(block_cnt, block.packet_data))
                 # print("block {}: payload = {}".format(block_cnt, block_decoded.payload))
@@ -76,9 +76,9 @@ def readPcapngFile(pcap_filename, verbose):
 
 if __name__ == "__main__":
 
-    pcap_filename = "mrs100.pcapng" # "../../../../30_LieferantenDokumente/40_Realdaten/20201103_Realdaten/mrs100.pcapng"
+    pcap_filename = "multiscan.pcapng" # "../../../../30_LieferantenDokumente/40_Realdaten/20201103_Realdaten/multiscan.pcapng"
     udp_port = 2115 # UDP port to send msgpack datagrams
-    udp_send_rate = 0 # send rate in msgpacks per second, 240 for MRS100, or 0 to send corresponding to pcap-timestamps, or udp_send_rate > 1000 for max. rate
+    udp_send_rate = 0 # send rate in msgpacks per second, 240 for multiScan, or 0 to send corresponding to pcap-timestamps, or udp_send_rate > 1000 for max. rate
     udp_dst_ip = "<broadcast>"
     num_repetitions = 1
     verbose = 0
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--pcap_filename", help="pcapng filepath", default=pcap_filename, type=str)
     arg_parser.add_argument("--udp_port", help="udp port", default=udp_port, type=int)
-    arg_parser.add_argument("--send_rate", help="udp send rate in msgpacks per second, 240 for MRS100, or 0 to send by pcap-timestamps, or > 10000 for max. rate", default=udp_send_rate, type=int)
+    arg_parser.add_argument("--send_rate", help="udp send rate in msgpacks per second, 240 for multiScan, or 0 to send by pcap-timestamps, or > 10000 for max. rate", default=udp_send_rate, type=int)
     arg_parser.add_argument("--dst_ip", help="udp destination ip, e.g. 127.0.0.1 or <broadcast>", default=udp_dst_ip, type=str)
     arg_parser.add_argument("--repeat", help="number of repetitions", default=num_repetitions, type=int)
     arg_parser.add_argument("--verbose", help="print verbose messages", default=verbose, type=int)
@@ -99,14 +99,14 @@ if __name__ == "__main__":
     verbose = cli_args.verbose
     
     # Read and parse pcap file, extract udp raw data
-    print("mrs100_pcap_player: reading pcapfile \"{}\" ...".format(pcap_filename))
+    print("multiscan_pcap_player: reading pcapfile \"{}\" ...".format(pcap_filename))
     blocks_payload, blocks_timestamp = readPcapngFile(pcap_filename, verbose)
-    print("mrs100_pcap_player: sending {} udp packets ...".format(len(blocks_payload)))
+    print("multiscan_pcap_player: sending {} udp packets ...".format(len(blocks_payload)))
     
     # Init upd sender
     udp_sender_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP socket
     udp_sender_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1) # Enable broadcasting mode
-    print("mrs100_pcap_player: sending on udp port {}, send_rate={}".format(udp_port, udp_send_rate))
+    print("multiscan_pcap_player: sending on udp port {}, send_rate={}".format(udp_port, udp_send_rate))
    
     # Send udp raw data
     for repeat_cnt in range(num_repetitions):    
@@ -129,4 +129,4 @@ if __name__ == "__main__":
             # else: # brute force delay, for performance tests on 2. PC only
             #     forced_delay(2.0e-4)
             send_timestamp = msg_timestamp
-    print("mrs100_pcap_player finished.")
+    print("multiscan_pcap_player finished.")

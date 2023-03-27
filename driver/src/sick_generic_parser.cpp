@@ -992,7 +992,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0)
       {
-        // SCANSEGMENT_XD MRS100 (Multiscan 136) handled by msgpack_converter and msgpack_exporter
+        // SCANSEGMENT_XD multiScan or picoScan handled by msgpack_converter and msgpack_exporter
       }
     }
 

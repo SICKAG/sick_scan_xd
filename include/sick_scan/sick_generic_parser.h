@@ -81,7 +81,7 @@
 #define SICK_SCANNER_LRS_36x0_NAME "sick_lrs_36x0"
 #define SICK_SCANNER_LRS_36x1_NAME "sick_lrs_36x1"
 #define SICK_SCANNER_OEM_15XX_NAME "sick_oem_15xx"
-#define SICK_SCANNER_SCANSEGMENT_XD_NAME "sick_scansegment_xd"
+#define SICK_SCANNER_SCANSEGMENT_XD_NAME "sick_multiscan" // "sick_scansegment_xd"
 #include "abstract_parser.h"
 
 #include "sick_scan/sick_scan_common.h"

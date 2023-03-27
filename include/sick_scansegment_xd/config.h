@@ -64,7 +64,7 @@
 namespace sick_scansegment_xd
 {
     /*
-     * @brief Container for filter settings for msgpack validator, returned from  by queryMRS100Filtersettings()
+     * @brief Container for filter settings for msgpack validator, returned from  by queryMultiScanFiltersettings()
      */
     class MsgpackValidatorFilterConfig
     {
@@ -120,7 +120,7 @@ namespace sick_scansegment_xd
          * sick_scansegment_xd configuration
          */
 
-        std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a MRS100 lidar or MRS100 emulator
+        std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan lidar or multiScan emulator
         int udp_port;                               // = 2115; // default udp port for multiScan136 resp. multiScan136 emulator is 2115
         std::string publish_topic;                  // = "/cloud"; // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
 

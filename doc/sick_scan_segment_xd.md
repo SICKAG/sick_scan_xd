@@ -1,16 +1,16 @@
-# MultiScan136/sick_scan_segment_xd
+# multiScan136/sick_scan_segment_xd
 
-The MultiScan136 Beta is a new lidar from Sick with a total of 16 lidar units rotating around a vertical axis. 
+The multiScan136 Beta is a new lidar from Sick with a total of 16 lidar units rotating around a vertical axis. 
 The rotation speed is 20 rounds per second.
 Scan data are transmitted in msgpack format over UDP.
 
-MultiScan136 / sick_scan_segment_xd lidars are supported by sick_scan_xd. See [README](../README.md) for build and run instructions.
+multiScan136 / sick_scan_segment_xd lidars are supported by sick_scan_xd. See [README](../README.md) for build and run instructions.
 
 The following describes the configuration, validation and test in more detail.
 
 ## Configuration
 
-MultiScan136/sick_scan_segment_xd is configured by launch file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch).
+multiScan136/sick_scan_segment_xd is configured by launch file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch).
 
 Modify file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch) to change configuration. Note that the ip address of the udp receiver __must__ be configured on each system. This is the ip address of the computer running sick_scan_xd.
 
@@ -61,10 +61,10 @@ sMN Run   // apply the settings and logout
 
 ## Visualization
 
-The Multiscan136 scans can be visualized by rviz. The following screenshots show two examples of a Multiscan136 pointcloud:
+The multiScan136 scans can be visualized by rviz. The following screenshots show two examples of a multiScan136 pointcloud:
 
 ![msgpacks-emulator-rviz](20210929-tokenized-msgpacks-emulator-rviz.png)
-![msgpacks-emulator-rviz](20210929-tokenized-msgpacks-mrs100-rviz.png)
+![msgpacks-emulator-rviz](20210929-tokenized-msgpacks-multiScan-rviz.png)
 
 Note that sick_scan_xd publishes 2 pointclouds:
 * The pointcloud on topic `/cloud` is published for each scan segment.
@@ -82,7 +82,7 @@ A msgpack validation can be activated. This validation checks
 
 If a msgpack contains scan data out of expected values, the msgpack is discarded and an error message is printed. This should not happen in normal operation mode. If scan data are missing after a full 360 degree scan, an error message is printed. This might happen in case of udp packet drops.
 
-By default, the full range of scan data is expected, i.e. all echos, all segments, all layers and azimuth values covering -180 up to +180 degree. If filters are activated (echo-, layer- or angle-range-filter to reduce network traffic), the msgpack validation should currently be deactivated or configured thoroughly to avoid error messages. In the next release, the filter configuration is queried from  MultiScan136 Beta and validation settings are adopted to the MultiScan136 Beta filter settings.
+By default, the full range of scan data is expected, i.e. all echos, all segments, all layers and azimuth values covering -180 up to +180 degree. If filters are activated (echo-, layer- or angle-range-filter to reduce network traffic), the msgpack validation should currently be deactivated or configured thoroughly to avoid error messages. In the next release, the filter configuration is queried from  multiScan136 Beta and validation settings are adopted to the multiScan136 Beta filter settings.
 
 The msgpack validation is configured in file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch). To activate or deactivate msgpack validation, set `msgpack_validator_enabled` to True (activated) resp. False (deactivated). 
 
@@ -141,41 +141,41 @@ Make sure you have only one network adapter activated with custom NAT:
 
 :white_check_mark: Run the following steps:
 * Install python msgpack package with `pip install msgpack`
-* Play the pcapng-file using mrs100_pcap_player.py
-* Receive and convert to msgpack using mrs100_receiver.py
+* Play the pcapng-file using multiscan_pcap_player.py
+* Receive and convert to msgpack using multiscan_receiver.py
 * Convert to json using online-converter https://toolslick.com/conversion/data/messagepack-to-json
 
 Linux example:
 ```
 pushd sick_scan_xd/test/python
-python3 python mrs100_receiver.py &
-python3 mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20210929_mrs100_token_udp.pcapng
-mv ./mrs100_dump_12472.msgpack     20210929_mrs100_token_udp.msgpack
-mv ./mrs100_dump_12472.msgpack.hex 20210929_mrs100_token_udp.msgpack.hex 
+python3 python multiscan_receiver.py &
+python3 multiscan_pcap_player.py --pcap_filename=../emulator/scandata/20210929_multiscan_token_udp.pcapng
+mv ./multiscan_dump_12472.msgpack     20210929_multiscan_token_udp.msgpack
+mv ./multiscan_dump_12472.msgpack.hex 20210929_multiscan_token_udp.msgpack.hex 
 popd
 ```
-Then paste the content of file `20210929_mrs100_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.
+Then paste the content of file `20210929_multiscan_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.
 
 Windows example:
 ```
 pushd sick_scan_xd\test\python
 python --version
-REM Convert 20220915_mrs100_msgpack_output.pcapng (16-bit RSSI record) to msgpack resp. json
-del /f/q mrs100_dump*.msgpack
-del /f/q mrs100_dump*.msgpack.hex
-start python mrs100_receiver.py
-python mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
-move /y .\mrs100_dump_23644.msgpack     20220915_mrs100_msgpack_output.msgpack
-move /y .\mrs100_dump_23644.msgpack.hex 20220915_mrs100_msgpack_output.msgpack.hex
-REM Convert 20210929_mrs100_token_udp.pcapng (8-bit RSSI record) to msgpack resp. json
-del /f/q mrs100_dump*.msgpack
-del /f/q mrs100_dump*.msgpack.hex
-start python mrs100_receiver.py
-python mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20210929_mrs100_token_udp.pcapng --verbose=0
-move /y .\mrs100_dump_12472.msgpack     20210929_mrs100_token_udp.msgpack
-move /y .\mrs100_dump_12472.msgpack.hex 20210929_mrs100_token_udp.msgpack.hex 
-del /f/q mrs100_dump*.msgpack
-del /f/q mrs100_dump*.msgpack.hex
+REM Convert 20220915_multiscan_msgpack_output.pcapng (16-bit RSSI record) to msgpack resp. json
+del /f/q multiscan_dump*.msgpack
+del /f/q multiscan_dump*.msgpack.hex
+start python multiscan_receiver.py
+python multiscan_pcap_player.py --pcap_filename=../emulator/scandata/20220915_multiscan_msgpack_output.pcapng --udp_port=2115
+move /y .\multiscan_dump_23644.msgpack     20220915_multiscan_msgpack_output.msgpack
+move /y .\multiscan_dump_23644.msgpack.hex 20220915_multiscan_msgpack_output.msgpack.hex
+REM Convert 20210929_multiscan_token_udp.pcapng (8-bit RSSI record) to msgpack resp. json
+del /f/q multiscan_dump*.msgpack
+del /f/q multiscan_dump*.msgpack.hex
+start python multiscan_receiver.py
+python multiscan_pcap_player.py --pcap_filename=../emulator/scandata/20210929_multiscan_token_udp.pcapng --verbose=0
+move /y .\multiscan_dump_12472.msgpack     20210929_multiscan_token_udp.msgpack
+move /y .\multiscan_dump_12472.msgpack.hex 20210929_multiscan_token_udp.msgpack.hex 
+del /f/q multiscan_dump*.msgpack
+del /f/q multiscan_dump*.msgpack.hex
 popd
 ```
-Then paste the content of files `20220915_mrs100_msgpack_output.msgpack.hex` resp. `20210929_mrs100_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.
+Then paste the content of files `20220915_multiscan_msgpack_output.msgpack.hex` resp. `20210929_multiscan_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.

@@ -18,7 +18,7 @@ def generate_launch_description():
         if len(arg.split(":=")) == 2:
             node_arguments.append(arg)
     node_arguments.append("publish_topic:=/cloud")
-    node_arguments.append("publish_topic_all_segments:=/cloud_360")
+    node_arguments.append("publish_topic_all_segments:=/cloud_fullframe")
     node_arguments.append("publish_frame_id:=world")
     node_arguments.append("add_transform_xyz_rpy:=0,0,0,0,0,0")
 

@@ -227,8 +227,8 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         sick_scan::SickGenericParser parser = sick_scan::SickGenericParser(scannerName);
         sick_scan::ScannerBasicParam basic_param;
         basic_param.setScannerName(scannerName);
-        bool mrs100_write_filtersettings = m_config.host_set_FREchoFilter || m_config.host_set_LFPangleRangeFilter || m_config.host_set_LFPlayerFilter;
-        if (m_config.start_sopas_service || m_config.send_sopas_start_stop_cmd || m_config.host_read_filtersettings || mrs100_write_filtersettings)
+        bool multiscan_write_filtersettings = m_config.host_set_FREchoFilter || m_config.host_set_LFPangleRangeFilter || m_config.host_set_LFPlayerFilter;
+        if (m_config.start_sopas_service || m_config.send_sopas_start_stop_cmd || m_config.host_read_filtersettings || multiscan_write_filtersettings)
         {
             ROS_INFO_STREAM("MsgPackThreads: initializing sopas tcp (" << m_config.hostname << ":" << m_config.sopas_tcp_port << ", timeout:" << (0.001*m_config.sopas_timeout_ms) << ", binary:" << m_config.sopas_cola_binary << ")");
             sopas_tcp = new sick_scan::SickScanCommonTcp(m_config.hostname, m_config.sopas_tcp_port, m_config.sopas_timeout_ms, m_config.node, &parser, m_config.sopas_cola_binary ? 'B' : 'A');
@@ -245,19 +245,19 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
 
         // Send SOPAS commands to read or optionally write filter settings for (FREchoFilter, LFPangleRangeFilter, LFPlayerFilter)
-        if ((m_config.host_read_filtersettings || mrs100_write_filtersettings) && sopas_tcp && sopas_service)
+        if ((m_config.host_read_filtersettings || multiscan_write_filtersettings) && sopas_tcp && sopas_service)
         {
             if (sopas_tcp->isConnected())
             {
                 // Optionally send SOPAS commands to write filter settings
-                if (mrs100_write_filtersettings)
+                if (multiscan_write_filtersettings)
                 {
                     sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                    sopas_service->writeMRS100Filtersettings((m_config.host_set_FREchoFilter ? m_config.host_FREchoFilter : -1), (m_config.host_set_LFPangleRangeFilter ? m_config.host_LFPangleRangeFilter : ""), (m_config.host_set_LFPlayerFilter ? m_config.host_LFPlayerFilter : ""));
+                    sopas_service->writeMultiScanFiltersettings((m_config.host_set_FREchoFilter ? m_config.host_FREchoFilter : -1), (m_config.host_set_LFPangleRangeFilter ? m_config.host_LFPangleRangeFilter : ""), (m_config.host_set_LFPlayerFilter ? m_config.host_LFPlayerFilter : ""));
                 }
                 // Send SOPAS commands to read filter settings
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->queryMRS100Filtersettings(m_config.host_FREchoFilter, m_config.host_LFPangleRangeFilter, m_config.host_LFPlayerFilter, m_config.msgpack_validator_filter_settings);
+                sopas_service->queryMultiScanFiltersettings(m_config.host_FREchoFilter, m_config.host_LFPangleRangeFilter, m_config.host_LFPlayerFilter, m_config.msgpack_validator_filter_settings);
             }
             else
             {
@@ -283,7 +283,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMRS100StartCmd(m_config.udp_receiver_ip, m_config.port);
+                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.port);
             }
             else
             {
@@ -316,7 +316,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         if(sopas_tcp && sopas_service && m_config.send_sopas_start_stop_cmd && sopas_tcp->isConnected())
         {
             sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-            sopas_service->sendMRS100StopCmd();
+            sopas_service->sendMultiScanStopCmd();
         }
         // Stop SOPAS services
         DELETE_PTR(sopas_service);
