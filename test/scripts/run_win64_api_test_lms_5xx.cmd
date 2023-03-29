@@ -11,32 +11,56 @@ REM Build and run minimalistic api usage examples (Python, C, C++)
 REM 
 
 pushd ..\..\examples\scripts
-call .\build_run_api_examples_windows.cmd
+rem call .\build_run_api_examples_windows.cmd
 popd
+
+pushd ..\..
+
+REM 
+REM Use python 3.9.13 installation from https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe
+REM 
+
+if exist \Python39 set PATH=\Python39;%PATH%
+where python
+python --version
+rem python -m venv venv
+rem venv\Scripts\activate
 
 REM 
 REM Start test server
 REM 
 
-pushd ..\..\build_win64
-python --version
 REM Default LMS 511 scandata testset
-start "python ../test/emulator/test_server.py" cmd /k python ../test/emulator/test_server.py --scandata_file=../test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112
+start "python ./test/emulator/test_server.py" cmd /k python ./test/emulator/test_server.py --scandata_file=./test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112
 @timeout /t 3
-popd
+
+REM 
+REM Run sick_scan_xd_api_test.py
+REM 
+
+set PYTHONPATH=.;.\python\api;%PYTHONPATH%
+python ./test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./launch/sick_lms_5xx.launch hostname:=127.0.0.1
+pause
+
+REM 
+REM Start test server
+REM 
+
+REM Default LMS 511 scandata testset
+start "python ./test/emulator/test_server.py" cmd /k python ./test/emulator/test_server.py --scandata_file=./test/emulator/scandata/20210302_lms511.pcapng.scandata.txt --scandata_frequency=20.0 --tcp_port=2112
+@timeout /t 3
 
 REM
 REM Start image viewer (simple standalone pointcloud visualization)
 REM
 
-start "image_viewer" ..\..\demo\image_viewer_api_test.html
+start "image_viewer" .\demo\image_viewer_api_test.html
 
 REM 
 REM Run sick_generic_caller
 REM 
 
-pushd ..\..\build_win64
-.\Debug\sick_scan_xd_api_test.exe ../launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
-popd
+.\build_win64\Debug\sick_scan_xd_api_test.exe ./launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
 
+popd
 @pause

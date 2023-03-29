@@ -43,3 +43,6 @@ rosrun tf tf_echo parent_frame child_frame
 ```
 
 File [trafo_example.py](sick_scan_api/trafo_example.py) demonstrates how a transform can be computed. 
+
+For upside down mounted devices, the pointcloud can be rotated by 180 deg about the x axis (180 deg roll angle). This additional rotation is configured in the launch file using parameter `add_transform_xyz_rpy` with value `"0,0,0,3.141592,0,0"`. [sick_lrs_36x0_upside_down.launch](../launch/sick_lrs_36x0_upside_down.launch) and [sick_lrs_36x1_upside_down.launch](../launch/sick_lrs_36x1_upside_down.launch) show examples for compensating the pointcloud of an upside down mounted device by a 180 deg rotation about the x axis.
+
