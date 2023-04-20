@@ -135,7 +135,7 @@ sick_scansegment_xd::Config::Config()
     publish_topic_all_segments = "/cloud_fullframe"; // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
     //segment_count = 12;               // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
     all_segments_min_deg = -180;        // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-    all_segments_max_deg = +180;        // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan), -134...+135 for picoscan150 (270 deg fullscan)
+    all_segments_max_deg = +180;        // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
     publish_frame_id = "world";         // frame id of ros PointCloud2 messages, default: "world"
     udp_input_fifolength = 20;          // max. udp input fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
     msgpack_output_fifolength = 20;     // max. msgpack output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
@@ -165,8 +165,8 @@ sick_scansegment_xd::Config::Config()
     host_set_FREchoFilter = false;                              // If true, FREchoFilter is set at startup (default: false)
     host_LFPangleRangeFilter = "0 -180.0 +180.0 -90.0 +90.0 1"; // Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
     host_set_LFPangleRangeFilter = false;                       // If true, LFPangleRangeFilter is set at startup (default: false)
-    host_LFPlayerFilter = "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1";  // (Multiscan136 only, not for picoscan) Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
-    host_set_LFPlayerFilter = false;                            // If true (Multiscan136 only, always false for picoscan), LFPlayerFilter is set at startup (default: false)
+    host_LFPlayerFilter = "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1";  // Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+    host_set_LFPlayerFilter = false;                            // If true LFPlayerFilter is set at startup (default: false)
 
     // msgpack validation default settings
     msgpack_validator_enabled = true; // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
@@ -263,16 +263,8 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "host_set_FREchoFilter", host_set_FREchoFilter);
     ROS_DECL_GET_PARAMETER(node, "host_LFPangleRangeFilter", host_LFPangleRangeFilter);
     ROS_DECL_GET_PARAMETER(node, "host_set_LFPangleRangeFilter", host_set_LFPangleRangeFilter);
-    if (scanner_type != SICK_SCANNER_PICOSCAN_NAME)
-    {
     ROS_DECL_GET_PARAMETER(node, "host_LFPlayerFilter", host_LFPlayerFilter);
     ROS_DECL_GET_PARAMETER(node, "host_set_LFPlayerFilter", host_set_LFPlayerFilter);
-    }
-    else
-    {
-        host_LFPlayerFilter = "";
-        host_set_LFPlayerFilter = false;
-    }
     // msgpack validation settings
     std::string str_msgpack_validator_required_echos = "0";
     std::string str_msgpack_validator_valid_segments = "0 1 2 3 4 5 6 7 8 9 10 11";

@@ -65,7 +65,7 @@
  *            config.publish_topic: ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
  *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
  *            config.all_segments_min_deg, config.all_segments_min_deg: angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
- *            if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan), -134...+135 for picoscan150 (270 deg fullscan)
+ *            if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
  *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
  * @param[in] qos quality of service profile for the ros publisher, default: 1
  */

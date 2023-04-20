@@ -507,11 +507,6 @@ bool sick_scan::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoF
 
   // Query FREchoFilter, LFPangleRangeFilter and LFPlayerFilter settings
   bool enableFREchoFilter = true, enableLFPangleRangeFilter = true, enableLFPlayerFilter = true;
-  if (scanner_type == SICK_SCANNER_PICOSCAN_NAME) // LFPangleRangeFilter and LFPlayerFilter not supported by picoscan150
-  {
-    enableLFPangleRangeFilter = false;
-    enableLFPlayerFilter = false;
-  }
   std::vector<std::string> sopasCommands;
   if (enableFREchoFilter)
     sopasCommands.push_back("FREchoFilter");
@@ -666,11 +661,6 @@ bool sick_scan::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFi
 
 {
   bool enableFREchoFilter = true, enableLFPangleRangeFilter = true, enableLFPlayerFilter = true;
-  if (scanner_type == SICK_SCANNER_PICOSCAN_NAME) // LFPangleRangeFilter and LFPlayerFilter not supported by picoscan150
-  {
-    enableLFPangleRangeFilter = false;
-    enableLFPlayerFilter = false;
-  }
 
   // Write FREchoFilter
   if(enableFREchoFilter && host_FREchoFilter >= 0) // otherwise not configured or supported

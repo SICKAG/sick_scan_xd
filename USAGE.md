@@ -164,13 +164,6 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
     * Windows native: `sick_generic_caller sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * Windows ROS-2:  `ros2 launch sick_scan sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * `hostname` is the ip-address of the lidar, `udp_receiver_ip` is the ip-address of the receiver (i.e. the ip of the computer running sick_generic_caller).
-- For picoScan150:
-    * Linux native:   `sick_generic_caller sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-1:    `roslaunch sick_scan sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-2:    `ros2 launch sick_scan sick_picoscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Windows native: `sick_generic_caller sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Windows ROS-2:  `ros2 launch sick_scan sick_picoscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * `hostname` is the ip-address of the lidar, `udp_receiver_ip` is the ip-address of the receiver (i.e. the ip of the computer running sick_generic_caller).
 
 Common commandline options are
 

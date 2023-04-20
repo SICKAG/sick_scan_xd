@@ -103,7 +103,7 @@ namespace sick_scansegment_xd
          *            config.publish_topic: ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
          *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
          *            config.all_segments_min_deg, config.all_segments_min_deg: angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-         *            if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan), -134...+135 for picoscan150 (270 deg fullscan)
+         *            if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan)
          *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
          * @param[in] qos quality of service profile for the ros publisher, default: 1
          */
@@ -261,7 +261,7 @@ namespace sick_scansegment_xd
         std::string m_frame_id;    // frame id of ros PointCloud2 messages, default: "world"
         // int m_segment_count = 12;  // number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
         float m_all_segments_min_deg = -180; // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-        float m_all_segments_max_deg = +180; // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan), -134...+135 for picoscan150 (270 deg fullscan)
+        float m_all_segments_max_deg = +180; // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
         SegmentPointsCollector m_points_collector; // collects all points of 12 segments (12 segments * 30 deg = 360 deg)
         std::string m_publish_topic;                         // ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
         std::string m_publish_topic_all_segments;            // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"

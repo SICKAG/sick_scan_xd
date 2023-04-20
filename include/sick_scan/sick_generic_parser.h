@@ -82,7 +82,6 @@
 #define SICK_SCANNER_LRS_36x1_NAME "sick_lrs_36x1"
 #define SICK_SCANNER_OEM_15XX_NAME "sick_oem_15xx"
 #define SICK_SCANNER_SCANSEGMENT_XD_NAME "sick_multiscan" // "sick_scansegment_xd", Multiscan126
-#define SICK_SCANNER_PICOSCAN_NAME "sick_picoscan" // picoScan150, part of sick_scansegment_xd family
 
 #include "abstract_parser.h"
 

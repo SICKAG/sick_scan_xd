@@ -144,7 +144,7 @@ namespace sick_scan
      * Sends the multiScan start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
      * @param[in] hostname IP address of multiScan136, default 192.168.0.1
      * @param[in] port IP port of multiScan136, default 2115
-     * @param[in] scanner_type type of scanner, currently supported are multiScan136 and picoScan150
+     * @param[in] scanner_type type of scanner, currently only multiScan136
      */
     bool sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type);
 

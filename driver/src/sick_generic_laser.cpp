@@ -426,7 +426,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
 #endif
   }
 
-  if(scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME || scannerName == SICK_SCANNER_PICOSCAN_NAME)
+  if(scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
   {
 #if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
     exit_code = sick_scansegment_xd::run(nhPriv, scannerName);
