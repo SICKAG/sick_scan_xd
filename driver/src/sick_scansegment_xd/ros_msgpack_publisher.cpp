@@ -63,8 +63,9 @@
  * @param[in] node_name name of the ros node
  * @param[in] config sick_scansegment_xd configuration, RosMsgpackPublisher uses
  *            config.publish_topic: ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
- *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
- *            config.segment_count: number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
+ *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
+ *            config.all_segments_min_deg, config.all_segments_min_deg: angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
+ *            if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan), -134...+135 for picoscan150 (270 deg fullscan)
  *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
  * @param[in] qos quality of service profile for the ros publisher, default: 1
  */
@@ -77,12 +78,12 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
     m_frame_id = config.publish_frame_id;
 	m_publish_topic = config.publish_topic;
 	m_publish_topic_all_segments = config.publish_topic_all_segments;
-	m_segment_count = config.segment_count;
+	// m_segment_count = config.segment_count;
+	m_all_segments_min_deg = (float)config.all_segments_min_deg;
+    m_all_segments_max_deg = (float)config.all_segments_max_deg;
 	m_node = config.node;
 	m_laserscan_layer_filter = config.laserscan_layer_filter;
 
-	m_min_azimuth = (float)-M_PI;
-	m_max_azimuth = (float)+M_PI;
 #if defined __ROS_VERSION && __ROS_VERSION > 1 // ROS-2 publisher
     rosQoS qos = rclcpp::SystemDefaultsQoS();
     QoSConverter qos_converter;
@@ -91,7 +92,6 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
     rosGetParam(m_node, "ros_qos", qos_val);
     if (qos_val >= 0)
         qos = qos_converter.convert(qos_val);
-	m_points_collector = SegmentPointsCollector(m_segment_count);
 	if(m_publish_topic != "")
 	{
 	    m_publisher_cur_segment = create_publisher<PointCloud2Msg>(m_publish_topic, qos);
@@ -243,7 +243,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t tim
 		pfdata_polar[data_cnt + 3] = lidar_points[echoIdx][pointIdx].i;
 		int echo = lidar_points[echoIdx][pointIdx].echo;
 		int layer = lidar_points[echoIdx][pointIdx].layer;
-		if (!is_cloud_360 && m_laserscan_layer_filter[layer])
+		bool layer_enabled = (m_laserscan_layer_filter.empty() ? 1 : (m_laserscan_layer_filter[layer]));
+		if (!is_cloud_360 && layer_enabled)
 		{
 			// laser_scan_msg = laser_scan_msg_map[layer]
 			ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_map[echo][layer];
@@ -289,8 +290,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t tim
 				while (angle_diff < 0)
 					angle_diff += (float)(2.0 * M_PI);
 				laser_scan_msg.angle_increment = angle_diff / (float)(laser_scan_msg.ranges.size() - 1);
-				laser_scan_msg.range_min -= 1.0e-03;
-				laser_scan_msg.range_max += 1.0e-03;
+				laser_scan_msg.range_min -= 1.0e-03f;
+				laser_scan_msg.range_max += 1.0e-03f;
 				laser_scan_msg.header = pointcloud_msg.header;
 				laser_scan_msg.header.frame_id = m_frame_id + "_" + std::to_string(layer_idx);
 				// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
@@ -367,22 +368,19 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	// 	  iv.  Konfiguration erfolgt über YAML-Datei.
 	if(m_publish_topic_all_segments != "")
 	{
-		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.segment_count=" << m_points_collector.segment_count << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count);
-		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.segment_count=" << m_points_collector.segment_count 
-		// 	<< ", m_points_collector.total_point_count=" << m_points_collector.total_point_count << ", m_points_collector.azimuth=(" << m_points_collector.min_azimuth << "," << m_points_collector.max_azimuth
-		//     << "), config.azimuth=(" << m_min_azimuth << "," << m_max_azimuth << ")");
-		if (segment_idx == 0 || segment_idx < m_points_collector.segment_count) // start with new segment index, i.e. publish the collected pointcloud and start a new collection of all points (until N <= 12 segments collected)
+		float precheck_min_azimuth_deg = m_points_collector.min_azimuth * 180.0f / (float)M_PI;
+		float precheck_max_azimuth_deg = m_points_collector.max_azimuth * 180.0f / (float)M_PI;
+		bool publish_cloud_360 = (precheck_max_azimuth_deg - precheck_min_azimuth_deg + 1 >= m_all_segments_max_deg - m_all_segments_min_deg - 1) // fast pre-check
+		    && m_points_collector.allSegmentsCovered(m_all_segments_min_deg, m_all_segments_max_deg); // all segments collected in m_points_collector
+		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.lastSegmentIdx=" << m_points_collector.lastSegmentIdx() 
+		//     << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count << ", m_points_collector.allSegmentsCovered=" << publish_cloud_360);
+		if (m_points_collector.total_point_count <= 0 || m_points_collector.telegram_cnt <= 0 || publish_cloud_360 || m_points_collector.lastSegmentIdx() > segment_idx) 
 		{
-			// publish 360 degree point cloud if all segments collected
-			if (m_points_collector.total_point_count > 0)
+			// 1. publish 360 degree point cloud if all segments collected
+			// 2. start a new collection of all points (first time call, all segments covered, or segment index wrap around)
+			if (m_points_collector.total_point_count > 0 && m_points_collector.telegram_cnt > 0 && publish_cloud_360)
 			{
-				bool publish_cloud_360 = false;
-				if (m_points_collector.segment_count + 1 == m_segment_count) // all segments collected in m_points_collector (m_segment_count:=12)
-					publish_cloud_360 = true;
-				else if (m_points_collector.min_azimuth - M_PI / 180.0 < m_min_azimuth && m_points_collector.max_azimuth + M_PI / 180.0 > m_max_azimuth) // all points within min and max azimuth collected in m_points_collector
-					publish_cloud_360 = true;
-				if (publish_cloud_360) // publish 360 degree point cloud
-				{
+				// publish 360 degree point cloud
 					// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
                     m_scan_time = (msgpack_data.timestamp_sec + 1.0e-9 * msgpack_data.timestamp_nsec) - (m_points_collector.timestamp_sec + 1.0e-9 * m_points_collector.timestamp_nsec);
                     LaserScanMsgMap laser_scan_msg_map; // laser_scan_msg_map[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
@@ -391,15 +389,13 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 					    pointcloud_msg, pointcloud_msg_polar, laser_scan_msg_map, true);
 					publish(m_node, m_publisher_all_segments, pointcloud_msg, pointcloud_msg_polar, m_publisher_laserscan_360, laser_scan_msg_map, 
 					    std::max(1, (int)echo_count), -1); // pointcloud, number of echos, segment index (or -1 if pointcloud contains data from multiple segments)
-					// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): cloud_360 published, " << m_points_collector.total_point_count << " points, " << pointcloud_msg.data.size() << " byte, "
+					// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): cloud_fullframe published, " << m_points_collector.total_point_count << " points, " << pointcloud_msg.data.size() << " byte, "
 					//     << m_points_collector.segment_list.size() << " segments (" << sick_scansegment_xd::util::printVector(m_points_collector.segment_list, ",") << "), "
 					//     << m_points_collector.telegram_list.size() << " telegrams (" << sick_scansegment_xd::util::printVector(m_points_collector.telegram_list, ",") << "), "
 					//     << "min_azimuth=" << (m_points_collector.min_azimuth * 180.0 / M_PI) << ", max_azimuth=" << (m_points_collector.max_azimuth * 180.0 / M_PI) << " [deg]");
-					m_points_collector = SegmentPointsCollector(m_segment_count, telegram_cnt);
-				}
 			}
 			// Start a new 360 degree collection
-			m_points_collector = SegmentPointsCollector(segment_idx, telegram_cnt);
+			m_points_collector = SegmentPointsCollector(telegram_cnt);
 			m_points_collector.timestamp_sec = msgpack_data.timestamp_sec;
 			m_points_collector.timestamp_nsec = msgpack_data.timestamp_nsec;
 			m_points_collector.total_point_count = total_point_count;
@@ -414,7 +410,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		{
 			if (m_points_collector.lidar_points.size() < lidar_points.size())
 				m_points_collector.lidar_points.resize(lidar_points.size());
-			m_points_collector.segment_count = segment_idx;
+			// m_points_collector.segment_count = segment_idx;
 			m_points_collector.telegram_cnt = telegram_cnt;
 			m_points_collector.total_point_count += total_point_count;
 			m_points_collector.appendLidarPoints(lidar_points, segment_idx, telegram_cnt);
@@ -423,10 +419,10 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		}
 		else
 		{
-			ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.segment_count 
+			ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.lastSegmentIdx() 
 				<< ", current telegram: " << telegram_cnt << ", last telegram in collector: " << m_points_collector.telegram_cnt
 				<< ", datagram(s) missing, 360-degree-pointcloud not published");
-			m_points_collector = SegmentPointsCollector(m_segment_count, telegram_cnt); // reset pointcloud collector
+			m_points_collector = SegmentPointsCollector(telegram_cnt); // reset pointcloud collector
 		}
 		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx " << segment_idx << " of " << m_segment_count << ", " << m_points_collector.total_point_count << " points in collector");
 	}

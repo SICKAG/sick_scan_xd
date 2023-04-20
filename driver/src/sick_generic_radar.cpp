@@ -101,7 +101,7 @@ namespace sick_scan
     rosDeclareParam(nh, "nodename", nodename);
     rosGetParam(nh, "nodename", nodename);
 
-    // just for debugging, but very helpful for the start
+    // publish radar targets and objects
     cloud_radar_rawtarget_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, nodename + "/cloud_radar_rawtarget", 100);
     cloud_radar_track_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, nodename + "/cloud_radar_track", 100);
 
@@ -1746,6 +1746,9 @@ namespace sick_scan
         float vy = objectList[i].V3Dy();
         float v = sqrt(vx * vx + vy * vy);
         float heading = atan2(objectList[i].V3Dy(), objectList[i].V3Dx());
+
+        radarMsg_.objects[i].id = objectList[i].ObjId();
+        radarMsg_.objects[i].tracking_time = timeStamp;
 
         radarMsg_.objects[i].velocity.twist.linear.x = objectList[i].V3Dx();
         radarMsg_.objects[i].velocity.twist.linear.y = objectList[i].V3Dy();

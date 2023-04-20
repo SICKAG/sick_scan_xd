@@ -144,8 +144,9 @@ namespace sick_scan
      * Sends the multiScan start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
      * @param[in] hostname IP address of multiScan136, default 192.168.0.1
      * @param[in] port IP port of multiScan136, default 2115
+     * @param[in] scanner_type type of scanner, currently supported are multiScan136 and picoScan150
      */
-    bool sendMultiScanStartCmd(const std::string& hostname, int port);
+    bool sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type);
 
     /*!
      * Sends the multiScan stop commands "sWN ScanDataEnable 0" and "sMN Run"
@@ -159,7 +160,7 @@ namespace sick_scan
     * @param[out] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
     * @param[out] msgpack_validator_filter_settings; // filter settings for msgpack validator: required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
     */
-    bool queryMultiScanFiltersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter, sick_scansegment_xd::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings);
+    bool queryMultiScanFiltersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter, sick_scansegment_xd::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings, const std::string& scanner_type);
 
     /*!
     * Sends the SOPAS command to write multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, host_LFPlayerFilter)
@@ -167,7 +168,7 @@ namespace sick_scan
     * @param[in] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
     * @param[in] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
     */
-    bool writeMultiScanFiltersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter);
+    bool writeMultiScanFiltersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter, const std::string& scanner_type);
 
 #endif // defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
 

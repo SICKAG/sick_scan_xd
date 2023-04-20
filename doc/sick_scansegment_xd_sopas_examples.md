@@ -1,6 +1,6 @@
 # SOPAS support for sick_scan_segment_xd
 
-On ROS-1 and ROS-2, sick_scan_segment_xd provides ros service `ColaMsg` to send CoLa commands to the lidar. Using this service, filters can be applied to multiScan136 lidars during runtime. 
+On ROS-1 and ROS-2, sick_scan_segment_xd provides ros service `ColaMsg` to send CoLa commands to the lidar. Using this service, filters can be applied to multiScan136 and picoScan150 lidars during runtime. 
 
 Examples on ROS-1:
 ```
@@ -26,6 +26,8 @@ rosservice call /sick_scansegment_xd/ColaMsg "{request: 'sRN LFPangleRangeFilter
 rosservice call /sick_scansegment_xd/ColaMsg "{request: 'sRN LFPlayerFilter'}"                                              # response: "sRA LFPlayerFilter 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
 ```
 
+ote: LFPlayerFilter and LFPangleRangeFilter are not supported by picoscan150.
+
 Examples on ROS-2:
 ```
 ros2 service list
@@ -50,4 +52,4 @@ ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sRN LFPangleRang
 ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sRN LFPlayerFilter'}"                                              # response: "sRA LFPlayerFilter 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
 ```
 
-
+Note: LFPlayerFilter and LFPangleRangeFilter are not supported by picoscan150.

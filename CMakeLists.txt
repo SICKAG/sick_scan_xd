@@ -83,7 +83,7 @@ if(NOT WIN32)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow -fno-var-tracking-assignments")
 endif()
 
-if($ENV{ROS_VERSION})
+if(NOT DEFINED ROS_VERSION AND DEFINED ENV{ROS_VERSION})
     set(ROS_VERSION $ENV{ROS_VERSION})
 endif()
 add_compile_options(-D__ROS_VERSION=${ROS_VERSION})
@@ -176,6 +176,10 @@ if(ROS_VERSION EQUAL 1)
         RadarPreHeaderStatusBlock.msg
         RadarScan.msg
         SickImu.msg
+        NAVLandmarkData.msg
+        NAVOdomVelocity.msg
+        NAVPoseData.msg
+        NAVReflectorData.msg
     )
     add_message_files(
         DIRECTORY msg/ldmrs
@@ -295,6 +299,10 @@ if(ROS_VERSION EQUAL 2)
         "msg/LFErecFieldMsg.msg"
         "msg/LFErecMsg.msg"
         "msg/LIDoutputstateMsg.msg"
+        "msg/NAVLandmarkData.msg"
+        "msg/NAVOdomVelocity.msg"
+        "msg/NAVPoseData.msg"
+        "msg/NAVReflectorData.msg"        
         "msg/ros2/RadarObject.msg"
         "msg/RadarPreHeader.msg"
         "msg/RadarPreHeaderDeviceBlock.msg"
@@ -499,6 +507,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/${PROJECT_NAME}_services.cpp
         driver/src/${PROJECT_NAME}_xd_api/api_impl.cpp
         driver/src/${PROJECT_NAME}_xd_api/${PROJECT_NAME}_api_converter.cpp
+        driver/src/sick_nav_scandata_parser.cpp
         driver/src/softwarePLL.cpp
         driver/src/tcp/Mutex.cpp
         driver/src/tcp/SickThread.cpp
@@ -584,6 +593,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/sick_generic_callback.cpp
         driver/src/sick_generic_field_mon.cpp
         driver/src/sick_generic_imu.cpp
+        driver/src/sick_nav_scandata_parser.cpp        
         driver/src/sick_generic_laser.cpp
         driver/src/sick_generic_monitoring.cpp
         driver/src/sick_generic_parser.cpp
@@ -708,10 +718,20 @@ endif()
 
 # install sick_scan_shared_lib incl. API headerfiles
 if(ROS_VERSION EQUAL 0)
+    include(GNUInstallDirs)
     set_target_properties(${PROJECT_NAME}_shared_lib PROPERTIES PUBLIC_HEADER "include/sick_scan_xd_api/sick_scan_api.h;python/api/sick_scan_api.py")
     install(TARGETS ${PROJECT_NAME}_shared_lib
+        EXPORT sick_scan_xd_Export
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/sick_scan_xd"
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+
+    # Export sick_scan_shared_lib target to be used by other projects
+    install(EXPORT sick_scan_xd_Export
+        FILE sick_scan_xd-config.cmake
+        NAMESPACE sick_scan_xd::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/sick_scan_xd
     )
 endif()
 

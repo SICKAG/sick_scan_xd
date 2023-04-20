@@ -13,7 +13,7 @@ package "sick_scansegment_xd" {
 
 note top of MsgPackThreads
   Init and run all sick_scansegment_xd components
-  * SOPAS startup (multiScan100)
+  * SOPAS startup (multiScan100, picoScan)
   * Run UDP receiver thread
   * Parse and convert msgpacks
   * Collect scan segments

@@ -34,7 +34,7 @@ function start_rms3xx_emulator()
 function start_mrs100_emulator()
 {
     echo -e "\nrun_linux_ros1_simu_add_transform: starting mrs100 (multiscan136) emulation ...\n"
-    python3 ./src/sick_scan_xd/test/python/mrs100_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
+    python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_mrs100_add_transform.rviz --opengl 210 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_mrs100_add_transform_origin.rviz --opengl 210 &
     sleep 1
@@ -60,8 +60,8 @@ function kill_simu()
     rosnode kill -a ; sleep 1
     killall sick_generic_caller ; sleep 1
     killall sick_scan_emulator ; sleep 1
-    pkill -f mrs100_sopas_test_server.py
-    pkill -f mrs100_pcap_player.py
+    pkill -f multiscan_sopas_test_server.py
+    pkill -f multiscan_pcap_player.py
 }
 
 # Run sick_generic_caller with tim7xx and additional transform
@@ -80,11 +80,11 @@ function run_simu_tim7xx()
 function run_simu_mrs100()
 {
     tx=$1 ; ty=$2 ; tz=$3 ; roll=$4 ; pitch=$5 ; yaw=$6 ; duration_sec=$7
-    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_scansegment_xd.launch (MRS100/Multiscan136) with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
+    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_multiscan.launch (MRS100/Multiscan136) with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
     start_mrs100_emulator
-    roslaunch sick_scan sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
+    roslaunch sick_scan sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
     rosrun tf static_transform_publisher $tx $ty $tz $yaw $pitch $roll world origin 100 &
-    python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=1
+    python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=1
     kill_simu
 }
 

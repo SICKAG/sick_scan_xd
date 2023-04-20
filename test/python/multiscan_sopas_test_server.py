@@ -38,7 +38,7 @@ def hexStringToByteArray(message):
 class ColaResponseMap:
 
     # Constructor
-    def __init__(self, cola_binary = 0):
+    def __init__(self, cola_binary = 0, val_FREchoFilter = 0):
         if cola_binary > 0:
             self.mapped_response = { 
                 "sMN SetAccessMode": "02:02:02:02:00:00:00:13:73:41:4e:20:53:65:74:41:63:63:65:73:73:4d:6f:64:65:20:01:38" ,
@@ -58,7 +58,7 @@ class ColaResponseMap:
                 "sWN ScanDataFormat": "\x02sWA ScanDataFormat\x03",                               # "sWN ScanDataFormat 1" -> "sWA ScanDataFormat"
                 "sWN ScanDataPreformatting": "\x02sWA ScanDataPreformatting\x03",                 # "sWN ScanDataPreformatting 1" -> "sWA ScanDataPreformatting"
                 "sWN ScanDataEthSettings": "\x02sWA ScanDataEthSettings\x03",       # "sWN ScanDataEthSettings 1 +127 +0 +0 +1 +2115" -> "sWA ScanDataEthSettings"
-                "sRN FREchoFilter": "\x02sRA FREchoFilter 0\x03",                                                      # "sRN FREchoFilter" -> "sRA FREchoFilter 0" (default: 0, i.e. first echo only, echo_count = 1)
+                "sRN FREchoFilter": "\x02sRA FREchoFilter {}\x03".format(val_FREchoFilter),                            # "sRN FREchoFilter" -> "sRA FREchoFilter 0" (default: 0, i.e. first echo only, echo_count = 1)
                 "sRN LFPangleRangeFilter": "\x02sRA LFPangleRangeFilter 0 C0490FF9 40490FF9 BFC90FF9 3FC90FF9 1\x03",  # "sRN LFPangleRangeFilter" -> "sRA LFPangleRangeFilter 0 C0490FF9 40490FF9 BFC90FF9 3FC90FF9 1"
                 "sRN LFPlayerFilter": "\x02sRA LFPlayerFilter 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1\x03",                  # "sRN LFPlayerFilter" -> "sRA LFPlayerFilter 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
                 "sWN FREchoFilter": "\x02sWA FREchoFilter\x03",                                                        # "sWN FREchoFilter 1" -> "sWA FREchoFilter"
@@ -79,9 +79,10 @@ class ColaResponseMap:
 class SopasTestServer:
 
     # Constructor
-    def __init__(self, tcp_port = 2111, cola_binary = 0):
+    def __init__(self, tcp_port = 2111, cola_binary = 0, val_FREchoFilter = 0):
         self.tcp_port = tcp_port
         self.cola_binary = cola_binary
+        self.val_FREchoFilter = val_FREchoFilter
 
     # Waits for an incoming tcp connection and connects to the tcp client
     def connect(self):
@@ -136,7 +137,7 @@ class SopasTestServer:
 
     # Runs the message loop, i.e. receives binary cola telegrams and sends a response to the client
     def run(self):
-        response_map = ColaResponseMap()
+        response_map = ColaResponseMap(self.cola_binary, self.val_FREchoFilter)
         print("SopasTestServer: running main loop...")
         while True:
             # Receive a cola telegram
@@ -161,17 +162,20 @@ if __name__ == "__main__":
     # Configuration
     tcp_port = 2111 # tcp port to listen for tcp connections
     cola_binary = 0 # cola ascii (0) or binary (1)
+    val_FREchoFilter = 0 # default configuration: FREchoFilter=0
     
     # Overwrite with command line arguments
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--tcp_port", help="tcp port to listen for tcp connections", default=tcp_port, type=int)
     arg_parser.add_argument("--cola_binary", help="cola ascii (0) or binary (1)", default=cola_binary, type=int)
+    arg_parser.add_argument("--FREchoFilter", help="FREchoFilter, 0 (first echo, default), 1 (all echos) or 2 (last echo)", default=val_FREchoFilter, type=int)
     cli_args = arg_parser.parse_args()
     tcp_port = cli_args.tcp_port
     cola_binary = cli_args.cola_binary
+    val_FREchoFilter = cli_args.FREchoFilter
 
     # Run test server
-    server = SopasTestServer(tcp_port, cola_binary)
+    server = SopasTestServer(tcp_port, cola_binary, val_FREchoFilter)
     server.connect()
     server.run()
     

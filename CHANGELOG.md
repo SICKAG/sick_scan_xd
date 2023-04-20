@@ -6,8 +6,10 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
-### v2.8.15 - Update Win64 build instructions
-  - **Update** Update Win64 build instructions #130
+### v2.9.0 - NAV350 support
+  - **Added** NAV350 support
+  - **Added** picoscan150 support
+  - **Update** Merge lms511_field_mon (fix lms511 field parsing and wait api), default_echo_setting (activate last echo by default), monitoring_ros2_qos (ROS2 QoS configuration), scansegment_xd_support (update build instructions), rename-timtwo-picoscan, rename-mrs100-multiscan, rename-fullframe-topic
 
 ## Released ##
 

@@ -55,7 +55,7 @@ sick_scan_xd contains 6 main functional blocks:
     * Process telegrams: parse and convert to pointcloud
     * Publish pointcloud
 * sick_ldmrs for LDMRS support using the ldmrs-library from https://github.com/SICKAG/libsick_ldmrs.git
-* sick_scansegment_xd for multiScan136 lidars using SOPAS, msgpack and UDP-communication
+* sick_scansegment_xd for multiScan136 and picoScan150 lidars using SOPAS, msgpack and UDP-communication
 * sick_scan_services for ros services
 * sick_generic_monitoring for monitoring and re-initialization in case of errors (e.g. network errors).
 
@@ -71,7 +71,7 @@ The function blocks depend on and use the underlying system (ROS, TCP, etc.):
 
 ## Message receiving and message handling
 
-Message receiving and message handling are decoupled, i.e. both tasks run in separate thread and exchange messages via a FIFO-buffer. This way, message handling can’t block tcp recv and vice versa. The following figure shows the message handling:
+Message receiving and message handling are decoupled, i.e. both tasks run in separate thread and exchange messages via a FIFO-buffer. This way, message handling cannot block tcp recv and vice versa. The following figure shows the message handling:
 
 ![software_overview_05](software_overview_05.png)
 
@@ -83,11 +83,11 @@ Incoming TCP messages and exported pointcloud messages are monitored. sick_scan_
 
 ## sick_scansegment_xd
 
-sick_scansegment_xd implements support for multiScan136 lidars using SOPAS, msgpack and UDP-communication. It has 5 functional blocks:
+sick_scansegment_xd implements support for multiScan136 and picoScan150 lidars using SOPAS, msgpack and UDP-communication. It has 5 functional blocks:
 
 * class `sick_scansegment_xd::MsgPackThreads`:
     * Init and run all sick_scansegment_xd components
-    * SOPAS startup (multiScan136, picoScan)
+    * SOPAS startup (multiScan136, picoScan150)
 * class `sick_scansegment_xd::UdpReceiver`:
     * Run UDP receiver thread
 * class `sick_scansegment_xd::MsgPackConverter`:
@@ -97,7 +97,7 @@ sick_scansegment_xd implements support for multiScan136 lidars using SOPAS, msgp
     * Validate msgpacks and scansegments
 * class `sick_scansegment_xd::RosMsgpackPublisher`:
     * Publish pointcloud (single segments)
-    * Publish cloud_360 (360 pointcloud)
+    * Publish cloud_fullframe (fullframe pointcloud, 360 deg for Multiscan136 resp. 270 deg for picoscan)
 
 The following figure shows the compoenent diagram for sick_scansegment_xd:
 

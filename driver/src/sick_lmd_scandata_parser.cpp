@@ -63,20 +63,41 @@
 
 namespace sick_scan
 {
-    /* template<typename T> static void readFromBuffer(const uint8_t* receiveBuffer, int& pos, int receiveBufferLength, T& value)
-    {
-        if(pos + sizeof(value) < receiveBufferLength)
-        {
-            memcpy(&value, receiveBuffer + pos, sizeof(value));
-            swap_endian((unsigned char *) &value, sizeof(value));
-            pos += sizeof(value);
-        }
-        else
-        {
-            ROS_WARN_STREAM("readFromBuffer(): read pos = " << pos << " + sizeof(value) = " << sizeof(value) << " exceeds receiveBufferLength = " << receiveBufferLength);
-        }
-    } */
 
+    /** Increments the number of packets received in the SoftwarePLL */
+    void incSoftwarePLLPacketReceived()
+    {
+      SoftwarePLL::instance().packets_received++;
+      if (SoftwarePLL::instance().IsInitialized() == false)
+      {
+        if(SoftwarePLL::instance().packets_received <= 1)
+        {
+          ROS_INFO("Software PLL locking started, mapping ticks to system time.");
+        }
+        int packets_expected_to_drop = SoftwarePLL::instance().fifoSize - 1;
+        SoftwarePLL::instance().packets_dropped++;
+        size_t packets_dropped = SoftwarePLL::instance().packets_dropped;
+        size_t packets_received = SoftwarePLL::instance().packets_received;
+        if (packets_dropped < packets_expected_to_drop)
+        {
+          ROS_INFO_STREAM("" << packets_dropped << " / " << packets_expected_to_drop << " packets dropped. Software PLL not yet locked.");
+        }
+        else if (packets_dropped == packets_expected_to_drop)
+        {
+          ROS_INFO("Software PLL is ready and locked now!");
+        }
+        else if (packets_dropped > packets_expected_to_drop && packets_received > 0)
+        {
+          double drop_rate = (double)packets_dropped / (double)packets_received;
+          ROS_WARN_STREAM("" << SoftwarePLL::instance().packets_dropped << " of " << SoftwarePLL::instance().packets_received << " packets dropped ("
+            << std::fixed << std::setprecision(1) << (100*drop_rate) << " perc.), maxAbsDeltaTime=" << std::fixed << std::setprecision(3) << SoftwarePLL::instance().max_abs_delta_time);
+          ROS_WARN_STREAM("More packages than expected were dropped!!\n"
+                  "Check the network connection.\n"
+                  "Check if the system time has been changed in a leap.\n"
+                  "If the problems can persist, disable the software PLL with the option sw_pll_only_publish=False  !");
+        }
+      }
+    }
 
     /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
     bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double elevAngleTelegramValToDeg, double& elevationAngleInRad, rosTime& recvTimeStamp,
@@ -143,37 +164,7 @@ namespace sick_scan
                   //TODO Handle return values
                   if (config_sw_pll_only_publish == true)
                   {
-                    SoftwarePLL::instance().packets_received++;
-                    if (bRet == false)
-                    {
-                      if(SoftwarePLL::instance().packets_received <= 1)
-                      {
-                        ROS_INFO("Software PLL locking started, mapping ticks to system time.");
-                      }
-                      int packets_expected_to_drop = SoftwarePLL::instance().fifoSize - 1;
-                      SoftwarePLL::instance().packets_dropped++;
-                      size_t packets_dropped = SoftwarePLL::instance().packets_dropped;
-                      size_t packets_received = SoftwarePLL::instance().packets_received;
-                      if (packets_dropped < packets_expected_to_drop)
-                      {
-                        ROS_INFO_STREAM("" << packets_dropped << " / " << packets_expected_to_drop << " packets dropped. Software PLL not yet locked.");
-                      }
-                      else if (packets_dropped == packets_expected_to_drop)
-                      {
-                        ROS_INFO("Software PLL is ready and locked now!");
-                      }
-                      else if (packets_dropped > packets_expected_to_drop && packets_received > 0)
-                      {
-                        double drop_rate = (double)packets_dropped / (double)packets_received;
-                        ROS_WARN_STREAM("" << SoftwarePLL::instance().packets_dropped << " of " << SoftwarePLL::instance().packets_received << " packets dropped ("
-                          << std::fixed << std::setprecision(1) << (100*drop_rate) << " perc.), maxAbsDeltaTime=" << std::fixed << std::setprecision(3) << SoftwarePLL::instance().max_abs_delta_time);
-                        ROS_WARN_STREAM("More packages than expected were dropped!!\n"
-                                "Check the network connection.\n"
-                                "Check if the system time has been changed in a leap.\n"
-                                "If the problems can persist, disable the software PLL with the option sw_pll_only_publish=False  !");
-                      }
-                      return false;
-                    }
+                    incSoftwarePLLPacketReceived();
                   }
 
 #ifdef DEBUG_DUMP_ENABLED
@@ -482,13 +473,13 @@ namespace sick_scan
                                   msg.time_increment = fabs(parser_->getCurrentParamPtr()->getNumberOfLayers() * msg.scan_time * msg.angle_increment / (2.0 * M_PI));
                               }
 
-                              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+                              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0)
                               {
                                 msg.angle_min = (float)(-M_PI);
                                 msg.angle_max = (float)(+M_PI);
                                 msg.angle_increment *= -1.0;
                               }
-                              else if (parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. for SICK_SCANNER_LRS_36x0_NAME and SICK_SCANNER_NAV_3XX_NAME
+                              else if (parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. for SICK_SCANNER_LRS_36x0_NAME and SICK_SCANNER_NAV_31X_NAME
                               {
                                 /* TODO: Check this ...
                                 msg.angle_min -= (float)(M_PI / 2);

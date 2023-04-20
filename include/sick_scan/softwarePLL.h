@@ -34,6 +34,8 @@ public:
 
   bool getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint32_t tick);
 
+  bool convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32_t systemtime_nanosec, uint32_t& tick);
+
   bool getDemoFileData(std::string fileName, std::vector<uint32_t> &tickVec, std::vector<uint32_t> &secVec,
                        std::vector<uint32_t> &nanoSecVec);
 

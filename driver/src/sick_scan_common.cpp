@@ -79,6 +79,7 @@
 #include <sick_scan/sick_scan_config_internal.h>
 #include <sick_scan/sick_scan_parse_util.h>
 #include <sick_scan/sick_lmd_scandata_parser.h>
+#include <sick_scan/sick_nav_scandata_parser.h>
 
 #include "sick_scan/binScanf.hpp"
 #include "sick_scan/dataDumper.h"
@@ -488,7 +489,7 @@ namespace sick_scan
     rosDeclareParam(nh, "nodename", nodename);
     rosGetParam(nh, "nodename", nodename);
 
-    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0)
     {
       // NAV-310 only supports min/max angles of -PI to +PI (resp. 0 to 360 degree in sensor coordinates). To avoid unexpected results, min/max angles can not be set by configuration.
       config_.min_ang = -M_PI;
@@ -557,7 +558,7 @@ namespace sick_scan
     rosDeclareParam(nh, "read_timeout_millisec_startup", m_read_timeout_millisec_startup);
     rosGetParam(nh, "read_timeout_millisec_startup", m_read_timeout_millisec_startup);
 
-    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0)
     {
       // NAV-310 only supports min/max angles of -PI to +PI (resp. 0 to 360 degree in sensor coordinates). To avoid unexpected results, min/max angles can not be set by configuration.
       if(std::abs(config_.min_ang + M_PI) > FLT_EPSILON || std::abs(config_.max_ang - M_PI) > FLT_EPSILON)
@@ -566,6 +567,33 @@ namespace sick_scan
         config_.min_ang = -M_PI;
         config_.max_ang = +M_PI;
       }
+    }
+
+    publish_nav_pose_data_ = false;
+    publish_nav_landmark_data_ = false;
+    nav_tf_parent_frame_id_ = "map";
+    nav_tf_child_frame_id_ = "nav";
+    rosDeclareParam(nh, "nav_tf_parent_frame_id", nav_tf_parent_frame_id_);
+    rosGetParam(nh, "nav_tf_parent_frame_id", nav_tf_parent_frame_id_);
+    rosDeclareParam(nh, "nav_tf_child_frame_id", nav_tf_child_frame_id_);
+    rosGetParam(nh, "nav_tf_child_frame_id", nav_tf_child_frame_id_);
+
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
+    {
+      nav_pose_data_pub_ = rosAdvertise<sick_scan_msg::NAVPoseData>(nh, nodename + "/nav_pose", 100);
+      nav_landmark_data_pub_ = rosAdvertise<sick_scan_msg::NAVLandmarkData>(nh, nodename + "/nav_landmark", 100);
+      nav_reflector_pub_ = rosAdvertise<ros_visualization_msgs::MarkerArray>(nh, nodename + "/nav_reflectors", 100);
+      publish_nav_pose_data_ = true;
+      publish_nav_landmark_data_ = true;
+#if defined __ROS_VERSION && __ROS_VERSION == 1
+      nav_tf_broadcaster_ = new tf2_ros::TransformBroadcaster();
+      nav_odom_velocity_subscriber_ = nh->subscribe("nav_odom_velocity", 1, &sick_scan::SickScanCommon::messageCbNavOdomVelocity, this);
+      ros_odom_subscriber_ = nh->subscribe("odom", 1, &sick_scan::SickScanCommon::messageCbRosOdom, this);
+#elif defined __ROS_VERSION && __ROS_VERSION == 2
+      nav_tf_broadcaster_ = new tf2_ros::TransformBroadcaster(nh);
+      nav_odom_velocity_subscriber_ = nh->create_subscription<sick_scan_msg::NAVOdomVelocity>("nav_odom_velocity", 10, std::bind(&sick_scan::SickScanCommon::messageCbNavOdomVelocityROS2, this, std::placeholders::_1));
+      ros_odom_subscriber_ = nh->create_subscription<ros_nav_msgs::Odometry>("odom", 10, std::bind(&sick_scan::SickScanCommon::messageCbRosOdomROS2, this, std::placeholders::_1));
+#endif
     }
 
     cloud_marker_ = 0;
@@ -1111,7 +1139,26 @@ namespace sick_scan
     if(reply)
       *reply = replyDummy;
     this->setProtocolType((SopasProtocol)prev_sopas_type); // restore previous sopas type
+    if (result != 0) // no answer
+    {
+      ROS_WARN_STREAM("## ERROR SickScanCommon: sendSopasAndCheckAnswer(\"" << sopasCmd << "\") failed");
+    }
     return result;
+  }
+
+  int SickScanCommon::get2ndSopasResponse(std::vector<uint8_t>& sopas_response, const std::string& sopas_keyword)
+  {
+    int bytes_read = 0;
+    sopas_response.clear();
+    sopas_response.resize(64*1024);
+    std::vector<std::string> sopas_response_keywords = { sopas_keyword };
+    if (readWithTimeout(getReadTimeOutInMs(), (char*)sopas_response.data(), (int)sopas_response.size(), &bytes_read, sopas_response_keywords) != ExitSuccess)
+    {
+      ROS_WARN_STREAM("## ERROR waiting for 2nd response \"" << sopas_keyword << "\" to request \"" << sopas_keyword << "\"");
+      return ExitError;
+    }
+    sopas_response.resize(bytes_read);
+    return ExitSuccess;
   }
 
   // Check Cola-Configuration of the scanner:
@@ -1182,6 +1229,101 @@ namespace sick_scan
     }
     return result;
   }
+
+  // NAV-350 data must be polled by sending sopas command "sMN mNPOSGetData wait mask"
+  int SickScanCommon::sendNAV350mNPOSGetData(void)
+  {
+    // "sMN mNPOSGetData wait mask" (Cola-A "sMN mNPOSGetData 1 2" or Cola-B "sMN mNPOSGetData 0102"): wait for next pose result and send pose+reflectors+scan
+    std::string sopas_cmd = "\x02sMN mNPOSGetData 1 2\x03"; // wait = 1 (wait for next pose result), mask = 2 (send pose+reflectors+scan)
+    std::vector<unsigned char> sopas_request;   
+    this->convertAscii2BinaryCmd(sopas_cmd.c_str(), &sopas_request);
+    // Send "sMN mNPOSGetData 1 2"
+    ROS_DEBUG_STREAM("NAV350: Sending: " << stripControl(sopas_request, -1));
+    return sendSOPASCommand((const char*)sopas_request.data(), 0, sopas_request.size(), false);
+  }
+
+  // Parse NAV-350 pose and scan data and send next "sMN mNPOSGetData" request (NAV-350 polling)
+  bool SickScanCommon::handleNAV350BinaryPositionData(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double& elevationAngleInRad, rosTime & recvTimeStamp,
+      bool config_sw_pll_only_publish, double config_time_offset, SickGenericParser * parser_, int& numEchos, ros_sensor_msgs::LaserScan & msg, NAV350mNPOSData & navdata)
+  {
+    // Parse NAV-350 pose and scan data and convert to LaserScan message
+    sick_scan_msg::NAVPoseData nav_pose_msg;
+    sick_scan_msg::NAVLandmarkData nav_landmark_msg;
+	  if (!parseNAV350BinaryPositionData(receiveBuffer, receiveBufferLength, elevAngleX200, elevationAngleInRad, recvTimeStamp, config_sw_pll_only_publish, config_time_offset, parser_, numEchos, msg, nav_pose_msg, nav_landmark_msg, navdata))
+		  ROS_ERROR_STREAM("## ERROR NAV350: Error parsing mNPOSGetData response");
+	  // Send next "sMN mNPOSGetData" request (NAV-350 polling)
+    int result = sendNAV350mNPOSGetData();
+    if (result != ExitSuccess)
+    {
+      ROS_ERROR_STREAM("## ERROR NAV350: Error sending sMN mNPOSGetData request, retrying ...");
+      return false;
+    }
+    // Publish pose and landmark data
+    if (publish_nav_pose_data_ && navdata.poseDataValid > 0)
+    {
+      rosPublish(nav_pose_data_pub_, nav_pose_msg);
+#if __ROS_VERSION > 0
+      if (nav_tf_broadcaster_)
+      {
+        ros_geometry_msgs::TransformStamped nav_pose_transform = convertNAVPoseDataToTransform(navdata.poseData, recvTimeStamp, config_time_offset, nav_tf_parent_frame_id_, nav_tf_child_frame_id_, parser_);
+        nav_tf_broadcaster_->sendTransform(nav_pose_transform);
+      }
+#endif
+    }
+    if (publish_nav_landmark_data_ && navdata.landmarkDataValid > 0)
+    {
+      rosPublish(nav_landmark_data_pub_, nav_landmark_msg);
+#if __ROS_VERSION > 0
+      if (navdata.landmarkData.reflectors.size() > 0)
+      {
+        ros_visualization_msgs::MarkerArray nav_reflector_marker_msg = convertNAVLandmarkDataToMarker(navdata.landmarkData.reflectors, msg.header, parser_);
+        rosPublish(nav_reflector_pub_, nav_reflector_marker_msg);
+      }
+#endif
+    }
+    if (navdata.poseDataValid > 0 || navdata.landmarkDataValid > 0)
+    {
+      notifyNavPoseLandmarkListener(m_nh, &navdata);
+    }
+
+    return true;
+  }
+
+  void SickScanCommon::messageCbNavOdomVelocity(const sick_scan_msg::NAVOdomVelocity& msg)
+  {
+    ROS_DEBUG_STREAM("SickScanCommon::messageCbNavOdomVelocity(): vel_x=" << msg.vel_x << " m/s, vel_y=" << msg.vel_y << " m/s, omega=" << msg.omega << " rad/s, timestamp=" << msg.timestamp << ", coordbase=" << (int)msg.coordbase);
+    std::vector<unsigned char> sopas_response;
+    std::vector<uint8_t> setNAVSpeedRequestPayload = createNAV350BinarySetSpeedRequest(msg); // "sMN mNPOSSetSpeed X Y Phi timestamp coordBase"
+    std::vector<uint8_t> setNAVSpeedRequest = { 0x02, 0x02, 0x02, 0x02, 0, 0, 0, 0 };
+    setNAVSpeedRequest.insert(setNAVSpeedRequest.end(), setNAVSpeedRequestPayload.begin(), setNAVSpeedRequestPayload.end());
+    setLengthAndCRCinBinarySopasRequest(&setNAVSpeedRequest);
+    if (sendSopasAndCheckAnswer(setNAVSpeedRequest, &sopas_response) != 0)
+      ROS_ERROR_STREAM("SickScanCommon::messageCbNavOdomVelocity(): sendSopasAndCheckAnswer() failed");
+  }
+
+#if __ROS_VERSION > 0
+  void SickScanCommon::messageCbRosOdom(const ros_nav_msgs::Odometry& msg)
+  {
+    sick_scan_msg::NAVOdomVelocity nav_odom_vel_msg;
+    nav_odom_vel_msg.vel_x = msg.twist.twist.linear.x;
+    nav_odom_vel_msg.vel_y = msg.twist.twist.linear.y;
+    double angle_shift = -1.0 * parser_->getCurrentParamPtr()->getScanAngleShift();
+    rotateXYbyAngleOffset(nav_odom_vel_msg.vel_x, nav_odom_vel_msg.vel_y, angle_shift); // Convert to velocity in lidar coordinates in m/s
+    nav_odom_vel_msg.omega = msg.twist.twist.angular.z; // angular velocity of the NAV350 in radians/s, -2*PI ... +2*PI rad/s
+    nav_odom_vel_msg.coordbase = 0; // 0 = local coordinate system of the NAV350
+    nav_odom_vel_msg.timestamp = (uint32_t)(1000.0 * rosTimeToSeconds(msg.header.stamp)); // millisecond timestamp of the Velocity vector related to the NAV350 clock
+    if (SoftwarePLL::instance().IsInitialized())
+    {
+      SoftwarePLL::instance().convSystemtimeToLidarTimestamp(sec(msg.header.stamp), nsec(msg.header.stamp), nav_odom_vel_msg.timestamp);
+      messageCbNavOdomVelocity(nav_odom_vel_msg);
+    }
+    else
+    {
+      ROS_WARN_STREAM("## ERROR SickScanCommon::messageCbRosOdom(): SoftwarePLL not yet ready, timestamp can not be converted from system time to lidar time, odometry message ignored.");
+      ROS_WARN_STREAM("## ERROR SickScanCommon::messageCbRosOdom(): Send odometry messages after SoftwarePLL is ready (i.e. has finished initialization phase).");
+    }
+  }
+#endif
 
   /*!
   \brief set timeout in milliseconds
@@ -1375,11 +1517,22 @@ namespace sick_scan
     sopasCmdVec[CMD_SET_LID_INPUTSTATE_ACTIVE] = "\x02sEN LIDinputstate 1\x03"; // TiM781S: activate LIDinputstate messages, send "sEN LIDinputstate 1"
 
     // NAV-350 commands
-    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_0] = "\x02sMN mNEVAChangeState 0\x03"; // 0 = power down
-    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_1] = "\x02sMN mNEVAChangeState 1\x03"; // 1 = standby
-    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_2] = "\x02sMN mNEVAChangeState 2\x03"; // 2 = mapping
-    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_3] = "\x02sMN mNEVAChangeState 3\x03"; // 3 = landmark detection
-    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_4] = "\x02sMN mNEVAChangeState 4\x03"; // 4 = navigation
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_0]   = "\x02sMN mNEVAChangeState 0\x03"; // 0 = power down
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_1]   = "\x02sMN mNEVAChangeState 1\x03"; // 1 = standby
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_2]   = "\x02sMN mNEVAChangeState 2\x03"; // 2 = mapping
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_3]   = "\x02sMN mNEVAChangeState 3\x03"; // 3 = landmark detection
+    sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_4]   = "\x02sMN mNEVAChangeState 4\x03"; // 4 = navigation
+    sopasCmdVec[CMD_SET_NAV_CURR_LAYER]           = "\x02sWN NEVACurrLayer 0\x03";    // Set NAV curent layer
+    sopasCmdVec[CMD_SET_NAV_LANDMARK_DATA_FORMAT] = "\x02sWN NLMDLandmarkDataFormat 0 1 1\x03"; // Set NAV LandmarkDataFormat
+    sopasCmdVec[CMD_SET_NAV_SCAN_DATA_FORMAT]     = "\x02sWN NAVScanDataFormat 1 1\x03"; // Set NAV ScanDataFormat
+    sopasCmdVec[CMD_SET_NAV_POSE_DATA_FORMAT]     = "\x02sWN NPOSPoseDataFormat 1 1\x03"; // Set NAV PoseDataFormat
+    sopasCmdVec[CMD_SET_NAV_MAP_CFG]              = "\x02sWN NMAPMapCfg 50 0 0 0 0\x03";
+    sopasCmdVec[CMD_SET_NAV_REFL_SIZE]            = "\x02sWN NLMDReflSize 80\x03";
+    sopasCmdVec[CMD_SET_NAV_DO_MAPPING]           = "\x02sMN mNMAPDoMapping\x03";
+    sopasCmdVec[CMD_SET_NAV_ADD_LANDMARK]         = "\x02sMN mNLAYAddLandmark 0\x03";
+    sopasCmdVec[CMD_SET_NAV_ERASE_LAYOUT]         = "\x02sMN mNLAYEraseLayout 1\x03";
+    sopasCmdVec[CMD_SET_NAV_STORE_LAYOUT]         = "\x02sMN mNLAYStoreLayout\x03";
+    sopasCmdVec[CMD_SET_NAV_POSE]                 = "\x02sMN mNPOSSetPose 0 0 0\x03"; // Set NAV-350 start pose in navigation mode by "sMN mNPOSSetPose X Y Phi"
 
     // Supported by sick_generic_caller version 2.7.3 and above:
     sopasCmdVec[CMD_SET_LFPMEANFILTER] = "\x02sWN LFPmeanfilter 0 0 0\x03"; // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
@@ -1500,6 +1653,17 @@ namespace sick_scan
     sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_2] = "Error setting operational mode mapping \"sMN mNEVAChangeState 2\"";
     sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_3] = "Error setting operational mode landmark detection \"sMN mNEVAChangeState 3\"";
     sopasCmdErrMsg[CMD_SET_NAV_OPERATIONAL_MODE_4] = "Error setting operational mode navigation \"sMN mNEVAChangeState 4\"";
+    sopasCmdErrMsg[CMD_SET_NAV_CURR_LAYER] = "Error setting NAV current layer \"sWN NEVACurrLayer ...\"";
+    sopasCmdErrMsg[CMD_SET_NAV_LANDMARK_DATA_FORMAT] = "Error setting NAV landmark data format \"sWN NLMDLandmarkDataFormat ...\"";
+    sopasCmdErrMsg[CMD_SET_NAV_SCAN_DATA_FORMAT]     = "Error setting NAV scan data format \"sWN NAVScanDataFormat ...\"";
+    sopasCmdErrMsg[CMD_SET_NAV_POSE_DATA_FORMAT] = "Error setting NAV pose data format \"sWN NPOSPoseDataFormat ...\"";
+    sopasCmdErrMsg[CMD_SET_NAV_MAP_CFG] = "Error setting NAV mapping configuration \"sWN NMAPMapCfg ...\"";
+    sopasCmdErrMsg[CMD_SET_NAV_REFL_SIZE] = "Error setting NAV reflector size \"sWN NLMDReflSize ...\"";
+    sopasCmdErrMsg[CMD_SET_NAV_DO_MAPPING] = "Error setting NAV mapping \"sMN mNMAPDoMapping\"";
+    sopasCmdErrMsg[CMD_SET_NAV_ADD_LANDMARK] = "Error adding NAV landmark \"sMN mNLAYAddLandmark\"";
+    sopasCmdErrMsg[CMD_SET_NAV_ERASE_LAYOUT] = "Error erasing NAV layout \"sMN mNLAYEraseLayout\"";
+    sopasCmdErrMsg[CMD_SET_NAV_STORE_LAYOUT] = "Error storing NAV layout \"sMN mNLAYStoreLayout\"";
+    sopasCmdErrMsg[CMD_SET_NAV_POSE] = "Error setting start pose \"sMN mNPOSSetPose ...\"";
 
     // Supported by sick_generic_caller version 2.7.3 and above:
     sopasCmdErrMsg[CMD_SET_LFPMEANFILTER] = "Error setting sopas command \"sWN LFPmeanfilter ...\"";
@@ -1538,7 +1702,7 @@ namespace sick_scan
     }
 
     //TODO add basicParam for this
-    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0 ||
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0 ||
         parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0 ||
         parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0 ||
         parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_OEM_15XX_NAME) == 0)
@@ -1555,7 +1719,7 @@ namespace sick_scan
     {
       isNav2xxOr3xx = true;
     }
-    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0)
     {
       isNav2xxOr3xx = true;
     }
@@ -1626,11 +1790,11 @@ namespace sick_scan
     sopasCmdChain.push_back(CMD_POWER_ON_COUNT); // read power on count
     sopasCmdChain.push_back(CMD_LOCATION_NAME); // read location name
 
-    // Support for "sRN LMPscancfg" and "sMN mLMPsetscancfg" for NAV_3xx and LRS_36x1 since version 2.4.4
+    // Support for "sRN LMPscancfg" and "sMN mLMPsetscancfg" for NAV_31X and LRS_36x1 since version 2.4.4
     // TODO: apply and test for LRS_36x0 and OEM_15XX, too
-    // if (this->parser_->getCurrentParamPtr()->getUseScancfgList() == true) // true for SICK_SCANNER_LRS_36x0_NAME, SICK_SCANNER_LRS_36x1_NAME, SICK_SCANNER_NAV_3XX_NAME, SICK_SCANNER_OEM_15XX_NAME
+    // if (this->parser_->getCurrentParamPtr()->getUseScancfgList() == true) // true for SICK_SCANNER_LRS_36x0_NAME, SICK_SCANNER_LRS_36x1_NAME, SICK_SCANNER_NAV_31X_NAME, SICK_SCANNER_OEM_15XX_NAME
     if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0
-    || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+    || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0)
     {
       sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
       sopasCmdChain.push_back(CMD_SET_SCAN_CFG_LIST); // "sMN mCLsetscancfglist 1", set scan config from list for NAX310  LD-OEM15xx LD-LRS36xx
@@ -1643,7 +1807,7 @@ namespace sick_scan
       sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
     }
     /*
-    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0)
+    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0)
     {
       sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
       sopasCmdChain.push_back("\x02sWN LMDscandatacfg 01 00 1 0 0 0 00 0 0 0 1 1\x03");
@@ -1719,39 +1883,6 @@ namespace sick_scan
         sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor " + scalefactor_hex + "\x03";
         sopasCmdChain.push_back(CMD_SET_LMDSCANDATASCALEFACTOR);
       }
-    }
-
-    // Additional startup commands for NAV-350 support
-    if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
-    {
-      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
-      sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_1); // "sMN mNEVAChangeState 1", 1 = standby
-      int nav_operation_mode = 4;
-      rosDeclareParam(nh, "nav_operation_mode", nav_operation_mode);
-      rosGetParam(nh, "nav_operation_mode", nav_operation_mode);
-      switch(nav_operation_mode)
-      {
-      case 0:
-        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_0);
-        break;
-      case 1:
-        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_1);
-        break;
-      case 2:
-        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_2);
-        break;
-      case 3:
-        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_3);
-        break;
-      case 4:
-        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_4);
-        break;
-      default:
-        ROS_WARN_STREAM("Invalid parameter nav_operation_mode = " << nav_operation_mode << ", expected 0, 1, 2, 3 or 4, using default mode 4 (navigation)");
-        sopasCmdChain.push_back(CMD_SET_NAV_OPERATIONAL_MODE_4);
-        break;
-      }
-
     }
 
     return (0);
@@ -1927,7 +2058,7 @@ namespace sick_scan
 
     //TODO remove this and use getUseCfgList instead
     bool NAV3xxOutputRangeSpecialHandling=false;
-    if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0||
+    if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0||
         this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0||
         this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0)
     {
@@ -2370,7 +2501,7 @@ namespace sick_scan
               // Compensate angle shift (min/max angle from config in ros-coordinate system)
               double start_ang_rad = (scancfg.sector_cfg[sector_cnt].start_angle / 10000.0) * (M_PI / 180.0);
               double stop_ang_rad = (scancfg.sector_cfg[sector_cnt].stop_angle / 10000.0) * (M_PI / 180.0);
-              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) // map ros start/stop angle to NAV-3xx logic
+              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0) // map ros start/stop angle to NAV-3xx logic
               {
                 // NAV-310 only supports min/max angles 0 to 360 degree in sensor coordinates. To avoid unexpected results, min/max angles can not be set by configuration.
                 start_ang_rad = 0; // this->config_.min_ang;
@@ -2477,7 +2608,7 @@ namespace sick_scan
       if (this->parser_->getCurrentParamPtr()->getUseScancfgList())
       {
         if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0
-        || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0
+        || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0
         || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
         {
           // scanconfig handling with list now done above via sopasCmdChain,
@@ -2958,7 +3089,7 @@ namespace sick_scan
       }
       if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
       {
-        int filter_echos = 0;
+        int filter_echos = 2;
         // rosDeclareParam(nh, "filter_echos", filter_echos);
         rosGetParam(nh, "filter_echos", filter_echos);
         switch (filter_echos)
@@ -3330,7 +3461,7 @@ namespace sick_scan
       if (this->parser_->getCurrentParamPtr()->getFREchoFilterAvailable())
       {
         char requestEchoSetting[MAX_STR_LEN];
-        int filterEchoSetting = 0;
+        int filterEchoSetting = 2;
         rosDeclareParam(nh, "filter_echos", filterEchoSetting); // filter_echos
         rosGetParam(nh, "filter_echos", filterEchoSetting); // filter_echos
 
@@ -3504,9 +3635,9 @@ namespace sick_scan
       else
       {
         startProtocolSequence.push_back(CMD_START_MEASUREMENT);
+        startProtocolSequence.push_back(CMD_RUN);  // leave user level
+        startProtocolSequence.push_back(CMD_START_SCANDATA);
       }
-      startProtocolSequence.push_back(CMD_RUN);  // leave user level
-      startProtocolSequence.push_back(CMD_START_SCANDATA);
 
       if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 4)  // MRS1104 - start IMU-Transfer
       {
@@ -3666,6 +3797,189 @@ namespace sick_scan
       }
       tmpReply.clear();
 
+    }
+    if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0) // TODO: move to sick_nav_init.cpp...
+    {
+      if (!parseNAV350BinaryUnittest())
+        ROS_ERROR_STREAM("## ERROR NAV350: parseNAV350BinaryUnittest() failed.");
+      std::vector<unsigned char> sopas_response;
+      // NAV-350 initialization sequence
+      if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_ACCESS_MODE_3], &sopas_response, useBinaryCmd) != 0) // re-enter authorized client level
+        return ExitError;
+      if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_1], &sopas_response, useBinaryCmd) != 0) // "sMN mNEVAChangeState 1", 1 = standby
+        return ExitError;
+      if (get2ndSopasResponse(sopas_response, "mNEVAChangeState") != ExitSuccess)
+        return ExitError;
+      // Set the current NAV Layer for Positioning and Mapping
+      int nav_curr_layer = 0;
+      rosDeclareParam(nh, "nav_curr_layer", nav_curr_layer);
+      rosGetParam(nh, "nav_curr_layer", nav_curr_layer);
+      sopasCmdVec[CMD_SET_NAV_CURR_LAYER] = std::string("\x02sWN NEVACurrLayer ") + std::to_string(nav_curr_layer) + "\x03"; // Set the current NAV Layer for Positioning and Mapping
+      if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_CURR_LAYER], &sopas_response, useBinaryCmd) != 0)
+        return ExitError;
+      // Set NAV LandmarkDataFormat, ScanDataFormat and PoseDataFormat
+      if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_LANDMARK_DATA_FORMAT], &sopas_response, useBinaryCmd) != 0)
+        return ExitError;
+      if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_SCAN_DATA_FORMAT], &sopas_response, useBinaryCmd) != 0)
+        return ExitError;
+      if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_POSE_DATA_FORMAT], &sopas_response, useBinaryCmd) != 0) // Set PoseDataFormat: "sWN NPOSPoseDataFormat 1 1"
+        return ExitError;
+      // Optionally do Mapping
+      bool nav_do_initial_mapping = false;
+      rosDeclareParam(nh, "nav_do_initial_mapping", nav_do_initial_mapping);
+      rosGetParam(nh, "nav_do_initial_mapping", nav_do_initial_mapping);
+      if (nav_do_initial_mapping)
+      {
+        if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_ERASE_LAYOUT], &sopas_response, useBinaryCmd) != 0) // Erase mapping layout: "sMN mNLAYEraseLayout 1"
+          return ExitError;
+        if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_2], &sopas_response, useBinaryCmd) != 0) // set operational mode mapping
+          return ExitError;
+        if (get2ndSopasResponse(sopas_response, "mNEVAChangeState") != ExitSuccess)
+          return ExitError;
+        // Configure Mapping: "sWN NMAPMapCfg mean negative x y phi"
+        int nav_map_cfg_mean = 50, nav_map_cfg_neg = 0, nav_map_cfg_x = 0, nav_map_cfg_y = 0, nav_map_cfg_phi = 0, nav_map_cfg_reflector_size = 80;
+        rosDeclareParam(nh, "nav_map_cfg_mean", nav_map_cfg_mean);
+        rosGetParam(nh, "nav_map_cfg_mean", nav_map_cfg_mean);
+        rosDeclareParam(nh, "nav_map_cfg_neg", nav_map_cfg_neg);
+        rosGetParam(nh, "nav_map_cfg_neg", nav_map_cfg_neg);
+        rosDeclareParam(nh, "nav_map_cfg_x", nav_map_cfg_x);
+        rosGetParam(nh, "nav_map_cfg_x", nav_map_cfg_x);
+        rosDeclareParam(nh, "nav_map_cfg_y", nav_map_cfg_y);
+        rosGetParam(nh, "nav_map_cfg_y", nav_map_cfg_y);
+        rosDeclareParam(nh, "nav_map_cfg_phi", nav_map_cfg_phi);
+        rosGetParam(nh, "nav_map_cfg_phi", nav_map_cfg_phi);
+        rosDeclareParam(nh, "nav_map_cfg_reflector_size", nav_map_cfg_reflector_size);
+        rosGetParam(nh, "nav_map_cfg_reflector_size", nav_map_cfg_reflector_size);
+        sopasCmdVec[CMD_SET_NAV_MAP_CFG] = std::string("\x02sWN NMAPMapCfg ") + std::to_string(nav_map_cfg_mean) + " "  + std::to_string(nav_map_cfg_neg) + " "  + std::to_string(nav_map_cfg_x) + " "  + std::to_string(nav_map_cfg_y) + " "  + std::to_string(nav_map_cfg_phi) + " " + "\x03"; // Configure Mapping
+        if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_MAP_CFG], &sopas_response, useBinaryCmd) != 0)
+          return ExitError;
+        // Set reflector size: "sWN NLMDReflSize size"
+        sopasCmdVec[CMD_SET_NAV_REFL_SIZE] = std::string("\x02sWN NLMDReflSize ") + std::to_string(nav_map_cfg_reflector_size) + "\x03"; // Set reflector size
+        if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_REFL_SIZE], &sopas_response, useBinaryCmd) != 0)
+          return ExitError;
+        // Do Mapping: "sMN mNMAPDoMapping"
+        if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_DO_MAPPING], &sopas_response, useBinaryCmd) != 0)
+          return ExitError;
+        // Wait for response "sAN mNMAPDoMapping errorCode landmarkData[...]" (which is sent after the request acknowledge "sMA mNMAPDoMapping")
+        ROS_INFO_STREAM("1. response to mNMAPDoMapping request: " << stripControl(sopas_response, -1));
+        if (get2ndSopasResponse(sopas_response, "mNMAPDoMapping") != ExitSuccess)
+          return ExitError;
+        ROS_INFO_STREAM("2. response to mNMAPDoMapping request: " << stripControl(sopas_response, -1));
+        // Parse LandmarkData
+        sick_scan::NAV350LandmarkDataDoMappingResponse landmarkData;
+        if (!parseNAV350BinaryLandmarkDataDoMappingResponse(sopas_response.data(), (int)sopas_response.size(), landmarkData))
+        {
+          ROS_WARN_STREAM("## ERROR parseNAV350BinaryLandmarkDataDoMappingResponse() failed");
+          return ExitError;
+        }
+        landmarkData.print();
+        // Add LandmarkData for mapping // "sMN mNLAYAddLandmark landmarkData {x y type subtype size layerID {ID}}"
+        if (landmarkData.landmarkDataValid > 0 && landmarkData.landmarkData.reflectors.size())
+        {
+          std::vector<uint8_t> addLandmarkRequestPayload = createNAV350BinaryAddLandmarkRequest(landmarkData.landmarkData, nav_curr_layer);
+          std::vector<uint8_t> addLandmarkRequest = { 0x02, 0x02, 0x02, 0x02, 0, 0, 0, 0 };
+          addLandmarkRequest.insert(addLandmarkRequest.end(), addLandmarkRequestPayload.begin(), addLandmarkRequestPayload.end());
+          setLengthAndCRCinBinarySopasRequest(&addLandmarkRequest);
+          if (sendSopasAndCheckAnswer(addLandmarkRequest, &sopas_response) != 0)
+            return ExitError;
+        }
+        else
+        {
+          ROS_ERROR_STREAM("## ERROR parseNAV350BinaryLandmarkDataDoMappingResponse(): Not enough landmarks detected for initial mapping.");
+          return ExitError;
+        }
+        // Store mapping layout: "sMN mNLAYStoreLayout"
+        if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_STORE_LAYOUT], &sopas_response, useBinaryCmd) != 0)
+          return ExitError;
+      }
+      // Optionally import landmark layout from imk file
+      std::string nav_set_landmark_layout_by_imk_file = "";
+      rosDeclareParam(nh, "nav_set_landmark_layout_by_imk_file", nav_set_landmark_layout_by_imk_file);
+      rosGetParam(nh, "nav_set_landmark_layout_by_imk_file", nav_set_landmark_layout_by_imk_file);
+      if (!nav_set_landmark_layout_by_imk_file.empty())
+      {
+        std::vector<sick_scan::NAV350ImkLandmark> navImkLandmarks = readNAVIMKfile(nav_set_landmark_layout_by_imk_file);
+        if (navImkLandmarks.size() >= 3) // at least 3 reflectors required
+        {
+          if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_ERASE_LAYOUT], &sopas_response, useBinaryCmd) != 0) // Erase mapping layout: "sMN mNLAYEraseLayout 1"
+            return ExitError;
+          if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_2], &sopas_response, useBinaryCmd) != 0) // set operational mode mapping
+            return ExitError;
+          if (get2ndSopasResponse(sopas_response, "mNEVAChangeState") != ExitSuccess)
+            return ExitError;
+          std::vector<uint8_t> addLandmarkRequestPayload = createNAV350BinaryAddLandmarkRequest(navImkLandmarks);
+          std::vector<uint8_t> addLandmarkRequest = { 0x02, 0x02, 0x02, 0x02, 0, 0, 0, 0 };
+          addLandmarkRequest.insert(addLandmarkRequest.end(), addLandmarkRequestPayload.begin(), addLandmarkRequestPayload.end());
+          setLengthAndCRCinBinarySopasRequest(&addLandmarkRequest);
+          if (sendSopasAndCheckAnswer(addLandmarkRequest, &sopas_response) != 0)
+            return ExitError;
+          // Store mapping layout: "sMN mNLAYStoreLayout"
+          if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_STORE_LAYOUT], &sopas_response, useBinaryCmd) != 0)
+            return ExitError;
+        }
+        else if (navImkLandmarks.size() > 0)
+        {
+          ROS_ERROR_STREAM("## ERROR readNAVIMKfile(): Less than 3 landmarks configured in \"" << nav_set_landmark_layout_by_imk_file << "\". At least 3 landmarks required.");
+          return ExitError;
+        }
+        else
+        {
+          ROS_ERROR_STREAM("## ERROR readNAVIMKfile(): Can't read or parse imk file \"" << nav_set_landmark_layout_by_imk_file << "\".");
+          return ExitError;
+        }
+      }
+      // Switch to final operation mode (navigation by default)
+      int nav_operation_mode = 4;
+      rosDeclareParam(nh, "nav_operation_mode", nav_operation_mode);
+      rosGetParam(nh, "nav_operation_mode", nav_operation_mode);
+      enum SOPAS_CMD sopas_op_mode_cmd = CMD_SET_NAV_OPERATIONAL_MODE_4;
+      switch(nav_operation_mode)
+      {
+      case 0:
+        sopas_op_mode_cmd = (CMD_SET_NAV_OPERATIONAL_MODE_0);
+        break;
+      case 1:
+        sopas_op_mode_cmd = (CMD_SET_NAV_OPERATIONAL_MODE_1);
+        break;
+      case 2:
+        sopas_op_mode_cmd = (CMD_SET_NAV_OPERATIONAL_MODE_2);
+        break;
+      case 3:
+        sopas_op_mode_cmd = (CMD_SET_NAV_OPERATIONAL_MODE_3);
+        break;
+      case 4:
+        sopas_op_mode_cmd = (CMD_SET_NAV_OPERATIONAL_MODE_4);
+        break;
+      default:
+        ROS_WARN_STREAM("Invalid parameter nav_operation_mode = " << nav_operation_mode << ", expected 0, 1, 2, 3 or 4, using default mode 4 (navigation)");
+        nav_operation_mode = 4;
+        sopas_op_mode_cmd = (CMD_SET_NAV_OPERATIONAL_MODE_4);
+        break;
+      }
+      if (sendSopasAorBgetAnswer(sopasCmdVec[sopas_op_mode_cmd], &sopas_response, useBinaryCmd) != 0)
+        return ExitError;
+      if (get2ndSopasResponse(sopas_response, "mNEVAChangeState") != ExitSuccess)
+        return ExitError;
+      // NAV-350 data must be polled by sending sopas command "sMN mNPOSGetData wait mask"
+      bool nav_start_polling = true;
+      rosDeclareParam(nh, "nav_start_polling", nav_start_polling);
+      rosGetParam(nh, "nav_start_polling", nav_start_polling);
+      if (!nav_start_polling)
+        ROS_WARN_STREAM("NAV350 Warning: start polling deactivated by configuration, no data will be received unless data polling started externally by sopas command \"sMN mNPOSGetData 1 2\"");
+      for (int retry_cnt = 0; nav_start_polling == true && retry_cnt < 10 && rosOk(); retry_cnt++)
+      {
+        ROS_INFO_STREAM("NAV350: Sending: \"sMN mNPOSGetData 1 2\"");
+        if (sendNAV350mNPOSGetData() != ExitSuccess)
+        {
+          ROS_ERROR_STREAM("## ERROR NAV350: Error sending sMN mNPOSGetData request, retrying ...");
+          rosSleep(1.0);
+        }
+        else
+        {
+          ROS_INFO_STREAM("NAV350: sMN mNPOSGetData request was sent");
+          break;
+        }
+      }
     }
     return ExitSuccess;
   }
@@ -3902,7 +4216,7 @@ namespace sick_scan
     do
     {
       const std::vector<std::string> datagram_keywords = {  // keyword list of datagrams handled here in loopOnce
-        "LMDscandata", "LMDscandatamon",
+        "LMDscandata", "LMDscandatamon", "mNPOSGetData",
         "LMDradardata", "InertialMeasurementUnit", "LIDoutputstate", "LIDinputstate", "LFErec" };
 
       int result = get_datagram(nh, recvTimeStamp, receiveBuffer, 65536, &actual_length, useBinaryProtocol, &packetsInLoop, datagram_keywords);
@@ -4050,9 +4364,14 @@ namespace sick_scan
         ROS_DEBUG_STREAM("SickScanCommon: received " << actual_length << " byte LMDscandatamon (ignored) ..."); // << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length));
         return errorCode; // return success to continue looping
       }
+      else if(memcmp(&receiveBuffer[8], "sMA mNPOSGetData", strlen("sMA mNPOSGetData")) == 0) // NAV-350: method acknowledge, indicates mNPOSGetData has started => wait for the "sAN mNPOSGetData" response
+      {
+        int errorCode = ExitSuccess;
+        ROS_DEBUG_STREAM("NAV350: received " << actual_length << " byte \"sMA mNPOSGetData\", waiting for \"sAN mNPOSGetData\" ...");
+        return errorCode; // return success to continue looping
+      }
       else
       {
-
         ros_sensor_msgs::LaserScan msg;
         sick_scan_msg::Encoder EncoderMsg;
         EncoderMsg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset);
@@ -4136,25 +4455,35 @@ namespace sick_scan
                 }
 #endif
                 // binary message
-                // if (lenVal < actual_length)
-                if (lenVal >= actual_length || actual_length < 64) // scan data message requires at least 64 byte, otherwise this can't be a scan data message
+                if (actual_length > 17 && memcmp(&receiveBuffer[8], "sAN mNPOSGetData ", 17) == 0) // NAV-350 pose and scan data
                 {
+                  NAV350mNPOSData navdata; // NAV-350 pose and scan data
+                  success = handleNAV350BinaryPositionData(receiveBuffer, actual_length, elevAngleX200, elevationAngleInRad, recvTimeStamp, config_.sw_pll_only_publish, config_.time_offset, parser_, numEchos, msg, navdata);
+                  if (!success)
+                    ROS_ERROR_STREAM("## ERROR SickScanCommon::loopOnce(): handleNAV350BinaryPositionData() failed");
+                }
+                else if (lenVal >= actual_length || actual_length < 64) // scan data message requires at least 64 byte, otherwise this can't be a scan data message
+                {
+                  success = false;
                   // warn about unexpected message and ignore all non-scandata messages
                   ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): " << actual_length << " byte message ignored ("
                     << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(actual_length, 64)) << (actual_length>64?"...":"") << ")");
                 }
                 else
                 {
-                  if (!parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevAngleTelegramValToDeg, elevationAngleInRad, recvTimeStamp,
-                    config_.sw_pll_only_publish, config_.use_generation_timestamp, parser_, FireEncoder, EncoderMsg, numEchos, vang_vec, msg))
-                  {
-                      dataToProcess = false;
-                      break;
-                  }
-                  msg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset); // recvTimeStamp updated by software-pll
-                  timeIncrement = msg.time_increment;
-                  echoMask = (1 << numEchos) - 1;
+                  success = parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevAngleTelegramValToDeg, elevationAngleInRad, recvTimeStamp,
+                    config_.sw_pll_only_publish, config_.use_generation_timestamp, parser_, FireEncoder, EncoderMsg, numEchos, vang_vec, msg);
+                  if (!success)
+                    ROS_ERROR_STREAM("## ERROR SickScanCommon::loopOnce(): parseCommonBinaryResultTelegram() failed");
                 }
+                if (!success)
+                {
+                    dataToProcess = false;
+                    break;
+                }
+                msg.header.stamp = recvTimeStamp + rosDurationFromSec(config_.time_offset); // recvTimeStamp updated by software-pll
+                timeIncrement = msg.time_increment;
+                echoMask = (1 << numEchos) - 1;
               }
             }
 
@@ -4445,7 +4774,6 @@ namespace sick_scan
               ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): no echos in measurement message (numEchos=" << numEchos
                 << ", msg.ranges.size()=" << msg.ranges.size() << ", msg.intensities.size()=" << msg.intensities.size() << ")");
             }
-
 
             if (publishPointCloud == true && numValidEchos > 0 && msg.ranges.size() > 0)
             {
@@ -4938,6 +5266,15 @@ namespace sick_scan
     std::string KeyWord16 = "sWN LMDscandatascalefactor"; // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
     std::string KeyWord17 = "sWN GlareDetectionSens"; // LRS4xxx: "sWN GlareDetectionSens"  + { 1 byte sensitivity }  + { 2 byte 0x03 }
     std::string KeyWord18 = "sWN ScanLayerFilter"; // MRS-1000 scan layer activation mask, "sWN ScanLayerFilter <number of layers> <layer 1: on/off> … <layer N: on/off>",  default: all layer activated: "sWN ScanLayerFilter 4 1 1 1 1"
+    std::string KeyWord19 = "sMN mNPOSGetData"; // NAV-350 poll data: "sMN mNPOSGetData 1 2" (sopas arguments: wait = 1, i.e. wait for next pose result), mask = 2, i.e. send pose+reflectors+scan)
+    std::string KeyWord20 = "sMN mNPOSSetPose"; // Set NAV-350 start pose in navigation mode by "sMN mNPOSSetPose X Y Phi"
+    std::string KeyWord21 = "sWN NEVACurrLayer";
+    std::string KeyWord22 = "sWN NMAPMapCfg";
+    std::string KeyWord23 = "sWN NLMDReflSize";
+    std::string KeyWord24 = "sWN NPOSPoseDataFormat";
+    std::string KeyWord25 = "sWN NLMDLandmarkDataFormat";
+    std::string KeyWord26 = "sWN NAVScanDataFormat";
+    std::string KeyWord27 = "sMN mNLAYEraseLayout";
 
     //BBB
 
@@ -5091,7 +5428,7 @@ namespace sick_scan
             buffer[bufferLen] = (std::stoul(hex_str, nullptr, 16) & 0xFF);
         }
 #else
-      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) != 0)
+      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) != 0)
       {
         {
           bufferLen = 18;
@@ -5281,6 +5618,94 @@ namespace sick_scan
           buffer[bufferLen++] = (unsigned char) (0xFF & (scan_filter_cfg.scan_layer_activated[n])); // 1 byte <layer on/off>
       }
     }
+    if (cmdAscii.find(KeyWord19) != std::string::npos && strlen(requestAscii) > KeyWord19.length() + 1)// NAV-350 poll data: "sMN mNPOSGetData 1 2" (sopas arguments: wait = 1, i.e. wait for next pose result), mask = 2, i.e. send pose+reflectors+scan)
+    {
+      // Convert ascii integer args to binary, e.g. "1 2" to 0x0102
+      int args[2] = { 0, 0 };
+      sscanf(requestAscii + KeyWord19.length() + 1, " %d %d", &(args[0]), &(args[1]));
+      buffer[0] = (unsigned char) (0xFF & args[0]);
+      buffer[1] = (unsigned char) (0xFF & args[1]);
+      bufferLen = 2;
+    }
+    if (cmdAscii.find(KeyWord20) != std::string::npos && strlen(requestAscii) > KeyWord20.length() + 1) // Set NAV-350 start pose in navigation mode by "sMN mNPOSSetPose X Y Phi", 3 arguments, each int32_t
+    {
+      int32_t args[3] = { 0, 0, 0 };
+      sscanf(requestAscii + KeyWord20.length() + 1, " %d %d %d", &(args[0]), &(args[1]), &(args[2]));
+      bufferLen = 0;
+      for(int arg_cnt = 0; arg_cnt < 3; arg_cnt++)
+      {
+        buffer[bufferLen + 0] = (unsigned char) (0xFF & (args[arg_cnt] >> 24));
+        buffer[bufferLen + 1] = (unsigned char) (0xFF & (args[arg_cnt] >> 16));
+        buffer[bufferLen + 2] = (unsigned char) (0xFF & (args[arg_cnt] >> 8));
+        buffer[bufferLen + 3] = (unsigned char) (0xFF & (args[arg_cnt] >> 0));
+        bufferLen += 4;
+      }
+    }
+    if (cmdAscii.find(KeyWord21) != std::string::npos && strlen(requestAscii) > KeyWord21.length() + 1) // "sWN NEVACurrLayer 0"
+    {
+      int args[1] = { 0 };
+      sscanf(requestAscii + KeyWord21.length() + 1, " %d", &(args[0]));
+      buffer[0] = (unsigned char) (0xFF & (args[0] >> 8));
+      buffer[1] = (unsigned char) (0xFF & (args[0] >> 0));
+      bufferLen = 2;
+    }
+    if (cmdAscii.find(KeyWord22) != std::string::npos && strlen(requestAscii) > KeyWord22.length() + 1) // "sWN NMAPMapCfg 50 0 0 0 0";
+    {
+      int args[5] = { 0, 0, 0, 0, 0 };
+      sscanf(requestAscii + KeyWord22.length() + 1, " %d %d %d %d %d", &(args[0]), &(args[1]), &(args[2]), &(args[3]), &(args[4]));
+      buffer[0] = (unsigned char) (0xFF & args[0]);
+      buffer[1] = (unsigned char) (0xFF & args[1]);
+      bufferLen = 2;
+      for(int arg_cnt = 2; arg_cnt < 5; arg_cnt++)
+      {
+        buffer[bufferLen + 0] = (unsigned char) (0xFF & (args[arg_cnt] >> 24));
+        buffer[bufferLen + 1] = (unsigned char) (0xFF & (args[arg_cnt] >> 16));
+        buffer[bufferLen + 2] = (unsigned char) (0xFF & (args[arg_cnt] >> 8));
+        buffer[bufferLen + 3] = (unsigned char) (0xFF & (args[arg_cnt] >> 0));
+        bufferLen += 4;
+      }
+    }
+    if (cmdAscii.find(KeyWord23) != std::string::npos && strlen(requestAscii) > KeyWord23.length() + 1) // "sWN NLMDReflSize 80";
+    {
+       int args[1] = { 0 };
+      sscanf(requestAscii + KeyWord23.length() + 1, " %d", &(args[0]));
+      buffer[0] = (unsigned char) (0xFF & (args[0] >> 8));
+      buffer[1] = (unsigned char) (0xFF & (args[0] >> 0));
+      bufferLen = 2;
+    }
+    if (cmdAscii.find(KeyWord24) != std::string::npos && strlen(requestAscii) > KeyWord24.length() + 1) // "NPOSPoseDataFormat 1 1";
+    {
+      int args[2] = { 0, 0 };
+      sscanf(requestAscii + KeyWord24.length() + 1, " %d %d", &(args[0]), &(args[1]));
+      buffer[0] = (unsigned char) (0xFF & (args[0]));
+      buffer[1] = (unsigned char) (0xFF & (args[1]));
+      bufferLen = 2;
+    }
+
+    if (cmdAscii.find(KeyWord25) != std::string::npos && strlen(requestAscii) > KeyWord25.length() + 1) // "sWN NLMDLandmarkDataFormat 0 1 1"
+    {
+      int args[3] = { 0, 0, 0 };
+      sscanf(requestAscii + KeyWord25.length() + 1, " %d %d %d", &(args[0]), &(args[1]), &(args[2]));
+      buffer[0] = (unsigned char) (0xFF & (args[0]));
+      buffer[1] = (unsigned char) (0xFF & (args[1]));
+      buffer[2] = (unsigned char) (0xFF & (args[2]));
+      bufferLen = 3;
+    }
+    if (cmdAscii.find(KeyWord26) != std::string::npos && strlen(requestAscii) > KeyWord26.length() + 1) // "sWN NAVScanDataFormat 1 1"
+    {
+      int args[2] = { 0, 0 };
+      sscanf(requestAscii + KeyWord26.length() + 1, " %d %d", &(args[0]), &(args[1]));
+      buffer[0] = (unsigned char) (0xFF & (args[0]));
+      buffer[1] = (unsigned char) (0xFF & (args[1]));
+      bufferLen = 2;
+    }
+    if (cmdAscii.find(KeyWord27) != std::string::npos && strlen(requestAscii) > KeyWord27.length() + 1) // "sMN mNLAYEraseLayout 1"
+    {
+      int args[1] = { 0 };
+      sscanf(requestAscii + KeyWord27.length() + 1, " %d", &(args[0]));
+      buffer[0] = (unsigned char) (0xFF & (args[0]));
+      bufferLen = 1;
+    }
 
     // copy base command string to buffer
     bool switchDoBinaryData = false;
@@ -5319,28 +5744,34 @@ namespace sick_scan
       requestBinary->push_back(buffer[i]);
     }
 
-    msgLen = requestBinary->size();
-    msgLen -= 8;
-    for (int i = 0; i < 4; i++)
-    {
-      unsigned char bigEndianLen = msgLen & (0xFF << (3 - i) * 8);
-      (*requestBinary)[i + 4] = ((unsigned char) (bigEndianLen)); // HIER WEITERMACHEN!!!!
-    }
-    unsigned char xorVal = 0x00;
-    xorVal = sick_crc8((unsigned char *) (&((*requestBinary)[8])), requestBinary->size() - 8);
-    requestBinary->push_back(xorVal);
-#if 0
-    for (int i = 0; i < requestBinary->size(); i++)
-    {
-      unsigned char c = (*requestBinary)[i];
-      printf("[%c]%02x ", (c < ' ') ? '.' : c, c) ;
-    }
-    printf("\n");
-#endif
+    setLengthAndCRCinBinarySopasRequest(requestBinary);
+
     return (0);
 
   };
 
+  void SickScanCommon::setLengthAndCRCinBinarySopasRequest(std::vector<uint8_t>* requestBinary)
+  {
+
+  int msgLen = (int)requestBinary->size();
+  msgLen -= 8;
+  for (int i = 0; i < 4; i++)
+  {
+    unsigned char bigEndianLen = msgLen & (0xFF << (3 - i) * 8);
+    (*requestBinary)[i + 4] = ((unsigned char) (bigEndianLen)); // HIER WEITERMACHEN!!!!
+  }
+  unsigned char xorVal = 0x00;
+  xorVal = sick_crc8((unsigned char *) (&((*requestBinary)[8])), requestBinary->size() - 8);
+  requestBinary->push_back(xorVal);
+#if 0
+  for (int i = 0; i < requestBinary->size(); i++)
+  {
+    unsigned char c = (*requestBinary)[i];
+    printf("[%c]%02x ", (c < ' ') ? '.' : c, c) ;
+  }
+  printf("\n");
+#endif
+  }
 
   /*!
   \brief checks the current protocol type and gives information about necessary change

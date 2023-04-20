@@ -73,7 +73,7 @@
 #define SICK_SCANNER_RMS_1XXX_NAME "sick_rms_1xxx"
 #define SICK_SCANNER_RMS_2XXX_NAME "sick_rms_2xxx"
 #define SICK_SCANNER_RMS_3XX_NAME "sick_rms_3xx"
-#define SICK_SCANNER_NAV_3XX_NAME "sick_nav_3xx"
+#define SICK_SCANNER_NAV_31X_NAME "sick_nav_31x"
 #define SICK_SCANNER_NAV_350_NAME "sick_nav_350"
 #define SICK_SCANNER_NAV_2XX_NAME "sick_nav_2xx"
 #define SICK_SCANNER_TIM_4XX_NAME "sick_tim_4xx"
@@ -81,7 +81,9 @@
 #define SICK_SCANNER_LRS_36x0_NAME "sick_lrs_36x0"
 #define SICK_SCANNER_LRS_36x1_NAME "sick_lrs_36x1"
 #define SICK_SCANNER_OEM_15XX_NAME "sick_oem_15xx"
-#define SICK_SCANNER_SCANSEGMENT_XD_NAME "sick_multiscan" // "sick_scansegment_xd"
+#define SICK_SCANNER_SCANSEGMENT_XD_NAME "sick_multiscan" // "sick_scansegment_xd", Multiscan126
+#define SICK_SCANNER_PICOSCAN_NAME "sick_picoscan" // picoScan150, part of sick_scansegment_xd family
+
 #include "abstract_parser.h"
 
 #include "sick_scan/sick_scan_common.h"
@@ -271,7 +273,7 @@ namespace sick_scan
     std::string scannerType;
     std::vector<std::string> allowedScannerNames;
     std::vector<ScannerBasicParam> basicParams;
-    ScannerBasicParam *currentParamSet;
+    ScannerBasicParam *currentParamSet = 0;
     RangeFilterResultHandling m_range_filter_handling = RANGE_FILTER_DEACTIVATED;
   };
 

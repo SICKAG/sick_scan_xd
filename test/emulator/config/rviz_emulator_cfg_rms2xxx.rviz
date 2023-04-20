@@ -88,7 +88,7 @@ Visualization Manager:
         Min Value: -10
         Value: true
       Axis: Z
-      Channel Name: objLen
+      Channel Name: objId
       Class: rviz/PointCloud2
       Color: 255; 255; 255
       Color Transformer: Intensity
@@ -183,4 +183,4 @@ Window Geometry:
     collapsed: true
   Width: 1359
   X: 718
-  Y: 189
+  Y: 152

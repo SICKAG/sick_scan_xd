@@ -51,7 +51,10 @@
  *
  */
 #include <cstring>
+#include <sick_scan/sick_ros_wrapper.h>
 #include "sick_scansegment_xd/config.h"
+#include <sick_scan/sick_scan_common_tcp.h>
+#include <sick_scan/sick_generic_parser.h>
 
 #define ROS_DECL_GET_PARAMETER(node,name,value) do{rosDeclareParam((node),(name),(value));rosGetParam((node),(name),(value));}while(false)
 
@@ -107,6 +110,19 @@ static bool setOptionalArgument(const std::map<std::string, std::string>& key_va
     return false;
 }
 
+/** Lookup a table of optional key value pairs and overwrite argument if key found in table */
+static bool setOptionalArgument(const std::map<std::string, std::string>& key_value_pairs, const std::string& key, double& argument)
+{
+    std::string str_argument;
+    if (setOptionalArgument(key_value_pairs, key, str_argument) && !str_argument.empty())
+    {
+        argument = std::stod(str_argument);
+        ROS_INFO_STREAM(key << "=" << argument << " set by commandline");
+        return true;
+    }
+    return false;
+}
+
 /*
  * @brief Default constructor, initializes the configuration with default values
  */
@@ -116,8 +132,10 @@ sick_scansegment_xd::Config::Config()
     udp_sender = "";                    // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan136 lidar or multiScan136 emulator
     udp_port = 2115;                    // default udp port for multiScan136 resp. multiScan136 emulator is 2115
     publish_topic = "/cloud";           // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
-    publish_topic_all_segments = "/cloud_360"; // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
-    segment_count = 12;                 // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
+    publish_topic_all_segments = "/cloud_fullframe"; // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
+    //segment_count = 12;               // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
+    all_segments_min_deg = -180;        // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
+    all_segments_max_deg = +180;        // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan), -134...+135 for picoscan150 (270 deg fullscan)
     publish_frame_id = "world";         // frame id of ros PointCloud2 messages, default: "world"
     udp_input_fifolength = 20;          // max. udp input fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
     msgpack_output_fifolength = 20;     // max. msgpack output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
@@ -147,8 +165,8 @@ sick_scansegment_xd::Config::Config()
     host_set_FREchoFilter = false;                              // If true, FREchoFilter is set at startup (default: false)
     host_LFPangleRangeFilter = "0 -180.0 +180.0 -90.0 +90.0 1"; // Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
     host_set_LFPangleRangeFilter = false;                       // If true, LFPangleRangeFilter is set at startup (default: false)
-    host_LFPlayerFilter = "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1";  // Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
-    host_set_LFPlayerFilter = false;                            // If true, LFPlayerFilter is set at startup (default: false)
+    host_LFPlayerFilter = "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1";  // (Multiscan136 only, not for picoscan) Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+    host_set_LFPlayerFilter = false;                            // If true (Multiscan136 only, always false for picoscan), LFPlayerFilter is set at startup (default: false)
 
     // msgpack validation default settings
     msgpack_validator_enabled = true; // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
@@ -211,12 +229,15 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
 {
     node = _node;
 
+    ROS_DECL_GET_PARAMETER(node, "scanner_type", scanner_type);
     ROS_DECL_GET_PARAMETER(node, "hostname", hostname);
     ROS_DECL_GET_PARAMETER(node, "udp_sender", udp_sender);
     ROS_DECL_GET_PARAMETER(node, "udp_port", udp_port);
     ROS_DECL_GET_PARAMETER(node, "publish_topic", publish_topic);
     ROS_DECL_GET_PARAMETER(node, "publish_topic_all_segments", publish_topic_all_segments);
-    ROS_DECL_GET_PARAMETER(node, "segment_count", segment_count);
+    // ROS_DECL_GET_PARAMETER(node, "segment_count", segment_count);
+    ROS_DECL_GET_PARAMETER(node, "all_segments_min_deg", all_segments_min_deg);
+    ROS_DECL_GET_PARAMETER(node, "all_segments_max_deg", all_segments_max_deg);
     ROS_DECL_GET_PARAMETER(node, "publish_frame_id", publish_frame_id);
     ROS_DECL_GET_PARAMETER(node, "udp_input_fifolength", udp_input_fifolength);
     ROS_DECL_GET_PARAMETER(node, "msgpack_output_fifolength", msgpack_output_fifolength);
@@ -242,8 +263,16 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "host_set_FREchoFilter", host_set_FREchoFilter);
     ROS_DECL_GET_PARAMETER(node, "host_LFPangleRangeFilter", host_LFPangleRangeFilter);
     ROS_DECL_GET_PARAMETER(node, "host_set_LFPangleRangeFilter", host_set_LFPangleRangeFilter);
+    if (scanner_type != SICK_SCANNER_PICOSCAN_NAME)
+    {
     ROS_DECL_GET_PARAMETER(node, "host_LFPlayerFilter", host_LFPlayerFilter);
     ROS_DECL_GET_PARAMETER(node, "host_set_LFPlayerFilter", host_set_LFPlayerFilter);
+    }
+    else
+    {
+        host_LFPlayerFilter = "";
+        host_set_LFPlayerFilter = false;
+    }
     // msgpack validation settings
     std::string str_msgpack_validator_required_echos = "0";
     std::string str_msgpack_validator_valid_segments = "0 1 2 3 4 5 6 7 8 9 10 11";
@@ -343,7 +372,9 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "udp_port", udp_port);
     setOptionalArgument(cli_parameter_map, "publish_topic", publish_topic);
     setOptionalArgument(cli_parameter_map, "publish_topic_all_segments", publish_topic_all_segments);
-    setOptionalArgument(cli_parameter_map, "segment_count", segment_count);
+    // setOptionalArgument(cli_parameter_map, "segment_count", segment_count);
+    setOptionalArgument(cli_parameter_map, "all_segments_min_deg", all_segments_min_deg);
+    setOptionalArgument(cli_parameter_map, "all_segments_max_deg", all_segments_max_deg);
     setOptionalArgument(cli_parameter_map, "publish_frame_id", publish_frame_id);
     setOptionalArgument(cli_parameter_map, "udp_input_fifolength", udp_input_fifolength);
     setOptionalArgument(cli_parameter_map, "msgpack_output_fifolength", msgpack_output_fifolength);
@@ -405,11 +436,14 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
 void sick_scansegment_xd::Config::PrintConfig(void)
 {
     ROS_INFO_STREAM("sick_scansegment_xd configuration:");
+    ROS_INFO_STREAM("scanner_type:                     " << scanner_type);
     ROS_INFO_STREAM("udp_sender:                       " << udp_sender);
     ROS_INFO_STREAM("udp_port:                         " << udp_port);
     ROS_INFO_STREAM("publish_topic:                    " << publish_topic);
     ROS_INFO_STREAM("publish_topic_all_segments:       " << publish_topic_all_segments);
-    ROS_INFO_STREAM("segment_count:                    " << segment_count);
+    // ROS_INFO_STREAM("segment_count:                    " << segment_count);
+    ROS_INFO_STREAM("all_segments_min_deg:             " << all_segments_min_deg);
+    ROS_INFO_STREAM("all_segments_max_deg:             " << all_segments_max_deg);
     ROS_INFO_STREAM("publish_frame_id:                 " << publish_frame_id);
     ROS_INFO_STREAM("udp_input_fifolength:             " << udp_input_fifolength);
     ROS_INFO_STREAM("msgpack_output_fifolength:        " << msgpack_output_fifolength);

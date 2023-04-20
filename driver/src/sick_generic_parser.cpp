@@ -504,7 +504,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     allowedScannerNames.push_back(SICK_SCANNER_RMS_1XXX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_RMS_2XXX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_RMS_3XX_NAME); // Radar scanner
-    allowedScannerNames.push_back(SICK_SCANNER_NAV_3XX_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_NAV_31X_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_350_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_2XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_TIM_4XX_NAME);
@@ -512,6 +512,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     allowedScannerNames.push_back(SICK_SCANNER_LRS_36x1_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_OEM_15XX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_SCANSEGMENT_XD_NAME);
+    allowedScannerNames.push_back(SICK_SCANNER_PICOSCAN_NAME);
     basicParams.resize(allowedScannerNames.size()); // resize to number of supported scanner types
     for (int i = 0; i <
                     (int) basicParams.size(); i++) // set specific parameter for each scanner type - scanner type is identified by name
@@ -875,7 +876,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
       }
-      if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_3XX_NAME) == 0) // Nav 3xx
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0) // Nav 3xx
       {
         basicParams[i].setNumberOfMaximumEchos(1);
         basicParams[i].setNumberOfLayers(1);
@@ -898,11 +899,11 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setWaitForReady(true);
         basicParams[i].setFREchoFilterAvailable(false);
       }
-      if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0) // TODO: NAV-350 support
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
       {
         basicParams[i].setNumberOfMaximumEchos(1);
         basicParams[i].setNumberOfLayers(1);
-        basicParams[i].setNumberOfShots(2880);
+        basicParams[i].setNumberOfShots(1440);
         basicParams[i].setAngularDegreeResolution(0.250);
         basicParams[i].setExpectedFrequency(8.0);
         basicParams[i].setUseBinaryProtocol(true);
@@ -912,7 +913,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setEncoderMode(-1);
         basicParams[i].setImuEnabled(false);
         basicParams[i].setScanAngleShift(-M_PI);
-        basicParams[i].setScanMirroredAndShifted(false);
+        basicParams[i].setScanMirroredAndShifted(true);
         basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
         basicParams[i].setMaxEvalFields(0);
         basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
@@ -990,9 +991,10 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
       }
-      if (basicParams[i].getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0)
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0 
+      || basicParams[i].getScannerName().compare(SICK_SCANNER_PICOSCAN_NAME) == 0)
       {
-        // SCANSEGMENT_XD multiScan or picoScan handled by msgpack_converter and msgpack_exporter
+        // SCANSEGMENT_XD (Multiscan 136, picoscan150) handled by msgpack_converter and msgpack_exporter
       }
     }
 

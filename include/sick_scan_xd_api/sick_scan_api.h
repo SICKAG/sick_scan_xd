@@ -108,12 +108,12 @@ typedef struct SickScanPointFieldMsgType // equivalent to ros::sensor_msgs::Poin
 {
   // SickScanPointFieldArray is an array of SickScanPointFieldMsg, which defines the structure of the binary data of a SickScanPointCloudMsg.
   // SickScanPointFieldMsg for pointclouds in cartesian coordinates with fields (x, y, z, intensity):
-  //     [ SickScanPointFieldMsg(name="x", offset=0, datatype=FLOAT32, count=1), 
+  //     [ SickScanPointFieldMsg(name="x", offset=0, datatype=FLOAT32, count=1),
   //       SickScanPointFieldMsg(name="y", offset=4, datatype=FLOAT32, count=1),
   //       SickScanPointFieldMsg(name="z", offset=8, datatype=FLOAT32, count=1),
   //       SickScanPointFieldMsg(name="intensity", offset=12, datatype=FLOAT32, count=1) ]
   // SickScanPointFieldMsg for pointclouds in polar coordinates with fields (range, azimuth, elevation, intensity):
-  //     [ SickScanPointFieldMsg(name="range", offset=0, datatype=FLOAT32, count=1), 
+  //     [ SickScanPointFieldMsg(name="range", offset=0, datatype=FLOAT32, count=1),
   //       SickScanPointFieldMsg(name="azimuth", offset=4, datatype=FLOAT32, count=1),
   //       SickScanPointFieldMsg(name="elevation", offset=8, datatype=FLOAT32, count=1),
   //       SickScanPointFieldMsg(name="intensity", offset=12, datatype=FLOAT32, count=1) ]
@@ -355,6 +355,83 @@ typedef struct SickScanVisualizationMarkerMsgType // equivalent to visualization
   SickScanVisualizationMarkerBuffer markers;      // Array of SickScanVisualizationMarkers
 } SickScanVisualizationMarkerMsg;
 
+typedef struct SickScanNavReflectorType       // NAV-350 reflector
+{
+  uint16_t pos_valid;
+  float pos_x;                            // reflector x-position in m, if pos_valid > 0
+  float pos_y;                            // reflector y-position in m, if pos_valid > 0
+  uint16_t cartesian_valid;
+  int32_t cartesian_x;                    // cartesian x in mm, if cartesian_valid > 0
+  int32_t cartesian_y;                    // cartesian y in mm, if cartesian_valid > 0
+  uint16_t polar_valid;
+  uint32_t polar_dist;                    // polar dist in mm, if polar_valid > 0
+  uint32_t polar_phi;                     // polar phi in mdeg, if polar_valid > 0
+  uint16_t opt_valid;
+  // Optional reflector data, if opt_valid > 0
+  uint16_t opt_local_id;
+  uint16_t opt_global_id;
+  uint8_t opt_type;
+  uint16_t opt_subtype;
+  uint16_t opt_quality;
+  uint32_t opt_timestamp;                 // lidar timestamp in milliseconds
+  uint16_t opt_size;
+  uint16_t opt_hitcount;
+  uint16_t opt_meanecho;
+  uint16_t opt_startindex;
+  uint16_t opt_endindex;
+  uint32_t opt_timestamp_sec;             // timestamp converted to system time (seconds part, 0 if timestamp not valid)
+  uint32_t opt_timestamp_nsec;            // timestamp converted to system time (nanoseconds part, 0 if timestamp not valid)
+} SickScanNavReflector;
+
+typedef struct SickScanNavReflectorBufferType // Array of SickScanNavReflectors
+{
+  uint64_t capacity;                          // Number of allocated elements, i.e. max. number of elements in buffer, allocated buffer size is capacity * sizeof(SickScanNavReflector)
+  uint64_t size;                              // Number of currently used elements in the buffer
+  SickScanNavReflector* buffer;               // Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
+} SickScanNavReflectorBuffer;
+
+typedef struct SickScanNavPoseLandmarkMsgType // NAV-350 pose and landmark message
+{
+  uint16_t pose_valid;
+  // NAV pose, if pose_valid > 0:
+  float pose_x;                           // x-position in ros coordinates in m
+  float pose_y;                           // y-position in ros coordinates in m
+  float pose_yaw;                         // yaw angle in ros coordinates in radians
+  uint32_t pose_timestamp_sec;            // timestamp of pose converted to system time (seconds part, 0 if timestamp not valid)
+  uint32_t pose_timestamp_nsec;           // timestamp of pose converted to system time (nanoseconds part, 0 if timestamp not valid)
+  int32_t pose_nav_x;                     // x-position in lidar coordinates in mm
+  int32_t pose_nav_y;                     // y-position in lidar coordinates in mm
+  uint32_t pose_nav_phi;                  // orientation in lidar coordinates in 0 ... 360000 mdeg
+  uint16_t pose_opt_valid;
+  // Optional NAV pose data, if pose_opt_valid > 0:
+  uint8_t pose_opt_output_mode;
+  uint32_t pose_opt_timestamp;            // lidar timestamp in milliseconds
+  int32_t pose_opt_mean_dev;
+  uint8_t pose_opt_nav_mode;
+  uint32_t pose_opt_info_state ;
+  uint8_t pose_opt_quant_used_reflectors;
+  // NAV reflectors:
+  SickScanNavReflectorBuffer reflectors;      // Array of SickScanNavReflectors
+} SickScanNavPoseLandmarkMsg;
+
+typedef struct SickScanNavOdomVelocityMsgType // NAV350 velocity/odometry data, see NAVOdomVelocity.msg
+{
+  float vel_x;        // x-component of velocity in the coordinate system defined by coordbase (i.e. in lidar coordinate for coordbase=0) in m/s, -32.0 ... +32.0 m/s
+  float vel_y;        // y-component of velocity in the coordinate system defined by coordbase (i.e. in lidar coordinate for coordbase=0) in m/s, -32.0 ... +32.0 m/s
+  float omega;        // angular velocity of the NAV350 in radians/s, -2*PI ... +2*PI rad/s
+  uint32_t timestamp; // timestamp of the Velocity vector related to the NAV350 clock
+  uint8_t coordbase;  // coordinate system of the velocity vector (local or global), 0 = local coordinate system of the NAV350, 1 = absolute coordinate system
+} SickScanNavOdomVelocityMsg;
+
+typedef struct SickScanOdomVelocityMsgType // Velocity/odometry data in system coordinates and time
+{
+  float vel_x;             // x-component of velocity in ros coordinates in m/s
+  float vel_y;             // y-component of velocity in ros coordinates in m/s
+  float omega;             // angular velocity in radians/s
+  uint32_t timestamp_sec;  // seconds part of system timestamp of the odometry data
+  uint32_t timestamp_nsec; // nanoseconds part of system timestamp of the odometry data
+} SickScanOdomVelocityMsg;
+
 /*
 *  Callback declarations
 */
@@ -367,6 +444,7 @@ typedef void(* SickScanLIDoutputstateMsgCallback)(SickScanApiHandle apiHandle, c
 typedef void(* SickScanRadarScanCallback)(SickScanApiHandle apiHandle, const SickScanRadarScan* msg);
 typedef void(* SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
 typedef void(* SickScanVisualizationMarkerCallback)(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg);
+typedef void(* SickScanNavPoseLandmarkCallback)(SickScanApiHandle apiHandle, const SickScanNavPoseLandmarkMsg* msg);
 
 /*
 *  Functions to initialize and close the API and a lidar
@@ -433,6 +511,10 @@ SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(S
 SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
 SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
 
+// Register / deregister a callback for SickScanNavPoseLandmark messages
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+
 /*
 *  Polling functions
 */
@@ -465,6 +547,14 @@ SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickSca
 // Wait for and return the next VisualizationMarker message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
 SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
 SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
+
+// Wait for and return the next SickScanNavPoseLandmark message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg);
+
+// Send odometry data to NAV350
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiNavOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg); // odometry data in nav coordinates
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg); // odometry data in system coordinates
 
 /*
 *  Error codes, return values of SickScanApi-functions

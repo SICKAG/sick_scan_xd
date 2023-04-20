@@ -18,8 +18,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 1:
    popd
    rm -rf ./build ./build_isolated/ ./devel ./devel_isolated/ ./install ./install_isolated/ ./log/ # remove any files from a previous build
    ```
-
-3. Build msgpack11 library (required only once for multiScan136/sick_scansegment_xd):
+3. Build msgpack11 library (required only once for multiScan136/sick_scansegment_xd/picoScan150):
    ```
    mkdir -p ./build/msgpack11
    pushd ./build/msgpack11
@@ -43,7 +42,7 @@ Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not nee
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0 -Wno-dev
    ```
 
-Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd. If you do not need or want to support multiScan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without multiScan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd/picoScan150. If you do not need or want to support multiScan136/sick_scansegment_xd/picoScan150, you can skip building msgpack. To build sick_generic_caller without multiScan136/sick_scansegment_xd/picoScan150 support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DSCANSEGMENT_XD=0 -Wno-dev
    ```

@@ -134,11 +134,17 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
     * Windows native: `sick_generic_caller sick_nav_2xx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_2xx.launch`
 - For NAV310:
-    * Linux native:   `sick_generic_caller sick_nav_3xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_nav_3xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
-    * Windows native: `sick_generic_caller sick_nav_3xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
+    * Linux native:   `sick_generic_caller sick_nav_31x.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_nav_31x.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_31x.launch`
+    * Windows native: `sick_generic_caller sick_nav_31x.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_31x.launch`
+- For NAV350:
+    * Linux native:   `sick_generic_caller sick_nav_350.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_nav_350.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
+    * Windows native: `sick_generic_caller sick_nav_350.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
 - For RMS1xxx-family:
     * Linux native:   `sick_generic_caller sick_rms_1xxx.launch`
     * Linux ROS-1:    `roslaunch sick_scan sick_rms_1xxx.launch`
@@ -152,11 +158,18 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
     * Windows native: `sick_generic_caller sick_rms_2xxx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_2xxx.launch`
 - For multiScan136 (sick_scansegement_xd):
-    * Linux native:   `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-1:    `roslaunch sick_scan sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-2:    `ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Windows native: `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Windows ROS-2:  `ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux native:   `sick_generic_caller sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-1:    `roslaunch sick_scan sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-2:    `ros2 launch sick_scan sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows native: `sick_generic_caller sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows ROS-2:  `ros2 launch sick_scan sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * `hostname` is the ip-address of the lidar, `udp_receiver_ip` is the ip-address of the receiver (i.e. the ip of the computer running sick_generic_caller).
+- For picoScan150:
+    * Linux native:   `sick_generic_caller sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-1:    `roslaunch sick_scan sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-2:    `ros2 launch sick_scan sick_picoscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows native: `sick_generic_caller sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows ROS-2:  `ros2 launch sick_scan sick_picoscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * `hostname` is the ip-address of the lidar, `udp_receiver_ip` is the ip-address of the receiver (i.e. the ip of the computer running sick_generic_caller).
 
 Common commandline options are
@@ -313,7 +326,7 @@ ros2 service call /SCsoftreset sick_scan/srv/SCsoftresetSrv "{}"     # save curr
 
 Use ros service `SickScanExit` to stop the scanner and driver:
 ```
-rosservice call /sick_nav_3xx/SickScanExit "{}" # stop scanner and driver on ROS-1
+rosservice call /sick_nav_31x/SickScanExit "{}" # stop scanner and driver on ROS-1
 ros2 service call /SickScanExit sick_scan/srv/SickScanExitSrv "{}" # stop scanner and driver on ROS-2
 ```
 

@@ -349,7 +349,7 @@ bool sick_scan::SickScanServices::sendSopasCmdCheckResponse(const std::string& s
 /*!
 * Sends the multiScan136 start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
 */
-bool sick_scan::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port)
+bool sick_scan::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type)
 {
   std::stringstream ip_stream(hostname);
   std::string ip_token;
@@ -379,12 +379,14 @@ bool sick_scan::SickScanServices::sendMultiScanStartCmd(const std::string& hostn
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEthSettings 1\") failed.");
     return false;
   }
-
-  // if (!sendSopasCmdCheckResponse("sWN ScanDataFormatSettings 1 1", "sWA ScanDataFormatSettings")) // set scan data output format to MSGPACK
-  if (!sendSopasCmdCheckResponse("sWN ScanDataFormat 1", "sWA ScanDataFormat") // set scan data output format to MSGPACK
-   || !sendSopasCmdCheckResponse("sWN ScanDataPreformatting 1", "sWA ScanDataPreformatting"))
+  if (!sendSopasCmdCheckResponse("sWN ScanDataFormat 1", "sWA ScanDataFormat")) // set scan data output format to MSGPACK
   {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataFormat 1\") and/or sendSopasCmdCheckResponse(\"sWN ScanDataPreformatting 1\") failed.");
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiscanStartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataFormat 1\") failed.");
+    return false;
+  }
+  if (scanner_type == SICK_SCANNER_SCANSEGMENT_XD_NAME && !sendSopasCmdCheckResponse("sWN ScanDataPreformatting 1", "sWA ScanDataPreformatting")) // ScanDataPreformatting for multiScan136 only
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiscanStartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataPreformatting 1\") failed.");
     return false;
   }
   if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 1", "sWA ScanDataEnable")) // enable scan data output
@@ -497,13 +499,26 @@ std::string sick_scan::SickScanServices::convertFloatToHexString(float value, bo
 * @param[out] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
 * @param[out] msgpack_validator_filter_settings; // filter settings for msgpack validator: required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
 */
-bool sick_scan::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter, sick_scansegment_xd::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings)
+bool sick_scan::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter, 
+  sick_scansegment_xd::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings, const std::string& scanner_type)
 {
   std::vector<std::vector<unsigned char>> sopasRepliesBin;
   std::vector<std::string> sopasRepliesString;
 
   // Query FREchoFilter, LFPangleRangeFilter and LFPlayerFilter settings
-  std::vector<std::string> sopasCommands = { "FREchoFilter", "LFPangleRangeFilter", "LFPlayerFilter" };
+  bool enableFREchoFilter = true, enableLFPangleRangeFilter = true, enableLFPlayerFilter = true;
+  if (scanner_type == SICK_SCANNER_PICOSCAN_NAME) // LFPangleRangeFilter and LFPlayerFilter not supported by picoscan150
+  {
+    enableLFPangleRangeFilter = false;
+    enableLFPlayerFilter = false;
+  }
+  std::vector<std::string> sopasCommands;
+  if (enableFREchoFilter)
+    sopasCommands.push_back("FREchoFilter");
+  if (enableLFPangleRangeFilter)
+    sopasCommands.push_back("LFPangleRangeFilter");
+  if (enableLFPlayerFilter)
+    sopasCommands.push_back("LFPlayerFilter");
   for(int n = 0; n < sopasCommands.size(); n++)
   {
     std::string sopasRequest = "sRN " + sopasCommands[n];
@@ -531,60 +546,72 @@ bool sick_scan::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoF
     ROS_INFO_STREAM("SickScanServices::queryMultiScanFiltersettings(): " << sopasCommands[n] << ": \"" << parameterString << "\" = {" << sick_scansegment_xd::util::printVector(parameterToken, ",") << "}");
   }
 
-  // Parse FREchoFilter
-  if(sopasCommands.size() > 0 && sopasTokens[0].size() == 1)
-  {
-    host_FREchoFilter = std::stoi(sopasTokens[0][0]);
-  }
-  else
-  {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMultiScanFiltersettings(): parse error in FREchoFilter");
-    return false;
-  }
-
-  // Parse LFPangleRangeFilter
   std::vector<float> multiscan_angles_deg;
-  if(sopasCommands.size() > 1 && sopasTokens[1].size() == 6)
-  {
-    std::stringstream parameter;
-    int filter_enabled = std::stoi(sopasTokens[1][0]); // <enabled>
-    parameter << filter_enabled;
-    for(int n = 1; n < 5; n++) // <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop>
-    {
-      float angle_deg = (convertHexStringToFloat(sopasTokens[1][n], SCANSEGMENT_XD_SOPAS_ARGS_BIG_ENDIAN) * 180.0 / M_PI);
-      parameter << " " << angle_deg;
-      if(filter_enabled)
-        multiscan_angles_deg.push_back(angle_deg);
-    }
-    parameter << " " << sopasTokens[1][5]; // <beam_increment>
-    host_LFPangleRangeFilter = parameter.str();
-  }
-  else
-  {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMultiScanFiltersettings(): parse error in LFPangleRangeFilter");
-    return false;
-  }
-
-  // Parse LFPlayerFilter
   std::vector<int> layer_active_vector;
-  if(sopasCommands.size() > 2 && sopasTokens[2].size() == 17)
+  for(int sopasCommandCnt = 0; sopasCommandCnt < sopasCommands.size(); sopasCommandCnt++)
   {
-    std::stringstream parameter;
-    int filter_enabled = std::stoi(sopasTokens[2][0]); // <enabled>
-    parameter << filter_enabled;
-    for(int n = 1; n < sopasTokens[2].size(); n++)
+    const std::string& sopasCommand = sopasCommands[sopasCommandCnt];
+    const std::vector<std::string>& sopasToken = sopasTokens[sopasCommandCnt];
+
+    if (sopasCommand == "FREchoFilter") // Parse FREchoFilter
     {
-      int layer_active = std::stoi(sopasTokens[2][n]);
-      if(filter_enabled)
-        layer_active_vector.push_back(layer_active);
-      parameter << " " << layer_active;
+      if(sopasToken.size() == 1)
+      {
+        host_FREchoFilter = std::stoi(sopasToken[0]);
+      }
+      else
+      {
+        ROS_ERROR_STREAM("## ERROR SickScanServices::queryMultiScanFiltersettings(): parse error in FREchoFilter");
+        return false;
+      }
     }
-    host_LFPlayerFilter = parameter.str();
-  }
-  else
-  {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::queryMultiScanFiltersettings(): parse error in LFPlayerFilter");
-    return false;
+
+    if (sopasCommand == "LFPangleRangeFilter") // Parse LFPangleRangeFilter
+    {
+      if(sopasToken.size() == 6)
+      {
+        std::stringstream parameter;
+        int filter_enabled = std::stoi(sopasToken[0]); // <enabled>
+        parameter << filter_enabled;
+        for(int n = 1; n < 5; n++) // <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop>
+        {
+          float angle_deg = (convertHexStringToFloat(sopasToken[n], SCANSEGMENT_XD_SOPAS_ARGS_BIG_ENDIAN) * 180.0 / M_PI);
+          parameter << " " << angle_deg;
+          if(filter_enabled)
+            multiscan_angles_deg.push_back(angle_deg);
+        }
+        parameter << " " << sopasToken[5]; // <beam_increment>
+        host_LFPangleRangeFilter = parameter.str();
+      }
+      else
+      {
+        ROS_ERROR_STREAM("## ERROR SickScanServices::queryMultiScanFiltersettings(): parse error in LFPangleRangeFilter");
+        return false;
+      }
+    }
+
+    if (sopasCommand == "LFPlayerFilter") // Parse LFPlayerFilter
+    {
+      if(sopasToken.size() == 17)
+      {
+        std::stringstream parameter;
+        int filter_enabled = std::stoi(sopasToken[0]); // <enabled>
+        parameter << filter_enabled;
+        for(int n = 1; n < sopasToken.size(); n++)
+        {
+          int layer_active = std::stoi(sopasToken[n]);
+          if(filter_enabled)
+            layer_active_vector.push_back(layer_active);
+          parameter << " " << layer_active;
+        }
+        host_LFPlayerFilter = parameter.str();
+      }
+      else
+      {
+        ROS_ERROR_STREAM("## ERROR SickScanServices::queryMultiScanFiltersettings(): parse error in LFPlayerFilter");
+        return false;
+      }
+    }
   }
 
   // Set filter settings for validation of msgpack data, i.e. set config.msgpack_validator_required_echos, config.msgpack_validator_azimuth_start, config.msgpack_validator_azimuth_end,
@@ -635,10 +662,18 @@ bool sick_scan::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoF
 * @param[in] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
 * @param[in] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
 */
-bool sick_scan::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter)
+bool sick_scan::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter, const std::string& scanner_type)
+
 {
+  bool enableFREchoFilter = true, enableLFPangleRangeFilter = true, enableLFPlayerFilter = true;
+  if (scanner_type == SICK_SCANNER_PICOSCAN_NAME) // LFPangleRangeFilter and LFPlayerFilter not supported by picoscan150
+  {
+    enableLFPangleRangeFilter = false;
+    enableLFPlayerFilter = false;
+  }
+
   // Write FREchoFilter
-  if(host_FREchoFilter >= 0) // otherwise not configured
+  if(enableFREchoFilter && host_FREchoFilter >= 0) // otherwise not configured or supported
   {
     std::string sopasRequest = "sWN FREchoFilter " + std::to_string(host_FREchoFilter), sopasExpectedResponse = "sWA FREchoFilter";
     if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))
@@ -649,7 +684,7 @@ bool sick_scan::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFi
   }
 
   // Write LFPangleRangeFilter
-  if(!host_LFPangleRangeFilter.empty()) // otherwise not configured
+  if(enableLFPangleRangeFilter && !host_LFPangleRangeFilter.empty()) // otherwise not configured or supported
   {
     // convert deg to rad and float to hex
     std::vector<std::string> parameter_token;
@@ -680,7 +715,7 @@ bool sick_scan::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFi
   }
 
   // Write LFPlayerFilter
-  if(!host_LFPlayerFilter.empty()) // otherwise not configured
+  if(enableLFPlayerFilter && !host_LFPlayerFilter.empty()) // otherwise not configured or supported
   {
     std::string sopasRequest = "sWN LFPlayerFilter " + host_LFPlayerFilter, sopasExpectedResponse = "sWA LFPlayerFilter";
     if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))

@@ -149,6 +149,24 @@ static SickScanApiWaitNextVisualizationMarkerMsg_PROCTYPE ptSickScanApiWaitNextV
 typedef int32_t(*SickScanApiFreeVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
 static SickScanApiFreeVisualizationMarkerMsg_PROCTYPE ptSickScanApiFreeVisualizationMarkersg = 0;
 
+typedef int32_t(*SickScanApiRegisterNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+static SickScanApiRegisterNavPoseLandmarkMsg_PROCTYPE ptSickScanApiRegisterNavPoseLandmarkMsg = 0;
+
+typedef int32_t(*SickScanApiDeregisterNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+static SickScanApiDeregisterNavPoseLandmarkMsg_PROCTYPE ptSickScanApiDeregisterNavPoseLandmarkMsg = 0;
+
+typedef int32_t(*SickScanApiWaitNextNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec);
+static SickScanApiWaitNextNavPoseLandmarkMsg_PROCTYPE ptSickScanApiWaitNextNavPoseLandmarkMsg = 0;
+
+typedef int32_t(*SickScanApiFreeNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg);
+static SickScanApiFreeNavPoseLandmarkMsg_PROCTYPE ptSickScanApiFreeNavPoseLandmarkMsg = 0;
+
+typedef int32_t(*SickScanApiNavOdomVelocityMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg);
+static SickScanApiNavOdomVelocityMsg_PROCTYPE ptSickScanApiNavOdomVelocityMsg = 0;
+
+typedef int32_t(*SickScanApiOdomVelocityMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg);
+static SickScanApiOdomVelocityMsg_PROCTYPE ptSickScanApiOdomVelocityMsg = 0;
+
 /*
 *  Functions and macros to initialize and close the API and a lidar
 */
@@ -237,6 +255,12 @@ int32_t SickScanApiUnloadLibrary()
     ptSickScanApiFreeLdmrsObjectArrayMsg = 0;
     ptSickScanApiWaitNextVisualizationMarkerMsg = 0;
     ptSickScanApiFreeVisualizationMarkersg = 0;
+    ptSickScanApiRegisterNavPoseLandmarkMsg = 0;
+    ptSickScanApiDeregisterNavPoseLandmarkMsg = 0;
+    ptSickScanApiWaitNextNavPoseLandmarkMsg = 0;
+    ptSickScanApiFreeNavPoseLandmarkMsg = 0;
+    ptSickScanApiNavOdomVelocityMsg = 0;
+    ptSickScanApiOdomVelocityMsg = 0;
     return ret;
 }
 
@@ -592,5 +616,58 @@ int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickS
     int32_t ret = (ptSickScanApiFreeVisualizationMarkersg ? (ptSickScanApiFreeVisualizationMarkersg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiFreeVisualizationMarkerMsg: library call SickScanApiFreeVisualizationMarkerMsg() failed, error code %d\n", ret);
+    return ret;
+}
+
+/*
+*  NAV350 support
+*/
+
+int32_t SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterNavPoseLandmarkMsg, "SickScanApiRegisterNavPoseLandmarkMsg", SickScanApiRegisterNavPoseLandmarkMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiRegisterNavPoseLandmarkMsg ? (ptSickScanApiRegisterNavPoseLandmarkMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiRegisterNavPoseLandmarkMsg: library call SickScanApiRegisterNavPoseLandmarkMsg() failed, error code %d\n", ret);
+    return ret;
+}
+int32_t SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterNavPoseLandmarkMsg, "SickScanApiDeregisterNavPoseLandmarkMsg", SickScanApiDeregisterNavPoseLandmarkMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiDeregisterNavPoseLandmarkMsg ? (ptSickScanApiDeregisterNavPoseLandmarkMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiDeregisterNavPoseLandmarkMsg: library call SickScanApiDeregisterNavPoseLandmarkMsg() failed, error code %d\n", ret);
+    return ret;
+}
+int32_t SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextNavPoseLandmarkMsg, "SickScanApiWaitNextNavPoseLandmarkMsg", SickScanApiWaitNextNavPoseLandmarkMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiWaitNextNavPoseLandmarkMsg ? (ptSickScanApiWaitNextNavPoseLandmarkMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+        printf("## ERROR SickScanApiWaitNextNavPoseLandmarkMsg: library call SickScanApiWaitNextNavPoseLandmarkMsg() failed, error code %d\n", ret);
+    return ret;
+}
+int32_t SickScanApiFreeNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeNavPoseLandmarkMsg, "SickScanApiFreeNavPoseLandmarkMsg", SickScanApiFreeNavPoseLandmarkMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiFreeNavPoseLandmarkMsg ? (ptSickScanApiFreeNavPoseLandmarkMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiFreeNavPoseLandmarkMsg: library call SickScanApiFreeNavPoseLandmarkMsg() failed, error code %d\n", ret);
+    return ret;
+}
+int32_t SickScanApiNavOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiNavOdomVelocityMsg, "SickScanApiNavOdomVelocityMsg", SickScanApiNavOdomVelocityMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiNavOdomVelocityMsg ? (ptSickScanApiNavOdomVelocityMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiNavOdomVelocityMsg: library call SickScanApiNavOdomVelocityMsg() failed, error code %d\n", ret);
+    return ret;
+}
+int32_t SickScanApiOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiOdomVelocityMsg, "SickScanApiOdomVelocityMsg", SickScanApiOdomVelocityMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiOdomVelocityMsg ? (ptSickScanApiOdomVelocityMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiOdomVelocityMsg: library call SickScanApiOdomVelocityMsg() failed, error code %d\n", ret);
     return ret;
 }

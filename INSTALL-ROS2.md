@@ -35,7 +35,7 @@ Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not nee
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
    ```
-Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd. If you do not need or want to support multiScan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without multiScan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd/picoScan150. If you do not need or want to support multiScan136/sick_scansegment_xd/picoScan150, you can skip building msgpack. To build sick_generic_caller without multiScan136/sick_scansegment_xd/picoScan150 support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
@@ -95,16 +95,33 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
 
 3. Clone repositories https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
    ```
-   mkdir ./src
-   pushd ./src
+   mkdir .\src
+   pushd .\src
    git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
 
-4. Build sick_generic_caller:
+4. Set the ROS-2 and Visual-Studio environment:
+   ```
+   call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
+   call C:\opt\ros\foxy\x64\setup.bat
+   ```
+   Note: This step depends on your local ROS-2 and Visual-Studio installation. Please replace `C:\opt\ros\foxy\x64\setup.bat` with your ROS-2 version and adapt the path to the Visual Studio folder if your installation is different.
+
+5. Cleanup to insure a complete rebuild:
+   ```
+   rmdir /s/q .\build
+   rmdir /s/q .\install
+   rmdir /s/q .\log
+   del /f/q .\src\CMakeLists.txt
+   ```
+   Note: This step is only required for a complete rebuild. A complete rebuild is recommended e.g. after an update of the sick_scan_xd sources.
+
+6. Build sick_generic_caller:
    ```
    colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+ 
+   call .\install\setup.bat
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    call .\install\setup.bat
    ```
