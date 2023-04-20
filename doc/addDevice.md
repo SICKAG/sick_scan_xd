@@ -34,10 +34,10 @@ To create a new device, it is recommended to copy, rename and edit an existing l
 ```
   sick_scan::SickGenericParser *parser = new sick_scan::SickGenericParser(scannerName);
 ```
-2. Add string constant like the constant SICK_SCANNER_RMS_3XX_NAME
+2. Add string constant like the constant SICK_SCANNER_RMS_XXXX_NAME
 
 3. Append this constant to allowedScannerNames 
-   like allowedScannerNames.push_back(SICK_SCANNER_RMS_3XX_NAME);
+   like allowedScannerNames.push_back(SICK_SCANNER_RMS_XXXX_NAME);
    in the file sick_generic_parser.cpp
    
 4. Add new parameter block like

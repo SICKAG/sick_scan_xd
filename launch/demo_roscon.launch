@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
      LAUNCH-FILE for
-     RMS3xx - Radar device emulation and visualisation
+     Radar device emulation and visualisation
   -->
 <launch>
     <arg name="emul_sensor" default="false"/>

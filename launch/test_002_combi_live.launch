@@ -9,7 +9,7 @@
     <node pkg="tf" type="static_transform_publisher" name="map_laser" args="0 0 0 0 0 0 1 map laser 100"/>
     <!-- STARTING MRS61xx - modify your ip address -->
     <node name="sick_mrs_6xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
-        <param name="filter_echos" type="int" value="0"/>
+        <param name="filter_echos" type="int" value="2"/>
         <param name="scanner_type" type="string" value="sick_mrs_6xxx"/>
         <param name="range_min" type="double" value="0.1"/>
         <param name="range_max" type="double" value="250.0"/>
@@ -19,10 +19,10 @@
         <param name="min_ang" type="double" value="-1.047197333"/>
         <param name="max_ang" type="double" value="+1.047197333"/>
     </node>
-    <node name="sick_rms_3xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_rms_xxxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <param name="range_min" type="double" value="0.1"/>
         <param name="range_max" type="double" value="250.0"/>
-        <param name="scanner_type" type="string" value="sick_rms_3xx"/>
+        <param name="scanner_type" type="string" value="sick_rms_xxxx"/>
         <param name="hostname" type="string" value="192.168.0.232"/>
         <param name="port" type="string" value="2112"/>
         <param name="transmit_raw_targets" type="bool" value="true"/>

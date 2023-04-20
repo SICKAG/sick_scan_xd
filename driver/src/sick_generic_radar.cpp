@@ -494,7 +494,7 @@ namespace sick_scan
     success = success && appendRadarDatagramField(datagram, datagram_length, 2, fields); // 2 byte Amount of 16 bit channels
     uint16_t num_16_bit_channels = 0;
     fields.back().toInteger(num_16_bit_channels);
-    // if(num_16_bit_channels > 4) // max 4 16-bit channel in case of RMS1xxx and RMS3xx
+    // if(num_16_bit_channels > 4) // max 4 16-bit channel in case of RMSxxxx
     // {
     //   return std::vector<RadarDatagramField>(); // unrecoverable parse error
     // }
@@ -894,24 +894,9 @@ namespace sick_scan
 #define OBJLEN_KEYWORD "OBLE1"
 #define OBJID_KEYWORD "OBID1"
 
-#define RADAR_1D_DEVICE "sick_rms_1xxx" // this is a little bit redundant to parameter setting,
-#define RADAR_3D_DEVICE "sick_rms_5xx"  // but avoid "back-pointering" to overall calling instance
-
     const int RAWTARGET_LOOP = 0;
     const int OBJECT_LOOP = 1;
 
-    // std::string nodename = parser_->getCurrentParamPtr()->getScannerName();
-    // std::vector<SickScanRadarRawTarget> rawTargets;
-    // std::vector<SickScanRadarObject> objectList;
-
-    //printf("%s\n", this->getNameOfRadar().c_str());
-
-    enum RADAR_TYPE_ENUM {RADAR_1D_ENUM, RADAR_3D_ENUM, RADAR_NUM};
-    RADAR_TYPE_ENUM enumRadarType = RADAR_3D_ENUM;
-    if (this->getNameOfRadar().compare(RADAR_1D_DEVICE) == 0)
-    {
-      enumRadarType = RADAR_1D_ENUM;
-    }
     for (int iLoop = 0; iLoop < 2; iLoop++)
     {
       keyWordList.clear();
@@ -925,15 +910,15 @@ namespace sick_scan
           keyWordList.push_back(MODE1_KEYWORD);
           break;
         case OBJECT_LOOP:
-          switch(enumRadarType)
+          switch(this->radarType)
           {
-            case RADAR_1D_ENUM:
+            case RADAR_1D:
               keyWordList.push_back(P3DX1_KEYWORD);
               keyWordList.push_back(V3DX1_KEYWORD);
               keyWordList.push_back(OBJLEN_KEYWORD);
               keyWordList.push_back(OBJID_KEYWORD);
               break;
-            case RADAR_3D_ENUM:
+            case RADAR_3D:
               keyWordList.push_back(P3DX1_KEYWORD);
               keyWordList.push_back(P3DY1_KEYWORD);
               keyWordList.push_back(V3DX1_KEYWORD);
@@ -1548,9 +1533,9 @@ namespace sick_scan
     std::vector<SickScanRadarObject> objectList;
     std::vector<SickScanRadarRawTarget> rawTargetList;
 
-    if (useBinaryProtocol && getNameOfRadar() == "sick_rms_3xx") // RMS-3xx is out of date and no longer available for order
+    if (useBinaryProtocol && getNameOfRadar() == SICK_SCANNER_RMS_XXXX_NAME)
     {
-      throw std::logic_error("Binary protocol for RMS-3xx currently not supported. Please use <param name=\"use_binary_protocol\" type=\"bool\" value=\"false\"/> in your launchfile.");
+      throw std::logic_error("Binary protocol for RMSxxxx currently not supported. Please use <param name=\"use_binary_protocol\" type=\"bool\" value=\"false\"/> in your launchfile.");
     }
     else
     {

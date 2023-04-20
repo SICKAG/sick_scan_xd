@@ -128,7 +128,7 @@ namespace sick_scan
     answerList.push_back("sRA SCdevicestate 1");
 
     keyWordList.push_back("sRN DItype");
-    answerList.push_back("sRA DItype D RMS3xx-xxxxxx");
+    answerList.push_back("sRA DItype F RMSxxxxx.xxxxxx");
 
     keyWordList.push_back("sRN ODoprh");
     answerList.push_back("sRA ODoprh 451");

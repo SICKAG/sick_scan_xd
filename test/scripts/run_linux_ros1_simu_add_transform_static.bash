@@ -20,16 +20,6 @@ function start_ldmrs_emulator()
     sleep 1
 }
 
-# Start rms3xx radar emulator and rviz
-function start_rms3xx_emulator()
-{
-    echo -e "\nrun_linux_ros1_simu_add_transform: starting rms3xx radar emulation ...\n"
-    roslaunch sick_scan emulator_rms3xx.launch &
-    sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_rms3xx_add_transform.rviz --opengl 210 &
-    sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_rms3xx_add_transform_origin.rviz --opengl 210 &
-    sleep 1
-}
-
 # Start mrs100 (multiscan136) emulator and rviz
 function start_mrs100_emulator()
 {
@@ -100,18 +90,6 @@ function run_simu_ldmrs()
     kill_simu
 }
 
-# Run sick_generic_caller with rms3xx radar and additional transform
-function run_simu_rms3xx()
-{
-    tx=$1 ; ty=$2 ; tz=$3 ; roll=$4 ; pitch=$5 ; yaw=$6 ; duration_sec=$7
-    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_rms_3xx.launch with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
-    start_rms3xx_emulator
-    roslaunch sick_scan sick_rms_3xx.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
-    rosrun tf static_transform_publisher $tx $ty $tz $yaw $pitch $roll radar origin 100 &
-    waitUntilRvizClosed $duration_sec
-    kill_simu
-}
-
 printf "\033c"
 pushd ../../../..
 if [ -f /opt/ros/melodic/setup.bash ] ; then source /opt/ros/melodic/setup.bash   ; fi
@@ -150,11 +128,6 @@ run_simu_mrs100 0.5 -0.5 -0.5 -0.7853982 -0.7853982 -0.7853982 # mrs100, x=+0.5,
 run_simu_ldmrs 0 0 0 0.0000000 0.0000000 0.0000000 10            # ldmrs, x=0, y=0, z=0, roll=0, pitch=0, yaw=0 deg, duration_sec=15
 run_simu_ldmrs 0 0 0 0.0000000 0.0000000 0.7853982 15            # ldmrs, x=0, y=0, z=0, roll=0, pitch=0, yaw=45 deg, duration_sec=15
 run_simu_ldmrs 0.5 -0.5 -0.5 -0.7853982 -0.7853982 -0.7853982 15 # ldmrs, x=+0.5, y=-0.5, z=-0.5, roll=-45, pitch=-45, yaw=-45 deg, duration_sec=15
-
-# Run sick_generic_caller with rms3xx radar and additional transforms
-run_simu_rms3xx 0 0 0 0.0000000 0.0000000 0.0000000 10            # rms3xx radar, x=0, y=0, z=0, roll=0, pitch=0, yaw=0 deg, duration_sec=15
-run_simu_rms3xx 0 0 0 0.0000000 0.0000000 0.7853982 15            # rms3xx radar, x=0, y=0, z=0, roll=0, pitch=0, yaw=45 deg, duration_sec=15
-run_simu_rms3xx 0.5 -0.5 -0.5 -0.7853982 -0.7853982 -0.7853982 15 # rms3xx radar, x=+0.5, y=-0.5, z=-0.5, roll=-45, pitch=-45, yaw=-45 deg, duration_sec=15
 
 echo -e "\nrun_linux_ros1_simu_add_transform.bash finished.\n"
 popd

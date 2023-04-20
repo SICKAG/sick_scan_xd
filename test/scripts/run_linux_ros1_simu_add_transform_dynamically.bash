@@ -18,15 +18,6 @@ function start_ldmrs_emulator()
     sleep 1
 }
 
-# Start rms3xx radar emulator and rviz
-function start_rms3xx_emulator()
-{
-    echo -e "\nrun_linux_ros1_simu_add_transform: starting rms3xx radar emulation ...\n"
-    roslaunch sick_scan emulator_rms3xx.launch &
-    sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_rms3xx_add_transform.rviz --opengl 210 &
-    sleep 1
-}
-
 # Start mrs100 (multiscan136) emulator and rviz
 function start_mrs100_emulator()
 {
@@ -129,18 +120,6 @@ function run_simu_ldmrs()
     kill_simu
 }
 
-# Run sick_generic_caller with rms3xx radar and additional transform
-function run_simu_rms3xx()
-{
-    start_rms3xx_emulator
-    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_rms_3xx.launch, no transform\n"
-    roslaunch sick_scan sick_rms_3xx.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
-    sleep 5
-    run_simu_transforms sick_rms_3xx/add_transform_xyz_rpy 3.0 
-    kill_simu
-}
-
-
 printf "\033c"
 pushd ../../../..
 if [ -f /opt/ros/melodic/setup.bash ] ; then source /opt/ros/melodic/setup.bash   ; fi
@@ -159,7 +138,6 @@ fi
 run_simu_tim7xx
 run_simu_mrs100
 run_simu_ldmrs
-run_simu_rms3xx
 
 echo -e "\nrun_linux_ros1_simu_add_transform.bash finished.\n"
 popd

@@ -263,22 +263,27 @@ namespace sick_scan
   }
   /*!
   \brief flag to mark the device as radar (instead of laser scanner)
-  \param _deviceIsRadar: false for laserscanner, true for radar (like rms_3xx)
+  \param _deviceIsRadar: false for laserscanner, true for radar (like rms_xxxx)
   \sa getDeviceIsRadar
   */
-  void ScannerBasicParam::setDeviceIsRadar(bool _deviceIsRadar)
+  void ScannerBasicParam::setDeviceIsRadar(RADAR_TYPE_ENUM _radar_type)
   {
-    deviceIsRadar = _deviceIsRadar;
+    deviceRadarType = _radar_type;
   }
 
   /*!
   \brief flag to mark the device as radar (instead of laser scanner)
-  \param _deviceIsRadar: false for laserscanner, true for radar (like rms_3xx)
+  \param _deviceIsRadar: false for laserscanner, true for radar (like rms_xxxx)
   \sa getDeviceIsRadar
   */
   bool ScannerBasicParam::getDeviceIsRadar(void)
   {
-    return (deviceIsRadar);
+    return (deviceRadarType != NO_RADAR);
+  }
+
+  RADAR_TYPE_ENUM ScannerBasicParam::getDeviceRadarType(void)
+  {
+    return deviceRadarType;
   }
 
   /*!
@@ -287,7 +292,7 @@ namespace sick_scan
   */
 bool ScannerBasicParam::getTrackingModeSupported(void)
 {
-  return (deviceIsRadar && trackingModeSupported);
+  return (getDeviceIsRadar() && trackingModeSupported);
 }
 void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
 {
@@ -439,7 +444,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
   */
   ScannerBasicParam::ScannerBasicParam()
   : numberOfLayers(0), numberOfShots(0), numberOfMaximumEchos(0), elevationDegreeResolution(0), angleDegressResolution(0), expectedFrequency(0),
-     useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceIsRadar(false), useSafetyPasWD(false), encoderMode(0),
+     useBinaryProtocol(false), IntensityResolutionIs16Bit(false), deviceRadarType(NO_RADAR), useSafetyPasWD(false), encoderMode(0),
      CartographerCompatibility(false), scanMirroredAndShifted(false), useEvalFields(EVAL_FIELD_UNSUPPORTED), maxEvalFields(0), rectFieldAngleRefPointOffsetRad(0),
      imuEnabled (false), scanAngleShift(0), useScancfgList(false), useWriteOutputRanges(false)
   {
@@ -501,9 +506,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     allowedScannerNames.push_back(SICK_SCANNER_MRS_6XXX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LMS_4XXX_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_LRS_4XXX_NAME);
-    allowedScannerNames.push_back(SICK_SCANNER_RMS_1XXX_NAME); // Radar scanner
-    allowedScannerNames.push_back(SICK_SCANNER_RMS_2XXX_NAME); // Radar scanner
-    allowedScannerNames.push_back(SICK_SCANNER_RMS_3XX_NAME); // Radar scanner
+    allowedScannerNames.push_back(SICK_SCANNER_RMS_XXXX_NAME); // Radar scanner
     allowedScannerNames.push_back(SICK_SCANNER_NAV_31X_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_350_NAME);
     allowedScannerNames.push_back(SICK_SCANNER_NAV_2XX_NAME);
@@ -516,7 +519,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     for (int i = 0; i <
                     (int) basicParams.size(); i++) // set specific parameter for each scanner type - scanner type is identified by name
     {
-      basicParams[i].setDeviceIsRadar(false); // Default
+      basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
       basicParams[i].setTrackingModeSupported(false); // Default
       basicParams[i].setScannerName(allowedScannerNames[i]);  // set scanner type for this parameter object
 
@@ -530,7 +533,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setElevationDegreeResolution(2.5); // in [degree]
         basicParams[i].setExpectedFrequency(50.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -555,7 +558,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setElevationDegreeResolution(0.0); // in [degree]
         basicParams[i].setExpectedFrequency(50.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -579,7 +582,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(1.00000);
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -603,7 +606,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.3333);
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -626,7 +629,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.0833);//
         basicParams[i].setExpectedFrequency(600.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -649,7 +652,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.3333);
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -672,7 +675,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.3333);
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(true); // Safety scanner
         basicParams[i].setEncoderMode(-1); // Default
@@ -695,7 +698,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.5);
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -718,7 +721,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.5);
         basicParams[i].setExpectedFrequency(25.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -741,7 +744,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.5);
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -764,7 +767,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.5);
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -788,7 +791,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setElevationDegreeResolution(1.25); // in [degree]
         basicParams[i].setExpectedFrequency(50.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -811,7 +814,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.05);
         basicParams[i].setExpectedFrequency(12.5);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -826,8 +829,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(true); // (false) // LRS4XXX uses echo filter settings to configure 1 echo, use filter_echos = 0 (first echo) for LRS4xxx
       }
-      if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_2XXX_NAME) == 0
-       || basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_3XX_NAME) == 0) // Radar
+      if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_XXXX_NAME) == 0) // Radar
       {
         basicParams[i].setNumberOfMaximumEchos(1);
         basicParams[i].setNumberOfLayers(0); // for radar scanner
@@ -836,32 +838,8 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setElevationDegreeResolution(0.00); // in [degree]
         basicParams[i].setExpectedFrequency(0.00);
         basicParams[i].setUseBinaryProtocol(false); // use ASCII-Protocol
-        basicParams[i].setDeviceIsRadar(true); // Device is a radar
-        basicParams[i].setTrackingModeSupported(true); // Default
-        basicParams[i].setUseSafetyPasWD(false); // Default
-        basicParams[i].setEncoderMode(-1); // Default
-        basicParams[i].setImuEnabled(false);// Default
-        basicParams[i].setScanAngleShift(0);
-        basicParams[i].setScanMirroredAndShifted(false);
-        basicParams[i].setUseEvalFields(EVAL_FIELD_UNSUPPORTED);
-        basicParams[i].setMaxEvalFields(0);
-        basicParams[i].setRectEvalFieldAngleRefPointOffsetRad(0);
-        basicParams[i].setUseScancfgList(false);
-        basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
-        basicParams[i].setWaitForReady(false);
-        basicParams[i].setFREchoFilterAvailable(false);
-      }
-      if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_1XXX_NAME) == 0) // Radar
-      {
-        basicParams[i].setNumberOfMaximumEchos(1);
-        basicParams[i].setNumberOfLayers(0); // for radar scanner
-        basicParams[i].setNumberOfShots(65);
-        basicParams[i].setAngularDegreeResolution(0.00);
-        basicParams[i].setElevationDegreeResolution(0.00); // in [degree]
-        basicParams[i].setExpectedFrequency(0.00);
-        basicParams[i].setUseBinaryProtocol(false); // use ASCII-Protocol
-        basicParams[i].setDeviceIsRadar(true); // Device is a radar
-        basicParams[i].setTrackingModeSupported(false); // RMS 1xxx does not support selection of tracking modes
+        basicParams[i].setDeviceIsRadar(RADAR_3D); // Default: Device is a 3D radar (RMS-1xxx switched to 1D radar after device type query)
+        basicParams[i].setTrackingModeSupported(true); // Default: tracking mode enabled (not supported by RMS-1xxx, disabled for RMS-1 after device type query)
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
         basicParams[i].setImuEnabled(false);// Default
@@ -883,7 +861,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.750);
         basicParams[i].setExpectedFrequency(55.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -906,7 +884,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.250);
         basicParams[i].setExpectedFrequency(8.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false);
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false);
         basicParams[i].setTrackingModeSupported(false);
         basicParams[i].setUseSafetyPasWD(false);
         basicParams[i].setEncoderMode(-1);
@@ -929,7 +907,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.750);
         basicParams[i].setExpectedFrequency(55.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -952,7 +930,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.5);
         basicParams[i].setExpectedFrequency(25.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default
@@ -975,7 +953,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setAngularDegreeResolution(0.33333333333);
         basicParams[i].setExpectedFrequency(15.0);
         basicParams[i].setUseBinaryProtocol(true);
-        basicParams[i].setDeviceIsRadar(false); // Default
+        basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
         basicParams[i].setTrackingModeSupported(false); // Default
         basicParams[i].setUseSafetyPasWD(false); // Default
         basicParams[i].setEncoderMode(-1); // Default

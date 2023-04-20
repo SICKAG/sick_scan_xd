@@ -1746,7 +1746,7 @@ namespace sick_scan
       }
 
       tryToStopMeasurement = false;
-      // do not stop measurement for RMS320 - the RMS320 does not support the stop command
+      // do not stop measurement for RMSxxxx (not supported)
     }
     if (tryToStopMeasurement)
     {
@@ -3506,7 +3506,6 @@ namespace sick_scan
     //
     //-----------------------------------------------------------------
     std::vector<int> startProtocolSequence;
-    bool deviceIsRadar = false;
     if (this->parser_->getCurrentParamPtr()->getDeviceIsRadar())
     {
       bool transmitRawTargets = true;
@@ -3522,21 +3521,12 @@ namespace sick_scan
       rosDeclareParam(nh, "transmit_objects", transmitObjects);
       rosGetParam(nh, "transmit_objects", transmitObjects);
 
-      if (this->parser_->getCurrentParamPtr()->getTrackingModeSupported())
-      {
-        rosDeclareParam(nh, "tracking_mode", trackingMode);
-        rosGetParam(nh, "tracking_mode", trackingMode);
-        if ((trackingMode < 0) || (trackingMode >= numTrackingModes))
-        {
-          ROS_WARN("tracking mode id invalid. Switch to tracking mode 0");
-          trackingMode = 0;
-        }
-        ROS_INFO_STREAM("Raw target transmission is switched [" << (transmitRawTargets ? "ON" : "OFF") << "]");
-        ROS_INFO_STREAM("Object transmission is switched [" << (transmitObjects ? "ON" : "OFF") << "]");
-        ROS_INFO_STREAM("Tracking mode is set to id [" << trackingMode << "] [" << trackingModeDescription[trackingMode] << "]");
-      }
+      rosDeclareParam(nh, "tracking_mode", trackingMode);
+      rosGetParam(nh, "tracking_mode", trackingMode);
 
-      deviceIsRadar = true;
+      ROS_INFO_STREAM("Raw target transmission is switched [" << (transmitRawTargets ? "ON" : "OFF") << "]");
+      ROS_INFO_STREAM("Object transmission is switched [" << (transmitObjects ? "ON" : "OFF") << "]");
+      ROS_INFO_STREAM("Tracking mode [" << trackingMode << "] [" << ((trackingMode >= 0 && trackingMode < numTrackingModes) ? trackingModeDescription[trackingMode] : "unknown") << "]");
 
       // Asking some informational from the radar
       startProtocolSequence.push_back(CMD_DEVICE_TYPE);
@@ -3570,21 +3560,17 @@ namespace sick_scan
         ROS_WARN("Both ObjectData and TargetData are disabled. Check launchfile, parameter \"transmit_raw_targets\" or \"transmit_objects\" or both should be activated.");
       }
 
-      if (this->parser_->getCurrentParamPtr()->getTrackingModeSupported())
+      switch (trackingMode)
       {
-        switch (trackingMode)
-        {
-          case 0:
-            startProtocolSequence.push_back(CMD_SET_TRACKING_MODE_0);
-            break;
-          case 1:
-            startProtocolSequence.push_back(CMD_SET_TRACKING_MODE_1);
-            break;
-          default:
-            ROS_DEBUG("Tracking mode switching sequence unknown\n");
-            break;
-
-        }
+        case 0:
+          startProtocolSequence.push_back(CMD_SET_TRACKING_MODE_0);
+          break;
+        case 1:
+          startProtocolSequence.push_back(CMD_SET_TRACKING_MODE_1);
+          break;
+        default:
+          ROS_DEBUG("Tracking mode switching sequence unknown\n");
+          break;
       }
       // leave user level
 
@@ -3667,9 +3653,6 @@ namespace sick_scan
     for (it = startProtocolSequence.begin(); it != startProtocolSequence.end(); it++)
     {
       int cmdId = *it;
-      std::vector<unsigned char> tmpReply;
-      //			result = sendSopasAndCheckAnswer(sopasCmdVec[cmdId].c_str(), &tmpReply);
-      //      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, tmpReply); // No response, non-recoverable connection error (return error and do not try other commands)
 
       std::string sopasCmd = sopasCmdVec[cmdId];
       std::vector<unsigned char> replyDummy;
@@ -3683,14 +3666,6 @@ namespace sick_scan
         result = sendSopasAndCheckAnswer(reqBinary, &replyDummy, cmdId);
         sopasReplyBinVec[cmdId] = replyDummy;
         RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, replyDummy); // No response, non-recoverable connection error (return error and do not try other commands)
-
-        switch (cmdId)
-        {
-          case CMD_START_SCANDATA:
-            // ROS_DEBUG("Sleeping for a couple of seconds of start measurement\n");
-            // rosSleep(10.0);
-            break;
-        }
       }
       else
       {
@@ -3795,9 +3770,42 @@ namespace sick_scan
           }
         }
       }
-      tmpReply.clear();
 
+      if (this->parser_->getCurrentParamPtr()->getDeviceIsRadar() && cmdId == CMD_DEVICE_TYPE)
+      {
+        std::string device_type_response = sopasReplyStrVec[cmdId], rms_type_str = "";
+        size_t cmd_type_idx = device_type_response.find("DItype ");
+        if (cmd_type_idx != std::string::npos)
+          device_type_response = device_type_response.substr(cmd_type_idx + 7);
+        size_t radar_type_idx = device_type_response.find("RMS");
+        if (radar_type_idx != std::string::npos)
+          rms_type_str = device_type_response.substr(radar_type_idx, 4);
+        ROS_INFO_STREAM("Radar device type response: \"" <<  sopasReplyStrVec[cmdId] << "\" -> device type = \"" << device_type_response << "\" (" << rms_type_str << ")");
+        // Detect and switch between RMS-1xxx and RMS-2xxx
+        if (rms_type_str == "RMS1")
+        {
+          this->parser_->getCurrentParamPtr()->setDeviceIsRadar(RADAR_1D); // Device is a 1D radar
+          this->parser_->getCurrentParamPtr()->setTrackingModeSupported(false); // RMS 1xxx does not support selection of tracking modes
+          for (std::vector<int>::iterator start_cmd_iter = startProtocolSequence.begin(); start_cmd_iter != startProtocolSequence.end(); start_cmd_iter++)
+          {
+            if (*start_cmd_iter == CMD_SET_TRACKING_MODE_0 || *start_cmd_iter == CMD_SET_TRACKING_MODE_1)
+              *start_cmd_iter = CMD_DEVICE_STATE; // Disable unsupported set tracking mode commands by overwriting with "sRN SCdevicestate"
+          }
+          ROS_INFO_STREAM("1D radar \"" << rms_type_str << "\" device detected, tracking mode disabled");
+        }
+        else if (rms_type_str == "RMS2")
+        {
+          this->parser_->getCurrentParamPtr()->setDeviceIsRadar(RADAR_3D); // Device is a 3D radar
+          this->parser_->getCurrentParamPtr()->setTrackingModeSupported(true); // Default          
+          ROS_INFO_STREAM("3D radar \"" << rms_type_str << "\" device detected, tracking mode enabled");
+        }
+        else
+        {
+          ROS_ERROR_STREAM("## ERROR init_scanner(): Unexpected device type \"" << device_type_response << "\", expected device type starting with \"RMS1\" or \"RMS2\"");
+        }
+      }
     }
+
     if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0) // TODO: move to sick_nav_init.cpp...
     {
       if (!parseNAV350BinaryUnittest())
@@ -4129,8 +4137,7 @@ namespace sick_scan
       supported = true;
     }
 
-    if (identStr.find("RMS3xx") !=
-        std::string::npos)   // received pattern contains 4 'x' but we check only for 3 'x' (MRS1104 should be MRS1xxx)
+    if (identStr.find("RMS1") != std::string::npos || identStr.find("RMS2") != std::string::npos)
     {
       ROS_INFO_STREAM("Deviceinfo " << identStr << " found and supported by this driver.");
       supported = true;
@@ -4259,12 +4266,10 @@ namespace sick_scan
       }
 
 
-      bool deviceIsRadar = this->parser_->getCurrentParamPtr()->getDeviceIsRadar();
-
-      if (true == deviceIsRadar)
+      if (true == this->parser_->getCurrentParamPtr()->getDeviceIsRadar())
       {
         SickScanRadarSingleton *radar = SickScanRadarSingleton::getInstance(nh);
-        radar->setNameOfRadar(this->parser_->getCurrentParamPtr()->getScannerName());
+        radar->setNameOfRadar(this->parser_->getCurrentParamPtr()->getScannerName(), this->parser_->getCurrentParamPtr()->getDeviceRadarType());
         int errorCode = ExitSuccess;
         // parse radar telegram and send pointcloud2-debug messages
         errorCode = radar->parseDatagram(recvTimeStamp, (unsigned char *) receiveBuffer, actual_length,
@@ -4842,10 +4847,9 @@ namespace sick_scan
               sinAlphaTable.resize(rangeNum);
               float mirror_factor = 1.0;
               float angleShift=0;
-              if (this->parser_->getCurrentParamPtr()->getScanMirroredAndShifted())
+              if (this->parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. NAV3xx-series
               {
-/**/                mirror_factor = -1.0;
-//                angleShift = +M_PI/2.0; // add 90 deg for NAV3xx-series
+                mirror_factor = -1.0;
               }
 
               size_t rangeNumPointcloudAllEchos = 0;
@@ -4934,6 +4938,7 @@ namespace sick_scan
                     {
                       phi_used = angleCompensator->compensateAngleInRadFromRos(phi_used);
                     }
+                    // Cartesian pointcloud
                     float phi2_used = phi_used + m_add_transform_xyz_rpy.azimuthOffset();
                     fptr[idx_x] = rangeCos * (float)cos(phi2_used) * mirror_factor;  // copy x value in pointcloud
                     fptr[idx_y] = rangeCos * (float)sin(phi2_used) * mirror_factor;  // copy y value in pointcloud
@@ -4941,6 +4946,7 @@ namespace sick_scan
 
                     m_add_transform_xyz_rpy.applyTransform(fptr[idx_x], fptr[idx_y], fptr[idx_z]);
 
+                    // Polar pointcloud (sick_scan_xd API)
                     fptr_polar[idx_x] = range_meter; // range in meter
                     fptr_polar[idx_y] = phi_used;    // azimuth in radians
                     fptr_polar[idx_z] = alpha;       // elevation in radians

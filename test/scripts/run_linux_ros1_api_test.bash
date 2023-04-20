@@ -44,13 +44,12 @@ function start_mrs100_emulator()
     sleep 1
 }
 
-# Start rms3xx radar emulator and rviz
-function start_rms3xx_emulator()
+# Start rms2xxx radar emulator and rviz
+function start_rms2xxx_emulator()
 {
     echo -e "\n-------------------------------------------"
-    echo -e "run_api_test: starting rms3xx radar emulation ...\n"
-    roslaunch sick_scan emulator_rms3xx.launch &
-    sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_api_rms1xxx.rviz --opengl 210 &
+    echo -e "run_api_test: starting rms2xxx radar emulation ...\n"
+    python3 ./src/sick_scan_xd/test/python/sopas_json_test_server.py --tcp_port=2112 --json_file=./src/sick_scan_xd/test/emulator/scandata/20221018_rms_1xxx_ascii_rms2_objects.pcapng.json --scandata_id="sSN LMDradardata" --send_rate=10 --verbosity=1 &
     sleep 1
 }
 
@@ -110,7 +109,7 @@ pushd ../../examples/scripts
 popd
 
 #
-# API test against simulated TiM7xx, MRS100, LDMRS, MRS1xxx and RMS3xx
+# API test against simulated TiM7xx, MRS100, LDMRS, MRS1xxx and RMSxxxx
 #
 
 pushd ../../../..
@@ -163,10 +162,10 @@ python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py
 waitUntilRvizClosed 10
 kill_simu
 
-# Start rms3xx radar emulator and run sick_scan_xd_api_test (python example)
-start_rms3xx_emulator
-python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
-waitUntilRvizClosed 10
+# Start rms2xxx radar emulator and run sick_scan_xd_api_test (python example)
+start_rms2xxx_emulator
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_rms_xxxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+sleep 10
 kill_simu
 
 # Start nav350 emulator and run sick_scan_xd_api_test (python example)
@@ -208,10 +207,10 @@ rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/laun
 waitUntilRvizClosed 10
 kill_simu
 
-# Start rms3xx radar emulator and run sick_scan_xd_api_test (cpp example)
-start_rms3xx_emulator
-rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" &
-waitUntilRvizClosed 10
+# Start rms2xxx radar emulator and run sick_scan_xd_api_test (cpp example)
+start_rms2xxx_emulator
+rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_rms_xxxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" &
+sleep 10
 kill_simu
 
 # Start nav350 emulator and run sick_scan_xd_api_test (cpp example)
@@ -251,10 +250,10 @@ python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py
 waitUntilRvizClosed 10
 kill_simu
 
-# Start rms3xx radar emulator and run sick_scan_xd_api_test (python example with polling)
-start_rms3xx_emulator
-python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py _polling:=1 ./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
-waitUntilRvizClosed 10
+# Start rms2xxx radar emulator and run sick_scan_xd_api_test (python example with polling)
+start_rms2xxx_emulator
+python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py _polling:=1 ./src/sick_scan_xd/launch/sick_rms_xxxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+sleep 10
 kill_simu
 
 # Start nav350 emulator and run sick_scan_xd_api_test (python example with polling)
@@ -295,10 +294,10 @@ rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/laun
 waitUntilRvizClosed 10
 kill_simu
 
-# Start rms3xx radar emulator and run sick_scan_xd_api_test (cpp example with polling)
-start_rms3xx_emulator
-rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_rms_3xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" _polling:=1 &
-waitUntilRvizClosed 10
+# Start rms2xxx radar emulator and run sick_scan_xd_api_test (cpp example with polling)
+start_rms2xxx_emulator
+rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_rms_xxxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False" _polling:=1 &
+sleep 10
 kill_simu
 
 # Start nav350 emulator and run sick_scan_xd_api_test (cpp example with polling)

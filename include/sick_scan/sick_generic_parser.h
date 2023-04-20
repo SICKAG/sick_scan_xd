@@ -70,9 +70,7 @@
 #define SICK_SCANNER_LMS_1XX_NAME "sick_lms_1xx"
 #define SICK_SCANNER_MRS_6XXX_NAME "sick_mrs_6xxx"
 #define SICK_SCANNER_LMS_4XXX_NAME "sick_lms_4xxx"
-#define SICK_SCANNER_RMS_1XXX_NAME "sick_rms_1xxx"
-#define SICK_SCANNER_RMS_2XXX_NAME "sick_rms_2xxx"
-#define SICK_SCANNER_RMS_3XX_NAME "sick_rms_3xx"
+#define SICK_SCANNER_RMS_XXXX_NAME "sick_rms_xxxx" // supports RMS-1xxx and RMS-2xxx
 #define SICK_SCANNER_NAV_31X_NAME "sick_nav_31x"
 #define SICK_SCANNER_NAV_350_NAME "sick_nav_350"
 #define SICK_SCANNER_NAV_2XX_NAME "sick_nav_2xx"
@@ -99,6 +97,14 @@ namespace sick_scan
     USE_EVAL_FIELD_LMS5XX_UNSUPPORTED, // eval fields not supported by LMS5XX
     USE_EVAL_FIELD_NUM                 // max number of eval field support types
   };
+
+  enum RADAR_TYPE_ENUM
+  {
+    NO_RADAR = 0,        // sensor is a not a radar (default)
+    RADAR_1D = 1,        // sensor is a 1D radar
+    RADAR_3D = 2         // sensor is a 3D radar
+  };
+
 
   class ScannerBasicParam
   {
@@ -130,6 +136,7 @@ namespace sick_scan
     double getExpectedFrequency(void);
 
     bool getDeviceIsRadar(void);
+    RADAR_TYPE_ENUM getDeviceRadarType(void);
 
     bool getTrackingModeSupported(void);
     void setTrackingModeSupported(bool _trackingModeSupported);
@@ -149,7 +156,7 @@ namespace sick_scan
 
     void setUseBinaryProtocol(bool _useBinary);
 
-    void setDeviceIsRadar(bool _deviceIsRadar);
+    void setDeviceIsRadar(RADAR_TYPE_ENUM _radar_type);
 
     void setIntensityResolutionIs16Bit(bool _IntensityResolutionIs16Bit);
 
@@ -205,7 +212,7 @@ namespace sick_scan
     double scanAngleShift;
     bool useBinaryProtocol;
     bool IntensityResolutionIs16Bit;
-    bool deviceIsRadar = false;
+    RADAR_TYPE_ENUM deviceRadarType = NO_RADAR;
     bool trackingModeSupported = false;
     bool useSafetyPasWD;
     int8_t encoderMode;

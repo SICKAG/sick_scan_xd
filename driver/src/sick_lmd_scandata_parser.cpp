@@ -99,6 +99,33 @@ namespace sick_scan
       }
     }
 
+    /** check angle values against +/- pi. 
+        It is checked whether the angle is close to +pi or -pi. 
+        In this case, the angle is minimally modified so that 
+        the modified angle is safely within the interval [-pi,pi] 
+        to avoid problems with angle wrapping. 
+        If the angle value is modified, the function returns true else false.
+      */
+    bool check_near_plus_minus_pi(float *angle_val)
+    {
+       bool angle_slightly_modified = false;
+       float pi_multiplier = *angle_val/M_PI;
+       float check_deviation_to_abs_one = fabs(pi_multiplier) - 1.0;
+       // check for a small deviation
+       if (check_deviation_to_abs_one < 10.0 * FLT_EPSILON )
+       {
+        float factor =  (*angle_val < 0.0) ? (-1.0) : (1.0);
+        *angle_val = factor * (1.0 - FLT_EPSILON) * M_PI;
+        angle_slightly_modified = true;  
+       }
+      else
+      {
+        angle_slightly_modified =false;
+      }
+      return(angle_slightly_modified);
+    }
+
+
     /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
     bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double elevAngleTelegramValToDeg, double& elevationAngleInRad, rosTime& recvTimeStamp,
         bool config_sw_pll_only_publish, bool use_generation_timestamp, SickGenericParser* parser_, bool& FireEncoder, sick_scan_msg::Encoder& EncoderMsg, int& numEchos, 
@@ -478,6 +505,14 @@ namespace sick_scan
                                 msg.angle_min = (float)(-M_PI);
                                 msg.angle_max = (float)(+M_PI);
                                 msg.angle_increment *= -1.0;
+                                if (msg.angle_increment < 0.0)
+                                {
+                                  // angle_min corresponds to start angle
+                                  // i.e. if angle_increment is negative, 
+                                  // the angle_min is greater than angle_max
+                                  msg.angle_min = (float)(+M_PI);
+                                  msg.angle_max = (float)(-M_PI);
+                                }
                               }
                               else if (parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. for SICK_SCANNER_LRS_36x0_NAME and SICK_SCANNER_NAV_31X_NAME
                               {
@@ -491,6 +526,27 @@ namespace sick_scan
                                 msg.angle_max *= -1.0;
 
                               }
+
+                              // Avoid 2*PI wrap around, if (msg.angle_max - msg.angle_min - 2*PI) is slightly above 0.0 due to floating point arithmetics
+                              bool wrap_avoid = false;
+                              bool ret = check_near_plus_minus_pi(&(msg.angle_min));
+                              if (ret)
+                              {
+                                wrap_avoid = true;
+                              }
+                              ret = check_near_plus_minus_pi(&(msg.angle_max));
+                              if (ret)
+                              {
+                                wrap_avoid = true; 
+                              }
+
+                              // in the case of slighlty modified min/max angles,
+                              // we recalculate the angle_increment.
+                              if (wrap_avoid)
+                              {
+                                msg.angle_increment = (msg.angle_max - msg.angle_min) / (numberOfItems - 1);
+                              }
+
                               float *rangePtr = NULL;
 
                               if (numberOfItems > 0)

@@ -14,11 +14,11 @@
 
 ## Introduction
 
-This driver supports the radar type RMS3xx. This radar records raw targets and tracking objects. The tracking objects are determined on the basis of the raw targets. Two variants of a tracking method are already installed in the radar, which enables the radar to be put into operation quickly.
+This driver supports the radar type RMSxxxx. This radar records raw targets and tracking objects. The tracking objects are determined on the basis of the raw targets. Two variants of a tracking method are already installed in the radar, which enables the radar to be put into operation quickly.
 
 ## Measuring Principle
 
-The RMS3xx is based on FMCW radar. 
+The RMSxxxx is based on FMCW radar. 
 With frequency-modulated continuous wave radar (FMCW radar), the transmission frequency is changed periodically. 
 Triangle functions are usually used for distance measurement. 
 While the transmission frequency changes as linearly as possible to the target object and back during the propagation time of the signal, 
@@ -38,7 +38,7 @@ Raw targets correspond to individual reflectors that are detected by the radar. 
 * Doppler speed
 * Reflectivity of the target (aka rcs - radar cross section)
 
-The radar RMS3xx does not resolve elevation angles.  Therefore, the radar assumes the elevation values (z values) with 0.0. The error in distance estimation is usually negligible and is 0.4% (1.0 - cos(5°)) at an elevation angle of 5° compared to horizontal.
+The radar RMSxxxx does not resolve elevation angles.  Therefore, the radar assumes the elevation values (z values) with 0.0. The error in distance estimation is usually negligible and is 0.4% (1.0 - cos(5°)) at an elevation angle of 5° compared to horizontal.
 
 ## Tracking Objects
 
@@ -171,9 +171,8 @@ An arrow of length 0.4 * 20[m] = 8[m] is displayed in rviz.
 
 The following launch files serve as examples for use:
 
-* sick_rms_3xx.launch: Communication with the RMS3xx and sending of radar ROS messages after successful parsing of SOPAS telegrams coming directly from the radar.
+* sick_rms_xxxx.launch: Communication with the RMSxxxx and sending of radar ROS messages after successful parsing of SOPAS telegrams coming directly from the radar.
 * radar_object_marker.launch : Conversion of radar messages to visualization messages
-* sick_rms_3xx_emul.launch: Additionally an emulation was created, which allows testing the interface chain without a physical radar.
 
 ### Data visualization example video
 
@@ -185,10 +184,10 @@ The following figure shows a viz-screenshot of the pointcloud:
 
 ## Parameter for Radar Usage
 The following parameters are support by the node **sick_generic_caller** in
-combination with the RADAR RMS3xx:
+combination with the RADAR RMSxxxx:
 
 * ~scanner_type (string, default: "")<br>
-    Must be set to **sick_rms_3xx**
+    Must be set to **sick_rms_xxxx**
 * ~range_max (double, default: 25.0)<br>
     Maximum range
 * ~hostname

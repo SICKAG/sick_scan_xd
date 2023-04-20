@@ -252,7 +252,7 @@ sick_scan::test::TestServerColaMsg::TestServerColaMsg(rosNodePtr nh, double send
       {"sWN TransmitObjects", encodeColaTelegram("sWA TransmitObjects", {}, {}, is_binary_idx > 0)},
       {"sWN TCTrackingMode", encodeColaTelegram("sWA TCTrackingMode", {}, {}, is_binary_idx > 0)},
       {"sRN SCdevicestate", encodeColaTelegram("sRA SCdevicestate", {1}, {1}, is_binary_idx > 0)},
-      {"sRN DItype", encodeColaTelegram("sRA DItype D RMS3xx-xxxxxx", {}, {}, is_binary_idx > 0)},
+      {"sRN DItype", encodeColaTelegram("sRA DItype F RMS2731C.636111", {}, {}, is_binary_idx > 0)},
       {"sRN ODoprh", encodeColaTelegram("sRA ODoprh", {451}, {2}, is_binary_idx > 0)},
       {"sMN mSCloadappdef", encodeColaTelegram("sAN mSCloadappdef", {}, {}, is_binary_idx > 0)},
       {"sRN SerialNumber", encodeColaTelegram("sRA SerialNumber",  {"18340008"}, is_binary_idx > 0)},

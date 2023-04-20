@@ -27,7 +27,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -183,4 +183,4 @@ Window Geometry:
     collapsed: true
   Width: 1359
   X: 718
-  Y: 152
+  Y: 78
