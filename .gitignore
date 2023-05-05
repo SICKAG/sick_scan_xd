@@ -93,7 +93,6 @@ demo/scan.csv
 
 # Note: emulator testfiles (pcapng and json records) are ignored except a few very short test examples
 test/emulator/scandata/*.*
-!test/emulator/scandata/20221018_rms_1xxx_ascii_rms2_objects.pcapng.json
 
 test/scripts/run_win64_ros1_simu_lms5xx.cmd
 test/scripts/make_win64_vs2022.cmd
@@ -127,3 +126,4 @@ doc/sick_scan_api/20220905_Anmerkungen_Manuel_technical_pretest.pdf
 doc/sick_scan_api/2022-08-24.minutes.technische.details.generische.api.pdf
 
 tools/python_installer/python-3.9.13-amd64.exe
+*.bak

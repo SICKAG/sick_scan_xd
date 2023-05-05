@@ -15,6 +15,11 @@ This driver works with all of the following products.
 | LMS1xx              | [e.g. 1041114](https://www.sick.com/de/en/detection-and-ranging-solutions/2d-lidar-sensors/lms1xx/c/g91901)                        |
 | LMS4000             | [e.g. 1091423](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/lms4000/lms4111r-13000/p/p578044?ff_data) |
 | LDMRS               | [e.g. 1115128](https://www.sick.com/de/de/p/p662073)                                                                               |
+| LD-LRS3600          | [1060831](https://www.sick.com/no/en/lidar-sensors/2d-lidar-sensors/ld-lrs/ld-lrs3600/p/p362656)                                   |
+| LD-LRS3601          | [1060832](https://www.sick.com/no/en/lidar-sensors/2d-lidar-sensors/ld-lrs/ld-lrs3601/p/p362657)                                   |
+| LD-LRS3611          | [1067186](https://www.sick.com/no/en/lidar-sensors/2d-lidar-sensors/ld-lrs/ld-lrs3611/p/p362658)                                   |
+| LD-OEM1500          | [1060828](https://www.sick.com/no/en/lidar-sensors/2d-lidar-sensors/ld-oem/ld-oem1500/p/p362654)                                   |
+| LD-OEM1501          | [1060829](https://www.sick.com/no/en/lidar-sensors/2d-lidar-sensors/ld-oem/ld-oem1501/p/p362655)                                   |
 | LRS4000             | [1098855](https://www.sick.com/no/en/detection-and-ranging-solutions/2d-lidar-sensors/lrs4000/c/g555594)                           |
 | NAV310              | [e.g. 1060834](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav3xx/nav310-3211/p/p349345)             |
 | NAV210+NAV245       | [e.g. 1074308](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav2xx/c/g356151)                         |

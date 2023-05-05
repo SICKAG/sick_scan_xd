@@ -197,7 +197,7 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
                 {
                     int msg_cnt_delta = (int)msg_udp_received_counter - (int)msg_exported_counter;
                     double packages_lost_rate = std::abs((double)msg_cnt_delta) / (double)msg_udp_received_counter;
-                    if (m_verbose && msg_udp_received_counter != msg_exported_counter && msg_cnt_delta > msg_cnt_delta_max) // Test mode only, mrs100 emulator must be started after lidar3d_msr100_recv
+                    if (m_verbose && msg_udp_received_counter != msg_exported_counter && msg_cnt_delta > msg_cnt_delta_max) // Test mode only, multiScan emulator must be started after lidar3d_multiscan_recv
                     {
                         ROS_INFO_STREAM("MsgPackExporter::Run(): " << msg_udp_received_counter << " udp messages received, " << msg_exported_counter << " messages exported, " << (100.0 * packages_lost_rate) << "% package lost");
                         msg_cnt_delta_max = msg_cnt_delta;

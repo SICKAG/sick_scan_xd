@@ -181,6 +181,7 @@ namespace sick_scan
     bool emul = false;
 
     std::string radarName = "???"; // radar device type
+    RADAR_TYPE_ENUM radarType = NO_RADAR;
     rosNodePtr node;
 
     rosPublisher<ros_sensor_msgs::PointCloud2> cloud_radar_rawtarget_pub_;
@@ -207,9 +208,10 @@ namespace sick_scan
         int verboseLevel = 0);
         
     void simulateAsciiDatagram(unsigned char *receiveBuffer, int *actual_length);
-    void setNameOfRadar(std::string _radarName)
+    void setNameOfRadar(const std::string& _radarName, RADAR_TYPE_ENUM _radarType)
     {
       radarName = _radarName;
+      radarType = _radarType;
     }
     std::string getNameOfRadar()
     {

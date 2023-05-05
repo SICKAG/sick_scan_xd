@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!-- LAUNCH FILE FOR NAV350 -->
+<!-- NAV350 support is currently experimental and under development. -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
+
+<launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <arg name="cloud_topic" default="cloud"/>
+    <arg name="frame_id" default="cloud"/>
+    <arg name="sw_pll_only_publish" default="true"/>
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
+    <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
+    <arg name="nav_do_initial_mapping" default="false"/>              <!-- Run mapping during initialization. Requires at least 3 visible reflectors, vehicle not moving. If nav_do_initial_mapping is false (default), ensure NAV350 mapping is configured e.g. by SOPAS ET. -->
+    <arg name="nav_set_landmark_layout_by_imk_file" default=""/>      <!-- Read and set NAV350 landmark layout from a text file (.imk-file). Do not apply if nav_set_landmark_layout_file is empty (default), otherwise the landmark layout is overwritten by a imk-file created+saved using SOPAS ET -->
+    <node name="sick_nav_350" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+        <param name="scanner_type" type="string" value="sick_nav_350"/>
+
+        <param name="use_binary_protocol" type="bool" value="true"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="frame_id" type="str" value="$(arg frame_id)"/>
+        <param name="port" type="string" value="2112"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
+        <param name="min_ang" type="double" value="0.0"/>
+        <param name="max_ang" type="double" value="6.28318530"/>
+        
+        <param name="nav_operation_mode" type="int" value="4" />              <!-- Switch to operational mode after initialization: 0 = power down, 1 = standby, 2 = mapping, 3 = landmark detection, 4 = navigation -->
+        <param name="nav_start_polling" type="bool" value="true" />           <!-- Start to poll scan data, pose and landmark data after initialization -->
+        <param name="nav_tf_parent_frame_id" type="string" value="cloud" />   <!-- Parent (world) frame id of ros transform of the NAV pose (ROS only) -->
+        <param name="nav_tf_child_frame_id" type="string" value="nav" />      <!-- Child (sensor) frame id of ros transform of the NAV pose (ROS only) -->
+        <param name="nav_curr_layer" type="int" value="0" />                  <!-- Set the current NAV Layer for Positioning and Mapping -->
+        <param name="nav_set_landmark_layout_by_imk_file" type="string" value="$(arg nav_set_landmark_layout_by_imk_file)"/> <!-- Run mapping during initialization. Requires at least 3 visible reflectors, vehicle not moving. If nav_do_initial_mapping is false (default), ensure NAV350 mapping is configured e.g. by SOPAS ET. -->
+        <param name="nav_do_initial_mapping" type="bool" value="$(arg nav_do_initial_mapping)" /> <!-- Run mapping during initialization. Requires at least 3 visible reflectors, vehicle not moving. If nav_do_initial_mapping is false (default), ensure NAV350 mapping is configured e.g. by SOPAS ET. -->
+        <param name="nav_map_cfg_mean" type="int" value="50" />               <!-- Configure Mapping if nav_do_initial_mapping is true: nav_map_cfg_mean := Mean Number of scans for averaging, 1...127, default: 50 -->
+        <param name="nav_map_cfg_neg" type="int" value="0" />                 <!-- Configure Mapping if nav_do_initial_mapping is true: nav_map_cfg_neg := If the parameter is set to 0, the NAV350 responds all measured reflectors, If the parameter is set to 1, the NAV350 responds new reflectors, default: 0 -->
+        <param name="nav_map_cfg_x" type="int" value="0" />                   <!-- Configure Mapping if nav_do_initial_mapping is true: nav_map_cfg_x := X-Position of the NAV350, -10000000 ... +10000000 mm, default: 0 -->
+        <param name="nav_map_cfg_y" type="int" value="0" />                   <!-- Configure Mapping if nav_do_initial_mapping is true: nav_map_cfg_y := Y-Position of the NAV350, -10000000 ... +10000000 mm, default: 0 -->
+        <param name="nav_map_cfg_phi" type="int" value="0" />                 <!-- Configure Mapping if nav_do_initial_mapping is true: nav_map_cfg_phi := Heading of the NAV350, -360000 ... +360000 mdeg, default: 0 -->
+        <param name="nav_map_cfg_reflector_size" type="int" value="80" />     <!-- Configure Mapping if nav_do_initial_mapping is true: nav_map_cfg_reflector_size := Reflector size, 1 ... 150 mm, default: 80 -->
+
+        <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
+        <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
+        <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: --> 
+        <!-- add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud -->
+        <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
+        <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
+        <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+        <param name="add_transform_check_dynamic_updates" type="bool" value="$(arg add_transform_check_dynamic_updates)" />
+
+        <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
+        <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
+        <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->
+        <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
+        <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
+        <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
+
+    </node>
+
+</launch>

@@ -62,6 +62,7 @@ static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::LFErecMsg>      
 static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::SickLdmrsObjectArray> s_ldmrsobjectarray_callback_handler;
 static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan_msg::RadarScan>            s_radarscan_callback_handler;
 static sick_scan::SickCallbackHandler<rosNodePtr,ros_visualization_msgs::MarkerArray> s_visualizationmarker_callback_handler;
+static sick_scan::SickCallbackHandler<rosNodePtr,sick_scan::NAV350mNPOSData>          s_navposelandmark_callback_handler;
 
 namespace sick_scan
 {
@@ -223,6 +224,26 @@ namespace sick_scan
     bool isVisualizationMarkerListenerRegistered(rosNodePtr handle, VisualizationMarkerCallback listener)
     {
         return s_visualizationmarker_callback_handler.isListenerRegistered(handle, listener);
+	}
+
+    void addNavPoseLandmarkListener(rosNodePtr handle, NAV350mNPOSDataCallback listener)
+    {
+        s_navposelandmark_callback_handler.addListener(handle, listener);
+	}
+
+    void notifyNavPoseLandmarkListener(rosNodePtr handle, NAV350mNPOSData* msg)
+    {
+        s_navposelandmark_callback_handler.notifyListener(handle, msg);
+	}
+
+    void removeNavPoseLandmarkListener(rosNodePtr handle, NAV350mNPOSDataCallback listener)
+    {
+        s_navposelandmark_callback_handler.removeListener(handle, listener);
+	}
+
+    bool isNavPoseLandmarkListenerRegistered(rosNodePtr handle, NAV350mNPOSDataCallback listener)
+    {
+        return s_navposelandmark_callback_handler.isListenerRegistered(handle, listener);
 	}
 
 }   // namespace sick_scan

@@ -30,9 +30,8 @@ rosmsg show sick_scan/RadarScan'
 
 The following is a short datagram showing the structure of the radar datagram. 
 The position of the individual elements for the data of the PreHeader is explained below.
-For further information you can look up in the attached [PDF](telegram_listing_RMS320_20171101.pdf), 
-which has been provided by SICK in a preliminary form and 
-may be updated again in the near future.
+See the documenation on https://www.sick.com/de/en/radar-sensors/c/g575803?q=:Def_Type:ProductFamily 
+for further information.
 
 ###### Example of very short radar datagram:
 

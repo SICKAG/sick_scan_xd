@@ -1,4 +1,4 @@
-# Checking driver in combination of MRS6xxx and RMS3xx
+# Checking driver in combination of MRS6xxx and RMSxxxx
 
 1. Setup environment
    * 230 V Voltage converter

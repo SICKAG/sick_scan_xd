@@ -203,6 +203,12 @@ static void apiTestVisualizationMarkerMsgCallback(SickScanApiHandle apiHandle, c
 #endif
 }
 
+// Example callback for NAV350 Pose- and Landmark messages
+static void apiTestNavPoseLandmarkMsgCallback(SickScanApiHandle apiHandle, const SickScanNavPoseLandmarkMsg* msg)
+{	
+	printf("[Info]: apiTestNavPoseLandmarkMsgCallback(apiHandle:%p): pose_x=%f, pose_y=%f, yaw=%f, %d reflectors\n", apiHandle, msg->pose_x, msg->pose_y, msg->pose_yaw, (int)msg->reflectors.size);
+}
+
 // Receive lidar message by SickScanApiWaitNext-functions ("message polling")
 static void runSickScanApiTestWaitNext(SickScanApiHandle* apiHandle, bool* run_flag)
 {
@@ -214,6 +220,19 @@ static void runSickScanApiTestWaitNext(SickScanApiHandle* apiHandle, bool* run_f
     SickScanRadarScan radarscan_msg;
     SickScanLdmrsObjectArray ldmrsobjectarray_msg;
 	SickScanVisualizationMarkerMsg visualizationmarker_msg;
+	SickScanNavPoseLandmarkMsg navposelandmark_msg;
+	SickScanOdomVelocityMsg odom_msg;
+	odom_msg.vel_x = +1.0f;
+	odom_msg.vel_y = -1.0f;
+	odom_msg.omega = 0.5f;
+	odom_msg.timestamp_sec = 12345;
+	odom_msg.timestamp_nsec = 6789;
+	SickScanNavOdomVelocityMsg navodom_msg;
+	navodom_msg.vel_x = +1.0f;
+	navodom_msg.vel_y = -1.0f;
+	navodom_msg.omega = 0.5f;
+	navodom_msg.timestamp = 123456789;
+	navodom_msg.coordbase = 0;
 	while(run_flag && *run_flag)
 	{
 		// Get/poll the next cartesian PointCloud message
@@ -279,6 +298,18 @@ static void runSickScanApiTestWaitNext(SickScanApiHandle* apiHandle, bool* run_f
 		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
 			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextVisualizationMarkerMsg failed\n");
 		SickScanApiFreeVisualizationMarkerMsg(*apiHandle, &visualizationmarker_msg);
+
+		// Get/poll the next NAV350 Pose- and Landmark message
+		ret = SickScanApiWaitNextNavPoseLandmarkMsg(*apiHandle, &navposelandmark_msg, wait_next_message_timeout);
+		if (ret == SICK_SCAN_API_SUCCESS)
+            apiTestNavPoseLandmarkMsgCallback(*apiHandle, &navposelandmark_msg);
+		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextNavPoseLandmarkMsg failed\n");
+		SickScanApiFreeNavPoseLandmarkMsg(*apiHandle, &navposelandmark_msg);
+
+		// Send NAV350 odom message example
+		// ret = SickScanApiNavOdomVelocityMsg(*apiHandle, &navodom_msg);
+		// ret = SickScanApiOdomVelocityMsg(*apiHandle, &odom_msg);
 	}
 }
 
@@ -365,6 +396,10 @@ int main(int argc, char** argv)
 		// Register a callback for VisualizationMarker messages
 		if((ret = SickScanApiRegisterVisualizationMarkerMsg(apiHandle, apiTestVisualizationMarkerMsgCallback)) != SICK_SCAN_API_SUCCESS)
 			exitOnError("SickScanApiRegisterVisualizationMarkerMsg failed", ret);
+
+		// Register a callback for NAV350 Pose- and Landmark messages messages
+		if((ret = SickScanApiRegisterNavPoseLandmarkMsg(apiHandle, apiTestNavPoseLandmarkMsgCallback)) != SICK_SCAN_API_SUCCESS)
+			exitOnError("SickScanApiRegisterVisualizationSickScanApiRegisterNavPoseLandmarkMsgMarkerMsg failed", ret);
 	}
 
     // Run main loop
@@ -393,6 +428,7 @@ int main(int argc, char** argv)
 		SickScanApiDeregisterRadarScanMsg(apiHandle, apiTestRadarScanMsgCallback);
 		SickScanApiDeregisterLdmrsObjectArrayMsg(apiHandle, apiTestLdmrsObjectArrayCallback);
 		SickScanApiDeregisterVisualizationMarkerMsg(apiHandle, apiTestVisualizationMarkerMsgCallback);
+		SickScanApiDeregisterNavPoseLandmarkMsg(apiHandle, apiTestNavPoseLandmarkMsgCallback);
 	}
     if((ret = SickScanApiClose(apiHandle)) != SICK_SCAN_API_SUCCESS)
 	    exitOnError("SickScanApiClose failed", ret);

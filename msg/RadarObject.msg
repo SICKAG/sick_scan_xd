@@ -1,8 +1,8 @@
 int32 id
 
 # ROS-1:
-time tracking_time                          # since when the object is tracked
-time last_seen
+time tracking_time
+time last_seen # not set
 
 # ROS-2:
 #builtin_interfaces/Time tracking_time        # since when the object is tracked

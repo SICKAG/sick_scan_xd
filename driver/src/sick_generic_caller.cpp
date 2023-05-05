@@ -116,9 +116,7 @@ int main(int argc, char** argv)
 
     if (argc == 1) // just for testing without calling by roslaunch
     {
-        // recommended call for internal debugging as an example: __name:=sick_rms_320 __internalDebug:=1
-        // strcpy(nameTagVal, "__name:=sick_rms_3xx");  // sick_rms_320 -> radar
-        strcpy(nameTagVal, "__name:=sick_tim_5xx");  // sick_rms_320 -> radar
+        strcpy(nameTagVal, "__name:=sick_tim_5xx");
         strcpy(logTagVal, "__log:=/tmp/tmp.log");
         strcpy(internalDebugTagVal, "__internalDebug:=1");
         // strcpy(sensorEmulVal, "__emulSensor:=1");

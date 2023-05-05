@@ -21,7 +21,7 @@ default max_angle for this scanner type is +137.5 degree.
         <!-- Value interpretation of "filter_echos": 0 = First Echo, 1 = All Echos, 2 = Last Echo (see "sWN FREchoFilter") -->
         <!--
           <param name="scanner_type" type="string" value="sick_mrs_1xxx"
-          <param name="filter_echos" type="int" value="1" />
+          <param name="filter_echos" type="int" value="2" />
           <param name="intensity" type="bool" value="True" />
           <param name="skip" type="int" value="0" />
           <param name="time_offset" type="double" value="-0.001" />

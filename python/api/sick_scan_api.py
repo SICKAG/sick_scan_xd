@@ -712,6 +712,110 @@ class SickScanVisualizationMarkerMsg(ctypes.Structure):
         ("markers", SickScanVisualizationMarkerBuffer)          # Array of SickScanVisualizationMarkers
     ]
 
+class SickScanNavReflector(ctypes.Structure):
+    """ 
+    NAV-350 reflector equivalent to SickScanNavReflector defined in sick_scan_api.h
+    """
+    _fields_ = [
+        ("pos_valid", ctypes.c_uint16),
+        # reflector position in [m] in ros coordinates, if pos_valid > 0:
+        ("pos_x", ctypes.c_float),
+        ("pos_y", ctypes.c_float),
+        ("cartesian_valid", ctypes.c_uint16),
+        # reflector position in [mm] in lidar coordinates, if cartesian_valid > 0:
+        ("cartesian_x", ctypes.c_int32),
+        ("cartesian_y", ctypes.c_int32),
+        ("polar_valid", ctypes.c_uint16),
+        # reflector position in [mm] and [mdeg] in polar lidar coordinates, if polar_valid > 0:
+        ("polar_dist", ctypes.c_uint32),
+        ("polar_phi", ctypes.c_uint32),
+        ("opt_valid", ctypes.c_uint16),
+        # Optional reflector data, if opt_valid > 0
+        ("opt_local_id", ctypes.c_uint16),
+        ("opt_global_id", ctypes.c_uint16),
+        ("opt_type", ctypes.c_uint8),
+        ("opt_subtype", ctypes.c_uint16),
+        ("opt_quality", ctypes.c_uint16),
+        ("opt_timestamp", ctypes.c_uint32), # lidar timestamp in milliseconds
+        ("opt_size", ctypes.c_uint16),
+        ("opt_hitcount", ctypes.c_uint16),
+        ("opt_meanecho", ctypes.c_uint16),
+        ("opt_startindex", ctypes.c_uint16),
+        ("opt_endindex", ctypes.c_uint16),
+        ("opt_timestamp_sec", ctypes.c_uint32), # timestamp converted to system time (seconds part, 0 if timestamp not valid)
+        ("opt_timestamp_nsec", ctypes.c_uint32) # timestamp converted to system time (nanoseconds part, 0 if timestamp not valid)
+    ]
+
+class SickScanNavReflectorBuffer(ctypes.Structure):
+    """ 
+    Array of NAV-350 reflectors equivalent to SickScanNavReflectorBuffer defined in sick_scan_api.h
+
+    Attributes
+    ----------
+    capacity : ctypes.c_uint64
+        Number of allocated elements, i.e. max. number of elements in buffer, allocated buffer size is capacity * sizeof(SickScanNavReflector)
+    size : ctypes.c_uint64
+        Number of currently used elements in the buffer
+    buffer : ctypes.POINTER(SickScanNavReflector)
+        Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
+    """
+    _fields_ = [
+        ("capacity", ctypes.c_uint64),                   # Number of allocated elements, i.e. max. number of elements in buffer, allocated buffer size is capacity * sizeof(SickScanVisualizationMarker)
+        ("size", ctypes.c_uint64),                       # Number of currently used elements in the buffer
+        ("buffer", ctypes.POINTER(SickScanNavReflector)) # Memory, data in plain order and system endianess (buffer == 0, if size == 0 && capacity == 0, otherwise allocated memory), allocation/deallocation always managed by the caller.
+    ]
+
+class SickScanNavPoseLandmarkMsg(ctypes.Structure):
+    """ 
+    NAV-350 pose and landmark message equivalent to SickScanNavPoseLandmarkMsg defined in sick_scan_api.h
+    """
+    _fields_ = [
+        ("pose_valid", ctypes.c_uint16),
+        # NAV pose, if pose_valid > 0:
+        ("pose_x", ctypes.c_float),   # x-position in ros coordinates in m
+        ("pose_y", ctypes.c_float),   # y-position in ros coordinates in m
+        ("pose_yaw", ctypes.c_float), # yaw angle in ros coordinates in radians
+        ("pose_timestamp_sec", ctypes.c_uint32), # timestamp of pose converted to system time (seconds part, 0 if timestamp not valid)
+        ("pose_timestamp_nsec", ctypes.c_uint32), # timestamp of pose converted to system time (nanoseconds part, 0 if timestamp not valid)
+        ("pose_nav_x", ctypes.c_int32), # x-position in lidar coordinates in mm
+        ("pose_nav_y", ctypes.c_int32), # y-position in lidar coordinates in mm
+        ("pose_nav_phi", ctypes.c_uint32), # orientation in lidar coordinates in 0 ... 360000 mdeg
+        ("pose_opt_valid", ctypes.c_uint16),
+        # Optional NAV pose data, if pose_opt_valid > 0:
+        ("pose_opt_output_mode", ctypes.c_uint8),
+        ("pose_opt_timestamp", ctypes.c_uint32), # lidar timestamp in milliseconds
+        ("pose_opt_mean_dev", ctypes.c_int32),
+        ("pose_opt_nav_mode", ctypes.c_uint8),
+        ("pose_opt_info_state", ctypes.c_uint32),
+        ("pose_opt_quant_used_reflectors", ctypes.c_uint8),
+        # NAV reflectors:
+        ("reflectors", SickScanNavReflectorBuffer) # Array of SickScanNavReflectors
+    ]
+
+class SickScanNavOdomVelocityMsg(ctypes.Structure):
+    """ 
+    NAV-350 velocity/odometry data in nav coordinates, see NAVOdomVelocity.msg
+    """
+    _fields_ = [
+        ("vel_x", ctypes.c_float),      # x-component of velocity in the coordinate system defined by coordbase (i.e. in lidar coordinate for coordbase=0) in m/s, -32.0 ... +32.0 m/s
+        ("vel_y", ctypes.c_float),      # y-component of velocity in the coordinate system defined by coordbase (i.e. in lidar coordinate for coordbase=0) in m/s, -32.0 ... +32.0 m/s
+        ("omega", ctypes.c_float),      # angular velocity of the NAV350 in radians/s, -2*PI ... +2*PI rad/s
+        ("timestamp", ctypes.c_uint32), # timestamp of the Velocity vector related to the NAV350 clock
+        ("coordbase", ctypes.c_uint8)   # coordinate system of the velocity vector (local or global), 0 = local coordinate system of the NAV350, 1 = absolute coordinate system
+    ]
+
+class SickScanOdomVelocityMsg(ctypes.Structure):
+    """ 
+    Velocity/odometry data in ros coordinates
+    """
+    _fields_ = [
+        ("vel_x", ctypes.c_float),          # x-component of velocity in ros coordinates in m/s
+        ("vel_y", ctypes.c_float),          # y-component of velocity in ros coordinates in m/s
+        ("omega", ctypes.c_float),          # angular velocity in radians/s
+        ("timestamp_sec", ctypes.c_uint32), # seconds part of system timestamp of the odometry data
+        ("timestamp_nsec", ctypes.c_uint32) # nanoseconds part of system timestamp of the odometry data
+    ]
+
 class SickScanApiErrorCodes(Enum): # 
     """ 
     Error codes, return values of SickScanApi-functions
@@ -747,6 +851,7 @@ SickScanLIDoutputstateMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctyp
 SickScanRadarScanCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanRadarScan))                         # sick_scan_api.h: typedef void(* SickScanRadarScanCallback)(SickScanApiHandle apiHandle, const SickScanRadarScan* msg);
 SickScanLdmrsObjectArrayCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanLdmrsObjectArray))           # sick_scan_api.h: typedef void(* SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
 SickScanVisualizationMarkerCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanVisualizationMarkerMsg))  # sick_scan_api.h: typedef void(* SickScanVisualizationMarkerCallback)(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg);
+SickScanNavPoseLandmarkCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanNavPoseLandmarkMsg))          # sick_scan_api.h: typedef void(* SickScanNavPoseLandmarkCallback)(SickScanApiHandle apiHandle, const SickScanNavPoseLandmarkMsg* msg);
 
 """ 
 Functions to initialize and close the API and a lidar
@@ -881,6 +986,24 @@ def SickScanApiLoadLibrary(paths, lib_filname):
     # sick_scan_api.h: int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
     sick_scan_library.SickScanApiFreeVisualizationMarkerMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanVisualizationMarkerMsg)]
     sick_scan_library.SickScanApiFreeVisualizationMarkerMsg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+    sick_scan_library.SickScanApiRegisterNavPoseLandmarkMsg.argtypes = [ctypes.c_void_p, SickScanNavPoseLandmarkCallback]
+    sick_scan_library.SickScanApiRegisterNavPoseLandmarkMsg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+    sick_scan_library.SickScanApiDeregisterNavPoseLandmarkMsg.argtypes = [ctypes.c_void_p, SickScanNavPoseLandmarkCallback]
+    sick_scan_library.SickScanApiDeregisterNavPoseLandmarkMsg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec);
+    sick_scan_library.SickScanApiWaitNextNavPoseLandmarkMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanNavPoseLandmarkMsg), ctypes.c_double]
+    sick_scan_library.SickScanApiWaitNextNavPoseLandmarkMsg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiFreeNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg);
+    sick_scan_library.SickScanApiFreeNavPoseLandmarkMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanNavPoseLandmarkMsg)]
+    sick_scan_library.SickScanApiFreeNavPoseLandmarkMsg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiNavOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg);
+    sick_scan_library.SickScanApiNavOdomVelocityMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanNavOdomVelocityMsg)]
+    sick_scan_library.SickScanApiNavOdomVelocityMsg.restype = ctypes.c_int
+    # sick_scan_api.h: int32_t SickScanApiOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg);
+    sick_scan_library.SickScanApiOdomVelocityMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanOdomVelocityMsg)]
+    sick_scan_library.SickScanApiOdomVelocityMsg.restype = ctypes.c_int
     return sick_scan_library
 
 def SickScanApiUnloadLibrary(sick_scan_library):
@@ -1016,6 +1139,18 @@ def SickScanApiDeregisterVisualizationMarkerMsg(sick_scan_library, api_handle, l
     """ 
     return sick_scan_library.SickScanApiDeregisterVisualizationMarkerMsg(api_handle, ldmrsobjectarray_callback)
 
+def SickScanApiRegisterNavPoseLandmarkMsg(sick_scan_library, api_handle, callback):
+    """ 
+    Register a callback for SickScanNavPoseLandmarkMsg messages
+    """ 
+    return sick_scan_library.SickScanApiRegisterNavPoseLandmarkMsg(api_handle, callback)
+
+def SickScanApiDeregisterNavPoseLandmarkMsg(sick_scan_library, api_handle, callback):
+    """ 
+    Deregister a callback for SickScanNavPoseLandmarkMsg messages
+    """ 
+    return sick_scan_library.SickScanApiDeregisterNavPoseLandmarkMsg(api_handle, callback)
+
 """ 
 Polling functions
 """ 
@@ -1109,3 +1244,27 @@ def SickScanApiFreeVisualizationMarkerMsg(sick_scan_library, api_handle, msg):
     Deallocate a VisualizationMarker message, use after SickScanApiWaitNextVisualizationMarkerMsg
     """ 
     return sick_scan_library.SickScanApiFreeVisualizationMarkerMsg(api_handle, msg)
+
+def SickScanApiWaitNextNavPoseLandmarkMsg(sick_scan_library, api_handle, msg, timeout_sec):
+    """ 
+    Wait for and return the next SickScanNavPoseLandmarkMsg message
+    """ 
+    return sick_scan_library.SickScanApiWaitNextNavPoseLandmarkMsg(api_handle, msg, timeout_sec)
+
+def SickScanApiFreeNavPoseLandmarkMsg(sick_scan_library, api_handle, msg):
+    """ 
+    Deallocate a SickScanNavPoseLandmarkMsg message, use after SickScanApiWaitNextNavPoseLandmarkMsg
+    """ 
+    return sick_scan_library.SickScanApiFreeNavPoseLandmarkMsg(api_handle, msg)
+
+def SickScanApiNavOdomVelocityMsg(sick_scan_library, api_handle, msg):
+    """ 
+    Send NAV350 velocity/odometry data in nav coordinates
+    """ 
+    return sick_scan_library.SickScanApiNavOdomVelocityMsg(api_handle, msg)
+
+def SickScanApiOdomVelocityMsg(sick_scan_library, api_handle, msg):
+    """ 
+    Send velocity/odometry data in ros coordinates
+    """ 
+    return sick_scan_library.SickScanApiOdomVelocityMsg(api_handle, msg)

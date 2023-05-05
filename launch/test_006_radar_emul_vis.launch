@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
      LAUNCH-FILE for
-     RMS3xx - Radar device emulation and visualisation
+     Radar device emulation and visualisation
   -->
 <launch>
     <!-- heatmap is controlled by using a factor between 0.0 and 1.0 -->
@@ -13,9 +13,9 @@
           type="static_transform_publisher"
           name="map_radar_broadcaster"
           args="0 0 0 0 0 0 map radar 100"/>
-    <node name="sick_rms_3xx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_rms_xxxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
         <!-- default values: -->
-        <param name="scanner_type" type="string" value="sick_rms_3xx"/>
+        <param name="scanner_type" type="string" value="sick_rms_xxxx"/>
         <param name="range_max" type="double" value="25.0"/>
         <param name="hostname" type="string" value="192.168.0.1"/>
         <param name="port" type="string" value="2112"/>

@@ -101,8 +101,9 @@ namespace sick_scansegment_xd
          * @param[in] node_name name of the ros node
          * @param[in] config sick_scansegment_xd configuration, RosMsgpackPublisher uses
          *            config.publish_topic: ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
-         *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
-         *            config.segment_count: number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
+         *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
+         *            config.all_segments_min_deg, config.all_segments_min_deg: angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
+         *            if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan)
          *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
          * @param[in] qos quality of service profile for the ros publisher, default: 1
          */
@@ -126,15 +127,6 @@ namespace sick_scansegment_xd
         virtual sick_scansegment_xd::MsgPackExportListenerIF* ExportListener(void);
 
         /*
-         * Sets min and max azimuth of a full scan in radians, default: -M_PI, +M_PI
-         */
-        virtual void SetFullScanAzimuthRange(float min_azimuth = -M_PI, float max_azimuth = +M_PI)
-        {
-            m_min_azimuth = min_azimuth;
-            m_max_azimuth = max_azimuth;
-        }
-
-        /*
         * Activates resp. deactivates publishing
         */
         virtual void SetActive(bool active)
@@ -152,22 +144,85 @@ namespace sick_scansegment_xd
          class SegmentPointsCollector
          {
          public:
-             SegmentPointsCollector(int segment_idx = 0, int telegram_idx = 0) : timestamp_sec(0), timestamp_nsec(0), segment_count(segment_idx), telegram_cnt(telegram_idx), min_azimuth(0), max_azimuth(0), total_point_count(0), lidar_points()
+             SegmentPointsCollector(int telegram_idx = 0) : timestamp_sec(0), timestamp_nsec(0), telegram_cnt(telegram_idx), min_azimuth(0), max_azimuth(0), total_point_count(0), lidar_points()
              {
                  segment_list.reserve(12);
                  telegram_list.reserve(12);
+                segment_coverage.clear();
              }
              void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
              {
                  for (int echoIdx = 0; echoIdx < points.size() && echoIdx < lidar_points.size(); echoIdx++)
+                {
                      lidar_points[echoIdx].insert(lidar_points[echoIdx].end(), points[echoIdx].begin(), points[echoIdx].end());
+                    for (int n = 0; n < points[echoIdx].size(); n++)
+                    {
+                        const sick_scansegment_xd::PointXYZRAEI32f& point = points[echoIdx][n];
+                        float elevation_deg = point.elevation * 180.0f / (float)M_PI;
+                        float azimuth_fdeg = point.azimuth * 180.0f / (float)M_PI;
+                        int elevation_mdeg = (int)(1000.0f * elevation_deg);
+                        int azimuth_ideg = (int)(azimuth_fdeg);
+                        segment_coverage[elevation_mdeg][azimuth_ideg] += 1;
+                        if (azimuth_fdeg - azimuth_ideg > 0.5f)
+                            segment_coverage[elevation_mdeg][azimuth_ideg + 1] += 1;
+                        if (azimuth_fdeg - azimuth_ideg < -0.5f)
+                            segment_coverage[elevation_mdeg][azimuth_ideg - 1] += 1;
+                    }
+                }
                  segment_list.push_back(segment_idx);
                  telegram_list.push_back(telegram_cnt);
+                // for (std::map<int, std::map<int, int>>::iterator segment_coverage_elevation_iter = segment_coverage.begin(); segment_coverage_elevation_iter != segment_coverage.end(); segment_coverage_elevation_iter++)
+                // {
+                //     const int& elevation_deg = segment_coverage_elevation_iter->first;
+                //     std::map<int, int>& azimuth_histogram = segment_coverage_elevation_iter->second;
+                //     for (std::map<int, int>::iterator segment_coverage_azimuth_iter = azimuth_histogram.begin(); segment_coverage_azimuth_iter != azimuth_histogram.end(); segment_coverage_azimuth_iter++)
+                //     {
+                //         const int& azimuth_deg = segment_coverage_azimuth_iter->first;
+                //         int cnt = segment_coverage_azimuth_iter->second;
+                //         std::cout << "seg[" << elevation_deg << "][" << azimuth_deg << "]=" << cnt << " ";
+                //     }
+                //     std::cout << std::endl;
+                // }
+             }
+             // Returns the last segment index appended by appendLidarPoints
+             int32_t lastSegmentIdx()
+             {
+                return segment_list.empty() ? -1 : segment_list.back();
+             }
+             // Returns true, if all scans in all elevation angles cover azimuth from all_segments_min_deg to all_segments_max_deg (otherwise false)
+             bool allSegmentsCovered(float all_segments_min_deg, float all_segments_max_deg)
+             {
+                int azimuth_min = (int)all_segments_min_deg;
+                int azimuth_max = (int)all_segments_max_deg;
+                for (std::map<int, std::map<int, int>>::iterator segment_coverage_elevation_iter = segment_coverage.begin(); segment_coverage_elevation_iter != segment_coverage.end(); segment_coverage_elevation_iter++)
+                {
+                    int azimuth_deg_first = 999, azimuth_deg_last = -999;
+                    const int& elevation_deg = segment_coverage_elevation_iter->first;
+                    std::map<int, int>& azimuth_histogram = segment_coverage_elevation_iter->second;
+                    for (std::map<int, int>::iterator segment_coverage_azimuth_iter = azimuth_histogram.begin(); segment_coverage_azimuth_iter != azimuth_histogram.end(); segment_coverage_azimuth_iter++)
+                    {
+                        const int& azimuth_deg = segment_coverage_azimuth_iter->first;
+                        int azimuth_cnt = segment_coverage_azimuth_iter->second;
+                        if (azimuth_cnt > 0)
+                            azimuth_deg_first = MIN(azimuth_deg_first, azimuth_deg);
+                    }
+                    for(azimuth_deg_last = azimuth_deg_first; azimuth_deg_last <= azimuth_deg_first + 360; azimuth_deg_last++)
+                    {
+                        if (azimuth_histogram[azimuth_deg_last] <= 0)
+                            break;
+                    }
+                    bool success = (azimuth_deg_last - azimuth_deg_first >= all_segments_max_deg - all_segments_min_deg);
+                    // ROS_INFO_STREAM("SegmentPointsCollector::allSegmentsCovered(): lastSegmentIdx=" << lastSegmentIdx() << ", total_point_count=" << total_point_count 
+                    //     << ", cur_elevation=" << elevation_deg << ", azimuth=(" << azimuth_deg_first << "," << azimuth_deg_last << "), " << "ret=" << success);
+                    if (!success)
+                        return false;
+                }
+                return true; // all scans in all elevation angles cover azimuth from all_segments_min_deg to all_segments_max_deg
              }
 
              uint32_t timestamp_sec;   // seconds part of timestamp of the first segment
              uint32_t timestamp_nsec;  // nanoseconds part of timestamp of the first segment
-             int32_t segment_count;    // number of segments collected
+             // int32_t segment_count; // number of segments collected
              int32_t telegram_cnt;     // telegram counter (must be continuously incremented) 
              float min_azimuth;        // min azimuth of all points in radians
              float max_azimuth;        // max azimuth of all points in radians
@@ -175,6 +230,7 @@ namespace sick_scansegment_xd
              std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>> lidar_points; // list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of all segments of an echo (idx echoIdx)
              std::vector<int32_t> segment_list; // list of all collected segment indices
              std::vector<int32_t> telegram_list; // list of all collected telegram counters
+             std::map<int, std::map<int, int>> segment_coverage; // segment histogram: segment_coverage[elevation][azimuth] > 0: elevation in mdeg and azimuth in deg covered (otherwise no hits)
          };
   
          /*
@@ -203,12 +259,12 @@ namespace sick_scansegment_xd
         bool m_active; // activate publishing
         rosNodePtr m_node; // ros node handle
         std::string m_frame_id;    // frame id of ros PointCloud2 messages, default: "world"
-        int m_segment_count = 12;  // number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
-        float m_min_azimuth; // min azimuth of a full scan in radians, default: -M_PI
-        float m_max_azimuth; // max azimuth of a full scan in radians, default: +M_PI
+        // int m_segment_count = 12;  // number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
+        float m_all_segments_min_deg = -180; // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
+        float m_all_segments_max_deg = +180; // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
         SegmentPointsCollector m_points_collector; // collects all points of 12 segments (12 segments * 30 deg = 360 deg)
         std::string m_publish_topic;                         // ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
-        std::string m_publish_topic_all_segments;            // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
+        std::string m_publish_topic_all_segments;            // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
         PointCloud2MsgPublisher m_publisher_cur_segment;     // ros publisher to publish PointCloud2 messages of the current segment
         PointCloud2MsgPublisher m_publisher_all_segments;    // ros publisher to publish PointCloud2 messages of all segments (360 degree)
         LaserscanMsgPublisher m_publisher_laserscan_segment; // ros publisher to publish LaserScan messages of the current segment

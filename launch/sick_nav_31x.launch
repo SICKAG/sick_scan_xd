@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!-- LAUNCH FILE FOR NAV310 -->
+<!-- NAV310 rotates clockwise and does not support the sWN LMPoutputRange -->
+<!-- The lidar exports in range of [0 ... 360] deg 480 shots per scan -->
+<!-- Using node option required="true" will close roslaunch after node exits -->
+
+<launch>
+    <arg name="hostname" default="192.168.0.1"/>
+    <arg name="cloud_topic" default="cloud"/>
+    <arg name="frame_id" default="cloud"/>
+    <arg name="scan_cfg_list_entry" default="1"/>
+    <arg name="nodename" default="sick_nav_31x"/>
+    <arg name="skip" default="0"/>
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
+    <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
+    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+        <param name="scanner_type" type="string" value="sick_nav_31x"/>
+
+        <param name="use_binary_protocol" type="bool" value="true"/>
+        <param name="intensity" type="bool" value="True"/>
+        <param name="hostname" type="string" value="$(arg hostname)"/>
+        <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="frame_id" type="str" value="$(arg frame_id)"/>
+        <param name="port" type="string" value="2112"/>
+        <param name="timelimit" type="int" value="5"/>
+        <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
+        <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->
+        <param name="skip" type="int" value="$(arg skip)"/> <!-- Default: 0 (i.e. publish each scan), otherwise only each n.th scan is published -->
+        <!-- NAV-310 supports start/stop angle 0 to 360 degree in nav coordinates (-180 to +180 degree in ros coordinates). Other values of min_ang and max_ang are ignored -->
+        <param name="scan_cfg_list_entry" type="int" value="$(arg scan_cfg_list_entry)"/> <!-- NAV-310: Modes 1, 2, 5 and 22 are valid settings, other modes not supported -->
+
+        <!-- Parameter scan_cfg_list_entry can be set to one of the following modes of the NAV310 table:
+        Mode Interlaced ScanFreq ResultScanFreq Resolution TotalResol FieldOfView Sector
+         1 0x  8 Hz  8 Hz 0.25   0.25   360  0...360 deg
+         2 0x 15 Hz 15 Hz 0.5    0.5    360  0...360 deg
+         3 0x 10 Hz 10 Hz 0.25   0.25   300 30...330 deg
+         4 0x  5 Hz  5 Hz 0.125  0.125  300 30...330 deg
+         5 0x  6 Hz  6 Hz 0.1875 0.1875 360  0...360 deg
+         8 0x 15 Hz 15 Hz 0.375  0.375  300 30...330 deg
+        21 0x 20 Hz 20 Hz 0.5    0.5    300 30...330 deg
+        22 0x 20 Hz 20 Hz 0.75   0.75   360  0...360 deg
+        -->
+
+        
+        <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->
+        <!-- Depending on parameter range_filter_handling, the following filter can be applied for points with a range not within [range_min, range_max],   -->
+        <!-- see enumeration RangeFilterResultHandling in range_filter.h:                                           -->
+        <!--   0: RANGE_FILTER_DEACTIVATED,  do not apply range filter (default)                                    -->
+        <!--   1: RANGE_FILTER_DROP,         drop point, if range is not within [range_min, range_max]              -->
+        <!--   2: RANGE_FILTER_TO_ZERO,      set range to 0, if range is not within [range_min, range_max]          -->
+        <!--   3: RANGE_FILTER_TO_RANGE_MAX, set range to range_max, if range is not within [range_min, range_max]  -->
+        <!--   4: RANGE_FILTER_TO_FLT_MAX,   set range to FLT_MAX, if range is not within [range_min, range_max]    -->
+        <!--   5: RANGE_FILTER_TO_NAN        set range to NAN, if range is not within [range_min, range_max]        -->
+        <!-- Note: Range filter applies only to Pointcloud messages, not to LaserScan messages.                     -->
+        <!-- Using range_filter_handling 4 or 5 requires handling of FLT_MAX and NAN values in an application.      -->
+        <param name="range_min" type="double" value="0.0"/>
+        <param name="range_max" type="double" value="100.0"/>
+        <param name="range_filter_handling" type="int" value="0"/>
+        
+        <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
+        <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
+        <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: --> 
+        <!-- add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud -->
+        <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
+        <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
+        <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+        <param name="add_transform_check_dynamic_updates" type="bool" value="$(arg add_transform_check_dynamic_updates)" />
+
+        <param name="start_services" type="bool" value="True" />                  <!-- Start ros service for cola commands, default: true -->
+        <param name="message_monitoring_enabled" type="bool" value="True" />      <!-- Enable message monitoring with reconnect+reinit in case of timeouts, default: true -->
+        <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->
+        <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
+        <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
+        <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
+
+        <!-- Configuration of ROS quality of service: -->
+        <!-- On ROS-1, parameter "ros_qos" sets the queue_size of ros publisher -->
+        <!-- On ROS-2, parameter "ros_qos" sets the QoS of ros publisher to one of the following predefined values: -->
+        <!-- 0: rclcpp::SystemDefaultsQoS(), 1: rclcpp::ParameterEventsQoS(), 2: rclcpp::ServicesQoS(), 3: rclcpp::ParametersQoS(), 4: rclcpp::SensorDataQoS() -->
+        <!-- See e.g. https://docs.ros2.org/dashing/api/rclcpp/classrclcpp_1_1QoS.html#ad7e932d8e2f636c80eff674546ec3963 for further details about ROS2 QoS -->
+        <!-- Default value is -1, i.e. queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 is used.-->
+        <param name="ros_qos" type="int" value="-1"/>  <!-- Default QoS=-1, i.e. do not overwrite, use queue_size=10 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 -->
+
+    </node>
+
+</launch>

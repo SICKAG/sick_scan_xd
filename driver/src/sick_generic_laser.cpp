@@ -432,7 +432,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
     exit_code = sick_scansegment_xd::run(nhPriv, scannerName);
     return;
 #else
-    ROS_ERROR(SICK_SCANNER_SCANSEGMENT_XD_NAME " not supported. Please build sick_scan with option SCANSEGMENT_XD_SUPPORT");
+    ROS_ERROR_STREAM("SCANSEGMENT_XD_SUPPORT deactivated, " << scannerName << " not supported. Please build sick_scan with option SCANSEGMENT_XD_SUPPORT");
     exit_code = sick_scan::ExitError;
     return;
 #endif
@@ -684,4 +684,45 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
   int result;
   mainGenericLaserInternal(argc, argv, nodeName, nhPriv, true, result);
   return result;
+}
+
+// Send odometry data to NAV350
+#include "softwarePLL.h"
+#include "sick_scan_api.h"
+#include "sick_scan/sick_nav_scandata_parser.h"
+int32_t SickScanApiNavOdomVelocityImpl(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* src_msg) // odometry data in nav coordinates
+{
+  if(s_scanner)
+  {
+    sick_scan_msg::NAVOdomVelocity nav_msg;
+    nav_msg.vel_x = src_msg->vel_x;
+    nav_msg.vel_y = src_msg->vel_y;
+    nav_msg.omega = src_msg->omega;
+    nav_msg.timestamp = src_msg->timestamp;
+    nav_msg.coordbase = src_msg->coordbase;
+    s_scanner->messageCbNavOdomVelocity(nav_msg);
+    return SICK_SCAN_API_SUCCESS;
+  }
+  return SICK_SCAN_API_ERROR;
+}
+int32_t SickScanApiOdomVelocityImpl(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* src_msg) // odometry data in system coordinates
+{
+  if(s_scanner && s_scanner->getCurrentParamPtr() && SoftwarePLL::instance().IsInitialized())
+  {
+    sick_scan_msg::NAVOdomVelocity nav_msg;
+    nav_msg.vel_x = src_msg->vel_x;
+    nav_msg.vel_y = src_msg->vel_y;
+    double angle_shift = -1.0 * s_scanner->getCurrentParamPtr()->getScanAngleShift();
+    sick_scan::rotateXYbyAngleOffset(nav_msg.vel_x, nav_msg.vel_y, angle_shift); // Convert to velocity in lidar coordinates in m/s
+    nav_msg.omega = src_msg->omega; // angular velocity in radians/s
+    nav_msg.coordbase = 0; // 0 = local coordinate system of the NAV350
+    SoftwarePLL::instance().convSystemtimeToLidarTimestamp(src_msg->timestamp_sec, src_msg->timestamp_nsec, nav_msg.timestamp);
+    s_scanner->messageCbNavOdomVelocity(nav_msg);
+    return SICK_SCAN_API_SUCCESS;
+  }
+  else
+  {
+    ROS_WARN_STREAM("## ERROR SickScanCommon::messageCbRosOdom(): SoftwarePLL not yet ready, timestamp can not be converted from system time to lidar time, odometry message ignored.");
+  }
+  return SICK_SCAN_API_ERROR;
 }

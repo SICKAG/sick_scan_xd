@@ -62,6 +62,7 @@
 #include <vector>
 
 #include <sick_scan/sick_ros_wrapper.h>
+#include <sick_scan/sick_nav_scandata.h>
 
 // forward declaration of SickLdmrsObjectArray required for LdmrsObjectArray listener
 #if __ROS_VERSION == 2 // ROS-2 (Linux or Windows)
@@ -90,6 +91,7 @@ namespace sick_scan
     typedef void(* SickLdmrsObjectArrayCallback)(rosNodePtr handle, const sick_scan_msg::SickLdmrsObjectArray* msg);
     typedef void(* RadarScanCallback)(rosNodePtr handle, const sick_scan_msg::RadarScan* msg);
     typedef void(* VisualizationMarkerCallback)(rosNodePtr handle, const ros_visualization_msgs::MarkerArray* msg);
+    typedef void(* NAV350mNPOSDataCallback)(rosNodePtr handle, const NAV350mNPOSData* msg);
 
     void addCartesianPointcloudListener(rosNodePtr handle, PointCloud2Callback listener);
     void notifyCartesianPointcloudListener(rosNodePtr handle, const PointCloud2withEcho* msg);
@@ -130,6 +132,11 @@ namespace sick_scan
     void notifyVisualizationMarkerListener(rosNodePtr handle, const ros_visualization_msgs::MarkerArray* msg);
     void removeVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener);
     bool isVisualizationMarkerListenerRegistered(rosNodePtr handle, VisualizationMarkerCallback listener);
+
+    void addNavPoseLandmarkListener(rosNodePtr handle, NAV350mNPOSDataCallback listener);
+    void notifyNavPoseLandmarkListener(rosNodePtr handle, NAV350mNPOSData* navdata);
+    void removeNavPoseLandmarkListener(rosNodePtr handle, NAV350mNPOSDataCallback listener);
+    bool isNavPoseLandmarkListenerRegistered(rosNodePtr handle, NAV350mNPOSDataCallback listener);
 
     /*
     *  Callback template for registration and deregistration of callbacks incl. notification of listeners
@@ -261,7 +268,7 @@ namespace sick_scan
         static void removeWaitForMessageHandlerHandler(SickWaitForMessageHandlerPtr handler)
         {
             std::unique_lock<std::mutex> lock(s_wait_for_message_handler_mutex);
-            for(typename std::list<SickWaitForMessageHandlerPtr>::iterator iter_handler = s_wait_for_message_handler_list.begin(); iter_handler != s_wait_for_message_handler_list.end(); iter_handler++)
+            for(typename std::list<SickWaitForMessageHandlerPtr>::iterator iter_handler = s_wait_for_message_handler_list.begin(); iter_handler != s_wait_for_message_handler_list.end(); )
             {
                 if (*iter_handler == handler)
                     iter_handler = s_wait_for_message_handler_list.erase(iter_handler);
@@ -301,6 +308,7 @@ namespace sick_scan
     typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::RadarScan>            WaitForRadarScanMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::SickLdmrsObjectArray> WaitForLdmrsObjectArrayMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, ros_visualization_msgs::MarkerArray> WaitForVisualizationMarkerMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan::NAV350mNPOSData>          WaitForNAVPOSDataMessageHandler;
 
 }   // namespace sick_scan
 #endif // __SICK_GENERIC_CALLBACK_H_INCLUDED
