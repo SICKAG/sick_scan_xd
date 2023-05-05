@@ -230,7 +230,11 @@ void sick_scan::PointCloudMonitor::runMonitoringThreadCb(void)
     pointcloud_subscriber2 = m_nh->subscribe(std::string("/") + m_ros_cloud_topic, 1, &sick_scan::PointCloudMonitor::messageCbPointCloud, this);
 #elif defined __ROS_VERSION && __ROS_VERSION == 2
   rclcpp::Subscription<ros_sensor_msgs::PointCloud2>::SharedPtr pointcloud_subscriber1, pointcloud_subscriber2;
-  pointcloud_subscriber1 = m_nh->create_subscription<ros_sensor_msgs::PointCloud2>(m_ros_cloud_topic,10,std::bind(&sick_scan::PointCloudMonitor::messageCbPointCloudROS2, this, std::placeholders::_1));
+  rosQoS qos = rclcpp::SystemDefaultsQoS();
+  overwriteByOptionalQOSconfig(m_nh, qos);
+  QoSConverter qos_converter;
+  ROS_INFO_STREAM("PointCloudMonitor: subscribing to topic " << m_ros_cloud_topic << ", qos=" << qos_converter.convert(qos));
+  pointcloud_subscriber1 = m_nh->create_subscription<ros_sensor_msgs::PointCloud2>(m_ros_cloud_topic, qos, std::bind(&sick_scan::PointCloudMonitor::messageCbPointCloudROS2, this, std::placeholders::_1));
   if(m_ros_cloud_topic[0] != '/')
     pointcloud_subscriber2 = m_nh->create_subscription<ros_sensor_msgs::PointCloud2>(std::string("/") + m_ros_cloud_topic,10,std::bind(&sick_scan::PointCloudMonitor::messageCbPointCloudROS2, this, std::placeholders::_1));
 #else

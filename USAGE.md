@@ -127,6 +127,12 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
     * Windows native: `sick_generic_caller sick_lrs_36x1_upside_down.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1_upside_down.launch`
     <br/>For upside down mounted devices, the pointcloud is rotated by 180 deg about the x axis (180 deg roll angle). This additional rotation is configured in the launch file using parameter `add_transform_xyz_rpy` with value `"0,0,0,3.141592,0,0"`.
+- For LD-OEM15xx:
+    * Linux native:   `sick_generic_caller sick_oem_15xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_oem_15xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_oem_15xx.launch`
+    * Windows native: `sick_generic_caller sick_oem_15xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_oem_15xx.launch`
 - For NAV210 and NAV245:
     * Linux native:   `sick_generic_caller sick_nav_2xx.launch`
     * Linux ROS-1:    `roslaunch sick_scan sick_nav_2xx.launch`
@@ -134,29 +140,29 @@ Use the following commands to run the sick_scan_xd driver for a specific scanner
     * Windows native: `sick_generic_caller sick_nav_2xx.launch`
     * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_2xx.launch`
 - For NAV310:
-    * Linux native:   `sick_generic_caller sick_nav_3xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_nav_3xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
-    * Windows native: `sick_generic_caller sick_nav_3xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_3xx.launch`
-- For RMS1xxx-family:
-    * Linux native:   `sick_generic_caller sick_rms_1xxx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_rms_1xxx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_1xxx.launch`
-    * Windows native: `sick_generic_caller sick_rms_1xxx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_1xxx.launch`
-- For RMS2xx-family:
-    * Linux native:   `sick_generic_caller sick_rms_2xxx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_rms_2xxx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_2xxx.launch`
-    * Windows native: `sick_generic_caller sick_rms_2xxx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_2xxx.launch`
-- For Multiscan130 (sick_scansegement_xd):
-    * Linux native:   `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-1:    `roslaunch sick_scan sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-2:    `ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Windows native: `sick_generic_caller sick_scansegment_xd.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Windows ROS-2:  `ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux native:   `sick_generic_caller sick_nav_31x.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_nav_31x.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_31x.launch`
+    * Windows native: `sick_generic_caller sick_nav_31x.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_31x.launch`
+- For NAV350:
+    * Linux native:   `sick_generic_caller sick_nav_350.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_nav_350.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
+    * Windows native: `sick_generic_caller sick_nav_350.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
+- For RMSxxxx-family (RMS1xxx, RMS2xxx):
+    * Linux native:   `sick_generic_caller sick_rms_xxxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan sick_rms_xxxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_xxxx.launch`
+    * Windows native: `sick_generic_caller sick_rms_xxxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_xxxx.launch`
+- For multiScan136 (sick_scansegement_xd):
+    * Linux native:   `sick_generic_caller sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-1:    `roslaunch sick_scan sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-2:    `ros2 launch sick_scan sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows native: `sick_generic_caller sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows ROS-2:  `ros2 launch sick_scan sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * `hostname` is the ip-address of the lidar, `udp_receiver_ip` is the ip-address of the receiver (i.e. the ip of the computer running sick_generic_caller).
 
 Common commandline options are
@@ -274,7 +280,7 @@ ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.7
 
 - **Field monitoring**: The **LMS1xx**, **LMS5xx**, **TiM7xx** and **TiM7xxS** families have [extended settings for field monitoring](./doc/field_monitoring_extensions.md).
 
-- **Radar devices**: For radar devices (RMS-1xxx, RMS-3xx), radar raw targets or radar objects or both can be tracked and transmitted. You can activate parameter transmit_raw_targets, transmit_objects or both in the launchfile:
+- **Radar devices**: For radar devices (RMSxxxx), radar raw targets or radar objects or both can be tracked and transmitted. You can activate parameter transmit_raw_targets, transmit_objects or both in the launchfile:
    ```
    <param name="transmit_raw_targets" type="bool" value="false"/>
    <param name="transmit_objects" type="bool" value="true"/>
@@ -313,7 +319,7 @@ ros2 service call /SCsoftreset sick_scan/srv/SCsoftresetSrv "{}"     # save curr
 
 Use ros service `SickScanExit` to stop the scanner and driver:
 ```
-rosservice call /sick_nav_3xx/SickScanExit "{}" # stop scanner and driver on ROS-1
+rosservice call /sick_nav_31x/SickScanExit "{}" # stop scanner and driver on ROS-1
 ros2 service call /SickScanExit sick_scan/srv/SickScanExitSrv "{}" # stop scanner and driver on ROS-2
 ```
 

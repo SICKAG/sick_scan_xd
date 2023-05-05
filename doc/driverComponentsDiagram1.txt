@@ -76,10 +76,10 @@ end note
 
 note bottom of sick_scansegment_xd
   sick_scansegment_xd:
-  * SOPAS startup (MRS100)
+  * SOPAS startup (multiScan100)
   * UDP receiver thread
   * Process msgpacks
-  * Publish pointcloud + cloud_360
+  * Publish pointcloud + cloud_fullframe
 end note
 
 note bottom of sick_scan_services

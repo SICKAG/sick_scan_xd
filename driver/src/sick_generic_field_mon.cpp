@@ -219,6 +219,10 @@ namespace sick_scan
 
   int SickScanFieldMonSingleton::parseBinaryDatagram(std::vector<unsigned char> datagram, float rectFieldAngleRefPointOffsetRad)
   {
+    if (datagram.size() < 41) // at least 41 byte required to read the field configuration
+    {
+      return 0;
+    }
     int exitCode = ExitSuccess;
     int fieldNumberFromCMD=0;
     std::string sDatagramm( datagram.begin()+8, datagram.end() );

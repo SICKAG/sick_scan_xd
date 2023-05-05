@@ -25,7 +25,7 @@
           <param name="imu_enable" type="bool" value="True" />
           <param name="imu_enable_additional_info" type="bool" value="False" />
         -->
-        <param name="filter_echos" type="int" value="0"/>
+        <param name="filter_echos" type="int" value="2"/>
         <param name="scanner_type" type="string" value="sick_mrs_6xxx"/>
         
         <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->

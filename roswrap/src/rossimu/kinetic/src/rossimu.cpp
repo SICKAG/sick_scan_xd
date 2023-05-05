@@ -440,7 +440,7 @@ int rossimu_settings(ros::NodeHandle& nhPriv)
 {
 	// set all parameters, which are necessary for debugging without using roslaunch. Just start roscore at the beginning of your debug session
 	int tmpactive_echos = 1;
-	int tmpEcho_filter = 1;
+	int tmpEcho_filter = 2;
 	bool tmpauto_reboot = true;
 	std::string tmpframe_id = "cloud";
 	std::string scannerName;
@@ -455,11 +455,6 @@ int rossimu_settings(ros::NodeHandle& nhPriv)
 	{
 		tmpintensity = true;
 		tmphostname = "192.168.0.24";
-	}
-	if (scannerName.compare("sick_rms_3xx") == 0)
-	{
-		tmpintensity = true;
-		tmphostname = "192.168.0.232";
 	}
 
 	double tmpminang = -60 / 180.0 * M_PI;   // MRS6124-TEST with +/- 30�

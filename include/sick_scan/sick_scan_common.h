@@ -82,8 +82,8 @@
 #include <sick_scan/helper/angle_compensator.h>
 
 #include "sick_scan/sick_generic_parser.h"
+#include "sick_scan/sick_nav_scandata_parser.h"
 #include "sick_scan/sick_scan_common_nw.h"
-
 #include "sick_scan/sick_generic_field_mon.h"
 #include "sick_scan/sick_scan_marker.h"
 
@@ -188,11 +188,22 @@ namespace sick_scan
       CMD_SET_SCAN_CFG_LIST, // "sMN mCLsetscancfglist %d", set scan config from list for NAX310  LD-OEM15xx LD-LRS36xx
 
       // NAV-350 commands
-      CMD_SET_NAV_OPERATIONAL_MODE_0, // "sMN mNEVAChangeState 0", 0 = power down
-      CMD_SET_NAV_OPERATIONAL_MODE_1, // "sMN mNEVAChangeState 1", 1 = standby
-      CMD_SET_NAV_OPERATIONAL_MODE_2, // "sMN mNEVAChangeState 2", 2 = mapping
-      CMD_SET_NAV_OPERATIONAL_MODE_3, // "sMN mNEVAChangeState 3", 3 = landmark detection
-      CMD_SET_NAV_OPERATIONAL_MODE_4, // "sMN mNEVAChangeState 4", 4 = navigation
+      CMD_SET_NAV_OPERATIONAL_MODE_0,   // "sMN mNEVAChangeState 0", 0 = power down
+      CMD_SET_NAV_OPERATIONAL_MODE_1,   // "sMN mNEVAChangeState 1", 1 = standby
+      CMD_SET_NAV_OPERATIONAL_MODE_2,   // "sMN mNEVAChangeState 2", 2 = mapping
+      CMD_SET_NAV_OPERATIONAL_MODE_3,   // "sMN mNEVAChangeState 3", 3 = landmark detection
+      CMD_SET_NAV_OPERATIONAL_MODE_4,   // "sMN mNEVAChangeState 4", 4 = navigation
+      CMD_SET_NAV_CURR_LAYER,           // "sWN NEVACurrLayer 0"
+      CMD_SET_NAV_LANDMARK_DATA_FORMAT, // "sWN NLMDLandmarkDataFormat 0 1 1"
+      CMD_SET_NAV_SCAN_DATA_FORMAT,     // "sWN NAVScanDataFormat 1 1"
+      CMD_SET_NAV_POSE_DATA_FORMAT,     // "sWN NPOSPoseDataFormat 1 1"
+      CMD_SET_NAV_MAP_CFG,              // "sWN NMAPMapCfg 50 0 0 0 0"
+      CMD_SET_NAV_REFL_SIZE,            // "sWN NLMDReflSize 80"
+      CMD_SET_NAV_DO_MAPPING,           // "sMN mNMAPDoMapping"
+      CMD_SET_NAV_ADD_LANDMARK,         // "sMN mNLAYAddLandmark landmarkData {x y type subtype size layerID {ID}}"      
+      CMD_SET_NAV_ERASE_LAYOUT,         // "sMN mNLAYEraseLayout 1"
+      CMD_SET_NAV_STORE_LAYOUT,         // "sMN mNLAYStoreLayout"
+      CMD_SET_NAV_POSE,                 // Set NAV-350 start pose in navigation mode by "sMN mNPOSSetPose X Y Phi"
 
       // Supported by sick_generic_caller version 2.7.3 and above:
       CMD_SET_LFPMEANFILTER, // MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: "sWN LFPmeanfilter" + { 1 byte 0|1 active/inactive } + { 2 byte 0x02 ... 0x64 number of scans } + { 1 byte 0x00 }
@@ -235,9 +246,18 @@ namespace sick_scan
 
     int sendSopasAorBgetAnswer(const std::string& request, std::vector<unsigned char> *reply, bool useBinaryCmd);
 
+    int get2ndSopasResponse(std::vector<uint8_t>& sopas_response, const std::string& sopas_keyword);
+
     ExitCode checkColaTypeAndSwitchToConfigured(bool useBinaryCmd);
 
     bool sendSopasRunSetAccessMode(bool useBinaryCmd);
+
+    // NAV-350 data must be polled by sending sopas command "sMN mNPOSGetData wait mask"
+    int sendNAV350mNPOSGetData(void);
+
+    // Parse NAV-350 pose and scan data and send next "sMN mNPOSGetData" request (NAV-350 polling)
+    bool handleNAV350BinaryPositionData(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double& elevationAngleInRad, rosTime& recvTimeStamp,
+        bool config_sw_pll_only_publish, double config_time_offset, SickGenericParser* parser_, int& numEchos, ros_sensor_msgs::LaserScan& msg, NAV350mNPOSData& navdata);
 
     int setAligmentMode(int _AligmentMode);
 
@@ -283,6 +303,8 @@ namespace sick_scan
 
     int convertAscii2BinaryCmd(const char *requestAscii, std::vector<unsigned char> *requestBinary);
 
+    void setLengthAndCRCinBinarySopasRequest(std::vector<uint8_t>* requestBinary);
+
     int init_cmdTables(rosNodePtr nh);
 
     /// Send a SOPAS command to the scanner that should cause a soft reset
@@ -303,6 +325,11 @@ namespace sick_scan
     SickScanConfig *getConfigPtr()
     {
       return (&config_);
+    }
+
+    ScannerBasicParam* getCurrentParamPtr()
+    {
+      return parser_ ? parser_->getCurrentParamPtr() : 0;
     }
 
     /// Converts reply from sendSOPASCommand to string
@@ -326,6 +353,9 @@ namespace sick_scan
     rosPublisher<sick_scan_msg::Encoder> Encoder_pub;
     ros_sensor_msgs::PointCloud2 cloud_;
     ros_sensor_msgs::PointCloud2 cloud_polar_;
+
+    void messageCbNavOdomVelocity(const sick_scan_msg::NAVOdomVelocity& msg);
+
     //////
     // Dynamic Reconfigure
     SickScanConfig config_;
@@ -414,6 +444,28 @@ namespace sick_scan
     bool publish_lidoutputstate_;
     SickScanMarker* cloud_marker_;
 
+    rosPublisher<sick_scan_msg::NAVPoseData> nav_pose_data_pub_;
+    bool publish_nav_pose_data_;
+    rosPublisher<sick_scan_msg::NAVLandmarkData> nav_landmark_data_pub_;
+    rosPublisher<ros_visualization_msgs::MarkerArray> nav_reflector_pub_;
+    bool publish_nav_landmark_data_;
+
+    std::string nav_tf_parent_frame_id_;
+    std::string nav_tf_child_frame_id_;
+#if __ROS_VERSION > 0
+    tf2_ros::TransformBroadcaster* nav_tf_broadcaster_;
+    void messageCbRosOdom(const ros_nav_msgs::Odometry& msg);
+#endif
+#if __ROS_VERSION == 1
+    ros::Subscriber nav_odom_velocity_subscriber_;
+    ros::Subscriber ros_odom_subscriber_;
+#elif  __ROS_VERSION == 2
+    rclcpp::Subscription<sick_scan_msg::NAVOdomVelocity>::SharedPtr nav_odom_velocity_subscriber_;
+    void messageCbNavOdomVelocityROS2(const std::shared_ptr<sick_scan_msg::NAVOdomVelocity> msg) { messageCbNavOdomVelocity(*msg); }
+    rclcpp::Subscription<ros_nav_msgs::Odometry>::SharedPtr ros_odom_subscriber_;
+    void messageCbRosOdomROS2(const std::shared_ptr<ros_nav_msgs::Odometry> msg) { messageCbRosOdom(*msg); }
+#endif
+
     // Diagnostics
 #if defined USE_DIAGNOSTIC_UPDATER
 #if __ROS_VERSION == 1
@@ -433,7 +485,7 @@ namespace sick_scan
     dynamic_reconfigure::Server<sick_scan::SickScanConfig> dynamic_reconfigure_server_;
 #endif
     // Parser
-    SickGenericParser *parser_;
+    SickGenericParser *parser_ = 0;
     std::vector<std::string> sopasCmdVec;
     std::vector<std::string> sopasCmdMaskVec;
     std::vector<std::string> sopasReplyVec;

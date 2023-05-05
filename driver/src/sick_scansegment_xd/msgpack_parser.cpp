@@ -399,6 +399,18 @@ public:
 		}
 		return s.str();
 	}
+    float rad2deg(float angle) const { return angle * (float)(180.0 / M_PI); }
+	std::string printRad2Deg(void)
+	{
+		std::stringstream s;
+		if (!m_data.empty())
+		{
+			s << rad2deg(m_data[0]);
+			for(int n = 1; n < m_data.size(); n++)
+				s << "," << rad2deg(m_data[n]);
+		}
+		return s.str();
+	}
 	std::vector<float>& data(void)
 	{
 		return m_data;
@@ -755,8 +767,6 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 				{
 					float dist = 0.001f * distValues[echoIdx].data()[pointIdx]; // convert distance to meter
-                    if (range_filter.apply(dist)) // otherwise point dropped by range filter
-                    {
 						float intensity = rssiValues[echoIdx].data()[pointIdx];
 						float x = dist * cos_azimuth[pointIdx] * cos_elevation;
 						float y = dist * sin_azimuth[pointIdx] * cos_elevation;
@@ -769,7 +779,13 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 							msgpack_validator_data.update(echoIdx, segment_idx, azimuth_norm, elevation);
 							msgpack_validator_data_collector.update(echoIdx, segment_idx, azimuth_norm, elevation);
 						}
+                    if (range_filter.apply(dist)) 
+                    {
 						scanline.points.push_back(sick_scansegment_xd::MsgPackParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx));
+				    }
+					else // point dropped by range filter
+					{
+						scanline.points.push_back(sick_scansegment_xd::MsgPackParserOutput::LidarPoint(0, 0, 0, 0, 0, azimuth, elevation, groupIdx, echoIdx, pointIdx));
 				    }
 				}
 			}
@@ -778,8 +794,10 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			if (verbose)
 			{
 				ROS_INFO_STREAM((groupIdx + 1) << ". group: EchoCount = " << iEchoCount);
-				ROS_INFO_STREAM((groupIdx + 1) << ". group: phi = [" << channelPhi.print() << "], " << channelPhi.data().size() << " element");
-				ROS_INFO_STREAM((groupIdx + 1) << ". group: theta = [" << channelTheta.print() << "], " << channelTheta.data().size() << " elements");
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: phi (elevation, rad) = [" << channelPhi.print() << "], " << channelPhi.data().size() << " element");
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: phi (elevation, deg) = [" << channelPhi.printRad2Deg() << "], " << channelPhi.data().size() << " element");
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: theta (azimuth, rad) = [" << channelTheta.print() << "], " << channelTheta.data().size() << " elements");
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: theta (azimuth, deg) = [" << channelTheta.printRad2Deg() << "], " << channelTheta.data().size() << " elements");
 				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStart = " << u32TimestampStart << " = " << Timestamp(u32TimestampStart_sec, u32TimestampStart_nsec));
 				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStop = " << u32TimestampStop << " = " << Timestamp(u32TimestampStop_sec, u32TimestampStop_nsec));
 				for (int n = 0; n < distValues.size(); n++)

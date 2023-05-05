@@ -26,9 +26,10 @@ import threading
 class SopasTestServer:
 
     # Constructor
-    def __init__(self, tcp_port = 2112, json_tcp_payloads = []):
+    def __init__(self, tcp_port = 2112, json_tcp_payloads = [], verbosity = 0):
         self.tcp_port = tcp_port
         self.json_tcp_payloads = json_tcp_payloads
+        self.verbosity = verbosity
         self.run_message_loop = False
 
     # Waits for an incoming tcp connection and connects to the tcp client
@@ -51,24 +52,30 @@ class SopasTestServer:
         payload_idx = -1
         ready_to_recv = select.select([self.clientsocket], [], [], recv_timeout_sec)
         if ready_to_recv[0]:
-            byte_recv = b"\x00"
-            while byte_recv != b"\x02":
-                byte_recv = self.clientsocket.recv(1)
-            payload = payload + byte_recv
-            while True:
-                byte_recv = self.clientsocket.recv(1)
+            try:
+                byte_recv = b"\x00"
+                while byte_recv != b"\x02":
+                    byte_recv = self.clientsocket.recv(1)
                 payload = payload + byte_recv
-                if payload in self.json_tcp_payloads:
-                    payload_idx = self.json_tcp_payloads.index(payload)
-                    break
-            print("SopasTestServer.receiveTelegram(): received {} byte telegram {}".format(len(payload), payload))
+                while True:
+                    byte_recv = self.clientsocket.recv(1)
+                    payload = payload + byte_recv
+                    if payload in self.json_tcp_payloads:
+                        payload_idx = self.json_tcp_payloads.index(payload)
+                        break
+            except Exception as exc:
+                print("## ERROR receiveTelegram(): exception {}".format(exc))
+            if self.verbosity > 1:
+                print("SopasTestServer.receiveTelegram(): received {} byte telegram {}".format(len(payload), payload))
+            elif self.verbosity > 0:
+                print("SopasTestServer.receiveTelegram(): received {} byte telegram".format(len(payload)))
         return payload, payload_idx
 
     # Sends a cola telegram "as is"
-    def sendTelegram(self, telegram, verbosity):
-        if verbosity > 1:
+    def sendTelegram(self, telegram):
+        if self.verbosity > 1:
             print("SopasTestServer.sendTelegram(): sending {} byte telegram {}".format((len(telegram)), telegram))
-        elif verbosity > 0:
+        elif self.verbosity > 0:
             print("SopasTestServer.sendTelegram(): sending {} byte telegram".format(len(telegram)))
         self.clientsocket.send(telegram)
 
@@ -83,10 +90,25 @@ class SopasTestServer:
             # Lookup sopas response to sopas request
             if json_tcp_payload_idx >= 0 and json_tcp_payload_idx + 1 < len(self.json_tcp_payloads):
                 response_payload = self.json_tcp_payloads[json_tcp_payload_idx + 1]
-                print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
-                self.sendTelegram(response_payload, 2)
+                if self.verbosity > 0:
+                    print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
+                self.sendTelegram(response_payload)
+                # Some NAV-350 sopas requests have 2 responses (1. response: acknowledge, 2. response: data), send next telegram in this case
+                if received_telegram[8:28] == b"sMN mNEVAChangeState" or received_telegram[8:26] == b"sMN mNMAPDoMapping":
+                    if json_tcp_payload_idx + 2 < len(self.json_tcp_payloads):
+                        response_payload = self.json_tcp_payloads[json_tcp_payload_idx + 2]
+                        if self.verbosity > 0:
+                            print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
+                        self.sendTelegram(response_payload)
             else:
                 print("## ERROR SopasTestServer: request={} not found in json file".format(received_telegram))
+                #response_payload = received_telegram
+                #if response_payload[8:11] == b"sWN":
+                #    response_payload[8:11] = b"sWA"
+                #if response_payload[8:11] == b"sMN":
+                #    response_payload[8:11] = b"sMA"
+                #print("## ERROR SopasTestServer: dummy_response={}".format(response_payload))
+                #self.sendTelegram(response_payload)
             time.sleep(0.01)
         
     # Starts the message loop in a background thread
@@ -110,6 +132,7 @@ if __name__ == "__main__":
     json_file = "../emulator/scandata/20221018_rms_1xxx_ascii_rawtarget_object.pcapng.json"  # input jsonfile with sopas requests, responses and telegrams
     verbosity = 2  # print all telegrams
     send_rate = 10 # send 10 scandata telegrams per second
+    send_scandata_after = 5 # start to send scandata 5 seconds after server start 
     
     # Overwrite with command line arguments
     arg_parser = argparse.ArgumentParser()
@@ -118,12 +141,14 @@ if __name__ == "__main__":
     arg_parser.add_argument("--scandata_id", help="sopas id of scandata telegrams, e.g. \"sSN LMDradardata\"", default=scandata_id, type=str)
     arg_parser.add_argument("--send_rate", help="send rate in telegrams per second", default=send_rate, type=float)
     arg_parser.add_argument("--verbosity", help="verbosity (0, 1 or 2)", default=verbosity, type=int)
+    arg_parser.add_argument("--scandata_after", help="start to send scandata after some seconds", default=send_scandata_after, type=float)
     cli_args = arg_parser.parse_args()
     tcp_port = cli_args.tcp_port
     json_file = cli_args.json_file
     scandata_id = cli_args.scandata_id
     verbosity = cli_args.verbosity
     send_rate = cli_args.send_rate
+    send_scandata_after = cli_args.scandata_after
     
     # Parse json file
     print("sopas_json_test_server: parsing json file \"{}\":".format(json_file))
@@ -140,24 +165,25 @@ if __name__ == "__main__":
             # print("tcp_description: \"{}\", tcp_payload: \"{}\", payload_bytes: {}".format(tcp_description, tcp_payload, payload))
         except Exception as exc:
             print("## ERROR parsing file {}: \"{}\", exception {}".format(json_file, json_entry, exc))
-    for json_tcp_payload in json_tcp_payloads:     
-        print("{}".format(json_tcp_payload))
+    if verbosity > 1:
+        for json_tcp_payload in json_tcp_payloads:     
+            print("{}".format(json_tcp_payload))
 
     # Run sopas test server
     print("sopas_json_test_server: running event loop ...")
-    server = SopasTestServer(tcp_port, json_tcp_payloads)
+    server = SopasTestServer(tcp_port, json_tcp_payloads, verbosity)
     server.connect()
     server.start()
 
     # Send sopas telegrams, e.g. "sSN LMDradardata ..."
-    time.sleep(5)
+    time.sleep(send_scandata_after)
     print("sopas_json_test_server: start sending scandata \"{}\" ...".format(scandata_id))
     scandata_id = bytearray(scandata_id.encode())
     while True:
         for payload in json_tcp_payloads:
             if payload.find(scandata_id,0) >= 0:
                 # print("sopas_json_test_server: sending scandata \"{}\" ...".format(payload))
-                server.sendTelegram(payload, 2)
+                server.sendTelegram(payload)
                 time.sleep(1.0 / send_rate)
 
     server.stop()

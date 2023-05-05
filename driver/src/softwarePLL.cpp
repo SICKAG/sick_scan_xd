@@ -197,6 +197,25 @@ bool SoftwarePLL::getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint32
   return (true);
 }
 
+// converts a system timestamp to lidar ticks, computes the inverse to getCorrectedTimeStamp().
+bool SoftwarePLL::convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32_t systemtime_nanosec, uint32_t& tick)
+{
+  if (IsInitialized() == false)
+  {
+    return (false);
+  }
+  double systemTimestamp = (double)systemtime_sec + 1.0e-9 * (double)systemtime_nanosec; // systemTimestamp := corrTime in getCorrectedTimeStamp
+  // getCorrectedTimeStamp(): corrTime = relTimeStamp + this->FirstTimeStamp()
+  // => inverse: relSystemTimestamp = systemTimestamp - this->FirstTimeStamp()
+  double relSystemTimestamp = systemTimestamp - this->FirstTimeStamp();
+  // getCorrectedTimeStamp(): relSystemTimestamp = (tick - (uint32_t) (0xFFFFFFFF & FirstTick())) * this->InterpolationSlope() 
+  //=> inverse: tick = (relSystemTimestamp / this->InterpolationSlope()) + (uint32_t) (0xFFFFFFFF & FirstTick())
+  double relTicks = relSystemTimestamp / this->InterpolationSlope();
+  uint32_t tick_offset = (uint32_t)(0xFFFFFFFF & FirstTick());
+  tick = (uint32_t)std::round(relTicks + tick_offset);
+  return (true);
+}
+
 bool SoftwarePLL::nearSameTimeStamp(double relTimeStamp1, double relTimeStamp2, double& delta_time_abs)
 {
   delta_time_abs = fabs(relTimeStamp1 - relTimeStamp2);

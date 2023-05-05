@@ -95,8 +95,8 @@ def pySickScanCartesianPointCloudMsgToXYZ(pointcloud_msg):
 # Callback for cartesian pointcloud messages
 def pySickScanCartesianPointCloudMsgCallback(api_handle, pointcloud_msg):
     pointcloud_msg = pointcloud_msg.contents # dereference msg pointer (pointcloud_msg = pointcloud_msg[0])
-    print("pySickScanCartesianPointCloudMsgCallback: api_handle={}, {}x{} pointcloud, {} echo(s), segment {}".format(
-        api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx))
+    print("pySickScanCartesianPointCloudMsgCallback (ROS-{}): api_handle={}, {}x{} pointcloud, {} echo(s), segment {}".format(
+        __ROS_VERSION, api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx))
     global api_test_settings
     # Note: Pointcloud conversion and visualization consumes cpu time, therefore we convert and publish the cartesian pointcloud with low frequency.
     cur_timestamp = datetime.datetime.now()
@@ -112,8 +112,8 @@ def pySickScanCartesianPointCloudMsgCallback(api_handle, pointcloud_msg):
 # Callback for polar pointcloud messages
 def pySickScanPolarPointCloudMsgCallback(api_handle, pointcloud_msg):
     pointcloud_msg = pointcloud_msg.contents # dereference msg pointer (pointcloud_msg = pointcloud_msg[0])
-    print("pySickScanPolarPointCloudMsgCallback: api_handle={}, {}x{} pointcloud, {} echo(s), segment {}".format(
-        api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx))
+    print("pySickScanPolarPointCloudMsgCallback (ROS-{}): api_handle={}, {}x{} pointcloud, {} echo(s), segment {}".format(
+        __ROS_VERSION, api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx))
     if __ROS_VERSION == 1:
         # Convert polar pointcloud_msg to cartesian ros pointcloud and publish.
         # Note: Pointcloud conversion from polar to cartesian is too cpu-intensive to process all segments from a Multiscan136.
@@ -198,6 +198,11 @@ def pySickScanVisualizationMarkerCallback(api_handle, visualizationmarker_msg):
             ros_markers = SickScanApiConvertMarkerArrayToROS(visualizationmarker_msg.markers)
             api_test_settings.ros_visualizationmarker_publisher.publish(ros_markers)
 
+# Callback for SickScanNavPoseLandmarkMsg messages
+def pySickScanNavPoseLandmarkCallback(api_handle, navposelandmark_msg):
+    navposelandmark_msg = navposelandmark_msg.contents # dereference msg pointer
+    print("pySickScanNavPoseLandmarkCallback: api_handle={}, NavPoseLandmark message: x={:.3}, y={:.3}, yaw={:.4}, {} reflectors".format(api_handle, navposelandmark_msg.pose_x, navposelandmark_msg.pose_y, navposelandmark_msg.pose_yaw, navposelandmark_msg.reflectors.size))
+
 #
 # Python examples for SickScanApiWaitNext-functions ("message polling")
 #
@@ -212,6 +217,19 @@ def pyrunSickScanApiTestWaitNext(sick_scan_library, api_handle):
     radarscan_msg = SickScanRadarScan()
     ldmrsobjectarray_msg = SickScanLdmrsObjectArray()
     visualizationmarker_msg = SickScanVisualizationMarkerMsg()
+    navposelandmark_msg = SickScanNavPoseLandmarkMsg()
+    odom_msg = SickScanOdomVelocityMsg()
+    odom_msg.vel_x = +1.0
+    odom_msg.vel_y = -1.0
+    odom_msg.omega = 0.5
+    odom_msg.timestamp_sec = 12345
+    odom_msg.timestamp_nsec = 6789
+    navodom_msg = SickScanNavOdomVelocityMsg()
+    navodom_msg.vel_x = +1.0
+    navodom_msg.vel_y = -1.0
+    navodom_msg.omega = 0.5
+    navodom_msg.timestamp = 123456789
+    navodom_msg.coordbase = 0
     global api_test_settings
     while api_test_settings.polling:
         # Get/poll the next cartesian PointCloud message
@@ -270,6 +288,16 @@ def pyrunSickScanApiTestWaitNext(sick_scan_library, api_handle):
         elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
             print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextVisualizationMarkerMsg failed, error code {} ({})".format(ret, int(ret)))
         SickScanApiFreeVisualizationMarkerMsg(sick_scan_library, api_handle, ctypes.pointer(visualizationmarker_msg))
+        # Get/poll the next SickScanNavPoseLandmarkMsg message
+        ret = SickScanApiWaitNextNavPoseLandmarkMsg(sick_scan_library, api_handle, ctypes.pointer(navposelandmark_msg), wait_next_message_timeout)
+        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+            pySickScanNavPoseLandmarkCallback(api_handle, ctypes.pointer(navposelandmark_msg))
+        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextNavPoseLandmarkMsg failed, error code {} ({})".format(ret, int(ret)))
+        SickScanApiFreeNavPoseLandmarkMsg(sick_scan_library, api_handle, ctypes.pointer(navposelandmark_msg))
+		# Send NAV350 odom message example
+        # ret = SickScanApiNavOdomVelocityMsg(sick_scan_library, api_handle, ctypes.pointer(navodom_msg))
+        # ret = SickScanApiOdomVelocityMsg(sick_scan_library, api_handle, ctypes.pointer(odom_msg))
 
 #
 # Python usage example for sick_scan_api
@@ -349,6 +377,10 @@ if __name__ == "__main__":
         visualizationmarker_callback = SickScanVisualizationMarkerCallback(pySickScanVisualizationMarkerCallback)
         SickScanApiRegisterVisualizationMarkerMsg(sick_scan_library, api_handle, visualizationmarker_callback)
 
+        # Register a callback for SickScanNavPoseLandmarkMsg messages
+        navposelandmark_callback = SickScanNavPoseLandmarkCallback(pySickScanNavPoseLandmarkCallback)
+        SickScanApiRegisterNavPoseLandmarkMsg(sick_scan_library, api_handle, navposelandmark_callback)
+
     # Run main loop
     if __ROS_VERSION == 0:
         while True:
@@ -398,6 +430,7 @@ if __name__ == "__main__":
         SickScanApiDeregisterRadarScanMsg(sick_scan_library, api_handle, radarscan_callback)
         SickScanApiDeregisterLdmrsObjectArrayMsg(sick_scan_library, api_handle, ldmrsobjectarray_callback)
         SickScanApiDeregisterVisualizationMarkerMsg(sick_scan_library, api_handle, visualizationmarker_callback)
+        SickScanApiDeregisterNavPoseLandmarkMsg(sick_scan_library, api_handle, navposelandmark_callback)
     SickScanApiClose(sick_scan_library, api_handle)
     SickScanApiRelease(sick_scan_library, api_handle)
     SickScanApiUnloadLibrary(sick_scan_library)

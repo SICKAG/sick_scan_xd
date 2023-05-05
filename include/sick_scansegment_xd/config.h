@@ -64,7 +64,7 @@
 namespace sick_scansegment_xd
 {
     /*
-     * @brief Container for filter settings for msgpack validator, returned from  by queryMRS100Filtersettings()
+     * @brief Container for filter settings for msgpack validator, returned from  by queryMultiScanFiltersettings()
      */
     class MsgpackValidatorFilterConfig
     {
@@ -120,12 +120,16 @@ namespace sick_scansegment_xd
          * sick_scansegment_xd configuration
          */
 
-        std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a MRS100 lidar or MRS100 emulator
+        std::string scanner_type;                    // currently supported: "sick_multiscan"
+
+        std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a Multiscan136 lidar or Multiscan136 emulator
         int udp_port;                               // = 2115; // default udp port for multiScan136 resp. multiScan136 emulator is 2115
         std::string publish_topic;                  // = "/cloud"; // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
 
-        std::string publish_topic_all_segments;     // = "/cloud_360" // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_360"
-        int segment_count;                          // 12 // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
+        std::string publish_topic_all_segments;     // = "/cloud_fullframe" // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
+        // int segment_count;                       // 12 // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
+        double all_segments_min_deg;                // -180 // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
+        double all_segments_max_deg;                // +180 // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan)
 
         std::string publish_frame_id;               // = "world"; // frame id of ros PointCloud2 messages, default: "world"
         int udp_input_fifolength;                   // = 20; // max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
@@ -156,8 +160,8 @@ namespace sick_scansegment_xd
         bool host_set_FREchoFilter;                // False // If true, FREchoFilter is set at startup (default: false)
         std::string host_LFPangleRangeFilter;      // "0 -180.0 +180.0 -90.0 +90.0 1" // Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
         bool host_set_LFPangleRangeFilter;         // False // If true, LFPangleRangeFilter is set at startup (default: false)
-        std::string host_LFPlayerFilter;           // "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" // Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
-        bool host_set_LFPlayerFilter;              // False // If true, LFPlayerFilter is set at startup (default: false)
+        std::string host_LFPlayerFilter;           // "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" (multiScan136 only) // Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+        bool host_set_LFPlayerFilter;              // False // If true LFPlayerFilter is set at startup (default: false)
 
         // msgpack validation
         bool msgpack_validator_enabled; // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation

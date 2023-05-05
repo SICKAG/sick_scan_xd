@@ -1,18 +1,17 @@
-# MultiScan136/sick_scan_segment_xd
+# multiScan136
 
-The MultiScan136 Beta is a new lidar from Sick with a total of 16 lidar units rotating around a vertical axis. 
-The rotation speed is 20 rounds per second.
+The multiScan136 are new lidars from Sick. multiScan136 has a total of 16 lidar units rotating around a vertical axis. The rotation speed is 20 rounds per second.
 Scan data are transmitted in msgpack format over UDP.
 
-MultiScan136 / sick_scan_segment_xd lidars are supported by sick_scan_xd. See [README](../README.md) for build and run instructions.
+multiScan136 lidars are supported by sick_scan_xd. See [README](../README.md) for build and run instructions.
 
 The following describes the configuration, validation and test in more detail.
 
 ## Configuration
 
-MultiScan136/sick_scan_segment_xd is configured by launch file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch).
+multiScan136/sick_scan_segment_xd is configured by launch file [sick_multiscan.launch](../launch/sick_multiscan.launch).
 
-Modify file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch) to change configuration. Note that the ip address of the udp receiver __must__ be configured on each system. This is the ip address of the computer running sick_scan_xd.
+Modify file [sick_multiscan.launch](../launch/sick_multiscan.launch). Note that the ip address of the udp receiver __must__ be configured on each system. This is the ip address of the computer running sick_scan_xd.
 
 The ip address of the lidar and the udp receiver can be configured in the launch file by e.g.
 ```
@@ -22,11 +21,11 @@ The ip address of the lidar and the udp receiver can be configured in the launch
 or by command line by e.g.
 ```
 # Run sick_scansegment_xd generic without ROS:
-sick_generic_caller ./launch/sick_scansegment_xd.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
+sick_generic_caller ./launch/sick_multiscan.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
 # Run sick_scansegment_xd on ROS-1:
-roslaunch sick_scan sick_scansegment_xd.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
+roslaunch sick_scan sick_multiscan.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
 # Run sick_scansegment_xd on ROS-2:
-ros2 launch sick_scan sick_scansegment_xd.launch.py hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
+ros2 launch sick_scan sick_multiscan.launch.py hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
 ```
 
 ## SOPAS support
@@ -45,7 +44,7 @@ The driver sends the following SOPAS start and stop sequence at program start re
 sMN SetAccessMode 3 F4724744  // set authorization level for writing settings
 sWN ScanDataEthSettings 1 +192 +168 +0 +1 +2115  // configure destination scan data output destination to 192.168.0.52 port 2115
 sWN ScanDataFormat 1   // set scan data output format to MSGPACK
-sWN ScanDataPreformatting 1
+sWN ScanDataPreformatting 1 // for multiscan136 only
 sWN ScanDataEnable 1   // enable scan data ouput
 sMN LMCstartmeas       // start measurement
 sMN Run                // apply the settings and logout
@@ -61,30 +60,44 @@ sMN Run   // apply the settings and logout
 
 ## Visualization
 
-The Multiscan136 scans can be visualized by rviz. The following screenshots show two examples of a Multiscan136 pointcloud:
+The multiScan136 scans can be visualized by rviz. The following screenshots show two examples of a multiScan136 pointcloud:
 
 ![msgpacks-emulator-rviz](20210929-tokenized-msgpacks-emulator-rviz.png)
-![msgpacks-emulator-rviz](20210929-tokenized-msgpacks-mrs100-rviz.png)
+![msgpacks-emulator-rviz](20210929-tokenized-msgpacks-multiScan-rviz.png)
 
 Note that sick_scan_xd publishes 2 pointclouds:
 * The pointcloud on topic `/cloud` is published for each scan segment.
-* The pointcloud on topic `/cloud_360` collects all segments for a complete 360 degree full scan.
+* The pointcloud on topic `/cloud_fullframe` collects all segments for a complete 360 degree full scan (360 degree for multiScan136).
 
 Pointcloud callbacks defined in the [API](sick_scan_api/sick_scan_api.md) are called the same way: A callback registered with SickScanApiRegisterPolarPointCloudMsg is called
 * with a segment_idx >= 0 for each scan segment, and
 * with segment_idx := -1 for the complete 360 degree full scan.
 
+## Pointcloud memory layout
+
+The Multiscan136 scans with 12 segments and 16 layer. For test, development and debugging, knowledge the internal memory layout of the pointclouds can be helpful. 
+
+The pointcloud on topic `/cloud` is published for each scan segment. Each pointcloud concatenates the layer of that segment. Each layer concatenates the points of that layer and segment. Each point concatenates the cartesian position (x, y, z) and the intensity i of a scan point. Each value of a point (x, y, z, i) is represented by a 4 byte float value. The pointcloud on topic `/cloud_fullframe` collects all segments of a complete 360 degree full scan. Therefore, a total of 13 cartesian pointclouds are published for a 360 degree full scan:
+
+* 12 segment pointclouds. Each segment pointcloud concatenates the points of each layer in this segment in a flat memory layout:<br/>
+   ![sick_scan_segment_xd_01.png](sick_scan_segment_xd_01.png)
+
+* 1 full scan pointcloud concatenating all 12 segments:<br/>
+   ![sick_scan_segment_xd_02.png](sick_scan_segment_xd_02.png)
+
+Note that segments and layer are not sorted in ascending order. They are published in the same order as they are received from the lidar.
+
 ## Msgpack validation
 
 A msgpack validation can be activated. This validation checks
 1. each incoming msgpack for scan data out of the expected values, and
-2. missing scandata after collecting the msgpack data for a full scan (360 degree)
+2. missing scandata after collecting the msgpack data for a full scan (360 degree for multiScan136)
 
 If a msgpack contains scan data out of expected values, the msgpack is discarded and an error message is printed. This should not happen in normal operation mode. If scan data are missing after a full 360 degree scan, an error message is printed. This might happen in case of udp packet drops.
 
-By default, the full range of scan data is expected, i.e. all echos, all segments, all layers and azimuth values covering -180 up to +180 degree. If filters are activated (echo-, layer- or angle-range-filter to reduce network traffic), the msgpack validation should currently be deactivated or configured thoroughly to avoid error messages. In the next release, the filter configuration is queried from  MultiScan136 Beta and validation settings are adopted to the MultiScan136 Beta filter settings.
+By default, the full range of scan data is expected, i.e. all echos, all segments, all layers and azimuth values covering -180 up to +180 degree. If filters are activated (echo-, layer- or angle-range-filter to reduce network traffic), the msgpack validation should currently be deactivated or configured thoroughly to avoid error messages. In the next release, the filter configuration is queried from  multiScan136 Beta and validation settings are adopted to the multiScan136 Beta filter settings.
 
-The msgpack validation is configured in file [sick_scansegment_xd.launch](../launch/sick_scansegment_xd.launch). To activate or deactivate msgpack validation, set `msgpack_validator_enabled` to True (activated) resp. False (deactivated). 
+The msgpack validation is configured in file [sick_multiscan.launch](../launch/sick_multiscan.launch). To activate or deactivate msgpack validation, set `msgpack_validator_enabled` to True (activated) resp. False (deactivated). 
 
 Msgpack validation leads to error messages in case of udp packet drops. Increase the value `msgpack_validator_check_missing_scandata_interval` to tolerate udp packet drops. Higher values increase the number of msgpacks collected for verification.
 
@@ -141,41 +154,41 @@ Make sure you have only one network adapter activated with custom NAT:
 
 :white_check_mark: Run the following steps:
 * Install python msgpack package with `pip install msgpack`
-* Play the pcapng-file using mrs100_pcap_player.py
-* Receive and convert to msgpack using mrs100_receiver.py
+* Play the pcapng-file using multiscan_pcap_player.py
+* Receive and convert to msgpack using multiscan_receiver.py
 * Convert to json using online-converter https://toolslick.com/conversion/data/messagepack-to-json
 
 Linux example:
 ```
 pushd sick_scan_xd/test/python
-python3 python mrs100_receiver.py &
-python3 mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20210929_mrs100_token_udp.pcapng
-mv ./mrs100_dump_12472.msgpack     20210929_mrs100_token_udp.msgpack
-mv ./mrs100_dump_12472.msgpack.hex 20210929_mrs100_token_udp.msgpack.hex 
+python3 python multiscan_receiver.py &
+python3 multiscan_pcap_player.py --pcap_filename=../emulator/scandata/20210929_multiscan_token_udp.pcapng
+mv ./multiscan_dump_12472.msgpack     20210929_multiscan_token_udp.msgpack
+mv ./multiscan_dump_12472.msgpack.hex 20210929_multiscan_token_udp.msgpack.hex 
 popd
 ```
-Then paste the content of file `20210929_mrs100_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.
+Then paste the content of file `20210929_multiscan_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.
 
 Windows example:
 ```
 pushd sick_scan_xd\test\python
 python --version
-REM Convert 20220915_mrs100_msgpack_output.pcapng (16-bit RSSI record) to msgpack resp. json
-del /f/q mrs100_dump*.msgpack
-del /f/q mrs100_dump*.msgpack.hex
-start python mrs100_receiver.py
-python mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
-move /y .\mrs100_dump_23644.msgpack     20220915_mrs100_msgpack_output.msgpack
-move /y .\mrs100_dump_23644.msgpack.hex 20220915_mrs100_msgpack_output.msgpack.hex
-REM Convert 20210929_mrs100_token_udp.pcapng (8-bit RSSI record) to msgpack resp. json
-del /f/q mrs100_dump*.msgpack
-del /f/q mrs100_dump*.msgpack.hex
-start python mrs100_receiver.py
-python mrs100_pcap_player.py --pcap_filename=../emulator/scandata/20210929_mrs100_token_udp.pcapng --verbose=0
-move /y .\mrs100_dump_12472.msgpack     20210929_mrs100_token_udp.msgpack
-move /y .\mrs100_dump_12472.msgpack.hex 20210929_mrs100_token_udp.msgpack.hex 
-del /f/q mrs100_dump*.msgpack
-del /f/q mrs100_dump*.msgpack.hex
+REM Convert 20220915_multiscan_msgpack_output.pcapng (16-bit RSSI record) to msgpack resp. json
+del /f/q multiscan_dump*.msgpack
+del /f/q multiscan_dump*.msgpack.hex
+start python multiscan_receiver.py
+python multiscan_pcap_player.py --pcap_filename=../emulator/scandata/20220915_multiscan_msgpack_output.pcapng --udp_port=2115
+move /y .\multiscan_dump_23644.msgpack     20220915_multiscan_msgpack_output.msgpack
+move /y .\multiscan_dump_23644.msgpack.hex 20220915_multiscan_msgpack_output.msgpack.hex
+REM Convert 20210929_multiscan_token_udp.pcapng (8-bit RSSI record) to msgpack resp. json
+del /f/q multiscan_dump*.msgpack
+del /f/q multiscan_dump*.msgpack.hex
+start python multiscan_receiver.py
+python multiscan_pcap_player.py --pcap_filename=../emulator/scandata/20210929_multiscan_token_udp.pcapng --verbose=0
+move /y .\multiscan_dump_12472.msgpack     20210929_multiscan_token_udp.msgpack
+move /y .\multiscan_dump_12472.msgpack.hex 20210929_multiscan_token_udp.msgpack.hex 
+del /f/q multiscan_dump*.msgpack
+del /f/q multiscan_dump*.msgpack.hex
 popd
 ```
-Then paste the content of files `20220915_mrs100_msgpack_output.msgpack.hex` resp. `20210929_mrs100_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.
+Then paste the content of files `20220915_multiscan_msgpack_output.msgpack.hex` resp. `20210929_multiscan_token_udp.msgpack.hex` in https://toolslick.com/conversion/data/messagepack-to-json and save the json-output.

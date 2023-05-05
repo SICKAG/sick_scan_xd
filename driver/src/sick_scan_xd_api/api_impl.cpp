@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "softwarePLL.h"
 #include "sick_scan_api.h"
 #include "sick_scan_api_dump.h"
 #include "sick_scan/sick_generic_laser.h"
@@ -25,6 +26,7 @@ static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanLIDoutputstateMs
 static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanRadarScan>              s_callback_handler_radarscan_messages;
 static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanLdmrsObjectArray>       s_callback_handler_ldmrsobjectarray_messages;
 static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanVisualizationMarkerMsg> s_callback_handler_visualizationmarker_messages;
+static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanNavPoseLandmarkMsg>     s_callback_handler_navposelandmark_messages;
 
 #if __ROS_VERSION == 2 // workaround for missing imu quaternion operator << in ROS2
 #   define ROS_VECTOR3D_TO_STREAM(msg)   ((msg).x) << "," << ((msg).y) << "," << ((msg).z)
@@ -681,6 +683,7 @@ int32_t SickScanApiRelease(SickScanApiHandle apiHandle)
         s_callback_handler_radarscan_messages.clear();
         s_callback_handler_ldmrsobjectarray_messages.clear();
         s_callback_handler_visualizationmarker_messages.clear();
+        s_callback_handler_navposelandmark_messages.clear();
         for(int n = 0; n < s_malloced_resources.size(); n++)
             free(s_malloced_resources[n]);
         s_malloced_resources.clear();
@@ -1607,4 +1610,187 @@ int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickS
         return SICK_SCAN_API_SUCCESS;
     }
     return SICK_SCAN_API_NOT_INITIALIZED;
+}
+
+/*
+** NAV-350 support and messages
+*/
+
+static SickScanNavPoseLandmarkMsg convertNAV350mNPOSData(const sick_scan::NAV350mNPOSData& src_msg)
+{
+    SickScanNavPoseLandmarkMsg dst_msg;
+    memset(&dst_msg, 0, sizeof(dst_msg));
+    dst_msg.pose_valid = src_msg.poseDataValid;
+    dst_msg.pose_nav_x = src_msg.poseData.x;
+    dst_msg.pose_nav_y = src_msg.poseData.y;
+    dst_msg.pose_nav_phi = src_msg.poseData.phi;
+    dst_msg.pose_opt_valid = src_msg.poseData.optPoseDataValid;
+    dst_msg.pose_opt_output_mode = src_msg.poseData.optPoseData.outputMode;
+    dst_msg.pose_opt_timestamp = src_msg.poseData.optPoseData.timestamp;
+    dst_msg.pose_opt_mean_dev = src_msg.poseData.optPoseData.meanDev;
+    dst_msg.pose_opt_nav_mode = src_msg.poseData.optPoseData.navMode;
+    dst_msg.pose_opt_info_state = src_msg.poseData.optPoseData.infoState;
+    dst_msg.pose_opt_quant_used_reflectors = src_msg.poseData.optPoseData.quantUsedReflectors;
+    if (dst_msg.pose_valid > 0)
+        sick_scan::convertNAVCartPos3DtoROSPos3D(dst_msg.pose_nav_x, dst_msg.pose_nav_y, dst_msg.pose_nav_phi, dst_msg.pose_x, dst_msg.pose_y, dst_msg.pose_yaw, src_msg.angleOffset);
+    if (dst_msg.pose_opt_valid > 0 && SoftwarePLL::instance().IsInitialized())
+        SoftwarePLL::instance().getCorrectedTimeStamp(dst_msg.pose_timestamp_sec, dst_msg.pose_timestamp_nsec, dst_msg.pose_opt_timestamp);
+
+    if (src_msg.landmarkDataValid && src_msg.landmarkData.reflectors.size() > 0)
+    {
+        dst_msg.reflectors.buffer = (SickScanNavReflector*)malloc(src_msg.landmarkData.reflectors.size() * sizeof(SickScanNavReflector));
+        if (dst_msg.reflectors.buffer)
+        {
+            dst_msg.reflectors.size = src_msg.landmarkData.reflectors.size();
+            dst_msg.reflectors.capacity = src_msg.landmarkData.reflectors.size();
+            for(int reflector_cnt = 0; reflector_cnt < src_msg.landmarkData.reflectors.size(); reflector_cnt++)
+            {
+                const sick_scan::NAV350ReflectorData* src_reflector = &src_msg.landmarkData.reflectors[reflector_cnt];
+                SickScanNavReflector* dst_reflector = &dst_msg.reflectors.buffer[reflector_cnt];
+                dst_reflector->cartesian_valid = src_reflector->cartesianDataValid;
+                dst_reflector->cartesian_x = src_reflector->cartesianData.x;
+                dst_reflector->cartesian_y = src_reflector->cartesianData.y;
+                dst_reflector->polar_valid = src_reflector->polarDataValid;
+                dst_reflector->polar_dist = src_reflector->polarData.dist;
+                dst_reflector->polar_phi = src_reflector->polarData.phi;
+                dst_reflector->opt_valid = src_reflector->optReflectorDataValid;
+                dst_reflector->opt_local_id = src_reflector->optReflectorData.localID;
+                dst_reflector->opt_global_id = src_reflector->optReflectorData.globalID;
+                dst_reflector->opt_type = src_reflector->optReflectorData.type;
+                dst_reflector->opt_subtype = src_reflector->optReflectorData.subType;
+                dst_reflector->opt_quality = src_reflector->optReflectorData.quality;
+                dst_reflector->opt_timestamp = src_reflector->optReflectorData.timestamp;
+                dst_reflector->opt_size = src_reflector->optReflectorData.size;
+                dst_reflector->opt_hitcount = src_reflector->optReflectorData.hitCount;
+                dst_reflector->opt_meanecho = src_reflector->optReflectorData.meanEcho;
+                dst_reflector->opt_startindex = src_reflector->optReflectorData.startIndex;
+                dst_reflector->opt_endindex = src_reflector->optReflectorData.endIndex;
+                dst_reflector->pos_valid = src_reflector->cartesianDataValid;
+                if (src_reflector->cartesianDataValid)
+                    sick_scan::convertNAVCartPos2DtoROSPos2D(src_reflector->cartesianData.x, src_reflector->cartesianData.y, dst_reflector->pos_x, dst_reflector->pos_y, src_msg.angleOffset);
+                if (src_reflector->optReflectorDataValid > 0 && SoftwarePLL::instance().IsInitialized())
+                    SoftwarePLL::instance().getCorrectedTimeStamp(dst_reflector->opt_timestamp_sec, dst_reflector->opt_timestamp_nsec, src_reflector->optReflectorData.timestamp);
+            }
+        }
+    }
+    return dst_msg;
+}
+static void freeNavPoseLandmarkMsg(SickScanNavPoseLandmarkMsg& msg)
+{
+    free(msg.reflectors.buffer);
+    memset(&msg, 0, sizeof(msg));
+}
+static void nav_pose_landmark_callback(rosNodePtr node, const sick_scan::NAV350mNPOSData* msg)
+{
+    ROS_DEBUG_STREAM("api_impl nav_pose_landmark_callback: NAV350mNPOSData message");
+    SickScanNavPoseLandmarkMsg export_msg = convertNAV350mNPOSData(*msg);
+    SickScanApiHandle apiHandle = castNodeToApiHandle(node);
+    s_callback_handler_navposelandmark_messages.notifyListener(apiHandle, &export_msg);
+    freeNavPoseLandmarkMsg(export_msg);
+}
+int32_t SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback)
+{   
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiRegisterNavPoseLandmarkMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_navposelandmark_messages.addListener(apiHandle, callback);
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        sick_scan::addNavPoseLandmarkListener(node, nav_pose_landmark_callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterNavPoseLandmarkMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterNavPoseLandmarkMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
+}
+int32_t SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback)
+{   
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterNavPoseLandmarkMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_navposelandmark_messages.removeListener(apiHandle, callback);
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        sick_scan::removeNavPoseLandmarkListener(node, nav_pose_landmark_callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterNavPoseLandmarkMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterNavPoseLandmarkMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
+}
+int32_t SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec)
+{   
+    int32_t ret_val = SICK_SCAN_API_ERROR;
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextNavPoseLandmarkMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        rosNodePtr node = castApiHandleToNode(apiHandle);
+        if (!sick_scan::isNavPoseLandmarkListenerRegistered(node, sick_scan::WaitForNAVPOSDataMessageHandler::messageCallback))
+            sick_scan::addNavPoseLandmarkListener(node, sick_scan::WaitForNAVPOSDataMessageHandler::messageCallback);
+        sick_scan::WaitForNAVPOSDataMessageHandler wait_message_handler;
+        sick_scan::WaitForNAVPOSDataMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan::NAV350mNPOSData navdata_msg;
+        if (wait_message_handler.waitForNextMessage(navdata_msg, timeout_sec) && (navdata_msg.poseDataValid > 0 || navdata_msg.landmarkDataValid > 0))
+        {
+            ROS_INFO_STREAM("SickScanApiWaitNextNavPoseLandmarkMsg: NAV350mNPOSData message");
+            *msg = convertNAV350mNPOSData(navdata_msg);
+            ret_val = SICK_SCAN_API_SUCCESS;
+        }
+        else
+        {
+            ret_val = SICK_SCAN_API_TIMEOUT;
+        }
+        sick_scan::WaitForNAVPOSDataMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextNavPoseLandmarkMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiWaitNextNavPoseLandmarkMsg(): unknown exception ");
+    }
+    return ret_val;
+}
+int32_t SickScanApiFreeNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg)
+{   
+    if(apiHandle && msg)
+    {
+        freeNavPoseLandmarkMsg(*msg);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    return SICK_SCAN_API_NOT_INITIALIZED;
+}
+// Send odometry data to NAV350
+int32_t SickScanApiNavOdomVelocityImpl(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg);
+int32_t SickScanApiOdomVelocityImpl(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* src_msg);
+int32_t SickScanApiNavOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg)
+{
+    return SickScanApiNavOdomVelocityImpl(apiHandle, msg);
+}
+int32_t SickScanApiOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg)
+{
+    return SickScanApiOdomVelocityImpl(apiHandle, msg);
 }

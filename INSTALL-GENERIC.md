@@ -26,7 +26,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-4. Build msgpack11 library (required only once for Multiscan136/sick_scansegment_xd):
+4. Build msgpack11 library (required only once for multiScan136):
    ```
    mkdir -p ./build
    pushd ./build
@@ -53,7 +53,7 @@ Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not nee
    cmake -DROS_VERSION=0 -DLDMRS=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
 
-Note: msgpack11 is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: msgpack11 is only required to support multiScan136. If you do not need or want to support multiScan136, you can skip building msgpack. To build sick_generic_caller without multiScan136 support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
@@ -120,7 +120,7 @@ After successful build, binary files `sick_generic_caller.exe` and `sick_scan_sh
 
 Note: LDMRS sensors are currently not supported on Windows.
 
-Note: msgpack11 is only required to support Multiscan136/sick_scansegment_xd. If you do not need or want to support Multiscan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without Multiscan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: msgpack11 is only required to support multiScan136. If you do not need or want to support multiScan136, you can skip building msgpack. To build sick_generic_caller without multiScan136 support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "%_cmake_string%" ..
    ```

@@ -18,20 +18,11 @@ function start_ldmrs_emulator()
     sleep 1
 }
 
-# Start rms3xx radar emulator and rviz
-function start_rms3xx_emulator()
-{
-    echo -e "\nrun_linux_ros1_simu_add_transform: starting rms3xx radar emulation ...\n"
-    roslaunch sick_scan emulator_rms3xx.launch &
-    sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_rms3xx_add_transform.rviz --opengl 210 &
-    sleep 1
-}
-
 # Start mrs100 (multiscan136) emulator and rviz
 function start_mrs100_emulator()
 {
     echo -e "\nrun_linux_ros1_simu_add_transform: starting mrs100 (multiscan136) emulation ...\n"
-    python3 ./src/sick_scan_xd/test/python/mrs100_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
+    python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_mrs100_add_transform.rviz --opengl 210 &
     sleep 1
 }
@@ -56,8 +47,8 @@ function kill_simu()
     rosnode kill -a ; sleep 1
     killall sick_generic_caller ; sleep 1
     killall sick_scan_emulator ; sleep 1
-    pkill -f mrs100_sopas_test_server.py
-    pkill -f mrs100_pcap_player.py
+    pkill -f multiscan_sopas_test_server.py
+    pkill -f multiscan_pcap_player.py
 }
 
 # Sets parameter add_transform_xyz_rpy dynamically, moves and rotates the pointcloud
@@ -110,10 +101,10 @@ function run_simu_tim7xx()
 function run_simu_mrs100()
 {
     start_mrs100_emulator
-    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_scansegment_xd.launch, no transform\n"
-    roslaunch sick_scan sick_scansegment_xd.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
+    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_multiscan.launch, no transform\n"
+    roslaunch sick_scan sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
     sleep 5
-    python3 ./src/sick_scan_xd/test/python/mrs100_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=10 &
+    python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=10 &
     run_simu_transforms sick_scansegment_xd/add_transform_xyz_rpy 2.0
     kill_simu
 }
@@ -128,18 +119,6 @@ function run_simu_ldmrs()
     run_simu_transforms sick_ldmrs/add_transform_xyz_rpy 1.0 
     kill_simu
 }
-
-# Run sick_generic_caller with rms3xx radar and additional transform
-function run_simu_rms3xx()
-{
-    start_rms3xx_emulator
-    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_rms_3xx.launch, no transform\n"
-    roslaunch sick_scan sick_rms_3xx.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
-    sleep 5
-    run_simu_transforms sick_rms_3xx/add_transform_xyz_rpy 3.0 
-    kill_simu
-}
-
 
 printf "\033c"
 pushd ../../../..
@@ -159,7 +138,6 @@ fi
 run_simu_tim7xx
 run_simu_mrs100
 run_simu_ldmrs
-run_simu_rms3xx
 
 echo -e "\nrun_linux_ros1_simu_add_transform.bash finished.\n"
 popd

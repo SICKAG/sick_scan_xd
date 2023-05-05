@@ -18,7 +18,6 @@
   <build_depend condition="$ROS_VERSION == 1">message_generation</build_depend>
   <build_depend condition="$ROS_VERSION == 2">rosidl_default_generators</build_depend>
 
-  <depend condition="$ROS_VERSION == 1">diagnostic_updater</depend>
   <depend condition="$ROS_VERSION == 1">dynamic_reconfigure</depend>
   <depend condition="$BUILD_WITH_LDMRS_SUPPORT == True">libsick_ldmrs</depend>
   <depend condition="$ROS_VERSION == 1">roscpp</depend>
@@ -26,6 +25,7 @@
   <depend condition="$ROS_VERSION == 1">tf</depend>
 
   <depend>diagnostic_msgs</depend>
+  <depend>diagnostic_updater</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>sensor_msgs</depend>

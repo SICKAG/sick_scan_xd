@@ -18,6 +18,7 @@ This project provides a driver for the SICK LiDARs and Radar sensors mentioned [
 - [IMU-Support](#imu-Support)
 - [Radar](doc/radar.md)
 - [multiScan100](doc/sick_scan_segment_xd.md)
+- [NAV350](doc/nav350.md)
 - [Software PLL](#software-pll)
 - [Field Evaluation Information](#field-extensions)
 - [SLAM-Support](doc/slam.md)
@@ -79,11 +80,11 @@ Further information on the implementation and use of the experimental Imu suppor
 
 ## Radar support
 
-See [radar documentation](doc/radar.md) for RMS1xxx and RMS3xx support.
+See [radar documentation](doc/radar.md) for RMSxxxx support.
 
-## Multiscan100 support
+## multiScan100 support
 
-See [sick_scan_segment_xd](doc/sick_scan_segment_xd.md) for Multiscan100 support.
+See [sick_scan_segment_xd](doc/sick_scan_segment_xd.md) for multiScan100 support.
 
 ## Software PLL
 
@@ -115,8 +116,7 @@ MRS6000
 MRS6124
 RMS1xxx
 RMS1000
-RMS3xx
-RMS320
+RMSxxxx
 ROS LiDAR
 SICK LiDAR
 SICK Laser
@@ -139,4 +139,9 @@ NAV245
 NAV310
 LDMRS
 LRS4000
+LD-LRS3600
+LD-LRS3601
+LD-LRS3611
+LD-OEM1500
+LD-OEM1501
 multiScan100
