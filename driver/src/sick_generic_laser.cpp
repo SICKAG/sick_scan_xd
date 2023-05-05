@@ -92,8 +92,8 @@
 #include <signal.h>
 
 #define SICK_GENERIC_MAJOR_VER "2"
-#define SICK_GENERIC_MINOR_VER "8"
-#define SICK_GENERIC_PATCH_LEVEL "15"
+#define SICK_GENERIC_MINOR_VER "9"
+#define SICK_GENERIC_PATCH_LEVEL "0"
 
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
