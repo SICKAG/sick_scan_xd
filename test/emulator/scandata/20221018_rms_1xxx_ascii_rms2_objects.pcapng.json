@@ -317,8 +317,8 @@
           },
           "tcp.comment": "All entries created by pcap_json_converter, not by Wireshark.",
           "tcp.producer": "pcap_json_converter.py --pcap_filename=20221018_rms_1xxx_ascii_rawtarget_object.pcapng",
-          "tcp.description": ".sRA DItype F RMS1731C.636111.",
-          "tcp.payload": "02:73:52:41:20:44:49:74:79:70:65:20:46:20:52:4d:53:31:37:33:31:43:2d:36:33:36:31:31:31:03"
+          "tcp.description": ".sRA DItype F RMS2731C.636111.",
+          "tcp.payload": "02:73:52:41:20:44:49:74:79:70:65:20:46:20:52:4d:53:32:37:33:31:43:2d:36:33:36:31:31:31:03"
         }
       }
     }

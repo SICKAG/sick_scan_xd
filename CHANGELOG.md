@@ -4,6 +4,7 @@ Possible types are **Added** for new features. **Changed** for changes to the ex
 features that will be removed in future versions **Removed** for deprecated features that were removed in this release.
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
+
 ## Unreleased ##
 
 ### v2.9.0 - RMSxxxx support and NAV350 support
@@ -15,6 +16,14 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **Update** Merge lms511_field_mon (fix lms511 field parsing and wait api), default_echo_setting (activate last echo by default), monitoring_ros2_qos (ROS2 QoS configuration), scansegment_xd_support (update build instructions), rename-mrs100-multiscan, rename-fullframe-topic
 
 ## Released ##
+
+### v2.9.0 - RMSxxxx support and NAV350 support
+  - **Added** RMSxxxx support, unification of RMS-1xxx and RMS-2xxx Note: RMSxxxx supports ASCII-communication mode only (Cola-A).
+  - **Update** #159 (nav310 angle setting compability), merge with NAV310 angle settings branch https://github.com/SICKAG/sick_scan_xd/tree/159-nav310-angle-setting-compability
+  - **Update** Documentation LD-LRS3600,LD-LRS3601,LD-LRS3611,LD-OEM1500,LD-OEM1501 support
+  - **Update** Removed obsolete RMS-3xx
+  - **Added** NAV350 support
+  - **Update** Merge lms511_field_mon (fix lms511 field parsing and wait api), default_echo_setting (activate last echo by default), monitoring_ros2_qos (ROS2 QoS configuration), scansegment_xd_support (update build instructions), rename-mrs100-multiscan, rename-fullframe-topic
 
 ### v2.8.15 - Release Jan. 2023
   - **Update** Win64 build instructions

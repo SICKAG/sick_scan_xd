@@ -6,10 +6,10 @@ To demonstrate the lidar/radar combination, a RMS_1xxx and a LMS_1xxx device wer
 
 Run the following steps:
 
-1. Connect RMS_1xxx and LMS_1xxx and start sick_scan_xd with launchfiles sick_lms_1xxx.launch and sick_rms_1xxx.launch:
+1. Connect RMS_1xxx and LMS_1xxx and start sick_scan_xd with launchfiles sick_lms_1xxx.launch and sick_rms_xxxx.launch:
    ```
    roslaunch sick_scan sick_lms_1xxx.launch
-   roslaunch sick_scan sick_rms_1xxx.launch
+   roslaunch sick_scan sick_rms_xxxx.launch
    ```
    Make sure, that different ros node names and different IP-addresses are used.
 
