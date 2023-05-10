@@ -265,7 +265,7 @@ In the example the ip address 192.168.0.4 is the laserscanner MRS1104 and the ip
 ```bash
 ifconfig|grep 192.168.0.22
 ```
-## IP Address of Laser Scanner
+## IP Address of Lidar
 
 :question: Question:
 My scanner does not use the default ip address. What shall I do?
@@ -345,3 +345,38 @@ How can I debug sick_generic_caller on ROS-1?
 
 :white_check_mark: Answer:
 Build with compiler option `-g` and run sick_generic_caller as described using a launchfile. Stop sick_generic_caller (Ctrl-C or kill) and save the current ros parameter using `rosparam dump <dumpfile>.yaml`. Load these parameter with `rosparam load <dumpfile>.yaml` and restart sick_generic_caller in gdb or in your IDE. 
+
+## Curved lines on a straight wall
+
+:question: Question:
+The X,Y points of the lidar show a curved line even though the lidar is scanning a straight wall. How can this be?
+
+:white_check_mark: Answer:
+This effect occurs when the lidar has multiple planes that are tilted up or down. In this case, the laser beams of this plane do not lie on a flat plane. Rather, the beams lie on a cone. If the laser beams then hit a wall, the result is a curved course of the lidar points. If the lidar is horizontal and the wall is vertical, this is a hyperbola (see following figure):
+
+![cone_section](doc/cone_section.png)
+
+
+
+This image is generated using the website https://www.intmath.com/plane-analytic-geometry/conic-sections-summary-interactive.php 
+
+Thus, the mathematical laws for a conic section apply, as they are explained e.g. at Wikipedia at https://en.wikipedia.org/wiki/Conic_section.
+
+## Interlacing
+
+:question: Question:
+How should I interpret the scan rate and lidar resolution from the manual? What is the relationship between ROS point cloud publishing rate and scan frequency here?
+
+:white_check_mark: Answer:
+
+The angular resolution and scan frequency is configurable in many lidars such as the LRS-4xxx or MRS-1xxx. Depending on the lidar type, angular resolution and scan frequency can be set in the launch file either via the parameter "scan_cfg_list_entry" or the parameters "ang_res" and "scan_freq". Angular resolution and scan frequency are not independent of each other. If no default settings are used, the values must be selected according to the manual for the respective lidar and set in launch file.
+
+An increase in resolution is achieved by interlacing by a factor of N. This means that N consecutive scans are rotated by a constant angular offset. Each scan in itself still has the physically given angular resolution and frequency. By concatenating N interlaced scans, the angular resolution is increased by the factor N.
+
+Example: The default setting of an MRS-1xxx is 0.25 degrees horizontal angular resolution at 50 Hz scan frequency without interlacing and an angular range of 275 degrees in total. I.e. each scan measures the distance at the hor. angles [ ..., 0.000, 0.250, 0.500, 0.750, ... ].
+
+If 0.125 degrees horizontal angular resolution is configured at 25 Hz scan frequency, the scans are performed with 2 times interlacing (N=2). Every 2nd scan is horizontally shifted by 0.125 degrees. I.e. each scan measures alternately at the hor. angles [ ..., 0.000, 0.250, 0.500, 0.750, ... ] and [ ... , 0.125, 0.375, 0.625, 0.875 ... ]. 50 single scans per second resp. 25 interlaced scans per second are sent.
+
+If 0.0625 degrees horizontal angular resolution at 12.5 Hz scan frequency is configured, the scans are performed with 4 times interlacing (N=4). Successive scans are shifted horizontally by 0.0625 degrees each. That is, each scan measures alternately at the hor. angles [ ..., 0.000, 0.250, 0.500, 0.750, ... ], [... , 0.0625, 0.3125, 0.5625, 0.8125 ... ], [... , 0.125, 0.375, 0.625, 0.875 ... ] and [... , 0.1875, 0.4375, 0.6875, 0.9375 ... ]. 50 single scans per second resp. 12 interlaced scans per second are sent.
+
+In interlacing mode, laser scan and point cloud messages are published interlaced, too. In rviz, the higher angular resolution is clearly visible when the decay time is increased.
