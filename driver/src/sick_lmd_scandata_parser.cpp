@@ -110,9 +110,10 @@ namespace sick_scan
     {
        bool angle_slightly_modified = false;
        float pi_multiplier = *angle_val/M_PI;
-       float check_deviation_to_abs_one = fabs(pi_multiplier) - 1.0;
+       // float check_deviation_to_abs_one = fabs(pi_multiplier) - 1.0;
        // check for a small deviation
-       if (check_deviation_to_abs_one < 10.0 * FLT_EPSILON )
+       // if (check_deviation_to_abs_one < 10.0 * FLT_EPSILON )
+       if (pi_multiplier > 1.0 - 10.0 * FLT_EPSILON || pi_multiplier < -1.0 + 10.0 * FLT_EPSILON)
        {
         float factor =  (*angle_val < 0.0) ? (-1.0) : (1.0);
         *angle_val = factor * (1.0 - FLT_EPSILON) * M_PI;
@@ -526,6 +527,7 @@ namespace sick_scan
                                 msg.angle_max *= -1.0;
 
                               }
+                              ROS_DEBUG_STREAM("msg.angle_min=" << (msg.angle_min*180/M_PI) << ", msg.angle_max=" << (msg.angle_max*180/M_PI) << ", msg.angle_increment=" << (msg.angle_increment*180/M_PI));
 
                               // Avoid 2*PI wrap around, if (msg.angle_max - msg.angle_min - 2*PI) is slightly above 0.0 due to floating point arithmetics
                               bool wrap_avoid = false;
@@ -546,6 +548,7 @@ namespace sick_scan
                               {
                                 msg.angle_increment = (msg.angle_max - msg.angle_min) / (numberOfItems - 1);
                               }
+                              ROS_DEBUG_STREAM("msg.angle_min=" << (msg.angle_min*180/M_PI) << ", msg.angle_max=" << (msg.angle_max*180/M_PI) << ", msg.angle_increment=" << (msg.angle_increment*180/M_PI));
 
                               float *rangePtr = NULL;
 

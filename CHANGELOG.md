@@ -9,6 +9,10 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### v2.9.1 - Angle correction
+  - **Fix** Angle correction (min/max angle settings), fix #166
+  - **Fix** TiM240 initialization (start measurement)
+
 ### v2.9.0 - RMSxxxx support and NAV350 support
   - **Added** RMSxxxx support, unification of RMS-1xxx and RMS-2xxx Note: RMSxxxx supports ASCII-communication mode only (Cola-A).
   - **Update** #159 (nav310 angle setting compability), merge with NAV310 angle settings branch https://github.com/SICKAG/sick_scan_xd/tree/159-nav310-angle-setting-compability

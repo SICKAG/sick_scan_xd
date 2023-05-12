@@ -510,13 +510,14 @@ void sick_scan::TestServerThread::runWorkerThreadColaCb(socket_ptr p_socket)
         iTransmitErrorCnt = 0;
       }
       // Start or stop scandata thread
-      if(sick_scan::TestcaseGenerator::SendScandataEnabled() == true && m_tcp_send_scandata_thread == 0)
+      bool send_scandata_enabled = sick_scan::TestcaseGenerator::SendScandataEnabled() || m_scanner_type == "sick_tim_240"; // TIM240 does not support "LMCstartmeas"
+      if(send_scandata_enabled == true && m_tcp_send_scandata_thread == 0)
       {
         // Start scandata thread
         m_tcp_send_scandata_thread_running = true;
         m_tcp_send_scandata_thread = new std::thread(&sick_scan::TestServerThread::runWorkerThreadScandataCb, this, p_socket);
       }
-      else if(sick_scan::TestcaseGenerator::SendScandataEnabled() == false && m_tcp_send_scandata_thread != 0)
+      else if(send_scandata_enabled == false && m_tcp_send_scandata_thread != 0)
       {
         // Stop scandata thread
         closeScandataThread();
