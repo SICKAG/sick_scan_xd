@@ -12,6 +12,7 @@ features that will be removed in future versions **Removed** for deprecated feat
 ### v2.9.1 - Angle correction
   - **Fix** Angle correction (min/max angle settings), fix #166
   - **Fix** TiM240 initialization (start measurement)
+  - **Added** Documentation for Interlacing mode
 
 ### v2.9.0 - RMSxxxx support and NAV350 support
   - **Added** RMSxxxx support, unification of RMS-1xxx and RMS-2xxx Note: RMSxxxx supports ASCII-communication mode only (Cola-A).
