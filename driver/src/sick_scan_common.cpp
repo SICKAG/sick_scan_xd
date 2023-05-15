@@ -3613,6 +3613,8 @@ namespace sick_scan
       {
         // the TiM240 operates directly in the ros coordinate system
         // do nothing for a TiM240
+        startProtocolSequence.push_back(CMD_RUN);  // leave user level
+        startProtocolSequence.push_back(CMD_START_SCANDATA);
       }
       else if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
       {
@@ -4858,7 +4860,8 @@ namespace sick_scan
               {
 
                 float angle = (float)config_.min_ang;
-                if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0  // Check and todo: Can we use msg.angle_min for all lidars?
+                if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0
+                || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0  // Check and todo: Can we use msg.angle_min for all lidars?
                 || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0) // Can we use this for all lidars where msg.angle_min is not 0?
                 {
                   angle = msg.angle_min - angleShift; // LMS-1xxx and MRS-1xxx have 4 interlaced layer with different start angle in each layer, start angle parsed from LMDscandata and set in msg.angle_min
