@@ -37,3 +37,7 @@ Note:
 ## Supported platforms
 
 The driver is developed and tested for x86 architecture. Use for system with ARM architecture (e.g. Raspberry platform) is not officially supported.
+
+## Supported interfaces
+
+Only Ethernet-IPv4-based communication with the sensor is supported by this driver.
