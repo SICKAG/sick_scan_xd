@@ -10,6 +10,9 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### Release v2.10.1
+  - **update** make Compact format the default for picoScan and multiScan
+  
 ### Release v2.10.0
   - **add** picoScan support
   - **add** Compact format support
