@@ -77,7 +77,7 @@ namespace sick_scansegment_xd
          * Callback function of MsgPackExportListenerIF. HandleMsgPackData() will be called in MsgPackExporter
          * for each registered listener after msgpack data have been received and converted.
          */
-        virtual void HandleMsgPackData(const sick_scansegment_xd::MsgPackParserOutput& msgpack_data) = 0;
+        virtual void HandleMsgPackData(const sick_scansegment_xd::ScanSegmentParserOutput& msgpack_data) = 0;
     };
 
 	/*
@@ -96,13 +96,13 @@ namespace sick_scansegment_xd
         /*
          * @brief Initializing constructor
          * @param[in] udp_fifo fifo buffering udp packages (for informational messages only)
-         * @param[in] msgpack_fifo fifo buffering MsgPackParserOutput data from multiScan136 (for csv export and visualization)
+         * @param[in] msgpack_fifo fifo buffering ScanSegmentParserOutput data from multiScan136 (for csv export and visualization)
          * @param[in] logfolder output folder for optional csv-files
-         * @param[in] export_csv true: export MsgPackParserOutput data to csv files
+         * @param[in] export_csv true: export ScanSegmentParserOutput data to csv files
          * @param[in] verbose true: enable debug output, false: quiet mode (default)
          * @param[in] measure_timing true: duration and latency of msgpack conversion and export is measured, default: false
          */
-         MsgPackExporter(sick_scansegment_xd::PayloadFifo* udp_fifo, sick_scansegment_xd::Fifo<MsgPackParserOutput>* msgpack_fifo, const std::string& logfolder, bool export_csv, bool verbose = false, bool measure_timing = false);
+         MsgPackExporter(sick_scansegment_xd::PayloadFifo* udp_fifo, sick_scansegment_xd::Fifo<ScanSegmentParserOutput>* msgpack_fifo, const std::string& logfolder, bool export_csv, bool verbose = false, bool measure_timing = false);
 
         /*
          * @brief Default destructor.
@@ -151,7 +151,7 @@ namespace sick_scansegment_xd
         * Configuration and parameter
         */
        std::string m_logfolder;                                 // output folder for optional csv-files
-       bool m_export_csv;                                       // true: export MsgPackParserOutput data to csv files
+       bool m_export_csv;                                       // true: export ScanSegmentParserOutput data to csv files
        bool m_verbose;                                          // true: enable debug output, false: quiet mode (default)
        bool m_measure_timing;                                   // true: duration and latency of msgpack conversion and export is measured, default: false
 
@@ -159,10 +159,10 @@ namespace sick_scansegment_xd
         * Member data to run the exporter
         */
        sick_scansegment_xd::PayloadFifo* m_udp_fifo;                         // fifo buffering udp packages (for informational messages only)
-       sick_scansegment_xd::Fifo<MsgPackParserOutput>* m_msgpack_fifo;       // input fifo buffering MsgPackParserOutput data from multiScan136 (for csv export and visualization)
-       std::thread* m_exporter_thread;                                // background thread to export MsgPackParserOutput data
+       sick_scansegment_xd::Fifo<ScanSegmentParserOutput>* m_msgpack_fifo;       // input fifo buffering ScanSegmentParserOutput data from multiScan136 (for csv export and visualization)
+       std::thread* m_exporter_thread;                                // background thread to export ScanSegmentParserOutput data
        bool m_run_exporter_thread;                                    // flag to start and stop the exporter thread
-       std::list< sick_scansegment_xd::MsgPackExportListenerIF*> m_listener; // list of export listener, which will be notified calling listener->HandleMsgPackData() after successfull conversion of received msgpack data
+       std::list< sick_scansegment_xd::MsgPackExportListenerIF*> m_listener; // list of export listener, which will be notified calling listener->HandleMsgPackData() after successful conversion of received msgpack data
 
 	};  // class MsgPackExporter
 

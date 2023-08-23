@@ -9,6 +9,7 @@
     <arg name="nodename" default="sick_lrs_4xxx"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
+    <arg name="encoder_mode" default="-1"/> <!-- Encoder settings (default: -1, i.e. not set): 0: Off, 1: Single increment, 2: Direction recognition phase, 3: Direction recognition level, 4: Fixed increment speed/ticks (LMS4000 only) -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_lrs_4xxx"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>
@@ -37,6 +38,7 @@
         
         <param name="intensity" type="bool" value="True"/>
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
+        <param name="encoder_mode" type="int" value="$(arg encoder_mode)"/> <!-- Encoder settings (default: -1, i.e. not set): 0: Off, 1: Single increment, 2: Direction recognition phase, 3: Direction recognition level, 4: Fixed increment speed/ticks (LMS4000 only) -->
         <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->
         <param name="filter_echos" type="int" value="2"/> <!-- FREchoFilter settings: 0 = first echo, 1 = all echos (echo filter off), 2 = last echo -->
         <param name="skip" type="int" value="$(arg skip)"/> <!-- Default: 0 (i.e. publish each scan), otherwise only each n.th scan is published -->

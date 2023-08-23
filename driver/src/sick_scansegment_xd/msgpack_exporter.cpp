@@ -1,5 +1,5 @@
 /*
- * @brief msgpack_exporter runs a background thread to consume and export msgpack data from the sick 3D lidar multiScan136
+ * @brief msgpack_exporter runs a background thread to consume and export msgpack/compact data from the sick 3D lidar multiScan136
  * to optionally csv file or plotted diagram
  *
  * Copyright (C) 2020 Ing.-Buero Dr. Michael Lehning, Hildesheim
@@ -66,13 +66,13 @@ sick_scansegment_xd::MsgPackExporter::MsgPackExporter() : m_udp_fifo(0), m_msgpa
 /*
  * @brief Initializing constructor
  * @param[in] udp_fifo fifo buffering udp packages (for informational messages only)
- * @param[in] msgpack_fifo fifo buffering MsgPackParserOutput data from multiScan136 (for csv export and visualization)
+ * @param[in] msgpack_fifo fifo buffering ScanSegmentParserOutput data from multiScan136 (for csv export and visualization)
  * @param[in] logfolder output folder for optional csv-files
- * @param[in] export_csv true: export MsgPackParserOutput data to csv files
+ * @param[in] export_csv true: export ScanSegmentParserOutput data to csv files
  * @param[in] verbose true: enable debug output, false: quiet mode (default)
  * @param[in] measure_timing true: duration and latency of msgpack conversion and export is measured, default: false
  */
-sick_scansegment_xd::MsgPackExporter::MsgPackExporter(sick_scansegment_xd::PayloadFifo* udp_fifo, sick_scansegment_xd::Fifo<MsgPackParserOutput>* msgpack_fifo, const std::string& logfolder, bool export_csv, bool verbose, bool measure_timing)
+sick_scansegment_xd::MsgPackExporter::MsgPackExporter(sick_scansegment_xd::PayloadFifo* udp_fifo, sick_scansegment_xd::Fifo<ScanSegmentParserOutput>* msgpack_fifo, const std::string& logfolder, bool export_csv, bool verbose, bool measure_timing)
 : m_udp_fifo(udp_fifo), m_msgpack_fifo(msgpack_fifo), m_logfolder(logfolder), m_export_csv(export_csv), m_verbose(verbose), m_measure_timing(measure_timing), m_exporter_thread(0), m_run_exporter_thread(false)
 {
 }
@@ -150,14 +150,14 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
 {
     if (!m_udp_fifo || !m_msgpack_fifo)
     {
-        ROS_ERROR_STREAM("## ERROR MsgPackExporter::Run(): MsgPackExporter not initialized.");
+        ROS_ERROR_STREAM("## ERROR MsgPack/Compact-Exporter::Run(): MsgPack/Compact-Exporter not initialized.");
         return false;
     }
     try
     {
         fifo_timestamp recv_start_timestamp = fifo_clock::now();
         fifo_timestamp last_print_timestamp = fifo_clock::now();
-        size_t msg_exported_counter = 0; // number of exported msgpacks
+        size_t msg_exported_counter = 0; // number of exported scandata (msgpack or compact)
         size_t msg_first_udp_counter = 0; // number of udp datagrams received
         size_t max_count_udp_messages_in_fifo = 0;
         size_t max_count_output_messages_in_fifo = 0;
@@ -165,12 +165,12 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
         sick_scansegment_xd::TimingStatistics duration_datahandling_milliseconds;
         while (m_run_exporter_thread)
         {
-            sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+            sick_scansegment_xd::ScanSegmentParserOutput msgpack_output;
             fifo_timestamp msgpack_timestamp;
             size_t msgpack_counter = 0;
             if (m_msgpack_fifo->Pop(msgpack_output, msgpack_timestamp, msgpack_counter))
             {
-                // Notify registered listeners about new msgpack data
+                // Notify registered listeners about new scandata (msgpack or compact)
                 for (std::list<sick_scansegment_xd::MsgPackExportListenerIF*>::iterator iter = m_listener.begin(); iter != m_listener.end(); iter++)
                 {
                     if (*iter)
@@ -181,12 +181,12 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
                 // Optionally export to csv file
                 if (m_export_csv && !m_logfolder.empty())
                 {
-                    std::string csv_file = m_logfolder + "/msgpack_" + sick_scansegment_xd::FormatNumber(msgpack_output.segmentIndex, 6, true, false, -1) + ".csv";
+                    std::string csv_file = m_logfolder + "/scansegment_" + sick_scansegment_xd::FormatNumber(msgpack_output.segmentIndex, 6, true, false, -1) + ".csv";
                     if (!sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, csv_file, true))
                         ROS_ERROR_STREAM("## ERROR MsgPackParser::WriteCSV() failed.");
                 }
                 // Profiling and time measurement
-                if (msg_exported_counter == 0) // first time receiving a msgpack
+                if (msg_exported_counter == 0) // first time receiving scandata (msgpack or compact)
                 {
                     msg_first_udp_counter = msgpack_counter;
                     recv_start_timestamp = msgpack_timestamp;
@@ -199,24 +199,27 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
                     double packages_lost_rate = std::abs((double)msg_cnt_delta) / (double)msg_udp_received_counter;
                     if (m_verbose && msg_udp_received_counter != msg_exported_counter && msg_cnt_delta > msg_cnt_delta_max) // Test mode only, multiScan emulator must be started after lidar3d_multiscan_recv
                     {
-                        ROS_INFO_STREAM("MsgPackExporter::Run(): " << msg_udp_received_counter << " udp messages received, " << msg_exported_counter << " messages exported, " << (100.0 * packages_lost_rate) << "% package lost");
+                        ROS_INFO_STREAM("MsgPack/Compact-Exporter::Run(): " << msg_udp_received_counter << " udp messages received, " << msg_exported_counter << " messages exported, " << (100.0 * packages_lost_rate) << "% package lost");
                         msg_cnt_delta_max = msg_cnt_delta;
                     }
                     size_t current_udp_fifo_size = m_udp_fifo->Size();
                     size_t current_output_fifo_size = m_msgpack_fifo->Size();
-                    double duration_datahandling_seconds = sick_scansegment_xd::Fifo<MsgPackParserOutput>::Seconds(msgpack_timestamp, fifo_clock::now());
+                    double duration_datahandling_seconds = sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(msgpack_timestamp, fifo_clock::now());
                     duration_datahandling_milliseconds.AddTimeMilliseconds(1000.0 * duration_datahandling_seconds);
                     max_count_udp_messages_in_fifo = std::max(max_count_udp_messages_in_fifo, current_udp_fifo_size + 1);
                     max_count_output_messages_in_fifo = std::max(max_count_output_messages_in_fifo, current_output_fifo_size + 1);
-                    double msg_exported_rate = (double)msg_exported_counter / sick_scansegment_xd::Fifo<MsgPackParserOutput>::Seconds(recv_start_timestamp, fifo_clock::now());
-                    if (m_verbose && ((msg_exported_counter%100) == 0 || sick_scansegment_xd::Fifo<MsgPackParserOutput>::Seconds(last_print_timestamp, fifo_clock::now()) > 0.1)) // avoid printing with more than 100 Hz
+                    double msg_exported_rate = (double)msg_exported_counter / sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(recv_start_timestamp, fifo_clock::now());
+                    if (m_verbose && ((msg_exported_counter%100) == 0 || sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(last_print_timestamp, fifo_clock::now()) > 0.1)) // avoid printing with more than 100 Hz
                     {
-                        ROS_INFO_STREAM("MsgPackExporter:   " << current_udp_fifo_size << " udp packages still in input fifo, " << current_output_fifo_size << " messages still in msgpack output fifo, current message count: " << msgpack_output.segmentIndex);
-                        ROS_INFO_STREAM("MsgPackExporter: " << msg_udp_received_counter << " udp messages received, " << msg_exported_counter << " messages exported, " << (100.0 * packages_lost_rate) << "% package lost.");
-                        ROS_INFO_STREAM("MsgPackExporter: max. " << max_count_udp_messages_in_fifo << " udp messages buffered, max " << max_count_output_messages_in_fifo << " export messages buffered.");
-                        ROS_INFO_STREAM("MsgPackExporter: " << msg_exported_counter << " msgpacks exported at " << msg_exported_rate << " Hz, mean time: " << duration_datahandling_milliseconds.MeanMilliseconds() << " milliseconds/msgpack, " 
-                            << "stddev time: " << duration_datahandling_milliseconds.StddevMilliseconds() << ", " << "max time: " << duration_datahandling_milliseconds.MaxMilliseconds() << " milliseconds between udp receive and msgpack export, "
-                            << "histogram=[" << duration_datahandling_milliseconds.PrintHistMilliseconds() << "]");
+                        ROS_INFO_STREAM("MsgPack/Compact-Exporter:   " << current_udp_fifo_size << " udp packages still in input fifo, " << current_output_fifo_size << " messages still in output fifo, current segment index: " << msgpack_output.segmentIndex);
+                        ROS_INFO_STREAM("MsgPack/Compact-Exporter: " << msg_udp_received_counter << " udp messages received, " << msg_exported_counter << " messages exported, " << (100.0 * packages_lost_rate) << "% package lost.");
+                        ROS_INFO_STREAM("MsgPack/Compact-Exporter: max. " << max_count_udp_messages_in_fifo << " udp messages buffered, max " << max_count_output_messages_in_fifo << " export messages buffered.");
+                        std::stringstream s;
+                        s << "MsgPack/Compact-Exporter: " << msg_exported_counter << " messages exported at " << std::fixed << std::setprecision(3) << msg_exported_rate << " Hz, mean time: " 
+                            << std::fixed << std::setprecision(3) << duration_datahandling_milliseconds.MeanMilliseconds() << " milliseconds/messages, " 
+                            << "stddev time: " << duration_datahandling_milliseconds.StddevMilliseconds() << ", " << "max time: " << duration_datahandling_milliseconds.MaxMilliseconds() << " milliseconds between udp receive and messages export, "
+                            << "histogram=[" << duration_datahandling_milliseconds.PrintHistMilliseconds() << "]";
+                        ROS_INFO_STREAM(s.str());
                         last_print_timestamp = fifo_clock::now();
                     }
                 }
@@ -226,12 +229,12 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
         {
             size_t current_udp_fifo_size = m_udp_fifo->Size();
             size_t current_output_fifo_size = m_msgpack_fifo->Size();
-            double msg_exported_rate = (double)msg_exported_counter / sick_scansegment_xd::Fifo<MsgPackParserOutput>::Seconds(recv_start_timestamp, fifo_clock::now());
+            double msg_exported_rate = (double)msg_exported_counter / sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(recv_start_timestamp, fifo_clock::now());
             std::stringstream info1, info2;
-            info1 << "MsgPackExporter: finished, " << current_udp_fifo_size << " udp packages still in input fifo, " << current_output_fifo_size << " messages still in msgpack output fifo"
+            info1 << "MsgPack/Compact-Exporter: finished, " << current_udp_fifo_size << " udp packages still in input fifo, " << current_output_fifo_size << " messages still in output fifo"
                 << ", max. " << max_count_udp_messages_in_fifo << " udp messages buffered, max " << max_count_output_messages_in_fifo << " export messages buffered.";
-            info2 << "MsgPackExporter: " << msg_exported_counter << " msgpacks exported at " << msg_exported_rate << " Hz, mean time: " << duration_datahandling_milliseconds.MeanMilliseconds() << " milliseconds/msgpack, " 
-                << "stddev time: " << duration_datahandling_milliseconds.StddevMilliseconds() << ", " << "max time: " << duration_datahandling_milliseconds.MaxMilliseconds() << " milliseconds between udp receive and msgpack export, "
+            info2 << "MsgPack/Compact-Exporter: " << msg_exported_counter << " messages exported at " << msg_exported_rate << " Hz, mean time: " << duration_datahandling_milliseconds.MeanMilliseconds() << " milliseconds/messages, " 
+                << "stddev time: " << duration_datahandling_milliseconds.StddevMilliseconds() << ", " << "max time: " << duration_datahandling_milliseconds.MaxMilliseconds() << " milliseconds between udp receive and messages export, "
                 << "histogram=[" << duration_datahandling_milliseconds.PrintHistMilliseconds() << "]";
             ROS_INFO_STREAM(info1.str());
             ROS_INFO_STREAM(info2.str());
@@ -243,7 +246,7 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
     }
     catch (std::exception & e)
     {
-        ROS_ERROR_STREAM("## ERROR MsgPackExporter::Run(): " << e.what());
+        ROS_ERROR_STREAM("## ERROR MsgPack/Compact-Exporter::Run(): " << e.what());
     }
     m_run_exporter_thread = false;
     return false;

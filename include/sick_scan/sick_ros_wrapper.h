@@ -80,6 +80,18 @@
 #define __ROS_VERSION 0 // default: native Linux or Windows
 #endif
 
+// Default target is little endian. Overwrite SICK_TARGET_ENDIANESS in CMakeLists.txt to build for big endian.
+#define SICK_LITTLE_ENDIAN 1 // LITTLE_ENDIAN and BIG_ENDIAN might already be defined differently on a system or in a 3rd party headerfile,
+#define SICK_BIG_ENDIAN    2 // SICK_TARGET_ENDIANESS, SICK_LITTLE_ENDIAN and SICK_BIG_ENDIAN are used to avoid conflicts
+#ifndef SICK_TARGET_ENDIANESS
+#define SICK_TARGET_ENDIANESS SICK_LITTLE_ENDIAN
+#endif
+#if SICK_TARGET_ENDIANESS==SICK_LITTLE_ENDIAN
+#define TARGET_IS_LITTLE_ENDIAN 1
+#else
+#define TARGET_IS_LITTLE_ENDIAN 0
+#endif
+
 #if defined _MSC_VER && defined min
 #undef min
 #endif
@@ -283,6 +295,12 @@ typedef rclcpp::Node::SharedPtr rosNodePtr;
 #define ROS_INFO_STREAM(...)  RCLCPP_INFO_STREAM(RCLCPP_LOGGER,__VA_ARGS__)
 #define ROS_DEBUG_STREAM(...) RCLCPP_DEBUG_STREAM(RCLCPP_LOGGER,__VA_ARGS__)
 
+inline void rosConvParam(const std::string& str_value, std::string& val){ val = str_value; }
+inline void rosConvParam(const std::string& str_value, bool& val){ val = std::stoi(str_value) > 0; }
+inline void rosConvParam(const std::string& str_value, int& val){ val = std::stoi(str_value); }
+inline void rosConvParam(const std::string& str_value, float& val){ val = std::stof(str_value); }
+inline void rosConvParam(const std::string& str_value, double& val){ val = std::stod(str_value); }
+
 template <typename T> void rosDeclareParam(rosNodePtr nh, const std::string& param_name, const T& param_value) { if(!nh->has_parameter(param_name)) nh->declare_parameter<T>(param_name, param_value); }
 template <typename T> bool rosGetParam(rosNodePtr nh, const std::string& param_name, T& param_value)
 {
@@ -294,7 +312,26 @@ template <typename T> bool rosGetParam(rosNodePtr nh, const std::string& param_n
     }
     catch(const std::exception& exc)
     {
-        ROS_WARN_STREAM("## ERROR rosGetParam(" << param_name << ", " << paramToString(param_value) << ", " << typeid(param_value).name() << ") failed, exception " << exc.what());
+        ROS_WARN_STREAM("## ERROR rosGetParam(" << param_name << ", " << paramToString(param_value) << ", " << typeid(param_value).name() << ") failed, " << typeid(exc).name() << ", exception " << exc.what());
+    }
+    try
+    {
+        std::string str_value;
+        bool bRet = nh->get_parameter(param_name, str_value);
+        if (std::is_arithmetic<T>::value)
+        {
+            rosConvParam(str_value, param_value);
+            ROS_INFO_STREAM("rosGetParam(" << param_name << "): converted to " << param_value);
+            return bRet;
+        }
+        else
+        {
+            ROS_WARN_STREAM("## ERROR rosGetParam(" << param_name << ", " << paramToString(param_value) << ") failed.");
+        }
+    }
+    catch(const std::exception& exc)
+    {
+        ROS_WARN_STREAM("## ERROR rosGetParam(" << param_name << ", " << paramToString(param_value) << ", " << typeid(param_value).name() << ") failed, " << typeid(exc).name() << ", exception " << exc.what());
     }
     return false;
 }

@@ -212,7 +212,7 @@ namespace sick_scan
       std::vector<NAV350ScanData> scanData; // no scan data (scanDataValid = 0) or DIST1 scan data (scanDataValid = 1) or DIST1 + ANGL1 scan data (scanDataValid = 2)
       uint16_t remissionDataValid = 0;
       NAV350RemissionData remissionData;
-      float angleOffset = -M_PI;
+      float angleOffset = (float)(-M_PI);
     };
 
     

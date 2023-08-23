@@ -1,7 +1,7 @@
 /*
  * @brief msgpack_converter runs a background thread to unpack and parses msgpack data for the sick 3D lidar multiScan136.
  * msgpack_converter pops binary msgpack data from an input fifo, converts the data to scanlines using MsgPackParser::Parse()
- * and pushes the MsgPackParserOutput to an output fifo.
+ * and pushes the ScanSegmentParserOutput to an output fifo.
  *
  * Usage example:
  *
@@ -62,13 +62,15 @@
  *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
  *
  */
+#include "sick_scansegment_xd/config.h"
+#include "sick_scansegment_xd/compact_parser.h"
 #include "sick_scansegment_xd/msgpack_converter.h"
 #include "sick_scansegment_xd/udp_receiver.h"
 
 /*
  * @brief Default constructor.
  */
-sick_scansegment_xd::MsgPackConverter::MsgPackConverter() : m_verbose(false), m_input_fifo(0), m_output_fifo(0), m_converter_thread(0), m_run_converter_thread(false)
+sick_scansegment_xd::MsgPackConverter::MsgPackConverter() : m_verbose(false), m_input_fifo(0), m_scandataformat(1), m_output_fifo(0), m_converter_thread(0), m_run_converter_thread(false)
 
 {
 }
@@ -77,14 +79,15 @@ sick_scansegment_xd::MsgPackConverter::MsgPackConverter() : m_verbose(false), m_
  * @brief Initializing constructor
  * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
  * @param[in] input_fifo input fifo buffering udp packages
+ * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
  * @param[in] msgpack_output_fifolength max. output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
  * @param[in] verbose true: enable debug output, false: quiet mode (default)
  */
 sick_scansegment_xd::MsgPackConverter::MsgPackConverter(const sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter,
-sick_scansegment_xd::PayloadFifo* input_fifo, int msgpack_output_fifolength, bool verbose)
-    : m_verbose(verbose), m_input_fifo(input_fifo), m_converter_thread(0), m_run_converter_thread(false), m_msgpack_validator_enabled(false), m_discard_msgpacks_not_validated(false)
+sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat, int msgpack_output_fifolength, bool verbose)
+    : m_verbose(verbose), m_input_fifo(input_fifo), m_scandataformat(scandataformat), m_converter_thread(0), m_run_converter_thread(false), m_msgpack_validator_enabled(false), m_discard_msgpacks_not_validated(false)
 {
-    m_output_fifo = new sick_scansegment_xd::Fifo<MsgPackParserOutput>(msgpack_output_fifolength);
+    m_output_fifo = new sick_scansegment_xd::Fifo<ScanSegmentParserOutput>(msgpack_output_fifolength);
     m_add_transform_xyz_rpy = add_transform_xyz_rpy;
     m_range_filter = range_filter;
 }
@@ -99,7 +102,7 @@ sick_scansegment_xd::MsgPackConverter::~MsgPackConverter()
 
 /*
  * @brief Starts a background thread, pops msgpack data packages from input fifo, converts them
- * and pushes MsgPackParserOutput data to the output fifo.
+ * and pushes ScanSegmentParserOutput data to the output fifo.
  */
 bool sick_scansegment_xd::MsgPackConverter::Start(void)
 {
@@ -148,7 +151,7 @@ void sick_scansegment_xd::MsgPackConverter::SetValidator(sick_scansegment_xd::Ms
 
 
 /*
- * @brief Thread callback, runs the converter. Pops msgpack data from the input fifo, converts them und pushes MsgPackParserOutput data to the output fifo.
+ * @brief Thread callback, runs the converter. Pops msgpack data from the input fifo, converts them und pushes ScanSegmentParserOutput data to the output fifo.
  */
 bool sick_scansegment_xd::MsgPackConverter::Run(void)
 {
@@ -169,14 +172,28 @@ bool sick_scansegment_xd::MsgPackConverter::Run(void)
             {
                 try
                 {
-                    sick_scansegment_xd::MsgPackParserOutput msgpack_output;
-                    if (sick_scansegment_xd::MsgPackParser::Parse(input_payload, input_timestamp, m_add_transform_xyz_rpy, m_range_filter, msgpack_output, msgpack_validator_data_collector, 
-                        m_msgpack_validator, m_msgpack_validator_enabled, m_discard_msgpacks_not_validated, true, m_verbose))
+                    sick_scansegment_xd::ScanSegmentParserOutput msgpack_output;
+                    bool parse_success = false;
+                    if (m_scandataformat == SCANDATA_MSGPACK)
+                    {
+                        parse_success = sick_scansegment_xd::MsgPackParser::Parse(input_payload, input_timestamp, m_add_transform_xyz_rpy, m_range_filter, msgpack_output, msgpack_validator_data_collector, 
+                            m_msgpack_validator, m_msgpack_validator_enabled, m_discard_msgpacks_not_validated, true, m_verbose);
+                    }
+                    else if (m_scandataformat == SCANDATA_COMPACT)
+                    {
+                        parse_success = sick_scansegment_xd::CompactDataParser::Parse(input_payload, input_timestamp, m_add_transform_xyz_rpy, m_range_filter, msgpack_output);
+                    }
+                    else
+                    {
+                        ROS_ERROR_STREAM("## ERROR MsgPackConverter::Run(): invalid scandataformat configuration, unsupported scandataformat=" << m_scandataformat
+                            << ", check configuration and use " << SCANDATA_MSGPACK << " for msgpack or " << SCANDATA_COMPACT << " for compact data");
+                    }
+                    if (parse_success)
                     {
                         size_t fifo_length = m_output_fifo->Push(msgpack_output, input_timestamp, input_counter);
                         if (m_verbose)
                         {
-                            ROS_INFO_STREAM("UdpReceiver::Run(): " << m_input_fifo->Size() << " messages in input fifo, " << fifo_length << " messages in output fifo.");
+                            ROS_INFO_STREAM("MsgPackConverter::Run(): " << m_input_fifo->Size() << " messages in input fifo, " << fifo_length << " messages in output fifo.");
                         }
                     }
                     else

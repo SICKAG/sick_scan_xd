@@ -144,9 +144,10 @@ namespace sick_scan
      * Sends the multiScan start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
      * @param[in] hostname IP address of multiScan136, default 192.168.0.1
      * @param[in] port IP port of multiScan136, default 2115
-     * @param[in] scanner_type type of scanner, currently only multiScan136
+     * @param[in] scanner_type type of scanner, currently supported are multiScan136 and picoScan150
+     * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
      */
-    bool sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type);
+    bool sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat);
 
     /*!
      * Sends the multiScan stop commands "sWN ScanDataEnable 0" and "sMN Run"
@@ -188,7 +189,17 @@ namespace sick_scan
     * convertFloatToHexString(-3.14, true) returns "C0490FDB"
     * convertFloatToHexString(+1.57, true) returns "3FC90FF8"
     */
-    static std::string convertFloatToHexString(float value, bool hexStrInBigEndian);
+    static std::string convertFloatToHexString(float value, bool hexStrIsBigEndian);
+
+    /*!
+    * Converts a hex string coded in 1/10000 deg (hex_str: 4 byte hex value as string, little or big endian) to an angle in [deg] (float).
+    */
+    static float convertHexStringToAngleDeg(const std::string& hex_str, bool hexStrIsBigEndian);
+
+    /*!
+    * Converts an angle in [deg] to hex string coded in 1/10000 deg (hex_str: 4 byte hex value as string, little or big endian).
+    */
+    static std::string convertAngleDegToHexString(float angle_deg, bool hexStrIsBigEndian);
 
   protected:
 

@@ -15,6 +15,7 @@ REM Login as Developer
 REM For playback: load file 30_Datenemulator\realData_20220817_155932.sdr.msgpack
 
 pushd ..\..\..\..\..\30_LieferantenDokumente\30_Datenemulator\20220921_multiscan_0.10.2.18pre
+rem pushd ..\..\..\..\..\30_LieferantenDokumente\30_Datenemulator\20230531_multiScan-Emulator-1.2.2-2
 cd subsysBase
 start "subsysBase" subsysBase.Release.exe
 @timeout /t 3

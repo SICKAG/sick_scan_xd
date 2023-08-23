@@ -88,6 +88,10 @@
 #  define SPRINTF sprintf
 #endif
 
+
+#define SCANDATA_MSGPACK 1
+#define SCANDATA_COMPACT 2
+
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 
 #include <rclcpp/rclcpp.hpp>

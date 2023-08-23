@@ -102,8 +102,6 @@ namespace sick_scansegment_xd
          * @param[in] config sick_scansegment_xd configuration, RosMsgpackPublisher uses
          *            config.publish_topic: ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
          *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
-         *            config.all_segments_min_deg, config.all_segments_min_deg: angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-         *            if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan)
          *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
          * @param[in] qos quality of service profile for the ros publisher, default: 1
          */
@@ -119,7 +117,7 @@ namespace sick_scansegment_xd
          * for each registered listener after msgpack data have been received and converted.
          * This function converts and publishes msgpack data to PointCloud2 messages.
          */
-        virtual void HandleMsgPackData(const sick_scansegment_xd::MsgPackParserOutput& msgpack_data);
+        virtual void HandleMsgPackData(const sick_scansegment_xd::ScanSegmentParserOutput& msgpack_data);
 
         /*
          * Returns this instance explicitely as an implementation of interface MsgPackExportListenerIF.
@@ -189,15 +187,20 @@ namespace sick_scansegment_xd
              {
                 return segment_list.empty() ? -1 : segment_list.back();
              }
-             // Returns true, if all scans in all elevation angles cover azimuth from all_segments_min_deg to all_segments_max_deg (otherwise false)
-             bool allSegmentsCovered(float all_segments_min_deg, float all_segments_max_deg)
+             // Returns true, if all scans in all elevation angles cover azimuth from all_segments_azimuth_min_deg to all_segments_azimuth_max_deg
+             // and all elevation angles cover all_segments_elevation_min_deg to all_segments_elevation_max_deg.
+             // Otherwise allSegmentsCovered returns false.
+             bool allSegmentsCovered(float all_segments_azimuth_min_deg, float all_segments_azimuth_max_deg, float& all_segments_elevation_min_deg, float& all_segments_elevation_max_deg)
              {
-                int azimuth_min = (int)all_segments_min_deg;
-                int azimuth_max = (int)all_segments_max_deg;
+                float elevation_deg_min = 999, elevation_deg_max = -999;
                 for (std::map<int, std::map<int, int>>::iterator segment_coverage_elevation_iter = segment_coverage.begin(); segment_coverage_elevation_iter != segment_coverage.end(); segment_coverage_elevation_iter++)
                 {
                     int azimuth_deg_first = 999, azimuth_deg_last = -999;
-                    const int& elevation_deg = segment_coverage_elevation_iter->first;
+                    float elevation_deg = 0.001f * (segment_coverage_elevation_iter->first);
+                    elevation_deg_min = MIN(elevation_deg, elevation_deg_min);
+                    elevation_deg_max = MAX(elevation_deg, elevation_deg_max);
+                    all_segments_elevation_min_deg = MIN(elevation_deg, all_segments_elevation_min_deg);
+                    all_segments_elevation_max_deg = MAX(elevation_deg, all_segments_elevation_max_deg);
                     std::map<int, int>& azimuth_histogram = segment_coverage_elevation_iter->second;
                     for (std::map<int, int>::iterator segment_coverage_azimuth_iter = azimuth_histogram.begin(); segment_coverage_azimuth_iter != azimuth_histogram.end(); segment_coverage_azimuth_iter++)
                     {
@@ -211,13 +214,21 @@ namespace sick_scansegment_xd
                         if (azimuth_histogram[azimuth_deg_last] <= 0)
                             break;
                     }
-                    bool success = (azimuth_deg_last - azimuth_deg_first >= all_segments_max_deg - all_segments_min_deg);
+                    bool azimuth_success = (azimuth_deg_last - azimuth_deg_first >= all_segments_azimuth_max_deg - all_segments_azimuth_min_deg);
                     // ROS_INFO_STREAM("SegmentPointsCollector::allSegmentsCovered(): lastSegmentIdx=" << lastSegmentIdx() << ", total_point_count=" << total_point_count 
-                    //     << ", cur_elevation=" << elevation_deg << ", azimuth=(" << azimuth_deg_first << "," << azimuth_deg_last << "), " << "ret=" << success);
-                    if (!success)
+                    //      << ", cur_elevation=" << elevation_deg << ", azimuth=(" << azimuth_deg_first << "," << azimuth_deg_last
+                    //      << ", azimuth_range=(" << all_segments_azimuth_min_deg << "," << all_segments_azimuth_max_deg << "), azimuth_success=" << azimuth_success);
+                    if (!azimuth_success)
                         return false;
                 }
-                return true; // all scans in all elevation angles cover azimuth from all_segments_min_deg to all_segments_max_deg
+                bool elevation_success = (elevation_deg_max - elevation_deg_min + 0.001 >= all_segments_elevation_max_deg - all_segments_elevation_min_deg);
+                // ROS_INFO_STREAM("SegmentPointsCollector::allSegmentsCovered(): lastSegmentIdx=" << lastSegmentIdx() << ", total_point_count=" << total_point_count 
+                //     << ", elevation_deg_min=" << elevation_deg_min << ", elevation_deg_max=" << elevation_deg_max
+                //     << ", all_segments_elevation_min_deg=" << all_segments_elevation_min_deg << ", all_segments_elevation_max_deg=" << all_segments_elevation_max_deg
+                //     << ", elevation_success=" << elevation_success);
+                if (!elevation_success)
+                    return false;
+                return true; // all scans in all elevation angles cover azimuth from all_segments_azimuth_min_deg to all_segments_azimuth_max_deg
              }
 
              uint32_t timestamp_sec;   // seconds part of timestamp of the first segment
@@ -260,9 +271,11 @@ namespace sick_scansegment_xd
         rosNodePtr m_node; // ros node handle
         std::string m_frame_id;    // frame id of ros PointCloud2 messages, default: "world"
         // int m_segment_count = 12;  // number of expected segments in 360 degree, multiScan136: 12 segments, 30 deg per segment
-        float m_all_segments_min_deg = -180; // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-        float m_all_segments_max_deg = +180; // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
-        SegmentPointsCollector m_points_collector; // collects all points of 12 segments (12 segments * 30 deg = 360 deg)
+        float m_all_segments_azimuth_min_deg = -180;  // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
+        float m_all_segments_azimuth_max_deg = +180;  // if received segments cover azimuth angle range from m_all_segments_azimuth_min_deg to m_all_segments_azimuth_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
+        float m_all_segments_elevation_min_deg = 0;   // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
+        float m_all_segments_elevation_max_deg = 0;   // if received segments cover elevation angle range from m_all_segments_elevation_min_deg to m_all_segments_elevation_max_deg.
+        SegmentPointsCollector m_points_collector;    // collects all points of 12 segments (12 segments * 30 deg = 360 deg)
         std::string m_publish_topic;                         // ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
         std::string m_publish_topic_all_segments;            // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
         PointCloud2MsgPublisher m_publisher_cur_segment;     // ros publisher to publish PointCloud2 messages of the current segment

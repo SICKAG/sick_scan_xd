@@ -21,9 +21,17 @@ Whenever the switch is closed a potential of 24 V is applied to the encoder inpu
 ![encoder trigger](./circuit.png "encoder trigger")
 
 ### Activation of Encoder Informations
-If the parameter ```encoder_mode``` is set to 1-3 in the launch file, the encoder is activated in the laser scanner in the corresponding mode (see list above).
-in the Topic encoder synchronously to the PointCloud messages encoder messages are published which contain a timestamp and the encoder value:
+If the parameter ```encoder_mode``` is set to 1-4 in the launch file, the encoder is activated in the laser scanner in the corresponding mode (see list above).
 
+The following encoder modes can be configured in the launchfile or by commandline parameter:
+* `encoder_mode:=-1`: Default value, i.e. encoder configuration not set
+* `encoder_mode:=0`: Encoder off (supported by LMS1xx, LMS5xx, LMS4000, LRS4000)
+* `encoder_mode:=1`: Single increment (supported by LMS1xx, LMS5xx, LMS4000, LRS4000)
+* `encoder_mode:=2`: Direction recognition phase (supported by LMS1xx, LMS5xx, LMS4000, LRS4000)
+* `encoder_mode:=3`: Direction recognition level (supported by LMS1xx, LMS5xx, LMS4000, LRS4000)
+* `encoder_mode:=4`: Fixed increment speed/ticks (supported by LMS4000 only)
+
+Encoder messages are published on topic `/encoder` synchronously to the PointCloud messages. They contain a timestamp and the encoder value, e.g.:
 ```console
 foo@bar:~$rostopic echo /encoder
 header:
@@ -56,4 +64,4 @@ enc_count: 836
 
 ![Encoderdata in Sopas datagramm](./Encoder_data.png "Encoderdata in Sopas datagramm")
 
-![Set encoder config](./set_encoder_setings.png "Set encoder config")
+![Set encoder config](./set_encoder_settings.png "Set encoder config")

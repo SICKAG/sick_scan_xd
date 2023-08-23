@@ -96,8 +96,9 @@ namespace sick_scansegment_xd
          * @param[in] udp_input_fifolength max. input fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
          * @param[in] verbose true: enable debug output, false: quiet mode (default)
          * @param[in] export_udp_msg: true: export binary udp and msgpack data to file (*.udp and *.msg), default: false
+         * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
          */
-        bool Init(const std::string& udp_sender, int udp_port, int udp_input_fifolength = 20, bool verbose = false, bool export_udp_msg = false);
+        bool Init(const std::string& udp_sender, int udp_port, int udp_input_fifolength = 20, bool verbose = false, bool export_udp_msg = false, int scandataformat = 1);
 
         /*
          * @brief Starts receiving udp packages in a background thread and pops msgpack data packages to the fifo.
@@ -144,6 +145,7 @@ namespace sick_scansegment_xd
         double m_udp_timeout_recv_nonblocking;    // in normal mode we receive udp datagrams non-blocking with timeout to enable sync with msgpack start
         double m_udp_sender_timeout;              // if no udp packages received within some seconds, we switch to blocking udp receive
         bool m_export_udp_msg;                    // true : export binary udpand msgpack data to file(*.udpand* .msg), default: false
+        int m_scandataformat;                     // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
 
         /*
          * Member data to run a udp receiver

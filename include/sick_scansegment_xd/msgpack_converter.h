@@ -2,7 +2,7 @@
 /*
  * @brief msgpack_converter runs a background thread to unpack and parses msgpack data for the sick 3D lidar multiScan136.
  * msgpack_converter pops binary msgpack data from an input fifo, converts the data to scanlines using MsgPackParser::Parse()
- * and pushes the MsgPackParserOutput to an output fifo.
+ * and pushes the ScanSegmentParserOutput to an output fifo.
  *
  * Usage example:
  *
@@ -79,7 +79,7 @@ namespace sick_scansegment_xd
 	/*
      * @brief class MsgPackConverter runs a background thread to unpack and parses msgpack data for the sick 3D lidar multiScan136.
      * msgpack_converter pops binary msgpack data from an input fifo, converts the data to scanlines using MsgPackParser::Parse()
-     * and pushes the MsgPackParserOutput to an output fifo.
+     * and pushes the ScanSegmentParserOutput to an output fifo.
      */
 	class MsgPackConverter
 	{
@@ -94,10 +94,11 @@ namespace sick_scansegment_xd
          * @brief Initializing constructor
          * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
          * @param[in] input_fifo input fifo buffering udp packages
+         * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
          * @param[in] msgpack_output_fifolength max. output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
          * @param[in] verbose true: enable debug output, false: quiet mode (default)
          */
-         MsgPackConverter(const sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, sick_scansegment_xd::PayloadFifo* input_fifo, int msgpack_output_fifolength = 20, bool verbose = false);
+         MsgPackConverter(const sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat = 1, int msgpack_output_fifolength = 20, bool verbose = false);
 
         /*
          * @brief Default destructor.
@@ -106,7 +107,7 @@ namespace sick_scansegment_xd
 
         /*
          * @brief Starts a background thread, pops msgpack data packages from input fifo, converts them
-         * and pushes MsgPackParserOutput data to the output fifo.
+         * and pushes ScanSegmentParserOutput data to the output fifo.
          */
         bool Start(void);
 
@@ -127,12 +128,12 @@ namespace sick_scansegment_xd
         /*
          * @brief Returns the output fifo storing the multiScan136 scanlines.
          */
-        sick_scansegment_xd::Fifo<MsgPackParserOutput>* Fifo(void) { return m_output_fifo; }
+        sick_scansegment_xd::Fifo<ScanSegmentParserOutput>* Fifo(void) { return m_output_fifo; }
 
    protected:
 
        /*
-        * @brief Thread callback, runs the converter. Pops msgpack data from the input fifo, converts them und pushes MsgPackParserOutput data to the output fifo.
+        * @brief Thread callback, runs the converter. Pops msgpack data from the input fifo, converts them und pushes ScanSegmentParserOutput data to the output fifo.
         */
        bool Run(void);
 
@@ -145,8 +146,9 @@ namespace sick_scansegment_xd
          * Member data to run the converter
          */
        PayloadFifo* m_input_fifo;                               // input fifo for msgpack data
-       sick_scansegment_xd::Fifo<MsgPackParserOutput>* m_output_fifo;  // output fifo for MsgPackParserOutput data converted from  msgpack data
-       std::thread* m_converter_thread;                         // background thread to convert msgpack to MsgPackParserOutput data
+       int m_scandataformat;                                    // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
+       sick_scansegment_xd::Fifo<ScanSegmentParserOutput>* m_output_fifo;  // output fifo for ScanSegmentParserOutput data converted from  msgpack data
+       std::thread* m_converter_thread;                         // background thread to convert msgpack to ScanSegmentParserOutput data
        bool m_run_converter_thread;                             // flag to start and stop the udp converter thread
        bool m_msgpack_validator_enabled;                        // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
        sick_scansegment_xd::MsgPackValidator m_msgpack_validator;      // msgpack validation, see MsgPackValidator for details
