@@ -908,7 +908,6 @@ namespace sick_scan
     std::vector<sick_scan::NAV350ImkLandmark> readNAVIMKfile(const std::string& nav_imk_file)
     {
       std::vector<sick_scan::NAV350ImkLandmark> navImkLandmarks;
-      // TODO ...
       std::ifstream imk_stream(nav_imk_file);
       if(imk_stream.is_open())
       {

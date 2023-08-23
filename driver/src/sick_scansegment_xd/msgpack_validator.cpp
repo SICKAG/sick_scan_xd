@@ -272,7 +272,7 @@ bool sick_scansegment_xd::MsgPackValidator::validateNotOutOfBound(const MsgPackV
     if (!success)
         ROS_WARN_STREAM("## WARNING MsgPackValidator::validateNotOutOfBound() finished with error.");
     else if (m_verbose > 1)
-        ROS_INFO_STREAM("MsgPackValidator::validateNotOutOfBound() finished successfull.");
+        ROS_INFO_STREAM("MsgPackValidator::validateNotOutOfBound() finished successful.");
     return success;
 }
 
@@ -446,7 +446,7 @@ bool sick_scansegment_xd::MsgPackValidator::validateNoMissingScandata(const MsgP
     }
     else if (m_verbose > 0)
     {
-        ROS_INFO_STREAM("MsgPackValidator::validateNoMissingScandata() finished successfull.");
+        ROS_INFO_STREAM("MsgPackValidator::validateNoMissingScandata() finished successful.");
     }
     return success;
 }

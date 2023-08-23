@@ -46,7 +46,7 @@ Run the following steps to build sick_scan_xd:
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
    ```
 
-   Note: msgpack11 is only required to support multiScan136. If you do not need or want to support multiScan136, you can skip building msgpack. To build sick_generic_caller without multiScan136 support, run colcon with cmake option `-DSCANSEGMENT_XD=0`:
+   Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd/picoScan150. If you do not need or want to support multiScan136/sick_scansegment_xd/picoScan150, you can skip building msgpack. To build sick_generic_caller without multiScan136/sick_scansegment_xd/picoScan150 support, run colcon with cmake option `-DSCANSEGMENT_XD=0`:
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```

@@ -123,6 +123,20 @@ static bool setOptionalArgument(const std::map<std::string, std::string>& key_va
     return false;
 }
 
+/** Returns true, if endianess of the current system (destination target) is big endian, otherwise false. */
+bool sick_scansegment_xd::Config::SystemIsBigEndian(void)
+{
+	// Get endianess of the system (destination target) by comparing MSB and LSB of a int32 number
+	uint32_t u32_one = 1;
+	uint8_t* p_one = (uint8_t*)&u32_one;
+	uint8_t lsb = p_one[0];
+	uint8_t msb = p_one[3];
+	bool dstTargetIsBigEndian = (lsb == 0 && msb != 0);
+	bool dstTargetIsLittleEndian = (lsb != 0 && msb == 0);
+	assert(dstTargetIsBigEndian || dstTargetIsLittleEndian);
+	return dstTargetIsBigEndian;
+}
+
 /*
  * @brief Default constructor, initializes the configuration with default values
  */
@@ -133,23 +147,26 @@ sick_scansegment_xd::Config::Config()
     udp_port = 2115;                    // default udp port for multiScan136 resp. multiScan136 emulator is 2115
     publish_topic = "/cloud";           // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
     publish_topic_all_segments = "/cloud_fullframe"; // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
-    //segment_count = 12;               // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
-    all_segments_min_deg = -180;        // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-    all_segments_max_deg = +180;        // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
-    publish_frame_id = "world";         // frame id of ros PointCloud2 messages, default: "world"
-    udp_input_fifolength = 20;          // max. udp input fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
-    msgpack_output_fifolength = 20;     // max. msgpack output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
-    verbose_level = 1;                  // verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1
-    measure_timing = true;              // measure_timing == true: duration and latency of msgpack conversion and export is measured, default: true
-    export_csv = false;                 // export msgpack data to csv file, default: false
-    export_udp_msg = false;             // true : export binary udp and msgpack data to file(*.udp and* .msg), default: false
-    logfolder = "";                     // output folder for logfiles, default: "" (no logging)
-    hostname = "192.168.0.1";           // IP address of multiScan136 to post start and stop commands
-    udp_receiver_ip = "";               // UDP destination IP address (host ip used in setIpAddress posted)
-    port = 2115;                        // UDP port of multiScan136 to post start and stop commands
-    send_udp_start = false;             // Send udp start string to multiScan136, default: True
+    // segment_count = 12;               // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
+    // all_segments_azimuth_min_deg = -180;   // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
+    // all_segments_azimuth_max_deg = +180;   // if received segments cover azimuth angle range from all_segments_azimuth_min_deg to all_segments_azimuth_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
+    // all_segments_elevation_min_deg = -90;  // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
+    // all_segments_elevation_max_deg = +90;  // if received segments cover elevation angle range from all_segments_elevation_min_deg to all_segments_elevation_max_deg. -90...+90 for multiScan136 (360 deg fullscan)
+    publish_frame_id = "world";            // frame id of ros PointCloud2 messages, default: "world"
+    udp_input_fifolength = 20;             // max. udp input fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
+    msgpack_output_fifolength = 20;        // max. msgpack output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
+    verbose_level = 1;                     // verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1
+    measure_timing = true;                 // measure_timing == true: duration and latency of msgpack conversion and export is measured, default: true
+    export_csv = false;                    // export msgpack data to csv file, default: false
+    export_udp_msg = false;                // true : export binary udp and msgpack data to file(*.udp and* .msg), default: false
+    logfolder = "";                        // output folder for logfiles, default: "" (no logging)
+    hostname = "192.168.0.1";              // IP address of multiScan136 to post start and stop commands
+    udp_receiver_ip = "";                  // UDP destination IP address (host ip used in setIpAddress posted)
+    port = 2115;                           // UDP port of multiScan136 to post start and stop commands
+    send_udp_start = false;                // Send udp start string to multiScan136, default: True
     send_udp_start_string = "magicalActivate"; // udp string to start multiScan136, default: "magicalActivate"
-    udp_timeout_ms = 60000;                  // Timeout for udp messages in milliseconds, default: 60*1000
+    udp_timeout_ms = 60000;                    // Timeout for udp messages in milliseconds, default: 60*1000
+    scandataformat = 1;                        // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
 
     // SOPAS default settings
     sopas_tcp_port = "2111";                 // TCP port for SOPAS commands, default port: 2111
@@ -165,8 +182,8 @@ sick_scansegment_xd::Config::Config()
     host_set_FREchoFilter = false;                              // If true, FREchoFilter is set at startup (default: false)
     host_LFPangleRangeFilter = "0 -180.0 +180.0 -90.0 +90.0 1"; // Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
     host_set_LFPangleRangeFilter = false;                       // If true, LFPangleRangeFilter is set at startup (default: false)
-    host_LFPlayerFilter = "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1";  // Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
-    host_set_LFPlayerFilter = false;                            // If true LFPlayerFilter is set at startup (default: false)
+    host_LFPlayerFilter = "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1";  // (Multiscan136 only, not for picoscan) Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+    host_set_LFPlayerFilter = false;                            // If true (Multiscan136 only, always false for picoscan), LFPlayerFilter is set at startup (default: false)
 
     // msgpack validation default settings
     msgpack_validator_enabled = true; // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
@@ -219,6 +236,7 @@ void sick_scansegment_xd::Config::PrintHelp(void)
     ROS_INFO_STREAM("-port=<port> :  udp port of multiScan136 to post start and stop commands default:" << port);
     ROS_INFO_STREAM("-send_udp_start=0|1 : send udp start string to multiScan136, default:" << send_udp_start);
     ROS_INFO_STREAM("-send_udp_start_string=<string> : udp string to start multiScan136, default: \"magicalActivate\"" << send_udp_start_string);
+    ROS_INFO_STREAM("-scandataformat=1|2 : set ScanDataFormat, 1 for msgpack or 2 for compact scandata, default: " << scandataformat);
 }
 
 /*
@@ -251,6 +269,7 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "send_udp_start", send_udp_start);
     ROS_DECL_GET_PARAMETER(node, "send_udp_start_string", send_udp_start_string);
     ROS_DECL_GET_PARAMETER(node, "udp_timeout_ms", udp_timeout_ms);
+    ROS_DECL_GET_PARAMETER(node, "scandataformat", scandataformat);
     ROS_DECL_GET_PARAMETER(node, "sopas_tcp_port", sopas_tcp_port);
     ROS_DECL_GET_PARAMETER(node, "start_sopas_service", start_sopas_service);
     ROS_DECL_GET_PARAMETER(node, "send_sopas_start_stop_cmd", send_sopas_start_stop_cmd);
@@ -263,8 +282,16 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "host_set_FREchoFilter", host_set_FREchoFilter);
     ROS_DECL_GET_PARAMETER(node, "host_LFPangleRangeFilter", host_LFPangleRangeFilter);
     ROS_DECL_GET_PARAMETER(node, "host_set_LFPangleRangeFilter", host_set_LFPangleRangeFilter);
-    ROS_DECL_GET_PARAMETER(node, "host_LFPlayerFilter", host_LFPlayerFilter);
-    ROS_DECL_GET_PARAMETER(node, "host_set_LFPlayerFilter", host_set_LFPlayerFilter);
+    if (scanner_type != SICK_SCANNER_PICOSCAN_NAME)
+    {
+        ROS_DECL_GET_PARAMETER(node, "host_LFPlayerFilter", host_LFPlayerFilter);
+        ROS_DECL_GET_PARAMETER(node, "host_set_LFPlayerFilter", host_set_LFPlayerFilter);
+    }
+    else
+    {
+        host_LFPlayerFilter = "";
+        host_set_LFPlayerFilter = false;
+    }
     // msgpack validation settings
     std::string str_msgpack_validator_required_echos = "0";
     std::string str_msgpack_validator_valid_segments = "0 1 2 3 4 5 6 7 8 9 10 11";
@@ -381,6 +408,7 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "send_udp_start", send_udp_start);;
     setOptionalArgument(cli_parameter_map, "send_udp_start_string", send_udp_start_string);
     setOptionalArgument(cli_parameter_map, "udp_timeout_ms", udp_timeout_ms);
+    setOptionalArgument(cli_parameter_map, "scandataformat", scandataformat);
     setOptionalArgument(cli_parameter_map, "sopas_tcp_port", sopas_tcp_port);
     setOptionalArgument(cli_parameter_map, "start_sopas_service", start_sopas_service);
     setOptionalArgument(cli_parameter_map, "send_sopas_start_stop_cmd", send_sopas_start_stop_cmd);
@@ -450,6 +478,7 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     ROS_INFO_STREAM("send_udp_start:                   " << send_udp_start);
     ROS_INFO_STREAM("send_udp_start_string:            " << send_udp_start_string);
     ROS_INFO_STREAM("udp_timeout_ms:                   " << udp_timeout_ms);
+    ROS_INFO_STREAM("scandataformat:                   " << scandataformat);
     ROS_INFO_STREAM("sopas_tcp_port:                   " << sopas_tcp_port);
     ROS_INFO_STREAM("start_sopas_service:              " << start_sopas_service);
     ROS_INFO_STREAM("send_sopas_start_stop_cmd:        " << send_sopas_start_stop_cmd);

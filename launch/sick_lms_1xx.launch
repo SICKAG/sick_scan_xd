@@ -9,6 +9,7 @@
     <arg name="nodename" default="sick_lms_1xx"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
+    <arg name="encoder_mode" default="-1"/> <!-- Encoder settings (default: -1, i.e. not set): 0: Off, 1: Single increment, 2: Direction recognition phase, 3: Direction recognition level, 4: Fixed increment speed/ticks (LMS4000 only) -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="intensity" type="bool" value="False"/>
         <param name="intensity_resolution_16bit" type="bool" value="false"/>
@@ -44,6 +45,7 @@
         <param name="activate_lidoutputstate" type="bool" value="True"/> <!-- activate field monitoring by lidoutputstate messages -->
         <param name="activate_lidinputstate" type="bool" value="True"/> <!-- activate field monitoring by lidinputstate messages -->
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
+        <param name="encoder_mode" type="int" value="$(arg encoder_mode)"/> <!-- Encoder settings (default: -1, i.e. not set): 0: Off, 1: Single increment, 2: Direction recognition phase, 3: Direction recognition level, 4: Fixed increment speed/ticks (LMS4000 only) -->
 
         <param name="ang_res" type="double" value="0.5" /> <!-- Supported values are "0.25" and "0.50" -->
         <param name="scan_freq" type="double" value="50" /> <!-- Supported values are "25" and "50" -->

@@ -92,8 +92,8 @@
 #include <signal.h>
 
 #define SICK_GENERIC_MAJOR_VER "2"
-#define SICK_GENERIC_MINOR_VER "9"
-#define SICK_GENERIC_PATCH_LEVEL "1"
+#define SICK_GENERIC_MINOR_VER "10"
+#define SICK_GENERIC_PATCH_LEVEL "0"
 
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
@@ -426,7 +426,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
 #endif
   }
 
-  if(scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
+  if(scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME || scannerName == SICK_SCANNER_PICOSCAN_NAME)
   {
 #if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
     exit_code = sick_scansegment_xd::run(nhPriv, scannerName);

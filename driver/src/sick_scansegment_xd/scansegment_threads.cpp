@@ -56,9 +56,9 @@
 #include "sick_scansegment_xd/udp_sockets.h"
 #include "sick_scansegment_xd/msgpack_converter.h"
 #include "sick_scansegment_xd/msgpack_exporter.h"
-#include "sick_scansegment_xd/msgpack_parser.h"
 #include "sick_scansegment_xd/msgpack_validator.h"
 #include "sick_scansegment_xd/ros_msgpack_publisher.h"
+#include "sick_scansegment_xd/scansegment_parser_output.h"
 #include "sick_scansegment_xd/udp_receiver.h"
 #include "sick_scan/sick_scan_services.h"
 
@@ -187,7 +187,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         while(udp_receiver == 0)
         {
             udp_receiver = new sick_scansegment_xd::UdpReceiver();
-            if(udp_receiver->Init(m_config.udp_sender, m_config.udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg))
+            if(udp_receiver->Init(m_config.udp_sender, m_config.udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat))
             {
                 ROS_INFO_STREAM("sick_scansegment_xd: udp socket to " << m_config.udp_sender << ":" << m_config.udp_port << " initialized");
             }
@@ -201,7 +201,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
 
         // Initialize msgpack converter and connect to udp receiver
-        sick_scansegment_xd::MsgPackConverter msgpack_converter(m_config.add_transform_xyz_rpy, m_config.range_filter, udp_receiver->Fifo(), m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
+        sick_scansegment_xd::MsgPackConverter msgpack_converter(m_config.add_transform_xyz_rpy, m_config.range_filter, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
         assert(udp_receiver->Fifo());
         assert(msgpack_converter.Fifo());
 
@@ -285,7 +285,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.port, m_config.scanner_type);
+                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.port, m_config.scanner_type, m_config.scandataformat);
             }
             else
             {

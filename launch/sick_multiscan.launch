@@ -3,15 +3,16 @@
 
     <!-- Launch multiScan -->
     <!-- env name="ROSCONSOLE_CONFIG_FILE" value="/tmp/rosconsole_loglevel_warn.conf" / -->
-    <arg name="hostname" default="192.168.0.1"/>  <!-- IP address of sensor -->
-    <arg name="udp_receiver_ip" default=""/>        <!-- UDP destination IP address (ip address of udp receiver) -->
+    <arg name="hostname" default="192.168.0.1"/>                                    <!-- IP address of sensor -->
+    <arg name="udp_receiver_ip" default=""/>                                        <!-- UDP destination IP address (ip address of udp receiver) -->
     <arg name="nodename" default="multiScan"/>
-    <arg name="publish_topic" default="/cloud" />                         <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
-    <arg name="publish_topic_all_segments" default="/cloud_fullframe" />        <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe" -->
-    <arg name="publish_frame_id" default="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
+    <arg name="publish_topic" default="/cloud" />                                   <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
+    <arg name="publish_topic_all_segments" default="/cloud_fullframe" />            <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe" -->
+    <arg name="publish_frame_id" default="world" />                                 <!-- frame id of ros PointCloud2 messages, default: "world" -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
-    <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
+    <arg name="add_transform_check_dynamic_updates" default="false"/>               <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="laserscan_layer_filter" default="0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0" /> <!-- Configuration of laserscan messages (ROS only), default: laserscan messages for layer 5 activated (elevation -0.07 degree, max number of scan points) -->
+    <arg name="scandataformat" default="1"/>                                        <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1 -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_multiscan"/>
 
@@ -37,7 +38,7 @@
         <param name="send_udp_start" type="bool" value="False" />                           <!-- Send udp start string to multiScan136 -->
         <param name="send_udp_start_string" type="string" value="magicalActivate" />        <!-- udp string to start multiScan136 -->
         <param name="udp_timeout_ms" type="int" value="60000" />                            <!-- Timeout for udp messages in milliseconds, default: 60*1000 -->
-        
+        <param name="scandataformat" type="int" value="$(arg scandataformat)" />            <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1 -->
         
         <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->
         <!-- Depending on parameter range_filter_handling, the following filter can be applied for points with a range not within [range_min, range_max],   -->
@@ -72,6 +73,7 @@
         <param name="client_authorization_pw" type="string" value="F4724744" />             <!-- Default password for client authorization -->
         
         <!-- MSR100 filter settings -->
+        <!-- Note: Setting host_LFPangleRangeFilter requires firmware version 1.2.2 or higher -->
         <param name="host_read_filtersettings" type="bool" value="True" />                                    <!-- Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true -->
         <param name="host_FREchoFilter" type="int" value="0" />                                               <!-- Optionally set FREchoFilter with 0 for FIRST_ECHO (default, EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1) -->
         <param name="host_set_FREchoFilter" type="bool" value="False" />                                      <!-- If true, FREchoFilter is set at startup (default: false) -->

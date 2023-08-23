@@ -138,14 +138,16 @@ namespace sick_scan
       CMD_START_RADARDATA,
       CMD_ACTIVATE_NTP_CLIENT,
       CMD_SET_NTP_INTERFACE_ETH,
+
+      // Encode settings
       CMD_SET_ENCODER_MODE,
       CMD_SET_ENCODER_MODE_NO,
       CMD_SET_ENCODER_MODE_SI,
       CMD_SET_ENCODER_MODE_DP,
       CMD_SET_ENCODER_MODE_DL,
+      CMD_SET_ENCODER_MODE_FI,
       CMD_SET_INCREMENTSOURCE_ENC,
       CMD_SET_3_4_TO_ENCODER,
-
       CMD_SET_ENOCDER_RES_1,
       CMD_SET_ENCODER_RES,
 
@@ -331,6 +333,8 @@ namespace sick_scan
     {
       return parser_ ? parser_->getCurrentParamPtr() : 0;
     }
+
+    std::string cmdSetAccessMode3(void);
 
     /// Converts reply from sendSOPASCommand to string
     /**
@@ -536,6 +540,8 @@ namespace sick_scan
       std::vector<int> scan_layer_activated = std::vector<int>();
       int first_active_layer = -1;
       int last_active_layer = -1;
+      int num_layers = 0;
+      int num_active_layers = 0;
       void parse(const std::string& parameter);
       void print();
     };

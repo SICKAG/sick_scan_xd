@@ -4,7 +4,7 @@
  * Usage example:
  *
  * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
- * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+ * sick_scansegment_xd::ScanSegmentParserOutput msgpack_output;
  * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, msgpack_output);
  *
  * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
@@ -13,11 +13,11 @@
  * {
  * 	 for (int echoIdx = 0; echoIdx < msgpack_output.scandata[groupIdx].size(); echoIdx++)
  * 	 {
- * 	   std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
+ * 	   std::vector<sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
  * 	   std::cout << (groupIdx + 1) << ". group, " << (echoIdx + 1) << ". echo: ";
  * 	   for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
  * 	   {
- * 		  sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+ * 		  sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
  * 		  std::cout << (pointIdx > 0 ? "," : "") << "(" << point.x << "," << point.y << "," << point.z << "," << point.i << ")";
  * 	   }
  * 	   std::cout << std::endl;
@@ -79,6 +79,7 @@
 #include <fstream>
 #include <msgpack11.hpp>
 #include "sick_scan/softwarePLL.h"
+#include "sick_scansegment_xd/config.h"
 #include "sick_scansegment_xd/msgpack_parser.h"
 
 /** normalizes an angle to [ -PI , +PI ] */
@@ -420,49 +421,6 @@ protected:
 };
 
 /*
- * Returns true, if endianess of the current system (destination target) is big endian, otherwise false.
- */
-bool sick_scansegment_xd::MsgPackParser::SystemIsBigEndian(void)
-{
-	// Get endianess of the system (destination target) by comparing MSB and LSB of a int32 number
-	uint32_t u32_one = 1;
-	uint8_t* p_one = (uint8_t*)&u32_one;
-	uint8_t lsb = p_one[0];
-	uint8_t msb = p_one[3];
-	bool dstTargetIsBigEndian = (lsb == 0 && msb != 0);
-	bool dstTargetIsLittleEndian = (lsb != 0 && msb == 0);
-	assert(dstTargetIsBigEndian || dstTargetIsLittleEndian);
-	return dstTargetIsBigEndian;
-}
-
-/*
- * @brief return a timestamp of the current time (i.e. std::chrono::system_clock::now() formatted by "YYYY-MM-DD hh-mm-ss.msec").
- */
-std::string sick_scansegment_xd::MsgPackParser::Timestamp(const std::chrono::system_clock::time_point& now)
-{
-	std::time_t cur_time = std::chrono::system_clock::to_time_t(now);
-	std::chrono::milliseconds milliseonds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-	struct tm local_time;
-	localtime_s(&local_time, &cur_time);
-	std::stringstream time_stream;
-	time_stream << std::put_time(&local_time, "%F %T") << "." << std::setfill('0') << std::setw(3) << milliseonds.count();
-	return time_stream.str();
-}
-
-/*
- * @brief return a formatted timestamp "<sec>.<millisec>".
- * @param[in] sec second part of timestamp
- * @param[in] nsec nanosecond part of timestamp
- * @return "<sec>.<millisec>"
- */
-std::string sick_scansegment_xd::MsgPackParser::Timestamp(uint32_t sec, uint32_t nsec)
-{
-	std::stringstream timestamp;
-	timestamp << sec << "." << std::setfill('0') << std::setw(6) << (nsec / 1000);
-	return timestamp.str();
-}
-
-/*
  * @brief reads a file in binary mode and returns all bytes.
  * @param[in] filepath input file incl. path
  * @param[out] list of bytes
@@ -502,14 +460,14 @@ std::string sick_scansegment_xd::MsgPackParser::MsgpackToHexDump(const std::vect
  * Usage example:
  *
  * std::vector<uint8_t> msgpack_data = sick_scansegment_xd::MsgPackParser::ReadFile("polarscan_testdata_000.msg");
- * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+ * sick_scansegment_xd::ScanSegmentParserOutput msgpack_output;
  * sick_scansegment_xd::MsgPackParser::Parse(msgpack_data, msgpack_output);
  * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
  *
  * @param[in+out] msgpack_ifstream the binary input stream delivering the binary msgpack data
  * @param[in] msgpack_timestamp receive timestamp of msgpack_data
  * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
- * @param[out] result msgpack data converted to scanlines of type MsgPackParserOutput
+ * @param[out] result msgpack data converted to scanlines of type ScanSegmentParserOutput
  * @param[in+out] msgpack_validator_data_collector collects MsgPackValidatorData over N msgpacks
  * @param[in] msgpack_validator msgpack validation, see MsgPackValidator for details
  * @param[in] msgpack_validator_enabled true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
@@ -518,7 +476,7 @@ std::string sick_scansegment_xd::MsgPackParser::MsgpackToHexDump(const std::vect
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
 bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, 
-    sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, MsgPackParserOutput& result,
+    sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, ScanSegmentParserOutput& result,
     sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
 	bool use_software_pll, bool verbose)
@@ -543,7 +501,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
  * Usage example:
  *
  * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
- * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+ * sick_scansegment_xd::ScanSegmentParserOutput msgpack_output;
  * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, msgpack_output);
  *
  * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
@@ -552,11 +510,11 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
  * {
  * 	 for (int echoIdx = 0; echoIdx < msgpack_output.scandata[groupIdx].size(); echoIdx++)
  * 	 {
- * 	   std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
+ * 	   std::vector<sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint>& scanline = msgpack_output.scandata[groupIdx][echoIdx];
  * 	   std::cout << (groupIdx + 1) << ". group, " << (echoIdx + 1) << ". echo: ";
  * 	   for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
  * 	   {
- * 		  sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+ * 		  sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
  * 		  std::cout << (pointIdx > 0 ? "," : "") << "(" << point.x << "," << point.y << "," << point.z << "," << point.i << ")";
  * 	   }
  * 	   std::cout << std::endl;
@@ -566,7 +524,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
  * @param[in+out] msgpack_ifstream the binary input stream delivering the binary msgpack data
  * @param[in] msgpack_timestamp receive timestamp of msgpack_data
  * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
- * @param[out] result msgpack data converted to scanlines of type MsgPackParserOutput
+ * @param[out] result msgpack data converted to scanlines of type ScanSegmentParserOutput
  * @param[in] discard_msgpacks_not_validated true: msgpacks are discarded if not validated, false: error message if a msgpack is not validated
  * @param[in] msgpack_validator msgpack validation, see MsgPackValidator for details
  * @param[in] msgpack_validator_enabled true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
@@ -575,7 +533,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
 bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, 
-	sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, MsgPackParserOutput& result,
+	sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, ScanSegmentParserOutput& result,
     sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, 
 	const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
@@ -584,7 +542,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 	int64_t systemtime_nanoseconds = msgpack_timestamp.time_since_epoch().count();
 	uint32_t systemtime_sec = (uint32_t)(systemtime_nanoseconds / 1000000000);  // seconds part of timestamp
 	uint32_t systemtime_nsec = (uint32_t)(systemtime_nanoseconds % 1000000000); // nanoseconds part of timestamp
-	result.timestamp = Timestamp(systemtime_sec, systemtime_nsec); // Timestamp(std::chrono::system_clock::now()); // default timestamp: msgpack receive time, overwritten by timestamp from msgpack data
+	result.timestamp = sick_scansegment_xd::Timestamp(systemtime_sec, systemtime_nsec); // Timestamp(std::chrono::system_clock::now()); // default timestamp: msgpack receive time, overwritten by timestamp from msgpack data
 	result.timestamp_sec = systemtime_sec;
 	result.timestamp_nsec = systemtime_nsec;
 	int32_t segment_idx = messageCount++; // default value: counter for each message (each scandata decoded from msgpack data), overwritten by msgpack data
@@ -609,7 +567,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 	}
 
 	// Get endianess of the system (destination target)
-	bool dstIsBigEndian = SystemIsBigEndian();
+	bool dstIsBigEndian = sick_scansegment_xd::Config::SystemIsBigEndian();
 
 	// Parse the unpacked msgpack data, see sick_scansegment_xd/python/polarscan_reader_test/polarscan_receiver_test.py for multiScan136 message format
     // and https://github.com/SICKAG/msgpack11/blob/master/msgpack11.hpp or https://github.com/SICKAG/msgpack11/blob/master/example.cpp
@@ -646,14 +604,14 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			{
 				uint32_t pll_sec = 0, pll_nsec = 0;
 				software_pll.getCorrectedTimeStamp(pll_sec, pll_nsec, curtick);
-				result.timestamp = Timestamp(pll_sec, pll_nsec);
+				result.timestamp = sick_scansegment_xd::Timestamp(pll_sec, pll_nsec);
 				result.timestamp_sec = pll_sec;
 				result.timestamp_nsec = pll_nsec;
 				if (verbose)
-					ROS_INFO_STREAM("MsgPackParser::Parse(): sensor_ticks=" << curtick << ", system_time=" << Timestamp(systemtime_sec, systemtime_nsec) << " sec, timestamp=" << result.timestamp << " sec");
+					ROS_INFO_STREAM("MsgPackParser::Parse(): sensor_ticks=" << curtick << ", system_time=" << sick_scansegment_xd::Timestamp(systemtime_sec, systemtime_nsec) << " sec, timestamp=" << result.timestamp << " sec");
 			}
 			else if (verbose)
-				ROS_INFO_STREAM("MsgPackParser::Parse(): sensor_ticks=" << curtick << ", system_time=" << Timestamp(systemtime_sec, systemtime_nsec) << " sec, SoftwarePLL not yet initialized");
+				ROS_INFO_STREAM("MsgPackParser::Parse(): sensor_ticks=" << curtick << ", system_time=" << sick_scansegment_xd::Timestamp(systemtime_sec, systemtime_nsec) << " sec, SoftwarePLL not yet initialized");
 		}
 		msgpack11::MsgPack::object::const_iterator segment_counter_iter = root_data.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_SegmentCounter]);
 		if (segment_counter_iter == root_data.object_items().end())
@@ -734,14 +692,14 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			assert(channelPhi.data().size() == 1 && channelTheta.data().size() > 0 && distValues.size() == iEchoCount && rssiValues.size() == iEchoCount);
 
 			// Convert to cartesian coordinates
-			result.scandata.push_back(sick_scansegment_xd::MsgPackParserOutput::Scangroup());
+			result.scandata.push_back(sick_scansegment_xd::ScanSegmentParserOutput::Scangroup());
 			result.scandata.back().timestampStart_sec = u32TimestampStart_sec;
 			result.scandata.back().timestampStart_nsec = u32TimestampStart_nsec;
 			result.scandata.back().timestampStop_sec = u32TimestampStop_sec;
 			result.scandata.back().timestampStop_nsec = u32TimestampStop_nsec;
 			iEchoCount = std::min((int)distValuesDataMsg.size(), iEchoCount);
 			iEchoCount = std::min((int)rssiValuesDataMsg.size(), iEchoCount);
-			std::vector<sick_scansegment_xd::MsgPackParserOutput::Scanline>& groupData = result.scandata.back().scanlines;
+			std::vector<sick_scansegment_xd::ScanSegmentParserOutput::Scanline>& groupData = result.scandata.back().scanlines;
 			groupData.reserve(iEchoCount);
 			int iPointCount = (int)channelTheta.data().size();
 			// Precompute sin and cos values of azimuth and elevation
@@ -761,8 +719,8 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			for (int echoIdx = 0; echoIdx < iEchoCount; echoIdx++)
 			{
 				assert(iPointCount == channelTheta.data().size() && iPointCount == distValues[echoIdx].data().size() && iPointCount == rssiValues[echoIdx].data().size());
-				groupData.push_back(sick_scansegment_xd::MsgPackParserOutput::Scanline());
-				sick_scansegment_xd::MsgPackParserOutput::Scanline& scanline = groupData.back();
+				groupData.push_back(sick_scansegment_xd::ScanSegmentParserOutput::Scanline());
+				sick_scansegment_xd::ScanSegmentParserOutput::Scanline& scanline = groupData.back();
 				scanline.points.reserve(iPointCount);
 				for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 				{
@@ -781,11 +739,11 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 						}
                     if (range_filter.apply(dist)) 
                     {
-						scanline.points.push_back(sick_scansegment_xd::MsgPackParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx));
+						scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx));
 				    }
 					else // point dropped by range filter
 					{
-						scanline.points.push_back(sick_scansegment_xd::MsgPackParserOutput::LidarPoint(0, 0, 0, 0, 0, azimuth, elevation, groupIdx, echoIdx, pointIdx));
+						scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(0, 0, 0, 0, 0, azimuth, elevation, groupIdx, echoIdx, pointIdx));
 				    }
 				}
 			}
@@ -798,8 +756,8 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				ROS_INFO_STREAM((groupIdx + 1) << ". group: phi (elevation, deg) = [" << channelPhi.printRad2Deg() << "], " << channelPhi.data().size() << " element");
 				ROS_INFO_STREAM((groupIdx + 1) << ". group: theta (azimuth, rad) = [" << channelTheta.print() << "], " << channelTheta.data().size() << " elements");
 				ROS_INFO_STREAM((groupIdx + 1) << ". group: theta (azimuth, deg) = [" << channelTheta.printRad2Deg() << "], " << channelTheta.data().size() << " elements");
-				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStart = " << u32TimestampStart << " = " << Timestamp(u32TimestampStart_sec, u32TimestampStart_nsec));
-				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStop = " << u32TimestampStop << " = " << Timestamp(u32TimestampStop_sec, u32TimestampStop_nsec));
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStart = " << u32TimestampStart << " = " << sick_scansegment_xd::Timestamp(u32TimestampStart_sec, u32TimestampStart_nsec));
+				ROS_INFO_STREAM((groupIdx + 1) << ". group: timestampStop = " << u32TimestampStop << " = " << sick_scansegment_xd::Timestamp(u32TimestampStop_sec, u32TimestampStop_nsec));
 				for (int n = 0; n < distValues.size(); n++)
 					ROS_INFO_STREAM((groupIdx + 1) << ". group: dist[" << n << "] = [" << distValues[n].print() << "], " << distValues[n].data().size() << " elements");
 				for (int n = 0; n < rssiValues.size(); n++)
@@ -869,7 +827,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
  * Usage example:
  *
  * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
- * sick_scansegment_xd::MsgPackParserOutput msgpack_output;
+ * sick_scansegment_xd::ScanSegmentParserOutput msgpack_output;
  * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, msgpack_output);
  *
  * sick_scansegment_xd::MsgPackParser::WriteCSV({ msgpack_output }, "polarscan_testdata_000.csv")
@@ -878,7 +836,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
  * @param[in] csvFile name of output csv file incl. optional file path
  * @param[in] overwrite_existing_file if overwrite_existing_file is true and csvFile already exists, the file will be overwritten. otherwise all results are appended to the file.
  */
-bool sick_scansegment_xd::MsgPackParser::WriteCSV(const std::vector<MsgPackParserOutput>& results, const std::string& csvFile, bool overwrite_existing_file)
+bool sick_scansegment_xd::MsgPackParser::WriteCSV(const std::vector<ScanSegmentParserOutput>& results, const std::string& csvFile, bool overwrite_existing_file)
 {
 	if (results.empty())
 		return false;
@@ -901,15 +859,15 @@ bool sick_scansegment_xd::MsgPackParser::WriteCSV(const std::vector<MsgPackParse
 	}
 	for (int msgCnt = 0; msgCnt < results.size(); msgCnt++)
 	{
-		const MsgPackParserOutput& result = results[msgCnt];
+		const ScanSegmentParserOutput& result = results[msgCnt];
 		for (int groupIdx = 0; groupIdx < result.scandata.size(); groupIdx++)
 		{
 			for (int echoIdx = 0; echoIdx < result.scandata[groupIdx].scanlines.size(); echoIdx++)
 			{
-				const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = result.scandata[groupIdx].scanlines[echoIdx].points;
+				const std::vector<sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint>& scanline = result.scandata[groupIdx].scanlines[echoIdx].points;
 				for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 				{
-					const sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+					const sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
 					csv_ostream << std::setw(12) << result.segmentIndex;
 					csv_ostream << ";" << std::setw(24) << result.timestamp;
 					csv_ostream << ";" << std::setw(12) << point.groupIdx;
@@ -936,7 +894,7 @@ bool sick_scansegment_xd::MsgPackParser::WriteCSV(const std::vector<MsgPackParse
  * Note: All output vectors x, y, z, i, group_idx, echo_idx, msg_idx identical size, i.e. it's safe to
  * assert(x.size() == y.size() && x.size() == z.size() && x.size() == i.size() && x.size() == group_idx.size() && echo_idx.size() == msg_idx.size());
  */
-bool sick_scansegment_xd::MsgPackParser::ExportXYZI(const std::vector<MsgPackParserOutput>& results, std::vector<float>& x, std::vector<float>& y, std::vector<float>& z, std::vector<float>& i, std::vector<int>& group_idx, std::vector<int>& echo_idx, std::vector<int>& msg_idx)
+bool sick_scansegment_xd::MsgPackParser::ExportXYZI(const std::vector<ScanSegmentParserOutput>& results, std::vector<float>& x, std::vector<float>& y, std::vector<float>& z, std::vector<float>& i, std::vector<int>& group_idx, std::vector<int>& echo_idx, std::vector<int>& msg_idx)
 {
 	if (results.empty())
 		return false;
@@ -957,15 +915,15 @@ bool sick_scansegment_xd::MsgPackParser::ExportXYZI(const std::vector<MsgPackPar
 	msg_idx.reserve(data_length);
 	for (int msgCnt = 0; msgCnt < results.size(); msgCnt++)
 	{
-		const MsgPackParserOutput& result = results[msgCnt];
+		const ScanSegmentParserOutput& result = results[msgCnt];
 		for (int groupIdx = 0; groupIdx < result.scandata.size(); groupIdx++)
 		{
 			for (int echoIdx = 0; echoIdx < result.scandata[groupIdx].scanlines.size(); echoIdx++)
 			{
-				const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = result.scandata[groupIdx].scanlines[echoIdx].points;
+				const std::vector<sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint>& scanline = result.scandata[groupIdx].scanlines[echoIdx].points;
 				for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 				{
-					const sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+					const sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
 					x.push_back(point.x);
 					y.push_back(point.y);
 					z.push_back(point.z);

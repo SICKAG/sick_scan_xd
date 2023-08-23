@@ -105,7 +105,7 @@ namespace sick_scansegment_xd
         bool runThreadCb(void);
 
        sick_scansegment_xd::Config m_config;                      // sick_scansegment_xd configuration
-       std::thread* m_scansegment_thread;                         // background thread to convert msgpack to MsgPackParserOutput data
+       std::thread* m_scansegment_thread;                         // background thread to convert msgpack to ScanSegmentParserOutput data
        bool m_run_scansegment_thread;                             // flag to start and stop the udp converter thread
     };
 

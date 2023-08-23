@@ -14,7 +14,7 @@ This project provides a driver for the SICK LiDARs and Radar sensors mentioned [
 - [Build on Windows](INSTALL-GENERIC.md#build-on-windows)
 - [Build on Windows ROS2](INSTALL-ROS2.md#build-on-windows-ros2)
 - [USAGE](USAGE.md)
-- [Driver API](#api)
+- [Driver API](doc/sick_scan_api/sick_scan_api.md)
 - [IMU-Support](#imu-Support)
 - [Radar](doc/radar.md)
 - [multiScan100](doc/sick_scan_segment_xd.md)

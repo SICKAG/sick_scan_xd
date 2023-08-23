@@ -83,6 +83,18 @@ if(NOT WIN32)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow -fno-var-tracking-assignments")
 endif()
 
+# Option SICK_TARGET_ENDIANESS sets the endianess of the cmake target to build sick_scan_xd (default is little endian).
+# The target endianess can be set either to little endian by cmake option "-DSICK_TARGET_ENDIANESS=1",
+# or to big endian by cmake option "-DSICK_TARGET_ENDIANESS=2"
+# Since LITTLE_ENDIAN and BIG_ENDIAN might already be defined differently on a system or in a 3rd party headerfile,
+# SICK_TARGET_ENDIANESS, SICK_LITTLE_ENDIAN and SICK_BIG_ENDIAN are used to avoid conflicts
+if(DEFINED ENV{SICK_TARGET_ENDIANESS})
+    add_compile_options(-DSICK_TARGET_ENDIANESS=$ENV{SICK_TARGET_ENDIANESS})
+elseif(DEFINED SICK_TARGET_ENDIANESS)
+    add_compile_options(-DSICK_TARGET_ENDIANESS=${SICK_TARGET_ENDIANESS})
+endif()
+
+# ROS Version
 if(NOT DEFINED ROS_VERSION AND DEFINED ENV{ROS_VERSION})
     set(ROS_VERSION $ENV{ROS_VERSION})
 endif()

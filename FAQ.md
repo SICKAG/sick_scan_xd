@@ -189,6 +189,15 @@ rosrun rviz rviz
 ![Sopas_filter](doc/tim5xxx_filter.PNG)
 Further information can be found at http://wiki.ros.org/rviz/Troubleshooting.
 
+:question: The scanner and message frequency is lower than expected
+
+:white_check_mark: Mean or median filters decrease the scanner frequency. Check and configure filter settings with SOPAS ET or deactivate them in the launchfile (MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx only):
+```
+<param name="lfp_meanfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->
+<param name="lfp_medianfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_medianfilter<0: do not apply, lfp_medianfilter==0: deactivate LFPmedianfilter, lfp_medianfilter==1: activate LFPmedianfilter -->
+```
+By default, filter settings are not overwritten, i.e. the filter settings stored in the lidars EEPROM apply (factory defaults resp. SOPAS ET filter settings).
+
 ## LMS1xxx angular resolution
 
 :question: Independent of the configuration, the LMS1xxx pointcloud always displays 0.75 [deg] angular resolution
@@ -380,6 +389,8 @@ If 0.125 degrees horizontal angular resolution is configured at 25 Hz scan frequ
 If 0.0625 degrees horizontal angular resolution at 12.5 Hz scan frequency is configured, the scans are performed with 4 times interlacing (N=4). Successive scans are shifted horizontally by 0.0625 degrees each. That is, each scan measures alternately at the hor. angles [ ..., 0.000, 0.250, 0.500, 0.750, ... ], [... , 0.0625, 0.3125, 0.5625, 0.8125 ... ], [... , 0.125, 0.375, 0.625, 0.875 ... ] and [... , 0.1875, 0.4375, 0.6875, 0.9375 ... ]. 50 single scans per second resp. 12.5 interlaced scans per second are sent.
 
 In interlacing mode, laser scan and point cloud messages are published interlaced, too. In rviz, the higher angular resolution is clearly visible when the decay time is increased. 
-If you check the publishing rate of the point cloud messages, you will measure 50 Hz, since 50 interlace messages are sent per second. 
-But the resolution of each single message is 0.125 [deg]. Only by interleaving 4 consecutive messages you get the high resolution of 0.0625 [deg].
+
+With a scan frequency of 50 Hz and 4 active layers, the lidar will send a new scan line each 0.02 seconds. Each layer is scanned after 0.08 seconds resp. with 12.5 Hz (4 layers multiplied by 12.5 Hz = 50 Hz scan frequency). The point cloud accumulates all active layers and is therefore published with 12.5 Hz (i.e. scan frequency divided by number of layers).
+
+If you check the publishing rate of the point cloud messages of a MRS-1104, you will measure 12.4 Hz, since the scans of 4 layers are accumulated in 1 point cloud message (50 hz scan frequency divided by 4 layers = 12.5 Hz point cloud publishing frequency). The resolution of each single point cloud message is 0.125 [deg]. Only by interleaving 4 consecutive messages you get the high resolution of 0.0625 [deg].
 

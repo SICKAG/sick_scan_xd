@@ -64,8 +64,6 @@
  * @param[in] config sick_scansegment_xd configuration, RosMsgpackPublisher uses
  *            config.publish_topic: ros topic to publish received msgpack data converted to PointCloud2 messages, default: "/cloud"
  *            config.publish_topic_all_segments: ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
- *            config.all_segments_min_deg, config.all_segments_min_deg: angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
- *            if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
  *            config.publish_frame_id: frame id of ros PointCloud2 messages, default: "world"
  * @param[in] qos quality of service profile for the ros publisher, default: 1
  */
@@ -78,11 +76,33 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
     m_frame_id = config.publish_frame_id;
 	m_publish_topic = config.publish_topic;
 	m_publish_topic_all_segments = config.publish_topic_all_segments;
-	// m_segment_count = config.segment_count;
-	m_all_segments_min_deg = (float)config.all_segments_min_deg;
-    m_all_segments_max_deg = (float)config.all_segments_max_deg;
 	m_node = config.node;
 	m_laserscan_layer_filter = config.laserscan_layer_filter;
+	// m_segment_count = config.segment_count;
+	m_all_segments_azimuth_min_deg = (float)config.all_segments_min_deg;
+  m_all_segments_azimuth_max_deg = (float)config.all_segments_max_deg;
+	if (config.host_set_LFPangleRangeFilter) 
+	{
+		// Determine all_segments_min/max_deg by LFPangleRangeFilter
+		// host_set_LFPangleRangeFilter = "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+    std::vector<std::string> parameter_token;
+    sick_scansegment_xd::util::parseVector(config.host_LFPangleRangeFilter, parameter_token, ' ');
+		try
+		{
+			if(parameter_token.size() >= 3 && std::stoi(parameter_token[0]) > 0) // LFPangleRangeFilter enabled, i.e. all_segments_min/max_deg given by LFPangleRangeFilter settings
+			{
+				float all_segments_azimuth_min_deg = std::stof(parameter_token[1]);
+				float all_segments_azimuth_max_deg = std::stof(parameter_token[2]);
+				m_all_segments_azimuth_min_deg = MAX(m_all_segments_azimuth_min_deg, all_segments_azimuth_min_deg);
+				m_all_segments_azimuth_max_deg = MIN(m_all_segments_azimuth_max_deg, all_segments_azimuth_max_deg);
+			}
+		}
+		catch(const std::exception& e)
+		{
+			ROS_ERROR_STREAM("## ERROR in RosMsgpackPublisher: can't parse LFPangleRangeFilter settings, exception " << e.what() << ", check LFPangleRangeFilter configuration in the launchfile");
+			throw e; // fatal error: rethrow exception, which will be caught in sick_generic_caller and handled by exiting with error
+		}
+	}
 
 #if defined __ROS_VERSION && __ROS_VERSION > 1 // ROS-2 publisher
     rosQoS qos = rclcpp::SystemDefaultsQoS();
@@ -315,7 +335,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t tim
  * for each registered listener after msgpack data have been received and converted.
  * This function converts and publishes msgpack data to PointCloud2 messages.
  */
-void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scansegment_xd::MsgPackParserOutput& msgpack_data)
+void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scansegment_xd::ScanSegmentParserOutput& msgpack_data)
 {
 	if (!m_active)
 		return; // publishing deactivated
@@ -344,10 +364,10 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	{
 		for (int echoIdx = 0; echoIdx < msgpack_data.scandata[groupIdx].scanlines.size(); echoIdx++)
 		{
-			const std::vector<sick_scansegment_xd::MsgPackParserOutput::LidarPoint>& scanline = msgpack_data.scandata[groupIdx].scanlines[echoIdx].points;
+			const std::vector<sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint>& scanline = msgpack_data.scandata[groupIdx].scanlines[echoIdx].points;
 			for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 			{
-				const sick_scansegment_xd::MsgPackParserOutput::LidarPoint& point = scanline[pointIdx];
+				const sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
 				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZRAEI32f(point.x, point.y, point.z, point.range, point.azimuth, point.elevation, point.i, point.groupIdx, point.echoIdx));
 				lidar_points_min_azimuth = std::min(lidar_points_min_azimuth, point.azimuth);
 				lidar_points_max_azimuth = std::max(lidar_points_max_azimuth, point.azimuth);
@@ -370,8 +390,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	{
 		float precheck_min_azimuth_deg = m_points_collector.min_azimuth * 180.0f / (float)M_PI;
 		float precheck_max_azimuth_deg = m_points_collector.max_azimuth * 180.0f / (float)M_PI;
-		bool publish_cloud_360 = (precheck_max_azimuth_deg - precheck_min_azimuth_deg + 1 >= m_all_segments_max_deg - m_all_segments_min_deg - 1) // fast pre-check
-		    && m_points_collector.allSegmentsCovered(m_all_segments_min_deg, m_all_segments_max_deg); // all segments collected in m_points_collector
+		bool publish_cloud_360 = (precheck_max_azimuth_deg - precheck_min_azimuth_deg + 1 >= m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg - 1) // fast pre-check
+		    && m_points_collector.allSegmentsCovered(m_all_segments_azimuth_min_deg, m_all_segments_azimuth_max_deg, m_all_segments_elevation_min_deg, m_all_segments_elevation_max_deg); // all segments collected in m_points_collector
 		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.lastSegmentIdx=" << m_points_collector.lastSegmentIdx() 
 		//     << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count << ", m_points_collector.allSegmentsCovered=" << publish_cloud_360);
 		if (m_points_collector.total_point_count <= 0 || m_points_collector.telegram_cnt <= 0 || publish_cloud_360 || m_points_collector.lastSegmentIdx() > segment_idx) 

@@ -623,18 +623,29 @@ namespace sick_scan
 #if defined USE_DIAGNOSTIC_UPDATER
     if(diagnostics_)
     {
+      int num_active_layers = parser_->getCurrentParamPtr()->getNumberOfLayers();
       diagnostics_->setHardwareID("none");   // set from device after connection
+      expectedFrequency_ = parser_->getCurrentParamPtr()->getExpectedFrequency();
+      if ( (!m_scan_layer_filter_cfg.scan_layer_filter.empty()) // If an optional ScanLayerFilter is activated,
+        && (m_scan_layer_filter_cfg.num_layers > 1)            // and the lidar has more than 1 layer, 
+        && (m_scan_layer_filter_cfg.num_active_layers < m_scan_layer_filter_cfg.num_layers)) // and some layers are deactivated, then ...
+      {
+        // reduce expected frequency by factor (num_active_layers / num_layers)
+        expectedFrequency_ = expectedFrequency_ * m_scan_layer_filter_cfg.num_active_layers / m_scan_layer_filter_cfg.num_layers;
+        num_active_layers = m_scan_layer_filter_cfg.num_active_layers;
+      }
+      double max_timestamp_delay = 1.3 * num_active_layers / expectedFrequency_ - config_.time_offset;
 #if __ROS_VERSION == 1
       diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<ros_sensor_msgs::LaserScan>(pub_, *diagnostics_,
         // frequency should be target +- 10%.
         diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10),
         // timestamp delta can be from 0.0 to 1.3x what it ideally is.
-        diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0 / expectedFrequency_ - config_.time_offset));
+        diagnostic_updater::TimeStampStatusParam(-1, max_timestamp_delay));
       ROS_ASSERT(diagnosticPub_ != NULL);
 #elif __ROS_VERSION == 2
       diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>>(pub_, *diagnostics_,
         diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10), // frequency should be target +- 10%
-        diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0 / expectedFrequency_ - config_.time_offset));
+        diagnostic_updater::TimeStampStatusParam(-1, max_timestamp_delay));
       assert(diagnosticPub_ != NULL);
 #endif
     }
@@ -649,6 +660,18 @@ namespace sick_scan
     // The additional transform applies to cartesian lidar pointclouds and visualization marker (fields)
     // It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages
     m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, false);
+  }
+
+  /*!
+  \brief Returns "sMN SetAccessMode 3 F4724744" resp. "\x02sMN SetAccessMode 3 6FD62C05\x03\0" for safety scanner
+  \return error code
+   */
+  std::string SickScanCommon::cmdSetAccessMode3(void)
+  {
+    std::string set_access_mode_3 = sopasCmdVec[CMD_SET_ACCESS_MODE_3]; // "sMN SetAccessMode 3 F4724744"
+    if (parser_->getCurrentParamPtr()->getUseSafetyPasWD()) // TIM_7xxS - 1 layer Safety Scanner
+      set_access_mode_3 = sopasCmdVec[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER]; // "\x02sMN SetAccessMode 3 6FD62C05\x03\0"
+    return set_access_mode_3;
   }
 
   /*!
@@ -667,13 +690,13 @@ namespace sick_scan
       sopas_stop_scanner_cmd.push_back("\x02sEN LIDoutputstate 0\x03"); // TiM781S: deactivate LIDoutputstate messages, send "sEN LIDoutputstate 0"
       sopas_stop_scanner_cmd.push_back("\x02sEN LIDinputstate 0\x03"); // TiM781S: deactivate LIDinputstate messages, send "sEN LIDinputstate 0"
     }
-    sopas_stop_scanner_cmd.push_back("\x02sMN SetAccessMode 3 F4724744\x03\0");
+    sopas_stop_scanner_cmd.push_back(cmdSetAccessMode3()); // "sMN SetAccessMode 3 F4724744"
     sopas_stop_scanner_cmd.push_back("\x02sMN LMCstopmeas\x03\0");
     // sopas_stop_scanner_cmd.push_back("\x02sMN Run\x03\0");
     if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
     {
       sopas_stop_scanner_cmd.clear();
-      sopas_stop_scanner_cmd.push_back(sopasCmdVec[CMD_SET_ACCESS_MODE_3]); // "sMN SetAccessMode 3 F4724744"
+      sopas_stop_scanner_cmd.push_back(cmdSetAccessMode3()); // "sMN SetAccessMode 3 F4724744"
       sopas_stop_scanner_cmd.push_back(sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_1]); // "sMN mNEVAChangeState 1", 1 = standby
       sopas_stop_scanner_cmd.push_back(sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_0]); // "sMN mNEVAChangeState 0", 0 = power down
     }
@@ -790,7 +813,7 @@ namespace sick_scan
 
 
     // changed from "03" to "3"
-    int result = convertSendSOPASCommand("\x02sMN SetAccessMode 3 F4724744\x03\0", &access_reply);
+    int result = convertSendSOPASCommand(cmdSetAccessMode3(), &access_reply); // "sMN SetAccessMode 3 F4724744"
     if (result != 0)
     {
       ROS_ERROR("SOPAS - Error setting access mode");
@@ -1183,7 +1206,7 @@ namespace sick_scan
       {
         ROS_WARN_STREAM("checkColaDialect: lidar response in configured Cola-dialect Cola-" << (!useBinaryCmd ? "B" : "A") << ", changing Cola configuration and restart!");
         std::vector<std::string> sopas_change_cola_commands = {
-          sopasCmdVec[CMD_SET_ACCESS_MODE_3],
+          cmdSetAccessMode3(), // sopasCmdVec[CMD_SET_ACCESS_MODE_3],
           sopasCmdVec[(useBinaryCmd ? CMD_SET_TO_COLA_B_PROTOCOL : CMD_SET_TO_COLA_A_PROTOCOL)]
         };
         for(int n = 0; n < sopas_change_cola_commands.size(); n++)
@@ -1215,7 +1238,8 @@ namespace sick_scan
       this->convertAscii2BinaryCmd(sopasCmdVec[CMD_RUN].c_str(), &reqBinary);
       result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_RUN]));
       reqBinary.clear();
-      this->convertAscii2BinaryCmd(sopasCmdVec[CMD_SET_ACCESS_MODE_3].c_str(), &reqBinary);
+      std::string sUserLvlCmd = cmdSetAccessMode3(); // "sMN SetAccessMode 3 F4724744"
+      this->convertAscii2BinaryCmd(sUserLvlCmd.c_str(), &reqBinary);
       result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ACCESS_MODE_3]));
       reqBinary.clear();
     }
@@ -1223,9 +1247,9 @@ namespace sick_scan
     {
       std::vector<unsigned char> resetReply;
       std::string runCmd = sopasCmdVec[CMD_RUN];
-      std::string UserLvlCmd = sopasCmdVec[CMD_SET_ACCESS_MODE_3];
+      std::string sUserLvlCmd = cmdSetAccessMode3(); // "sMN SetAccessMode 3 F4724744"
       result &= (0 == sendSopasAndCheckAnswer(runCmd, &resetReply));
-      result &= (0 == sendSopasAndCheckAnswer(UserLvlCmd, &resetReply));
+      result &= (0 == sendSopasAndCheckAnswer(sUserLvlCmd, &resetReply));
     }
     return result;
   }
@@ -1479,14 +1503,16 @@ namespace sick_scan
 
     sopasCmdVec[CMD_STOP_IMU_DATA] = "\x02sEN InertialMeasurementUnit 0\x03";
     sopasCmdVec[CMD_START_IMU_DATA] = "\x02sEN InertialMeasurementUnit 1\x03";
-    sopasCmdVec[CMD_SET_ENCODER_MODE_NO] = "\x02sWN LICencset 0\x03";
-    sopasCmdVec[CMD_SET_ENCODER_MODE_SI] = "\x02sWN LICencset 1\x03";
-    sopasCmdVec[CMD_SET_ENCODER_MODE_DP] = "\x02sWN LICencset 2\x03";
-    sopasCmdVec[CMD_SET_ENCODER_MODE_DL] = "\x02sWN LICencset 3\x03";
-    sopasCmdVec[CMD_SET_INCREMENTSOURCE_ENC] = "\x02sWN LICsrc 1\x03";
-    sopasCmdVec[CMD_SET_3_4_TO_ENCODER] = "\x02sWN DO3And4Fnc 1\x03";
-    //TODO remove this and add param
-    sopasCmdVec[CMD_SET_ENOCDER_RES_1] = "\x02sWN LICencres 1\x03";
+
+    // Encoder settings
+    sopasCmdVec[CMD_SET_ENCODER_MODE_NO] = "\x02sWN LICencset 0\x03";  // Encoder setting: off (LMS1xx, LMS5xx, LMS4000, LRS4000)
+    sopasCmdVec[CMD_SET_ENCODER_MODE_SI] = "\x02sWN LICencset 1\x03";  // Encoder setting: single increment (LMS1xx, LMS5xx, LMS4000, LRS4000)
+    sopasCmdVec[CMD_SET_ENCODER_MODE_DP] = "\x02sWN LICencset 2\x03";  // Encoder setting: direction recognition phase (LMS1xx, LMS5xx, LMS4000, LRS4000)
+    sopasCmdVec[CMD_SET_ENCODER_MODE_DL] = "\x02sWN LICencset 3\x03";  // Encoder setting: direction recognition level (LMS1xx, LMS5xx, LMS4000, LRS4000)
+    sopasCmdVec[CMD_SET_ENCODER_MODE_FI] = "\x02sWN LICencset 4\x03";  // Encoder setting: fixed increment speed/ticks (LMS4000)
+    sopasCmdVec[CMD_SET_INCREMENTSOURCE_ENC] = "\x02sWN LICsrc 1\x03"; // LMS1xx, LMS5xx, LRS4000
+    sopasCmdVec[CMD_SET_3_4_TO_ENCODER] = "\x02sWN DO3And4Fnc 1\x03";  // Input state: encoder (LMS5xx)
+    sopasCmdVec[CMD_SET_ENOCDER_RES_1] = "\x02sWN LICencres 1\x03";    // LMS1xx, LMS5xx, LRS4000
 
     sopasCmdVec[CMD_SET_SCANDATACONFIGNAV] = "\x02sMN mLMPsetscancfg +2000 +1 +7500 +3600000 0 +2500 0 0 +2500 0 0 +2500 0 0\x03";
     /*
@@ -1923,7 +1949,9 @@ namespace sick_scan
     {
       ipNewIPAddr = sNewIPAddr;
       sopasCmdChain.clear();
-      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3);
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // "sMN SetAccessMode 3 F4724744"
+      if (this->parser_->getCurrentParamPtr()->getUseSafetyPasWD()) // TIM_7xxS - 1 layer Safety Scanner
+        sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER); // "\x02sMN SetAccessMode 3 6FD62C05\x03\0"
     }
     std::string sNTPIpAdress = "";
     std::string NTPIpAdress;
@@ -1977,39 +2005,50 @@ namespace sick_scan
     }
 
     //================== DEFINE ENCODER SETTING ==========================
-    int EncoderSetings = -1; //Do not use encoder commands as default
-    rosDeclareParam(nh, "encoder_mode", EncoderSetings);
-    rosGetParam(nh, "encoder_mode", EncoderSetings);
+    int EncoderSettings = -1; // Do not use encoder commands as default
+    rosDeclareParam(nh, "encoder_mode", EncoderSettings);
+    rosGetParam(nh, "encoder_mode", EncoderSettings);
 
-    this->parser_->getCurrentParamPtr()->setEncoderMode((int8_t) EncoderSetings);
-    if (parser_->getCurrentParamPtr()->getEncoderMode() >= 0)
+    this->parser_->getCurrentParamPtr()->setEncoderMode((int8_t)EncoderSettings);
+    if (this->parser_->getCurrentParamPtr()->getEncoderMode() >= 0) // EncoderSettings supported by LMS1xx, LMS5xx, LMS4000, LRS4000
     {
-      switch (parser_->getCurrentParamPtr()->getEncoderMode())
+      if (this->parser_->getCurrentParamPtr()->isOneOfScannerNames({SICK_SCANNER_LMS_5XX_NAME})) // LMS5xx only
       {
-        case 0:
-          sopasCmdChain.push_back(CMD_SET_3_4_TO_ENCODER);
-          sopasCmdChain.push_back(CMD_SET_INCREMENTSOURCE_ENC);
-          sopasCmdChain.push_back(CMD_SET_ENCODER_MODE_NO);
-          sopasCmdChain.push_back(CMD_SET_ENOCDER_RES_1);
-          break;
-        case 1:
-          sopasCmdChain.push_back(CMD_SET_3_4_TO_ENCODER);
-          sopasCmdChain.push_back(CMD_SET_INCREMENTSOURCE_ENC);
-          sopasCmdChain.push_back(CMD_SET_ENCODER_MODE_SI);
-          sopasCmdChain.push_back(CMD_SET_ENOCDER_RES_1);
-          break;
-        case 2:
-          sopasCmdChain.push_back(CMD_SET_3_4_TO_ENCODER);
-          sopasCmdChain.push_back(CMD_SET_INCREMENTSOURCE_ENC);
-          sopasCmdChain.push_back(CMD_SET_ENCODER_MODE_DP);
-          sopasCmdChain.push_back(CMD_SET_ENOCDER_RES_1);
-          break;
-        case 3:
-          sopasCmdChain.push_back(CMD_SET_3_4_TO_ENCODER);
-          sopasCmdChain.push_back(CMD_SET_INCREMENTSOURCE_ENC);
-          sopasCmdChain.push_back(CMD_SET_ENCODER_MODE_DL);
-          sopasCmdChain.push_back(CMD_SET_ENOCDER_RES_1);
-          break;
+        sopasCmdChain.push_back(CMD_SET_3_4_TO_ENCODER);
+      }
+      if (this->parser_->getCurrentParamPtr()->isOneOfScannerNames({SICK_SCANNER_LMS_1XX_NAME, SICK_SCANNER_LMS_5XX_NAME, SICK_SCANNER_LRS_4XXX_NAME})) // for LMS1xx, LMS5xx, LRS4000
+      {
+        sopasCmdChain.push_back(CMD_SET_INCREMENTSOURCE_ENC);
+      }
+      if (this->parser_->getCurrentParamPtr()->isOneOfScannerNames({SICK_SCANNER_LMS_1XX_NAME, SICK_SCANNER_LMS_5XX_NAME, SICK_SCANNER_LMS_4XXX_NAME, SICK_SCANNER_LRS_4XXX_NAME})) // for LMS1xx, LMS5xx, LMS4000, LRS4000
+      {
+        switch (parser_->getCurrentParamPtr()->getEncoderMode())
+        {
+          case 0:
+            sopasCmdChain.push_back(CMD_SET_ENCODER_MODE_NO);
+            break;
+          case 1:
+            sopasCmdChain.push_back(CMD_SET_ENCODER_MODE_SI);
+            break;
+          case 2:
+            sopasCmdChain.push_back(CMD_SET_ENCODER_MODE_DP);
+            break;
+          case 3:
+            sopasCmdChain.push_back(CMD_SET_ENCODER_MODE_DL);
+            break;
+          case 4:
+            if (this->parser_->getCurrentParamPtr()->isOneOfScannerNames({SICK_SCANNER_LRS_4XXX_NAME})) // for LMS4000 only
+            {
+              sopasCmdChain.push_back(CMD_SET_ENCODER_MODE_FI);
+            }
+            break;
+          default:
+            break;
+        }
+      }
+      if (this->parser_->getCurrentParamPtr()->isOneOfScannerNames({SICK_SCANNER_LMS_1XX_NAME, SICK_SCANNER_LMS_5XX_NAME, SICK_SCANNER_LRS_4XXX_NAME})) // for LMS1xx, LMS5xx, LRS4000
+      {
+        sopasCmdChain.push_back(CMD_SET_ENOCDER_RES_1);
       }
     }
     int result;
@@ -2058,8 +2097,8 @@ namespace sick_scan
 
     //TODO remove this and use getUseCfgList instead
     bool NAV3xxOutputRangeSpecialHandling=false;
-    if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0||
-        this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0||
+    if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0 ||
+        this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0 ||
         this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0)
     {
       NAV3xxOutputRangeSpecialHandling = true;
@@ -3209,7 +3248,7 @@ namespace sick_scan
         const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG].c_str();
           sprintf(requestLMDscandatacfg, pcCmdMask, outputChannelFlagId, rssiFlag ? 1 : 0,
                   rssiResolutionIs16Bit ? 1 : 0,
-                EncoderSetings != -1 ? EncoderSetings : 0);
+                EncoderSettings != -1 ? EncoderSettings : 0);
         if (useBinaryCmd)
         {
           std::vector<unsigned char> reqBinary;
@@ -5859,7 +5898,8 @@ namespace sick_scan
       this->convertAscii2BinaryCmd(sopasCmdVec[CMD_RUN].c_str(), &reqBinary);
       result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_RUN]));
       reqBinary.clear();
-      this->convertAscii2BinaryCmd(sopasCmdVec[CMD_SET_ACCESS_MODE_3].c_str(), &reqBinary);
+      std::string UserLvlCmd = cmdSetAccessMode3();
+      this->convertAscii2BinaryCmd(UserLvlCmd.c_str(), &reqBinary);
       result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ACCESS_MODE_3]));
       reqBinary.clear();
       this->convertAscii2BinaryCmd(sopasCmdVec[CMD_REBOOT].c_str(), &reqBinary);
@@ -5872,7 +5912,7 @@ namespace sick_scan
       std::string runCmd = sopasCmdVec[CMD_RUN];
       std::string restartCmd = sopasCmdVec[CMD_REBOOT];
       std::string EEPCmd = sopasCmdVec[CMD_WRITE_EEPROM];
-      std::string UserLvlCmd = sopasCmdVec[CMD_SET_ACCESS_MODE_3];
+      std::string UserLvlCmd = cmdSetAccessMode3();
       result = (0 == sendSopasAndCheckAnswer(ipcommand, &ipcomandReply));
       result &= (0 == sendSopasAndCheckAnswer(EEPCmd, &resetReply));
       result &= (0 == sendSopasAndCheckAnswer(runCmd, &resetReply));
@@ -5958,9 +5998,11 @@ namespace sick_scan
     scan_layer_activated.clear();
     first_active_layer = INT_MAX;
     last_active_layer = -1;
+    num_layers = 0;
+    num_active_layers = 0;
     std::istringstream ascii_args(parameter);
     std::string ascii_arg;
-    for (int arg_cnt = 0, num_layers = 0; getline(ascii_args, ascii_arg, ' '); arg_cnt++)
+    for (int arg_cnt = 0; getline(ascii_args, ascii_arg, ' '); arg_cnt++)
     {
       int arg_val = -1;
       if (sscanf(ascii_arg.c_str(), "%d", &arg_val) == 1 && arg_val >= 0)
@@ -5975,6 +6017,7 @@ namespace sick_scan
           scan_layer_activated.push_back(arg_val);
           if (arg_val > 0)
           {
+            num_active_layers += 1;
             first_active_layer = MIN(layer, first_active_layer);
             last_active_layer = MAX(layer, last_active_layer);
           }

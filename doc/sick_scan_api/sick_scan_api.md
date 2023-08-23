@@ -54,7 +54,7 @@ ls -al ./sick_scan_xd_api_test
 ldd -r ./libsick_scan_shared_lib.so
 popd
 ```
-After successfull build, the shared library `libsick_scan_shared_lib.so` and a tiny test executable `sick_scan_xd_api_test` are created. 
+After successful build, the shared library `libsick_scan_shared_lib.so` and a tiny test executable `sick_scan_xd_api_test` are created. 
 
 ### Build the shared library on Windows
 
@@ -83,7 +83,7 @@ cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
 if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% sick_scan_xd with cmake & @pause )
 cmake --build . --clean-first --config Debug
 ```
-After successfull build, the shared library `sick_scan_shared_lib.dll` and a tiny test executable `sick_scan_xd_api_test.exe` are created. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. Note that LDMRS is not supported on Windows.
+After successful build, the shared library `sick_scan_shared_lib.dll` and a tiny test executable `sick_scan_xd_api_test.exe` are created. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. Note that LDMRS is not supported on Windows.
 
 Note: sick_scan_xd builds and runs with both Visual Studio 2019 and 2022. Visual Studio 2019 is recommended, since ROS on Windows requires VS 2019.
 
