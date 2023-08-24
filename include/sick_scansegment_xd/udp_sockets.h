@@ -209,6 +209,8 @@ namespace sick_scansegment_xd
                 // std::cout << std::endl;
                 if (bytes_received == 0 && chunk_bytes_received > (int64_t)headerlength && std::equal(msg_payload.begin(), msg_payload.begin() + udp_msg_start_seq.size(), udp_msg_start_seq.begin())) // start of new msgpack
                 {
+                    // Start of new message: restart timeout
+                    start_timestamp = chrono_system_clock::now();
                     // Decode 8 byte header: 0x02020202 + Payloadlength
                     size_t Payloadlength= Convert4Byte(msg_payload.data() + udp_msg_start_seq.size());
                     bytes_to_receive = Payloadlength + headerlength + sizeof(uint32_t); // 8 byte header + payload + 4 byte CRC

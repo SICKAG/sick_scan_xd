@@ -148,7 +148,7 @@ void sick_scansegment_xd::MsgPackThreads::join(void)
     }
 }
 
-// Send "start" trigger via UDP
+/* Send "start" trigger via UDP
 static void sendStartTrigger(sick_scansegment_xd::Config& config)
 {
   if (config.send_udp_start)
@@ -163,6 +163,7 @@ static void sendStartTrigger(sick_scansegment_xd::Config& config)
       ROS_INFO_STREAM ("sick_scansegment_xd: start string sent on udp socket " << config.hostname << ":" << config.port);
   }
 }
+*/
 
 /*
  * @brief Thread callback, initializes and runs msgpack receiver, converter and publisher.
@@ -180,7 +181,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         ROS_INFO_STREAM("sick_scansegment_xd initializing...");
 
         // Send "start" trigger via UDP
-        sendStartTrigger(m_config);
+        // sendStartTrigger(m_config);
 
         // Initialize udp receiver
         sick_scansegment_xd::UdpReceiver* udp_receiver = 0;
@@ -218,7 +219,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: MsgPackConverter::Start(), UdpReceiver::Start() or MsgPackExporter::Start() failed, not receiving udp packages from " << m_config.udp_sender << ":" << m_config.udp_port);
 
         // Send "start" via UDP
-        sendStartTrigger(m_config);
+        // sendStartTrigger(m_config);
 
         // Start SOPAS services (ROS-1 or ROS-2 only)
         sick_scan::SickScanCommonTcp* sopas_tcp = 0;
@@ -285,7 +286,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.port, m_config.scanner_type, m_config.scandataformat);
+                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat);
             }
             else
             {

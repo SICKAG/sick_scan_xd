@@ -72,7 +72,7 @@ function run_simu_mrs100()
     tx=$1 ; ty=$2 ; tz=$3 ; roll=$4 ; pitch=$5 ; yaw=$6 ; duration_sec=$7
     echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_multiscan.launch (MRS100/Multiscan136) with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
     start_mrs100_emulator
-    roslaunch sick_scan sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
+    roslaunch sick_scan sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw scandataformat:=1 &
     rosrun tf static_transform_publisher $tx $ty $tz $yaw $pitch $roll world origin 100 &
     python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=1
     kill_simu

@@ -509,6 +509,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
         points[echo_idx].echoIdx = echo_idx;
         points[echo_idx].groupIdx = groupIdx;
         points[echo_idx].pointIdx = point_idx;
+        points[echo_idx].reflectorbit |= (beam_property & 0x01); // reflector bit is set, if a reflector is detected on any number of echos
         measurement_data.scandata[layer_idx].scanlines[echo_idx].points[point_idx] = points[echo_idx];
       }
     }

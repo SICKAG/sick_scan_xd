@@ -4,8 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /LaserScan1/Status1
+        - /LaserScan1
       Splitter Ratio: 0.5
     Tree Height: 373
   - Class: rviz/Selection
@@ -148,7 +147,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: world_0
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -208,5 +207,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1048
-  X: 1303
-  Y: 519
+  X: 1304
+  Y: 462

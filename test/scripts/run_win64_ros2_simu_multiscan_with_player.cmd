@@ -39,7 +39,7 @@ REM
 REM Start sick_scan on ROS-2 Windows
 REM 
 
-rem start "ros2 sick_generic_caller" ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_topic:=/cloud publish_topic_all_segments:=/cloud_fullframe publish_frame_id:=world add_transform_xyz_rpy:=0,0,0,0,0,0
+rem start "ros2 sick_generic_caller" ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1
 start "ros2 sick_scan" ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1
 
 @timeout /t 3
@@ -50,9 +50,13 @@ REM
 
 rem set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python39_64;%PATH%
 @echo.
-@echo Playing pcapng-files to emulate multiScan. Note: Start of UDP msgpacks in 20220915_multiscan_msgpack_output.pcapng takes a while...
+@echo Playing pcapng-files to emulate multiScan...
 @echo.
-python ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
+python ./src/sick_scan_xd/test/python/multiscan_perftest_player.py --dst_ip=127.0.0.1 --udp_port=2115 --repeat=100 --send_rate=100 --verbose=0 --prompt=0
+rem @echo.
+rem @echo Playing pcapng-files to emulate multiScan. Note: Start of UDP msgpacks in 20220915_multiscan_msgpack_output.pcapng takes a while...
+rem @echo.
+rem python ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
 @timeout /t 3
 popd
 

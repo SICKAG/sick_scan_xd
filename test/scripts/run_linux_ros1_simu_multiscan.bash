@@ -6,6 +6,8 @@ function killall_cleanup()
   rosnode kill -a
   killall sick_generic_caller
   pkill -f multiscan_sopas_test_server.py
+  pkill -f multiscan_pcap_player.py
+  pkill -f multiscan_perftest_player.py
   pkill -f multiscan_laserscan_msg_to_pointcloud.py
 }
 
@@ -39,6 +41,27 @@ function call_service_filter_examples()
   sleep 0.1 ; rosservice call /multiScan/ColaMsg "{request: 'sRN LFPlayerFilter'}"                                              # response: "sRA LFPlayerFilter 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
 }  
 
+# start static transforms for laserscan messages (16 laserscan frame ids "world_0", "world_1", "world_2", ... "world_15"  for 16 layers are mapped to "world")
+function run_laserscan_frame_transformers()
+{
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_0  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_1  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_2  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_3  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_4  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_5  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_6  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_7  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_8  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_9  20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_10 20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_11 20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_12 20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_13 20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_14 20 &
+  rosrun tf static_transform_publisher 0 0 0 0 0 0 world world_15 20 &
+}
+
 # 
 # Run sick_scansegment_xd on ROS1-Linux
 # 
@@ -67,11 +90,11 @@ sleep 1
 # By default, laserscan messages are only activated for layer 5 (elevation -0.07 degree, max number of scan points)
 # All laserscan messages are converted to pointcloud by mrs100_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
 # Note: Option laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" should not be used for performance tests.
-echo -e "run_lidar3d.bash: sick_scan sick_multiscan.launch ..."
-roslaunch sick_scan sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" &
+echo -e "run_linux_ros1_simu_multiscan.bash: sick_scan sick_multiscan.launch ..."
+roslaunch sick_scan sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" scandataformat:=1 &
 sleep 3 
-python3 ./src/sick_scan_xd/test/python/multiscan_laserscan_msg_to_pointcloud.py &
-sleep 1
+run_laserscan_frame_transformers
+# python3 ./src/sick_scan_xd/test/python/multiscan_laserscan_msg_to_pointcloud.py &
 
 # Run example ros service calls
 call_service_examples
@@ -84,6 +107,6 @@ python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=
 sleep 3
 
 # Shutdown
-echo -e "run_lidar3d.bash finished, killing all processes ..."
+echo -e "run_linux_ros1_simu_multiscan.bash finished, killing all processes ..."
 killall_cleanup
 popd
