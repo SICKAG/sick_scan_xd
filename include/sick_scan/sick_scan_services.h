@@ -111,6 +111,16 @@ namespace sick_scan
     bool serviceCbECRChangeArrROS2(std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Request> service_request, std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Response> service_response) { return serviceCbECRChangeArr(*service_request, *service_response); }
 
     /*!
+     * Callback for service messages (GetContaminationResult, Read contamination indication result).
+     * Sends a cola telegram "sRN GetContaminationResult" and receives the response from the lidar device.
+     * @param[in] service_request ros service request to lidar
+     * @param[out] service_response service response from lidar
+     * @return true on success, false in case of errors.
+     */
+    bool serviceCbGetContaminationResult(sick_scan_srv::GetContaminationResultSrv::Request &service_request, sick_scan_srv::GetContaminationResultSrv::Response &service_response);
+    bool serviceCbGetContaminationResultROS2(std::shared_ptr<sick_scan_srv::GetContaminationResultSrv::Request> service_request, std::shared_ptr<sick_scan_srv::GetContaminationResultSrv::Response> service_response) { return serviceCbGetContaminationResult(*service_request, *service_response); }
+
+    /*!
      * Callback for service messages (LIDoutputstate, Request status change of monitoring fields on event).
      * Sends a cola telegram "sEN LIDoutputstate {0|1}" and receives the response from the lidar device.
      * @param[in] service_request ros service request to lidar
@@ -226,6 +236,7 @@ namespace sick_scan
     std::string m_client_authorization_pw;
     rosServiceServer<sick_scan_srv::ColaMsgSrv> m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan::SickScanServices::serviceCbColaMsg
     rosServiceServer<sick_scan_srv::ECRChangeArrSrv> m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan::SickScanServices::serviceCbECRChangeArr
+    rosServiceServer<sick_scan_srv::GetContaminationResultSrv> m_srv_server_GetContaminationResult; ///< service "GetContaminationResult", &sick_scan::SickScanServices::serviceCbGetContaminationResult
     rosServiceServer<sick_scan_srv::LIDoutputstateSrv> m_srv_server_LIDoutputstate; ///< service "LIDoutputstate", &sick_scan::SickScanServices::serviceCbLIDoutputstate
     rosServiceServer<sick_scan_srv::SCdevicestateSrv> m_srv_server_SCdevicestate; ///< service "SCdevicestate", &sick_scan::SickScanServices::serviceCbSCdevicestate
     rosServiceServer<sick_scan_srv::SCrebootSrv> m_srv_server_SCreboot; ///< service "SCreboot", &sick_scan::SickScanServices::serviceCbSCreboot

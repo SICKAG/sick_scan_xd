@@ -20,6 +20,7 @@ function call_service_examples()
   sleep 0.1 ; rosservice call /sick_picoscan/ColaMsg "{request: 'sWN ScanDataEnable 1'}"                          # response: "sWA ScanDataEnable"
   sleep 0.1 ; rosservice call /sick_picoscan/ColaMsg "{request: 'sMN LMCstartmeas'}"                              # response: "sAN LMCstartmeas"
   sleep 0.1 ; rosservice call /sick_picoscan/ColaMsg "{request: 'sMN Run'}"                                       # response: "sAN Run 1"
+  sleep 0.1 ; rosservice call /sick_picoscan/GetContaminationResult "{}"                                          # response: "sRA GetContaminationResult 0 0"
 }  
 
 # 
