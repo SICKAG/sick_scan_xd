@@ -70,7 +70,7 @@ sleep 1
 # All laserscan messages are converted to pointcloud by multiscan_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
 # Note: Option laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" should not be used for performance tests.
 # ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" &
-echo -e "run_lidar3d.bash: sick_scan sick_multiscan.launch.py ..."
+echo -e "run_multiscan.bash: sick_scan sick_multiscan.launch.py ..."
 ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" &
 sleep 3 
 # python3 ./src/sick_scan_xd/test/python/multiscan_laserscan_msg_to_pointcloud.py &
@@ -83,10 +83,10 @@ sleep 3
 
 # Play pcapng-files to emulate multiScan output
 echo -e "\nPlaying pcapng-files to emulate multiScan. Note: Start of UDP msgpacks in 20220915_multiscan_msgpack_output.pcapng takes a while...\n"
-python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --repeat=1
+python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --repeat=1 --verbose=0 --prompt=0
 sleep 3
 
 # Shutdown
-echo -e "run_lidar3d.bash finished, killing all processes ..."
+echo -e "run_multiscan.bash finished, killing all processes ..."
 killall_cleanup
 popd

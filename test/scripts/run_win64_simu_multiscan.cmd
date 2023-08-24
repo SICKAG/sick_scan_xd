@@ -57,6 +57,10 @@ REM
 @echo Playing pcapng-files to emulate multiScan. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...
 @echo.
 python ../test/python/multiscan_pcap_player.py --pcap_filename=../test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
+REM For profiling and performance tests:
+REM python ../test/python/multiscan_perftest_player.py --dst_ip=127.0.0.1 --udp_port=2115 --repeat=100 --send_rate=0 --force_delay=3.0e-3 --verbose=0 --prompt=0
+REM For performance tests on the Raspberry (192.168.1.27):
+REM python ../test/python/multiscan_perftest_player.py --dst_ip=192.168.1.27 --udp_port=2115 --repeat=100 --send_rate=0 --force_delay=3.0e-3 --verbose=0 --prompt=0
 @timeout /t 3
 
 popd

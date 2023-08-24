@@ -10,16 +10,21 @@ pushd ../../../..
 # BUILDTYPE=Debug
 BUILDTYPE=Release
 
-if   [ -f /opt/ros/humble/setup.bash   ] ; then source /opt/ros/humble/setup.bash ; ROS2_CMAKE_ARGS=" -DLDMRS=0"
+LDMRS_SUPPORT=1
+if   [ -f /opt/ros/humble/setup.bash   ] ; then source /opt/ros/humble/setup.bash ; LDMRS_SUPPORT=0 # LDMRS currently not supported on ROS-2 Humble
 elif [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash
 elif [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash
 fi
+if [ -d /usr/lib/linux-firmware-raspi2 ] ; then LDMRS_SUPPORT=0 ; RASPBERRY_CMAKE_ARGS=" -DRASPBERRY=1" ; fi # LDMRS currently not supported on Raspberry
+if [ $LDMRS_SUPPORT -le 0 ] ; then ROS2_CMAKE_ARGS=" -DLDMRS=0" ; fi
 
 # colcon build --cmake-args " -DROS_VERSION=2" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
-colcon build --packages-select libsick_ldmrs --cmake-args " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
-source ./install/setup.bash
+if [ $LDMRS_SUPPORT -gt 0 ] ; then
+  colcon build --packages-select libsick_ldmrs --cmake-args " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
+  source ./install/setup.bash
+fi
 colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
-colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" $ROS2_CMAKE_ARGS --event-handlers console_direct+
+colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" $ROS2_CMAKE_ARGS $RASPBERRY_CMAKE_ARGS --event-handlers console_direct+
 source ./install/setup.bash
 
 # Optional build ros2_example_application
@@ -28,7 +33,7 @@ if [ -d ./src/ros2_example_application ] ; then
   colcon build --packages-select sick_scan_ros2_example --event-handlers console_direct+
   source ./install/setup.bash
   ls -al ./build/sick_scan_ros2_example/sick_scan_ros2_example ./install/sick_scan_ros2_example/lib/sick_scan_ros2_example/sick_scan_ros2_example
-  if [ ! -f ./build/sick_scan_ros2_example/sick_scan_ros2_example ] ; then echo -e "\n## ERROR building sick_scan_ros2_example\n"        ; else echo -e "build sick_scan_ros2_example finished successfully."     ; fi
+  if [ ! -f ./build/sick_scan_ros2_example/sick_scan_ros2_example ] ; then echo -e "\n## ERROR building sick_scan_ros2_example\n" ; else echo -e "build sick_scan_ros2_example finished successfully." ; fi
 fi
 
 # print sick_scan binaries
