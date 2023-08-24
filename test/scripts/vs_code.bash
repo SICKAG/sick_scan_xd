@@ -12,7 +12,7 @@ elif [ -f /opt/ros/eloquent/setup.bash ] ; then
 fi
 
 pushd ../../../..
-source ./install/setup.bash
+source ./devel_isolated/setup.bash
 
 code ./sick_scan_xd_vscode.code-workspace
 popd 

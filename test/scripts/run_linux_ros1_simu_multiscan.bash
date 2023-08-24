@@ -21,6 +21,7 @@ function call_service_examples()
   sleep 0.1 ; rosservice call /multiScan/ColaMsg "{request: 'sWN ScanDataEnable 1'}"                          # response: "sWA ScanDataEnable"
   sleep 0.1 ; rosservice call /multiScan/ColaMsg "{request: 'sMN LMCstartmeas'}"                              # response: "sAN LMCstartmeas"
   sleep 0.1 ; rosservice call /multiScan/ColaMsg "{request: 'sMN Run'}"                                       # response: "sAN Run 1"
+  sleep 0.1 ; rosservice call /multiScan/GetContaminationResult "{}"                                          # response: "sRA GetContaminationResult 0 0"
 }  
 
 # Run example ros service calls for filter settings

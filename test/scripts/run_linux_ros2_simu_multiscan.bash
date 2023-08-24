@@ -23,6 +23,7 @@ function call_service_examples()
   sleep 0.1 ; ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sWN ScanDataEnable 1'}"                          # response: "sWA ScanDataEnable"
   sleep 0.1 ; ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN LMCstartmeas'}"                              # response: "sAN LMCstartmeas"
   sleep 0.1 ; ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN Run'}"                                       # response: "sAN Run 1"
+  sleep 0.1 ; ros2 service call /GetContaminationResult sick_scan/srv/GetContaminationResultSrv "{}"                           # response: "sRA GetContaminationResult 0 0"
 }  
 
 # Run example ros service calls for filter settings
@@ -77,9 +78,9 @@ sleep 3
 # sleep 1
 
 # Run example ros service calls
-#call_service_examples
-#call_service_filter_examples
-#sleep 3
+call_service_examples
+call_service_filter_examples
+sleep 3
 
 # Play pcapng-files to emulate multiScan output
 echo -e "\nPlaying pcapng-files to emulate multiScan. Note: Start of UDP msgpacks in 20220915_multiscan_msgpack_output.pcapng takes a while...\n"
