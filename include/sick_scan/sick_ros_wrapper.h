@@ -100,11 +100,11 @@
 #endif
 
 #if defined _MSC_VER
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define SICK_MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define SICK_MIN(a,b) (((a) < (b)) ? (a) : (b))
 #else
-#define MAX std::max
-#define MIN std::min
+#define SICK_MAX std::max
+#define SICK_MIN std::min
 #endif
 
 template <typename T> std::string paramToString(const std::vector<T>& param_value)

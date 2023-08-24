@@ -89,7 +89,7 @@ sick_scan::ExitCode sick_scan::SickScanMonitor::checkState(NodeRunState runState
   {
     double read_timeout = 0.001 * scanner->getReadTimeOutInMs();                          // current read timeout in seconds
     uint64_t nanosec_last_tcp_msg = scanner->getNanosecTimestampLastTcpMessageReceived(); // timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
-    uint64_t nanosec_now = MAX(nanosec_last_tcp_msg, rosNanosecTimestampNow());      // timestamp in nanoseconds now
+    uint64_t nanosec_now = SICK_MAX(nanosec_last_tcp_msg, rosNanosecTimestampNow());      // timestamp in nanoseconds now
     // ROS_INFO_STREAM("SickScanMonitor::checkState(): runState=scanner_run, last_tcp_msg=" << (1.0e-9 * nanosec_last_tcp_msg) << " sec, scanner->numberOfDatagramInInputFifo()=" << scanner->numberOfDatagramInInputFifo());
 
     if(nanosec_last_tcp_msg == 0)
