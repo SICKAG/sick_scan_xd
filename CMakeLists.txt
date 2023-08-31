@@ -5,6 +5,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(sick_scan)
 
+set(LDMRS 0)
+set(SCANSEGMENT_XD 0)
+
 # Emulator build options
 option(ENABLE_EMULATOR "Build emulator for offline and unittests (ON) or without emulator (OFF)" ON)
 if(CMAKE_ENABLE_EMULATOR EQUAL 1)
