@@ -88,11 +88,11 @@
 #endif
 
 #if defined _MSC_VER
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define MAX_AB(a,b) (((a) > (b)) ? (a) : (b))
+#define MIN_AB(a,b) (((a) < (b)) ? (a) : (b))
 #else
-#define MAX std::max
-#define MIN std::min
+#define MAX_AB std::max
+#define MIN_AB std::min
 #endif
 
 template <typename T> std::string paramToString(const std::vector<T>& param_value)
