@@ -40,7 +40,7 @@ Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd/pic
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
-cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build **without LDMRS** and **without scansegment_xd support**:
+cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build **without LDMRS** and **without multiScan100/picoScan100 support**:
    ```
    colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
@@ -56,20 +56,20 @@ sudo apt install ros-${ROS_DISTRO}-diagnostic-msgs
 
 ### Summary for the different build options:
 
-* **Without LDMRS-support** and **without Multiscan136 support**
+* **Without LDMRS-support** and **without multiScan100/picoScan100 support**
 
 ```
 colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
 ```
-* **Without LDMRS-support** and **with Multiscan136 support**
+* **Without LDMRS-support** and **with multiScan100/picoScan100 support**
 ```
 colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
 ```
-* **with LDMRS-support** and **without Multiscan136 support**
+* **with LDMRS-support** and **without multiScan100/picoScan100 support**
 ```
 colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
 ```
-* **with LDMRS-support** and **with Multiscan136 support**
+* **with LDMRS-support** and **with multiScan100/picoScan100 support**
 ```
  colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " --event-handlers console_direct+
 ```
