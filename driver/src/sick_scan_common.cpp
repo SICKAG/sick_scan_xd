@@ -2344,6 +2344,50 @@ namespace sick_scan
         }
           break;
 
+        case CMD_FIRMWARE_VERSION:
+        {
+          char firmwareVersion[MAX_STR_LEN] = {0};
+          const char *strPtr = sopasReplyStrVec[CMD_FIRMWARE_VERSION].c_str();
+          const char *searchPattern = "sRA FirmwareVersion ";
+          strcpy(firmwareVersion, "None");
+          if (useBinaryCmd)
+          {
+              int iRetVal = 0;
+              long dummy0, dummy1, firmwareVersionLen;
+              const char * binFirmwareVersionMask = "%4y%4ysRA FirmwareVersion %2y";
+              int prefixLen = binScanfGuessDataLenFromMask(binFirmwareVersionMask);
+              dummy0 = 0;
+              dummy1 = 0;
+              firmwareVersionLen = 0;
+
+              iRetVal = binScanfVec(&(sopasReplyBinVec[CMD_FIRMWARE_VERSION]), binFirmwareVersionMask, &dummy0, &dummy1,
+                                    &firmwareVersionLen);
+              if (iRetVal > 0)
+              {
+                  std::string s;
+                  std::string firmwareVersionStr = binScanfGetStringFromVec(&(sopasReplyBinVec[CMD_FIRMWARE_VERSION]),
+                                                                            prefixLen, firmwareVersionLen);
+                  strcpy(firmwareVersion, firmwareVersionStr.c_str());
+              }
+          }
+          else
+          {
+              if (strstr(strPtr, searchPattern) == strPtr)
+              {
+                  const char *ptr = strPtr + strlen(searchPattern);
+                  strcpy(firmwareVersion, ptr);
+              }
+              else
+              {
+                  ROS_WARN("FirmwareVersion command not supported.\n");
+              }
+          }
+#ifdef USE_DIAGNOSTIC_UPDATER
+          diagnostics_->setHardwareID(firmwareVersion);
+#endif
+          break;
+        }
+
         case CMD_OPERATION_HOURS:
         {
           int operationHours = -1;
