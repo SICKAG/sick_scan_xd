@@ -121,6 +121,7 @@ template <typename T> std::string paramToString(const T& param_value)
     return s.str();
 }
 
+bool shutdownSignalReceived();
 
 #if __ROS_VERSION <= 1 // ROS-SIMU (native Linux or Windows) or ROS-1 (Linux only)
 
@@ -205,7 +206,7 @@ template <typename T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::str
 template <typename T> void rosPublish(rosPublisher<T>& publisher, const T& msg) { publisher.publish(msg); }
 template <typename T> std::string rosTopicName(rosPublisher<T>& publisher) { return publisher.getTopic(); }
 
-inline bool rosOk(void) { return ros::ok(); }
+inline bool rosOk(void) { return ros::ok() && !shutdownSignalReceived(); }
 inline void rosSpin(rosNodePtr nh) { ros::spin(); }
 inline void rosSpinOnce(rosNodePtr nh) { ros::spinOnce(); }
 inline void rosShutdown(void) { ros::shutdown(); }
@@ -406,7 +407,7 @@ template <class T> rosPublisher<T> rosAdvertise(rosNodePtr nh, const std::string
 template <typename T> void rosPublish(rosPublisher<T>& publisher, const T& msg) { publisher->publish(msg); }
 template <typename T> std::string rosTopicName(rosPublisher<T>& publisher) { return publisher->get_topic_name(); }
 
-inline bool rosOk(void) { return rclcpp::ok(); }
+inline bool rosOk(void) { return rclcpp::ok() && !shutdownSignalReceived(); }
 inline void rosSpin(rosNodePtr nh) { rclcpp::spin(nh); }
 inline void rosSpinOnce(rosNodePtr nh) { rclcpp::spin_some(nh); }
 inline void rosShutdown(void) { rclcpp::shutdown(); }

@@ -15,7 +15,7 @@ sleep 1
 ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_emulator_cfg_nav350.rviz &
 sleep 1
 
-# Start sick_scan driver for rms
+# Start sick_scan driver for nav350
 echo -e "Launching sick_scan sick_nav_350.launch\n"
 ros2 launch sick_scan sick_nav_350.launch.py hostname:=127.0.0.1 &
 sleep 1

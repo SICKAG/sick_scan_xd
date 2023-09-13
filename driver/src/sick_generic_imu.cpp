@@ -300,10 +300,7 @@ namespace sick_scan
   {
     int exitCode = ExitSuccess;
     bool dumpData = false;
-    int verboseLevel = 0;
 
-    // !!!!!
-    // verboseLevel = 1;
     int HEADER_FIELDS = 32;
     char *cur_field;
     size_t count;
@@ -316,12 +313,6 @@ namespace sick_scan
     std::vector<char> datagram_copy_vec;
     datagram_copy_vec.resize(datagram_length + 1); // to avoid using malloc. destructor frees allocated mem.
     char *datagram_copy = &(datagram_copy_vec[0]);
-
-    if (verboseLevel > 0)
-    {
-      ROS_WARN("Verbose LEVEL activated. Only for DEBUG.");
-    }
-
 
     strncpy(datagram_copy, datagram, datagram_length); // datagram will be changed by strtok
     datagram_copy[datagram_length] = 0;

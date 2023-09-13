@@ -360,6 +360,8 @@ namespace sick_scan
 
     void messageCbNavOdomVelocity(const sick_scan_msg::NAVOdomVelocity& msg);
 
+    static bool dumpDatagramForDebugging(unsigned char *buffer, int bufLen, bool isBinary = true);
+
     //////
     // Dynamic Reconfigure
     SickScanConfig config_;
@@ -428,8 +430,6 @@ namespace sick_scan
     \return true, if this driver supports the scanner identified by the identification string
     */
     bool isCompatibleDevice(const std::string identStr) const;
-
-    bool dumpDatagramForDebugging(unsigned char *buffer, int bufLen);
 
 #ifdef USE_DIAGNOSTIC_UPDATER
     std::shared_ptr<diagnostic_updater::Updater> diagnostics_;

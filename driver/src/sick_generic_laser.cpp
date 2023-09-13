@@ -100,6 +100,7 @@
 static bool isInitialized = false;
 static sick_scan::SickScanCommonTcp *s_scanner = NULL;
 static std::string versionInfo = std::string(SICK_GENERIC_MAJOR_VER) + '.' + std::string(SICK_GENERIC_MINOR_VER) + '.' + std::string(SICK_GENERIC_PATCH_LEVEL);
+static bool s_shutdownSignalReceived = false;
 
 void setVersionInfo(std::string _versionInfo)
 {
@@ -190,12 +191,18 @@ bool stopScannerAndExit(bool force_immediate_shutdown)
   return success;
 }
 
+bool shutdownSignalReceived()
+{
+ return s_shutdownSignalReceived;
+}
+
 void rosSignalHandler(int signalRecv)
 {
   ROS_INFO_STREAM("Caught signal " << signalRecv << "\n");
   ROS_INFO_STREAM("good bye\n");
   ROS_INFO_STREAM("You are leaving the following version of this node:\n");
   ROS_INFO_STREAM(getVersionInfo() << "\n");
+  s_shutdownSignalReceived = true;
   stopScannerAndExit(true);
   rosShutdown();
 }
@@ -389,10 +396,6 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   int device_number = 0;
   rosDeclareParam(nhPriv, "device_number", device_number);
   rosGetParam(nhPriv, "device_number", device_number);
-
-  int verboseLevel = 0;
-  rosDeclareParam(nhPriv, "verboseLevel", verboseLevel);
-  rosGetParam(nhPriv, "verboseLevel", verboseLevel);
 
   std::string frame_id = "cloud";
   rosDeclareParam(nhPriv, "frame_id", frame_id);

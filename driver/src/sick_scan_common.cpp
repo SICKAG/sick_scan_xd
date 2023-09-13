@@ -4082,23 +4082,27 @@ namespace sick_scan
     return reply_str;
   }
 
-  bool sick_scan::SickScanCommon::dumpDatagramForDebugging(unsigned char *buffer, int bufLen)
+  bool sick_scan::SickScanCommon::dumpDatagramForDebugging(unsigned char *buffer, int bufLen, bool isBinary)
   {
+    static size_t max_dump_size = 64 * 1024 * 1024;
+    static size_t datasize_cnt = 0;
+    static int file_cnt = 0;
     bool ret = true;
-    static int cnt = 0;
     char szDumpFileName[511] = {0};
     char szDir[255] = {0};
-    if (cnt == 0)
+
+    if (datasize_cnt > max_dump_size)
     {
-      ROS_INFO("Attention: verboseLevel is set to 1. Datagrams are stored in the /tmp folder.");
+      ROS_WARN_STREAM("Attention: verboseLevel is set to 1 (debugging only). Total dump size of " << (max_dump_size / (1024 * 1024)) << " MByte in /tmp folder exceeded, data NOT dumped to file.");
+      return false;
     }
+    ROS_WARN("Attention: verboseLevel is set to 1 (debugging only). Datagrams are stored in the /tmp folder.");
 #ifdef _MSC_VER
     strcpy(szDir, "C:\\temp\\");
 #else
     strcpy(szDir, "/tmp/");
 #endif
-    sprintf(szDumpFileName, "%ssick_datagram_%06d.bin", szDir, cnt);
-    bool isBinary = this->parser_->getCurrentParamPtr()->getUseBinaryProtocol();
+    sprintf(szDumpFileName, "%ssick_datagram_%06d.bin", szDir, file_cnt);
     if (isBinary)
     {
       FILE *ftmp;
@@ -4109,7 +4113,8 @@ namespace sick_scan
         fclose(ftmp);
       }
     }
-    cnt++;
+    file_cnt++;
+    datasize_cnt += bufLen;
 
     return (true);
 
@@ -4242,7 +4247,7 @@ namespace sick_scan
 
     static bool firstTimeCalled = true;
     static bool dumpData = false;
-    static int verboseLevel = 0;
+    static int verboseLevel = 0; // for low level debugging only
     static bool slamBundle = false;
     float timeIncrement;
     static std::string echoForSlam = "";
@@ -4255,9 +4260,6 @@ namespace sick_scan
 
         rosDeclareParam(nh, "slam_bundle", slamBundle);
         rosGetParam(nh, "slam_bundle", slamBundle);
-
-        rosDeclareParam(nh, "verboseLevel", verboseLevel);
-        rosGetParam(nh, "verboseLevel", verboseLevel);
 
       firstTimeCalled = false;
     }
@@ -4303,7 +4305,7 @@ namespace sick_scan
 
       if (verboseLevel > 0)
       {
-        dumpDatagramForDebugging(receiveBuffer, actual_length);
+        dumpDatagramForDebugging(receiveBuffer, actual_length, this->parser_->getCurrentParamPtr()->getUseBinaryProtocol());
       }
 
 
@@ -4512,8 +4514,11 @@ namespace sick_scan
                 {
                   success = false;
                   // warn about unexpected message and ignore all non-scandata messages
-                  ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): " << actual_length << " byte message ignored ("
-                    << DataDumper::binDataToAsciiString(&receiveBuffer[0], SICK_MIN(actual_length, 64)) << (actual_length>64?"...":"") << ")");
+                  if (rosOk())
+                    ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): " << actual_length << " byte message ignored ("
+                      << DataDumper::binDataToAsciiString(&receiveBuffer[0], SICK_MIN(actual_length, 64)) << (actual_length>64?"...":"") << ")");
+                  else
+                    ROS_INFO_STREAM("SickScanCommon::loopOnce(): " << actual_length << " byte message ignored");
                 }
                 else
                 {
@@ -4817,8 +4822,11 @@ namespace sick_scan
             }
             else // i.e. (numEchos <= 0)
             {
-              ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): no echos in measurement message (numEchos=" << numEchos
-                << ", msg.ranges.size()=" << msg.ranges.size() << ", msg.intensities.size()=" << msg.intensities.size() << ")");
+              if (rosOk())
+                ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): no echos in measurement message (numEchos=" << numEchos
+                  << ", msg.ranges.size()=" << msg.ranges.size() << ", msg.intensities.size()=" << msg.intensities.size() << ")");
+              else
+                ROS_INFO_STREAM("SickScanCommon::loopOnce(): no echos in measurement message");
             }
 
             if (publishPointCloud == true && numValidEchos > 0 && msg.ranges.size() > 0)
@@ -5070,7 +5078,6 @@ namespace sick_scan
                   notifyPolarPointcloudListener(nh, &cloud_msg_polar);
                   notifyCartesianPointcloudListener(nh, &cloud_msg);
                   rosPublish(cloud_pub_, cloud_);
-
                 }
                 else if (config_.cloud_output_mode == 2)
                 {

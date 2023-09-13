@@ -632,27 +632,7 @@ namespace sick_scan
 
     if (verboseLevel > 0)
     {
-      ROS_WARN("Verbose LEVEL activated. Only for DEBUG.");
-    }
-
-    if (verboseLevel > 0)
-    {
-      static int cnt = 0;
-      char szDumpFileName[2*255] = {0};
-      char szDir[255] = {0};
-#ifdef _MSC_VER
-      strcpy(szDir, "C:\\temp\\");
-#else
-      strcpy(szDir, "/tmp/");
-#endif
-      sprintf(szDumpFileName, "%stmp%06d.bin", szDir, cnt);
-      FILE *ftmp;
-      ftmp = fopen(szDumpFileName, "wb");
-      if (ftmp != NULL)
-      {
-        fwrite(datagram, datagram_length, 1, ftmp);
-        fclose(ftmp);
-      }
+      sick_scan::SickScanCommon::dumpDatagramForDebugging((unsigned char *)datagram, datagram_length, useBinaryProtocol);
     }
 
     strncpy(datagram_copy, datagram, datagram_length); // datagram will be changed by strtok
@@ -680,28 +660,14 @@ namespace sick_scan
 
     if (verboseLevel > 0 && !useBinaryProtocol)
     {
-      static int cnt = 0;
-      char szDumpFileName[2*255] = {0};
-      char szDir[255] = {0};
-#ifdef _MSC_VER
-      strcpy(szDir, "C:\\temp\\");
-#else
-      strcpy(szDir, "/tmp/");
-#endif
-      sprintf(szDumpFileName, "%stmp%06d.txt", szDir, cnt);
-      ROS_WARN("Verbose LEVEL activated. Only for DEBUG.");
-      FILE *ftmp;
-      ftmp = fopen(szDumpFileName, "w");
-      if (ftmp != NULL)
+      std::vector<unsigned char> raw_fields;
+      for (int i = 0; i < count; i++)
       {
-        int i;
-        for (i = 0; i < count; i++)
-        {
-          fprintf(ftmp, "%3d: %s\n", i, fields[i].data);
-        }
-        fclose(ftmp);
+        for(int j = 0; j < fields[i].len; j++)
+          raw_fields.push_back(fields[i].data[j]);
+        raw_fields.push_back(' ');
       }
-      cnt++;
+      sick_scan::SickScanCommon::dumpDatagramForDebugging(raw_fields.data(), raw_fields.size(), useBinaryProtocol);
     }
 
 
