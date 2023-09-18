@@ -4291,7 +4291,7 @@ namespace sick_scan
       {
         return ExitSuccess;
       }
-      ROS_DEBUG_STREAM("SickScanCommon::loopOnce: received " << actual_length << " byte data " << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(32, actual_length)) << " ... ");
+      ROS_DEBUG_STREAM("SickScanCommon::loopOnce: received " << actual_length << " byte data " << DataDumper::binDataToAsciiString(&receiveBuffer[0], std::min<int>(32, actual_length)) << " ... ");
 
       if (publish_datagram_)
       {
@@ -4513,7 +4513,7 @@ namespace sick_scan
                   success = false;
                   // warn about unexpected message and ignore all non-scandata messages
                   ROS_WARN_STREAM("## WARNING in SickScanCommon::loopOnce(): " << actual_length << " byte message ignored ("
-                    << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(actual_length, 64)) << (actual_length>64?"...":"") << ")");
+                    << DataDumper::binDataToAsciiString(&receiveBuffer[0], std::min<int>(actual_length, 64)) << (actual_length>64?"...":"") << ")");
                 }
                 else
                 {
@@ -4774,7 +4774,7 @@ namespace sick_scan
                   // If msg.intensities[j] < min_intensity, then set msg.ranges[j] to inf according to https://github.com/SICKAG/sick_scan/issues/131
                   if(m_min_intensity > 0) // Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0)
                   {
-                    for (int j = 0, j_max = (int)MIN(msg.ranges.size(), msg.intensities.size()); j < j_max; j++)
+                    for (int j = 0, j_max = (int)std::min<size_t>(msg.ranges.size(), msg.intensities.size()); j < j_max; j++)
                     {
                       if(msg.intensities[j] < m_min_intensity)
                       {
@@ -4880,7 +4880,7 @@ namespace sick_scan
 
               size_t rangeNumAllEchos = rangeTmp.size(); // rangeTmp.size() := number of range values in all echos (max. 5 echos)
               size_t rangeNumAllEchosCloud = cloud_.height * cloud_.width; // number of points allocated in the point cloud
-              rangeNumAllEchos = MIN(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
+              rangeNumAllEchos = std::min<int>(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
               size_t rangeNum = rangeNumAllEchos / numValidEchos;
               // ROS_INFO_STREAM("numValidEchos=" << numValidEchos << ", numEchos=" << numEchos << ", cloud_.height * cloud_.width=" << cloud_.height * cloud_.width << ", rangeNum=" << rangeNum);
 
@@ -5008,7 +5008,7 @@ namespace sick_scan
                   }
                   angle += msg.angle_increment;
                 }
-                rangeNumPointcloudAllEchos = MAX(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
+                rangeNumPointcloudAllEchos = std::max<int>(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
 
                 // Publish
                 //static int cnt = 0;
@@ -6018,8 +6018,8 @@ namespace sick_scan
           if (arg_val > 0)
           {
             num_active_layers += 1;
-            first_active_layer = MIN(layer, first_active_layer);
-            last_active_layer = MAX(layer, last_active_layer);
+            first_active_layer = std::min<int>(layer, first_active_layer);
+            last_active_layer = std::max<int>(layer, last_active_layer);
           }
         }
       }

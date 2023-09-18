@@ -197,17 +197,17 @@ namespace sick_scansegment_xd
                 {
                     int azimuth_deg_first = 999, azimuth_deg_last = -999;
                     float elevation_deg = 0.001f * (segment_coverage_elevation_iter->first);
-                    elevation_deg_min = MIN(elevation_deg, elevation_deg_min);
-                    elevation_deg_max = MAX(elevation_deg, elevation_deg_max);
-                    all_segments_elevation_min_deg = MIN(elevation_deg, all_segments_elevation_min_deg);
-                    all_segments_elevation_max_deg = MAX(elevation_deg, all_segments_elevation_max_deg);
+                    elevation_deg_min = std::min<float>(elevation_deg, elevation_deg_min);
+                    elevation_deg_max = std::max<float>(elevation_deg, elevation_deg_max);
+                    all_segments_elevation_min_deg = std::min<float>(elevation_deg, all_segments_elevation_min_deg);
+                    all_segments_elevation_max_deg = std::max<float>(elevation_deg, all_segments_elevation_max_deg);
                     std::map<int, int>& azimuth_histogram = segment_coverage_elevation_iter->second;
                     for (std::map<int, int>::iterator segment_coverage_azimuth_iter = azimuth_histogram.begin(); segment_coverage_azimuth_iter != azimuth_histogram.end(); segment_coverage_azimuth_iter++)
                     {
                         const int& azimuth_deg = segment_coverage_azimuth_iter->first;
                         int azimuth_cnt = segment_coverage_azimuth_iter->second;
                         if (azimuth_cnt > 0)
-                            azimuth_deg_first = MIN(azimuth_deg_first, azimuth_deg);
+                            azimuth_deg_first = std::min<int>(azimuth_deg_first, azimuth_deg);
                     }
                     for(azimuth_deg_last = azimuth_deg_first; azimuth_deg_last <= azimuth_deg_first + 360; azimuth_deg_last++)
                     {

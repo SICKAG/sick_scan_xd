@@ -142,7 +142,7 @@ void sick_scan::SickScanMarker::updateMarker(sick_scan_msg::LIDoutputstateMsg& m
         m_scan_mon_fieldset = fieldMon->getActiveFieldset();
         ROS_DEBUG_STREAM("SickScanMarker: active_fieldset = " << fieldMon->getActiveFieldset());
     }
-    int num_devices = (int)MIN(msg.output_count.size(), msg.output_state.size());
+    int num_devices = (int)std::min<size_t>(msg.output_count.size(), msg.output_state.size());
     std::vector<std::string> output_state(num_devices);
     std::vector<std::string> output_count(num_devices);
     std::vector<ros_std_msgs::ColorRGBA> output_colors(num_devices);
@@ -278,9 +278,9 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
         const sick_scan::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
         SickScanMonFieldType field_typ = mon_field.fieldType();
         if(field_typ == MON_FIELD_DYNAMIC) // dynamic fields have two rectangle (first rectangle for v = max, second rectangle for v = 0)
-            nr_triangles += 2 * MAX(0, mon_field.getPointCount()/2 - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
+            nr_triangles += 2 * std::max<int>(0, mon_field.getPointCount()/2 - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
         else
-            nr_triangles += MAX(0, mon_field.getPointCount() - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
+            nr_triangles += std::max<int>(0, mon_field.getPointCount() - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
         // std::map<SickScanMonFieldType,std::string> field_type_str = { {MON_FIELD_RADIAL, "MON_FIELD_RADIAL"}, {MON_FIELD_RECTANGLE, "MON_FIELD_RECTANGLE"}, {MON_FIELD_SEGMENTED, "MON_FIELD_SEGMENTED"}, {MON_FIELD_DYNAMIC, "MON_FIELD_DYNAMIC"} };
         // ROS_INFO_STREAM("sick_scan::SickScanMarker::createMonFieldMarker(): field[" << field_info_idx << "]: type=" << field_type_str[field_typ] << ", " << (mon_field.getPointCount()) << " points");
     }

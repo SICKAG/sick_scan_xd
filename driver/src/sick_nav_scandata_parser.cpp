@@ -585,7 +585,7 @@ namespace sick_scan
       uint32_t nav_timestampStart = 0; // timestamp of scan start in ms
 
       // Parse "sAN mNPOSGetData "
-      ROS_DEBUG_STREAM("NAV350: " << receiveBufferLength << " bytes received: " << DataDumper::binDataToAsciiString(&receiveBuffer[0], MIN(64, receiveBufferLength)));
+      ROS_DEBUG_STREAM("NAV350: " << receiveBufferLength << " bytes received: " << DataDumper::binDataToAsciiString(&receiveBuffer[0], std::min<int>(64, receiveBufferLength)));
       if (!parseNAV350BinaryPositionData(receiveBuffer, receiveBufferLength, navdata))
       {
         ROS_ERROR_STREAM("## ERROR parseNAV350BinaryPositionData(): parsing error");

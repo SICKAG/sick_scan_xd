@@ -93,8 +93,8 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 			{
 				float all_segments_azimuth_min_deg = std::stof(parameter_token[1]);
 				float all_segments_azimuth_max_deg = std::stof(parameter_token[2]);
-				m_all_segments_azimuth_min_deg = MAX(m_all_segments_azimuth_min_deg, all_segments_azimuth_min_deg);
-				m_all_segments_azimuth_max_deg = MIN(m_all_segments_azimuth_max_deg, all_segments_azimuth_max_deg);
+				m_all_segments_azimuth_min_deg = std::max<float>(m_all_segments_azimuth_min_deg, all_segments_azimuth_min_deg);
+				m_all_segments_azimuth_max_deg = std::min<float>(m_all_segments_azimuth_max_deg, all_segments_azimuth_max_deg);
 			}
 		}
 		catch(const std::exception& e)

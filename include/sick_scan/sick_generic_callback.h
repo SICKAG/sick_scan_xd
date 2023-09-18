@@ -230,7 +230,7 @@ namespace sick_scan
 
         bool waitForNextMessage(MsgType& msg, double timeout_sec)
         {
-            uint64_t timeout_microsec = MAX((uint64_t)(1), (uint64_t)(timeout_sec * 1.0e6));
+            uint64_t timeout_microsec = std::max<uint64_t>((uint64_t)(1), (uint64_t)(timeout_sec * 1.0e6));
             std::chrono::system_clock::time_point wait_end_time = std::chrono::system_clock::now() + std::chrono::microseconds(timeout_microsec);
             std::unique_lock<std::mutex> lock(m_message_mutex);
             m_message_valid = false;
