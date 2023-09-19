@@ -47,26 +47,26 @@ Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd/pic
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DSCANSEGMENT_XD=0 -Wno-dev
    ```
 
-cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build **without LDMRS** and **without scansegment_xd support**:
+cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build **without LDMRS** and **without multiScan100/picoScan100 support**:
    ```
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0 -DSCANSEGMENT_XD=0 -Wno-dev
    ```
 
 ### Summary for the different build options:
 
-* **Without LDMRS-support** and **without Multiscan136 support**
+* **Without LDMRS-support** and **without multiScan100/picoScan100 support**
 ```
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0 -DSCANSEGMENT_XD=0 -Wno-dev
 ```
-* **Without LDMRS-support** and **with Multiscan136 support**
+* **Without LDMRS-support** and **with multiScan100/picoScan100 support**
 ```
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0 -Wno-dev
 ```
-* **with LDMRS-support** and **without Multiscan136 support**
+* **with LDMRS-support** and **without multiScan100/picoScan100 support**
 ```
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DSCANSEGMENT_XD=0 -Wno-dev
 ```
-* **with LDMRS-support** and **with Multiscan136 support**
+* **with LDMRS-support** and **with multiScan100/picoScan100 support**
 ```
    catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -Wno-dev
 ```

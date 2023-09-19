@@ -338,7 +338,7 @@ Note:
    * send `sMN LMCstartmeas` and `sMN Run` to switch again into measurement mode within the timeout, or
    * increase the driver timeout `read_timeout_millisec_default` in the launch-file.
 
-Additional services can be available for specific lidars. Service "GetContaminationResult" is e.g. available for MRS-1xxx, LMS-1xxx, Multiscan and Picoscan:
+Additional services can be available for specific lidars. Service "GetContaminationResult" is e.g. available for MRS-1xxx, LMS-1xxx and multiScan:
 ```
 # ROS-1 example for service GetContaminationResult (LMS 1xxx)
 rosservice call /sick_lms_1xxx/GetContaminationResult "{}"

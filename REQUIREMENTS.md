@@ -25,7 +25,8 @@ This driver works with all of the following products.
 | NAV210+NAV245       | [e.g. 1074308](https://www.sick.com/de/de/mess-und-detektionsloesungen/2d-lidar-sensoren/nav2xx/c/g356151)                         |
 | RMS1000             | [1107598](https://www.sick.com/de/en/detection-and-ranging-solutions/radar-sensors/rms1000/rms1731c-636111/p/p660833)              |
 | RMS2000             | BETA                                                                                                                               |
-| multiScan100        | BETA                                                                                                                               |
+| multiScan100        | [e.g. 1131164](https://www.sick.com/1131164)                                                                                       |
+| picoScan100         | [e.g. 1134610](https://www.sick.com/1134610)                                                                                       |
 
 Note:
 * LDMRS family is currently not supported on Windows.

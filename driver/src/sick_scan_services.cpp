@@ -84,10 +84,9 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
       }
       if(lidar_param->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0
       || lidar_param->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0
-      || lidar_param->getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0
-      || lidar_param->getScannerName().compare(SICK_SCANNER_PICOSCAN_NAME) == 0)
+      || lidar_param->getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0)
       {
-        srvSupportGetContaminationResult = true; // "sRN GetContaminationResult" supported by MRS-1000, LMS-1000, multiScan, picoScan
+        srvSupportGetContaminationResult = true; // "sRN ContaminationResult" supported by MRS-1000, LMS-1000, multiScan
       }
     }
     if(nh)
@@ -281,13 +280,13 @@ bool sick_scan::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRChange
 */
 bool sick_scan::SickScanServices::serviceCbGetContaminationResult(sick_scan_srv::GetContaminationResultSrv::Request &service_request, sick_scan_srv::GetContaminationResultSrv::Response &service_response)
 {
-  std::string sopasCmd = std::string("sRN GetContaminationResult");
+  std::string sopasCmd = std::string("sRN ContaminationResult");
   std::vector<unsigned char> sopasReplyBin;
   std::string sopasReplyString;
 
   service_response.success = false;
-  service_response.warning = 0; // false
-  service_response.error = 0; // false
+  service_response.warning = 0;
+  service_response.error = 0;
   if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
@@ -296,8 +295,8 @@ bool sick_scan::SickScanServices::serviceCbGetContaminationResult(sick_scan_srv:
   service_response.success = true;
 
   std::string response_str((char*)sopasReplyBin.data(), sopasReplyBin.size());
-  std::size_t state_pos = response_str.find("GetContaminationResult");
-  int result_idx = 23;
+  std::size_t state_pos = response_str.find("ContaminationResult");
+  int result_idx = 20;
   if (state_pos != std::string::npos && state_pos + result_idx < sopasReplyBin.size())
   {
     uint8_t result_byte = sopasReplyBin[state_pos + result_idx];
@@ -314,7 +313,8 @@ bool sick_scan::SickScanServices::serviceCbGetContaminationResult(sick_scan_srv:
     }
   }
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
-  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\""
+    << " (response.success=" << (int)(service_response.success) << ", response.warning=" << (int)(service_response.warning) << ", response.error=" << (int)(service_response.error) << ")");
 
   return true;
 }

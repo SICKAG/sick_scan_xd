@@ -11,6 +11,8 @@
     <arg name="publish_frame_id" default="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="scandataformat" default="2"/>                              <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
+    <arg name="all_segments_min_deg" default="-138.0" />      <!-- angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published,  -->
+    <arg name="all_segments_max_deg" default="+138.0" />      <!-- if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan), -138...+138 for picoScan (fullscan) -->
     <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_picoscan"/>
 
@@ -24,8 +26,8 @@
         <param name="udp_port" type="int" value="2115" />                                   <!-- default udp port for picoScan150 resp. picoScan150 emulator is 2115 -->
         <param name="publish_topic" type="string" value="$(arg publish_topic)" />           <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
         <param name="publish_topic_all_segments" type="string" value="$(arg publish_topic_all_segments)" />  <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe" -->
-        <param name="all_segments_min_deg" type="double" value="-134.0" />                  <!-- angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published,  -->
-        <param name="all_segments_max_deg" type="double" value="+135.0" />                  <!-- if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan), -134...+135 for TiMTwo (270 deg fullscan) -->
+        <param name="all_segments_min_deg" type="double" value="$(arg all_segments_min_deg)" />              <!-- angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published,  -->
+        <param name="all_segments_max_deg" type="double" value="$(arg all_segments_max_deg)" />              <!-- if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan), -138...+138 for picoScan (fullscan) -->
         <param name="publish_frame_id" type="string" value="$(arg publish_frame_id)" />     <!-- frame id of ros PointCloud2 messages, default: "world" -->
         <param name="udp_input_fifolength" type="int" value="20" />                         <!-- max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
         <param name="msgpack_output_fifolength" type="int" value="20" />                    <!-- max. msgpack output fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
@@ -51,7 +53,7 @@
         <!-- Note: Range filter applies only to Pointcloud messages, not to LaserScan messages.                     -->
         <!-- Using range_filter_handling 4 or 5 requires handling of FLT_MAX and NAN values in an application.      -->
         <param name="range_min" type="double" value="0.0"/>
-        <param name="range_max" type="double" value="100.0"/>
+        <param name="range_max" type="double" value="120.0"/>
         <param name="range_filter_handling" type="int" value="0"/>
         
         <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
@@ -81,8 +83,8 @@
         <param name="msgpack_validator_discard_msgpacks_out_of_bounds" type="bool" value="True" />            <!-- true: msgpacks are discarded if scan data out of bounds detected, false: error message if a msgpack is not validated -->
         <param name="msgpack_validator_check_missing_scandata_interval" type="int" value="9" />               <!-- check msgpack for missing scandata after collecting N msgpacks, default: N = 9 segments. Increase this value to tolerate udp packet drops. Use 9 to check each full scan. -->
         <param name="msgpack_validator_required_echos" type="string" value="0 1 2" />                         <!-- default: "0 1 2" for all echos (FREchoFilter=1) or "0" for one echo (FREchoFilter=0) -->
-        <param name="msgpack_validator_azimuth_start" type="double" value="-135.0" />                         <!-- picoScan150: 270 deg fullscan, -135 to +135 deg -->
-        <param name="msgpack_validator_azimuth_end" type="double" value="+135.0" />                           <!-- picoScan150: 270 deg fullscan, -135 to +135 deg -->
+        <param name="msgpack_validator_azimuth_start" type="double" value="-138.0" />                         <!-- picoScan150: fullscan, -138 to +138 deg -->
+        <param name="msgpack_validator_azimuth_end" type="double" value="+138.0" />                           <!-- picoScan150: fullscan, -138 to +138 deg -->
         <param name="msgpack_validator_elevation_start" type="double" value="0.0" />                          <!-- picoScan150: 1 layer -->
         <param name="msgpack_validator_elevation_end" type="double" value="0.0" />                            <!-- picoScan150: 1 layer -->
         <param name="msgpack_validator_valid_segments" type="string" value="0 1 2 3 4 5 6 7 8" />             <!-- indices of valid segmentes, default for full scan: 9 segments -->

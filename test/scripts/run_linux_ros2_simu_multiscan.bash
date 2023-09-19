@@ -23,7 +23,7 @@ function call_service_examples()
   sleep 0.1 ; ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sWN ScanDataEnable 1'}"                          # response: "sWA ScanDataEnable"
   sleep 0.1 ; ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN LMCstartmeas'}"                              # response: "sAN LMCstartmeas"
   sleep 0.1 ; ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN Run'}"                                       # response: "sAN Run 1"
-  sleep 0.1 ; ros2 service call /GetContaminationResult sick_scan/srv/GetContaminationResultSrv "{}"                           # response: "sRA GetContaminationResult 0 0"
+  sleep 0.1 ; ros2 service call /GetContaminationResult sick_scan/srv/GetContaminationResultSrv "{}"                           # response: "sRA ContaminationResult 0 0"
 }  
 
 # Run example ros service calls for filter settings

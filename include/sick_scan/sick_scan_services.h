@@ -112,7 +112,7 @@ namespace sick_scan
 
     /*!
      * Callback for service messages (GetContaminationResult, Read contamination indication result).
-     * Sends a cola telegram "sRN GetContaminationResult" and receives the response from the lidar device.
+     * Sends a cola telegram "sRN ContaminationResult" and receives the response from the lidar device.
      * @param[in] service_request ros service request to lidar
      * @param[out] service_response service response from lidar
      * @return true on success, false in case of errors.
