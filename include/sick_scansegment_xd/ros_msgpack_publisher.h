@@ -136,23 +136,23 @@ namespace sick_scansegment_xd
 
         typedef std::map<int,std::map<int,ros_sensor_msgs::LaserScan>> LaserScanMsgMap; // LaserScanMsgMap[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
       
-        /*
-        * Container to collect all points of 12 segments (12 segments * 30 deg = 360 deg)
-        */
-        class SegmentPointsCollector
-        {
-        public:
-            SegmentPointsCollector(int telegram_idx = 0) : timestamp_sec(0), timestamp_nsec(0), telegram_cnt(telegram_idx), min_azimuth(0), max_azimuth(0), total_point_count(0), lidar_points()
-            {
-                segment_list.reserve(12);
-                telegram_list.reserve(12);
-            segment_coverage.clear();
-            }
-            void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
-            {
-                for (int echoIdx = 0; echoIdx < points.size() && echoIdx < lidar_points.size(); echoIdx++)
+         /*
+          * Container to collect all points of 12 segments (12 segments * 30 deg = 360 deg)
+          */
+         class SegmentPointsCollector
+         {
+         public:
+             SegmentPointsCollector(int telegram_idx = 0) : timestamp_sec(0), timestamp_nsec(0), telegram_cnt(telegram_idx), min_azimuth(0), max_azimuth(0), total_point_count(0), lidar_points()
+             {
+                 segment_list.reserve(12);
+                 telegram_list.reserve(12);
+                segment_coverage.clear();
+             }
+             void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
+             {
+                 for (int echoIdx = 0; echoIdx < points.size() && echoIdx < lidar_points.size(); echoIdx++)
                 {
-                    lidar_points[echoIdx].insert(lidar_points[echoIdx].end(), points[echoIdx].begin(), points[echoIdx].end());
+                     lidar_points[echoIdx].insert(lidar_points[echoIdx].end(), points[echoIdx].begin(), points[echoIdx].end());
                     for (int n = 0; n < points[echoIdx].size(); n++)
                     {
                         const sick_scansegment_xd::PointXYZRAEI32f& point = points[echoIdx][n];
@@ -167,8 +167,8 @@ namespace sick_scansegment_xd
                             segment_coverage[elevation_mdeg][azimuth_ideg - 1] += 1;
                     }
                 }
-                segment_list.push_back(segment_idx);
-                telegram_list.push_back(telegram_cnt);
+                 segment_list.push_back(segment_idx);
+                 telegram_list.push_back(telegram_cnt);
                 // for (std::map<int, std::map<int, int>>::iterator segment_coverage_elevation_iter = segment_coverage.begin(); segment_coverage_elevation_iter != segment_coverage.end(); segment_coverage_elevation_iter++)
                 // {
                 //     const int& elevation_deg = segment_coverage_elevation_iter->first;
@@ -181,11 +181,10 @@ namespace sick_scansegment_xd
                 //     }
                 //     std::cout << std::endl;
                 // }
-                }
-            
-            // Returns the last segment index appended by appendLidarPoints
-            int32_t lastSegmentIdx()
-            {
+             }
+             // Returns the last segment index appended by appendLidarPoints
+             int32_t lastSegmentIdx()
+             {
                 return segment_list.empty() ? -1 : segment_list.back();
              }
              // Returns true, if all scans in all elevation angles cover azimuth from all_segments_azimuth_min_deg to all_segments_azimuth_max_deg
@@ -198,17 +197,17 @@ namespace sick_scansegment_xd
                 {
                     int azimuth_deg_first = 999, azimuth_deg_last = -999;
                     float elevation_deg = 0.001f * (segment_coverage_elevation_iter->first);
-                    elevation_deg_min = SICK_MIN(elevation_deg, elevation_deg_min);
-                    elevation_deg_max = SICK_MAX(elevation_deg, elevation_deg_max);
-                    all_segments_elevation_min_deg = SICK_MIN(elevation_deg, all_segments_elevation_min_deg);
-                    all_segments_elevation_max_deg = SICK_MAX(elevation_deg, all_segments_elevation_max_deg);
+                    elevation_deg_min = std::min<float>(elevation_deg, elevation_deg_min);
+                    elevation_deg_max = std::max<float>(elevation_deg, elevation_deg_max);
+                    all_segments_elevation_min_deg = std::min<float>(elevation_deg, all_segments_elevation_min_deg);
+                    all_segments_elevation_max_deg = std::max<float>(elevation_deg, all_segments_elevation_max_deg);
                     std::map<int, int>& azimuth_histogram = segment_coverage_elevation_iter->second;
                     for (std::map<int, int>::iterator segment_coverage_azimuth_iter = azimuth_histogram.begin(); segment_coverage_azimuth_iter != azimuth_histogram.end(); segment_coverage_azimuth_iter++)
                     {
                         const int& azimuth_deg = segment_coverage_azimuth_iter->first;
                         int azimuth_cnt = segment_coverage_azimuth_iter->second;
                         if (azimuth_cnt > 0)
-                            azimuth_deg_first = SICK_MIN(azimuth_deg_first, azimuth_deg);
+                            azimuth_deg_first = std::min<int>(azimuth_deg_first, azimuth_deg);
                     }
                     for(azimuth_deg_last = azimuth_deg_first; azimuth_deg_last <= azimuth_deg_first + 360; azimuth_deg_last++)
                     {
@@ -232,39 +231,36 @@ namespace sick_scansegment_xd
                 return true; // all scans in all elevation angles cover azimuth from all_segments_azimuth_min_deg to all_segments_azimuth_max_deg
              }
 
-            // Returns the number of echos
-            int numEchos(void) const { return (int)lidar_points.size(); }
-
-            uint32_t timestamp_sec;   // seconds part of timestamp of the first segment
-            uint32_t timestamp_nsec;  // nanoseconds part of timestamp of the first segment
-            // int32_t segment_count; // number of segments collected
-            int32_t telegram_cnt;     // telegram counter (must be continuously incremented) 
-            float min_azimuth;        // min azimuth of all points in radians
-            float max_azimuth;        // max azimuth of all points in radians
-            size_t total_point_count; // total number of points in all segments
-            std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>> lidar_points; // list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of all segments of an echo (idx echoIdx)
-            std::vector<int32_t> segment_list; // list of all collected segment indices
-            std::vector<int32_t> telegram_list; // list of all collected telegram counters
-            std::map<int, std::map<int, int>> segment_coverage; // segment histogram: segment_coverage[elevation][azimuth] > 0: elevation in mdeg and azimuth in deg covered (otherwise no hits)
-        };
-
-        /*
-        * Converts the lidarpoints from a msgpack to a PointCloud2Msg and to LaserScan messages for each layer.
-        * Note: For performance reasons, LaserScan messages are not created for the collected 360-degree scans (i.e. is_cloud_360 is true).
-        * @param[in] timestamp_sec seconds part of timestamp
-        * @param[in] timestamp_nsec  nanoseconds part of timestamp
-        * @param[in] last_timestamp_sec seconds part of last timestamp
-        * @param[in] last_timestamp_nsec  nanoseconds part of last timestamp
-        * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
-        * @param[in] total_point_count total number of points in all echos
-        * @param[in] echo_count number of echos
-        * @param[out] pointcloud_msg cartesian pointcloud message
-        * @param[out] pointcloud_msg_polar polar pointcloud message
-        * @param[out] laser_scan_msg_map laserscan message: ros_sensor_msgs::LaserScan for each echo and layer is laser_scan_msg_map[echo][layer]
-        */
-        void convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count, 
-        PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, LaserScanMsgMap& laser_scan_msg_map, bool is_cloud_360);
-    
+             uint32_t timestamp_sec;   // seconds part of timestamp of the first segment
+             uint32_t timestamp_nsec;  // nanoseconds part of timestamp of the first segment
+             // int32_t segment_count; // number of segments collected
+             int32_t telegram_cnt;     // telegram counter (must be continuously incremented) 
+             float min_azimuth;        // min azimuth of all points in radians
+             float max_azimuth;        // max azimuth of all points in radians
+             size_t total_point_count; // total number of points in all segments
+             std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>> lidar_points; // list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of all segments of an echo (idx echoIdx)
+             std::vector<int32_t> segment_list; // list of all collected segment indices
+             std::vector<int32_t> telegram_list; // list of all collected telegram counters
+             std::map<int, std::map<int, int>> segment_coverage; // segment histogram: segment_coverage[elevation][azimuth] > 0: elevation in mdeg and azimuth in deg covered (otherwise no hits)
+         };
+  
+         /*
+          * Converts the lidarpoints from a msgpack to a PointCloud2Msg and to LaserScan messages for each layer.
+          * Note: For performance reasons, LaserScan messages are not created for the collected 360-degree scans (i.e. is_cloud_360 is true).
+          * @param[in] timestamp_sec seconds part of timestamp
+          * @param[in] timestamp_nsec  nanoseconds part of timestamp
+          * @param[in] last_timestamp_sec seconds part of last timestamp
+          * @param[in] last_timestamp_nsec  nanoseconds part of last timestamp
+          * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
+          * @param[in] total_point_count total number of points in all echos
+          * @param[in] echo_count number of echos
+          * @param[out] pointcloud_msg cartesian pointcloud message
+          * @param[out] pointcloud_msg_polar polar pointcloud message
+          * @param[out] laser_scan_msg_map laserscan message: ros_sensor_msgs::LaserScan for each echo and layer is laser_scan_msg_map[echo][layer]
+          */
+         void convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count, 
+            PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, LaserScanMsgMap& laser_scan_msg_map, bool is_cloud_360);
+      
         /*
          * Shortcut to publish a PointCloud2Msg
          */
