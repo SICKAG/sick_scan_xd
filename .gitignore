@@ -131,3 +131,5 @@ tools/python_installer/python-3.9.13-amd64.exe
 test/scripts/run_win64_picoscan_emulator.cmd
 
 test/emulator/scandata/20230719_mrs1104_infringement/
+
+doc/20230919_sick_scan_xd_timeout_settings.pptx
