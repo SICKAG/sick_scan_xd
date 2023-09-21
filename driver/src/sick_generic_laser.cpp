@@ -532,13 +532,20 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   rosDeclareParam(nhPriv, "read_timeout_millisec_kill_node", read_timeout_millisec_kill_node);
   rosGetParam(nhPriv, "read_timeout_millisec_kill_node", read_timeout_millisec_kill_node);
   int message_monitoring_read_timeout_millisec = read_timeout_millisec_default;
-  int pointcloud_monitoring_timeout_millisec = read_timeout_millisec_kill_node;
   if(message_monitoring_enabled)
   {
     scan_msg_monitor = new sick_scan::SickScanMonitor(message_monitoring_read_timeout_millisec);
 #if __ROS_VERSION > 0 // point cloud monitoring in Linux-ROS
-    pointcloud_monitor = new sick_scan::PointCloudMonitor();
-    pointcloud_monitor->startPointCloudMonitoring(nhPriv, pointcloud_monitoring_timeout_millisec, cloud_topic);
+    if (read_timeout_millisec_kill_node > 0)
+    {
+      pointcloud_monitor = new sick_scan::PointCloudMonitor();
+      bool pointcloud_monitor_started = pointcloud_monitor->startPointCloudMonitoring(nhPriv, read_timeout_millisec_kill_node, cloud_topic);
+      ROS_INFO_STREAM("PointCloudMonitor" << (pointcloud_monitor_started?" ":" NOT ") << "started.");
+    }
+    else
+    {
+      ROS_INFO_STREAM("PointCloudMonitor deactivated due to configuration read_timeout_millisec_kill_node=" << read_timeout_millisec_kill_node <<", pointcloud will not be monitored for timeout errors.");
+    }
 #endif
   }
 

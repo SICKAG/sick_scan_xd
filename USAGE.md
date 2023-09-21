@@ -400,11 +400,14 @@ Details of timeout settings:
 
 * All timeouts configured in milliseconds
 
-* To disable timeouts:
+* To disable timeouts (not recommended):
    * Set message_monitoring_enabled = false, or
    * Set timeouts to "infinite" values, i.e MAX_INT = 2147483647 milliseconds (24.9 days)
 
-* Value 0 and negative values are currently mapped to other values, i.e. will cause an immediately restart by timeout error.
+* To disable pointcloud monitoring (not recommended):
+   * read_timeout_millisec_kill_node <= 0 deactivates pointcloud monitoring
+
+* Parameter read_timeout_millisec_default and read_timeout_millisec_startup: value 0 and negative values are currently NOT mapped to other values, i.e. will cause an immediately timeout error. Use value 2147483647 or message_monitoring_enabled = false to deactivate read timeouts (not recommended)
 
 
 ## Sopas Mode
