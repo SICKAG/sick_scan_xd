@@ -1,0 +1,19 @@
+# Definition of ROS service GetContaminationResult for sick_scan
+# Read contamination indication result
+# Example call (ROS1):
+# rosservice call /sick_mrs_1xxx/GetContaminationResult "{active: 1}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+uint8 warning # Result of contamination indication: warning is 0 (false) or 1 (true)
+uint8 error   # Result of contamination indication: error is 0 (false) or 1 (true)
+bool success  # true: success response received from lidar, false: service failed (timeout or error status from controller)

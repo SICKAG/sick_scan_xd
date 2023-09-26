@@ -214,6 +214,7 @@ if(ROS_VERSION EQUAL 1)
         FILES
         ColaMsgSrv.srv
         ECRChangeArrSrv.srv
+        GetContaminationResultSrv.srv
         LIDoutputstateSrv.srv
         SCdevicestateSrv.srv
         SCrebootSrv.srv
@@ -336,6 +337,7 @@ if(ROS_VERSION EQUAL 2)
         # service files
         "srv/ColaMsgSrv.srv"
         "srv/ECRChangeArrSrv.srv"
+        "srv/GetContaminationResultSrv.srv"
         "srv/LIDoutputstateSrv.srv"
         "srv/SCdevicestateSrv.srv"
         "srv/SCrebootSrv.srv"

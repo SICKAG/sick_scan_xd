@@ -23,6 +23,7 @@ function call_service_examples()
   sleep 0.1 ; rosservice call /multiScan/ColaMsg "{request: 'sWN ScanDataEnable 1'}"                          # response: "sWA ScanDataEnable"
   sleep 0.1 ; rosservice call /multiScan/ColaMsg "{request: 'sMN LMCstartmeas'}"                              # response: "sAN LMCstartmeas"
   sleep 0.1 ; rosservice call /multiScan/ColaMsg "{request: 'sMN Run'}"                                       # response: "sAN Run 1"
+  sleep 0.1 ; rosservice call /multiScan/GetContaminationResult "{}"                                          # response: "sRA GetContaminationResult 0 0"
 }  
 
 # Run example ros service calls for filter settings
@@ -90,8 +91,13 @@ sleep 1
 # By default, laserscan messages are only activated for layer 5 (elevation -0.07 degree, max number of scan points)
 # All laserscan messages are converted to pointcloud by mrs100_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
 # Note: Option laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" should not be used for performance tests.
+<<<<<<< HEAD
 echo -e "run_linux_ros1_simu_multiscan.bash: sick_scan_xd sick_multiscan.launch ..."
 roslaunch sick_scan_xd sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" scandataformat:=1 &
+=======
+echo -e "run_lidar3d.bash: sick_scan sick_multiscan.launch ..."
+roslaunch sick_scan sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=1 laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" &
+>>>>>>> contamination_result
 sleep 3 
 run_laserscan_frame_transformers
 # python3 ./src/sick_scan_xd/test/python/multiscan_laserscan_msg_to_pointcloud.py &

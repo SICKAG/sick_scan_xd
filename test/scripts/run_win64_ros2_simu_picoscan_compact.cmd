@@ -30,7 +30,11 @@ REM
 REM Start sick_scan_xd on ROS-2 Windows
 REM 
 
+<<<<<<< HEAD
 start "ros2 sick_scan_xd" ros2 launch sick_scan_xd sick_picoscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=2
+=======
+start "ros2 sick_scan" ros2 launch sick_scan sick_picoscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=2 all_segments_min_deg:=-134 all_segments_max_deg:=135
+>>>>>>> contamination_result
 @timeout /t 3
 
 REM 

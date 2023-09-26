@@ -71,6 +71,7 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
 {
     bool srvSupportColaMsg = true, srvSupportECRChangeArr = true, srvSupportLIDoutputstate = true, srvSupportSCdevicestate = true;
     bool srvSupportSCreboot = true, srvSupportSCsoftreset = true, srvSupportSickScanExit = true;
+    bool srvSupportGetContaminationResult = false;
     if(lidar_param)
     {
       m_cola_binary = lidar_param->getUseBinaryProtocol();
@@ -80,6 +81,12 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
         srvSupportLIDoutputstate = false;
         srvSupportSCreboot = false;
         srvSupportSCsoftreset = false;
+      }
+      if(lidar_param->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0
+      || lidar_param->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0
+      || lidar_param->getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0)
+      {
+        srvSupportGetContaminationResult = true; // "sRN ContaminationResult" supported by MRS-1000, LMS-1000, multiScan
       }
     }
     if(nh)
@@ -91,6 +98,7 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
       rosGetParam(nh, "client_authorization_pw", m_client_authorization_pw);
 
 #if __ROS_VERSION == 2
+<<<<<<< HEAD
 #define serviceCbColaMsgROS sick_scan_xd::SickScanServices::serviceCbColaMsgROS2
 #define serviceCbECRChangeArrROS sick_scan_xd::SickScanServices::serviceCbECRChangeArrROS2
 #define serviceCbLIDoutputstateROS sick_scan_xd::SickScanServices::serviceCbLIDoutputstateROS2
@@ -106,6 +114,25 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
 #define serviceCbSCrebootROS sick_scan_xd::SickScanServices::serviceCbSCreboot
 #define serviceCbSCsoftresetROS sick_scan_xd::SickScanServices::serviceCbSCsoftreset
 #define serviceCbSickScanExitROS sick_scan_xd::SickScanServices::serviceCbSickScanExit
+=======
+#define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsgROS2
+#define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArrROS2
+#define serviceCbGetContaminationResultROS sick_scan::SickScanServices::serviceCbGetContaminationResultROS2
+#define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstateROS2
+#define serviceCbSCdevicestateROS sick_scan::SickScanServices::serviceCbSCdevicestateROS2
+#define serviceCbSCrebootROS sick_scan::SickScanServices::serviceCbSCrebootROS2
+#define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftresetROS2
+#define serviceCbSickScanExitROS sick_scan::SickScanServices::serviceCbSickScanExitROS2
+#else
+#define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsg
+#define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArr
+#define serviceCbGetContaminationResultROS sick_scan::SickScanServices::serviceCbGetContaminationResult
+#define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstate
+#define serviceCbSCdevicestateROS sick_scan::SickScanServices::serviceCbSCdevicestate
+#define serviceCbSCrebootROS sick_scan::SickScanServices::serviceCbSCreboot
+#define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftreset
+#define serviceCbSickScanExitROS sick_scan::SickScanServices::serviceCbSickScanExit
+>>>>>>> contamination_result
 #endif
 #if __ROS_VERSION == 1
 #define printServiceCreated(a,b) ROS_INFO_STREAM("SickScanServices: service \"" << a.getService() << "\" created (\"" << b.getService() << "\")");
@@ -125,6 +152,12 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
           auto srv_server_ECRChangeArr = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ECRChangeArrSrv, "ECRChangeArr", &serviceCbECRChangeArrROS, this);
           m_srv_server_ECRChangeArr = rosServiceServer<sick_scan_srv::ECRChangeArrSrv>(srv_server_ECRChangeArr);
           printServiceCreated(srv_server_ECRChangeArr, m_srv_server_ECRChangeArr);
+        }
+        if(srvSupportGetContaminationResult)
+        {
+          auto srv_server_GetContaminationResult = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::GetContaminationResultSrv, "GetContaminationResult", &serviceCbGetContaminationResultROS, this);
+          m_srv_server_GetContaminationResult = rosServiceServer<sick_scan_srv::GetContaminationResultSrv>(srv_server_GetContaminationResult);
+          printServiceCreated(srv_server_GetContaminationResult, m_srv_server_GetContaminationResult);
         }
         if(srvSupportLIDoutputstate)
         {
@@ -256,6 +289,54 @@ bool sick_scan_xd::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRCha
 
   return true;
 }
+
+/*!
+* Callbacks for service messages.
+* @param[in] service_request ros service request to lidar
+* @param[out] service_response service response from lidar
+* @return true on success, false in case of errors.
+*/
+bool sick_scan::SickScanServices::serviceCbGetContaminationResult(sick_scan_srv::GetContaminationResultSrv::Request &service_request, sick_scan_srv::GetContaminationResultSrv::Response &service_response)
+{
+  std::string sopasCmd = std::string("sRN ContaminationResult");
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+
+  service_response.success = false;
+  service_response.warning = 0;
+  service_response.error = 0;
+  if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
+    return false;
+  }
+  service_response.success = true;
+
+  std::string response_str((char*)sopasReplyBin.data(), sopasReplyBin.size());
+  std::size_t state_pos = response_str.find("ContaminationResult");
+  int result_idx = 20;
+  if (state_pos != std::string::npos && state_pos + result_idx < sopasReplyBin.size())
+  {
+    uint8_t result_byte = sopasReplyBin[state_pos + result_idx];
+    result_byte = ((result_byte >= '0') ? (result_byte - '0') : (result_byte)); // convert to bin in case of ascii
+    service_response.warning = result_byte;
+    result_idx++;
+    if (result_idx < sopasReplyBin.size() && sopasReplyBin[state_pos + result_idx] == ' ') // jump over ascii separator
+      result_idx++;
+    if (result_idx < sopasReplyBin.size())
+    {
+      result_byte = sopasReplyBin[state_pos + result_idx];
+      result_byte = ((result_byte >= '0') ? (result_byte - '0') : (result_byte)); // convert to bin in case of ascii
+      service_response.error = result_byte;
+    }
+  }
+  ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\""
+    << " (response.success=" << (int)(service_response.success) << ", response.warning=" << (int)(service_response.warning) << ", response.error=" << (int)(service_response.error) << ")");
+
+  return true;
+}
+
 
 /*!
  * Callback for service messages (LIDoutputstate, Request status change of monitoring fields on event).

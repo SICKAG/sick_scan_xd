@@ -18,7 +18,11 @@ REM
 REM Start sick_generic_caller
 REM 
 
+<<<<<<< HEAD
 start "sick_generic_caller" cmd /k .\Debug\sick_generic_caller.exe ../launch/sick_picoscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=1
+=======
+start "sick_generic_caller" cmd /k .\Debug\sick_generic_caller.exe ../launch/sick_picoscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=1 all_segments_min_deg:=-134 all_segments_max_deg:=135
+>>>>>>> contamination_result
 @timeout /t 3
 
 REM 
