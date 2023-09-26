@@ -13,7 +13,7 @@
 
 <!-- You can launch a TIM_7xx-scanner on a specific ip address (e.g. 192.68.0.71) using the following example call:
 
-     roslaunch sick_scan sick_tim_7xx.launch hostname:=192.168.0.71
+     roslaunch sick_scan_xd sick_tim_7xx.launch hostname:=192.168.0.71
 
 -->
 <!-- Using node option required="true" will close roslaunch after node exits -->
@@ -28,7 +28,7 @@
     <arg name="skip" default="0"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
-    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_7xxS"/>
         <param name="nodename" type="string" value="$(arg nodename)"/>
         <param name="min_ang" type="double" value="-2.35619449"/> <!-- -135 deg -->

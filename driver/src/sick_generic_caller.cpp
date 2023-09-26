@@ -103,7 +103,7 @@ int main(int argc, char** argv)
     int argc_tmp;
     std::string scannerName = "sick_scan";
 
-    // sick_scan::SickScanImu::imuParserTest();
+    // sick_scan_xd::SickScanImu::imuParserTest();
 
     argc_tmp = argc;
     argv_tmp = argv;

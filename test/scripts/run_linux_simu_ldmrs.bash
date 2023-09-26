@@ -6,12 +6,11 @@
 
 pushd ../..
 
-
-pushd ./demo
-rm -f ./scan.jpg ./scan.csv
-firefox ./image_viewer.html &
-sleep 1
-popd
+# pushd ./demo
+# rm -f ./scan.jpg ./scan.csv
+# firefox ./image_viewer.html &
+# sleep 1
+# popd
 
 ./build_linux/test_server ./tools/test_server/config/test_server_ldmrs.launch &
 sleep 1

@@ -13,6 +13,10 @@ echo PYTHON_DIR=%PYTHON_DIR%
 python --version
 @echo.
 
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230719_mrs1104_infringement/20230719_mrs1104_ros1_field_eval_activated.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230719_mrs1104_infringement/20230719_mrs1104_infringement_sopaset_activate_deactivate_activate_again.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230719_mrs1104_infringement/20230719_mrs1104_infringement_sopaset_default_run.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230719_mrs1104_infringement/20230719_mrs1104_ros1_LIDinputstate_LIDoutputstate_activated.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230510_tim240.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_01_mrs1000_layer_1111_50hz_0.25deg.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20230112_02_mrs1000_layer_1000_50hz_0.25deg.pcapng

@@ -63,14 +63,14 @@
 /*!
  * Constructor.
  */
-sick_scan::ClientSocket::ClientSocket()
+sick_scan_xd::ClientSocket::ClientSocket()
 {
 }
 
 /*!
  * Destructor, closes all tcp connections.
  */
-sick_scan::ClientSocket::~ClientSocket()
+sick_scan_xd::ClientSocket::~ClientSocket()
 {
   close();
 }
@@ -81,7 +81,7 @@ sick_scan::ClientSocket::~ClientSocket()
  * @param[in] tcp_port tcp port for command requests, default: 2111 for command requests and 2112 for  command responses
  * @return true on success, false on failure (server unknown or unreachable)
  */
-bool sick_scan::ClientSocket::connect(const std::string & server_address, int tcp_port)
+bool sick_scan_xd::ClientSocket::connect(const std::string & server_address, int tcp_port)
 {
   try
   {
@@ -155,7 +155,7 @@ bool sick_scan::ClientSocket::connect(const std::string & server_address, int tc
  * (otherwise the socket is closed, if its state is currently opened)
  * @return true on success (socket closed), false on failure
  */
-bool sick_scan::ClientSocket::close(bool force_shutdown)
+bool sick_scan_xd::ClientSocket::close(bool force_shutdown)
 {
   try
   {

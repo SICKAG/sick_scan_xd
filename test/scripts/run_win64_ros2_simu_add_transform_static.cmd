@@ -1,5 +1,5 @@
 REM 
-REM Run sick_scan on ROS-2 Windows with lms5xx emulator
+REM Run sick_scan_xd on ROS-2 Windows with lms5xx emulator
 REM 
 
 if exist "c:\dev\ros2_foxy\local_setup.bat" ( call C:\dev\ros2_foxy\local_setup.bat )
@@ -23,24 +23,24 @@ start "python ../test/emulator/test_server.py" .\src\sick_scan_xd\test\emulator\
 @timeout /t 1
 
 REM 
-REM Run sick_scan on ROS-2 Windows
+REM Run sick_scan_xd on ROS-2 Windows
 REM 
 
 REM tim7xx, x=0, y=0, z=0, roll=0, pitch=0, yaw=0 deg
 rem start "static_transform_publisher" ros2 run tf2_ros static_transform_publisher 0 0 0 0.0000000 0.0000000 0.0000000 cloud origin
-rem ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0,0,0
+rem ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0,0,0
 REM tim7xx, x=0, y=0, z=0, roll=0, pitch=0, yaw=45 deg
 rem start "static_transform_publisher" ros2 run tf2_ros static_transform_publisher 0 0 0 0.7853982 0.0000000 0.0000000 cloud origin
-rem ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0.0000000,0.0000000,0.7853982
+rem ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0.0000000,0.0000000,0.7853982
 REM tim7xx, x=0, y=0, z=0, roll=0, pitch=45, yaw=0 deg
 rem start "static_transform_publisher" ros2 run tf2_ros static_transform_publisher 0 0 0 0.0000000 0.7853982 0.0000000 cloud origin
-rem ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0.0000000,0.7853982,0.0000000
+rem ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0.0000000,0.7853982,0.0000000
 REM tim7xx, x=0, y=0, z=0, roll=45, pitch=0, yaw=0 deg
 rem start "static_transform_publisher" ros2 run tf2_ros static_transform_publisher 0 0 0 0.0000000 0.0000000 0.7853982 cloud origin
-rem ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0.7853982,0.0000000,0.0000000
+rem ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0.7853982,0.0000000,0.0000000
 REM tim7xx, x=0, y=0, z=0, roll=45, pitch=45, yaw=45 deg
 start "static_transform_publisher" ros2 run tf2_ros static_transform_publisher 0 0 0 0.7853982 0.7853982 0.7853982 cloud origin
-ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0.7853982,0.7853982,0.7853982
+ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False add_transform_xyz_rpy:=0,0,0,0.7853982,0.7853982,0.7853982
 
 @pause
 popd

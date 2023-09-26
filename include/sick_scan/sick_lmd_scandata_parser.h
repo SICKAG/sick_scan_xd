@@ -66,7 +66,7 @@
 #include <sick_scan/sick_generic_parser.h>
 
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
@@ -77,5 +77,5 @@ namespace sick_scan
     /** Increments the number of packets received in the SoftwarePLL */
     void incSoftwarePLLPacketReceived();
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_LMD_SCANDATA_PARSER_H_ */

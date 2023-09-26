@@ -3,7 +3,7 @@
 # 
 # Build and run minimalistic api usages examples on Linux
 # Examples use sick_scan_emulator.
-# Make sure that libsick_scan_shared_lib.so has been build (see README.md for build instructions).
+# Make sure that libsick_scan_xd_shared_lib.so has been build (see README.md for build instructions).
 # 
 printf "\033c"
 

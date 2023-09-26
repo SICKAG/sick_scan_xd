@@ -6,7 +6,7 @@
 
 function simu_killall()
 {
-  sleep 1 ; ros2 service call /SickScanExit sick_scan/srv/SickScanExitSrv "{}"
+  sleep 1 ; ros2 service call /SickScanExit sick_scan_xd/srv/SickScanExitSrv "{}"
   sleep 1 ; killall -SIGINT rviz2
   sleep 1 ; killall -SIGINT sick_generic_caller
   sleep 1 ; killall -SIGINT sick_scan_emulator
@@ -26,16 +26,16 @@ source ./install/setup.bash
 #
 # Run simulation:
 # 1. Start sick_scan_emulator
-# 2. Start sick_scan driver sick_generic_caller
+# 2. Start sick_scan_xd driver sick_generic_caller
 # 3. Run rviz
 #
 
 echo -e "run_linux_ros2_simu_mrs1104.bash: starting MRS1104 emulation with sick_mrs_1xxx.launch\n"
 cp -f ./src/sick_scan_xd/test/emulator/scandata/20210722_143600_ros2_mrs1104_sick_scan_xd.pcapng.json /tmp/lmd_scandata.pcapng.json
-sleep  1 ; ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch scanner_type:=sick_mrs_1xxx &
-# sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch hostname:=127.0.0.1 port:=2111  & 
-# sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False & 
-sleep  1 ; ros2 launch sick_scan sick_mrs_1xxx.launch.py hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False &
+sleep  1 ; ros2 run sick_scan_xd sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch scanner_type:=sick_mrs_1xxx &
+# sleep  1 ; ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch hostname:=127.0.0.1 port:=2111  & 
+# sleep  1 ; ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False & 
+sleep  1 ; ros2 launch sick_scan_xd sick_mrs_1xxx.launch.py hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False &
 sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2_mrs1104.rviz &
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed ...

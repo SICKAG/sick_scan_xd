@@ -157,8 +157,8 @@ sick_scansegment_xd::RosMsgpackPublisher::~RosMsgpackPublisher()
 void sick_scansegment_xd::RosMsgpackPublisher::publish(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, 
     LaserscanMsgPublisher& laserscan_publisher, LaserScanMsgMap& laser_scan_msg_map, int32_t num_echos, int32_t segment_idx)
 {
-    sick_scan::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
-    sick_scan::PointCloud2withEcho cloud_msg_polar_with_echo(&pointcloud_msg_polar, num_echos, segment_idx);
+    sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
+    sick_scan_xd::PointCloud2withEcho cloud_msg_polar_with_echo(&pointcloud_msg_polar, num_echos, segment_idx);
     notifyPolarPointcloudListener(node, &cloud_msg_polar_with_echo);
     notifyCartesianPointcloudListener(node, &cloud_msg_with_echo);
 #if defined __ROS_VERSION && __ROS_VERSION > 1

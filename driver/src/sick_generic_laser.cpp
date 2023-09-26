@@ -98,7 +98,7 @@
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
 static bool isInitialized = false;
-static sick_scan::SickScanCommonTcp *s_scanner = NULL;
+static sick_scan_xd::SickScanCommonTcp *s_scanner = NULL;
 static std::string versionInfo = std::string(SICK_GENERIC_MAJOR_VER) + '.' + std::string(SICK_GENERIC_MINOR_VER) + '.' + std::string(SICK_GENERIC_PATCH_LEVEL);
 
 void setVersionInfo(std::string _versionInfo)
@@ -294,7 +294,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   std::string tag;
   std::string val;
 
-  exit_code = sick_scan::ExitSuccess;
+  exit_code = sick_scan_xd::ExitSuccess;
   bool doInternalDebug = false;
   bool emulSensor = false;
   for (int i = 0; i < argc; i++)
@@ -327,7 +327,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   if(!parseLaunchfileSetParameter(nhPriv, argc, argv))
   {
     ROS_ERROR_STREAM("## ERROR sick_generic_laser: parseLaunchfileSetParameter() failed, aborting\n");
-    exit_code = sick_scan::ExitError;
+    exit_code = sick_scan_xd::ExitError;
     exit(-1);
   }
 #endif
@@ -402,12 +402,12 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   {
 #if defined LDMRS_SUPPORT && LDMRS_SUPPORT > 0
     ROS_INFO("Initializing LDMRS...");
-    sick_scan::SickLdmrsNode ldmrs;
+    sick_scan_xd::SickLdmrsNode ldmrs;
     exit_code = ldmrs.init(nhPriv, hostname, frame_id);
-    if(exit_code != sick_scan::ExitSuccess)
+    if(exit_code != sick_scan_xd::ExitSuccess)
     {
       ROS_ERROR("LDMRS initialization failed.");
-      exit_code = sick_scan::ExitError;
+      exit_code = sick_scan_xd::ExitError;
       return;
     }
     ROS_INFO("LDMRS initialized.");
@@ -417,11 +417,11 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
     {
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    exit_code = sick_scan::ExitSuccess;
+    exit_code = sick_scan_xd::ExitSuccess;
     return;
 #else
     ROS_ERROR("LDMRS not supported. Please build sick_scan with option LDMRS_SUPPORT");
-    exit_code = sick_scan::ExitError;
+    exit_code = sick_scan_xd::ExitError;
     return;
 #endif
   }
@@ -433,12 +433,12 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
     return;
 #else
     ROS_ERROR_STREAM("SCANSEGMENT_XD_SUPPORT deactivated, " << scannerName << " not supported. Please build sick_scan with option SCANSEGMENT_XD_SUPPORT");
-    exit_code = sick_scan::ExitError;
+    exit_code = sick_scan_xd::ExitError;
     return;
 #endif
   }
 
-  sick_scan::SickGenericParser *parser = new sick_scan::SickGenericParser(scannerName);
+  sick_scan_xd::SickGenericParser *parser = new sick_scan_xd::SickGenericParser(scannerName);
 
   char colaDialectId = 'A'; // A or B (Ascii or Binary)
 
@@ -458,7 +458,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   rosDeclareParam(nhPriv, "range_filter_handling", range_filter_handling);
   if (rosGetParam(nhPriv, "range_filter_handling", range_filter_handling))
   {
-    parser->set_range_filter_config((sick_scan::RangeFilterResultHandling)range_filter_handling);
+    parser->set_range_filter_config((sick_scan_xd::RangeFilterResultHandling)range_filter_handling);
   }
   ROS_INFO_STREAM("Range filter configuration: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
 
@@ -514,8 +514,8 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
     colaDialectId = 'A';
   }
 
-  sick_scan::SickScanMonitor* scan_msg_monitor = 0;
-  sick_scan::PointCloudMonitor* pointcloud_monitor = 0;
+  sick_scan_xd::SickScanMonitor* scan_msg_monitor = 0;
+  sick_scan_xd::PointCloudMonitor* pointcloud_monitor = 0;
   bool message_monitoring_enabled = true;
   int read_timeout_millisec_default = READ_TIMEOUT_MILLISEC_DEFAULT;
   int read_timeout_millisec_startup = READ_TIMEOUT_MILLISEC_STARTUP;
@@ -532,18 +532,18 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   int pointcloud_monitoring_timeout_millisec = read_timeout_millisec_kill_node;
   if(message_monitoring_enabled)
   {
-    scan_msg_monitor = new sick_scan::SickScanMonitor(message_monitoring_read_timeout_millisec);
+    scan_msg_monitor = new sick_scan_xd::SickScanMonitor(message_monitoring_read_timeout_millisec);
 #if __ROS_VERSION > 0 // point cloud monitoring in Linux-ROS
-    pointcloud_monitor = new sick_scan::PointCloudMonitor();
+    pointcloud_monitor = new sick_scan_xd::PointCloudMonitor();
     pointcloud_monitor->startPointCloudMonitoring(nhPriv, pointcloud_monitoring_timeout_millisec, cloud_topic);
 #endif
   }
 
   bool start_services = true;
-  sick_scan::SickScanServices* services = 0;
-  exit_code = sick_scan::ExitError;
+  sick_scan_xd::SickScanServices* services = 0;
+  exit_code = sick_scan_xd::ExitError;
 
-  //sick_scan::SickScanConfig cfg;
+  //sick_scan_xd::SickScanConfig cfg;
   //std::chrono::system_clock::time_point timestamp_rosOk = std::chrono::system_clock::now();
 
   while (rosOk() && runState != scanner_finalize)
@@ -561,7 +561,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
         DELETE_PTR(s_scanner);  // disconnect scanner
         if (useTCP)
         {
-          s_scanner = new sick_scan::SickScanCommonTcp(hostname, port, timelimit, nhPriv, parser, colaDialectId);
+          s_scanner = new sick_scan_xd::SickScanCommonTcp(hostname, port, timelimit, nhPriv, parser, colaDialectId);
         }
         else
         {
@@ -574,7 +574,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
           s_scanner->setEmulSensor(true);
         }
         exit_code = s_scanner->init(nhPriv);
-        if (exit_code == sick_scan::ExitError || exit_code == sick_scan::ExitFatal)
+        if (exit_code == sick_scan_xd::ExitError || exit_code == sick_scan_xd::ExitFatal)
         {
 		      ROS_ERROR("## ERROR in mainGenericLaser: init failed, retrying..."); // ROS_ERROR("init failed, shutting down");
           continue;
@@ -585,14 +585,14 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
         rosGetParam(nhPriv, "start_services", start_services);
         if (true == start_services)
         {
-            services = new sick_scan::SickScanServices(nhPriv, s_scanner, parser->getCurrentParamPtr());
+            services = new sick_scan_xd::SickScanServices(nhPriv, s_scanner, parser->getCurrentParamPtr());
             ROS_INFO("SickScanServices: ros services initialized");
         }
 
         isInitialized = true;
         // signal(SIGINT, SIG_DFL); // change back to standard signal handler after initialising
 
-        if (exit_code == sick_scan::ExitSuccess) // OK -> loop again
+        if (exit_code == sick_scan_xd::ExitSuccess) // OK -> loop again
         {
           if (changeIP)
           {
@@ -612,7 +612,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
         break;
 
       case scanner_run:
-        if (exit_code == sick_scan::ExitSuccess) // OK -> loop again
+        if (exit_code == sick_scan_xd::ExitSuccess) // OK -> loop again
         {
           if(do_ros_spin)
           {
@@ -623,7 +623,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
           if(scan_msg_monitor && message_monitoring_enabled) // Monitor scanner messages
           {
             exit_code = scan_msg_monitor->checkStateReinitOnError(nhPriv, runState, s_scanner, parser, services);
-            if(exit_code != sick_scan::ExitSuccess) // scanner re-init failed after read timeout or tcp error
+            if(exit_code != sick_scan_xd::ExitSuccess) // scanner re-init failed after read timeout or tcp error
             {
               ROS_ERROR("## ERROR in sick_generic_laser main loop: read timeout, scanner re-init failed");
             }
@@ -713,7 +713,7 @@ int32_t SickScanApiOdomVelocityImpl(SickScanApiHandle apiHandle, SickScanOdomVel
     nav_msg.vel_x = src_msg->vel_x;
     nav_msg.vel_y = src_msg->vel_y;
     double angle_shift = -1.0 * s_scanner->getCurrentParamPtr()->getScanAngleShift();
-    sick_scan::rotateXYbyAngleOffset(nav_msg.vel_x, nav_msg.vel_y, angle_shift); // Convert to velocity in lidar coordinates in m/s
+    sick_scan_xd::rotateXYbyAngleOffset(nav_msg.vel_x, nav_msg.vel_y, angle_shift); // Convert to velocity in lidar coordinates in m/s
     nav_msg.omega = src_msg->omega; // angular velocity in radians/s
     nav_msg.coordbase = 0; // 0 = local coordinate system of the NAV350
     SoftwarePLL::instance().convSystemtimeToLidarTimestamp(src_msg->timestamp_sec, src_msg->timestamp_nsec, nav_msg.timestamp);

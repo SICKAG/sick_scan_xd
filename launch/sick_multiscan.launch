@@ -13,7 +13,7 @@
     <arg name="add_transform_check_dynamic_updates" default="false"/>               <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="laserscan_layer_filter" default="0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0" /> <!-- Configuration of laserscan messages (ROS only), default: laserscan messages for layer 5 activated (elevation -0.07 degree, max number of scan points) -->
     <arg name="scandataformat" default="2"/>                                        <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
-    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
+    <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_multiscan"/>
 
         <!-- network settings: -->

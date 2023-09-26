@@ -30,9 +30,9 @@ source ./install/setup.bash
 # 4. Stop simulation after 20 seconds
 #
 
-sleep  1 ; ros2 run sick_scan test_server ./src/sick_scan_xd/tools/test_server/config/test_server_ldmrs.launch &
-# sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_ldmrs.launch hostname:=127.0.0.1 & 
-sleep  1 ; ros2 launch sick_scan sick_ldmrs.launch.py hostname:=127.0.0.1 &
+sleep  1 ; ros2 run sick_scan_xd test_server ./src/sick_scan_xd/tools/test_server/config/test_server_ldmrs.launch &
+# sleep  1 ; ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_ldmrs.launch hostname:=127.0.0.1 & 
+sleep  1 ; ros2 launch sick_scan_xd sick_ldmrs.launch.py hostname:=127.0.0.1 &
 sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/launch/rviz/sick_ldmrs.rviz &
 sleep 40 ; ros2 topic echo diagnostics > ./log/sick_ldmrs_diagnostics.log &
 sleep  1 ; simu_ldmrs_killall
@@ -48,9 +48,9 @@ sleep 3
 #
 
 for launch_file in sick_tim_240.launch sick_tim_5xx.launch sick_mrs_1xxx.launch ; do
-  #sleep  1 ; ros2 run sick_scan test_server --ros-args --params-file src/sick_scan_xd/tools/test_server/config/test_server_cola.yaml &
-  sleep  1 ; ros2 run sick_scan test_server ./src/sick_scan_xd/tools/test_server/config/test_server_cola.launch &
-  sleep  1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/$launch_file hostname:=127.0.0.1 port:=2112 frame_id:=cloud sw_pll_only_publish:=False & 
+  #sleep  1 ; ros2 run sick_scan_xd test_server --ros-args --params-file src/sick_scan_xd/tools/test_server/config/test_server_cola.yaml &
+  sleep  1 ; ros2 run sick_scan_xd test_server ./src/sick_scan_xd/tools/test_server/config/test_server_cola.launch &
+  sleep  1 ; ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/$launch_file hostname:=127.0.0.1 port:=2112 frame_id:=cloud sw_pll_only_publish:=False & 
   sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/launch/rviz/sick_cola.rviz &
   sleep 20 ; simu_ldmrs_killall
 done

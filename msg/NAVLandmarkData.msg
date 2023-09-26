@@ -3,4 +3,4 @@ std_msgs/Header header
 
 uint8 landmark_filter
 uint16 num_reflectors
-sick_scan/NAVReflectorData[] reflectors
+sick_scan_xd/NAVReflectorData[] reflectors

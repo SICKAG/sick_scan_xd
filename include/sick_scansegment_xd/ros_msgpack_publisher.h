@@ -207,7 +207,7 @@ namespace sick_scansegment_xd
                         const int& azimuth_deg = segment_coverage_azimuth_iter->first;
                         int azimuth_cnt = segment_coverage_azimuth_iter->second;
                         if (azimuth_cnt > 0)
-                            azimuth_deg_first = std::min<int>(azimuth_deg_first, azimuth_deg);
+                            azimuth_deg_first = std::min<float>(azimuth_deg_first, azimuth_deg);
                     }
                     for(azimuth_deg_last = azimuth_deg_first; azimuth_deg_last <= azimuth_deg_first + 360; azimuth_deg_last++)
                     {

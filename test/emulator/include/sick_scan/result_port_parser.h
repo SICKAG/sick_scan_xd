@@ -59,7 +59,7 @@
 
 #include "sick_scan/ros_wrapper.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * class ResultPortParser implements a parser for
@@ -91,12 +91,12 @@ namespace sick_scan
     /*!
      * Returns the result port telegram.
      */
-    virtual sick_scan::SickLocResultPortTelegramMsg & getTelegramMsg(void) { return m_result_port_telegram; }
+    virtual sick_scan_xd::SickLocResultPortTelegramMsg & getTelegramMsg(void) { return m_result_port_telegram; }
   
     /*!
      * Returns the result port telegram.
      */
-    virtual const sick_scan::SickLocResultPortTelegramMsg & getTelegramMsg(void) const { return m_result_port_telegram; }
+    virtual const sick_scan_xd::SickLocResultPortTelegramMsg & getTelegramMsg(void) const { return m_result_port_telegram; }
     
   protected:
 
@@ -167,7 +167,7 @@ namespace sick_scan
      * @return number of bytes decoded
      * @throws std::invalid_argument in case of parse errors
      */
-    virtual size_t decodeResultPortHeader(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan::SickLocResultPortHeaderMsg & telegram_header);
+    virtual size_t decodeResultPortHeader(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan_xd::SickLocResultPortHeaderMsg & telegram_header);
 
     /*!
      * Decodes the payload of a result port telegram from binary data.
@@ -177,7 +177,7 @@ namespace sick_scan
      * @return number of bytes decoded
      * @throws std::invalid_argument in case of parse errors
      */
-    virtual size_t decodeResultPortPayload(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan::SickLocResultPortPayloadMsg & telegram_payload);
+    virtual size_t decodeResultPortPayload(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan_xd::SickLocResultPortPayloadMsg & telegram_payload);
 
     /*!
      * Decodes the trailer of a result port telegram from binary data.
@@ -187,7 +187,7 @@ namespace sick_scan
      * @return number of bytes decoded
      * @throws std::invalid_argument in case of parse errors
      */
-    virtual size_t decodeResultPortTrailer(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan::SickLocResultPortCrcMsg & telegram_trailer);
+    virtual size_t decodeResultPortTrailer(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan_xd::SickLocResultPortCrcMsg & telegram_trailer);
 
     /*!
      * Encodes a value to binary data.
@@ -202,14 +202,14 @@ namespace sick_scan
      * @param[in] telegram_header header of result port telegram
      * @param[out] binary_data destination buffer
      */
-    virtual void encodeResultPortHeader(const sick_scan::SickLocResultPortHeaderMsg & telegram_header, std::vector<uint8_t> & binary_data);
+    virtual void encodeResultPortHeader(const sick_scan_xd::SickLocResultPortHeaderMsg & telegram_header, std::vector<uint8_t> & binary_data);
 
     /*!
      * Encodes the payload of the result port telegram and append its binary data to binary_data (destination).
      * @param[in] telegram_payload payload of result port telegram
      * @param[out] binary_data destination buffer
      */
-    virtual void encodeResultPortPayload(const sick_scan::SickLocResultPortPayloadMsg & telegram_payload, std::vector<uint8_t> & binary_data);
+    virtual void encodeResultPortPayload(const sick_scan_xd::SickLocResultPortPayloadMsg & telegram_payload, std::vector<uint8_t> & binary_data);
 
     /*!
      * Encodes the checksum (trailer) of the result port telegram and append its binary data to binary_data (destination).
@@ -223,10 +223,10 @@ namespace sick_scan
      */
 
     std::string m_publish_frame_id; ///< frame_id of published ros messages (type SickLocResultPortTelegramMsg)
-    sick_scan::SickLocResultPortTelegramMsg m_result_port_telegram; ///< the result port telegram decoded from binary data
+    sick_scan_xd::SickLocResultPortTelegramMsg m_result_port_telegram; ///< the result port telegram decoded from binary data
     bool m_little_endian_payload; ///< true if payload type is 0x06c2 (little endian), default: false (payload encoded in big endian format)
   
   };
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_RESULT_PORT_PARSER_H_INCLUDED

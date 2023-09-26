@@ -28,7 +28,7 @@ Other widely used SLAM algorithms such as gmapping (cf. http://wiki.ros.org/gmap
 
 To simplify the start, the launch file test_005_hector.launch is stored in the project. The command
 ```
-roslaunch sick_scan test_005_hector.launch 
+roslaunch sick_scan_xd test_005_hector.launch 
 ```
 starts both the laser scanner (MRS1104 type) and the SLAM algorithm. Prerequisite: hector_slam must be installed first.
 Please start rviz after the launch.
@@ -45,10 +45,10 @@ slam_echo: The name of the echo is entered here, which is filtered out of all po
 
 ## Example Setup
 
-To make SLAM testing even easier, the <catkin_workspace>/src/sick_scan/tools/setup_sick_scan_slam.sh script was created. When you execute this script, a new workspace is created fully automatically, which contains both the sick_scan repo. and the hector_slam repo. The scanner and the SLAM process are then started. rviz is also started to visualize the data.
+To make SLAM testing even easier, the <catkin_workspace>/src/sick_scan_xd/tools/setup_sick_scan_slam.sh script was created. When you execute this script, a new workspace is created fully automatically, which contains both the sick_scan_xd repo. and the hector_slam repo. The scanner and the SLAM process are then started. rviz is also started to visualize the data.
 Start of script:
 ```
-cd <catkin-workspace>/src/sick_scan/tools
+cd <catkin-workspace>/src/sick_scan_xd/tools
 . setup_sick_scan_slam.sh 
 ```
 

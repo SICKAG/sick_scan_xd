@@ -43,41 +43,41 @@ kill_simu
 echo -e "\nrun_linux_ros1_simu_field_monitoring.bash: starting field monitoring test\n"
 
 # Run sick_lms_5xx with 20220803_lms511.pcapng.json (lms511 reference file, see sopas screenshots 20220803_lms511_fields*.png)
-roslaunch sick_scan emulator_lms5xx.launch scanner_type:=sick_lms_511 scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20220803_lms511.pcapng.json &
+roslaunch sick_scan_xd emulator_lms5xx.launch scanner_type:=sick_lms_511 scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20220803_lms511.pcapng.json &
 sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms5xx.rviz --opengl 210 &
-sleep 1 ; roslaunch sick_scan sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+sleep 1 ; roslaunch sick_scan_xd sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 waitUntilRvizClosed 30
 
 # Run sick_lms_1xx with 20210302_lms111.pcapng_full.json
-roslaunch sick_scan emulator_lms1xx.launch scanner_type:=sick_lms_1xx scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20210302_lms111.pcapng_full.json &
+roslaunch sick_scan_xd emulator_lms1xx.launch scanner_type:=sick_lms_1xx scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20210302_lms111.pcapng_full.json &
 sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
-sleep 1 ; roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+sleep 1 ; roslaunch sick_scan_xd sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 waitUntilRvizClosed 30
 
 # Run sick_lms_1xx with 20220802_lms111.pcapng.json
-roslaunch sick_scan emulator_lms111.launch scanner_type:=sick_lms_111 scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20220802_lms111.pcapng.json &
+roslaunch sick_scan_xd emulator_lms111.launch scanner_type:=sick_lms_111 scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20220802_lms111.pcapng.json &
 sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
-sleep 1 ; roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+sleep 1 ; roslaunch sick_scan_xd sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 waitUntilRvizClosed 40
 
 # Run sick_lms_5xx with 20210301_lms511.pcapng_full.json
-roslaunch sick_scan emulator_lms5xx.launch scanner_type:=sick_lms_5xx scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20210301_lms511.pcapng_full.json &
+roslaunch sick_scan_xd emulator_lms5xx.launch scanner_type:=sick_lms_5xx scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20210301_lms511.pcapng_full.json &
 sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms5xx.rviz --opengl 210 &
-sleep 1 ; roslaunch sick_scan sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+sleep 1 ; roslaunch sick_scan_xd sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 waitUntilRvizClosed 30
 
 # Run sick_lms_5xx with 20210302_lms511.pcapng_full.json
-roslaunch sick_scan emulator_lms5xx.launch scanner_type:=sick_lms_5xx scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20210302_lms511.pcapng_full.json &
+roslaunch sick_scan_xd emulator_lms5xx.launch scanner_type:=sick_lms_5xx scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20210302_lms511.pcapng_full.json &
 sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms5xx.rviz --opengl 210 &
-sleep 1 ; roslaunch sick_scan sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+sleep 1 ; roslaunch sick_scan_xd sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 waitUntilRvizClosed 30
 
 # Run sick_tim_7xx
 # for jsonfile in sopas_et_field_test_1_2_both_010.pcapng_full.json 20210113_tim871s_elephant_full.pcapng.json fieldset_trial_0001.pcapng.json 20210125-tim781s-scandata.pcapng.json 20210126-tim781s-test-fieldsets.pcapng.json 20210104_tim781s_sopas_et_binary_monitoring.pcapng.json 20210106_tim781s_scandata_elephant.pcapng.json 20210722_102600_tim_781_sick_scan_xd.pcapng.json 20210722_103100_tim_781_sick_scan.pcapng.json 20210722_145212_ros2_tim7xxx_sick_scan_xd.pcapng.json ; do
 for jsonfile in sopas_et_field_test_1_2_both_010.pcapng_full.json 20210113_tim871s_elephant_full.pcapng.json ; do
-  roslaunch sick_scan emulator_01_default.launch scanner_type:=sick_tim_7xx scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/$jsonfile &
+  roslaunch sick_scan_xd emulator_01_default.launch scanner_type:=sick_tim_7xx scandatafiles:=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/$jsonfile &
   sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg.rviz --opengl 210 &
-  sleep 1 ; roslaunch sick_scan sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+  sleep 1 ; roslaunch sick_scan_xd sick_tim_7xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
   waitUntilRvizClosed 30
 done
 

@@ -36,7 +36,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-5. Build sick_generic_caller and libsick_scan_shared_lib.so:
+5. Build sick_generic_caller and libsick_scan_xd_shared_lib.so:
    ```
    mkdir -p ./build
    pushd ./build
@@ -99,7 +99,7 @@ To install sick_scan_xd on Windows, follow the steps below:
    ```
    For development or debugging, open file `sick_scan_xd\build\msgpack11\msgpack11.sln` in Visual Studio.
 
-5. Build sick_generic_caller and sick_scan_shared_lib.dll with cmake and Visual Studio 2019:
+5. Build sick_generic_caller and sick_scan_xd_shared_lib.dll with cmake and Visual Studio 2019:
    ```
    cd sick_scan_xd
    set _os=x64
@@ -111,12 +111,12 @@ To install sick_scan_xd on Windows, follow the steps below:
    cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
    cmake --build . --clean-first --config Debug
    cmake --build . --clean-first --config Release
-   REM open sick_scan.sln in Visual Studio 2019 for development and debugging
+   REM open sick_scan_xd.sln in Visual Studio 2019 for development and debugging
    popd
    ```
-   For development or debugging, open file `sick_scan_xd\build\sick_scan.sln` in Visual Studio. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. 
+   For development or debugging, open file `sick_scan_xd\build\sick_scan_xd.sln` in Visual Studio. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. 
 
-After successful build, binary files `sick_generic_caller.exe` and `sick_scan_shared_lib.dll` are created in folders `sick_scan_xd\build\Debug` and `sick_scan_xd\build\Release`.
+After successful build, binary files `sick_generic_caller.exe` and `sick_scan_xd_shared_lib.dll` are created in folders `sick_scan_xd\build\Debug` and `sick_scan_xd\build\Release`.
 
 Note: LDMRS sensors are currently not supported on Windows.
 

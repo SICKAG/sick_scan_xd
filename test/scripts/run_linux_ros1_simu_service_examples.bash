@@ -15,14 +15,14 @@ if [ $roscore_running -lt 1 ] ; then
   sleep 3
 fi
 
-# Start sick_scan emulator
-# roslaunch sick_scan emulator_lms5xx.launch &
-roslaunch sick_scan emulator_lms5xx.launch > /dev/null &
+# Start sick_scan_xd emulator
+# roslaunch sick_scan_xd emulator_lms5xx.launch &
+roslaunch sick_scan_xd emulator_lms5xx.launch > /dev/null &
 sleep 1
 
-# Start sick_scan driver for lms5xx
-echo -e "Launching sick_scan sick_lms_5xx.launch\n"
-roslaunch sick_scan sick_lms_5xx.launch hostname:=127.0.0.1 &
+# Start sick_scan_xd driver for lms5xx
+echo -e "Launching sick_scan_xd sick_lms_5xx.launch\n"
+roslaunch sick_scan_xd sick_lms_5xx.launch hostname:=127.0.0.1 &
 sleep 10
 
 # Run example ros service calls

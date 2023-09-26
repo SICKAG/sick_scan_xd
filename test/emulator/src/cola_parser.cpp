@@ -66,7 +66,7 @@
 /*!
  * @brief static table to convert COLA_SOPAS_COMMAND to string, f.e. s_command_type_string[sRN]:="sRN", s_command_type_string[sRA]:="sRA" and so on
  */
-const std::string sick_scan::ColaParser::s_command_type_string[MAX_COLA_COMMAND_NUMBER] =
+const std::string sick_scan_xd::ColaParser::s_command_type_string[MAX_COLA_COMMAND_NUMBER] =
   {
     "sINVALID", "sRN", "sRA", "sMN", "sAN", "sMA", "sWN", "sWA", "sEN", "sEA", "sSN", "sFA"
   };
@@ -74,7 +74,7 @@ const std::string sick_scan::ColaParser::s_command_type_string[MAX_COLA_COMMAND_
 /*!
  * @brief static map to convert COLA_SOPAS_COMMANDs from string to enum, f.e. s_command_type_map["sRN"]:=sRN, s_command_type_map["sRA"]:=sRA and so on
  */
-const std::map<std::string, sick_scan::ColaParser::COLA_SOPAS_COMMAND> sick_scan::ColaParser::s_command_type_map =
+const std::map<std::string, sick_scan_xd::ColaParser::COLA_SOPAS_COMMAND> sick_scan_xd::ColaParser::s_command_type_map =
   {
     {"", sINVALID}, {"sINVALID", sINVALID}, {"sRN", sRN}, {"sRA", sRA}, {"sMN", sMN}, {"sAN", sAN}, {"sMA", sMA}, {"sWN", sWN}, {"sWA", sWA}, {"sEN", sEN}, {"sEA", sEA}, {"sSN", sSN}, {"sFA", sFA}
   };
@@ -82,12 +82,12 @@ const std::map<std::string, sick_scan::ColaParser::COLA_SOPAS_COMMAND> sick_scan
 /*!
  * @brief All Cola-ACSII telegrams start with s_cola_ascii_start_tag := "<STX>" ("Start of TeXt")
  */
-const std::string sick_scan::ColaParser::s_cola_ascii_start_tag = "<STX>";
+const std::string sick_scan_xd::ColaParser::s_cola_ascii_start_tag = "<STX>";
 
 /*!
  * @brief All Cola-ACSII telegrams start with s_cola_ascii_start_tag := "<ETX>" ("End of TeXt")
  */
-const std::string sick_scan::ColaParser::s_cola_ascii_end_tag = "<ETX>";
+const std::string sick_scan_xd::ColaParser::s_cola_ascii_end_tag = "<ETX>";
 
 /*!
  * @brief Create and returns a Cola telegram (type SickLocColaTelegramMsg).
@@ -96,10 +96,10 @@ const std::string sick_scan::ColaParser::s_cola_ascii_end_tag = "<ETX>";
  * @param[in] parameter Optional list of command parameter
  * @return Cola telegram of type SickLocColaTelegramMsg
  */
-sick_scan::SickLocColaTelegramMsg sick_scan::ColaParser::createColaTelegram(const COLA_SOPAS_COMMAND & command_type,
+sick_scan_xd::SickLocColaTelegramMsg sick_scan_xd::ColaParser::createColaTelegram(const COLA_SOPAS_COMMAND & command_type,
   const std::string & command_name, const std::vector<std::string> & parameter)
 {
-  sick_scan::SickLocColaTelegramMsg cola_telegram;
+  sick_scan_xd::SickLocColaTelegramMsg cola_telegram;
   cola_telegram.header.stamp = ROS::now();
   cola_telegram.command_type = command_type;
   cola_telegram.command_name = command_name;
@@ -115,9 +115,9 @@ sick_scan::SickLocColaTelegramMsg sick_scan::ColaParser::createColaTelegram(cons
  * 0x73, 0x73, 0x4D, 0x6F, 0x64, 0x65, 0x20, 0x33, 0x20, 0x46, 0x34, 0x37, 0x32, 0x34, 0x37, 0x34, 0x34, 0x03 }
  * @return Cola telegram message (type SickLocColaTelegramMsg)
  */
-sick_scan::SickLocColaTelegramMsg sick_scan::ColaParser::decodeColaTelegram(const std::vector<uint8_t> & cola_binary)
+sick_scan_xd::SickLocColaTelegramMsg sick_scan_xd::ColaParser::decodeColaTelegram(const std::vector<uint8_t> & cola_binary)
 {
-  std::string cola_ascii = sick_scan::ColaAsciiBinaryConverter::ConvertColaAscii(cola_binary);
+  std::string cola_ascii = sick_scan_xd::ColaAsciiBinaryConverter::ConvertColaAscii(cola_binary);
   return decodeColaTelegram(cola_ascii);
 }
 
@@ -126,7 +126,7 @@ sick_scan::SickLocColaTelegramMsg sick_scan::ColaParser::decodeColaTelegram(cons
  * @param[in] cola_ascii Cola-ASCII telegram, f.e. "<STX>sMN LocRequestTimestamp<ETX>"
  * @return Cola telegram message (type SickLocColaTelegramMsg)
  */
-sick_scan::SickLocColaTelegramMsg sick_scan::ColaParser::decodeColaTelegram(const std::string & cola_ascii)
+sick_scan_xd::SickLocColaTelegramMsg sick_scan_xd::ColaParser::decodeColaTelegram(const std::string & cola_ascii)
 {
   // Check and remove start and end tags ("<STX>" and "<ETX>")
   std::string cola_ascii_cmd;
@@ -141,14 +141,14 @@ sick_scan::SickLocColaTelegramMsg sick_scan::ColaParser::decodeColaTelegram(cons
     cola_ascii_cmd = cola_ascii;
   }
   // Split in command_type, command_name and optional parameter by spaces
-  std::vector<std::string> cola_parts = sick_scan::Utils::splitSpaces(cola_ascii_cmd);
+  std::vector<std::string> cola_parts = sick_scan_xd::Utils::splitSpaces(cola_ascii_cmd);
   if(cola_parts.size() < 2) // at least command_type and command_name required
   {
     ROS_WARN_STREAM("## ERROR Parse error in ColaParser::decodeColaTelegram(\"" << cola_ascii_cmd << "\"): to few arguments, at least command_type and command_name required");
     return createColaTelegram(sINVALID, "");
   }
   // Convert command_type from string to COLA_SOPAS_COMMAND
-  sick_scan::ColaParser::COLA_SOPAS_COMMAND command_type = convertSopasCommand(cola_parts[0]);
+  sick_scan_xd::ColaParser::COLA_SOPAS_COMMAND command_type = convertSopasCommand(cola_parts[0]);
   if(command_type == sINVALID)
   {
     ROS_WARN_STREAM("## ERROR Parse error in ColaParser::decodeColaTelegram(\"" << cola_ascii_cmd << "\"): invalid command_type \"" << cola_parts[0] << "\"");
@@ -161,7 +161,7 @@ sick_scan::SickLocColaTelegramMsg sick_scan::ColaParser::decodeColaTelegram(cons
     return createColaTelegram(sINVALID, "");
   }
   // Append command parameter
-  sick_scan::SickLocColaTelegramMsg cola_telegram = createColaTelegram(command_type, cola_parts[1]);
+  sick_scan_xd::SickLocColaTelegramMsg cola_telegram = createColaTelegram(command_type, cola_parts[1]);
   if(cola_parts.size() > 2)
   {
     cola_telegram.parameter.reserve(cola_parts.size() - 2);
@@ -177,7 +177,7 @@ sick_scan::SickLocColaTelegramMsg sick_scan::ColaParser::decodeColaTelegram(cons
  * @return Cola-Binary telegram, f.e. { 0x02, 0x73, 0x4D, 0x4E, 0x20, 0x53, 0x65, 0x74, 0x41, 0x63, 0x63,  0x65,
  * 0x73, 0x73, 0x4D, 0x6F, 0x64, 0x65, 0x20, 0x33, 0x20, 0x46, 0x34, 0x37, 0x32, 0x34, 0x37, 0x34, 0x34, 0x03 }
  */
-std::vector<uint8_t> sick_scan::ColaParser::encodeColaTelegram(const sick_scan::SickLocColaTelegramMsg & cola_telegram, bool parameter_is_ascii)
+std::vector<uint8_t> sick_scan_xd::ColaParser::encodeColaTelegram(const sick_scan_xd::SickLocColaTelegramMsg & cola_telegram, bool parameter_is_ascii)
 {
   assert(cola_telegram.command_type > sINVALID && cola_telegram.command_type < MAX_COLA_COMMAND_NUMBER);
   std::string cola_ascii;
@@ -193,7 +193,7 @@ std::vector<uint8_t> sick_scan::ColaParser::encodeColaTelegram(const sick_scan::
     cola_ascii += cola_telegram.parameter[n];
   }
   cola_ascii += s_cola_ascii_end_tag;
-  return sick_scan::ColaAsciiBinaryConverter::ConvertColaAscii(cola_ascii);
+  return sick_scan_xd::ColaAsciiBinaryConverter::ConvertColaAscii(cola_ascii);
 }
 
 /*!
@@ -203,7 +203,7 @@ std::vector<uint8_t> sick_scan::ColaParser::encodeColaTelegram(const sick_scan::
  * @param[in] parameter Optional list of command parameter
  * @return Cola-Binary telegram
  */
-std::vector<uint8_t> sick_scan::ColaParser::encodeColaTelegram(const COLA_SOPAS_COMMAND & command_type, const std::string & command_name,
+std::vector<uint8_t> sick_scan_xd::ColaParser::encodeColaTelegram(const COLA_SOPAS_COMMAND & command_type, const std::string & command_name,
   const std::vector<std::string> & parameter, bool parameter_is_ascii)
 {
   return encodeColaTelegram(createColaTelegram(command_type, command_name, parameter), parameter_is_ascii);
@@ -215,7 +215,7 @@ std::vector<uint8_t> sick_scan::ColaParser::encodeColaTelegram(const COLA_SOPAS_
  * @param[in] command_type One of the SOPAS Commands enumerated in COLA_SOPAS_COMMAND (sRN, sRA, sMN, sMA, or sWN)
  * @return COLA_SOPAS_COMMAND as string.
  */
-std::string sick_scan::ColaParser::convertSopasCommand(sick_scan::ColaParser::COLA_SOPAS_COMMAND command_type)
+std::string sick_scan_xd::ColaParser::convertSopasCommand(sick_scan_xd::ColaParser::COLA_SOPAS_COMMAND command_type)
 {
   return s_command_type_string[command_type];
 }
@@ -226,10 +226,10 @@ std::string sick_scan::ColaParser::convertSopasCommand(sick_scan::ColaParser::CO
  * @param[in] sopas_command One of the SOPAS commands ("sRN", "sRA", "sMN", "sMA", or "sWN")
  * @return COLA_SOPAS_COMMAND from string.
  */
-sick_scan::ColaParser::COLA_SOPAS_COMMAND sick_scan::ColaParser::convertSopasCommand(const std::string & sopas_command)
+sick_scan_xd::ColaParser::COLA_SOPAS_COMMAND sick_scan_xd::ColaParser::convertSopasCommand(const std::string & sopas_command)
 {
-  std::map<std::string, sick_scan::ColaParser::COLA_SOPAS_COMMAND>::const_iterator iter_command_type = s_command_type_map.find(sopas_command);
-  sick_scan::ColaParser::COLA_SOPAS_COMMAND command_type = (iter_command_type != s_command_type_map.cend()) ? (iter_command_type->second) : sINVALID;
+  std::map<std::string, sick_scan_xd::ColaParser::COLA_SOPAS_COMMAND>::const_iterator iter_command_type = s_command_type_map.find(sopas_command);
+  sick_scan_xd::ColaParser::COLA_SOPAS_COMMAND command_type = (iter_command_type != s_command_type_map.cend()) ? (iter_command_type->second) : sINVALID;
   return command_type;
 }
 
@@ -240,7 +240,7 @@ sick_scan::ColaParser::COLA_SOPAS_COMMAND sick_scan::ColaParser::convertSopasCom
  * @param[in] default_value default value returned in case of parse errors
  * @return parameter converted to integer value
  */
-int32_t sick_scan::ColaParser::convertColaArg(const std::string & cola_arg, int base, int32_t default_value)
+int32_t sick_scan_xd::ColaParser::convertColaArg(const std::string & cola_arg, int base, int32_t default_value)
 {
   try
   {
@@ -262,7 +262,7 @@ int32_t sick_scan::ColaParser::convertColaArg(const std::string & cola_arg, int 
  * @param[in] default_value default value returned in case of parse errors
  * @return parameter converted to integer value
  */
-uint32_t sick_scan::ColaParser::convertColaArg(const std::string & cola_arg, int base, uint32_t default_value)
+uint32_t sick_scan_xd::ColaParser::convertColaArg(const std::string & cola_arg, int base, uint32_t default_value)
 {
   try
   {
@@ -283,7 +283,7 @@ uint32_t sick_scan::ColaParser::convertColaArg(const std::string & cola_arg, int
  * @param[in] default_value default value returned in case of parse errors
  * @return parameter converted to boolean value
  */
-bool sick_scan::ColaParser::convertColaResponseBool(const std::string & cola_response_arg, bool default_value)
+bool sick_scan_xd::ColaParser::convertColaResponseBool(const std::string & cola_response_arg, bool default_value)
 {
-  return ((sick_scan::ColaParser::convertColaArg(cola_response_arg, 10, (default_value ? 1 : 0)) > 0) ? true : false);
+  return ((sick_scan_xd::ColaParser::convertColaArg(cola_response_arg, 10, (default_value ? 1 : 0)) > 0) ? true : false);
 }

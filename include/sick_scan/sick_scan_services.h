@@ -70,14 +70,14 @@
 #include "sick_scansegment_xd/config.h"
 #endif // SCANSEGMENT_XD_SUPPORT
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   class SickScanServices
   {
   public:
 
-    SickScanServices(rosNodePtr nh = 0, sick_scan::SickScanCommonTcp* common_tcp = 0, ScannerBasicParam * lidar_param = 0);
+    SickScanServices(rosNodePtr nh = 0, sick_scan_xd::SickScanCommonTcp* common_tcp = 0, ScannerBasicParam * lidar_param = 0);
 
     virtual ~SickScanServices();
 
@@ -222,17 +222,17 @@ namespace sick_scan
      */
 
     bool m_cola_binary;                             ///< cola ascii or cola binary messages
-    sick_scan::SickScanCommonTcp* m_common_tcp;     ///< common tcp handler
+    sick_scan_xd::SickScanCommonTcp* m_common_tcp;     ///< common tcp handler
     std::string m_client_authorization_pw;
-    rosServiceServer<sick_scan_srv::ColaMsgSrv> m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan::SickScanServices::serviceCbColaMsg
-    rosServiceServer<sick_scan_srv::ECRChangeArrSrv> m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan::SickScanServices::serviceCbECRChangeArr
-    rosServiceServer<sick_scan_srv::LIDoutputstateSrv> m_srv_server_LIDoutputstate; ///< service "LIDoutputstate", &sick_scan::SickScanServices::serviceCbLIDoutputstate
-    rosServiceServer<sick_scan_srv::SCdevicestateSrv> m_srv_server_SCdevicestate; ///< service "SCdevicestate", &sick_scan::SickScanServices::serviceCbSCdevicestate
-    rosServiceServer<sick_scan_srv::SCrebootSrv> m_srv_server_SCreboot; ///< service "SCreboot", &sick_scan::SickScanServices::serviceCbSCreboot
-    rosServiceServer<sick_scan_srv::SCsoftresetSrv> m_srv_server_SCsoftreset; ///< service "SCsoftreset", &sick_scan::SickScanServices::serviceCbSCsoftreset
-    rosServiceServer<sick_scan_srv::SickScanExitSrv> m_srv_server_SickScanExit; ///< service "SickScanExitSrv", &sick_scan::SickScanServices::serviceCbSickScanExit
+    rosServiceServer<sick_scan_srv::ColaMsgSrv> m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan_xd::SickScanServices::serviceCbColaMsg
+    rosServiceServer<sick_scan_srv::ECRChangeArrSrv> m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan_xd::SickScanServices::serviceCbECRChangeArr
+    rosServiceServer<sick_scan_srv::LIDoutputstateSrv> m_srv_server_LIDoutputstate; ///< service "LIDoutputstate", &sick_scan_xd::SickScanServices::serviceCbLIDoutputstate
+    rosServiceServer<sick_scan_srv::SCdevicestateSrv> m_srv_server_SCdevicestate; ///< service "SCdevicestate", &sick_scan_xd::SickScanServices::serviceCbSCdevicestate
+    rosServiceServer<sick_scan_srv::SCrebootSrv> m_srv_server_SCreboot; ///< service "SCreboot", &sick_scan_xd::SickScanServices::serviceCbSCreboot
+    rosServiceServer<sick_scan_srv::SCsoftresetSrv> m_srv_server_SCsoftreset; ///< service "SCsoftreset", &sick_scan_xd::SickScanServices::serviceCbSCsoftreset
+    rosServiceServer<sick_scan_srv::SickScanExitSrv> m_srv_server_SickScanExit; ///< service "SickScanExitSrv", &sick_scan_xd::SickScanServices::serviceCbSickScanExit
 
   }; /* class SickScanServices */
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_SCAN_SERVICES_H_ */

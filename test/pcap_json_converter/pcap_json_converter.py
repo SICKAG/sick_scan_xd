@@ -69,7 +69,7 @@ def appendToCppfile(cpp_filename, payload, is_cola_ascii):
         cpp_file = open(cpp_filename, "a")
     else:
         cpp_file = open(cpp_filename, "a")
-        cpp_file.write("    std::map<std::string, sick_scan::SickLocColaTelegramMsg> emulator_responses = { // emulator responses to driver requests\n")
+        cpp_file.write("    std::map<std::string, sick_scan_xd::SickLocColaTelegramMsg> emulator_responses = { // emulator responses to driver requests\n")
     payload_all = [b for b in payload]
     if is_cola_ascii: # cola ascii: remove 1 leading byte <STX> = 0x02 and remove trailing <ETX> = 0x03
         payload_unpacked = payload_all[1:-1]
@@ -94,7 +94,7 @@ def appendToCppfile(cpp_filename, payload, is_cola_ascii):
     else:
         cola_args = ""
     # Write C++ emulator call
-    cpp_file.write("      {{\"{}\", sick_scan::ColaParser::createColaTelegram(sick_scan::ColaParser::convertSopasCommand(\"{}\"), \"{}\", {{\"{}\"}})}},\n".format(cola_name, cola_type, cola_name, cola_args));
+    cpp_file.write("      {{\"{}\", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand(\"{}\"), \"{}\", {{\"{}\"}})}},\n".format(cola_name, cola_type, cola_name, cola_args));
     cpp_file.close()
 
 def closeCppfile(cpp_filename):

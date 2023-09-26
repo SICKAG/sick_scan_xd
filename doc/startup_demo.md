@@ -34,7 +34,7 @@ rostopic echo /cloud|grep frame -B 7 -A 26
 ## Startup Sequence
 ```
 
-roslaunch sick_scan sick_mrs_6xxx.launch hostname:=192.168.0.25
+roslaunch sick_scan_xd sick_mrs_6xxx.launch hostname:=192.168.0.25
 ... logging to /home/rosuser/.ros/log/75631922-6109-11e9-b76f-54e1ad2921b6/roslaunch-ROS-NB-10680.log
 Checking log directory for disk usage. This may take awhile.
 Press Ctrl-C to interrupt
@@ -61,7 +61,7 @@ PARAMETERS
 
 NODES
   /
-    sick_mrs_6xxx (sick_scan/sick_generic_caller)
+    sick_mrs_6xxx (sick_scan_xd/sick_generic_caller)
 
 auto-starting new master
 process[master]: started with pid [10690]
@@ -72,7 +72,7 @@ process[rosout-1]: started with pid [10701]
 started core service [/rosout]
 process[sick_mrs_6xxx-2]: started with pid [10708]
 [ INFO] [1555502887.036684738]: sick_generic_caller V. 001.003.016
-[ INFO] [1555502887.036717573]: Program arguments: /home/rosuser/ros_catkin_ws/devel/lib/sick_scan/sick_generic_caller
+[ INFO] [1555502887.036717573]: Program arguments: /home/rosuser/ros_catkin_ws/devel/lib/sick_scan_xd/sick_generic_caller
 [ INFO] [1555502887.036725741]: Program arguments: __name:=sick_mrs_6xxx
 [ INFO] [1555502887.036731933]: Program arguments: __log:=/home/rosuser/.ros/log/75631922-6109-11e9-b76f-54e1ad2921b6/sick_mrs_6xxx-2.log
 [ INFO] [1555502887.048425000]: Found sopas_protocol_type param overwriting default protocol:

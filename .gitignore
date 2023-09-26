@@ -93,6 +93,7 @@ demo/scan.csv
 
 # Note: emulator testfiles (pcapng and json records) are ignored except a few very short test examples
 test/emulator/scandata/*.*
+test/emulator/scandata/20230719_mrs1104_infringement
 
 test/scripts/run_win64_ros1_simu_lms5xx.cmd
 test/scripts/make_win64_vs2022.cmd

@@ -323,14 +323,14 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "add_transform_xyz_rpy", str_add_transform_xyz_rpy);
     bool add_transform_check_dynamic_updates = false;
     ROS_DECL_GET_PARAMETER(node, "add_transform_check_dynamic_updates", add_transform_check_dynamic_updates);
-    add_transform_xyz_rpy = sick_scan::SickCloudTransform(node, str_add_transform_xyz_rpy, false, add_transform_check_dynamic_updates);
+    add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(node, str_add_transform_xyz_rpy, false, add_transform_check_dynamic_updates);
     // Optional range filter
     float range_min = 0, range_max = 100;
     int range_filter_handling = 0;
     ROS_DECL_GET_PARAMETER(node, "range_min", range_min);
     ROS_DECL_GET_PARAMETER(node, "range_max", range_max);
     ROS_DECL_GET_PARAMETER(node, "range_filter_handling", range_filter_handling);
-    range_filter = sick_scan::SickRangeFilter(range_min, range_max, (sick_scan::RangeFilterResultHandling)range_filter_handling);
+    range_filter = sick_scan_xd::SickRangeFilter(range_min, range_max, (sick_scan_xd::RangeFilterResultHandling)range_filter_handling);
     ROS_INFO_STREAM("Range filter configuration for sick_scansegment_xd: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
 
     // Configuration of laserscan messages (ROS only), activate/deactivate laserscan messages for each layer

@@ -1,7 +1,7 @@
 REM 
 REM Build and run minimalistic api usages examples on Linux
 REM Examples use sick_scan_emulator.
-REM Make sure that libsick_scan_shared_lib.so has been build (see README.md for build instructions).
+REM Make sure that libsick_scan_xd_shared_lib.so has been build (see README.md for build instructions).
 REM 
 
 REM Set environment for Visual Studio 2019 (VS 16)

@@ -13,7 +13,7 @@
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="new_IP" default="192.168.0.2"/>
-    <node name="sick_new_ip" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="sick_new_ip" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_5xx"/>
         <param name="use_binary_protocol" type="bool" value="True"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>

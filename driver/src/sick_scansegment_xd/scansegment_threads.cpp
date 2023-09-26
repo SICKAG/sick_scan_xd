@@ -74,7 +74,7 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     if (!config.Init(node))
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): Config::Init() failed, using default values.");
-        return sick_scan::ExitError;
+        return sick_scan_xd::ExitError;
     }
     config.PrintConfig();
     // Run sick_scansegment_xd (msgpack receive, convert and publish)
@@ -83,7 +83,7 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     if(!msgpack_threads.start(config))
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::start() failed");
-        return sick_scan::ExitError;
+        return sick_scan_xd::ExitError;
     }
     msgpack_threads.join();
     // Close sick_scansegment_xd
@@ -92,7 +92,7 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::stop() failed");
     }
     ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") finished.");
-    return sick_scan::ExitSuccess;
+    return sick_scan_xd::ExitSuccess;
 }
 
 /*
@@ -221,22 +221,22 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         sendStartTrigger(m_config);
 
         // Start SOPAS services (ROS-1 or ROS-2 only)
-        sick_scan::SickScanCommonTcp* sopas_tcp = 0;
-        sick_scan::SickScanServices* sopas_service = 0;
+        sick_scan_xd::SickScanCommonTcp* sopas_tcp = 0;
+        sick_scan_xd::SickScanServices* sopas_service = 0;
         std::string scannerName = SICK_SCANNER_SCANSEGMENT_XD_NAME;
-        sick_scan::SickGenericParser parser = sick_scan::SickGenericParser(scannerName);
-        sick_scan::ScannerBasicParam basic_param;
+        sick_scan_xd::SickGenericParser parser = sick_scan_xd::SickGenericParser(scannerName);
+        sick_scan_xd::ScannerBasicParam basic_param;
         basic_param.setScannerName(scannerName);
         bool multiscan_write_filtersettings = m_config.host_set_FREchoFilter || m_config.host_set_LFPangleRangeFilter || m_config.host_set_LFPlayerFilter;
         if (m_config.start_sopas_service || m_config.send_sopas_start_stop_cmd || m_config.host_read_filtersettings || multiscan_write_filtersettings)
         {
             ROS_INFO_STREAM("MsgPackThreads: initializing sopas tcp (" << m_config.hostname << ":" << m_config.sopas_tcp_port << ", timeout:" << (0.001*m_config.sopas_timeout_ms) << ", binary:" << m_config.sopas_cola_binary << ")");
-            sopas_tcp = new sick_scan::SickScanCommonTcp(m_config.hostname, m_config.sopas_tcp_port, m_config.sopas_timeout_ms, m_config.node, &parser, m_config.sopas_cola_binary ? 'B' : 'A');
+            sopas_tcp = new sick_scan_xd::SickScanCommonTcp(m_config.hostname, m_config.sopas_tcp_port, m_config.sopas_timeout_ms, m_config.node, &parser, m_config.sopas_cola_binary ? 'B' : 'A');
             ROS_INFO_STREAM("MsgPackThreads: initializing device");
             sopas_tcp->init_device(); // sopas_tcp->init();
             sopas_tcp->setReadTimeOutInMs(m_config.sopas_timeout_ms);
             ROS_INFO_STREAM("MsgPackThreads: initializing services");
-            sopas_service = new sick_scan::SickScanServices(m_config.node, sopas_tcp, &basic_param);
+            sopas_service = new sick_scan_xd::SickScanServices(m_config.node, sopas_tcp, &basic_param);
             ROS_INFO_STREAM("MsgPackThreads: ros services initialized");
         }
         else

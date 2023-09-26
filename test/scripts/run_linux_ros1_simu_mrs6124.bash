@@ -14,8 +14,8 @@ if [ $roscore_running -lt 1 ] ; then
   sleep 3
 fi
 
-# Start sick_scan emulator
-roslaunch sick_scan emulator_mrs6124.launch &
+# Start sick_scan_xd emulator
+roslaunch sick_scan_xd emulator_mrs6124.launch &
 sleep 1
 
 # Start rviz
@@ -25,10 +25,10 @@ sleep 1
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_mrs6124.rviz --opengl 210 &
 sleep 1
 
-# Start sick_scan driver for mrs6124
-echo -e "Launching sick_scan sick_mrs_6xxx.launch\n"
-# roslaunch sick_scan sick_mrs_6xxx.launch hostname:=192.168.0.151 &
-roslaunch sick_scan sick_mrs_6xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+# Start sick_scan_xd driver for mrs6124
+echo -e "Launching sick_scan_xd sick_mrs_6xxx.launch\n"
+# roslaunch sick_scan_xd sick_mrs_6xxx.launch hostname:=192.168.0.151 &
+roslaunch sick_scan_xd sick_mrs_6xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 sleep 1
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed

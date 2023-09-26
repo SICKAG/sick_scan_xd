@@ -24,7 +24,7 @@ sleep 1
 # Start image viewer (simple standalone pointcloud visualization)
 firefox ./demo/image_viewer_api_test.html &
 
-# Start sick_scan api example
+# Start sick_scan_xd api example
 ./build_linux/sick_scan_xd_api_test ./launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
 popd
 

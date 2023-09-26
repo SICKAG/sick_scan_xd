@@ -28,7 +28,7 @@ function killRestartEmulator () {
   killall -9 sick_scan_emulator
   sleep $delay
   echo -e "run_simu_reconnnect.bash: restarting sick_scan_emulator...\n"
-  roslaunch sick_scan emulator_mrs1104.launch &
+  roslaunch sick_scan_xd emulator_mrs1104.launch &
 }
 
 # killRestartEmulatorOnce delay kills sick_scan_emulator, restarts sick_scan_emulator after a given delay in seconds and waits for the pointcloud messages
@@ -36,7 +36,7 @@ function killRestartEmulatorOnce () {
   local delay=$1
   killRestartEmulator $delay
   sleep 20
-  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 }
 
 # killRestartEmulatorTwice delay kills sick_scan_emulator and restarts sick_scan_emulator twice with a given delay and waits for the pointcloud messages
@@ -46,7 +46,7 @@ function killRestartEmulatorTwice () {
   sleep $delay
   killRestartEmulator $delay
   sleep 20
-  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 }
 
 # killRestartEmulatorTwice delay kills sick_scan_emulator and restarts sick_scan_emulator three times with a given delay and waits for the pointcloud messages
@@ -58,7 +58,7 @@ function killRestartEmulatorThreeTimes () {
   sleep $delay
   killRestartEmulator $delay
   sleep 20
-  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 }
 
 # killRestartEmulatorTwice delay kills sick_scan_emulator and restarts sick_scan_emulator a random number of times with a random delay and finally waits for the pointcloud messages
@@ -71,7 +71,7 @@ function killRestartEmulatorRandomly () {
     sleep $rand_delay
   done
   sleep 20
-  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 }
 
 # Run ros1 simulation with reconnecting
@@ -93,8 +93,8 @@ if [ $roscore_running -lt 1 ] ; then
   sleep 3
 fi
 
-# Start sick_scan emulator
-roslaunch sick_scan emulator_mrs1104.launch &
+# Start sick_scan_xd emulator
+roslaunch sick_scan_xd emulator_mrs1104.launch &
 sleep 1
 
 # Start rviz
@@ -104,9 +104,9 @@ sleep 1
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_mrs1104.rviz --opengl 210 &
 sleep 1
 
-# Start sick_scan driver for mrs1104
-echo -e "run_simu_reconnnect.bash: Launching sick_scan sick_mrs_1xxx.launch\n"
-roslaunch sick_scan sick_mrs_1xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+# Start sick_scan_xd driver for mrs1104
+echo -e "run_simu_reconnnect.bash: Launching sick_scan_xd sick_mrs_1xxx.launch\n"
+roslaunch sick_scan_xd sick_mrs_1xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 sleep 10
 
 # Shutdown and restart emulator during both init and measurement, driver has to reconnect
@@ -124,7 +124,7 @@ for n in {1..10} ; do
 done
 
 # Ensure that driver receives tcp messages after reconnect
-rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 for n in {1..10} ; do  
   echo -e "mrs1104 emulation running. Close rviz or press 'q' to exit..." ; read -t 1.0 -n1 -s key
   if [[ $key = "q" ]] || [[ $key = "Q" ]]; then break ; fi

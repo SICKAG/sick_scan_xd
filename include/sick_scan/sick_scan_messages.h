@@ -66,7 +66,7 @@
 #include "sick_scan/sick_scan_common.h"
 #include "sick_scan/sick_scan_common_tcp.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   class SickScanMessages
@@ -135,5 +135,5 @@ namespace sick_scan
 
   }; /* class SickScanMessages */
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_SCAN_MESSAGES_H_ */

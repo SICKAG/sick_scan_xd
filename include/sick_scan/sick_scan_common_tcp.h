@@ -67,7 +67,7 @@
 #include "sick_generic_parser.h"
 #include "template_queue.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 /* class prepared for optimized time stamping */
 
@@ -192,6 +192,6 @@ namespace sick_scan
   };
 
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_TIM3XX_COMMON_TCP_H */
 

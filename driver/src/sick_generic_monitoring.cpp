@@ -58,14 +58,14 @@
 #include <sick_scan/sick_generic_monitoring.h>
 
 /** Constructor */
-sick_scan::SickScanMonitor::SickScanMonitor(int read_timeout_millisec)
+sick_scan_xd::SickScanMonitor::SickScanMonitor(int read_timeout_millisec)
 {
   m_read_timeout_millisec = read_timeout_millisec;   // read timeout in milliseconds, messages are expected after max <read_timeout_millisec> delay (otherwise timeout and scanner re-init)
   m_lastRunState = scanner_init; // runState of last check: scanner_init, scanner_run or scanner_finalize
 }
 
 /** Destructor */
-sick_scan::SickScanMonitor::~SickScanMonitor()
+sick_scan_xd::SickScanMonitor::~SickScanMonitor()
 {
 }
 
@@ -73,16 +73,16 @@ sick_scan::SickScanMonitor::~SickScanMonitor()
 * @brief Monitors incoming scanner messages.
 *        In case of read timeouts, checkState returns ExitError, otherwise ExitSuccess.
 */
-sick_scan::ExitCode sick_scan::SickScanMonitor::checkState(NodeRunState runState, SickScanCommonTcp* scanner, sick_scan::SickGenericParser *parser, sick_scan::SickScanServices* services)
+sick_scan_xd::ExitCode sick_scan_xd::SickScanMonitor::checkState(NodeRunState runState, SickScanCommonTcp* scanner, sick_scan_xd::SickGenericParser *parser, sick_scan_xd::SickScanServices* services)
 {
   if(m_lastRunState != runState) // wait for new messages after state change
   {
     m_lastRunState = runState;
-    return sick_scan::ExitSuccess; // OK
+    return sick_scan_xd::ExitSuccess; // OK
   }
   // if(scanner->numberOfDatagramInInputFifo() > 0) // still pending messages in receive queue
   // {
-  //   return sick_scan::ExitSuccess; // OK
+  //   return sick_scan_xd::ExitSuccess; // OK
   // }
 
   if(runState == scanner_run)
@@ -94,7 +94,7 @@ sick_scan::ExitCode sick_scan::SickScanMonitor::checkState(NodeRunState runState
 
     if(nanosec_last_tcp_msg == 0)
     {
-      return sick_scan::ExitSuccess; // OK, wait for first message
+      return sick_scan_xd::ExitSuccess; // OK, wait for first message
     }
 
     // Set read timeout to configured value (if we're in state scanner_run)
@@ -106,11 +106,11 @@ sick_scan::ExitCode sick_scan::SickScanMonitor::checkState(NodeRunState runState
     {
       // read timeout
       ROS_ERROR_STREAM("## ERROR SickScanMonitor::checkState(): read timeout after " << dt << " sec, timeout (" << read_timeout << " sec) exceeded." );
-      return sick_scan::ExitError; // timeout error
+      return sick_scan_xd::ExitError; // timeout error
     }
 
   }
-  return sick_scan::ExitSuccess; // OK
+  return sick_scan_xd::ExitSuccess; // OK
 }
 
 /*
@@ -118,11 +118,11 @@ sick_scan::ExitCode sick_scan::SickScanMonitor::checkState(NodeRunState runState
 *        In case of read timeouts, checkStateReinitOnError closes the tcp connection, re-initializes the scanner.
 *        Returns ExitSuccess (no timeout or successful re-init), or ExitError otherwise.
 */
-sick_scan::ExitCode sick_scan::SickScanMonitor::checkStateReinitOnError(rosNodePtr nh, NodeRunState runState, SickScanCommonTcp* scanner, sick_scan::SickGenericParser *parser, sick_scan::SickScanServices* services)
+sick_scan_xd::ExitCode sick_scan_xd::SickScanMonitor::checkStateReinitOnError(rosNodePtr nh, NodeRunState runState, SickScanCommonTcp* scanner, sick_scan_xd::SickGenericParser *parser, sick_scan_xd::SickScanServices* services)
 {
-  if (checkState(runState, scanner, parser, services) == sick_scan::ExitSuccess)
+  if (checkState(runState, scanner, parser, services) == sick_scan_xd::ExitSuccess)
   {
-    return sick_scan::ExitSuccess; // connection ok, messages have been received within configured timeout.
+    return sick_scan_xd::ExitSuccess; // connection ok, messages have been received within configured timeout.
   }
   else // read timeout or tcp error
   {
@@ -130,12 +130,12 @@ sick_scan::ExitCode sick_scan::SickScanMonitor::checkStateReinitOnError(rosNodeP
     ROS_ERROR("## ERROR in sick_scan_xd: restarting scanner after read timeout");
     try
     {
-      while (rosOk() && scanner->reinit(nh, m_read_timeout_millisec) != sick_scan::ExitSuccess)
+      while (rosOk() && scanner->reinit(nh, m_read_timeout_millisec) != sick_scan_xd::ExitSuccess)
       {
         ROS_ERROR("## ERROR in sick_scan_xd: reinit scanner failed, retrying ..");
       }
       ROS_INFO("sick_scan_xd: scanner successfully reinitialized after timeout");
-      return sick_scan::ExitSuccess;
+      return sick_scan_xd::ExitSuccess;
     }
     catch(const std::exception& e)
     {
@@ -146,17 +146,17 @@ sick_scan::ExitCode sick_scan::SickScanMonitor::checkStateReinitOnError(rosNodeP
       ROS_ERROR_STREAM("## ERROR in SickScanMonitor::checkStateReinitOnError: unknown exception ");
     }
   }
-  return sick_scan::ExitError;
+  return sick_scan_xd::ExitError;
 }
 
 /** Constructor */
-sick_scan::PointCloudMonitor::PointCloudMonitor()
+sick_scan_xd::PointCloudMonitor::PointCloudMonitor()
 : m_monitoring_thread(0), m_monitoring_thread_running(false)
 {
 }
 
 /** Destructor */
-sick_scan::PointCloudMonitor::~PointCloudMonitor()
+sick_scan_xd::PointCloudMonitor::~PointCloudMonitor()
 {
   stopPointCloudMonitoring();
 }
@@ -165,14 +165,14 @@ sick_scan::PointCloudMonitor::~PointCloudMonitor()
 * @brief Starts a thread to monitor point cloud messages.
 *        The ros node will be killed, if no point cloud is published within a given amount of time.
 */
-bool sick_scan::PointCloudMonitor::startPointCloudMonitoring(rosNodePtr nh, int timeout_millisec, const std::string& ros_cloud_topic)
+bool sick_scan_xd::PointCloudMonitor::startPointCloudMonitoring(rosNodePtr nh, int timeout_millisec, const std::string& ros_cloud_topic)
 {
   m_nh = nh;
   m_timeout_millisec = timeout_millisec;
   m_ros_cloud_topic = ros_cloud_topic;
 #if defined __ROS_VERSION && __ROS_VERSION > 0
   m_monitoring_thread_running = true;
-  m_monitoring_thread = new std::thread(&sick_scan::PointCloudMonitor::runMonitoringThreadCb, this);
+  m_monitoring_thread = new std::thread(&sick_scan_xd::PointCloudMonitor::runMonitoringThreadCb, this);
   return true;
 #else
   ROS_ERROR("## ERROR PointCloudMonitor supported on ROS only");
@@ -183,7 +183,7 @@ bool sick_scan::PointCloudMonitor::startPointCloudMonitoring(rosNodePtr nh, int 
 /*
  * @brief Stops the thread to monitor point cloud messages.
  */
-void sick_scan::PointCloudMonitor::stopPointCloudMonitoring(void)
+void sick_scan_xd::PointCloudMonitor::stopPointCloudMonitoring(void)
 {
   m_monitoring_thread_running = false;
   if(m_monitoring_thread)
@@ -195,14 +195,14 @@ void sick_scan::PointCloudMonitor::stopPointCloudMonitoring(void)
 }
 
 /** Callback for point cloud messages */
-void sick_scan::PointCloudMonitor::messageCbPointCloud(const ros_sensor_msgs::PointCloud2 & msg)
+void sick_scan_xd::PointCloudMonitor::messageCbPointCloud(const ros_sensor_msgs::PointCloud2 & msg)
 { 
   // ROS_INFO_STREAM("PointCloudMonitor::messageCbPointCloud: new message after " << (1.0e-9 * rosNanosecTimestampNow() - 1.0e-9 * m_last_msg_timestamp_nanosec) << " seconds");
   m_last_msg_timestamp_nanosec = rosNanosecTimestampNow();
 }
 
 /** ROS2-callback for point cloud messages  */
-void sick_scan::PointCloudMonitor::messageCbPointCloudROS2(const std::shared_ptr<ros_sensor_msgs::PointCloud2> msg) 
+void sick_scan_xd::PointCloudMonitor::messageCbPointCloudROS2(const std::shared_ptr<ros_sensor_msgs::PointCloud2> msg) 
 { 
   messageCbPointCloud(*msg); 
 }
@@ -212,7 +212,7 @@ void sick_scan::PointCloudMonitor::messageCbPointCloudROS2(const std::shared_ptr
  *        If no point cloud is published within the timeout (150 sec. by default),
  *        the process is killed (and the node is restarted by ros)
  */
-void sick_scan::PointCloudMonitor::runMonitoringThreadCb(void)
+void sick_scan_xd::PointCloudMonitor::runMonitoringThreadCb(void)
 {
   // Get process id
 #ifdef _MSC_VER  
@@ -225,18 +225,18 @@ void sick_scan::PointCloudMonitor::runMonitoringThreadCb(void)
   m_last_msg_timestamp_nanosec = rosNanosecTimestampNow();
 #if defined __ROS_VERSION && __ROS_VERSION == 1
   ros::Subscriber pointcloud_subscriber1, pointcloud_subscriber2;
-  pointcloud_subscriber1 = m_nh->subscribe(m_ros_cloud_topic, 1, &sick_scan::PointCloudMonitor::messageCbPointCloud, this);
+  pointcloud_subscriber1 = m_nh->subscribe(m_ros_cloud_topic, 1, &sick_scan_xd::PointCloudMonitor::messageCbPointCloud, this);
   if(m_ros_cloud_topic[0] != '/')
-    pointcloud_subscriber2 = m_nh->subscribe(std::string("/") + m_ros_cloud_topic, 1, &sick_scan::PointCloudMonitor::messageCbPointCloud, this);
+    pointcloud_subscriber2 = m_nh->subscribe(std::string("/") + m_ros_cloud_topic, 1, &sick_scan_xd::PointCloudMonitor::messageCbPointCloud, this);
 #elif defined __ROS_VERSION && __ROS_VERSION == 2
   rclcpp::Subscription<ros_sensor_msgs::PointCloud2>::SharedPtr pointcloud_subscriber1, pointcloud_subscriber2;
   rosQoS qos = rclcpp::SystemDefaultsQoS();
   overwriteByOptionalQOSconfig(m_nh, qos);
   QoSConverter qos_converter;
   ROS_INFO_STREAM("PointCloudMonitor: subscribing to topic " << m_ros_cloud_topic << ", qos=" << qos_converter.convert(qos));
-  pointcloud_subscriber1 = m_nh->create_subscription<ros_sensor_msgs::PointCloud2>(m_ros_cloud_topic, qos, std::bind(&sick_scan::PointCloudMonitor::messageCbPointCloudROS2, this, std::placeholders::_1));
+  pointcloud_subscriber1 = m_nh->create_subscription<ros_sensor_msgs::PointCloud2>(m_ros_cloud_topic, qos, std::bind(&sick_scan_xd::PointCloudMonitor::messageCbPointCloudROS2, this, std::placeholders::_1));
   if(m_ros_cloud_topic[0] != '/')
-    pointcloud_subscriber2 = m_nh->create_subscription<ros_sensor_msgs::PointCloud2>(std::string("/") + m_ros_cloud_topic,10,std::bind(&sick_scan::PointCloudMonitor::messageCbPointCloudROS2, this, std::placeholders::_1));
+    pointcloud_subscriber2 = m_nh->create_subscription<ros_sensor_msgs::PointCloud2>(std::string("/") + m_ros_cloud_topic,10,std::bind(&sick_scan_xd::PointCloudMonitor::messageCbPointCloudROS2, this, std::placeholders::_1));
 #else
   ROS_ERROR("## ERROR PointCloudMonitor supported on ROS only");
   return;

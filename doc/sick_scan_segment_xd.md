@@ -25,9 +25,9 @@ or by command line by e.g.
 # Run sick_scansegment_xd generic without ROS:
 sick_generic_caller ./launch/sick_multiscan.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
 # Run sick_scansegment_xd on ROS-1:
-roslaunch sick_scan sick_multiscan.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
+roslaunch sick_scan_xd sick_multiscan.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
 # Run sick_scansegment_xd on ROS-2:
-ros2 launch sick_scan sick_multiscan.launch.py hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
+ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
 ```
 
 ## SOPAS support
@@ -107,7 +107,7 @@ Msgpack validation leads to error messages in case of udp packet drops. Increase
 
 By default, UDP communication is allowed on localhosts. To enable udp communication between 2 different machines, firewalls have to be configured.
 
-On Windows: Setup the windows firewall to allow sick_scan to receive udp packages on port 2115.
+On Windows: Setup the windows firewall to allow sick_scan_xd to receive udp packages on port 2115.
 To pass udp packages from a remote sender, the default rule for incoming udp packages has to be configured in the windows firewall:
 1. Run "wf.msc" as admin,
 2. Click Inbound Rules and locate the rule(s) for lidar3d_msr100_recv (resp. python to allow python test scripts), and

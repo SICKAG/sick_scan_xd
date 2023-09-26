@@ -66,7 +66,7 @@
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_nav_scandata.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
     /** Parse binary NAV350 position data telegrams, i.e. parse NAV350 "sAN mNPOSGetData version errorCode wait mask poseData [x y phi optPoseData [outputMode timestamp meanDev navMode infoState quantUsedReflectors]]
     **  landmarkData [landmarkFilter reflectors [cart [X Y] polar [D Phi] optLandmarkData [optLandmarkData…]]] scanData [contentType scaleFactor scaleOffset startAngle angleRes data [aData]]"
@@ -83,7 +83,7 @@ namespace sick_scan
     std::vector<uint8_t> createNAV350BinaryAddLandmarkRequest(const NAV350LandmarkData& landmarkData, int nav_curr_layer);
 
     /** Creates and returns the sopas command "sMN mNLAYAddLandmark landmarkData {x y type subtype size layerID {ID}}" */
-    std::vector<uint8_t> createNAV350BinaryAddLandmarkRequest(const std::vector<sick_scan::NAV350ImkLandmark> landmarks);
+    std::vector<uint8_t> createNAV350BinaryAddLandmarkRequest(const std::vector<sick_scan_xd::NAV350ImkLandmark> landmarks);
 
     /** Creates and returns the sopas command "sMN mNPOSSetSpeed X Y Phi timestamp coordBase" */
     std::vector<uint8_t> createNAV350BinarySetSpeedRequest(const sick_scan_msg::NAVOdomVelocity& msg);
@@ -110,10 +110,10 @@ namespace sick_scan
     ros_visualization_msgs::MarkerArray convertNAVLandmarkDataToMarker(const std::vector<NAV350ReflectorData>& reflectors, ros_std_msgs::Header& header, SickGenericParser* parser_);
 
     /** Import a NAV350 landmark layout from imk file. The NAV350 landmark layout can be stored in imk files using SOPAS ET. Each line in an imk file is formatted "globID x_mm y_mm type subtype size_mm layer1 layer2 layer3" */
-    std::vector<sick_scan::NAV350ImkLandmark> readNAVIMKfile(const std::string& nav_imk_file);
+    std::vector<sick_scan_xd::NAV350ImkLandmark> readNAVIMKfile(const std::string& nav_imk_file);
 
     /** Unittest for parseNAV350BinaryPositionData(): creates, serializes and deserializes NAV350 position data telegrams and checks the identity of results */
     bool parseNAV350BinaryUnittest();
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_NAV_SCANDATA_PARSER_H_ */

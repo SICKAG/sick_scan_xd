@@ -59,7 +59,7 @@
 #include <thread>
 #include <list>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * Class FifoBuffer implements a threadsafe fifo-buffer ("first in, first out").
@@ -222,5 +222,5 @@ namespace sick_scan
     
   }; // class FifoBuffer
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_FIFO_H_INCLUDED

@@ -4,7 +4,7 @@
 # this script must be run by sudo
 #
 # source ./install_isolated/setup.bash
-# while(true) ; do roslaunch sick_scan sick_mrs_6xxx.launch hostname:=192.168.0.25 ; done
+# while(true) ; do roslaunch sick_scan_xd sick_mrs_6xxx.launch hostname:=192.168.0.25 ; done
 #
 # sudo -s
 # source /opt/ros/noetic/setup.bash
@@ -49,7 +49,7 @@ while(true) ; do
   ethernet_on $eth_if # Swith ethernet off
   sleep 5 # make sure no point cloud any more
   echo -e "\ntoggle_ethernet_off_on_ros1.bash: waiting for point cloud message ...\n"
-  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)   
+  rostopic echo -n 10 /cloud > /dev/null # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)   
   echo -e "\ntoggle_ethernet_off_on_ros1.bash: point cloud message received.\n"
   sleep 5 # make sure rviz display the point cloud after reconnect
 done

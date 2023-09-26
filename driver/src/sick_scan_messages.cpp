@@ -76,11 +76,11 @@ template<typename T> static bool readBinaryBuffer(byte_ptr& buffer, int & buffer
     return true;
 }
 
-sick_scan::SickScanMessages::SickScanMessages(rosNodePtr nh)
+sick_scan_xd::SickScanMessages::SickScanMessages(rosNodePtr nh)
 {
 }
 
-sick_scan::SickScanMessages::~SickScanMessages()
+sick_scan_xd::SickScanMessages::~SickScanMessages()
 {
 }
 
@@ -101,7 +101,7 @@ sick_scan::SickScanMessages::~SickScanMessages()
  * 
  * @return true on success, false on error
  */
-bool sick_scan::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, const std::string& frame_id, sick_scan_msg::LIDoutputstateMsg& output_msg)
+bool sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, const std::string& frame_id, sick_scan_msg::LIDoutputstateMsg& output_msg)
 {
     if(useBinaryProtocol)
     {
@@ -249,7 +249,7 @@ bool sick_scan::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeStam
  * 
  * @return true on success, false on error
  */
-bool sick_scan::SickScanMessages::parseLFErecMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, EVAL_FIELD_SUPPORT eval_field_logic, const std::string& frame_id, sick_scan_msg::LFErecMsg& output_msg)
+bool sick_scan_xd::SickScanMessages::parseLFErecMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, EVAL_FIELD_SUPPORT eval_field_logic, const std::string& frame_id, sick_scan_msg::LFErecMsg& output_msg)
 {
     if(useBinaryProtocol)
     {
@@ -388,7 +388,7 @@ bool sick_scan::SickScanMessages::parseLFErecMsg(const rosTime& timeStamp, uint8
 /*
  * @brief returns the sopas command keyword, e.g.: getSopasCmdKeyword("\x02\x02\x02\x02\x00\x00\x00\x8esSN LFErec \x3", 20) returns "LFErec".
  */
-std::string sick_scan::SickScanMessages::getSopasCmdKeyword(const uint8_t* sopasRequest, int requestLength)
+std::string sick_scan_xd::SickScanMessages::getSopasCmdKeyword(const uint8_t* sopasRequest, int requestLength)
 {
     const uint32_t binary_stx = 0x02020202;
     bool requestIsBinary = (requestLength >= sizeof(binary_stx) && memcmp(sopasRequest, &binary_stx, sizeof(binary_stx)) == 0); // Cola-B always starts with 0x02020202

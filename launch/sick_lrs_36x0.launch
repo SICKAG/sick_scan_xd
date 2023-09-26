@@ -10,7 +10,7 @@
     <arg name="nodename" default="sick_lrs_36x0"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
-    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="intensity" type="bool" value="True"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="use_binary_protocol" type="bool" value="true"/>

@@ -5,15 +5,12 @@ REM
 rem set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python36_64;%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python37_64;%PATH%
 rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 
-REM 
 REM Start html view
-REM 
-
-pushd ..\..\demo
-del /f/q scan.jpg scan.csv
-start "ImageViewer" image_viewer.html
-@timeout /t 1
-popd
+rem pushd ..\..\demo
+rem del /f/q scan.jpg scan.csv
+rem start "ImageViewer" image_viewer.html
+rem @timeout /t 1
+rem popd
 
 REM 
 REM Start test server

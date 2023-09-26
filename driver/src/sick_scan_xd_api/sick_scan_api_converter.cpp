@@ -189,9 +189,9 @@ sensor_msgs::Imu SickScanApiConverter::convertImuMsg(const SickScanImuMsg & src_
 }
 
 /* Convert a SickScanLFErecMsg to sick_scan_msg::LFErecMsg (ROS-1 only) */
-sick_scan::LFErecMsg SickScanApiConverter::convertLFErecMsg(const SickScanLFErecMsg& src_msg)
+sick_scan_xd::LFErecMsg SickScanApiConverter::convertLFErecMsg(const SickScanLFErecMsg& src_msg)
 {
-    sick_scan::LFErecMsg dst_msg;
+    sick_scan_xd::LFErecMsg dst_msg;
     // Copy header
     dst_msg.header.seq = src_msg.header.seq;
     dst_msg.header.stamp.sec = src_msg.header.timestamp_sec;
@@ -222,10 +222,10 @@ sick_scan::LFErecMsg SickScanApiConverter::convertLFErecMsg(const SickScanLFErec
     return dst_msg;
 }
 
-/* Convert a SickScanLIDoutputstateMsg to sick_scan::LIDoutputstateMsg (ROS-1 only) */
-sick_scan::LIDoutputstateMsg SickScanApiConverter::convertLIDoutputstateMsg(const SickScanLIDoutputstateMsg& src_msg)
+/* Convert a SickScanLIDoutputstateMsg to sick_scan_xd::LIDoutputstateMsg (ROS-1 only) */
+sick_scan_xd::LIDoutputstateMsg SickScanApiConverter::convertLIDoutputstateMsg(const SickScanLIDoutputstateMsg& src_msg)
 {
-    sick_scan::LIDoutputstateMsg dst_msg;
+    sick_scan_xd::LIDoutputstateMsg dst_msg;
     // Copy header
     dst_msg.header.seq = src_msg.header.seq;
     dst_msg.header.stamp.sec = src_msg.header.timestamp_sec;
@@ -253,10 +253,10 @@ sick_scan::LIDoutputstateMsg SickScanApiConverter::convertLIDoutputstateMsg(cons
     return dst_msg;
 }
 
-/* Convert a SickScanLIDoutputstateMsg to sick_scan::RadarScan (ROS-1 only) */
-sick_scan::RadarScan SickScanApiConverter::convertRadarScanMsg(const SickScanRadarScan& src_msg)
+/* Convert a SickScanLIDoutputstateMsg to sick_scan_xd::RadarScan (ROS-1 only) */
+sick_scan_xd::RadarScan SickScanApiConverter::convertRadarScanMsg(const SickScanRadarScan& src_msg)
 {
-    sick_scan::RadarScan dst_msg;
+    sick_scan_xd::RadarScan dst_msg;
     // Copy header
     dst_msg.header.seq = src_msg.header.seq;
     dst_msg.header.stamp.sec = src_msg.header.timestamp_sec;
@@ -337,7 +337,7 @@ sick_scan::RadarScan SickScanApiConverter::convertRadarScanMsg(const SickScanRad
 }
 
 /* Convert a RadarScan objects to sensor_msgs::PointCloud2 (ROS-1 only) */
-sensor_msgs::PointCloud2 SickScanApiConverter::convertRadarObjectsToPointCloud(const SickScanHeader& header, const sick_scan::RadarObject* radar_objects, int num_objects)
+sensor_msgs::PointCloud2 SickScanApiConverter::convertRadarObjectsToPointCloud(const SickScanHeader& header, const sick_scan_xd::RadarObject* radar_objects, int num_objects)
 {
     sensor_msgs::PointCloud2 ros_pointcloud;
     // Copy pointcloud header
@@ -377,9 +377,9 @@ sensor_msgs::PointCloud2 SickScanApiConverter::convertRadarObjectsToPointCloud(c
 }
 
 /* Convert a SickScanLdmrsObjectArray to sensor_msgs::SickLdmrsObjectArray (ROS-1 only) */
-sick_scan::SickLdmrsObjectArray SickScanApiConverter::convertLdmrsObjectArray(const SickScanLdmrsObjectArray& src_msg)
+sick_scan_xd::SickLdmrsObjectArray SickScanApiConverter::convertLdmrsObjectArray(const SickScanLdmrsObjectArray& src_msg)
 {
-    sick_scan::SickLdmrsObjectArray dst_msg;
+    sick_scan_xd::SickLdmrsObjectArray dst_msg;
     // Copy header
     dst_msg.header.seq = src_msg.header.seq;
     dst_msg.header.stamp.sec = src_msg.header.timestamp_sec;

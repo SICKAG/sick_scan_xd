@@ -385,11 +385,11 @@ class ros::ServiceServer ros::NodeHandle::advertiseService(struct ros::Advertise
 	return(server);
 }
 
-//sick_scan::AbstractParser::AbstractParser(void)
+//sick_scan_xd::AbstractParser::AbstractParser(void)
 //{
 //}
 
-//sick_scan::AbstractParser::~AbstractParser(void)
+//sick_scan_xd::AbstractParser::~AbstractParser(void)
 //{
 //}
 

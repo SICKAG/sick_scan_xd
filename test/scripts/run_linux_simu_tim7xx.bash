@@ -6,12 +6,11 @@
 
 pushd ../..
 
-
-pushd ./demo
-rm -f ./scan.jpg ./scan.csv
-firefox ./image_viewer.html &
-sleep 1
-popd
+# pushd ./demo
+# rm -f ./scan.jpg ./scan.csv
+# firefox ./image_viewer.html &
+# sleep 1
+# popd
 
 cp -f ./test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng.json /tmp/lmd_scandata.pcapng.json
 ./build_linux/sick_scan_emulator ./test/emulator/launch/emulator_01_default.launch &

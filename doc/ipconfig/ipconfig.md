@@ -1,7 +1,7 @@
 # IP address configuration
 ## Detecting SICK devices in the network 
 The Python script 
-```sick_scan/tools/sick_generic_device_finder/sick_generic_device_finder.py```
+```sick_scan_xd/tools/sick_generic_device_finder/sick_generic_device_finder.py```
 sends a UDP broadcast to which all available scanners respond with a device description.
 The varibale ```UDP_IP = "192.168.0.255"``` defines the broardcast address used by the script. 
 If you are using a different IP address configuration on your host pc you have to change this variable according to the brodcast address of your network card.   
@@ -10,9 +10,9 @@ If you are using a different IP address configuration on your host pc you have t
 The IP address of the device can be changed with a customized launch file.
 The following launch sequence is an example:
  
-```roslaunch sick_scan sick_new_ip.launch hostname:=192.168.0.1 new_IP:=192.168.0.100```
+```roslaunch sick_scan_xd sick_new_ip.launch hostname:=192.168.0.1 new_IP:=192.168.0.100```
 
-The launchfile restarts the lidar after the address change and stops the sick_scan node. After a few seconds of booting time the scanner is reachable under the new IP address. The Python script is experimental. It is known that some ethernet adapter are not fully supported. As a fallback solution you can always use the SOPAS ET software under windows.
+The launchfile restarts the lidar after the address change and stops the sick_scan_xd node. After a few seconds of booting time the scanner is reachable under the new IP address. The Python script is experimental. It is known that some ethernet adapter are not fully supported. As a fallback solution you can always use the SOPAS ET software under windows.
 
 ## Starting with a new lidar
 The lidar is delivered with a standard IP address, to read or change it the [SICK SOPAS ET](https://www.sick.com/de/de/sopas-engineering-tool-2018/p/p367244) for windows can be used.

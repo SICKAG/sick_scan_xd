@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- LAUNCH FILE                                     -->
 <!-- SCANNER: MRS1104 and similiar                   -->
-<!-- Call:  roslaunch sick_scan sick_mrs_1xxx.launch -->
+<!-- Call:  roslaunch sick_scan_xd sick_mrs_1xxx.launch -->
 <!-- start and stop angle is given in [rad] in the ROS coordinate sstem-->
 <!-- 
 default min_angle for this scanner type is  -137.5 degree. 
@@ -20,7 +20,7 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="ang_res" default="0" />                   <!-- Supported values are "0.0625", "0.125" and "0.25". Default: "0", i.e. do not set or overwrite angular resolution and scan frequency -->
     <arg name="scan_freq" default="0" />                 <!-- Supported values are "12.5", "25" and "50". Default: "0", i.e. do not set or overwrite angular resolution and scan frequency -->
     <arg name="scan_layer_filter" default="4 1 1 1 1"/>  <!-- Optional ScanLayerFilter settings: "<number of layers> <layer 1: on/off> … <layer N: on/off>", e.g. "4 1 1 1 1" (default) for all layers,  "4 0 1 0 0" for layer 2 at 0 deg ot "" to disable ScanLayerFilter settings --> 
-    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- launch-prefix="gdb -ex run - -args" -->
         <!-- default values: -->
         <!-- Value interpretation of "filter_echos": 0 = First Echo, 1 = All Echos, 2 = Last Echo (see "sWN FREchoFilter") -->

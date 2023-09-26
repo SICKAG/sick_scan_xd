@@ -39,19 +39,19 @@
 
 #include <sick_scan/ldmrs/sick_ldmrs_node.h>
 
-sick_scan::SickLdmrsNode::SickLdmrsNode()
+sick_scan_xd::SickLdmrsNode::SickLdmrsNode()
 : m_nh(0), m_diagnostics(0), m_manager(0), m_app(0), m_ldmrs(0)
 {
 }
 
-sick_scan::SickLdmrsNode::~SickLdmrsNode()
+sick_scan_xd::SickLdmrsNode::~SickLdmrsNode()
 {
   delete(m_manager);
   delete(m_app);
   delete(m_ldmrs);
 }
 
-int sick_scan::SickLdmrsNode::init(rosNodePtr nh, const std::string & hostName, const std::string & frameId)
+int sick_scan_xd::SickLdmrsNode::init(rosNodePtr nh, const std::string & hostName, const std::string & frameId)
 {
   m_nh = nh;
 #if __ROS_VERSION == 1
@@ -81,7 +81,7 @@ int sick_scan::SickLdmrsNode::init(rosNodePtr nh, const std::string & hostName, 
   if (result == false)
   {
     ROS_ERROR_STREAM("Failed to add application " << name << ", aborting!");
-    return sick_scan::ExitError;
+    return sick_scan_xd::ExitError;
   }
   ROS_INFO_STREAM("Application is running.");
 
@@ -106,7 +106,7 @@ int sick_scan::SickLdmrsNode::init(rosNodePtr nh, const std::string & hostName, 
   if (result == false)
   {
     ROS_ERROR_STREAM("Failed to add device " << name << ", aborting!");
-    return sick_scan::ExitError;
+    return sick_scan_xd::ExitError;
   }
 
   std::string serial_number = m_ldmrs->getSerialNumber();
@@ -124,13 +124,13 @@ int sick_scan::SickLdmrsNode::init(rosNodePtr nh, const std::string & hostName, 
   m_app->init();
 
   ROS_INFO_STREAM("sick_ldmrs_driver is initialized.");
-  return sick_scan::ExitSuccess;
+  return sick_scan_xd::ExitSuccess;
 }
 
-int sick_scan::SickLdmrsNode::run(void)
+int sick_scan_xd::SickLdmrsNode::run(void)
 {
   rosSpin(m_nh);
-  return sick_scan::ExitSuccess;
+  return sick_scan_xd::ExitSuccess;
 }
 
 #endif // LDMRS_SUPPORT && LDMRS_SUPPORT > 0

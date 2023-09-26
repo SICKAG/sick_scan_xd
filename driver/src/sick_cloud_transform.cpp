@@ -66,11 +66,11 @@
 * It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages
 */
 
-sick_scan::SickCloudTransform::SickCloudTransform()
+sick_scan_xd::SickCloudTransform::SickCloudTransform()
 {
 }
 
-sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, bool cartesian_input_only)
+sick_scan_xd::SickCloudTransform::SickCloudTransform(rosNodePtr nh, bool cartesian_input_only)
 {
     m_nh = nh;
     std::string add_transform_xyz_rpy = "0,0,0,0,0,0";
@@ -85,7 +85,7 @@ sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, bool cartesian_
     }
 }
 
-sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, const std::string& add_transform_xyz_rpy, bool cartesian_input_only, bool add_transform_check_dynamic_updates)
+sick_scan_xd::SickCloudTransform::SickCloudTransform(rosNodePtr nh, const std::string& add_transform_xyz_rpy, bool cartesian_input_only, bool add_transform_check_dynamic_updates)
 {
     m_nh = nh;
     if (!init(add_transform_xyz_rpy, cartesian_input_only, add_transform_check_dynamic_updates))
@@ -95,7 +95,7 @@ sick_scan::SickCloudTransform::SickCloudTransform(rosNodePtr nh, const std::stri
 }
 
 // Initializes rotation matrix and translation vector from a 6D pose configuration (x,y,z,roll,pitch,yaw) in [m] resp. [rad]
-bool sick_scan::SickCloudTransform::init(const std::string& add_transform_xyz_rpy, bool cartesian_input_only, bool add_transform_check_dynamic_updates)
+bool sick_scan_xd::SickCloudTransform::init(const std::string& add_transform_xyz_rpy, bool cartesian_input_only, bool add_transform_check_dynamic_updates)
 {
     // Split string add_transform_xyz_rpy to 6D pose x,y,z,roll,pitch,yaw in [m] resp. [rad]
     std::istringstream config_stream(add_transform_xyz_rpy);
@@ -171,7 +171,7 @@ bool sick_scan::SickCloudTransform::init(const std::string& add_transform_xyz_rp
 }
 
 // converts roll (rotation about X), pitch (rotation about Y), yaw (rotation about Z) to 3x3 rotation matrix
-sick_scan::SickCloudTransform::Matrix3x3 sick_scan::SickCloudTransform::eulerToRot3x3(float roll, float pitch, float yaw)
+sick_scan_xd::SickCloudTransform::Matrix3x3 sick_scan_xd::SickCloudTransform::eulerToRot3x3(float roll, float pitch, float yaw)
 {
     // roll: rotation about x axis
     Matrix3x3 rot_x = {
@@ -197,7 +197,7 @@ sick_scan::SickCloudTransform::Matrix3x3 sick_scan::SickCloudTransform::eulerToR
 }
 
 // Multiply two 3x3 matrices, return a * b
-sick_scan::SickCloudTransform::Matrix3x3 sick_scan::SickCloudTransform::multiply3x3(const sick_scan::SickCloudTransform::Matrix3x3& a, const sick_scan::SickCloudTransform::Matrix3x3& b)
+sick_scan_xd::SickCloudTransform::Matrix3x3 sick_scan_xd::SickCloudTransform::multiply3x3(const sick_scan_xd::SickCloudTransform::Matrix3x3& a, const sick_scan_xd::SickCloudTransform::Matrix3x3& b)
 {
     Matrix3x3 result3x3 = {
 

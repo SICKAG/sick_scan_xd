@@ -23,8 +23,8 @@ cat build/catkin_make_install.log | grep -i "warning:"
 echo -e "\ncatkin_make errors:"
 cat build/catkin_make_install.log | grep -i "error:"
 
-# print sick_scan binaries
-echo -e "\ninstall/lib/sick_scan:"
-ls -al ./install/lib/sick_scan
+# print sick_scan_xd binaries
+echo -e "\ninstall/lib/sick_scan_xd:"
+ls -al ./install/lib/sick_scan_xd
 popd
 

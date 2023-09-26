@@ -72,7 +72,7 @@
 #include "sick_scan/sick_generic_laser.h"
 #include "sick_scan/sick_scan_common.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   namespace test
   {
@@ -125,5 +125,5 @@ namespace sick_scan
     }; // class TestServerThread
 
   } // namespace test
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SICK_SCAN_TEST_SERVER_THREAD_H_INCLUDED

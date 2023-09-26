@@ -61,7 +61,7 @@
  * @param[in] service_request ros request for service SickDevSetLidarConfigSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDevSetLidarConfigSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickDevSetLidarConfigSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN DevSetLidarConfig";
@@ -79,14 +79,14 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDe
  * @param[out] service_response converted response for service SickDevSetLidarConfigSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevSetLidarConfigSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevSetLidarConfigSrv::Response& service_response)
 {
   service_response.set = false;
   service_response.executed = false;
   if(cola_response.parameter.size() == 2)
   {
-    service_response.set = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
-    service_response.executed = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[1], false);
+    service_response.set = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.executed = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[1], false);
   }
   return service_response.set;
 }
@@ -96,7 +96,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickDevGetLidarConfigSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDevGetLidarConfigSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickDevGetLidarConfigSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN DevGetLidarConfig";
@@ -110,46 +110,46 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDe
  * @param[out] service_response converted response for service SickDevGetLidarConfigSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevGetLidarConfigSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevGetLidarConfigSrv::Response& service_response)
 {
   if(cola_response.parameter.size() == 13)
   {
-    service_response.minrange = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
-    service_response.maxrange = sick_scan::ColaParser::convertColaArg(cola_response.parameter[1], -1, 0U);
-    service_response.minangle = sick_scan::ColaParser::convertColaArg(cola_response.parameter[2], -1, 0);
-    service_response.maxangle = sick_scan::ColaParser::convertColaArg(cola_response.parameter[3], -1, 0);
-    service_response.x = sick_scan::ColaParser::convertColaArg(cola_response.parameter[4], -1, 0);
-    service_response.y = sick_scan::ColaParser::convertColaArg(cola_response.parameter[5], -1, 0);
-    service_response.yaw = sick_scan::ColaParser::convertColaArg(cola_response.parameter[6], -1, 0);
-    service_response.upsidedown = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[7], false);
+    service_response.minrange = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
+    service_response.maxrange = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[1], -1, 0U);
+    service_response.minangle = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[2], -1, 0);
+    service_response.maxangle = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[3], -1, 0);
+    service_response.x = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[4], -1, 0);
+    service_response.y = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[5], -1, 0);
+    service_response.yaw = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[6], -1, 0);
+    service_response.upsidedown = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[7], false);
     service_response.ip = cola_response.parameter[8];
-    service_response.port = sick_scan::ColaParser::convertColaArg(cola_response.parameter[9], -1, 0U);
-    service_response.interfacetype = sick_scan::ColaParser::convertColaArg(cola_response.parameter[10], -1, 0U);
-    service_response.maplayer = sick_scan::ColaParser::convertColaArg(cola_response.parameter[11], -1, 0U);
-    service_response.active = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[12], false);
+    service_response.port = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[9], -1, 0U);
+    service_response.interfacetype = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[10], -1, 0U);
+    service_response.maplayer = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[11], -1, 0U);
+    service_response.active = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[12], false);
     return true;
   }
   if(cola_response.parameter.size() >= 14)
   {
-    service_response.minrange = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
-    service_response.maxrange = sick_scan::ColaParser::convertColaArg(cola_response.parameter[1], -1, 0U);
-    service_response.minangle = sick_scan::ColaParser::convertColaArg(cola_response.parameter[2], -1, 0);
-    service_response.maxangle = sick_scan::ColaParser::convertColaArg(cola_response.parameter[3], -1, 0);
-    service_response.x = sick_scan::ColaParser::convertColaArg(cola_response.parameter[4], -1, 0);
-    service_response.y = sick_scan::ColaParser::convertColaArg(cola_response.parameter[5], -1, 0);
-    service_response.yaw = sick_scan::ColaParser::convertColaArg(cola_response.parameter[6], -1, 0);
-    service_response.upsidedown = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[7], false);
+    service_response.minrange = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
+    service_response.maxrange = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[1], -1, 0U);
+    service_response.minangle = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[2], -1, 0);
+    service_response.maxangle = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[3], -1, 0);
+    service_response.x = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[4], -1, 0);
+    service_response.y = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[5], -1, 0);
+    service_response.yaw = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[6], -1, 0);
+    service_response.upsidedown = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[7], false);
     int n = 8;
-    int ip_strlen = sick_scan::ColaParser::convertColaArg(cola_response.parameter[n++], 10, 0U);
+    int ip_strlen = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[n++], 10, 0U);
     service_response.ip = cola_response.parameter[n++];
     while (n + 4 < cola_response.parameter.size() && service_response.ip.length() < ip_strlen)
     {
         service_response.ip = service_response.ip + " " + cola_response.parameter[n++];
     }
-    service_response.port = sick_scan::ColaParser::convertColaArg(cola_response.parameter[n++], -1, 0U);
-    service_response.interfacetype = sick_scan::ColaParser::convertColaArg(cola_response.parameter[n++], -1, 0U);
-    service_response.maplayer = sick_scan::ColaParser::convertColaArg(cola_response.parameter[n++], -1, 0U);
-    service_response.active = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[n++], false);
+    service_response.port = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[n++], -1, 0U);
+    service_response.interfacetype = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[n++], -1, 0U);
+    service_response.maplayer = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[n++], -1, 0U);
+    service_response.active = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[n++], false);
     return true;
   }
   return false;
@@ -160,7 +160,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocSetMapSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocSetMapSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocSetMapSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocSetMap +" << service_request.mapfilename.length() << " " << service_request.mapfilename;
@@ -173,14 +173,14 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocSetMapSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetMapSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetMapSrv::Response& service_response)
 {
   service_response.set = false;
   service_response.executed = false;
   if(cola_response.parameter.size() == 2)
   {
-    service_response.set = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
-    service_response.executed = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[1], false);
+    service_response.set = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.executed = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[1], false);
   }
   return service_response.set;
 }
@@ -190,7 +190,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocMapSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocMapSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocMapSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocMap";
@@ -203,7 +203,7 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocMapSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocMapSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocMapSrv::Response& service_response)
 {
   service_response.success = false;
   if(cola_response.parameter.size() == 1)
@@ -213,7 +213,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
   }
   if(cola_response.parameter.size() > 1)
   {
-    int str_len = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
+    int str_len = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
     service_response.map = cola_response.parameter[1];
     for (int n = 2; n < cola_response.parameter.size() && service_response.map.length() < str_len; n++)
     {
@@ -229,7 +229,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocMapStateSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocMapStateSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocMapStateSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocMapState";
@@ -242,12 +242,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocMapStateSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocMapStateSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocMapStateSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.mapstate = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.mapstate = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
     service_response.success = true;
   }
   return service_response.success;
@@ -258,7 +258,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocInitializePoseSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocInitializePoseSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocInitializePoseSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocInitializePose";
@@ -272,12 +272,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocInitializePoseSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocInitializePoseSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocInitializePoseSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -287,7 +287,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocInitialPoseSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocInitialPoseSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocInitialPoseSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocInitialPose";
@@ -300,15 +300,15 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocInitialPoseSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocInitialPoseSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocInitialPoseSrv::Response& service_response)
 {
   service_response.success = false;
   if(cola_response.parameter.size() >= 4)
   {
-    service_response.x = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
-    service_response.y = sick_scan::ColaParser::convertColaArg(cola_response.parameter[1], -1, 0);
-    service_response.yaw = sick_scan::ColaParser::convertColaArg(cola_response.parameter[2], -1, 0);
-    service_response.sigmatranslation = sick_scan::ColaParser::convertColaArg(cola_response.parameter[3], -1, 0U);
+    service_response.x = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
+    service_response.y = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[1], -1, 0);
+    service_response.yaw = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[2], -1, 0);
+    service_response.sigmatranslation = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[3], -1, 0U);
     service_response.success = true;
   }
   return service_response.success;
@@ -320,7 +320,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocSetReflectorsForSupportActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocSetReflectorsForSupportActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocSetReflectorsForSupportActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocSetReflectorsForSupportActive";
@@ -334,12 +334,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocSetReflectorsForSupportActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetReflectorsForSupportActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetReflectorsForSupportActiveSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -349,7 +349,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocReflectorsForSupportActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocReflectorsForSupportActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocReflectorsForSupportActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocReflectorsForSupportActive";
@@ -362,12 +362,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocReflectorsForSupportActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocReflectorsForSupportActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocReflectorsForSupportActiveSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.active = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.active = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
     service_response.success = true;
   }
   return service_response.success;
@@ -378,7 +378,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocSetOdometryActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocSetOdometryActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocSetOdometryActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocSetOdometryActive";
@@ -392,14 +392,14 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocSetOdometryActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetOdometryActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetOdometryActiveSrv::Response& service_response)
 {
   service_response.set = false;
   service_response.executed = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.set = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
-    service_response.executed = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[1], false);
+    service_response.set = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.executed = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[1], false);
   }
   return service_response.set;
 }
@@ -409,7 +409,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocOdometryActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocOdometryActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocOdometryActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocOdometryActive";
@@ -422,12 +422,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocOdometryActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocOdometryActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocOdometryActiveSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.active = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.active = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
     service_response.success = true;
   }
   return service_response.success;
@@ -438,7 +438,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocSetOdometryPortSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocSetOdometryPortSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocSetOdometryPortSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocSetOdometryPort";
@@ -452,13 +452,13 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocSetOdometryPortSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetOdometryPortSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetOdometryPortSrv::Response& service_response)
 {
   service_response.set = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.set = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
-    service_response.executed = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[1], false);
+    service_response.set = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.executed = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[1], false);
   }
   return service_response.set;
 }
@@ -468,7 +468,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocOdometryPortSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocOdometryPortSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocOdometryPortSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocOdometryPort";
@@ -481,12 +481,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocOdometryPortSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocOdometryPortSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocOdometryPortSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.port = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
+    service_response.port = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
     service_response.success = true;
   }
   return service_response.success;
@@ -497,7 +497,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocSetOdometryRestrictYMotionSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocSetOdometryRestrictYMotionSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocSetOdometryRestrictYMotionSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocSetOdometryRestrictYMotion";
@@ -511,12 +511,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocSetOdometryRestrictYMotionSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetOdometryRestrictYMotionSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetOdometryRestrictYMotionSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -526,7 +526,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocOdometryRestrictYMotionSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocOdometryRestrictYMotionSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocOdometryRestrictYMotionSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocOdometryRestrictYMotion";
@@ -539,12 +539,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocOdometryRestrictYMotionSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocOdometryRestrictYMotionSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocOdometryRestrictYMotionSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.active = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.active = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
     service_response.success = true;
   }
   return service_response.success;
@@ -555,7 +555,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocSetAutoStartActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocSetAutoStartActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocSetAutoStartActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocSetAutoStartActive";
@@ -569,12 +569,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocSetAutoStartActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetAutoStartActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetAutoStartActiveSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -584,7 +584,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocAutoStartActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocAutoStartActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocAutoStartActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocAutoStartActive";
@@ -597,12 +597,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocAutoStartActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocAutoStartActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocAutoStartActiveSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.active = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.active = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
     service_response.success = true;
   }
   return service_response.success;
@@ -613,7 +613,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocSetAutoStartSavePoseIntervalSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocSetAutoStartSavePoseIntervalSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocSetAutoStartSavePoseIntervalSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocSetAutoStartSavePoseInterval";
@@ -627,12 +627,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocSetAutoStartSavePoseIntervalSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetAutoStartSavePoseIntervalSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetAutoStartSavePoseIntervalSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -642,7 +642,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocAutoStartSavePoseIntervalSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocAutoStartSavePoseIntervalSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocAutoStartSavePoseIntervalSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocAutoStartSavePoseInterval";
@@ -655,12 +655,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocAutoStartSavePoseIntervalSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocAutoStartSavePoseIntervalSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocAutoStartSavePoseIntervalSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.interval = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
+    service_response.interval = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
     service_response.success = true;
   }
   return service_response.success;
@@ -671,7 +671,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocSetRingBufferRecordingActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocSetRingBufferRecordingActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocSetRingBufferRecordingActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocSetRingBufferRecordingActive";
@@ -685,12 +685,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocSetRingBufferRecordingActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetRingBufferRecordingActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetRingBufferRecordingActiveSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -700,7 +700,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocRingBufferRecordingActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocRingBufferRecordingActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocRingBufferRecordingActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocRingBufferRecordingActive";
@@ -713,12 +713,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocRingBufferRecordingActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocRingBufferRecordingActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocRingBufferRecordingActiveSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.active = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.active = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
     service_response.success = true;
   }
   return service_response.success;
@@ -729,7 +729,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickDevGetLidarIdentSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDevGetLidarIdentSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickDevGetLidarIdentSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN DevGetLidarIdent";
@@ -743,7 +743,7 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDe
  * @param[out] service_response converted response for service SickDevGetLidarIdentSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevGetLidarIdentSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevGetLidarIdentSrv::Response& service_response)
 {
   service_response.success = false;
   if(cola_response.parameter.size() == 1)
@@ -753,7 +753,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
   }
   if(cola_response.parameter.size() > 1)
   {
-    int str_len = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
+    int str_len = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
     service_response.scannerident = cola_response.parameter[1];
     for (int n = 2; n < cola_response.parameter.size() && service_response.scannerident.length() < str_len; n++)
     {
@@ -769,7 +769,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickDevGetLidarStateSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDevGetLidarStateSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickDevGetLidarStateSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN DevGetLidarState";
@@ -783,14 +783,14 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDe
  * @param[out] service_response converted response for service SickDevGetLidarStateSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevGetLidarStateSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevGetLidarStateSrv::Response& service_response)
 {
   service_response.success = false;
   if(cola_response.parameter.size() >= 3)
   {
-    service_response.devicestatus = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
-    service_response.deviceconnected = sick_scan::ColaParser::convertColaArg(cola_response.parameter[1], -1, 0);
-    service_response.receivingdata = sick_scan::ColaParser::convertColaArg(cola_response.parameter[2], -1, 0);
+    service_response.devicestatus = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
+    service_response.deviceconnected = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[1], -1, 0);
+    service_response.receivingdata = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[2], -1, 0);
     service_response.success = true;
   }
   return service_response.success;
@@ -801,7 +801,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickGetSoftwareVersionSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickGetSoftwareVersionSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickGetSoftwareVersionSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN GetSoftwareVersion";
@@ -814,7 +814,7 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickGe
  * @param[out] service_response converted response for service SickGetSoftwareVersionSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickGetSoftwareVersionSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickGetSoftwareVersionSrv::Response& service_response)
 {
   service_response.success = false;
   if(cola_response.parameter.size() == 1)
@@ -824,7 +824,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
   }
   if(cola_response.parameter.size() > 1)
   {
-    int str_len = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
+    int str_len = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0U);
     service_response.version = cola_response.parameter[1];
     for (int n = 2; n < cola_response.parameter.size() && service_response.version.length() < str_len; n++)
     {
@@ -840,7 +840,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocAutoStartSavePoseSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocAutoStartSavePoseSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocAutoStartSavePoseSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocAutoStartSavePose";
@@ -853,12 +853,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocAutoStartSavePoseSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocAutoStartSavePoseSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocAutoStartSavePoseSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -868,7 +868,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocForceUpdateSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocForceUpdateSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocForceUpdateSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocForceUpdate";
@@ -881,12 +881,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocForceUpdateSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocForceUpdateSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocForceUpdateSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -896,7 +896,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocSaveRingBufferRecordingSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocSaveRingBufferRecordingSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocSaveRingBufferRecordingSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocSaveRingBufferRecording";
@@ -910,12 +910,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocSaveRingBufferRecordingSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSaveRingBufferRecordingSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSaveRingBufferRecordingSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -925,7 +925,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocStartDemoMappingSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocStartDemoMappingSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocStartDemoMappingSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN LocStartDemoMapping";
@@ -938,12 +938,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocStartDemoMappingSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocStartDemoMappingSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocStartDemoMappingSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -953,7 +953,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickReportUserMessageSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickReportUserMessageSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickReportUserMessageSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN ReportUserMessage";
@@ -967,12 +967,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickRe
  * @param[out] service_response converted response for service SickReportUserMessageSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickReportUserMessageSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickReportUserMessageSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -982,7 +982,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickSavePermanentSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickSavePermanentSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickSavePermanentSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN SavePermanent";
@@ -995,12 +995,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickSa
  * @param[out] service_response converted response for service SickSavePermanentSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickSavePermanentSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickSavePermanentSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -1010,7 +1010,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocResultPortSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocResultPortSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocResultPortSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocResultPort";
@@ -1023,12 +1023,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocResultPortSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultPortSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultPortSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.port = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
+    service_response.port = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
     service_response.success = true;
   }
   return service_response.success;
@@ -1039,7 +1039,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocResultModeSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocResultModeSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocResultModeSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocResultMode";
@@ -1052,12 +1052,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocResultModeSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultModeSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultModeSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.mode = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
+    service_response.mode = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
     service_response.success = true;
   }
   return service_response.success;
@@ -1068,7 +1068,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocResultEndiannessSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocResultEndiannessSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocResultEndiannessSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocResultEndianness";
@@ -1081,12 +1081,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocResultEndiannessSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultEndiannessSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultEndiannessSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.endianness = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
+    service_response.endianness = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
     service_response.success = true;
   }
   return service_response.success;
@@ -1097,7 +1097,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocResultStateSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocResultStateSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocResultStateSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocResultState";
@@ -1110,12 +1110,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocResultStateSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultStateSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultStateSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.state = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
+    service_response.state = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
     service_response.success = true;
   }
   return service_response.success;
@@ -1126,7 +1126,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickLocResultPoseIntervalSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLocResultPoseIntervalSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickLocResultPoseIntervalSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN LocResultPoseInterval";
@@ -1139,12 +1139,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickLo
  * @param[out] service_response converted response for service SickLocResultPoseIntervalSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultPoseIntervalSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultPoseIntervalSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.interval = sick_scan::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
+    service_response.interval = sick_scan_xd::ColaParser::convertColaArg(cola_response.parameter[0], -1, 0);
     service_response.success = true;
   }
   return service_response.success;
@@ -1155,7 +1155,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickDevSetIMUActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDevSetIMUActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickDevSetIMUActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sMN DevSetIMUActive";
@@ -1169,12 +1169,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDe
  * @param[out] service_response converted response for service SickDevSetIMUActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevSetIMUActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevSetIMUActiveSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.success = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.success = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
   }
   return service_response.success;
 }
@@ -1184,7 +1184,7 @@ bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTe
  * @param[in] service_request ros request for service SickDevIMUActiveSrv
  * @return cola ascii telegram
  */
-std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDevIMUActiveSrv::Request& service_request)
+std::string sick_scan_xd::ColaEncoder::encodeServiceRequest(const sick_scan_xd::SickDevIMUActiveSrv::Request& service_request)
 {
   std::stringstream cola_ascii;
   cola_ascii << "sRN DevIMUActive";
@@ -1197,12 +1197,12 @@ std::string sick_scan::ColaEncoder::encodeServiceRequest(const sick_scan::SickDe
  * @param[out] service_response converted response for service SickDevIMUActiveSrv
  * @return true on succes or false in case of parse errors
  */
-bool sick_scan::ColaEncoder::parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevIMUActiveSrv::Response& service_response)
+bool sick_scan_xd::ColaEncoder::parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevIMUActiveSrv::Response& service_response)
 {
   service_response.success = false;
   if(!cola_response.parameter.empty())
   {
-    service_response.active = sick_scan::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
+    service_response.active = sick_scan_xd::ColaParser::convertColaResponseBool(cola_response.parameter[0], false);
     service_response.success = true;
   }
   return service_response.success;

@@ -17,7 +17,7 @@
 
 <!-- You can launch a LMS_4xxx-scanner on a specific ip address (e.g. 192.68.0.71) using the following example call:
 
-     roslaunch sick_scan sick_lms_4xxx.launch hostname:=192.168.0.71
+     roslaunch sick_scan_xd sick_lms_4xxx.launch hostname:=192.168.0.71
 
 -->
 <!-- Using node option required="true" will close roslaunch after node exits -->
@@ -30,7 +30,7 @@
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="encoder_mode" default="-1"/> <!-- Encoder settings (default: -1, i.e. not set): 0: Off, 1: Single increment, 2: Direction recognition phase, 3: Direction recognition level, 4: Fixed increment speed/ticks (LMS4000 only) -->
-    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
 
         <!-- default values: -->
         <!--

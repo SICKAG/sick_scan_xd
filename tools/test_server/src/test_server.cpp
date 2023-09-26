@@ -95,7 +95,7 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("sick_scan_test_server started, simulating scanner type \"" << scanner_name << "\" on tcp port " << port);
 
   // Start a tcp test server to simulate a lidar device
-  sick_scan::test::TestServerThread test_server_thread(node, scanner_name, port);
+  sick_scan_xd::test::TestServerThread test_server_thread(node, scanner_name, port);
   test_server_thread.start();
 
   // Run ros event loop

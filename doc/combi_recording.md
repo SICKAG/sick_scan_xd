@@ -8,7 +8,7 @@
    * Measurement Unit
    * Switch
    * Permit for measurement in public area
-2. roslaunch sick_scan test_0002_combi_live.launch
+2. roslaunch sick_scan_xd test_0002_combi_live.launch
 3. Check setup using rviz
 4. Close all applications, which are not necessary (like IDE, browser, git client)
 5. Setup Tracking algorithm

@@ -164,7 +164,7 @@ static std::vector<uint8_t> encodeColaTelegram(const std::string & command, cons
   return telegram;
 }
 
-static bool receive(sick_scan::ServerSocket & tcp_client_socket, size_t nr_bytes, bool little_endian, std::vector<uint8_t> & value, bool read_blocking = true)
+static bool receive(sick_scan_xd::ServerSocket & tcp_client_socket, size_t nr_bytes, bool little_endian, std::vector<uint8_t> & value, bool read_blocking = true)
 {
   value.clear();
   value.resize(nr_bytes);
@@ -173,7 +173,7 @@ static bool receive(sick_scan::ServerSocket & tcp_client_socket, size_t nr_bytes
   return true;
 }
 
-static bool receive(sick_scan::ServerSocket & tcp_client_socket, size_t nr_bytes, bool little_endian, size_t & value, bool read_blocking = true)
+static bool receive(sick_scan_xd::ServerSocket & tcp_client_socket, size_t nr_bytes, bool little_endian, size_t & value, bool read_blocking = true)
 {
   value = 0;
   std::vector<uint8_t> buffer;
@@ -201,7 +201,7 @@ static bool receive(sick_scan::ServerSocket & tcp_client_socket, size_t nr_bytes
  * @param[in] send_scan_data_rate frequency to generate and send scan data (default: 20 Hz)
  * @param[in] scan_data_payload scan data payload (without the message header)
  */
-sick_scan::test::TestServerColaMsg::TestServerColaMsg(rosNodePtr nh, double send_scan_data_rate, const std::vector<uint8_t> & scan_data_payload)
+sick_scan_xd::test::TestServerColaMsg::TestServerColaMsg(rosNodePtr nh, double send_scan_data_rate, const std::vector<uint8_t> & scan_data_payload)
 : m_nh(nh), m_send_scan_data_rate(send_scan_data_rate), m_send_scan_data(false), m_send_scan_data_cnt(0)
 {
   m_scan_data_payload = scan_data_payload;
@@ -314,7 +314,7 @@ sick_scan::test::TestServerColaMsg::TestServerColaMsg(rosNodePtr nh, double send
  * @param[out] is_binary always true for LDMRS
  * @return true, if a cola telegram has been received, false otherwise
  */
-bool sick_scan::test::TestServerColaMsg::receiveMessage(sick_scan::ServerSocket & tcp_client_socket, std::vector<uint8_t> & cola_telegram, bool & is_binary)
+bool sick_scan_xd::test::TestServerColaMsg::receiveMessage(sick_scan_xd::ServerSocket & tcp_client_socket, std::vector<uint8_t> & cola_telegram, bool & is_binary)
 {
   is_binary = false;
   cola_telegram.clear();
@@ -354,7 +354,7 @@ bool sick_scan::test::TestServerColaMsg::receiveMessage(sick_scan::ServerSocket 
   }
   else
   {
-    ROS_ERROR_STREAM("sick_scan::test::TestServerColaMsg::receiveMessage(): received 4 byte 0x" << std::hex << stx_received << ", expected <STX>");
+    ROS_ERROR_STREAM("sick_scan_xd::test::TestServerColaMsg::receiveMessage(): received 4 byte 0x" << std::hex << stx_received << ", expected <STX>");
     return false;
   }  
 }
@@ -366,10 +366,10 @@ bool sick_scan::test::TestServerColaMsg::receiveMessage(sick_scan::ServerSocket 
  * @param[out] response response to the client
  * @return true, if a response has been created, false otherwise (no response required or invalid message received)
  */
-bool sick_scan::test::TestServerColaMsg::createResponse(const std::vector<uint8_t> & message_received, bool is_binary, std::vector<uint8_t> & response)
+bool sick_scan_xd::test::TestServerColaMsg::createResponse(const std::vector<uint8_t> & message_received, bool is_binary, std::vector<uint8_t> & response)
 {
   response.clear();
-  // ROS_INFO_STREAM("sick_scan::test::TestServerColaMsg::createResponse(): received cola-" << (is_binary?"b":"a") << " telegram \"" << binDumpVecToString(&message_received, true) << "\"");
+  // ROS_INFO_STREAM("sick_scan_xd::test::TestServerColaMsg::createResponse(): received cola-" << (is_binary?"b":"a") << " telegram \"" << binDumpVecToString(&message_received, true) << "\"");
   // Get response from dictionary
   std::string received_str(message_received.begin(), message_received.end());
   const std::map<std::string, std::vector<uint8_t>> & colaRequestResponseMap = m_colaRequestResponseMap[is_binary?1:0];
@@ -401,7 +401,7 @@ bool sick_scan::test::TestServerColaMsg::createResponse(const std::vector<uint8_
     m_send_scan_data = ((send_scan_data > 0) ? true : false);
     if(m_send_scan_data)
       m_last_scan_data = std::chrono::system_clock::now(); // start scan data with the next cycle
-    ROS_INFO_STREAM("sick_scan::test::TestServerThread::createResponse(): received " << message_received.size() 
+    ROS_INFO_STREAM("sick_scan_xd::test::TestServerThread::createResponse(): received " << message_received.size() 
           << " byte message " << binDumpVecToString(&message_received, true) << " -> " << (m_send_scan_data ? "start" : "stop") << " sending scan data");
   }
   return response.size() > 0;
@@ -412,7 +412,7 @@ bool sick_scan::test::TestServerColaMsg::createResponse(const std::vector<uint8_
  * @param[out] scandata scan data message
  * @return true, if a a scan data message has been created, false otherwise (f.e. if a sensor does not generate scan data)
  */
-bool sick_scan::test::TestServerColaMsg::createScandata(std::vector<uint8_t> & scandata)
+bool sick_scan_xd::test::TestServerColaMsg::createScandata(std::vector<uint8_t> & scandata)
 {
   scandata.clear();
   if(!m_send_scan_data || std::chrono::duration<double>(std::chrono::system_clock::now() - m_last_scan_data).count() < 1/m_send_scan_data_rate) // frequency to generate and send scan data (default: 20 Hz)
@@ -431,9 +431,9 @@ bool sick_scan::test::TestServerColaMsg::createScandata(std::vector<uint8_t> & s
   // Increase counter and range for the next scan
   m_last_scan_data = std::chrono::system_clock::now();
   m_send_scan_data_cnt += 1;
-  ROS_DEBUG_STREAM("sick_scan::test::TestServerColaMsg::createScandata(" << m_send_scan_data_cnt << "): " << scandata.size() << " byte scan data generated");
+  ROS_DEBUG_STREAM("sick_scan_xd::test::TestServerColaMsg::createScandata(" << m_send_scan_data_cnt << "): " << scandata.size() << " byte scan data generated");
   if(m_send_scan_data_cnt <= 1)
-    ROS_DEBUG_STREAM("sick_scan::test::TestServerColaMsg::createScandata(): Generating " << scandata.size() << " byte scan data with " << m_send_scan_data_rate << " Hz");
+    ROS_DEBUG_STREAM("sick_scan_xd::test::TestServerColaMsg::createScandata(): Generating " << scandata.size() << " byte scan data with " << m_send_scan_data_rate << " Hz");
 
   return true;
 }

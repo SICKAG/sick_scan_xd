@@ -14,7 +14,7 @@ still occur here in Q3/2018.
 
 composition
 
-The message sick_scan/RadarScan consists of four parts:
+The message sick_scan_xd/RadarScan consists of four parts:
 - Header in standard format
 - radarPreHeader with higher-level information
 - targets: Raw targets output from radar
@@ -22,7 +22,7 @@ The message sick_scan/RadarScan consists of four parts:
 
 The complete structure can be determined using the command:
 ```
-rosmsg show sick_scan/RadarScan'
+rosmsg show sick_scan_xd/RadarScan'
 ```
 
 

@@ -62,7 +62,7 @@
 
 #include <sick_scan/abstract_parser.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   AbstractParser::AbstractParser()
@@ -73,4 +73,4 @@ namespace sick_scan
   {
   }
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */

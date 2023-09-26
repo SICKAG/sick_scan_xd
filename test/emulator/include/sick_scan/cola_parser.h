@@ -65,7 +65,7 @@
 #include "sick_scan/ros_wrapper.h"
 #include "sick_scan/cola_converter.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * @brief class ColaParser parses and converts binary Cola telegrams to ros messages SickLocColaTelegramMsg
@@ -114,7 +114,7 @@ namespace sick_scan
      * @param[in] parameter Optional list of command parameter
      * @return Cola telegram of type SickLocColaTelegramMsg
      */
-    static sick_scan::SickLocColaTelegramMsg createColaTelegram(const COLA_SOPAS_COMMAND & command_type,
+    static sick_scan_xd::SickLocColaTelegramMsg createColaTelegram(const COLA_SOPAS_COMMAND & command_type,
       const std::string & command_name, const std::vector<std::string> & parameter = std::vector<std::string>());
   
     /*!
@@ -125,14 +125,14 @@ namespace sick_scan
      * 0x73, 0x73, 0x4D, 0x6F, 0x64, 0x65, 0x20, 0x33, 0x20, 0x46, 0x34, 0x37, 0x32, 0x34, 0x37, 0x34, 0x34, 0x03 }
      * @return Cola telegram message (type SickLocColaTelegramMsg)
      */
-    static sick_scan::SickLocColaTelegramMsg decodeColaTelegram(const std::vector<uint8_t> & cola_binary);
+    static sick_scan_xd::SickLocColaTelegramMsg decodeColaTelegram(const std::vector<uint8_t> & cola_binary);
   
     /*!
      * @brief Converts and returns a Cola message of type SickLocColaTelegramMsg from a Cola-ASCII telegram.
      * @param[in] cola_ascii Cola-ASCII telegram, f.e. "<STX>sMN LocRequestTimestamp<ETX>"
      * @return Cola telegram message (type SickLocColaTelegramMsg)
      */
-    static sick_scan::SickLocColaTelegramMsg decodeColaTelegram(const std::string & cola_ascii);
+    static sick_scan_xd::SickLocColaTelegramMsg decodeColaTelegram(const std::string & cola_ascii);
   
     /*!
      * @brief Encodes and returns a Cola Binary telegram from ros message SickLocColaTelegramMsg.
@@ -140,7 +140,7 @@ namespace sick_scan
      * @return Cola-Binary telegram, f.e. { 0x02, 0x73, 0x4D, 0x4E, 0x20, 0x53, 0x65, 0x74, 0x41, 0x63, 0x63,  0x65,
      * 0x73, 0x73, 0x4D, 0x6F, 0x64, 0x65, 0x20, 0x33, 0x20, 0x46, 0x34, 0x37, 0x32, 0x34, 0x37, 0x34, 0x34, 0x03 }
      */
-    static std::vector<uint8_t> encodeColaTelegram(const sick_scan::SickLocColaTelegramMsg & cola_telegram, bool parameter_is_ascii = true);
+    static std::vector<uint8_t> encodeColaTelegram(const sick_scan_xd::SickLocColaTelegramMsg & cola_telegram, bool parameter_is_ascii = true);
   
     /*!
      * @brief Encodes and returns a Cola telegram.
@@ -168,13 +168,13 @@ namespace sick_scan
      * @brief Returns the binary "start of text" tag in a Cola-Binary command, i.e. {0x02}.
      * @return {0x02}
      */
-    static std::vector<uint8_t> binarySTX(void){ return sick_scan::ColaAsciiBinaryConverter::ConvertColaAscii(asciiSTX()); }
+    static std::vector<uint8_t> binarySTX(void){ return sick_scan_xd::ColaAsciiBinaryConverter::ConvertColaAscii(asciiSTX()); }
   
     /*!
      * @brief Returns the binary "end of text" tag in a Cola-Binary command, i.e. {0x03}.
      * @return {0x03}
      */
-    static std::vector<uint8_t> binaryETX(void){ return sick_scan::ColaAsciiBinaryConverter::ConvertColaAscii(asciiETX()); }
+    static std::vector<uint8_t> binaryETX(void){ return sick_scan_xd::ColaAsciiBinaryConverter::ConvertColaAscii(asciiETX()); }
   
     /*!
      * @brief Converts and returns a COLA_SOPAS_COMMAND to string.
@@ -227,5 +227,5 @@ namespace sick_scan
     
   }; // class ColaParser
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_COLA_PARSER_H_INCLUDED

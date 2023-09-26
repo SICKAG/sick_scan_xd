@@ -69,7 +69,7 @@
 #include "sick_scan/sick_scan_common.h"
 #include "sick_scan/server_socket.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   namespace test
   {
@@ -89,7 +89,7 @@ namespace sick_scan
        * @param[out] is_binary true for binary messages, false for ascii messages
        * @return true, if a message has been received, false otherwise
        */
-      virtual bool receiveMessage(sick_scan::ServerSocket & tcp_client_socket, std::vector<uint8_t> & message, bool & is_binary) = 0;
+      virtual bool receiveMessage(sick_scan_xd::ServerSocket & tcp_client_socket, std::vector<uint8_t> & message, bool & is_binary) = 0;
 
       /*
        * @brief Generate a response to a message received from client.
@@ -111,5 +111,5 @@ namespace sick_scan
     }; // class TestServerLidarMsg
 
   } // namespace test
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SICK_SCAN_TEST_SERVER_LIDAR_MESSAGE_H_INCLUDED

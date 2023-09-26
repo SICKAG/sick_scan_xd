@@ -89,14 +89,14 @@
 /*!
  * Constructor.
  */
-sick_scan::ServerSocket::ServerSocket() :   m_iListenPortNumber(-1), m_tListenSocket(INVALID_SOCKET), m_tConnectedSocket(INVALID_SOCKET)
+sick_scan_xd::ServerSocket::ServerSocket() :   m_iListenPortNumber(-1), m_tListenSocket(INVALID_SOCKET), m_tConnectedSocket(INVALID_SOCKET)
 {
 }
 
 /*!
  * Destructor, closes the tcp connections.
  */
-sick_scan::ServerSocket::~ServerSocket()
+sick_scan_xd::ServerSocket::~ServerSocket()
 {
 }
 
@@ -104,7 +104,7 @@ sick_scan::ServerSocket::~ServerSocket()
  * Opens a listening server socket.
  * @return true on success, false on failure
  */
-bool sick_scan::ServerSocket::open(int tcp_port, bool bTcpAnyHost)
+bool sick_scan_xd::ServerSocket::open(int tcp_port, bool bTcpAnyHost)
 {
   SOCKADDR_IN tSockAddr;
   int         reuseaddr = 1;
@@ -156,7 +156,7 @@ bool sick_scan::ServerSocket::open(int tcp_port, bool bTcpAnyHost)
  * Waits for a client to connect, creates a socket to read and write.
  * @return true on success, false on failure
  */
-bool sick_scan::ServerSocket::connect()
+bool sick_scan_xd::ServerSocket::connect()
 {
   // Socket okay?
   if (m_tListenSocket == INVALID_SOCKET)
@@ -194,7 +194,7 @@ bool sick_scan::ServerSocket::connect()
  * Reads bytes from the socket.
  * @return number of bytes read, or -1 on error (invalid socket, broken connection)
  */
-int sick_scan::ServerSocket::read(int num_bytes, std::vector<uint8_t>& out_buffer, bool read_blocking)
+int sick_scan_xd::ServerSocket::read(int num_bytes, std::vector<uint8_t>& out_buffer, bool read_blocking)
 {
   if( m_tListenSocket == INVALID_SOCKET || m_tConnectedSocket == INVALID_SOCKET )
   {
@@ -261,7 +261,7 @@ int sick_scan::ServerSocket::read(int num_bytes, std::vector<uint8_t>& out_buffe
  * Read <num_bytes> bytes from the socket.
  * @return true on success, false on failure
  */
-bool sick_scan::ServerSocket::read(int num_bytes, uint8_t* out_buffer, bool read_blocking)
+bool sick_scan_xd::ServerSocket::read(int num_bytes, uint8_t* out_buffer, bool read_blocking)
 {
   std::vector<uint8_t> buffer;
   int nrbytes = read(num_bytes, buffer, read_blocking);
@@ -274,7 +274,7 @@ bool sick_scan::ServerSocket::read(int num_bytes, uint8_t* out_buffer, bool read
  * Writes bytes to the socket.
  * @return true on success, false on failure
  */
-bool sick_scan::ServerSocket::write(const uint8_t* buffer, int num_bytes, int num_retries_on_error)
+bool sick_scan_xd::ServerSocket::write(const uint8_t* buffer, int num_bytes, int num_retries_on_error)
 {
 
   if (m_tConnectedSocket == INVALID_SOCKET)
@@ -322,7 +322,7 @@ bool sick_scan::ServerSocket::write(const uint8_t* buffer, int num_bytes, int nu
 /*!
  * Closes the tcp connections.
  */
-void sick_scan::ServerSocket::close(void)
+void sick_scan_xd::ServerSocket::close(void)
 {
   if(m_tConnectedSocket != INVALID_SOCKET)
   {
@@ -341,7 +341,7 @@ void sick_scan::ServerSocket::close(void)
 /*!
  * @return returns true, if the server socket is connected to a client, otherwise false
  */
-bool sick_scan::ServerSocket::is_open(void)
+bool sick_scan_xd::ServerSocket::is_open(void)
 {
     return (m_tConnectedSocket != INVALID_SOCKET && m_tListenSocket != INVALID_SOCKET);
 }

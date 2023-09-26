@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- LAUNCH FILE                                     -->
 <!-- SCANNER: MRS1104 and similiar                   -->
-<!-- Call:  roslaunch sick_scan sick_mrs_1xxx.launch -->
+<!-- Call:  roslaunch sick_scan_xd sick_mrs_1xxx.launch -->
 <!-- start and stop angle is given in [rad] in the ROS coordinate sstem-->
 <!--
 default min_angle for this scanner type is  -137.5 degree.
@@ -16,7 +16,7 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <!-- robot_description and robot_state_publisher is prepared but final STL-model is missing -->
-    <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="sick_mrs_1xxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- default values: -->
         <!-- Value interpretation of "filter_echos": 0 = First Echo, 1 = All Echos, 2 = Last Echo (see "sWN FREchoFilter") -->
         <!--

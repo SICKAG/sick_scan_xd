@@ -67,7 +67,7 @@
 #include "sick_scan/sick_generic_field_mon.h"
 
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   class SickScanMarker
   {
@@ -107,15 +107,15 @@ namespace sick_scan
     std::string m_frame_id;
     rosPublisher<ros_visualization_msgs::MarkerArray> m_marker_publisher;
     int m_scan_mon_fieldset;
-    std::vector<sick_scan::SickScanMonField> m_scan_mon_fields;
+    std::vector<sick_scan_xd::SickScanMonField> m_scan_mon_fields;
     std::vector<ros_visualization_msgs::Marker> m_scan_mon_field_marker;
     std::vector<ros_visualization_msgs::Marker> m_scan_mon_field_legend;
     std::vector<ros_visualization_msgs::Marker> m_scan_fieldset_legend;
     std::vector<ros_visualization_msgs::Marker> m_scan_outputstate_legend;
     double m_marker_output_legend_offset_x;
-    sick_scan::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+    sick_scan_xd::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 
   }; /* class SickScanMarker */
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_SCAN_MARKER_H_ */

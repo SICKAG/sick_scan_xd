@@ -63,7 +63,7 @@
 #include <sick_scan/sick_lmd_scandata_parser.h>
 #include <sick_scan/sick_nav_scandata_parser.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
     template<typename T> static void appendToBuffer(std::vector<uint8_t>& data_buffer, const T& value)
     {
@@ -529,7 +529,7 @@ namespace sick_scan
     }
 
     /** Creates and returns the sopas command "sMN mNLAYAddLandmark landmarkData {x y type subtype size layerID {ID}}" */
-    std::vector<uint8_t> createNAV350BinaryAddLandmarkRequest(const std::vector<sick_scan::NAV350ImkLandmark> landmarks)
+    std::vector<uint8_t> createNAV350BinaryAddLandmarkRequest(const std::vector<sick_scan_xd::NAV350ImkLandmark> landmarks)
     {
       std::string sopas_start = "sMN mNLAYAddLandmark ";
       std::vector<uint8_t> request(sopas_start.begin(), sopas_start.end());
@@ -905,9 +905,9 @@ namespace sick_scan
     }
 
     /** Import a NAV350 landmark layout from imk file. The NAV350 landmark layout can be stored in imk files using SOPAS ET. Each line in an imk file is formatted "globID x_mm y_mm type subtype size_mm layer1 layer2 layer3" */
-    std::vector<sick_scan::NAV350ImkLandmark> readNAVIMKfile(const std::string& nav_imk_file)
+    std::vector<sick_scan_xd::NAV350ImkLandmark> readNAVIMKfile(const std::string& nav_imk_file)
     {
-      std::vector<sick_scan::NAV350ImkLandmark> navImkLandmarks;
+      std::vector<sick_scan_xd::NAV350ImkLandmark> navImkLandmarks;
       std::ifstream imk_stream(nav_imk_file);
       if(imk_stream.is_open())
       {
@@ -931,7 +931,7 @@ namespace sick_scan
             ROS_WARN_STREAM("## ERROR readNAVIMKfile(" << nav_imk_file << "): parse error, line \"" << line << "\" ignored.");
             continue;
           }
-          sick_scan::NAV350ImkLandmark landmark;
+          sick_scan_xd::NAV350ImkLandmark landmark;
           landmark.globID = (uint16_t)(atoi(args[0].c_str()) & 0xFFFF);
           landmark.x_mm = (int32_t)(atoi(args[1].c_str()) & 0xFFFFFFFF);
           landmark.y_mm = (int32_t)(atoi(args[2].c_str()) & 0xFFFFFFFF);
@@ -946,4 +946,4 @@ namespace sick_scan
       return navImkLandmarks;
     }
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */

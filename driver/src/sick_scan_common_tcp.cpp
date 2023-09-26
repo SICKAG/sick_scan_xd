@@ -94,7 +94,7 @@ static int getDiagnosticErrorCode()
 #endif
 }
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   bool emulateReply(UINT8 *requestData, int requestLen, std::vector<unsigned char> *replyVector)
   {
@@ -760,7 +760,7 @@ namespace sick_scan
     }
     else
     {
-      std::vector<std::string> response_keywords = { sick_scan::SickScanMessages::getSopasCmdKeyword((uint8_t*)request, msgLen) }; 
+      std::vector<std::string> response_keywords = { sick_scan_xd::SickScanMessages::getSopasCmdKeyword((uint8_t*)request, msgLen) }; 
       if (readWithTimeout(getReadTimeOutInMs(), buffer, BUF_SIZE, &bytes_read, response_keywords) == ExitError)
       {
 #if defined __ROS_VERSION && __ROS_VERSION == 1
@@ -850,4 +850,4 @@ namespace sick_scan
     return ExitSuccess;
   }
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */

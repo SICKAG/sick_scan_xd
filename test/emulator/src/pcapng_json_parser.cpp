@@ -71,7 +71,7 @@
  * @param[in] s comma separated string
  * @return list of substrings
  */
-std::vector<std::string> sick_scan::PcapngJsonParser::split(const std::string & s, char delimiter)
+std::vector<std::string> sick_scan_xd::PcapngJsonParser::split(const std::string & s, char delimiter)
 {
   std::vector<std::string> substrings;
   std::string part;
@@ -89,7 +89,7 @@ std::vector<std::string> sick_scan::PcapngJsonParser::split(const std::string & 
  * @param[out] scandata list of binary scandata messages
  * @return true on sucess, false on error
  */
-bool sick_scan::PcapngJsonParser::parseJsonfile(const std::string & json_filename, const std::vector<std::string> & scandatatypes, double start_time, std::vector<sick_scan::JsonScanData> & scandata)
+bool sick_scan_xd::PcapngJsonParser::parseJsonfile(const std::string & json_filename, const std::vector<std::string> & scandatatypes, double start_time, std::vector<sick_scan_xd::JsonScanData> & scandata)
 {
   try
   {
@@ -112,10 +112,10 @@ bool sick_scan::PcapngJsonParser::parseJsonfile(const std::string & json_filenam
     std::ifstream json_file(json_filename);
     if(!json_file.is_open())
     {
-      ROS_WARN_STREAM("## WARNING sick_scan::PcapngJsonParser::parseJsonfile: error reading file \"" << json_filename << "\".");   
+      ROS_WARN_STREAM("## WARNING sick_scan_xd::PcapngJsonParser::parseJsonfile: error reading file \"" << json_filename << "\".");   
       return false;
     }
-    ROS_INFO_STREAM("sick_scan::PcapngJsonParser: parsing file \"" << json_filename << "\"...");
+    ROS_INFO_STREAM("sick_scan_xd::PcapngJsonParser: parsing file \"" << json_filename << "\"...");
     Json::Reader json_reader;
     Json::Value json_root;
     json_reader.parse(json_file, json_root);
@@ -152,18 +152,18 @@ bool sick_scan::PcapngJsonParser::parseJsonfile(const std::string & json_filenam
           {
             msg_payload.push_back(std::stoul(hexval, 0, 16) & 0xFF);
           }
-          scandata.push_back(sick_scan::JsonScanData(msg_timestamp, msg_payload));
-          // std::cout << "msg_timestamp=" << msg_timestamp << ", msg_payload=" << sick_scan::Utils::toHexString(msg_payload) << std::endl;
+          scandata.push_back(sick_scan_xd::JsonScanData(msg_timestamp, msg_payload));
+          // std::cout << "msg_timestamp=" << msg_timestamp << ", msg_payload=" << sick_scan_xd::Utils::toHexString(msg_payload) << std::endl;
           msg_cnt++;
         }
       }
     }
-    ROS_INFO_STREAM("sick_scan::PcapngJsonParser: " << msg_cnt << " messages in file \"" << json_filename << "\" successfully parsed.");   
+    ROS_INFO_STREAM("sick_scan_xd::PcapngJsonParser: " << msg_cnt << " messages in file \"" << json_filename << "\" successfully parsed.");   
     return true;
   }
   catch(const std::exception& e)
   {
-    ROS_WARN_STREAM("## WARNING sick_scan::PcapngJsonParser::parseJsonfile: exception \"" << e.what() << "\" in file \"" << json_filename << "\".");   
+    ROS_WARN_STREAM("## WARNING sick_scan_xd::PcapngJsonParser::parseJsonfile: exception \"" << e.what() << "\" in file \"" << json_filename << "\".");   
     std::cerr << e.what() << '\n';
   }
   return false;

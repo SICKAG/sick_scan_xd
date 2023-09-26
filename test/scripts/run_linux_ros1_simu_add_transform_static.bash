@@ -4,7 +4,7 @@
 function start_tim7xx_emulator()
 {
     echo -e "\nrun_linux_ros1_simu_add_transform: starting tim7xx emulation ...\n"
-    roslaunch sick_scan emulator_01_default.launch &
+    roslaunch sick_scan_xd emulator_01_default.launch &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_tim7xx_add_transform.rviz --opengl 210 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_tim7xx_add_transform_origin.rviz --opengl 210 &
     sleep 1
@@ -14,7 +14,7 @@ function start_tim7xx_emulator()
 function start_ldmrs_emulator()
 {
     echo -e "\nrun_linux_ros1_simu_add_transform: starting ldmrs emulation ...\n"
-    roslaunch sick_scan test_server_ldmrs.launch &
+    roslaunch sick_scan_xd test_server_ldmrs.launch &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_ldmrs_add_transform.rviz --opengl 210 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_ldmrs_add_transform_origin.rviz --opengl 210 &
     sleep 1
@@ -46,7 +46,7 @@ function waitUntilRvizClosed()
 # Shutdown simulation, kill all nodes and processes
 function kill_simu()
 {
-    echo -e "Finishing sick_scan emulation, shutdown ros nodes\n"
+    echo -e "Finishing sick_scan_xd emulation, shutdown ros nodes\n"
     rosnode kill -a ; sleep 1
     killall sick_generic_caller ; sleep 1
     killall sick_scan_emulator ; sleep 1
@@ -58,9 +58,9 @@ function kill_simu()
 function run_simu_tim7xx()
 {
     tx=$1 ; ty=$2 ; tz=$3 ; roll=$4 ; pitch=$5 ; yaw=$6 ; duration_sec=$7
-    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_tim_7xx.launch with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
+    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan_xd sick_tim_7xx.launch with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
     start_tim7xx_emulator
-    roslaunch sick_scan sick_tim_7xx.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
+    roslaunch sick_scan_xd sick_tim_7xx.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
     rosrun tf static_transform_publisher $tx $ty $tz $yaw $pitch $roll cloud origin 100 &
     waitUntilRvizClosed $duration_sec
     kill_simu
@@ -70,9 +70,9 @@ function run_simu_tim7xx()
 function run_simu_mrs100()
 {
     tx=$1 ; ty=$2 ; tz=$3 ; roll=$4 ; pitch=$5 ; yaw=$6 ; duration_sec=$7
-    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_multiscan.launch (MRS100/Multiscan136) with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
+    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan_xd sick_multiscan.launch (MRS100/Multiscan136) with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
     start_mrs100_emulator
-    roslaunch sick_scan sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
+    roslaunch sick_scan_xd sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
     rosrun tf static_transform_publisher $tx $ty $tz $yaw $pitch $roll world origin 100 &
     python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=1
     kill_simu
@@ -82,9 +82,9 @@ function run_simu_mrs100()
 function run_simu_ldmrs()
 {
     tx=$1 ; ty=$2 ; tz=$3 ; roll=$4 ; pitch=$5 ; yaw=$6 ; duration_sec=$7
-    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_ldmrs.launch with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
+    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan_xd sick_ldmrs.launch with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
     start_ldmrs_emulator
-    roslaunch sick_scan sick_ldmrs.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
+    roslaunch sick_scan_xd sick_ldmrs.launch hostname:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
     rosrun tf static_transform_publisher $tx $ty $tz $yaw $pitch $roll cloud origin 100 &
     waitUntilRvizClosed $duration_sec
     kill_simu
@@ -104,9 +104,9 @@ if [ $roscore_running -lt 1 ] ; then
 fi
 
 # Run sick_generic_caller without additional transform (default)
-echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan sick_tim_7xx.launch, no transform\n"
+echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan_xd sick_tim_7xx.launch, no transform\n"
 start_tim7xx_emulator
-roslaunch sick_scan sick_tim_7xx.launch hostname:=127.0.0.1 &
+roslaunch sick_scan_xd sick_tim_7xx.launch hostname:=127.0.0.1 &
 rosrun tf static_transform_publisher 0 0 0 0 0 0 cloud origin 100 &
 waitUntilRvizClosed 10
 kill_simu

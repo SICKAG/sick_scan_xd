@@ -183,7 +183,7 @@ const std::string binScanfGetStringFromVec(std::vector<unsigned char> *replyDumm
   return (s);
 }
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
   \brief calculate crc-code for last byte of binary message
@@ -456,13 +456,13 @@ namespace sick_scan
     setSensorIsRadar(false);
     init_cmdTables(nh);
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
-    dynamic_reconfigure::Server<sick_scan::SickScanConfig>::CallbackType f;
-    // f = boost::bind(&sick_scan::SickScanCommon::update_config, this, _1, _2);
-    f = std::bind(&sick_scan::SickScanCommon::update_config, this, std::placeholders::_1, std::placeholders::_2);
+    dynamic_reconfigure::Server<sick_scan_xd::SickScanConfig>::CallbackType f;
+    // f = boost::bind(&sick_scan_xd::SickScanCommon::update_config, this, _1, _2);
+    f = std::bind(&sick_scan_xd::SickScanCommon::update_config, this, std::placeholders::_1, std::placeholders::_2);
     dynamic_reconfigure_server_.setCallback(f);
 #elif defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr parameter_cb_handle =
-      nh->add_on_set_parameters_callback(std::bind(&sick_scan::SickScanCommon::update_config_cb, this, std::placeholders::_1));
+      nh->add_on_set_parameters_callback(std::bind(&sick_scan_xd::SickScanCommon::update_config_cb, this, std::placeholders::_1));
 #else
     // For simulation under MS Visual c++ the update config is switched off
     {
@@ -587,12 +587,12 @@ namespace sick_scan
       publish_nav_landmark_data_ = true;
 #if defined __ROS_VERSION && __ROS_VERSION == 1
       nav_tf_broadcaster_ = new tf2_ros::TransformBroadcaster();
-      nav_odom_velocity_subscriber_ = nh->subscribe("nav_odom_velocity", 1, &sick_scan::SickScanCommon::messageCbNavOdomVelocity, this);
-      ros_odom_subscriber_ = nh->subscribe("odom", 1, &sick_scan::SickScanCommon::messageCbRosOdom, this);
+      nav_odom_velocity_subscriber_ = nh->subscribe("nav_odom_velocity", 1, &sick_scan_xd::SickScanCommon::messageCbNavOdomVelocity, this);
+      ros_odom_subscriber_ = nh->subscribe("odom", 1, &sick_scan_xd::SickScanCommon::messageCbRosOdom, this);
 #elif defined __ROS_VERSION && __ROS_VERSION == 2
       nav_tf_broadcaster_ = new tf2_ros::TransformBroadcaster(nh);
-      nav_odom_velocity_subscriber_ = nh->create_subscription<sick_scan_msg::NAVOdomVelocity>("nav_odom_velocity", 10, std::bind(&sick_scan::SickScanCommon::messageCbNavOdomVelocityROS2, this, std::placeholders::_1));
-      ros_odom_subscriber_ = nh->create_subscription<ros_nav_msgs::Odometry>("odom", 10, std::bind(&sick_scan::SickScanCommon::messageCbRosOdomROS2, this, std::placeholders::_1));
+      nav_odom_velocity_subscriber_ = nh->create_subscription<sick_scan_msg::NAVOdomVelocity>("nav_odom_velocity", 10, std::bind(&sick_scan_xd::SickScanCommon::messageCbNavOdomVelocityROS2, this, std::placeholders::_1));
+      ros_odom_subscriber_ = nh->create_subscription<ros_nav_msgs::Odometry>("odom", 10, std::bind(&sick_scan_xd::SickScanCommon::messageCbRosOdomROS2, this, std::placeholders::_1));
 #endif
     }
 
@@ -605,7 +605,7 @@ namespace sick_scan
       lidoutputstate_pub_ = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(nh, nodename + "/lidoutputstate", 100);
       publish_lferec_ = true;
       publish_lidoutputstate_ = true;
-      cloud_marker_ = new sick_scan::SickScanMarker(nh, nodename + "/marker", config_.frame_id); // "cloud");
+      cloud_marker_ = new sick_scan_xd::SickScanMarker(nh, nodename + "/marker", config_.frame_id); // "cloud");
     }
 
     // Pointcloud2 publisher
@@ -659,7 +659,7 @@ namespace sick_scan
     // add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud
     // The additional transform applies to cartesian lidar pointclouds and visualization marker (fields)
     // It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages
-    m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, false);
+    m_add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(nh, false);
   }
 
   /*!
@@ -744,7 +744,7 @@ namespace sick_scan
   \param reply Pointer to datablock
   \return length of message (-1 if message format is not correct)
   */
-  int sick_scan::SickScanCommon::checkForBinaryAnswer(const std::vector<unsigned char> *reply)
+  int sick_scan_xd::SickScanCommon::checkForBinaryAnswer(const std::vector<unsigned char> *reply)
   {
     int retVal = -1;
 
@@ -1109,7 +1109,7 @@ namespace sick_scan
             result = -1;
 
             // Problably we received some scan data message. Ignore and try again...
-            std::vector<std::string> response_keywords = { sick_scan::SickScanMessages::getSopasCmdKeyword((uint8_t*)requestStr.data(), requestStr.size()) };
+            std::vector<std::string> response_keywords = { sick_scan_xd::SickScanMessages::getSopasCmdKeyword((uint8_t*)requestStr.data(), requestStr.size()) };
             if(retry_answer_cnt < 100 && (rosNanosecTimestampNow() - retry_start_timestamp_nsec) / 1000000 < m_read_timeout_millisec_default)
             {
               char buffer[64*1024];
@@ -1905,7 +1905,7 @@ namespace sick_scan
       if (lmd_scandatascalefactor_arg > 0)
       {
         // LRS4xxx: "sWN LMDscandatascalefactor" + { 4 byte float }, e.g. scalefactor 1.0f = 0x3f800000, scalefactor 2.0f = 0x40000000
-        std::string scalefactor_hex = sick_scan::SickScanServices::convertFloatToHexString((float)lmd_scandatascalefactor_arg, true);
+        std::string scalefactor_hex = sick_scan_xd::SickScanServices::convertFloatToHexString((float)lmd_scandatascalefactor_arg, true);
         sopasCmdVec[CMD_SET_LMDSCANDATASCALEFACTOR] = "\x02sWN LMDscandatascalefactor " + scalefactor_hex + "\x03";
         sopasCmdChain.push_back(CMD_SET_LMDSCANDATASCALEFACTOR);
       }
@@ -2531,8 +2531,8 @@ namespace sick_scan
           rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
           sopasCmdVec[CMD_SET_SCAN_CFG_LIST] = "\x02sMN mCLsetscancfglist " + std::to_string(cfgListEntry) + "\x03"; // set scan config from list for NAX310  LD - OEM15xx LD - LRS36xx
           sopasCmdVec[CMD_SET_SCANDATACONFIGNAV] = ""; // set start and stop angle by LMPscancfgToSopas()
-          sick_scan::SickScanParseUtil::LMPscancfg scancfg;
-          if (sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyStrVec[cmdId], scancfg))
+          sick_scan_xd::SickScanParseUtil::LMPscancfg scancfg;
+          if (sick_scan_xd::SickScanParseUtil::SopasToLMPscancfg(sopasReplyStrVec[cmdId], scancfg))
           {
             // Overwrite start and stop angle with configured values
             for (int sector_cnt = 0; sector_cnt < scancfg.sector_cfg.size() && sector_cnt < scancfg.active_sector_cnt; sector_cnt++)
@@ -2558,7 +2558,7 @@ namespace sick_scan
               ROS_INFO_STREAM("Setting LMPscancfg start_angle: " << rad2deg(start_ang_rad) << " deg, stop_angle: " << rad2deg(stop_ang_rad) << " deg (lidar sector " << sector_cnt << ")");
             }
             ROS_INFO_STREAM("Setting LMPscancfg start_angle: " << rad2deg(this->config_.min_ang) << " deg, stop_angle: " << rad2deg(this->config_.max_ang) << " deg (ROS)");
-            if(sick_scan::SickScanParseUtil::LMPscancfgToSopas(scancfg, sopasCmdVec[CMD_SET_SCANDATACONFIGNAV]))
+            if(sick_scan_xd::SickScanParseUtil::LMPscancfgToSopas(scancfg, sopasCmdVec[CMD_SET_SCANDATACONFIGNAV]))
             {
               ROS_INFO_STREAM("Setting LMPscancfg sopas command: \"" << sopasCmdVec[CMD_SET_SCANDATACONFIGNAV] << "\"");
             }
@@ -2576,15 +2576,15 @@ namespace sick_scan
 
         case CMD_SET_SCANDATACONFIGNAV: // Parse and print the reply to "sMN mLMPsetscancfg"
         {
-            sick_scan::SickScanParseUtil::LMPscancfg scancfg;
-            sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyStrVec[cmdId], scancfg);
+            sick_scan_xd::SickScanParseUtil::LMPscancfg scancfg;
+            sick_scan_xd::SickScanParseUtil::SopasToLMPscancfg(sopasReplyStrVec[cmdId], scancfg);
         }
         break;
 
         case CMD_GET_PARTIAL_SCAN_CFG: // Parse and print the reply to "sRN LMPscancfg"
         {
-            sick_scan::SickScanParseUtil::LMPscancfg scancfg;
-            sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyStrVec[cmdId], scancfg);
+            sick_scan_xd::SickScanParseUtil::LMPscancfg scancfg;
+            sick_scan_xd::SickScanParseUtil::SopasToLMPscancfg(sopasReplyStrVec[cmdId], scancfg);
         }
         break;
 
@@ -2900,8 +2900,8 @@ namespace sick_scan
 
       if (result == 0)
       {
-        sick_scan::SickScanParseUtil::LMPscancfg scancfg;
-        sick_scan::SickScanParseUtil::SopasToLMPscancfg(replyToString(askOutputAngularRangeReply), scancfg);
+        sick_scan_xd::SickScanParseUtil::LMPscancfg scancfg;
+        sick_scan_xd::SickScanParseUtil::SopasToLMPscancfg(replyToString(askOutputAngularRangeReply), scancfg);
 
         char dummy0[MAX_STR_LEN] = {0};
         char dummy1[MAX_STR_LEN] = {0};
@@ -3323,8 +3323,8 @@ namespace sick_scan
               // Angular resolution: 0.25 or 0.5 deg for lms1xx, 0.0417, 0.083, 0.1667, 0.25, 0.333, 0.5, 0.667 or 1.0 deg for lms5xx, angular resolution in 1/10000 deg
               // Start angle: -45 deg for lms1xx,   -5 deg for lms5xx in lidar coordinates
               // Stop angle: +225 deg for lms1xx, +185 deg for lms5xx in lidar coordinates
-              sick_scan::SickScanParseUtil::LMPscancfg lmp_scancfg;
-              sick_scan::SickScanParseUtil::LMPscancfgSector lmp_scancfg_sector;
+              sick_scan_xd::SickScanParseUtil::LMPscancfg lmp_scancfg;
+              sick_scan_xd::SickScanParseUtil::LMPscancfgSector lmp_scancfg_sector;
               lmp_scancfg.scan_frequency = std::lround(100.0 * scan_freq);
               lmp_scancfg.active_sector_cnt = 1; // this->parser_->getCurrentParamPtr()->getNumberOfLayers();
               lmp_scancfg_sector.angular_resolution = std::lround(10000.0 * ang_res);
@@ -3366,7 +3366,7 @@ namespace sick_scan
               }
               lmp_scancfg.sector_cfg.push_back(lmp_scancfg_sector);
               std::string lmp_scancfg_sopas;
-              if (sick_scan::SickScanParseUtil::LMPscancfgToSopas(lmp_scancfg, lmp_scancfg_sopas))
+              if (sick_scan_xd::SickScanParseUtil::LMPscancfgToSopas(lmp_scancfg, lmp_scancfg_sopas))
               {
                 ROS_INFO_STREAM("Sending mLMPsetscancfg request: { " << lmp_scancfg.print() << " }");
                 std::vector<unsigned char> reqBinary, lmp_scancfg_reply;
@@ -3384,20 +3384,20 @@ namespace sick_scan
                 std::string sopasReplyString = replyToString(lmp_scancfg_reply);
                 if (strncmp(sopasReplyString.c_str(), "sAN mLMPsetscancfg ", 19) == 0)
                 {
-                  sick_scan::SickScanParseUtil::LMPscancfg scancfg_response;
-                  sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
+                  sick_scan_xd::SickScanParseUtil::LMPscancfg scancfg_response;
+                  sick_scan_xd::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
                   ROS_INFO_STREAM("sAN mLMPsetscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = "
                     << (scancfg_response.sector_cfg.size() > 0 ? (scancfg_response.sector_cfg[0].angular_resolution / 10000.0) : -1.0) << " deg.");
                 }
               }
               else
               {
-                ROS_WARN_STREAM("sick_scan::init_scanner: sick_scan::SickScanParseUtil::LMPscancfgToSopas() failed");
+                ROS_WARN_STREAM("sick_scan_xd::init_scanner: sick_scan_xd::SickScanParseUtil::LMPscancfgToSopas() failed");
               }
             }
             else
             {
-              ROS_WARN_STREAM("sick_scan::init_scanner: \"sMN mLMPsetscancfg\" currently not supported for "
+              ROS_WARN_STREAM("sick_scan_xd::init_scanner: \"sMN mLMPsetscancfg\" currently not supported for "
                 << this->parser_->getCurrentParamPtr()->getScannerName()
                 << ", scan frequency and angular resolution not set, using default values ("
                 << __FILE__ << ":" << __LINE__ << ")");
@@ -3436,8 +3436,8 @@ namespace sick_scan
               std::string sopasReplyString = replyToString(sopasReplyBinVec[CMD_GET_PARTIAL_SCAN_CFG]);
               if (strncmp(sopasReplyString.c_str(), "sRA LMPscancfg ", 15) == 0)
               {
-                sick_scan::SickScanParseUtil::LMPscancfg scancfg_response;
-                sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
+                sick_scan_xd::SickScanParseUtil::LMPscancfg scancfg_response;
+                sick_scan_xd::SickScanParseUtil::SopasToLMPscancfg(sopasReplyString, scancfg_response);
                 ROS_INFO_STREAM("sRA LMPscancfg: scan frequency = " << (scancfg_response.scan_frequency/100.0) << " Hz, angular resolution = "
                   << (scancfg_response.sector_cfg.size() > 0 ? (scancfg_response.sector_cfg[0].angular_resolution / 10000.0) : -1.0) << " deg.");
               }
@@ -3915,7 +3915,7 @@ namespace sick_scan
           return ExitError;
         ROS_INFO_STREAM("2. response to mNMAPDoMapping request: " << stripControl(sopas_response, -1));
         // Parse LandmarkData
-        sick_scan::NAV350LandmarkDataDoMappingResponse landmarkData;
+        sick_scan_xd::NAV350LandmarkDataDoMappingResponse landmarkData;
         if (!parseNAV350BinaryLandmarkDataDoMappingResponse(sopas_response.data(), (int)sopas_response.size(), landmarkData))
         {
           ROS_WARN_STREAM("## ERROR parseNAV350BinaryLandmarkDataDoMappingResponse() failed");
@@ -3947,7 +3947,7 @@ namespace sick_scan
       rosGetParam(nh, "nav_set_landmark_layout_by_imk_file", nav_set_landmark_layout_by_imk_file);
       if (!nav_set_landmark_layout_by_imk_file.empty())
       {
-        std::vector<sick_scan::NAV350ImkLandmark> navImkLandmarks = readNAVIMKfile(nav_set_landmark_layout_by_imk_file);
+        std::vector<sick_scan_xd::NAV350ImkLandmark> navImkLandmarks = readNAVIMKfile(nav_set_landmark_layout_by_imk_file);
         if (navImkLandmarks.size() >= 3) // at least 3 reflectors required
         {
           if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_ERASE_LAYOUT], &sopas_response, useBinaryCmd) != 0) // Erase mapping layout: "sMN mNLAYEraseLayout 1"
@@ -4039,7 +4039,7 @@ namespace sick_scan
   \param reply datablock, which should be converted
   \return human readable string (used for debug/monitoring output)
   */
-  std::string sick_scan::SickScanCommon::replyToString(const std::vector<unsigned char> &reply)
+  std::string sick_scan_xd::SickScanCommon::replyToString(const std::vector<unsigned char> &reply)
   {
     std::string reply_str;
     std::vector<unsigned char>::const_iterator it_start, it_end;
@@ -4082,7 +4082,7 @@ namespace sick_scan
     return reply_str;
   }
 
-  bool sick_scan::SickScanCommon::dumpDatagramForDebugging(unsigned char *buffer, int bufLen)
+  bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(unsigned char *buffer, int bufLen)
   {
     bool ret = true;
     static int cnt = 0;
@@ -4121,7 +4121,7 @@ namespace sick_scan
   \param identStr string (got from sopas request)
   \return true, if this driver supports the scanner identified by the identification string
   */
-  bool sick_scan::SickScanCommon::isCompatibleDevice(const std::string identStr) const
+  bool sick_scan_xd::SickScanCommon::isCompatibleDevice(const std::string identStr) const
   {
     char device_string[7];
     int version_major = -1;
@@ -4343,7 +4343,7 @@ namespace sick_scan
         std::string scanner_name = parser_->getCurrentParamPtr()->getScannerName();
         EVAL_FIELD_SUPPORT eval_field_logic = this->parser_->getCurrentParamPtr()->getUseEvalFields();
         sick_scan_msg::LIDoutputstateMsg outputstate_msg;
-        if (sick_scan::SickScanMessages::parseLIDoutputstateMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, scanner_name, outputstate_msg))
+        if (sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, scanner_name, outputstate_msg))
         {
           // Publish LIDoutputstate message
           notifyLIDoutputstateListener(nh, &outputstate_msg);
@@ -4385,7 +4385,7 @@ namespace sick_scan
         sick_scan_msg::LFErecMsg lferec_msg;
         std::string scanner_name = parser_->getCurrentParamPtr()->getScannerName();
         EVAL_FIELD_SUPPORT eval_field_logic = parser_->getCurrentParamPtr()->getUseEvalFields(); // == USE_EVAL_FIELD_LMS5XX_LOGIC
-        if (sick_scan::SickScanMessages::parseLFErecMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, eval_field_logic, scanner_name, lferec_msg))
+        if (sick_scan_xd::SickScanMessages::parseLFErecMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, eval_field_logic, scanner_name, lferec_msg))
         {
           // Publish LFErec message
           notifyLFErecListener(nh, &lferec_msg);
@@ -4880,7 +4880,7 @@ namespace sick_scan
 
               size_t rangeNumAllEchos = rangeTmp.size(); // rangeTmp.size() := number of range values in all echos (max. 5 echos)
               size_t rangeNumAllEchosCloud = cloud_.height * cloud_.width; // number of points allocated in the point cloud
-              rangeNumAllEchos = std::min<int>(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
+              rangeNumAllEchos = std::min<size_t>(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
               size_t rangeNum = rangeNumAllEchos / numValidEchos;
               // ROS_INFO_STREAM("numValidEchos=" << numValidEchos << ", numEchos=" << numEchos << ", cloud_.height * cloud_.width=" << cloud_.height * cloud_.width << ", rangeNum=" << rangeNum);
 
@@ -5008,7 +5008,7 @@ namespace sick_scan
                   }
                   angle += msg.angle_increment;
                 }
-                rangeNumPointcloudAllEchos = std::max<int>(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
+                rangeNumPointcloudAllEchos = std::max<size_t>(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
 
                 // Publish
                 //static int cnt = 0;
@@ -5056,8 +5056,8 @@ namespace sick_scan
                   range_filter.resizePointCloud(rangeNumPointcloudAllEchos, cloud_polar_);
                 }
 
-                sick_scan::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0);
-                sick_scan::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0);
+                sick_scan_xd::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0);
+                sick_scan_xd::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0);
 #ifdef ROSSIMU
                 notifyPolarPointcloudListener(nh, &cloud_msg_polar);
                 notifyCartesianPointcloudListener(nh, &cloud_msg);
@@ -5158,7 +5158,7 @@ namespace sick_scan
                     assert(partialCloud.data.size() == partialCloud.width * partialCloud.point_step);
 
 
-                    sick_scan::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0);
+                    sick_scan_xd::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0);
                     notifyCartesianPointcloudListener(nh, &partial_cloud_msg);
                     rosPublish(cloud_pub_, partialCloud);
                     //memcpy(&(partialCloud.data[0]), &(cloud_.data[0]) + i * cloud_.point_step, cloud_.point_step * numPartialShots);
@@ -5203,7 +5203,7 @@ namespace sick_scan
   \param new_config: Pointer to new configuration
   \param level (not used - should be removed)
   */
-  void SickScanCommon::update_config(sick_scan::SickScanConfig &new_config, uint32_t level)
+  void SickScanCommon::update_config(sick_scan_xd::SickScanConfig &new_config, uint32_t level)
   {
     check_angle_range(new_config);
     config_ = new_config;
@@ -6040,7 +6040,7 @@ namespace sick_scan
 
   // SopasProtocol m_protocolId;
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 
 
 

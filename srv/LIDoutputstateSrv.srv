@@ -1,4 +1,4 @@
-# Definition of ROS service LIDoutputstate for sick_scan
+# Definition of ROS service LIDoutputstate for sick_scan_xd
 # Start or stop Send outputstate by event
 # Example call (ROS1):
 # rosservice call /sick_tim_7xx/LIDoutputstate "{active: 1}"

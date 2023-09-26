@@ -1,5 +1,5 @@
 REM 
-REM Run sick_scan on ROS-2 Windows with multiScan pcapng player with compact V4 scandata format
+REM Run sick_scan_xd on ROS-2 Windows with multiScan pcapng player with compact V4 scandata format
 REM 
 
 if exist "c:\dev\ros2_foxy\local_setup.bat" ( call C:\dev\ros2_foxy\local_setup.bat )
@@ -27,10 +27,10 @@ start "python multiscan_sopas_test_server.py" cmd /k python ./src/sick_scan_xd/t
 @timeout /t 3
 
 REM 
-REM Start sick_scan on ROS-2 Windows
+REM Start sick_scan_xd on ROS-2 Windows
 REM 
 
-start "ros2 sick_scan" ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=2
+start "ros2 sick_scan_xd" ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=2
 @timeout /t 3
 
 REM 

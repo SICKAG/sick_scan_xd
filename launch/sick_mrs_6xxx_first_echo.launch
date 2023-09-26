@@ -8,7 +8,7 @@
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <!-- robot_description and robot_state_publisher will be published here -->
-    <node name="sick_mrs_6xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="sick_mrs_6xxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- default values: -->
         <!--
           <param name="scanner_type" type="string" value="sick_mrs_6xxx"

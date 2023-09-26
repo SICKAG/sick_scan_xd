@@ -72,7 +72,7 @@
 
 #include <sick_scan/sick_ros_wrapper.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
     /*
     * class SickCloudTransform applies an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
@@ -159,5 +159,5 @@ namespace sick_scan
         float m_azimuth_offset = 0; // azimuth offset, i.e. yaw in [rad], if only yaw is configured (in this case an offset can be added to the lidar azimuth before conversion to cartesian pointcloud, which is faster than a 3x3 matrix multiplication)
 
     }; // class SickCloudTransform
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // SICK_CLOUD_TRANSFORM_H_

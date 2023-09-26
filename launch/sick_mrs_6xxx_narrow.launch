@@ -10,7 +10,7 @@
     <!-- robot_description and robot_state_publisher will be published here -->
 
     <!-- robot_description and robot_state_publisher will be published here -->
-    <node name="sick_mrs_6xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="sick_mrs_6xxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- default values: -->
         <!--
           <param name="scanner_type" type="string" value="sick_mrs_6xxx"

@@ -88,17 +88,17 @@ int main(int argc, char** argv)
     if (strncmp(argv[n], "scanner_type:=", 14) == 0)
       scanner_type = argv[n] + 14;
   }
-  sick_scan::TestServerThread test_server_thread(nh, tcp_port_results, tcp_port_cola, scanner_type);
+  sick_scan_xd::TestServerThread test_server_thread(nh, tcp_port_results, tcp_port_cola, scanner_type);
   
   // Subscribe to sim_loc_driver messages to monitor sim_loc_driver in error simulation mode
   std::string result_telegrams_topic = "/sick_scan/driver/result_telegrams";      // default topic to publish result port telegram messages (type SickLocResultPortTelegramMsg)
   ROS::param<std::string>(nh, "/sick_scan/driver/result_telegrams_topic", result_telegrams_topic, result_telegrams_topic);
 #if defined __ROS_VERSION && __ROS_VERSION == 1
-  sick_scan::SickLocResultPortTelegramMsgSubscriber result_telegram_subscriber 
-    = ROS_CREATE_SUBSCRIBER(nh, sick_scan::SickLocResultPortTelegramMsg, result_telegrams_topic, &sick_scan::TestServerThread::messageCbResultPortTelegrams, &test_server_thread);
+  sick_scan_xd::SickLocResultPortTelegramMsgSubscriber result_telegram_subscriber 
+    = ROS_CREATE_SUBSCRIBER(nh, sick_scan_xd::SickLocResultPortTelegramMsg, result_telegrams_topic, &sick_scan_xd::TestServerThread::messageCbResultPortTelegrams, &test_server_thread);
 #elif defined __ROS_VERSION && __ROS_VERSION == 2
-  sick_scan::SickLocResultPortTelegramMsgSubscriber result_telegram_subscriber
-    = ROS_CREATE_SUBSCRIBER(nh, sick_scan::SickLocResultPortTelegramMsg, result_telegrams_topic, &sick_scan::TestServerThread::messageCbResultPortTelegramsROS2, &test_server_thread);
+  sick_scan_xd::SickLocResultPortTelegramMsgSubscriber result_telegram_subscriber
+    = ROS_CREATE_SUBSCRIBER(nh, sick_scan_xd::SickLocResultPortTelegramMsg, result_telegrams_topic, &sick_scan_xd::TestServerThread::messageCbResultPortTelegramsROS2, &test_server_thread);
 #endif
   
   // Start simulation of a localization controller

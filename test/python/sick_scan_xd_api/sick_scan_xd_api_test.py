@@ -295,7 +295,7 @@ def pyrunSickScanApiTestWaitNext(sick_scan_library, api_handle):
         elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
             print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextNavPoseLandmarkMsg failed, error code {} ({})".format(ret, int(ret)))
         SickScanApiFreeNavPoseLandmarkMsg(sick_scan_library, api_handle, ctypes.pointer(navposelandmark_msg))
-		# Send NAV350 odom message example
+        # Send NAV350 odom message example
         # ret = SickScanApiNavOdomVelocityMsg(sick_scan_library, api_handle, ctypes.pointer(navodom_msg))
         # ret = SickScanApiOdomVelocityMsg(sick_scan_library, api_handle, ctypes.pointer(odom_msg))
 
@@ -330,9 +330,9 @@ if __name__ == "__main__":
 
     # Load sick_scan_library
     if os.name == 'nt': # Load windows dll
-        sick_scan_library = SickScanApiLoadLibrary(["build/Debug/", "build_win64/Debug/", "src/build/Debug/", "src/build_win64/Debug/", "src/sick_scan_xd/build/Debug/", "src/sick_scan_xd/build_win64/Debug/", "./", "../"], "sick_scan_shared_lib.dll")
+        sick_scan_library = SickScanApiLoadLibrary(["build/Debug/", "build_win64/Debug/", "src/build/Debug/", "src/build_win64/Debug/", "src/sick_scan_xd/build/Debug/", "src/sick_scan_xd/build_win64/Debug/", "./", "../"], "sick_scan_xd_shared_lib.dll")
     else: # Load linux so
-        sick_scan_library = SickScanApiLoadLibrary(["build/", "build_linux/", "src/build/", "src/build_linux/", "src/sick_scan_xd/build/", "src/sick_scan_xd/build_linux/", "./", "../"], "libsick_scan_shared_lib.so")
+        sick_scan_library = SickScanApiLoadLibrary(["build/", "build_linux/", "src/build/", "src/build_linux/", "src/sick_scan_xd/build/", "src/sick_scan_xd/build_linux/", "./", "../"], "libsick_scan_xd_shared_lib.so")
     api_handle = SickScanApiCreate(sick_scan_library)
 
     # Initialize lidar by launchfile, e.g. sick_tim_7xx.launch

@@ -16,7 +16,7 @@ function start_tim7xx_emulator()
 {
     echo -e "\nrun_linux_ros2_simu_add_transform: starting tim7xx emulation ...\n"
     cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng_full.json /tmp/lmd_scandata.pcapng.json
-    sleep  1 ; ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch scanner_type:=sick_tim_7xx &
+    sleep  1 ; ros2 run sick_scan_xd sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch scanner_type:=sick_tim_7xx &
     sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_tim7xx_add_transform.rviz &
     sleep 1
 }
@@ -60,10 +60,10 @@ function run_simu_transforms()
 function run_simu_tim7xx()
 {
     start_tim7xx_emulator
-    echo -e "\nrun_linux_ros2_simu_add_transform.bash: starting sick_scan sick_tim_7xx.launch, no transform\n"
-    ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
+    echo -e "\nrun_linux_ros2_simu_add_transform.bash: starting sick_scan_xd sick_tim_7xx.launch, no transform\n"
+    ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
     sleep 5
-    run_simu_transforms sick_scan add_transform_xyz_rpy 0.3
+    run_simu_transforms sick_scan_xd add_transform_xyz_rpy 0.3
     simu_killall
 }
 

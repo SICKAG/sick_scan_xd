@@ -73,7 +73,7 @@
 #include <sick_scan/sick_scan_common.h>
 #include <sick_scan/sick_ros_wrapper.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   using namespace std;
 
@@ -1604,4 +1604,4 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
 
   }
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */

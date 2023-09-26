@@ -66,7 +66,7 @@
 
 #include <sick_scan/sick_ros_wrapper.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   // returns the given angle in rad normalized to angle_min ... angle_max, assuming (angle_max - angle_min) == 2 * PI
   double normalizeAngleRad(double angle_rad, double angle_min, double angle_max);
@@ -103,6 +103,6 @@ namespace sick_scan
     static bool LMPscancfgToSopas(const LMPscancfg& scancfg, std::string& sopas_cmd);
 
   }; // class SickScanParseUtil
-} // namespace sick_scan
+} // namespace sick_scan_xd
 
 #endif // SICK_SCAN_PARSE_UTIL_H_

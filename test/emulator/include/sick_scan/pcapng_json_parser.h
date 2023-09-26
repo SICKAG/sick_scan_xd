@@ -63,7 +63,7 @@
 
 #include "sick_scan/ros_wrapper.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * @brief class JsonScanData: utility container for binary scandata incl. timestamp
@@ -92,7 +92,7 @@ namespace sick_scan
      * @param[out] scandata list of binary scandata messages incl. timestamp
      * @return true on sucess, false on error
      */
-    static bool parseJsonfile(const std::string & json_filename, const std::vector<std::string> & scandatatypes, double start_time, std::vector<sick_scan::JsonScanData> & scandata);
+    static bool parseJsonfile(const std::string & json_filename, const std::vector<std::string> & scandatatypes, double start_time, std::vector<sick_scan_xd::JsonScanData> & scandata);
     
     /*!
      * @brief Splits a comma separated string into its parts.
@@ -105,5 +105,5 @@ namespace sick_scan
     
   }; // class PcapngJsonParser
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __PCAPNG_JSON_PARSER_H_INCLUDED

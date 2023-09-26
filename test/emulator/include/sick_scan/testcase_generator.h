@@ -60,7 +60,7 @@
 #include "sick_scan/ros_wrapper.h"
 #include "sick_scan/result_port_parser.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * class TestcaseGenerator generates testcases for SIM Localization driver.
@@ -74,13 +74,13 @@ namespace sick_scan
      * Creates and returns a deterministic default testcase for result port telegrams (binary telegrams and SickLocResultPortTelegramMsg)
      * @return SickLocResultPortTestcaseMsg with the binary telegram and SickLocResultPortTelegramMsg
      */
-    static sick_scan::SickLocResultPortTestcaseMsg createDefaultResultPortTestcase(void);
+    static sick_scan_xd::SickLocResultPortTestcaseMsg createDefaultResultPortTestcase(void);
   
     /*!
      * Creates and returns a random testcase for result port telegrams (binary telegrams and SickLocResultPortTelegramMsg)
      * @return SickLocResultPortTestcaseMsg with the binary telegram and SickLocResultPortTelegramMsg
      */
-    static sick_scan::SickLocResultPortTestcaseMsg createRandomResultPortTestcase(void);
+    static sick_scan_xd::SickLocResultPortTestcaseMsg createRandomResultPortTestcase(void);
   
     /*!
      * Creates and returns a result port telegrams (binary telegrams and SickLocResultPortTelegramMsg)
@@ -90,7 +90,7 @@ namespace sick_scan
      * @param[in] circle_yaw current angle in radians
      * @return SickLocResultPortTestcaseMsg with the binary telegram and SickLocResultPortTelegramMsg
      */
-    static sick_scan::SickLocResultPortTestcaseMsg createResultPortCircles(double circle_radius, double circle_yaw);
+    static sick_scan_xd::SickLocResultPortTestcaseMsg createResultPortCircles(double circle_radius, double circle_yaw);
   
     /*!
      * Creates and returns a synthetical cola response to a cola command request.
@@ -99,7 +99,7 @@ namespace sick_scan
      * @param[in] cola_request Cola request from client
      * @return Synthetical cola response from server
      */
-    static sick_scan::SickLocColaTelegramMsg createColaResponse(const sick_scan::SickLocColaTelegramMsg & cola_request, const std::string& scanner_type);
+    static sick_scan_xd::SickLocColaTelegramMsg createColaResponse(const sick_scan_xd::SickLocColaTelegramMsg & cola_request, const std::string& scanner_type);
   
     /*!
      * Returns the result pose interval, i.e. the interval in number of scans
@@ -170,5 +170,5 @@ namespace sick_scan
     
   }; // class TestcaseGenerator
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_TESTCASE_GENERATOR_H_INCLUDED

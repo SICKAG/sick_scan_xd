@@ -13,7 +13,7 @@
 
     <node pkg="tf" type="static_transform_publisher" name="Object_map_broadcaster" args="0 0 0 0 0 0 1 /Objects /map 100" />
     -->
-    <node name="sick_rms_xxxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_rms_xxxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
         <!-- default values: -->
         <param name="scanner_type" type="string" value="sick_rms_xxxx"/>
         <param name="range_max" type="double" value="25.0"/>
@@ -31,7 +31,7 @@
         <param name="emul_sensor" type="bool" value="false"/>
     </node>
 
-    <node name="sick_mrs_6xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_mrs_6xxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
         <!-- default values: -->
         <!--
           <param name="scanner_type" type="string" value="sick_mrs_6xxx"
@@ -54,7 +54,7 @@
         <param name="max_ang" type="double" value="+1.047197333"/>
     </node>
 
-    <node name="radar_object_marker" pkg="sick_scan" type="sick_scan_radar_object_marker" respawn="false"
+    <node name="radar_object_marker" pkg="sick_scan_xd" type="sick_scan_radar_object_marker" respawn="false"
           output="screen"/>
 
 </launch>

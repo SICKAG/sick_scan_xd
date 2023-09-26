@@ -10,4 +10,4 @@
 std_msgs/Header header
 RadarPreHeader radarpreheader
 sensor_msgs/PointCloud2 targets
-sick_scan/RadarObject[] objects
+sick_scan_xd/RadarObject[] objects

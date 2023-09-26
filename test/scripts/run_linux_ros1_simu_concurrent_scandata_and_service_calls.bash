@@ -56,8 +56,8 @@ if [ $roscore_running -lt 1 ] ; then
   sleep 3
 fi
 
-# Start sick_scan emulator
-roslaunch sick_scan emulator_lms5xx.launch &
+# Start sick_scan_xd emulator
+roslaunch sick_scan_xd emulator_lms5xx.launch &
 sleep 1
 
 # Start rviz
@@ -66,9 +66,9 @@ sleep 1
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_lms5xx.rviz --opengl 210 &
 sleep 1
 
-# Start sick_scan driver for mrs1104
-echo -e "run_linux_ros1_simu_concurrent_scandata_and_service_calls.bash: Launching sick_scan sick_lms_5xx.launch\n"
-roslaunch sick_scan sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+# Start sick_scan_xd driver for mrs1104
+echo -e "run_linux_ros1_simu_concurrent_scandata_and_service_calls.bash: Launching sick_scan_xd sick_lms_5xx.launch\n"
+roslaunch sick_scan_xd sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 sleep 5
 
 # Run example ros service calls

@@ -55,7 +55,7 @@
 // #include <time.h>
 #include "sick_scan/random_generator.h"
 
-const std::string sick_scan::UniformRandomAsciiString::s_ascii_chars = " !\"#$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_abcdefghijklmnopqrstuvwxyz{|}~";  ///< static list of ascii chars
+const std::string sick_scan_xd::UniformRandomAsciiString::s_ascii_chars = " !\"#$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_abcdefghijklmnopqrstuvwxyz{|}~";  ///< static list of ascii chars
 
 
 /*!
@@ -63,7 +63,7 @@ const std::string sick_scan::UniformRandomAsciiString::s_ascii_chars = " !\"#$%&
  * @param[in] lower_bound min. value of random distribution, random numbers will be generated within the range lower_bound up to upper_bound
  * @param[in] upper_bound max. value of random distribution, random numbers will be generated within the range lower_bound up to upper_bound
  */
-sick_scan::UniformRandomInteger::UniformRandomInteger(int lower_bound, int upper_bound)
+sick_scan_xd::UniformRandomInteger::UniformRandomInteger(int lower_bound, int upper_bound)
 : m_lower_bound(lower_bound), m_upper_bound(upper_bound), m_random_engine(m_random_device()), m_uniform_distribution(lower_bound, upper_bound)
   // m_random_engine(time(0)), m_uniform_distribution(lower_bound, upper_bound), m_random_generator(m_random_engine, m_uniform_distribution)
 {
@@ -72,7 +72,7 @@ sick_scan::UniformRandomInteger::UniformRandomInteger(int lower_bound, int upper
 /*!
  * Returns a uniform distributed integer random number within the range lower_bound up to upper_bound
  */
-int sick_scan::UniformRandomInteger::generate(void)
+int sick_scan_xd::UniformRandomInteger::generate(void)
 {
   return m_uniform_distribution(m_random_engine);
 }
@@ -82,7 +82,7 @@ int sick_scan::UniformRandomInteger::generate(void)
  * @param[in] data_size number of random bytes created, size of output data
  * @return binary random data of length data_size
  */
-std::vector<uint8_t> sick_scan::UniformRandomInteger::generate(int data_size)
+std::vector<uint8_t> sick_scan_xd::UniformRandomInteger::generate(int data_size)
 {
   std::vector<uint8_t> data(data_size, 0);
   for(int n = 0; n < data_size; n++)
@@ -95,7 +95,7 @@ std::vector<uint8_t> sick_scan::UniformRandomInteger::generate(int data_size)
 /*!
  * UniformRandomAsciiString constructor
  */
-sick_scan::UniformRandomAsciiString::UniformRandomAsciiString(): m_random_generator(0, (int)(s_ascii_chars.length()) - 1)
+sick_scan_xd::UniformRandomAsciiString::UniformRandomAsciiString(): m_random_generator(0, (int)(s_ascii_chars.length()) - 1)
 {
 }
 
@@ -104,7 +104,7 @@ sick_scan::UniformRandomAsciiString::UniformRandomAsciiString(): m_random_genera
  * @param[in] length length of string
  * @return random ascii string
  */
-std::string sick_scan::UniformRandomAsciiString::generate(int length)
+std::string sick_scan_xd::UniformRandomAsciiString::generate(int length)
 {
   std::string random_string;
   random_string.reserve(length);

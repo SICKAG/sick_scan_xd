@@ -1,5 +1,5 @@
 REM 
-REM Build sick_scan_xd API library (sick_scan_shared_lib.dll) on native Windows with Visual Studio 2019 and cmake
+REM Build sick_scan_xd API library (sick_scan_xd_shared_lib.dll) on native Windows with Visual Studio 2019 and cmake
 REM
 
 call .\make_win64_vs2019.cmd
@@ -20,7 +20,7 @@ if 1==1 (
     del /f/q .\src\CMakeLists.txt
 )
 
-for %%i in ( .\install\sick_scan\lib .\install\sick_scan\lib\sick_scan .\build\sick_scan\Debug .\build\sick_scan\Release ) do (
+for %%i in ( .\install\sick_scan_xd\lib .\install\sick_scan_xd\lib\sick_scan_xd .\build\sick_scan_xd\Debug .\build\sick_scan_xd\Release ) do (
   if exist %%i\sick_scan_lib.lib       del /f/q %%i\sick_scan_lib.lib
   if exist %%i\sick_generic_caller.exe del /f/q %%i\sick_generic_caller.exe
 )
@@ -36,17 +36,17 @@ REM Build msgpack11 and sick_scan_xd on Windows with colcon for ROS2
 REM 
 
 colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+ 
-colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" --event-handlers "console_direct+"
+colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" --event-handlers "console_direct+"
 call .\install\setup.bat
-start "sick_scan.sln" .\build\sick_scan\sick_scan.sln
+start "sick_scan_xd.sln" .\build\sick_scan_xd\sick_scan_xd.sln
 
 @timeout /t 3
 @echo.
-if not exist .\build\sick_scan\Release\sick_scan_lib.lib                 ( @echo colcon build sick_scan_lib.lib failed         & @pause ) else ( @echo Successfully build sick_scan_lib.lib for ROS-2 Windows )
-if not exist .\build\sick_scan\Release\sick_generic_caller.exe           ( @echo colcon build sick_generic_caller.exe failed   & @pause ) else ( @echo Successfully build sick_generic_caller.exe for ROS-2 Windows )
-if not exist .\build\sick_scan\Release\sick_scan_xd_api_test.exe         ( @echo colcon build sick_scan_xd_api_test.exe failed & @pause ) else ( @echo Successfully build sick_scan_xd_api_test.exe for ROS-2 Windows )
-if not exist .\install\sick_scan\lib\sick_scan\sick_generic_caller.exe   ( @echo colcon build sick_generic_caller.exe failed   & @pause ) else ( @echo Successfully build sick_generic_caller.exe for ROS-2 Windows )
-if not exist .\install\sick_scan\lib\sick_scan\sick_scan_xd_api_test.exe ( @echo colcon build sick_scan_xd_api_test.exe failed & @pause ) else ( @echo Successfully build sick_scan_xd_api_test.exe for ROS-2 Windows )
+if not exist .\build\sick_scan_xd\Release\sick_scan_xd_lib.lib                 ( @echo colcon build sick_scan_xd_lib.lib failed      & @pause ) else ( @echo Successfully build sick_scan_xd_lib.lib for ROS-2 Windows )
+if not exist .\build\sick_scan_xd\Release\sick_generic_caller.exe              ( @echo colcon build sick_generic_caller.exe failed   & @pause ) else ( @echo Successfully build sick_generic_caller.exe for ROS-2 Windows )
+if not exist .\build\sick_scan_xd\Release\sick_scan_xd_api_test.exe            ( @echo colcon build sick_scan_xd_api_test.exe failed & @pause ) else ( @echo Successfully build sick_scan_xd_api_test.exe for ROS-2 Windows )
+if not exist .\install\sick_scan_xd\lib\sick_scan_xd\sick_generic_caller.exe   ( @echo colcon build sick_generic_caller.exe failed   & @pause ) else ( @echo Successfully build sick_generic_caller.exe for ROS-2 Windows )
+if not exist .\install\sick_scan_xd\lib\sick_scan_xd\sick_scan_xd_api_test.exe ( @echo colcon build sick_scan_xd_api_test.exe failed & @pause ) else ( @echo Successfully build sick_scan_xd_api_test.exe for ROS-2 Windows )
 
 popd
 @pause

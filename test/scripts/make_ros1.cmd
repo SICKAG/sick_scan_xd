@@ -14,7 +14,7 @@ if 1==1 (
     del /f/q .\src\CMakeLists.txt
 )
 
-for %%i in ( .\install\sick_scan\lib .\install\sick_scan\lib\sick_scan .\build\sick_scan\Debug .\build\sick_scan\Release ) do (
+for %%i in ( .\install\sick_scan_xd\lib .\install\sick_scan_xd\lib\sick_scan_xd .\build\sick_scan_xd\Debug .\build\sick_scan_xd\Release ) do (
   if exist %%i\sick_scan_lib.lib       del /f/q %%i\sick_scan_lib.lib
   if exist %%i\sick_generic_caller.exe del /f/q %%i\sick_generic_caller.exe
 )
@@ -27,8 +27,8 @@ rem catkin_make_isolated --install --ignore-pkg libsick_ldmrs --cmake-args -DROS
 
 @timeout /t 3
 @echo.
-if not exist .\devel_isolated\sick_scan\lib\sick_scan_lib.lib                 ( @echo colcon build sick_scan_lib.lib failed       & @pause ) else ( @echo Successfully build sick_scan_lib.lib for ROS-1 Windows )
-if not exist .\devel_isolated\sick_scan\lib\sick_scan\sick_generic_caller.exe ( @echo colcon build sick_generic_caller.exe failed & @pause ) else ( @echo Successfully build sick_generic_caller.exe for ROS-1 Windows )
+if not exist .\devel_isolated\sick_scan_xd\lib\sick_scan_lib.lib                 ( @echo colcon build sick_scan_lib.lib failed       & @pause ) else ( @echo Successfully build sick_scan_lib.lib for ROS-1 Windows )
+if not exist .\devel_isolated\sick_scan_xd\lib\sick_scan_xd\sick_generic_caller.exe ( @echo colcon build sick_generic_caller.exe failed & @pause ) else ( @echo Successfully build sick_generic_caller.exe for ROS-1 Windows )
 
 popd
 @pause

@@ -71,7 +71,7 @@ static std::mutex s_ColaTransmitterSendMutex; // mutex to lock ColaTransmitter::
  * @param[in] tcp_port tcp port for command requests, default: 2111 for command requests and 2112 for  command responses
  * @param[in] default_receive_timeout default timeout in seconds for receive functions
  */
-sick_scan::ColaTransmitter::ColaTransmitter(const std::string & server_address, int tcp_port, double default_receive_timeout)
+sick_scan_xd::ColaTransmitter::ColaTransmitter(const std::string & server_address, int tcp_port, double default_receive_timeout)
 : m_server_address(server_address), m_tcp_port(tcp_port), 
   m_receive_timeout(default_receive_timeout), m_receiver_thread_running(false), m_receiver_thread(0)
 {
@@ -81,7 +81,7 @@ sick_scan::ColaTransmitter::ColaTransmitter(const std::string & server_address, 
 /*!
  * Destructor, closes all tcp connections.
  */
-sick_scan::ColaTransmitter::~ColaTransmitter()
+sick_scan_xd::ColaTransmitter::~ColaTransmitter()
 {
   m_receiver_thread_running = false;
   close();
@@ -92,7 +92,7 @@ sick_scan::ColaTransmitter::~ColaTransmitter()
  * Connects to the localization server.
  * @return true on success, false on failure (localization server unknown or unreachable)
  */
-bool sick_scan::ColaTransmitter::connect(void)
+bool sick_scan_xd::ColaTransmitter::connect(void)
 {
   return m_tcp_socket.connect(m_server_address, m_tcp_port);
 }
@@ -101,7 +101,7 @@ bool sick_scan::ColaTransmitter::connect(void)
  * Closes the tcp connection to the localization server.
  * @return always true
  */
-bool sick_scan::ColaTransmitter::close(void)
+bool sick_scan_xd::ColaTransmitter::close(void)
 {
   try
   {
@@ -121,7 +121,7 @@ bool sick_scan::ColaTransmitter::close(void)
  * @param[out] send_timestamp send timestamp in seconds (ros timestamp immediately before tcp send)
  * @return true on success, false on failure
  */
-bool sick_scan::ColaTransmitter::send(const std::vector<uint8_t> & data, ROS::Time & send_timestamp)
+bool sick_scan_xd::ColaTransmitter::send(const std::vector<uint8_t> & data, ROS::Time & send_timestamp)
 {
   return send(m_tcp_socket.socket(), data, send_timestamp);
 }
@@ -133,7 +133,7 @@ bool sick_scan::ColaTransmitter::send(const std::vector<uint8_t> & data, ROS::Ti
  * @param[out] send_timestamp send timestamp in seconds (ros timestamp immediately before tcp send)
  * @return true on success, false on failure
  */
-bool sick_scan::ColaTransmitter::send(socket_t & socket, const std::vector<uint8_t> & data, ROS::Time & send_timestamp)
+bool sick_scan_xd::ColaTransmitter::send(socket_t & socket, const std::vector<uint8_t> & data, ROS::Time & send_timestamp)
 {
   std::lock_guard<std::mutex> send_lock_guard(s_ColaTransmitterSendMutex);
   try
@@ -161,7 +161,7 @@ bool sick_scan::ColaTransmitter::send(socket_t & socket, const std::vector<uint8
  * @param[out] receive_timestamp receive timestamp in seconds (ros timestamp immediately after first response byte received)
  * @return true on success, false on failure
  */
-bool sick_scan::ColaTransmitter::receive(std::vector<uint8_t> & telegram, double timeout, ROS::Time & receive_timestamp)
+bool sick_scan_xd::ColaTransmitter::receive(std::vector<uint8_t> & telegram, double timeout, ROS::Time & receive_timestamp)
 {
   return receive(m_tcp_socket.socket(), telegram, timeout, receive_timestamp);
 }
@@ -174,13 +174,13 @@ bool sick_scan::ColaTransmitter::receive(std::vector<uint8_t> & telegram, double
  * @param[out] receive_timestamp receive timestamp in seconds (ros timestamp immediately after first response byte received)
  * @return true on success, false on failure
  */
-bool sick_scan::ColaTransmitter::receive(socket_t & socket, std::vector<uint8_t> & telegram, double timeout, ROS::Time & receive_timestamp)
+bool sick_scan_xd::ColaTransmitter::receive(socket_t & socket, std::vector<uint8_t> & telegram, double timeout, ROS::Time & receive_timestamp)
 {
   telegram.clear();
   telegram.reserve(1024);
   try
   {
-    std::vector<uint8_t> binETX = sick_scan::ColaParser::binaryETX();
+    std::vector<uint8_t> binETX = sick_scan_xd::ColaParser::binaryETX();
     ROS::Time start_time = ROS::now();
     while (ROS::ok() && socket != INVALID_SOCKET)
     {
@@ -202,11 +202,11 @@ bool sick_scan::ColaTransmitter::receive(socket_t & socket, std::vector<uint8_t>
           receive_timestamp = ROS::now(); // timestamp after first byte received
         telegram.push_back(byte_received);
         // Check for "<ETX>" (message completed) and return if received data ends with "<ETX>"
-        bool is_binary_cola = sick_scan::ColaAsciiBinaryConverter::IsColaBinary(telegram);
+        bool is_binary_cola = sick_scan_xd::ColaAsciiBinaryConverter::IsColaBinary(telegram);
         if(is_binary_cola)
         {
           // Cola-Binary: Check telegram length and return if all bytes received
-          uint32_t telegram_length = sick_scan::ColaAsciiBinaryConverter::ColaBinaryTelegramLength(telegram);
+          uint32_t telegram_length = sick_scan_xd::ColaAsciiBinaryConverter::ColaBinaryTelegramLength(telegram);
           if(telegram_length > 0 && telegram.size() >= telegram_length)
             return true; // all bytes received, telegram completed
         }
@@ -222,7 +222,7 @@ bool sick_scan::ColaTransmitter::receive(socket_t & socket, std::vector<uint8_t>
       // Check for timeout
       if (ROS::seconds(ROS::now() - start_time) >= timeout)
       {
-        // ROS_DEBUG_STREAM("ColaTransmitter::receive(): timeout, " << telegram.size() << " byte received: " << sick_scan::Utils::toHexString(telegram));
+        // ROS_DEBUG_STREAM("ColaTransmitter::receive(): timeout, " << telegram.size() << " byte received: " << sick_scan_xd::Utils::toHexString(telegram));
         break;
       }
     }
@@ -240,7 +240,7 @@ bool sick_scan::ColaTransmitter::receive(socket_t & socket, std::vector<uint8_t>
  * @param[in] etx ETX tag (binary or ascii)
  * @return true if data end with etx, false otherwise
  */
-bool sick_scan::ColaTransmitter::dataEndWithETX(const std::vector<uint8_t> & data, const std::vector<uint8_t> & etx)
+bool sick_scan_xd::ColaTransmitter::dataEndWithETX(const std::vector<uint8_t> & data, const std::vector<uint8_t> & etx)
 {
   if(data.size() < etx.size())
     return false;
@@ -257,11 +257,11 @@ bool sick_scan::ColaTransmitter::dataEndWithETX(const std::vector<uint8_t> & dat
  * The receiver thread pushes responses to a fifo buffer, which can be popped by waitPopResponse().
  * @return always true
  */
-bool sick_scan::ColaTransmitter::startReceiverThread(void)
+bool sick_scan_xd::ColaTransmitter::startReceiverThread(void)
 {
   stopReceiverThread();
   m_receiver_thread_running = true;
-  m_receiver_thread = new std::thread(&sick_scan::ColaTransmitter::runReceiverThreadCb, this);
+  m_receiver_thread = new std::thread(&sick_scan_xd::ColaTransmitter::runReceiverThreadCb, this);
   return true;
 }
 
@@ -269,7 +269,7 @@ bool sick_scan::ColaTransmitter::startReceiverThread(void)
  * Stops the thread to receive response telegrams from the localization server (if a thread has been started by startReceiverThread=.
  * @return always true
  */
-bool sick_scan::ColaTransmitter::stopReceiverThread(void)
+bool sick_scan_xd::ColaTransmitter::stopReceiverThread(void)
 {
   m_receiver_thread_running = false;
   if(m_receiver_thread)
@@ -291,7 +291,7 @@ bool sick_scan::ColaTransmitter::stopReceiverThread(void)
  * @param[out] receive_timestamp receive timestamp in seconds (ros timestamp immediately after first response byte received)
  * @return true on success, false on failure (connection error or timeout)
  */
-bool sick_scan::ColaTransmitter::waitPopResponse(std::vector<uint8_t> & telegram, double timeout, ROS::Time & receive_timestamp)
+bool sick_scan_xd::ColaTransmitter::waitPopResponse(std::vector<uint8_t> & telegram, double timeout, ROS::Time & receive_timestamp)
 {
   ROS::Time start_time = ROS::now();
   while(ROS::ok() && m_receiver_thread_running && m_response_fifo.empty())
@@ -314,7 +314,7 @@ bool sick_scan::ColaTransmitter::waitPopResponse(std::vector<uint8_t> & telegram
 /*!
  * Thread callback, receives response telegrams from localization server and pushes them to m_response_fifo.
  */
-void sick_scan::ColaTransmitter::runReceiverThreadCb(void)
+void sick_scan_xd::ColaTransmitter::runReceiverThreadCb(void)
 {
   while(ROS::ok() && m_receiver_thread_running)
   {
