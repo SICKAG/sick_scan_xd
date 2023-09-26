@@ -116,6 +116,14 @@ else()
     link_libraries(dl)      # dynamic loading of libraries
 endif()
 
+if(RASPBERRY EQUAL 1)
+    add_compile_options(-DRASPBERRY=1)
+    message(STATUS "Building sick_scan_xd for target RASPBERRY")
+else()
+    add_compile_options(-DRASPBERRY=0)
+endif()
+
+
 # Checks and prints a message, if a header file does not exist
 function(check_header_exists headerfilepath headerfilename packagename)
     if(NOT EXISTS ${headerfilepath})
@@ -339,7 +347,9 @@ if(ROS_VERSION EQUAL 2)
 endif()
 
 # Support for LDMRS
-if(${BUILD_WITH_LDMRS_SUPPORT} OR BUILD_WITH_LDMRS_SUPPORT EQUAL ON)
+if(RASPBERRY EQUAL 1)
+    message(STATUS "Building ${PROJECT_NAME} for raspberry without ldmrs support")
+elseif(${BUILD_WITH_LDMRS_SUPPORT} OR BUILD_WITH_LDMRS_SUPPORT EQUAL ON)
     message(STATUS "Building ${PROJECT_NAME} with LDMRS support")
     add_compile_options(-DLDMRS_SUPPORT=1)
     find_package(SickLDMRS REQUIRED)

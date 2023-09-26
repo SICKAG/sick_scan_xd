@@ -11,7 +11,12 @@
     <arg name="publish_frame_id" default="world" />                       <!-- frame id of ros PointCloud2 messages, default: "world" -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="scandataformat" default="2"/>                              <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
+<<<<<<< HEAD
     <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">    
+=======
+    <arg name="custom_pointclouds" default="cloud_unstructured_segments cloud_unstructured_fullframe cloud_polar_unstructured_segments cloud_polar_unstructured_fullframe cloud_all_fields_fullframe"/> <!-- Default pointclouds: segmented and fullframe pointclouds, with all layers and echos in both cartesian and polar coordinates -->
+    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">    
+>>>>>>> multiscan_pointcloud
         <param name="scanner_type" type="string" value="sick_picoscan"/>
 
         <!-- network settings: -->
@@ -87,6 +92,126 @@
         <param name="msgpack_validator_elevation_end" type="double" value="0.0" />                            <!-- picoScan150: 1 layer -->
         <param name="msgpack_validator_valid_segments" type="string" value="0 1 2 3 4 5 6 7 8" />             <!-- indices of valid segmentes, default for full scan: 9 segments -->
         <param name="msgpack_validator_layer_filter" type="string" value="1" />                               <!-- picoScan150: 1 layer -->
+
+        <!-- segment and fullframe pointclouds replaced by customized pointcloud configuration -->
+        <!--param name="publish_topic" type="string" value="$(arg publish_topic)" / -->           <!-- ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud" -->
+        <!--param name="publish_topic_all_segments" type="string" value="$(arg publish_topic_all_segments)" / -->  <!-- ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe" -->
+
+        <!-- Configuration of customized pointclouds:
+
+        Parameter "custom_pointclouds" lists all customized pointclouds to be published. Each pointcloud is given by its name and configured by the following parameters:
+        "<name_of_custom_pointcloud>" type="string" value="list of key-value-pairs"
+        
+        The list of key-value-pairs defines the pointcloud properties. List of supported key-value-pairs for customized pointclouds:
+        
+        Parameter "coordinateNotation" is an enum to configure pointcloud coordinates:
+            coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i), identical to customized with fields=x,y,z,i
+            coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i), identical to customized with fields=azimuth,elevation,range,i
+            coordinateNotation=2: both cartesian and polar (pointcloud has fields x,y,z,azimuth,elevation,r,i), identical to customized with fields=x,y,z,azimuth,elevation,range,i
+            coordinateNotation=3: customized pointcloud fields, i.e. the pointcloud has fields configured by parameter "fields"
+
+        Parameter "updateMethod" is an enum to configure fullframe pointclouds versus segmented pointcloud:
+            updateMethod=0: fullframe pointcloud (default)
+            updateMethod=1: segmented pointcloud
+
+        Parameter "fields" defines the fields of the pointcloud for coordinateNotation == 3 (customized pointcloud fields), e.g. 
+            fields=x,y,z,i: cartesian pointcloud
+            fields=range,azimuth,elevation: polar pointcloud
+            or any other combination of x,y,z,i,range,azimuth,elevation,layer,echo,reflector
+        
+        Parameter "echos" defines which echos are included in the pointcloud, e.g.
+            echos=0,1,2: all echos
+            echos=2: last echo
+            or any other combination of 0,1,2
+
+        Parameter "layers" defines which echos are included in the pointcloud, e.g
+            layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 for all layers
+            layers=5 for the 0 degree layer
+            or any other combination of 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+
+        Parameter "reflectors" filters the points by the reflector bit, i.e.
+            reflectors=0,1 for points with reflector bit set or not set
+            reflectors=0 for points with reflector bit not set
+            reflectors=1 for points with reflector bit set
+
+        Parameter "infringed" defines filters the points by infringement, i.e.
+            infringed=0,1 for points with infringement bit set or not set
+            infringed=0 for points with infringement bit not set
+            infringed=1 for points with infringement bit set
+        Parameter "infringed" is currently not supported (reserved for future use)
+
+        Parameter "topic" defines the ros topic, e.g. topic=/cloud_fullframe for cartesian fullframe pointclouds
+
+        Parameter "frameid" defines the ros frame of the pointcloud, e.g. frameid=world, frameid=map or frameid=base_link
+
+        Parameter "publish" activates or deactivates the pointcloud, e.g. publish=1 to generate and publish, or publish=0 to deactivate that pointcloud
+        -->
+
+        <!-- List of customized pointclouds: -->
+        <param name="custom_pointclouds" type="string" value="$(arg custom_pointclouds)"/> <!-- Default pointclouds: segmented pointcloud and fullframe pointcloud with all layers and echos in cartesian coordinates -->
+        
+        <!-- A list predefined pointclouds is configured below. Use all of them or just a subset, according to your needs. Further customized pointclouds can be added in the following configuration -->
+        <!-- param name="custom_pointclouds" type="string" value="cloud_unstructured_segments cloud_polar_unstructured_segments cloud_unstructured_fullframe cloud_unstructured_echo1 cloud_unstructured_echo1_segments cloud_unstructured_echo2 cloud_unstructured_echo2_segments cloud_unstructured_echo3 cloud_unstructured_echo3_segments cloud_unstructured_reflector cloud_unstructured_reflector_segments cloud_structured_hires0 cloud_structured_hires0_segments cloud_structured_hires1 cloud_structured_hires1_segments cloud_structured cloud_structured_segments cloud_all_fields_segments cloud_all_fields_fullframe"/ -->
+
+        <!-- cloud_unstructured_segments: cartesian coordinates, segmented, all echos, all layers, max. 2700 points, mean ca. 1000 points per cloud -->
+        <param name="cloud_unstructured_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_segments frameid=world publish=1"/>
+        
+        <!-- cloud_unstructured_fullframe: cartesian coordinates, fullframe, all echos, all layers, max. 32400 points, mean ca. 10000 points per cloud -->
+        <param name="cloud_unstructured_fullframe" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_fullframe frameid=world publish=1"/>
+
+        <!-- cloud_polar_unstructured_segments: polar coordinates, segmented, all echos, all layers, max. 2700 points, mean ca. 1000 points per cloud -->
+        <param name="cloud_polar_unstructured_segments" type="string" value="coordinateNotation=1 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_polar_unstructured_segments frameid=world publish=1"/>
+
+        <!-- cloud_polar_unstructured_fullframe: polar coordinates, fullframe, all echos, all layers -->
+        <param name="cloud_polar_unstructured_fullframe" type="string" value="coordinateNotation=1 updateMethod=0 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_polar_unstructured_fullframe frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo1: cartesian coordinates, fullframe, first echo, all layers -->
+        <param name="cloud_unstructured_echo1" type="string" value="coordinateNotation=0 updateMethod=0 echos=0 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo1 frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo1_segments: cartesian coordinates, segmented, first echo, all layers -->
+        <param name="cloud_unstructured_echo1_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo1_segments frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo2: cartesian coordinates, fullframe, first echo, all layers -->
+        <param name="cloud_unstructured_echo2" type="string" value="coordinateNotation=0 updateMethod=0 echos=1 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo2 frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo2_segments: cartesian coordinates, segmented, first echo, all layers -->
+        <param name="cloud_unstructured_echo2_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=1 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo2_segments frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo3: cartesian coordinates, fullframe, first echo, all layers -->
+        <param name="cloud_unstructured_echo3" type="string" value="coordinateNotation=0 updateMethod=0 echos=2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo3 frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo3_segments: cartesian coordinates, segmented, first echo, all layers -->
+        <param name="cloud_unstructured_echo3_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=1 infringed=0,1 topic=/cloud_unstructured_echo3_segments frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_reflector: cartesian coordinates, fullframe, first echo, all layers -->
+        <param name="cloud_unstructured_reflector" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=1 infringed=0,1 topic=/cloud_unstructured_reflector frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_reflector_segments: cartesian coordinates, segmented, first echo, all layers -->
+        <param name="cloud_unstructured_reflector_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=1 infringed=0,1 topic=/cloud_unstructured_reflector_segments frameid=world publish=1"/>
+
+        <!-- cloud_structured_hires0: cartesian and polar coordinates, fullframe, all echos, high resolution layer 5, fields=x,y,z,i,range,azimuth,elevation, 12*2880x3=103680 points per cloud -->
+        <param name="cloud_structured_hires0" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=5 reflectors=0,1 infringed=0,1 topic=/cloud_structured_hires0 frameid=world publish=1"/>
+
+        <!-- cloud_structured_hires0_segments: cartesian and polar coordinates, segments, all echos, high resolution layer 5, fields=x,y,z,i,range,azimuth,elevation, 2880x3=8640 points per cloud -->
+        <param name="cloud_structured_hires0_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=5 reflectors=0,1 infringed=0,1 topic=/cloud_structured_hires0_segments frameid=world publish=1"/>
+
+        <!-- cloud_structured_hires1: cartesian and polar coordinates, fullframe, all echos, high resolution layer 13, fields=x,y,z,i,range,azimuth,elevation, 12*2880x3=103680 points per cloud -->
+        <param name="cloud_structured_hires1" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=13 reflectors=0,1 infringed=0,1 topic=/cloud_structured_hires1 frameid=world publish=1"/>
+
+        <!-- cloud_structured_hires1_segments: cartesian and polar coordinates, segments, all echos, high resolution layer 13, fields=x,y,z,i,range,azimuth,elevation, 2880x3=8640 points per cloud -->
+        <param name="cloud_structured_hires1_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=13 reflectors=0,1 infringed=0,1 topic=/cloud_structured_hires1_segments frameid=world publish=1"/>
+
+        <!-- cloud_structured: cartesian and polar coordinates, fullframe, all echos, low resolution layers 0,1,2,3,4,6,7,8,9,10,11,12,14,15, fields=x,y,z,i,range,azimuth,elevation, 12*360*14*3=181440 points per cloud -->
+        <param name="cloud_structured" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=0,1,2,3,4,6,7,8,9,10,11,12,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_structured frameid=world publish=1"/>
+
+        <!-- cloud_structured_segments: cartesian and polar coordinates, segments, all echos, low resolution layers 0,1,2,3,4,6,7,8,9,10,11,12,14,15, fields=x,y,z,i,range,azimuth,elevation, 360*14*3=15120 points per cloud -->
+        <param name="cloud_structured_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=0,1,2,3,4,6,7,8,9,10,11,12,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_structured_segments frameid=world publish=1"/>
+
+        <!-- cloud_all_fields_segments: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), segments, all echos, all layers -->
+        <param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_all_fields_segments frameid=world publish=1"/>
+
+        <!-- cloud_all_fields_fullframe: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), fullframe, all echos, all layers -->
+        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
 
     </node>
 

@@ -21,7 +21,7 @@ python3 ./test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_bina
 sleep 1
 
 # Start sick_generic_caller with sick_scansegment_xd
-./build_linux/sick_generic_caller ./launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 &
+./build_linux/sick_generic_caller ./launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=1 &
 sleep 3
 
 # Play pcapng-files to emulate MRS100 output

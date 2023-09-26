@@ -99,9 +99,9 @@ namespace sick_scansegment_xd
         class LidarPoint
         {
         public:
-            LidarPoint() : x(0), y(0), z(0), i(0), range(0), azimuth(0), elevation(0), groupIdx(0), echoIdx(0), pointIdx(0) {}
-            LidarPoint(float _x, float _y, float _z, float _i, float _range, float _azimuth, float _elevation, int _groupIdx, int _echoIdx, int _pointIdx)
-                : x(_x), y(_y), z(_z), i(_i), range(_range), azimuth(_azimuth), elevation(_elevation), groupIdx(_groupIdx), echoIdx(_echoIdx), pointIdx(_pointIdx) {}
+            LidarPoint() : x(0), y(0), z(0), i(0), range(0), azimuth(0), elevation(0), groupIdx(0), echoIdx(0), pointIdx(0), reflectorbit(0) {}
+            LidarPoint(float _x, float _y, float _z, float _i, float _range, float _azimuth, float _elevation, int _groupIdx, int _echoIdx, int _pointIdx, uint8_t _reflector_bit)
+                : x(_x), y(_y), z(_z), i(_i), range(_range), azimuth(_azimuth), elevation(_elevation), groupIdx(_groupIdx), echoIdx(_echoIdx), pointIdx(_pointIdx), reflectorbit(_reflector_bit) {}
             float x; // cartesian x coordinate in meter
             float y; // cartesian y coordinate in meter
             float z; // cartesian z coordinate in meter
@@ -112,6 +112,7 @@ namespace sick_scansegment_xd
             int groupIdx;    // group index (layer), 0 <= groupIdx < 16 for multiScan136
             int echoIdx;     // echo index, 0 <= echoIdx < 3 for multiScan136
             int pointIdx;    // point index, 0 <= pointIdx < 30 resp. 0 <= pointIdx < 240 for multiScan136
+            uint8_t reflectorbit; // optional reflector bit, 0 or 1, default: 0
         };
 
         /*

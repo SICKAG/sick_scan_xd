@@ -12,17 +12,22 @@ USECORES=4
 # Build libsick_ldmrs on Linux
 # 
 
-echo -e "sudo build/install libsick_ldmrs ..."
-sudo echo -e "build/install libsick_ldmrs..."
-if [ -d ../../../libsick_ldmrs ] ; then
-  pushd ../../../libsick_ldmrs
-  if [ ! -d ./build ] ; then mkdir -p ./build ; fi
-  cd ./build
-  cmake -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
-  make -j$USECORES             2>&1 | tee -a $BUILDLOGFILE
-  echo -e "build libsick_ldmrs: run \"make install\" requires sudo ..."
-  sudo make -j$USECORES install
-  popd
+LDMRS_SUPPORT=1
+RASPBERRY=0
+if [ -d /usr/lib/linux-firmware-raspi2 ] ; then LDMRS_SUPPORT=0 ; RASPBERRY=1; fi # LDMRS currently not supported on Raspberry
+if [ $LDMRS_SUPPORT -gt 0 ] ; then
+  echo -e "sudo build/install libsick_ldmrs ..."
+  sudo echo -e "build/install libsick_ldmrs..."
+  if [ -d ../../../libsick_ldmrs ] ; then
+    pushd ../../../libsick_ldmrs
+    if [ ! -d ./build ] ; then mkdir -p ./build ; fi
+    cd ./build
+    cmake -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
+    make -j$USECORES             2>&1 | tee -a $BUILDLOGFILE
+    echo -e "build libsick_ldmrs: run \"make install\" requires sudo ..."
+    sudo make -j$USECORES install
+    popd
+  fi
 fi
 
 # 
@@ -52,7 +57,7 @@ rm -f $BUILDLOGFILE
 rm -f $ERRORLOGFILE
 export ROS_VERSION=0
 # cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
-cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
+cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -DRASPBERRY=$RASPBERRY -G "Unix Makefiles" .. 2>&1 | tee -a $BUILDLOGFILE
 make -j$USECORES                                                       2>&1 | tee -a $BUILDLOGFILE
 sudo make -j$USECORES install                                          2>&1 | tee -a $BUILDLOGFILE
 
