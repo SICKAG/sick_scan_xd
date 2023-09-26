@@ -10,11 +10,7 @@ Cmake option " -DRASPBERRY=1" activates compiler settings for the Raspberry. Las
 
 ## Multiscan example
 
-<<<<<<< HEAD
-The following screenshot shows sick_scan_xd running on ROS-1 on a Raspberry Pi 4 connected to a multiscan lidar. A Linux-PC uses rviz to display the fullframe pointcloud generated on the Raspberry. The ssh-terminal shows sick_scan_xd the log messages of the Raspberry:
-=======
 The following screenshot shows sick_scan_xd running under ROS-1 on a Raspberry Pi 4 connected to a multiscan lidar. A Linux-PC uses rviz to display the fullframe pointcloud generated on the Raspberry. The ssh-terminal shows the sick_scan_xd log messages on the Raspberry:
->>>>>>> raspberry_pi_pretest
 ![screenshot raspberry performance test](screenshots/raspberry-perftest-04.png)
 
 On a Raspberry Pi 4, sick_scan_xd processes 240 msgpacks/second with a mean latency of 2.7 milliseconds/msgpack.
@@ -73,11 +69,7 @@ Performance problems can have very different reasons. Notes to help with the eli
 
 ### Endianess
 
-<<<<<<< HEAD
-ARM processors support both little and big endian mode. sick_scan_xd has been tested on Raspberry Pi 4 using Linux/ROS2 in little endian mode. You can check the endianess of your system with `lscpu`.
-=======
 ARM processors support both little and big endian mode. sick_scan_xd has been tested on Raspberry Pi 4 using ROS1 and ROS2 on Linux in little endian mode. You can check the endianess of your system with `lscpu`.
->>>>>>> raspberry_pi_pretest
 
 ### Build sick_scan_xd on a Raspberry without internet or github access
 

@@ -70,19 +70,9 @@ sleep 1
 # By default, laserscan messages are only activated for layer 5 (elevation -0.07 degree, max number of scan points)
 # All laserscan messages are converted to pointcloud by multiscan_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
 # Note: Option laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" should not be used for performance tests.
-<<<<<<< HEAD
 # ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" &
-echo -e "run_lidar3d.bash: sick_scan_xd sick_multiscan.launch.py ..."
-ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" &
-=======
-# ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" &
-echo -e "run_multiscan.bash: sick_scan sick_multiscan.launch.py ..."
-<<<<<<< HEAD
-ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=1 &
->>>>>>> multiscan_pointcloud
-=======
-ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" &
->>>>>>> raspberry_pi_pretest
+echo -e "run_multiscan.bash: sick_scan_xd sick_multiscan.launch.py ..."
+ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=1 &
 sleep 3 
 # python3 ./src/sick_scan_xd/test/python/multiscan_laserscan_msg_to_pointcloud.py &
 # sleep 1

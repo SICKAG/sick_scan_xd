@@ -263,11 +263,7 @@ namespace sick_scansegment_xd
                         const int& azimuth_deg = segment_coverage_azimuth_iter->first;
                         int azimuth_cnt = segment_coverage_azimuth_iter->second;
                         if (azimuth_cnt > 0)
-<<<<<<< HEAD
-                            azimuth_deg_first = std::min<float>(azimuth_deg_first, azimuth_deg);
-=======
                             azimuth_deg_first = std::min<int>(azimuth_deg_first, azimuth_deg);
->>>>>>> raspberry_pi_pretest
                     }
                     for(azimuth_deg_last = azimuth_deg_first; azimuth_deg_last <= azimuth_deg_first + 360; azimuth_deg_last++)
                     {
@@ -307,26 +303,6 @@ namespace sick_scansegment_xd
             std::map<int, std::map<int, int>> segment_coverage; // segment histogram: segment_coverage[elevation][azimuth] > 0: elevation in mdeg and azimuth in deg covered (otherwise no hits)
         };
 
-<<<<<<< HEAD
-=======
-        /*
-        * Converts the lidarpoints from a msgpack to a PointCloud2Msg and to LaserScan messages for each layer.
-        * Note: For performance reasons, LaserScan messages are not created for the collected 360-degree scans (i.e. is_cloud_360 is true).
-        * @param[in] timestamp_sec seconds part of timestamp
-        * @param[in] timestamp_nsec  nanoseconds part of timestamp
-        * @param[in] last_timestamp_sec seconds part of last timestamp
-        * @param[in] last_timestamp_nsec  nanoseconds part of last timestamp
-        * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
-        * @param[in] total_point_count total number of points in all echos
-        * @param[in] echo_count number of echos
-        * @param[out] pointcloud_msg cartesian pointcloud message
-        * @param[out] pointcloud_msg_polar polar pointcloud message
-        * @param[out] laser_scan_msg_map laserscan message: ros_sensor_msgs::LaserScan for each echo and layer is laser_scan_msg_map[echo][layer]
-        */
-        void convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count, 
-        PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, LaserScanMsgMap& laser_scan_msg_map, bool is_cloud_360);
-    
->>>>>>> raspberry_pi_pretest
         /*
         * Converts the lidarpoints to a customized PointCloud2Msg containing configured fields (e.g. x, y, z, i, range, azimuth, elevation, layer, echo, reflector).
         * @param[in] timestamp_sec seconds part of timestamp

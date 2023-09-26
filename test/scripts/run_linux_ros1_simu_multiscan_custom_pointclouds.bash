@@ -68,9 +68,9 @@ rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_cfg_multiscan_c
 sleep 1
 
 # Start sick_generic_caller with sick_multiscan
-echo -e "run_linux_ros1_simu_multiscan_custom_pointclouds.bash: sick_scan sick_multiscan.launch ..."
+echo -e "run_linux_ros1_simu_multiscan_custom_pointclouds.bash: sick_scan_xd sick_multiscan.launch ..."
 # Run multiscan with all 20 predefined pointclouds
-roslaunch sick_scan sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=1 custom_pointclouds:="cloud_unstructured_segments cloud_polar_unstructured_segments cloud_unstructured_fullframe cloud_unstructured_echo1 cloud_unstructured_echo1_segments cloud_unstructured_echo2 cloud_unstructured_echo2_segments cloud_unstructured_echo3 cloud_unstructured_echo3_segments cloud_unstructured_reflector cloud_unstructured_reflector_segments cloud_structured_hires0 cloud_structured_hires0_segments cloud_structured_hires1 cloud_structured_hires1_segments cloud_structured cloud_structured_segments cloud_all_fields_segments cloud_all_fields_fullframe" &
+roslaunch sick_scan_xd sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=1 custom_pointclouds:="cloud_unstructured_segments cloud_polar_unstructured_segments cloud_unstructured_fullframe cloud_unstructured_echo1 cloud_unstructured_echo1_segments cloud_unstructured_echo2 cloud_unstructured_echo2_segments cloud_unstructured_echo3 cloud_unstructured_echo3_segments cloud_unstructured_reflector cloud_unstructured_reflector_segments cloud_structured_hires0 cloud_structured_hires0_segments cloud_structured_hires1 cloud_structured_hires1_segments cloud_structured cloud_structured_segments cloud_all_fields_segments cloud_all_fields_fullframe" &
 sleep 3
 run_laserscan_frame_transformers
 
@@ -97,7 +97,7 @@ for custom_pointcloud_cfg in "${custom_pointcloud_configuration[@]}" ; do
    pkill -f multiscan_sopas_test_server.py ; killall sick_generic_caller ; sleep 3 ; killall -9 sick_generic_caller ; sleep 1
    echo -e "Run multiscan with predefined pointcloud: custom_pointclouds:=\"$custom_pointcloud_cfg\" ..."
    python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
-   roslaunch sick_scan sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=1 custom_pointclouds:="$custom_pointcloud_cfg" &
+   roslaunch sick_scan_xd sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=1 custom_pointclouds:="$custom_pointcloud_cfg" &
    waitUntilRvizClosed 10
 done
 

@@ -197,15 +197,10 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
                 {
                     int msg_cnt_delta = (int)msg_udp_received_counter - (int)msg_exported_counter;
                     double packages_lost_rate = std::abs((double)msg_cnt_delta) / (double)msg_udp_received_counter;
-<<<<<<< HEAD
-                    bool do_print_message = (sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(last_print_timestamp, fifo_clock::now()) > 1.0); // avoid printing with more than 1 Hz
-                    if (m_verbose && msg_udp_received_counter != msg_exported_counter && msg_cnt_delta > msg_cnt_delta_max && do_print_message) // Test mode only, multiScan emulator must be started after lidar3d_multiscan_recv
-=======
                     bool do_print_message = m_verbose &&
                         (sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(last_print_timestamp, fifo_clock::now()) > 1.0) && // avoid printing with more than 1 Hz
                         ((msg_exported_counter%100) == 0);
                     if (msg_udp_received_counter != msg_exported_counter && msg_cnt_delta > msg_cnt_delta_max && do_print_message) // Test mode only, multiScan emulator must be started after lidar3d_multiscan_recv
->>>>>>> raspberry_pi_pretest
                     {
                         ROS_INFO_STREAM("MsgPack/Compact-Exporter::Run(): " << msg_udp_received_counter << " udp messages received, " << msg_exported_counter << " messages exported, " << (100.0 * packages_lost_rate) << "% package lost");
                         msg_cnt_delta_max = msg_cnt_delta;

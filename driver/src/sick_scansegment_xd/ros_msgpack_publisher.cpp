@@ -356,33 +356,19 @@ sick_scansegment_xd::RosMsgpackPublisher::~RosMsgpackPublisher()
         /** Shortcut to publish a PointCloud2Msg */
 void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation)
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-    sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
-    sick_scan_xd::PointCloud2withEcho cloud_msg_polar_with_echo(&pointcloud_msg_polar, num_echos, segment_idx);
-    notifyPolarPointcloudListener(node, &cloud_msg_polar_with_echo);
-    notifyCartesianPointcloudListener(node, &cloud_msg_with_echo);
-=======
   if (coordinate_notation == 0) // coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i) => notify cartesian pointcloud listener
 	{
-		sick_scan::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
+		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
 		notifyCartesianPointcloudListener(node, &cloud_msg_with_echo);
 	}
-  if (coordinate_notation == 1) // coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i) => notify polar pointcloud listener
-	{
-		sick_scan::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
-		notifyPolarPointcloudListener(node, &cloud_msg_with_echo);
-	}
->>>>>>> multiscan_pointcloud
-=======
-    sick_scan::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
-    notifyCartesianPointcloudListener(node, &cloud_msg_with_echo);
 #if defined RASPBERRY && RASPBERRY > 0 // polar pointcloud deactivated on Raspberry for performance reasons
 #else
-    sick_scan::PointCloud2withEcho cloud_msg_polar_with_echo(&pointcloud_msg_polar, num_echos, segment_idx);
-    notifyPolarPointcloudListener(node, &cloud_msg_polar_with_echo);
-#endif		
->>>>>>> raspberry_pi_pretest
+  if (coordinate_notation == 1) // coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i) => notify polar pointcloud listener
+	{
+		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
+		notifyPolarPointcloudListener(node, &cloud_msg_with_echo);
+	}
+#endif
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 	publisher->publish(pointcloud_msg);
 #elif defined __ROS_VERSION && __ROS_VERSION > 0
@@ -390,14 +376,11 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr 
 #elif defined ROSSIMU
   // plotPointCloud(pointcloud_msg);
 #endif
-<<<<<<< HEAD
 }
 
 /** Shortcut to publish Laserscan messages */
 void sick_scansegment_xd::RosMsgpackPublisher::publishLaserScanMsg(rosNodePtr node, LaserscanMsgPublisher& laserscan_publisher, LaserScanMsgMap& laser_scan_msg_map, int32_t num_echos, int32_t segment_idx)
 {
-=======
->>>>>>> raspberry_pi_pretest
 #if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
 #else
 	for(LaserScanMsgMap::iterator laser_scan_echo_iter = laser_scan_msg_map.begin(); laser_scan_echo_iter != laser_scan_msg_map.end(); laser_scan_echo_iter++)
@@ -421,7 +404,6 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishLaserScanMsg(rosNodePtr no
 		}
 	}
 #endif	
-<<<<<<< HEAD
 }
 
 /** Shortcut to publish a PointCloud2Msg
@@ -534,8 +516,6 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
   pointcloud_msg.row_step = pointcloud_msg.point_step * point_cnt;
   pointcloud_msg.data.resize(pointcloud_msg.row_step * pointcloud_msg.height);
 	ROS_DEBUG_STREAM("CustomPointCloudConfiguration " << pointcloud_cfg.cfgName() << ": " << point_cnt << " points per cloud, " << num_fields << " fields per point");
-=======
->>>>>>> raspberry_pi_pretest
 }
 
 /*
@@ -666,7 +646,6 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t tim
 					laser_scan_msg.range_min -= 1.0e-03f;
 					laser_scan_msg.range_max += 1.0e-03f;
 					laser_scan_msg.header = pointcloud_msg.header;
-<<<<<<< HEAD
 					laser_scan_msg.header.frame_id = frame_id + "_" + std::to_string(layer_idx);
 					// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
 					laser_scan_msg.scan_time = m_scan_time;
@@ -766,9 +745,6 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
   				laser_scan_msg.header.stamp.nsec = timestamp_nsec;
 #endif
 					laser_scan_msg.header.frame_id = frame_id + "_" + std::to_string(layer_idx);
-=======
-					laser_scan_msg.header.frame_id = m_frame_id + "_" + std::to_string(layer_idx);
->>>>>>> raspberry_pi_pretest
 					// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
 					laser_scan_msg.scan_time = m_scan_time;
 					// time_increment = 1 / measurement_frequency = scan_time / (number of scan points in a full 360-degree rotation of the sensor)
@@ -947,6 +923,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			ROS_DEBUG_STREAM("publishPointCloud2Msg: " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
 		}
 	}
+#if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
+#else
 	LaserScanMsgMap laser_scan_msg_map; // laser_scan_msg_map[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
 	PointCloud2Msg pointcloud_msg_all_fields, pointcloud_msg_segment, pointcloud_msg_segment_polar;
 	convertPointsToLaserscanMsg(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, total_point_count, laser_scan_msg_map, m_frame_id);
@@ -955,7 +933,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	// convertPointsToCloud(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, total_point_count, pointcloud_msg_segment, pointcloud_msg_segment_polar, laser_scan_msg_map, false, m_frame_id);
 	// publish(m_node, m_publisher_cur_segment, pointcloud_msg_segment, pointcloud_msg_segment_polar, m_publisher_laserscan_segment, laser_scan_msg_map, 
 	//     std::max(1, (int)echo_count), segment_idx); // pointcloud, number of echos, segment index (or -1 if pointcloud contains data from multiple segments)
-	
+#endif
 }
 
 /*

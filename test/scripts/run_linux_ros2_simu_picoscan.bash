@@ -34,7 +34,7 @@ sleep 1
 
 # Start sick_generic_caller with sick_timtwo
 echo -e "run_lidar3d.bash: sick_scan_xd sick_picoscan.launch.py ..."
-ros2 launch sick_scan_xd sick_picoscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" &
+ros2 launch sick_scan_xd sick_picoscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=1 &
 sleep 3 # read -p "Press ENTER to continue..."
 
 # Play timtwo pcapng-files with picoscan (timtwo) msgpack-data, mix 30 and 60 degree segments

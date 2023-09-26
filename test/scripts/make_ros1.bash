@@ -33,12 +33,12 @@ source ./install_isolated/setup.bash
 # print dependencies
 #
 echo -e "\nmake.bash finished.\n"
-echo -e "dependencies or undefined symbols in libsick_scan_shared_lib.so:"
-ldd -r ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so # print undefined symbols in libsick_scan_shared_lib.so
-echo -e "exported symbols in libsick_scan_shared_lib.so:"
-nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so | grep -i tixml # print exported symbos in libsick_scan_shared_lib.so
-nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so | grep -i tinyxml # print exported symbos in libsick_scan_shared_lib.so
-nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so | grep -i SickScanApi # print exported symbos in libsick_scan_shared_lib.so
+echo -e "dependencies or undefined symbols in libsick_scan_xd_shared_lib.so:"
+ldd -r ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so # print undefined symbols in libsick_scan_xd_shared_lib.so
+echo -e "exported symbols in libsick_scan_xd_shared_lib.so:"
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i tixml # print exported symbos in libsick_scan_xd_shared_lib.so
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i tinyxml # print exported symbos in libsick_scan_xd_shared_lib.so
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i SickScanApi # print exported symbos in libsick_scan_xd_shared_lib.so
 
 #
 # print warnings and errors
@@ -51,20 +51,12 @@ cat build/catkin_make_install.log | grep -i "warning:"
 cat build/catkin_make_install.log | grep -i "undefined:"
 cat build/catkin_make_install.log | grep -i "error:"
 
-<<<<<<< HEAD
 # print sick_scan_xd binaries
 echo -e "\n"
 echo -e "src/sick_scan_xd/build_linux:"
-=======
-#
-# print sick_scan_xd binaries
-#
-echo -e "\nsick_scan_xd binaries:"
->>>>>>> multiscan_pointcloud
 ls -al ./src/sick_scan_xd/build_linux/sick_generic_caller
 ls -al ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so
 ls -al ./src/sick_scan_xd/build_linux/sick_scan_xd_api_test
-<<<<<<< HEAD
 ldd -r ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so # print undefined symbols in libsick_scan_xd_shared_lib.so
 echo -e "exported symbols in libsick_scan_xd_shared_lib.so:"
 nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i tixml # print exported symbos in libsick_scan_xd_shared_lib.so
@@ -74,9 +66,5 @@ echo -e "devel_isolated/sick_scan_xd/lib/sick_scan_xd:"
 ls -al ./devel_isolated/sick_scan_xd/lib/sick_scan_xd
 echo -e "install_isolated/lib/sick_scan_xd:"
 ls -al ./install_isolated/lib/sick_scan_xd
-=======
-ls -al ./devel_isolated/sick_scan/lib/sick_scan/*
-ls -al ./install_isolated/lib/sick_scan/*
->>>>>>> multiscan_pointcloud
 popd
 

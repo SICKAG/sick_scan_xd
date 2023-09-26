@@ -40,7 +40,7 @@ sleep 1
 # Play pcapng-files to emulate MRS100 output
 multiscan_pcap_player &
 
-# Run sick_scan api example with sick_multiscan.launch
+# Run sick_scan_xd api example with sick_multiscan.launch
 ./build_linux/sick_scan_xd_api_test ./launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=1
 
 # Finish
