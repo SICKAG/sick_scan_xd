@@ -38,13 +38,13 @@ fi
 # Start rviz
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_slam_nav350.rviz --opengl 210 &
 
-# Start sick_scan emulator
+# Start sick_scan_xd emulator
 python3 ./src/sick_scan_xd/test/python/sopas_json_test_server.py --tcp_port=2112 --json_file=./src/sick_scan_xd/test/emulator/scandata/20230126_nav350_4reflectors_moving.pcapng.json --scandata_id="sAN mNPOSGetData" --send_rate=8 --verbosity=0 &
 sleep 1
 
-# Start sick_scan driver for NAV-350
-echo -e "Launching sick_scan sick_nav_350.launch\n"
-roslaunch sick_scan sick_nav_350.launch hostname:=127.0.0.1 nav_do_initial_mapping:=True sw_pll_only_publish:=False &
+# Start sick_scan_xd driver for NAV-350
+echo -e "Launching sick_scan_xd sick_nav_350.launch\n"
+roslaunch sick_scan_xd sick_nav_350.launch hostname:=127.0.0.1 nav_do_initial_mapping:=True sw_pll_only_publish:=False &
 sleep 1
 
 # Start SLAM
@@ -54,7 +54,7 @@ sleep 1
 # git clone https://github.com/tu-darmstadt-ros-pkg/hector_slam.git
 # cd ..
 # catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 -Wno-dev
-roslaunch sick_scan test_200_slam_ros1_hector.launch scan_topic:=/sick_nav_350/scan &
+roslaunch sick_scan_xd test_200_slam_ros1_hector.launch scan_topic:=/sick_nav_350/scan &
 sleep 1
 
 # Wait max. 30 sec or for 'q' or 'Q' or until rviz is closed

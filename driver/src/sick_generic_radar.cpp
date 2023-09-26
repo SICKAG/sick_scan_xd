@@ -632,7 +632,7 @@ namespace sick_scan_xd
 
     if (verboseLevel > 0)
     {
-      sick_scan::SickScanCommon::dumpDatagramForDebugging((unsigned char *)datagram, datagram_length, useBinaryProtocol);
+      sick_scan_xd::SickScanCommon::dumpDatagramForDebugging((unsigned char *)datagram, datagram_length, useBinaryProtocol);
     }
 
     strncpy(datagram_copy, datagram, datagram_length); // datagram will be changed by strtok
@@ -667,7 +667,7 @@ namespace sick_scan_xd
           raw_fields.push_back(fields[i].data[j]);
         raw_fields.push_back(' ');
       }
-      sick_scan::SickScanCommon::dumpDatagramForDebugging(raw_fields.data(), raw_fields.size(), useBinaryProtocol);
+      sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(raw_fields.data(), raw_fields.size(), useBinaryProtocol);
     }
 
 

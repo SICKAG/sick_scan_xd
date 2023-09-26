@@ -423,7 +423,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
     exit_code = sick_scan_xd::ExitSuccess;
     return;
 #else
-    ROS_ERROR("LDMRS not supported. Please build sick_scan with option LDMRS_SUPPORT");
+    ROS_ERROR("LDMRS not supported. Please build sick_scan_xd with option LDMRS_SUPPORT");
     exit_code = sick_scan_xd::ExitError;
     return;
 #endif
@@ -435,7 +435,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
     exit_code = sick_scansegment_xd::run(nhPriv, scannerName);
     return;
 #else
-    ROS_ERROR_STREAM("SCANSEGMENT_XD_SUPPORT deactivated, " << scannerName << " not supported. Please build sick_scan with option SCANSEGMENT_XD_SUPPORT");
+    ROS_ERROR_STREAM("SCANSEGMENT_XD_SUPPORT deactivated, " << scannerName << " not supported. Please build sick_scan_xd with option SCANSEGMENT_XD_SUPPORT");
     exit_code = sick_scan_xd::ExitError;
     return;
 #endif
@@ -538,7 +538,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
 #if __ROS_VERSION > 0 // point cloud monitoring in Linux-ROS
     if (read_timeout_millisec_kill_node > 0)
     {
-      pointcloud_monitor = new sick_scan::PointCloudMonitor();
+      pointcloud_monitor = new sick_scan_xd::PointCloudMonitor();
       bool pointcloud_monitor_started = pointcloud_monitor->startPointCloudMonitoring(nhPriv, read_timeout_millisec_kill_node, cloud_topic);
       ROS_INFO_STREAM("PointCloudMonitor" << (pointcloud_monitor_started?" ":" NOT ") << "started.");
     }

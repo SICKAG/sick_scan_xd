@@ -746,6 +746,9 @@ if(ROS_VERSION EQUAL 1)
         ${catkin_EXPORTED_TARGETS}
         ${${PROJECT_NAME}_EXPORTED_TARGETS})
 endif()
+if(ROS_VERSION EQUAL 0 AND NOT WIN32)
+    target_link_options(sick_scan_xd_api_test PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+endif()
 
 # install sick_scan_xd_shared_lib incl. API headerfiles
 if(ROS_VERSION EQUAL 0)

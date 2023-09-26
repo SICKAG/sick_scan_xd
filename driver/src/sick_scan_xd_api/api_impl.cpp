@@ -763,12 +763,34 @@ int32_t SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv)
         // Start sick_scan event loop
         int exit_code = 0;
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!startGenericLaser(argc, argv, s_scannerName, node, &exit_code) || exit_code != sick_scan_xd::ExitSuccess)
+        try
         {
-            ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): startGenericLaser() failed, could not start generic laser event loop");
-            return SICK_SCAN_API_ERROR;
+            if (!startGenericLaser(argc, argv, s_scannerName, node, &exit_code) || exit_code != sick_scan_xd::ExitSuccess)
+            {
+                ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): startGenericLaser() failed, could not start generic laser event loop");
+                return SICK_SCAN_API_ERROR;
+            }
+            return SICK_SCAN_API_SUCCESS;
         }
-        return SICK_SCAN_API_SUCCESS;
+        catch(const std::exception& e)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): exception " << e.what());
+        }
+        try
+        {
+            ROS_WARN_STREAM("SickScanApiInitByCli(): running sick_generic_laser in main thread ...");
+            exit_code = mainGenericLaser(argc, argv, s_scannerName, node);
+            if (exit_code != sick_scan_xd::ExitSuccess)
+            {
+                ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): mainGenericLaser() failed");
+                return SICK_SCAN_API_ERROR;
+            }
+            return SICK_SCAN_API_SUCCESS;
+        }
+        catch(const std::exception& e)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): exception " << e.what());
+        }
     }
     catch(const std::exception& e)
     {

@@ -1208,7 +1208,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
 
     if (verboseLevel > 0)
     {
-      sick_scan::SickScanCommon::dumpDatagramForDebugging((unsigned char *)datagram, datagram_length, true);
+      sick_scan_xd::SickScanCommon::dumpDatagramForDebugging((unsigned char *)datagram, datagram_length, true);
     }
 
     strncpy(datagram_copy, datagram, datagram_length); // datagram will be changed by strtok
@@ -1232,7 +1232,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
 
     if (verboseLevel > 0)
     {
-      sick_scan::SickScanCommon::dumpDatagramForDebugging((unsigned char *)fields.data(), fields.size(), true);
+      sick_scan_xd::SickScanCommon::dumpDatagramForDebugging((unsigned char *)fields.data(), fields.size(), true);
     }
 
     // Validate header. Total number of tokens is highly unreliable as this may

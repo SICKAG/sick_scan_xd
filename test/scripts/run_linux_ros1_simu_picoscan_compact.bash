@@ -31,8 +31,8 @@ rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_cfg_picoscan_em
 sleep 1
 
 # Start sick_generic_caller with sick_picoscan with compact format
-echo -e "run_lidar3d.bash: sick_scan sick_picoscan.launch ..."
-roslaunch sick_scan sick_picoscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=2 all_segments_min_deg:=-134 all_segments_max_deg:=135 &
+echo -e "run_lidar3d.bash: sick_scan_xd sick_picoscan.launch ..."
+roslaunch sick_scan_xd sick_picoscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=2 all_segments_min_deg:=-134 all_segments_max_deg:=135 &
 sleep 3 # read -p "Press ENTER to continue..."
 
 # Play picoscan pcapng-file with picoscan compact-data

@@ -37,13 +37,13 @@ source ./install/setup.bash
 # Start rviz
 ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_slam_nav350.rviz &
 
-# Start sick_scan emulator
+# Start sick_scan_xd emulator
 python3 ./src/sick_scan_xd/test/python/sopas_json_test_server.py --tcp_port=2112 --json_file=./src/sick_scan_xd/test/emulator/scandata/20230126_nav350_4reflectors_moving.pcapng.json --scandata_id="sAN mNPOSGetData" --send_rate=8 --verbosity=0 &
 sleep 1
 
-# Start sick_scan driver for NAV-350
-echo -e "Launching sick_scan sick_nav_350.launch\n"
-ros2 launch sick_scan sick_nav_350.launch.py hostname:=127.0.0.1 &
+# Start sick_scan_xd driver for NAV-350
+echo -e "Launching sick_scan_xd sick_nav_350.launch\n"
+ros2 launch sick_scan_xd sick_nav_350.launch.py hostname:=127.0.0.1 &
 sleep 1
 
 # Start SLAM

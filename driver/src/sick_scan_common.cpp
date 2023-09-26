@@ -627,7 +627,7 @@ namespace sick_scan_xd
       diagnostics_->setHardwareID("none");   // set from device after connection
       expectedFrequency_ = parser_->getCurrentParamPtr()->getExpectedFrequency();
       if ( (!m_scan_layer_filter_cfg.scan_layer_filter.empty()) // If an optional ScanLayerFilter is activated,
-        && (m_scan_layer_filter_cfg.num_layers > 1)            // and the lidar has more than 1 layer, 
+        && (m_scan_layer_filter_cfg.num_layers > 1)            // and the lidar has more than 1 layer,
         && (m_scan_layer_filter_cfg.num_active_layers < m_scan_layer_filter_cfg.num_layers)) // and some layers are deactivated, then ...
       {
         // reduce expected frequency by factor (num_active_layers / num_layers)
@@ -874,7 +874,7 @@ namespace sick_scan_xd
   {
     delete cloud_marker_;
     delete diagnosticPub_;
-    printf("sick_scan driver closed.\n");
+    printf("sick_scan_xd driver closed.\n");
   }
 
 
@@ -1259,7 +1259,7 @@ namespace sick_scan_xd
   {
     // "sMN mNPOSGetData wait mask" (Cola-A "sMN mNPOSGetData 1 2" or Cola-B "sMN mNPOSGetData 0102"): wait for next pose result and send pose+reflectors+scan
     std::string sopas_cmd = "\x02sMN mNPOSGetData 1 2\x03"; // wait = 1 (wait for next pose result), mask = 2 (send pose+reflectors+scan)
-    std::vector<unsigned char> sopas_request;   
+    std::vector<unsigned char> sopas_request;
     this->convertAscii2BinaryCmd(sopas_cmd.c_str(), &sopas_request);
     // Send "sMN mNPOSGetData 1 2"
     ROS_DEBUG_STREAM("NAV350: Sending: " << stripControl(sopas_request, -1));
@@ -1809,7 +1809,7 @@ namespace sick_scan_xd
     {
         sopasCmdChain.push_back(CMD_DEVICE_IDENT);
     }
-    
+
     sopasCmdChain.push_back(CMD_FIRMWARE_VERSION);  // read firmware
     sopasCmdChain.push_back(CMD_DEVICE_STATE); // read device state
     sopasCmdChain.push_back(CMD_OPERATION_HOURS); // read operation hours
@@ -3682,7 +3682,7 @@ namespace sick_scan_xd
           else
           {
             ROS_FATAL(
-                "IMU USAGE NOT POSSIBLE IN ASCII COMMUNICATION MODE.\nTo use the IMU the communication with the scanner must be set to binary mode.\n This can be done by inserting the line:\n<param name=\"use_binary_protocol\" type=\"bool\" value=\"True\" />\n into the launchfile.\n See also https://github.com/SICKAG/sick_scan/blob/master/doc/IMU.md");
+                "IMU USAGE NOT POSSIBLE IN ASCII COMMUNICATION MODE.\nTo use the IMU the communication with the scanner must be set to binary mode.\n This can be done by inserting the line:\n<param name=\"use_binary_protocol\" type=\"bool\" value=\"True\" />\n into the launchfile.\n See also https://github.com/SICKAG/sick_scan_xd/blob/master/doc/IMU.md");
             exit(0);
           }
 
@@ -3837,7 +3837,7 @@ namespace sick_scan_xd
         else if (rms_type_str == "RMS2")
         {
           this->parser_->getCurrentParamPtr()->setDeviceIsRadar(RADAR_3D); // Device is a 3D radar
-          this->parser_->getCurrentParamPtr()->setTrackingModeSupported(true); // Default          
+          this->parser_->getCurrentParamPtr()->setTrackingModeSupported(true); // Default
           ROS_INFO_STREAM("3D radar \"" << rms_type_str << "\" device detected, tracking mode enabled");
         }
         else
@@ -4082,7 +4082,7 @@ namespace sick_scan_xd
     return reply_str;
   }
 
-  bool sick_scan::SickScanCommon::dumpDatagramForDebugging(unsigned char *buffer, int bufLen, bool isBinary)
+  bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(unsigned char *buffer, int bufLen, bool isBinary)
   {
     static size_t max_dump_size = 64 * 1024 * 1024;
     static size_t datasize_cnt = 0;
@@ -4888,7 +4888,7 @@ namespace sick_scan_xd
 
               size_t rangeNumAllEchos = rangeTmp.size(); // rangeTmp.size() := number of range values in all echos (max. 5 echos)
               size_t rangeNumAllEchosCloud = cloud_.height * cloud_.width; // number of points allocated in the point cloud
-              rangeNumAllEchos = std::min<int>(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
+              rangeNumAllEchos = std::min<size_t>(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
               size_t rangeNum = rangeNumAllEchos / numValidEchos;
               // ROS_INFO_STREAM("numValidEchos=" << numValidEchos << ", numEchos=" << numEchos << ", cloud_.height * cloud_.width=" << cloud_.height * cloud_.width << ", rangeNum=" << rangeNum);
 
@@ -5016,7 +5016,7 @@ namespace sick_scan_xd
                   }
                   angle += msg.angle_increment;
                 }
-                rangeNumPointcloudAllEchos = std::max<int>(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
+                rangeNumPointcloudAllEchos = std::max<size_t>(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
 
                 // Publish
                 //static int cnt = 0;
