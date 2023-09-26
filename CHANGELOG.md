@@ -7,8 +7,18 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### Release v3.0.0
+
+  - **add** New topics for additional data and properties
+  - **add** Official ARM64 support 
+  - **add** ROS module name consistency
+  - **add** Service for requesting contamination detection information
+  - **add** Improvements from customer tickets and documentation enhancements
 
 ## Released ##
+		   	   
+### Release v2.10.3
+  - **fix** avoid problems with min/max definition in the STL and preprocessor definitions
 
 ### Release v2.10.2
   - **fix** correct picoScan details in documentation and launch files
