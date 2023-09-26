@@ -4880,7 +4880,11 @@ namespace sick_scan_xd
 
               size_t rangeNumAllEchos = rangeTmp.size(); // rangeTmp.size() := number of range values in all echos (max. 5 echos)
               size_t rangeNumAllEchosCloud = cloud_.height * cloud_.width; // number of points allocated in the point cloud
+<<<<<<< HEAD
               rangeNumAllEchos = std::min<size_t>(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
+=======
+              rangeNumAllEchos = std::min<int>(rangeNumAllEchos, rangeNumAllEchosCloud); // limit number of range values (issue #49): if no echofilter was set, the number of echos can exceed the expected echos
+>>>>>>> raspberry_pi_pretest
               size_t rangeNum = rangeNumAllEchos / numValidEchos;
               // ROS_INFO_STREAM("numValidEchos=" << numValidEchos << ", numEchos=" << numEchos << ", cloud_.height * cloud_.width=" << cloud_.height * cloud_.width << ", rangeNum=" << rangeNum);
 
@@ -5008,7 +5012,11 @@ namespace sick_scan_xd
                   }
                   angle += msg.angle_increment;
                 }
+<<<<<<< HEAD
                 rangeNumPointcloudAllEchos = std::max<size_t>(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
+=======
+                rangeNumPointcloudAllEchos = std::max<int>(rangeNumPointcloudAllEchos, rangeNumPointcloudCurEcho);
+>>>>>>> raspberry_pi_pretest
 
                 // Publish
                 //static int cnt = 0;

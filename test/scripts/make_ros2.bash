@@ -25,10 +25,14 @@ if [ $LDMRS_SUPPORT -gt 0 ] ; then
 fi
 colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 <<<<<<< HEAD
+<<<<<<< HEAD
 colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" $ROS2_CMAKE_ARGS --event-handlers console_direct+
 =======
 colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" $ROS2_CMAKE_ARGS $RASPBERRY_CMAKE_ARGS --event-handlers console_direct+
 >>>>>>> multiscan_pointcloud
+=======
+colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" $ROS2_CMAKE_ARGS $RASPBERRY_CMAKE_ARGS --event-handlers console_direct+
+>>>>>>> raspberry_pi_pretest
 source ./install/setup.bash
 
 # Optional build ros2_example_application

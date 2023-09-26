@@ -19,7 +19,10 @@ function killall_cleanup()
   sleep 1 ; killall -SIGINT rviz2
   sleep 1 ; killall -SIGINT sick_generic_caller
   sleep 1 ; pkill -f multiscan_sopas_test_server.py
+<<<<<<< HEAD
   sleep 1 ; pkill -f multiscan_perftest_player.py  
+=======
+>>>>>>> raspberry_pi_pretest
   sleep 1 ; killall -9 rviz2
   sleep 1 ; killall -9 sick_generic_caller
 }
@@ -47,7 +50,11 @@ sleep 1
 
 # Start sick_generic_caller with sick_scansegment_xd
 echo -e "run_multiscan.bash: sick_scan sick_multiscan.launch.py ..."
+<<<<<<< HEAD
 ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=1 &
+=======
+ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" &
+>>>>>>> raspberry_pi_pretest
 sleep 3 
 
 # Play pcapng-files to emulate multiScan output

@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /PointCloud21
+        - /PointCloud21/Status1
       Splitter Ratio: 0.5
     Tree Height: 490
   - Class: rviz_common/Selection

@@ -77,8 +77,12 @@ ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiv
 =======
 # ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" &
 echo -e "run_multiscan.bash: sick_scan sick_multiscan.launch.py ..."
+<<<<<<< HEAD
 ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=1 &
 >>>>>>> multiscan_pointcloud
+=======
+ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" &
+>>>>>>> raspberry_pi_pretest
 sleep 3 
 # python3 ./src/sick_scan_xd/test/python/multiscan_laserscan_msg_to_pointcloud.py &
 # sleep 1

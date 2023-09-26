@@ -91,12 +91,17 @@ sleep 1
 # All laserscan messages are converted to pointcloud by mrs100_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
 # Note: Option laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" should not be used for performance tests.
 <<<<<<< HEAD
+<<<<<<< HEAD
 echo -e "run_lidar3d.bash: sick_scan_xd sick_multiscan.launch ..."
 roslaunch sick_scan_xd sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" &
 =======
 echo -e "run_linux_ros1_simu_multiscan.bash: sick_scan sick_multiscan.launch ..."
 roslaunch sick_scan sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" scandataformat:=1 &
 >>>>>>> multiscan_pointcloud
+=======
+echo -e "run_multiscan.bash: sick_scan sick_multiscan.launch ..."
+roslaunch sick_scan sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" &
+>>>>>>> raspberry_pi_pretest
 sleep 3 
 run_laserscan_frame_transformers
 # python3 ./src/sick_scan_xd/test/python/multiscan_laserscan_msg_to_pointcloud.py &
@@ -107,11 +112,16 @@ call_service_filter_examples
 sleep 3
 
 # Play pcapng-files to emulate MRS100 output
-echo -e "\nPlaying pcapng-files to emulate MRS100. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...\n"
-python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --repeat=1
-sleep 3
+python3 ./src/sick_scan_xd/test/python/multiscan_perftest_player.py --udp_port=2115 --repeat=100 --send_rate=100 --verbose=0 --prompt=0
+#echo -e "\nPlaying pcapng-files to emulate MRS100. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...\n"
+#python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115 --repeat=1
+#sleep 3
 
 # Shutdown
+<<<<<<< HEAD
 echo -e "run_linux_ros1_simu_multiscan.bash finished, killing all processes ..."
+=======
+echo -e "run_multiscan.bash finished, killing all processes ..."
+>>>>>>> raspberry_pi_pretest
 killall_cleanup
 popd

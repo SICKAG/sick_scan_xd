@@ -195,7 +195,10 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
             size_t bytes_received = m_socket_impl->Receive(udp_payload, udp_recv_timeout, m_udp_msg_start_seq);
             bool do_print = (sick_scansegment_xd::Seconds(timestamp_last_print, chrono_system_clock::now()) > 1.0); // avoid printing with more than 1 Hz
             // std::cout << "UdpReceiver::Run(): " << bytes_received << " bytes received" << std::endl;
+<<<<<<< HEAD
             ROS_DEBUG_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received (udp_receiver.cpp:" << __LINE__ << ")");
+=======
+>>>>>>> raspberry_pi_pretest
             if(bytes_received > m_udp_msg_start_seq.size() + 8 && std::equal(udp_payload.begin(), udp_payload.begin() + m_udp_msg_start_seq.size(), m_udp_msg_start_seq.begin()))
             {
                 // Received \x02\x02\x02\x02 | 4Bytes payload length | Payload | CRC32
@@ -256,7 +259,11 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                 }
                 if (bytes_received != bytes_to_receive)
                 {
+<<<<<<< HEAD
                     ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << bytes_received << " bytes received, " << bytes_to_receive << " bytes expected, payload_length_bytes=" << payload_length_bytes);
+=======
+                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << bytes_received << " bytes received, " << bytes_to_receive << " bytes expected, payload_length=" << payload_length_bytes << " bytes");
+>>>>>>> raspberry_pi_pretest
                     timestamp_last_print = chrono_system_clock::now();
                 }
                 // std::cout << "UdpReceiver: payload_length_bytes = " << payload_length_bytes << " byte" << std::endl;
@@ -266,21 +273,22 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                 uint32_t u32MsgPackCRC = crc32(0, msgpack_payload.data(), msgpack_payload.size());
                 if (check_crc && u32PayloadCRC != u32MsgPackCRC)
                 {
-                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): CRC 0x" << std::setfill('0') << std::setw(2) << std::hex << u32PayloadCRC
-                        << " received from " << std::dec << bytes_received << " udp bytes different to CRC 0x"
-                        << std::setfill('0') << std::setw(2) << std::hex << u32MsgPackCRC << " computed from "
-                        << std::dec << (msgpack_payload.size()) << " byte payload, message dropped");
-                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): decoded payload size: " << payload_length_bytes << " byte, bytes_to_receive (expected udp message length): "
-                        << bytes_to_receive << " byte, bytes_received (received udp message length): " << bytes_received << " byte");
                     crc_error = true;
+<<<<<<< HEAD
                     crc_error = true;
+=======
+>>>>>>> raspberry_pi_pretest
                     if (do_print)
                     {
                         ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): CRC 0x" << std::setfill('0') << std::setw(2) << std::hex << u32PayloadCRC
                             << " received from " << std::dec << bytes_received << " udp bytes different to CRC 0x"
                             << std::setfill('0') << std::setw(2) << std::hex << u32MsgPackCRC << " computed from "
                             << std::dec << (msgpack_payload.size()) << " byte payload, message dropped");
+<<<<<<< HEAD
                         ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): decoded payload size: " << payload_length_bytes << " byte, bytes_to_receive (expected udp message length): "
+=======
+                        ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): decoded payload size: " << payload_length_bytes << " bytes, bytes_to_receive (expected udp message length): "
+>>>>>>> raspberry_pi_pretest
                             << bytes_to_receive << " byte, bytes_received (received udp message length): " << bytes_received << " byte");
                         timestamp_last_print = chrono_system_clock::now();
                     }

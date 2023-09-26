@@ -357,6 +357,7 @@ sick_scansegment_xd::RosMsgpackPublisher::~RosMsgpackPublisher()
 void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
     sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
     sick_scan_xd::PointCloud2withEcho cloud_msg_polar_with_echo(&pointcloud_msg_polar, num_echos, segment_idx);
     notifyPolarPointcloudListener(node, &cloud_msg_polar_with_echo);
@@ -373,6 +374,15 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr 
 		notifyPolarPointcloudListener(node, &cloud_msg_with_echo);
 	}
 >>>>>>> multiscan_pointcloud
+=======
+    sick_scan::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
+    notifyCartesianPointcloudListener(node, &cloud_msg_with_echo);
+#if defined RASPBERRY && RASPBERRY > 0 // polar pointcloud deactivated on Raspberry for performance reasons
+#else
+    sick_scan::PointCloud2withEcho cloud_msg_polar_with_echo(&pointcloud_msg_polar, num_echos, segment_idx);
+    notifyPolarPointcloudListener(node, &cloud_msg_polar_with_echo);
+#endif		
+>>>>>>> raspberry_pi_pretest
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 	publisher->publish(pointcloud_msg);
 #elif defined __ROS_VERSION && __ROS_VERSION > 0
@@ -380,11 +390,14 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr 
 #elif defined ROSSIMU
   // plotPointCloud(pointcloud_msg);
 #endif
+<<<<<<< HEAD
 }
 
 /** Shortcut to publish Laserscan messages */
 void sick_scansegment_xd::RosMsgpackPublisher::publishLaserScanMsg(rosNodePtr node, LaserscanMsgPublisher& laserscan_publisher, LaserScanMsgMap& laser_scan_msg_map, int32_t num_echos, int32_t segment_idx)
 {
+=======
+>>>>>>> raspberry_pi_pretest
 #if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
 #else
 	for(LaserScanMsgMap::iterator laser_scan_echo_iter = laser_scan_msg_map.begin(); laser_scan_echo_iter != laser_scan_msg_map.end(); laser_scan_echo_iter++)
@@ -408,6 +421,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishLaserScanMsg(rosNodePtr no
 		}
 	}
 #endif	
+<<<<<<< HEAD
 }
 
 /** Shortcut to publish a PointCloud2Msg
@@ -520,6 +534,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
   pointcloud_msg.row_step = pointcloud_msg.point_step * point_cnt;
   pointcloud_msg.data.resize(pointcloud_msg.row_step * pointcloud_msg.height);
 	ROS_DEBUG_STREAM("CustomPointCloudConfiguration " << pointcloud_cfg.cfgName() << ": " << point_cnt << " points per cloud, " << num_fields << " fields per point");
+=======
+>>>>>>> raspberry_pi_pretest
 }
 
 /*
@@ -650,6 +666,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t tim
 					laser_scan_msg.range_min -= 1.0e-03f;
 					laser_scan_msg.range_max += 1.0e-03f;
 					laser_scan_msg.header = pointcloud_msg.header;
+<<<<<<< HEAD
 					laser_scan_msg.header.frame_id = frame_id + "_" + std::to_string(layer_idx);
 					// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
 					laser_scan_msg.scan_time = m_scan_time;
@@ -749,6 +766,9 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
   				laser_scan_msg.header.stamp.nsec = timestamp_nsec;
 #endif
 					laser_scan_msg.header.frame_id = frame_id + "_" + std::to_string(layer_idx);
+=======
+					laser_scan_msg.header.frame_id = m_frame_id + "_" + std::to_string(layer_idx);
+>>>>>>> raspberry_pi_pretest
 					// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
 					laser_scan_msg.scan_time = m_scan_time;
 					// time_increment = 1 / measurement_frequency = scan_time / (number of scan points in a full 360-degree rotation of the sensor)
