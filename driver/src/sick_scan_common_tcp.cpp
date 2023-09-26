@@ -614,7 +614,14 @@ namespace sick_scan_xd
 
   int SickScanCommonTcp::close_device()
   {
-    ROS_WARN("Disconnecting TCP-Connection.");
+    if (rosOk())
+    {
+      ROS_WARN("Disconnecting TCP-Connection.");
+    }
+    else
+    {
+      ROS_INFO("Disconnecting TCP-Connection.");
+    }
     m_nw.disconnect();
     return 0;
   }

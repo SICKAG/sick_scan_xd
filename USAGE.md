@@ -392,6 +392,32 @@ Note: Timeout 2 (i.e. no lidar message after 150 seconds) terminates the driver.
 while(true) ; do roslaunch sick_scan_xd <launchfile> [<arguments>] ; done
 ```
 
+The following table summarizes the timeout parameter:
+
+![timeout_parameter](./doc/timeout_parameter.png)
+
+Details of timeout settings:
+
+* message_monitoring_enabled: Enable or disable timeouts and monitoring. Disabling deactivates any error handling in case of network problems. Recommended default value: True
+
+* read_timeout_millisec_default: Read timeout in milliseconds in operational (measurement) mode. If no datagrams are received from lidar within 5 seconds (default), the TCP socket is closed and the lidar is reinitialized.
+
+* read_timeout_millisec_startup: Read timeout in milliseconds during initialization after startup. If SOPAS commands are not responded within 120 seconds (default), the TCP socket is closed and lidar is reinitialized.
+
+* read_timeout_millisec_kill_node: Pointcloud timeout in milliseconds in operational (measurement) mode. If the sick_scan_xd does not publish a pointcloud within the last 150 seconds, the sick_scan_xd process is killed. Should never happen, but is the “last resort” to exit after any kind of error (e.g. socket hangs up and blocks after network trouble).
+
+* All timeouts configured in milliseconds
+
+* To disable timeouts (not recommended):
+   * Set message_monitoring_enabled = false, or
+   * Set timeouts to "infinite" values, i.e MAX_INT = 2147483647 milliseconds (24.9 days)
+
+* To disable pointcloud monitoring (not recommended):
+   * read_timeout_millisec_kill_node <= 0 deactivates pointcloud monitoring
+
+* Parameter read_timeout_millisec_default and read_timeout_millisec_startup: value 0 and negative values are currently NOT mapped to other values, i.e. will cause an immediately timeout error. Use value 2147483647 or message_monitoring_enabled = false to deactivate read timeouts (not recommended)
+
+
 ## Sopas Mode
 
 This driver supports both COLA-B (binary) and COLA-A (ASCII) communication with the laser scanner. Binary mode is activated by default, since this mode generates less network traffic and enables more compatibility to all scanners.

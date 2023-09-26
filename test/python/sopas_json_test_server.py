@@ -64,7 +64,7 @@ class SopasTestServer:
                         payload_idx = self.json_tcp_payloads.index(payload)
                         break
             except Exception as exc:
-                print("## ERROR receiveTelegram(): exception {}".format(exc))
+                print("## ERROR SopasTestServer.receiveTelegram(): exception {}".format(exc))
             if self.verbosity > 1:
                 print("SopasTestServer.receiveTelegram(): received {} byte telegram {}".format(len(payload), payload))
             elif self.verbosity > 0:

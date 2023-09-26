@@ -466,11 +466,8 @@ int rossimu_settings(ros::NodeHandle& nhPriv)
 	double tmptime_offset = -0.001;
 	double tmptimelimit = 5;
 
-	int tmpVerboseLevel = 0;  // write debug file for scan data
-
 	/////////////////////////////
 
-	nhPriv.setParam("verboseLevel", tmpVerboseLevel);
 	nhPriv.setParam("active_echos", tmpactive_echos); // obsolete???
 	nhPriv.setParam("filter_echos", tmpEcho_filter);
 	nhPriv.setParam("auto_reboot", tmpauto_reboot);

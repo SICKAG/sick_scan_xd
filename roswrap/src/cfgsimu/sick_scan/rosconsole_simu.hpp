@@ -31,11 +31,11 @@ namespace roswrap
 #undef ROS_ERROR
 #undef ROS_ERROR_THROTTLE
 #undef ROS_WARN_ONCE
-#define ROS_WARN(...) fprintf(stderr,"ROS_WARN: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n")
-#define ROS_INFO(...) fprintf(stderr,"ROS_INFO: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n")
-#define ROS_DEBUG(...) fprintf(stderr,"ROS_DEBUG: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n")
+#define ROS_WARN(...) do { fprintf(stderr,"ROS_WARN: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n"); } while(0)
+#define ROS_INFO(...) do { fprintf(stderr,"ROS_INFO: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n"); } while(0)
+#define ROS_DEBUG(...) do { fprintf(stderr,"ROS_DEBUG: "); fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n"); } while(0)
 #define ROS_FATAL(...)
-#define ROS_ERROR(...)  fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n") // #define eprintf(format, �) fprintf (stderr, format, __VA_ARGS__)
+#define ROS_ERROR(...)  do { fprintf (stderr, __VA_ARGS__); fprintf (stderr,"\n"); } while(0) // #define eprintf(format, �) fprintf (stderr, format, __VA_ARGS__)
 
 #define ROS_ERROR_THROTTLE(...)
 #define ROS_WARN_ONCE(...)

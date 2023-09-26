@@ -24,6 +24,7 @@ def generate_launch_description():
             package='sick_scan_xd',
             node_executable='sick_generic_caller',
             output='screen',
+            remappings=[ ('/sick_nav_350/scan', '/scan'), ], # remap laserscan messages to topic /scan, required for slam_toolbox
             arguments=node_arguments
         )
     else: # ROS versions eloquent and earlier require "node_executable", ROS foxy and later use "executable"
@@ -31,6 +32,7 @@ def generate_launch_description():
             package='sick_scan_xd',
             executable='sick_generic_caller',
             output='screen',
+            remappings=[ ('/sick_nav_350/scan', '/scan'), ], # remap laserscan messages to topic /scan, required for slam_toolbox
             arguments=node_arguments
         )
     
