@@ -43,15 +43,9 @@ sleep 1
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_cfg_picoscan_emu_360.rviz & 
 sleep 1
 
-<<<<<<< HEAD:test/scripts/run_linux_ros1_simu_picoscan.bash
-# Start sick_generic_caller with sick_timtwo
-echo -e "run_lidar3d.bash: sick_scan_xd sick_picoscan.launch ..."
-roslaunch sick_scan_xd sick_picoscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=1 &
-=======
 # Start sick_generic_caller with sick_picoscan with msgpack format
 echo -e "run_lidar3d.bash: sick_scan sick_picoscan.launch ..."
 roslaunch sick_scan sick_picoscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=1 &
->>>>>>> contamination_result:test/scripts/run_linux_ros1_simu_picoscan_msgpack.bash
 sleep 3 # read -p "Press ENTER to continue..."
 
 # Run example ros service calls

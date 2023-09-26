@@ -234,15 +234,6 @@ namespace sick_scan_xd
     bool m_cola_binary;                             ///< cola ascii or cola binary messages
     sick_scan_xd::SickScanCommonTcp* m_common_tcp;     ///< common tcp handler
     std::string m_client_authorization_pw;
-<<<<<<< HEAD
-    rosServiceServer<sick_scan_srv::ColaMsgSrv> m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan_xd::SickScanServices::serviceCbColaMsg
-    rosServiceServer<sick_scan_srv::ECRChangeArrSrv> m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan_xd::SickScanServices::serviceCbECRChangeArr
-    rosServiceServer<sick_scan_srv::LIDoutputstateSrv> m_srv_server_LIDoutputstate; ///< service "LIDoutputstate", &sick_scan_xd::SickScanServices::serviceCbLIDoutputstate
-    rosServiceServer<sick_scan_srv::SCdevicestateSrv> m_srv_server_SCdevicestate; ///< service "SCdevicestate", &sick_scan_xd::SickScanServices::serviceCbSCdevicestate
-    rosServiceServer<sick_scan_srv::SCrebootSrv> m_srv_server_SCreboot; ///< service "SCreboot", &sick_scan_xd::SickScanServices::serviceCbSCreboot
-    rosServiceServer<sick_scan_srv::SCsoftresetSrv> m_srv_server_SCsoftreset; ///< service "SCsoftreset", &sick_scan_xd::SickScanServices::serviceCbSCsoftreset
-    rosServiceServer<sick_scan_srv::SickScanExitSrv> m_srv_server_SickScanExit; ///< service "SickScanExitSrv", &sick_scan_xd::SickScanServices::serviceCbSickScanExit
-=======
     rosServiceServer<sick_scan_srv::ColaMsgSrv> m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan::SickScanServices::serviceCbColaMsg
     rosServiceServer<sick_scan_srv::ECRChangeArrSrv> m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan::SickScanServices::serviceCbECRChangeArr
     rosServiceServer<sick_scan_srv::GetContaminationResultSrv> m_srv_server_GetContaminationResult; ///< service "GetContaminationResult", &sick_scan::SickScanServices::serviceCbGetContaminationResult
@@ -251,7 +242,6 @@ namespace sick_scan_xd
     rosServiceServer<sick_scan_srv::SCrebootSrv> m_srv_server_SCreboot; ///< service "SCreboot", &sick_scan::SickScanServices::serviceCbSCreboot
     rosServiceServer<sick_scan_srv::SCsoftresetSrv> m_srv_server_SCsoftreset; ///< service "SCsoftreset", &sick_scan::SickScanServices::serviceCbSCsoftreset
     rosServiceServer<sick_scan_srv::SickScanExitSrv> m_srv_server_SickScanExit; ///< service "SickScanExitSrv", &sick_scan::SickScanServices::serviceCbSickScanExit
->>>>>>> contamination_result
 
   }; /* class SickScanServices */
 

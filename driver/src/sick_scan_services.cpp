@@ -98,7 +98,6 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
       rosGetParam(nh, "client_authorization_pw", m_client_authorization_pw);
 
 #if __ROS_VERSION == 2
-<<<<<<< HEAD
 #define serviceCbColaMsgROS sick_scan_xd::SickScanServices::serviceCbColaMsgROS2
 #define serviceCbECRChangeArrROS sick_scan_xd::SickScanServices::serviceCbECRChangeArrROS2
 #define serviceCbLIDoutputstateROS sick_scan_xd::SickScanServices::serviceCbLIDoutputstateROS2
@@ -106,6 +105,7 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
 #define serviceCbSCrebootROS sick_scan_xd::SickScanServices::serviceCbSCrebootROS2
 #define serviceCbSCsoftresetROS sick_scan_xd::SickScanServices::serviceCbSCsoftresetROS2
 #define serviceCbSickScanExitROS sick_scan_xd::SickScanServices::serviceCbSickScanExitROS2
+#define serviceCbGetContaminationResultROS sick_scan_xd::SickScanServices::serviceCbGetContaminationResultROS2
 #else
 #define serviceCbColaMsgROS sick_scan_xd::SickScanServices::serviceCbColaMsg
 #define serviceCbECRChangeArrROS sick_scan_xd::SickScanServices::serviceCbECRChangeArr
@@ -114,25 +114,7 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
 #define serviceCbSCrebootROS sick_scan_xd::SickScanServices::serviceCbSCreboot
 #define serviceCbSCsoftresetROS sick_scan_xd::SickScanServices::serviceCbSCsoftreset
 #define serviceCbSickScanExitROS sick_scan_xd::SickScanServices::serviceCbSickScanExit
-=======
-#define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsgROS2
-#define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArrROS2
-#define serviceCbGetContaminationResultROS sick_scan::SickScanServices::serviceCbGetContaminationResultROS2
-#define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstateROS2
-#define serviceCbSCdevicestateROS sick_scan::SickScanServices::serviceCbSCdevicestateROS2
-#define serviceCbSCrebootROS sick_scan::SickScanServices::serviceCbSCrebootROS2
-#define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftresetROS2
-#define serviceCbSickScanExitROS sick_scan::SickScanServices::serviceCbSickScanExitROS2
-#else
-#define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsg
-#define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArr
-#define serviceCbGetContaminationResultROS sick_scan::SickScanServices::serviceCbGetContaminationResult
-#define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstate
-#define serviceCbSCdevicestateROS sick_scan::SickScanServices::serviceCbSCdevicestate
-#define serviceCbSCrebootROS sick_scan::SickScanServices::serviceCbSCreboot
-#define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftreset
-#define serviceCbSickScanExitROS sick_scan::SickScanServices::serviceCbSickScanExit
->>>>>>> contamination_result
+#define serviceCbGetContaminationResultROS sick_scan_xd::SickScanServices::serviceCbGetContaminationResult
 #endif
 #if __ROS_VERSION == 1
 #define printServiceCreated(a,b) ROS_INFO_STREAM("SickScanServices: service \"" << a.getService() << "\" created (\"" << b.getService() << "\")");
@@ -296,7 +278,7 @@ bool sick_scan_xd::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRCha
 * @param[out] service_response service response from lidar
 * @return true on success, false in case of errors.
 */
-bool sick_scan::SickScanServices::serviceCbGetContaminationResult(sick_scan_srv::GetContaminationResultSrv::Request &service_request, sick_scan_srv::GetContaminationResultSrv::Response &service_response)
+bool sick_scan_xd::SickScanServices::serviceCbGetContaminationResult(sick_scan_srv::GetContaminationResultSrv::Request &service_request, sick_scan_srv::GetContaminationResultSrv::Response &service_response)
 {
   std::string sopasCmd = std::string("sRN ContaminationResult");
   std::vector<unsigned char> sopasReplyBin;
@@ -642,7 +624,7 @@ std::string sick_scan_xd::SickScanServices::convertAngleDegToHexString(float ang
 * @param[out] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
 * @param[out] msgpack_validator_filter_settings; // filter settings for msgpack validator: required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
 */
-bool sick_scan_xd::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter, 
+bool sick_scan_xd::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter,
   sick_scansegment_xd::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings, const std::string& scanner_type)
 {
   std::vector<std::vector<unsigned char>> sopasRepliesBin;

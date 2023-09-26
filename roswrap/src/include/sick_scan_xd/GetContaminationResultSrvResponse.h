@@ -17,7 +17,7 @@
 #include <ros/message_operations.h>
 
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 template <class ContainerAllocator>
 struct GetContaminationResultSrvResponse_
@@ -51,30 +51,30 @@ struct GetContaminationResultSrvResponse_
 
 
 
-  typedef std::shared_ptr< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> > Ptr;
-  typedef std::shared_ptr< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> const> ConstPtr;
+  typedef std::shared_ptr< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> > Ptr;
+  typedef std::shared_ptr< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> const> ConstPtr;
 
 }; // struct GetContaminationResultSrvResponse_
 
-typedef ::sick_scan::GetContaminationResultSrvResponse_<std::allocator<void> > GetContaminationResultSrvResponse;
+typedef ::sick_scan_xd::GetContaminationResultSrvResponse_<std::allocator<void> > GetContaminationResultSrvResponse;
 
-typedef std::shared_ptr< ::sick_scan::GetContaminationResultSrvResponse > GetContaminationResultSrvResponsePtr;
-typedef std::shared_ptr< ::sick_scan::GetContaminationResultSrvResponse const> GetContaminationResultSrvResponseConstPtr;
+typedef std::shared_ptr< ::sick_scan_xd::GetContaminationResultSrvResponse > GetContaminationResultSrvResponsePtr;
+typedef std::shared_ptr< ::sick_scan_xd::GetContaminationResultSrvResponse const> GetContaminationResultSrvResponseConstPtr;
 
 // constants requiring out of line definition
 
 
 
 template<typename ContainerAllocator>
-std::ostream& operator<<(std::ostream& s, const ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> & v)
+std::ostream& operator<<(std::ostream& s, const ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> & v)
 {
-ros::message_operations::Printer< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> >::stream(s, "", v);
+ros::message_operations::Printer< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> >::stream(s, "", v);
 return s;
 }
 
 
 template<typename ContainerAllocator1, typename ContainerAllocator2>
-bool operator==(const ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator1> & lhs, const ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator2> & rhs)
+bool operator==(const ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator1> & lhs, const ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator2> & rhs)
 {
   return lhs.warning == rhs.warning &&
     lhs.error == rhs.error &&
@@ -82,13 +82,13 @@ bool operator==(const ::sick_scan::GetContaminationResultSrvResponse_<ContainerA
 }
 
 template<typename ContainerAllocator1, typename ContainerAllocator2>
-bool operator!=(const ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator1> & lhs, const ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator2> & rhs)
+bool operator!=(const ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator1> & lhs, const ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator2> & rhs)
 {
   return !(lhs == rhs);
 }
 
 
-} // namespace sick_scan
+} // namespace sick_scan_xd
 
 namespace roswrap
 {
@@ -100,62 +100,62 @@ namespace message_traits
 
 
 template <class ContainerAllocator>
-struct IsMessage< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> >
+struct IsMessage< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> >
   : TrueType
   { };
 
 template <class ContainerAllocator>
-struct IsMessage< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> const>
+struct IsMessage< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> const>
   : TrueType
   { };
 
 template <class ContainerAllocator>
-struct IsFixedSize< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> >
+struct IsFixedSize< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> >
   : TrueType
   { };
 
 template <class ContainerAllocator>
-struct IsFixedSize< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> const>
+struct IsFixedSize< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> const>
   : TrueType
   { };
 
 template <class ContainerAllocator>
-struct HasHeader< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> >
+struct HasHeader< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> >
   : FalseType
   { };
 
 template <class ContainerAllocator>
-struct HasHeader< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> const>
+struct HasHeader< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> const>
   : FalseType
   { };
 
 
 template<class ContainerAllocator>
-struct MD5Sum< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> >
+struct MD5Sum< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> >
 {
   static const char* value()
   {
     return "f3aa3df566ccf9b4c4ab6a1b1c97860f";
   }
 
-  static const char* value(const ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator>&) { return value(); }
+  static const char* value(const ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator>&) { return value(); }
   static const uint64_t static_value1 = 0xf3aa3df566ccf9b4ULL;
   static const uint64_t static_value2 = 0xc4ab6a1b1c97860fULL;
 };
 
 template<class ContainerAllocator>
-struct DataType< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> >
+struct DataType< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "sick_scan/GetContaminationResultSrvResponse";
+    return "sick_scan_xd/GetContaminationResultSrvResponse";
   }
 
-  static const char* value(const ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator>&) { return value(); }
+  static const char* value(const ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator>&) { return value(); }
 };
 
 template<class ContainerAllocator>
-struct Definition< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> >
+struct Definition< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> >
 {
   static const char* value()
   {
@@ -171,7 +171,7 @@ struct Definition< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllo
 ;
   }
 
-  static const char* value(const ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator>&) { return value(); }
+  static const char* value(const ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator>&) { return value(); }
 };
 
 } // namespace message_traits
@@ -182,7 +182,7 @@ namespace roswrap
 namespace serialization
 {
 
-  template<class ContainerAllocator> struct Serializer< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> >
+  template<class ContainerAllocator> struct Serializer< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> >
   {
     template<typename Stream, typename T> inline static void allInOne(Stream& stream, T m)
     {
@@ -203,9 +203,9 @@ namespace message_operations
 {
 
 template<class ContainerAllocator>
-struct Printer< ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator> >
+struct Printer< ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator> >
 {
-  template<typename Stream> static void stream(Stream& s, const std::string& indent, const ::sick_scan::GetContaminationResultSrvResponse_<ContainerAllocator>& v)
+  template<typename Stream> static void stream(Stream& s, const std::string& indent, const ::sick_scan_xd::GetContaminationResultSrvResponse_<ContainerAllocator>& v)
   {
     s << indent << "warning: ";
     Printer<uint8_t>::stream(s, indent + "  ", v.warning);
