@@ -343,7 +343,7 @@ Additional services can be available for specific lidars. Service "GetContaminat
 # ROS-1 example for service GetContaminationResult (LMS 1xxx)
 rosservice call /sick_lms_1xxx/GetContaminationResult "{}"
 # ROS-2 example for service GetContaminationResult (LMS 1xxx)
-ros2 service call /GetContaminationResult sick_scan/srv/GetContaminationResultSrv "{}"
+ros2 service call /GetContaminationResult sick_scan_xd/srv/GetContaminationResultSrv "{}"
 ```
 
 Example sequence with stop and start measurement to set a particle filter (TiM-7xxx on ROS-1):
