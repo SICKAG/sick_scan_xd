@@ -59,13 +59,13 @@ Visualization Manager:
         Min Value: -10
         Value: true
       Axis: Z
-      Channel Name: z
+      Channel Name: i
       Class: rviz/PointCloud2
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0.20000000298023224
       Enabled: true
-      Invert Rainbow: false
+      Invert Rainbow: true
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
       Name: PointCloud2
@@ -75,7 +75,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Points
-      Topic: /cloud
+      Topic: /cloud_unstructured_segments
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true

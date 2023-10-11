@@ -8,11 +8,11 @@ The sick_scan_xd driver can be started on the command line by `sick_generic_call
 
 - On Linux with ROS-1, call
 
-    ```roslaunch sick_scan <launchfile>```
+    ```roslaunch sick_scan_xd <launchfile>```
 
 - On Linux with ROS-2, call
 
-    ```ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/<launchfile>```
+    ```ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/<launchfile>```
 
 - On native Windows without ROS, call
 
@@ -20,156 +20,156 @@ The sick_scan_xd driver can be started on the command line by `sick_generic_call
 
 - On Windows with ROS-2, call
 
-    ```ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/<launchfile>```
+    ```ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/<launchfile>```
 
 Use the following commands to run the sick_scan_xd driver for a specific scanner type:
 
 - For MRS6124:
     * Linux native:   `sick_generic_caller sick_mrs_6xxx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_mrs_6xxx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_6xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_mrs_6xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_6xxx.launch`
     * Windows native: `sick_generic_caller sick_mrs_6xxx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_6xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_6xxx.launch`
 - For MRS1104:
     * Linux native:   `sick_generic_caller sick_mrs_1xxx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_mrs_1xxx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_mrs_1xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch`
     * Windows native: `sick_generic_caller sick_mrs_1xxx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch`
 - For LMS1104 with firmware 1.x:
     * Linux native:   `sick_generic_caller sick_lms_1xxx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lms_1xxx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lms_1xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx.launch`
     * Windows native: `sick_generic_caller sick_lms_1xxx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx.launch`
 - For LMS1104 with firmware 2.x:
     * Linux native:   `sick_generic_caller sick_lms_1xxx_v2.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lms_1xxx_v2.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx_v2.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lms_1xxx_v2.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx_v2.launch`
     * Windows native: `sick_generic_caller sick_lms_1xxx_v2.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx_v2.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xxx_v2.launch`
 - For TiM240-prototype:
     * Linux native:   `sick_generic_caller sick_tim_240.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_tim_240.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_240.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_tim_240.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_240.launch`
     * Windows native: `sick_generic_caller sick_tim_240.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_240.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_240.launch`
 - For TiM5xx-family:
     * Linux native:   `sick_generic_caller sick_tim_5xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_tim_5xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_5xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_tim_5xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_5xx.launch`
     * Windows native: `sick_generic_caller sick_tim_5xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_5xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_5xx.launch`
 - For TiM7xx-family (no safety scanner):
     * Linux native:   `sick_generic_caller sick_tim_7xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_tim_7xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_tim_7xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch`
     * Windows native: `sick_generic_caller sick_tim_7xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch`
 - For TiM7xxS-family (safety scanner):
     * Linux native:   `sick_generic_caller sick_tim_7xxS.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_tim_7xxS.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xxS.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_tim_7xxS.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xxS.launch`
     * Windows native: `sick_generic_caller sick_tim_7xxS.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xxS.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xxS.launch`
 - For LMS1xx-family:
     * Linux native:   `sick_generic_caller sick_lms_1xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lms_1xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lms_1xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xx.launch`
     * Windows native: `sick_generic_caller sick_lms_1xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_1xx.launch`
 - For LMS5xx-family:
     * Linux native:   `sick_generic_caller sick_lms_5xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lms_5xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lms_5xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch`
     * Windows native: `sick_generic_caller sick_lms_5xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch`
 - For LMS4xxx-family:
     * Linux native:   `sick_generic_caller sick_lms_4xxx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lms_4xxx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_4xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lms_4xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_4xxx.launch`
     * Windows native: `sick_generic_caller sick_lms_4xxx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_4xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_4xxx.launch`
 - For LRS4000:
     * Linux native:   `sick_generic_caller sick_lrs_4xxx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_4xxx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_4xxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lrs_4xxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_4xxx.launch`
     * Windows native: `sick_generic_caller sick_lrs_4xxx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_4xxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_4xxx.launch`
 - For LDMRS-family:
     * Linux native:   `sick_generic_caller sick_ldmrs.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_ldmrs.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_ldmrs.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_ldmrs.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_ldmrs.launch`
     * Note that LDMRS are currently not supported on Windows
 - For LRS36x0:
     * Linux native:   `sick_generic_caller sick_lrs_36x0.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_36x0.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lrs_36x0.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0.launch`
     * Windows native: `sick_generic_caller sick_lrs_36x0.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0.launch`
 - For LRS36x0 mounted upside down:
     * Linux native:   `sick_generic_caller sick_lrs_36x0_upside_down.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_36x0_upside_down.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0_upside_down.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lrs_36x0_upside_down.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0_upside_down.launch`
     * Windows native: `sick_generic_caller sick_lrs_36x0_upside_down.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0_upside_down.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x0_upside_down.launch`
     <br/>For upside down mounted devices, the pointcloud is rotated by 180 deg about the x axis (180 deg roll angle). This additional rotation is configured in the launch file using parameter `add_transform_xyz_rpy` with value `"0,0,0,3.141592,0,0"`.
 - For LRS36x1:
     * Linux native:   `sick_generic_caller sick_lrs_36x1.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_36x1.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lrs_36x1.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1.launch`
     * Windows native: `sick_generic_caller sick_lrs_36x1.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1.launch`
 - For LRS36x1 mounted upside down:
     * Linux native:   `sick_generic_caller sick_lrs_36x1_upside_down.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_lrs_36x1_upside_down.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1_upside_down.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_lrs_36x1_upside_down.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1_upside_down.launch`
     * Windows native: `sick_generic_caller sick_lrs_36x1_upside_down.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1_upside_down.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lrs_36x1_upside_down.launch`
     <br/>For upside down mounted devices, the pointcloud is rotated by 180 deg about the x axis (180 deg roll angle). This additional rotation is configured in the launch file using parameter `add_transform_xyz_rpy` with value `"0,0,0,3.141592,0,0"`.
 - For LD-OEM15xx:
     * Linux native:   `sick_generic_caller sick_oem_15xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_oem_15xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_oem_15xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_oem_15xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_oem_15xx.launch`
     * Windows native: `sick_generic_caller sick_oem_15xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_oem_15xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_oem_15xx.launch`
 - For NAV210 and NAV245:
     * Linux native:   `sick_generic_caller sick_nav_2xx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_nav_2xx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_2xx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_nav_2xx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_2xx.launch`
     * Windows native: `sick_generic_caller sick_nav_2xx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_2xx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_2xx.launch`
 - For NAV310:
     * Linux native:   `sick_generic_caller sick_nav_31x.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_nav_31x.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_31x.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_nav_31x.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_31x.launch`
     * Windows native: `sick_generic_caller sick_nav_31x.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_31x.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_31x.launch`
 - For NAV350:
     * Linux native:   `sick_generic_caller sick_nav_350.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_nav_350.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_nav_350.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
     * Windows native: `sick_generic_caller sick_nav_350.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_nav_350.launch`
 - For RMSxxxx-family (RMS1xxx, RMS2xxx):
     * Linux native:   `sick_generic_caller sick_rms_xxxx.launch`
-    * Linux ROS-1:    `roslaunch sick_scan sick_rms_xxxx.launch`
-    * Linux ROS-2:    `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_xxxx.launch`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_rms_xxxx.launch`
+    * Linux ROS-2:    `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_xxxx.launch`
     * Windows native: `sick_generic_caller sick_rms_xxxx.launch`
-    * Windows ROS-2:  `ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_xxxx.launch`
+    * Windows ROS-2:  `ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_rms_xxxx.launch`
 - For multiScan136 (sick_scansegement_xd):
     * Linux native:   `sick_generic_caller sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-1:    `roslaunch sick_scan sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-2:    `ros2 launch sick_scan sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-2:    `ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * Windows native: `sick_generic_caller sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Windows ROS-2:  `ros2 launch sick_scan sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows ROS-2:  `ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * `hostname` is the ip-address of the lidar, `udp_receiver_ip` is the ip-address of the receiver (i.e. the ip of the computer running sick_generic_caller).
 - For picoScan150:
     * Linux native:   `sick_generic_caller sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-1:    `roslaunch sick_scan sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Linux ROS-2:    `ros2 launch sick_scan sick_picoscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-1:    `roslaunch sick_scan_xd sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Linux ROS-2:    `ros2 launch sick_scan_xd sick_picoscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * Windows native: `sick_generic_caller sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
-    * Windows ROS-2:  `ros2 launch sick_scan sick_picoscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+    * Windows ROS-2:  `ros2 launch sick_scan_xd sick_picoscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
     * `hostname` is the ip-address of the lidar, `udp_receiver_ip` is the ip-address of the receiver (i.e. the ip of the computer running sick_generic_caller).
 
 Common commandline options are
@@ -183,22 +183,22 @@ to be located and used by `roslaunch`.
 
 On ROS-2 you can launch sick_generic_caller by python-launchfiles, too. Use
 ```
-ros2 launch sick_scan <name>.launch.py <param>:=<value>
+ros2 launch sick_scan_xd <name>.launch.py <param>:=<value>
 ```
-E.g. for LMS-5xx: `ros2 launch sick_scan sick_lms_5xx.launch.py hostname:=192.168.0.1`
+E.g. for LMS-5xx: `ros2 launch sick_scan_xd sick_lms_5xx.launch.py hostname:=192.168.0.1`
 
 The launch.py-files on ROS-2 passes the corresponding launch-file to the driver: [sick_lms_5xx.launch.py](launch/sick_lms_5xx.launch.py) gives an example for LMS-5xx. Parameter can be overwritten
-* either by commandline, e.g. <br/> `ros2 launch sick_scan sick_lms_5xx.launch.py hostname:=192.168.0.1`, 
-* or by passing additional arguments in the launch.py-file, e.g. <br/> `node = Node(package='sick_scan', executable='sick_generic_caller', arguments=[launch_file_path, 'hostname:=192.168.0.1'])`
+* either by commandline, e.g. <br/> `ros2 launch sick_scan_xd sick_lms_5xx.launch.py hostname:=192.168.0.1`, 
+* or by passing additional arguments in the launch.py-file, e.g. <br/> `node = Node(package='sick_scan_xd', executable='sick_generic_caller', arguments=[launch_file_path, 'hostname:=192.168.0.1'])`
 
 
 ### Start Multiple Nodes
 
-Multiple nodes can be started to support multiple sensors. In this case, multiple instances of sick_scan have to be started, each node with different name and topic. ROS-1 example to run two TiM 7xx devices with ip address `192.168.0.1` and `192.168.0.2`:
+Multiple nodes can be started to support multiple sensors. In this case, multiple instances of sick_scan_xd have to be started, each node with different name and topic. ROS-1 example to run two TiM 7xx devices with ip address `192.168.0.1` and `192.168.0.2`:
 
 ```
-roslaunch sick_scan sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1 &
-roslaunch sick_scan sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2 &
+roslaunch sick_scan_xd sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1 &
+roslaunch sick_scan_xd sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2 &
 ```
 
 On Linux with ROS-1, multiple nodes to support multiple sensors can be started by one launch file, too.
@@ -208,8 +208,8 @@ Remapping the scan and cloud topics is essential to distinguish the scandata and
 ROS-2 example to run two TiM 7xx devices with ip address `192.168.0.1` and `192.168.0.2`:
 
 ```
-ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1 &
-ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2 &
+ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1 &
+ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2 &
 ```
 
 ### Common parameters
@@ -269,10 +269,10 @@ To start the scanner with a specific IP address, option `hostname:=<ip-address>`
 The hostname is the ip-address of the scanner, e.g.
 ```
 sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71                      # Linux native
-roslaunch sick_scan sick_tim_5xx.launch hostname:=192.168.0.71                      # Linux ROS-1
-ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71   # Linux ROS-2
+roslaunch sick_scan_xd sick_tim_5xx.launch hostname:=192.168.0.71                      # Linux ROS-1
+ros2 run sick_scan_xd sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71   # Linux ROS-2
 sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71                      # Windows native
-ros2 run sick_scan sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71   # Windows ROS-2
+ros2 run sick_scan_xd sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71   # Windows ROS-2
 ```
 
 ### Further useful parameters and features
@@ -314,20 +314,20 @@ rosservice call /sick_lms_5xx/SCsoftreset "{}"   # save current parameter and sh
 
 Use the following examples to run a cola commond on ROS-2:
 ```
-ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN IsSystemReady'}"
-ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sRN SCdevicestate'}"
-ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sEN LIDinputstate 1'}"
-ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sEN LIDoutputstate 1'}"
-ros2 service call /ColaMsg sick_scan/srv/ColaMsgSrv "{request: 'sMN LMCstartmeas'}"
-ros2 service call /SCdevicestate sick_scan/srv/SCdevicestateSrv "{}" # query device state
-ros2 service call /SCreboot sick_scan/srv/SCrebootSrv "{}"           # execute a software reset on the device
-ros2 service call /SCsoftreset sick_scan/srv/SCsoftresetSrv "{}"     # save current parameter and shut down device
+ros2 service call /ColaMsg sick_scan_xd/srv/ColaMsgSrv "{request: 'sMN IsSystemReady'}"
+ros2 service call /ColaMsg sick_scan_xd/srv/ColaMsgSrv "{request: 'sRN SCdevicestate'}"
+ros2 service call /ColaMsg sick_scan_xd/srv/ColaMsgSrv "{request: 'sEN LIDinputstate 1'}"
+ros2 service call /ColaMsg sick_scan_xd/srv/ColaMsgSrv "{request: 'sEN LIDoutputstate 1'}"
+ros2 service call /ColaMsg sick_scan_xd/srv/ColaMsgSrv "{request: 'sMN LMCstartmeas'}"
+ros2 service call /SCdevicestate sick_scan_xd/srv/SCdevicestateSrv "{}" # query device state
+ros2 service call /SCreboot sick_scan_xd/srv/SCrebootSrv "{}"           # execute a software reset on the device
+ros2 service call /SCsoftreset sick_scan_xd/srv/SCsoftresetSrv "{}"     # save current parameter and shut down device
 ```
 
 Use ros service `SickScanExit` to stop the scanner and driver:
 ```
 rosservice call /sick_nav_31x/SickScanExit "{}" # stop scanner and driver on ROS-1
-ros2 service call /SickScanExit sick_scan/srv/SickScanExitSrv "{}" # stop scanner and driver on ROS-2
+ros2 service call /SickScanExit sick_scan_xd/srv/SickScanExitSrv "{}" # stop scanner and driver on ROS-2
 ```
 
 Note:
@@ -337,6 +337,14 @@ Note:
 * Some SOPAS commands like `sMN SetAccessMode 3 F4724744` stop the current measurement. In this case, the driver restarts after a timeout (5 seconds by default). To process those SOPAS commands without restart, you can
    * send `sMN LMCstartmeas` and `sMN Run` to switch again into measurement mode within the timeout, or
    * increase the driver timeout `read_timeout_millisec_default` in the launch-file.
+
+Additional services can be available for specific lidars. Service "GetContaminationResult" is e.g. available for MRS-1xxx, LMS-1xxx and multiScan:
+```
+# ROS-1 example for service GetContaminationResult (LMS 1xxx)
+rosservice call /sick_lms_1xxx/GetContaminationResult "{}"
+# ROS-2 example for service GetContaminationResult (LMS 1xxx)
+ros2 service call /GetContaminationResult sick_scan_xd/srv/GetContaminationResultSrv "{}"
+```
 
 Example sequence with stop and start measurement to set a particle filter (TiM-7xxx on ROS-1):
 ```
@@ -381,8 +389,33 @@ The following diagram shows the transition between the driver states:
 Note: Timeout 2 (i.e. no lidar message after 150 seconds) terminates the driver. By default, the driver does not restart automatically. It is therefor recommended to run the driver within an endless loop, e.g. in bash:
 
 ```
-while(true) ; do roslaunch sick_scan <launchfile> [<arguments>] ; done
+while(true) ; do roslaunch sick_scan_xd <launchfile> [<arguments>] ; done
 ```
+
+The following table summarizes the timeout parameter:
+
+![timeout_parameter](./doc/timeout_parameter.png)
+
+Details of timeout settings:
+
+* message_monitoring_enabled: Enable or disable timeouts and monitoring. Disabling deactivates any error handling in case of network problems. Recommended default value: True
+
+* read_timeout_millisec_default: Read timeout in milliseconds in operational (measurement) mode. If no datagrams are received from lidar within 5 seconds (default), the TCP socket is closed and the lidar is reinitialized.
+
+* read_timeout_millisec_startup: Read timeout in milliseconds during initialization after startup. If SOPAS commands are not responded within 120 seconds (default), the TCP socket is closed and lidar is reinitialized.
+
+* read_timeout_millisec_kill_node: Pointcloud timeout in milliseconds in operational (measurement) mode. If the sick_scan_xd does not publish a pointcloud within the last 150 seconds, the sick_scan_xd process is killed. Should never happen, but is the “last resort” to exit after any kind of error (e.g. socket hangs up and blocks after network trouble).
+
+* All timeouts configured in milliseconds
+
+* To disable timeouts (not recommended):
+   * Set message_monitoring_enabled = false, or
+   * Set timeouts to "infinite" values, i.e MAX_INT = 2147483647 milliseconds (24.9 days)
+
+* To disable pointcloud monitoring (not recommended):
+   * read_timeout_millisec_kill_node <= 0 deactivates pointcloud monitoring
+
+* Parameter read_timeout_millisec_default and read_timeout_millisec_startup: value 0 and negative values are currently NOT mapped to other values, i.e. will cause an immediately timeout error. Use value 2147483647 or message_monitoring_enabled = false to deactivate read timeouts (not recommended)
 
 ## Sopas Mode
 
@@ -406,7 +439,7 @@ Overview of the tools:
   ``
   python3 sick_generic_device_finder.py
   ``
-* Setting new IP address: With the help of the parameter "new_IP" a new IP address can be assigned when calling the node sick_scan.
+* Setting new IP address: With the help of the parameter "new_IP" a new IP address can be assigned when calling the node sick_scan_xd.
   The launch file sick_new_ip.launch in the launch directory shows an example of how to use this parameter.
 * Converting of pointclouds to images: With the tool pcl_converter.cpp one can convert pointcloud2-data
   to image. That is especial convenient for 24-layers scanners like the MRS6124.
@@ -443,7 +476,7 @@ Run script `run_simu_lms_5xx.cmd` in folder `test/scripts` or execute the follow
     ```
     On Windows with ROS-2:
     ```
-    ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
+    ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
     ```
 
 3. Open file `image_viewer.html` in folder `demo` in your browser to view a jpg-image of the current scan.
@@ -473,11 +506,11 @@ Run script `run_simu_lms_5xx.bash` in folder `test/scripts` or execute the follo
         ```
     - On Linux with ROS-1:
          ```
-        roslaunch sick_scan sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+        roslaunch sick_scan_xd sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
         ```
     - On Linux with ROS-2:
          ```
-        ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+        ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
         ```
 
 3. View the point cloud.

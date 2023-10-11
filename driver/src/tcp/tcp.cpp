@@ -270,7 +270,10 @@ INT32 Tcp::readInputData()
 	// Ist die Verbindung offen?
 	if (isOpen() == false)
 	{
-		ROS_ERROR("Tcp::readInputData: Connection is not open, aborting!");
+    if (rosOk())
+  		ROS_ERROR("Tcp::readInputData: Connection is not open, aborting!");
+		else
+  		ROS_INFO("Tcp::readInputData: Connection is not open, aborting");
 		return -1;
 	}
 		
@@ -308,7 +311,10 @@ INT32 Tcp::readInputData()
 	if (recvMsgSize < 0)
 	{
 		// Fehler
-		ROS_ERROR("Tcp::readInputData: Failed to read data from socket, aborting!");
+    if (rosOk())
+  		ROS_ERROR("Tcp::readInputData: Failed to read data from socket, aborting!");
+		else
+  		ROS_INFO("Tcp::readInputData: Failed to read data from socket, aborting!");
 		ScopedLock lock(&m_socketMutex);
 		closeSocket(); // otherwise the driver can terminate with broken pipe in next call to Tcp::write()
 	}
@@ -340,7 +346,10 @@ INT32 Tcp::readInputData()
 	else if (recvMsgSize == 0)
 	{
 		// Verbindungsabbruch
-		ROS_ERROR("Tcp::readInputData: Read 0 bytes, connection is lost!");
+    if (rosOk())
+  		ROS_ERROR("Tcp::readInputData: Read 0 bytes, connection is lost!");
+		else
+  		ROS_INFO("Tcp::readInputData: Read 0 bytes, connection is lost");
 		
 		// Informieren?
 		if (m_disconnectFunction != NULL)

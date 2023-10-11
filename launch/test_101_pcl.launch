@@ -3,5 +3,5 @@
      Example launch for testing pointcloud to image converter
 -->
 <launch>
-    <node pkg="sick_scan" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen"/>
+    <node pkg="sick_scan_xd" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen"/>
 </launch>

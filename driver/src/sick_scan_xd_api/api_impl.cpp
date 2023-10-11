@@ -12,21 +12,21 @@
 #include "sick_scan/sick_generic_laser.h"
 #include <sick_scan/sick_generic_callback.h>
 
-template <typename HandleType, class MsgType> std::list<sick_scan::SickWaitForMessageHandler<HandleType, MsgType>*> sick_scan::SickWaitForMessageHandler<HandleType, MsgType>::s_wait_for_message_handler_list;
-template <typename HandleType, class MsgType> std::mutex sick_scan::SickWaitForMessageHandler<HandleType, MsgType>::s_wait_for_message_handler_mutex;
+template <typename HandleType, class MsgType> std::list<sick_scan_xd::SickWaitForMessageHandler<HandleType, MsgType>*> sick_scan_xd::SickWaitForMessageHandler<HandleType, MsgType>::s_wait_for_message_handler_list;
+template <typename HandleType, class MsgType> std::mutex sick_scan_xd::SickWaitForMessageHandler<HandleType, MsgType>::s_wait_for_message_handler_mutex;
 
 static std::string s_scannerName = "sick_scan";
 static std::map<SickScanApiHandle,std::string> s_api_caller;
 static std::vector<void*> s_malloced_resources;
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanPointCloudMsg>          s_callback_handler_cartesian_pointcloud_messages;
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanPointCloudMsg>          s_callback_handler_polar_pointcloud_messages;
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanImuMsg>                 s_callback_handler_imu_messages;
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanLFErecMsg>              s_callback_handler_lferec_messages;
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanLIDoutputstateMsg>      s_callback_handler_lidoutputstate_messages;
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanRadarScan>              s_callback_handler_radarscan_messages;
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanLdmrsObjectArray>       s_callback_handler_ldmrsobjectarray_messages;
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanVisualizationMarkerMsg> s_callback_handler_visualizationmarker_messages;
-static sick_scan::SickCallbackHandler<SickScanApiHandle,SickScanNavPoseLandmarkMsg>     s_callback_handler_navposelandmark_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanPointCloudMsg>          s_callback_handler_cartesian_pointcloud_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanPointCloudMsg>          s_callback_handler_polar_pointcloud_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanImuMsg>                 s_callback_handler_imu_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanLFErecMsg>              s_callback_handler_lferec_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanLIDoutputstateMsg>      s_callback_handler_lidoutputstate_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanRadarScan>              s_callback_handler_radarscan_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanLdmrsObjectArray>       s_callback_handler_ldmrsobjectarray_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanVisualizationMarkerMsg> s_callback_handler_visualizationmarker_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanNavPoseLandmarkMsg>     s_callback_handler_navposelandmark_messages;
 
 #if __ROS_VERSION == 2 // workaround for missing imu quaternion operator << in ROS2
 #   define ROS_VECTOR3D_TO_STREAM(msg)   ((msg).x) << "," << ((msg).y) << "," << ((msg).z)
@@ -50,7 +50,7 @@ static rosNodePtr castApiHandleToNode(SickScanApiHandle apiHandle)
 *  Message converter
 */
 
-static SickScanPointCloudMsg convertPointCloudMsg(const sick_scan::PointCloud2withEcho& msg_with_echo)
+static SickScanPointCloudMsg convertPointCloudMsg(const sick_scan_xd::PointCloud2withEcho& msg_with_echo)
 {
     SickScanPointCloudMsg export_msg;
     memset(&export_msg, 0, sizeof(export_msg));
@@ -251,7 +251,7 @@ static SickScanRadarScan convertRadarScanMsg(const sick_scan_msg::RadarScan& src
         dst_msg.radarpreheader.iencoderspeed[n] = src_msg.radarpreheader.radarpreheaderarrayencoderblock[n].iencoderspeed;
     }
     // Copy radar target pointcloud data
-    sick_scan::PointCloud2withEcho targets_with_echo(&src_msg.targets, 1, 0);
+    sick_scan_xd::PointCloud2withEcho targets_with_echo(&src_msg.targets, 1, 0);
     dst_msg.targets = convertPointCloudMsg(targets_with_echo);
     // Copy radar object data
     dst_msg.objects.size = src_msg.objects.size();
@@ -508,7 +508,7 @@ static void freeVisualizationMarkerMsg(SickScanVisualizationMarkerMsg& msg)
 *  Callback handler
 */
 
-static void cartesian_pointcloud_callback(rosNodePtr node, const sick_scan::PointCloud2withEcho* msg)
+static void cartesian_pointcloud_callback(rosNodePtr node, const sick_scan_xd::PointCloud2withEcho* msg)
 {
     ROS_DEBUG_STREAM("api_impl cartesian_pointcloud_callback: PointCloud2 message, " << msg->pointcloud.width << "x" << msg->pointcloud.height << " points");
     DUMP_API_POINTCLOUD_MESSAGE("impl", msg->pointcloud);
@@ -519,7 +519,7 @@ static void cartesian_pointcloud_callback(rosNodePtr node, const sick_scan::Poin
     freePointCloudMsg(export_msg);
 }
 
-static void polar_pointcloud_callback(rosNodePtr node, const sick_scan::PointCloud2withEcho* msg)
+static void polar_pointcloud_callback(rosNodePtr node, const sick_scan_xd::PointCloud2withEcho* msg)
 {
     ROS_DEBUG_STREAM("api_impl polar_pointcloud_callback: PointCloud2 message, " << msg->pointcloud.width << "x" << msg->pointcloud.height << " points");
     // Convert ros_sensor_msgs::PointCloud2 message to SickScanPointCloudMsg and export (i.e. notify all listeners)
@@ -763,12 +763,34 @@ int32_t SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv)
         // Start sick_scan event loop
         int exit_code = 0;
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!startGenericLaser(argc, argv, s_scannerName, node, &exit_code) || exit_code != sick_scan::ExitSuccess)
+        try
         {
-            ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): startGenericLaser() failed, could not start generic laser event loop");
-            return SICK_SCAN_API_ERROR;
+            if (!startGenericLaser(argc, argv, s_scannerName, node, &exit_code) || exit_code != sick_scan_xd::ExitSuccess)
+            {
+                ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): startGenericLaser() failed, could not start generic laser event loop");
+                return SICK_SCAN_API_ERROR;
+            }
+            return SICK_SCAN_API_SUCCESS;
         }
-        return SICK_SCAN_API_SUCCESS;
+        catch(const std::exception& e)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): exception " << e.what());
+        }
+        try
+        {
+            ROS_WARN_STREAM("SickScanApiInitByCli(): running sick_generic_laser in main thread ...");
+            exit_code = mainGenericLaser(argc, argv, s_scannerName, node);
+            if (exit_code != sick_scan_xd::ExitSuccess)
+            {
+                ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): mainGenericLaser() failed");
+                return SICK_SCAN_API_ERROR;
+            }
+            return SICK_SCAN_API_SUCCESS;
+        }
+        catch(const std::exception& e)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiInitByCli(): exception " << e.what());
+        }
     }
     catch(const std::exception& e)
     {
@@ -821,7 +843,7 @@ int32_t SickScanApiRegisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, S
         }
         s_callback_handler_cartesian_pointcloud_messages.addListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::addCartesianPointcloudListener(node, cartesian_pointcloud_callback);
+        sick_scan_xd::addCartesianPointcloudListener(node, cartesian_pointcloud_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -845,7 +867,7 @@ int32_t SickScanApiDeregisterCartesianPointCloudMsg(SickScanApiHandle apiHandle,
         }
         s_callback_handler_cartesian_pointcloud_messages.removeListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::removeCartesianPointcloudListener(node, cartesian_pointcloud_callback);
+        sick_scan_xd::removeCartesianPointcloudListener(node, cartesian_pointcloud_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -871,7 +893,7 @@ int32_t SickScanApiRegisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickS
         }
         s_callback_handler_polar_pointcloud_messages.addListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::addPolarPointcloudListener(node, polar_pointcloud_callback);
+        sick_scan_xd::addPolarPointcloudListener(node, polar_pointcloud_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -895,7 +917,7 @@ int32_t SickScanApiDeregisterPolarPointCloudMsg(SickScanApiHandle apiHandle, Sic
         }
         s_callback_handler_polar_pointcloud_messages.removeListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::removePolarPointcloudListener(node, polar_pointcloud_callback);
+        sick_scan_xd::removePolarPointcloudListener(node, polar_pointcloud_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -921,7 +943,7 @@ int32_t SickScanApiRegisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCal
         }
         s_callback_handler_imu_messages.addListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::addImuListener(node, imu_callback);
+        sick_scan_xd::addImuListener(node, imu_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -945,7 +967,7 @@ int32_t SickScanApiDeregisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgC
         }
         s_callback_handler_imu_messages.removeListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::removeImuListener(node, imu_callback);
+        sick_scan_xd::removeImuListener(node, imu_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -971,7 +993,7 @@ int32_t SickScanApiRegisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErec
         }
         s_callback_handler_lferec_messages.addListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::addLFErecListener(node, lferec_callback);
+        sick_scan_xd::addLFErecListener(node, lferec_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -995,7 +1017,7 @@ int32_t SickScanApiDeregisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFEr
         }
         s_callback_handler_lferec_messages.removeListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::removeLFErecListener(node, lferec_callback);
+        sick_scan_xd::removeLFErecListener(node, lferec_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1021,7 +1043,7 @@ int32_t SickScanApiRegisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickSc
         }
         s_callback_handler_lidoutputstate_messages.addListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::addLIDoutputstateListener(node, lidoutputstate_callback);
+        sick_scan_xd::addLIDoutputstateListener(node, lidoutputstate_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1045,7 +1067,7 @@ int32_t SickScanApiDeregisterLIDoutputstateMsg(SickScanApiHandle apiHandle, Sick
         }
         s_callback_handler_lidoutputstate_messages.removeListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::removeLIDoutputstateListener(node, lidoutputstate_callback);
+        sick_scan_xd::removeLIDoutputstateListener(node, lidoutputstate_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1071,7 +1093,7 @@ int32_t SickScanApiRegisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRad
         }
         s_callback_handler_radarscan_messages.addListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::addRadarScanListener(node, radarscan_callback);
+        sick_scan_xd::addRadarScanListener(node, radarscan_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1095,7 +1117,7 @@ int32_t SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanR
         }
         s_callback_handler_radarscan_messages.removeListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::removeRadarScanListener(node, radarscan_callback);
+        sick_scan_xd::removeRadarScanListener(node, radarscan_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1121,7 +1143,7 @@ int32_t SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Sick
         }
         s_callback_handler_ldmrsobjectarray_messages.addListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::addLdmrsObjectArrayListener(node, ldmrsobjectarray_callback);
+        sick_scan_xd::addLdmrsObjectArrayListener(node, ldmrsobjectarray_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1145,7 +1167,7 @@ int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Si
         }
         s_callback_handler_ldmrsobjectarray_messages.removeListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::removeLdmrsObjectArrayListener(node, ldmrsobjectarray_callback);
+        sick_scan_xd::removeLdmrsObjectArrayListener(node, ldmrsobjectarray_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1171,7 +1193,7 @@ int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, S
         }
         s_callback_handler_visualizationmarker_messages.addListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::addVisualizationMarkerListener(node, visualizationmarker_callback);
+        sick_scan_xd::addVisualizationMarkerListener(node, visualizationmarker_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1195,7 +1217,7 @@ int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle,
         }
         s_callback_handler_visualizationmarker_messages.removeListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::removeVisualizationMarkerListener(node, visualizationmarker_callback);
+        sick_scan_xd::removeVisualizationMarkerListener(node, visualizationmarker_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1225,11 +1247,11 @@ int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, S
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!sick_scan::isCartesianPointcloudListenerRegistered(node, sick_scan::WaitForCartesianPointCloudMessageHandler::messageCallback))
-            sick_scan::addCartesianPointcloudListener(node, sick_scan::WaitForCartesianPointCloudMessageHandler::messageCallback); // registrate static SickWaitForMessageHandler callback once
-        sick_scan::WaitForCartesianPointCloudMessageHandler wait_message_handler;
-        sick_scan::WaitForCartesianPointCloudMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
-        sick_scan::PointCloud2withEcho ros_msg;
+        if (!sick_scan_xd::isCartesianPointcloudListenerRegistered(node, sick_scan_xd::WaitForCartesianPointCloudMessageHandler::messageCallback))
+            sick_scan_xd::addCartesianPointcloudListener(node, sick_scan_xd::WaitForCartesianPointCloudMessageHandler::messageCallback); // registrate static SickWaitForMessageHandler callback once
+        sick_scan_xd::WaitForCartesianPointCloudMessageHandler wait_message_handler;
+        sick_scan_xd::WaitForCartesianPointCloudMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::PointCloud2withEcho ros_msg;
         if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) 
             && ros_msg.pointcloud.width * ros_msg.pointcloud.height > 0
             && ros_msg.pointcloud.fields.size() >= 3
@@ -1246,7 +1268,7 @@ int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, S
         {
             ret_val = SICK_SCAN_API_TIMEOUT;
         }
-        sick_scan::WaitForCartesianPointCloudMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::WaitForCartesianPointCloudMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
     }
     catch(const std::exception& e)
     {
@@ -1269,11 +1291,11 @@ int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickS
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!sick_scan::isPolarPointcloudListenerRegistered(node, sick_scan::WaitForPolarPointCloudMessageHandler::messageCallback))
-            sick_scan::addPolarPointcloudListener(node, sick_scan::WaitForPolarPointCloudMessageHandler::messageCallback); // registrate static SickWaitForMessageHandler callback once
-        sick_scan::WaitForPolarPointCloudMessageHandler wait_message_handler;
-        sick_scan::WaitForPolarPointCloudMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
-        sick_scan::PointCloud2withEcho ros_msg;
+        if (!sick_scan_xd::isPolarPointcloudListenerRegistered(node, sick_scan_xd::WaitForPolarPointCloudMessageHandler::messageCallback))
+            sick_scan_xd::addPolarPointcloudListener(node, sick_scan_xd::WaitForPolarPointCloudMessageHandler::messageCallback); // registrate static SickWaitForMessageHandler callback once
+        sick_scan_xd::WaitForPolarPointCloudMessageHandler wait_message_handler;
+        sick_scan_xd::WaitForPolarPointCloudMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::PointCloud2withEcho ros_msg;
         if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) 
             && ros_msg.pointcloud.width * ros_msg.pointcloud.height > 0
             && ros_msg.pointcloud.fields.size() >= 3
@@ -1290,7 +1312,7 @@ int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickS
         {
             ret_val = SICK_SCAN_API_TIMEOUT;
         }
-        sick_scan::WaitForPolarPointCloudMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::WaitForPolarPointCloudMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
     }
     catch(const std::exception& e)
     {
@@ -1324,10 +1346,10 @@ int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* m
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!sick_scan::isImuListenerRegistered(node, sick_scan::WaitForImuMessageHandler::messageCallback))
-            sick_scan::addImuListener(node, sick_scan::WaitForImuMessageHandler::messageCallback);
-        sick_scan::WaitForImuMessageHandler wait_message_handler;
-        sick_scan::WaitForImuMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        if (!sick_scan_xd::isImuListenerRegistered(node, sick_scan_xd::WaitForImuMessageHandler::messageCallback))
+            sick_scan_xd::addImuListener(node, sick_scan_xd::WaitForImuMessageHandler::messageCallback);
+        sick_scan_xd::WaitForImuMessageHandler wait_message_handler;
+        sick_scan_xd::WaitForImuMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
         ros_sensor_msgs::Imu ros_msg;
         if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec))
         {
@@ -1340,7 +1362,7 @@ int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* m
         {
             ret_val = SICK_SCAN_API_TIMEOUT;
         }
-        sick_scan::WaitForImuMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::WaitForImuMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
     }
     catch(const std::exception& e)
     {
@@ -1374,10 +1396,10 @@ int32_t SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErec
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!sick_scan::isLFErecListenerRegistered(node, sick_scan::WaitForLFErecMessageHandler::messageCallback))
-            sick_scan::addLFErecListener(node, sick_scan::WaitForLFErecMessageHandler::messageCallback);
-        sick_scan::WaitForLFErecMessageHandler wait_message_handler;
-        sick_scan::WaitForLFErecMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        if (!sick_scan_xd::isLFErecListenerRegistered(node, sick_scan_xd::WaitForLFErecMessageHandler::messageCallback))
+            sick_scan_xd::addLFErecListener(node, sick_scan_xd::WaitForLFErecMessageHandler::messageCallback);
+        sick_scan_xd::WaitForLFErecMessageHandler wait_message_handler;
+        sick_scan_xd::WaitForLFErecMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
         sick_scan_msg::LFErecMsg ros_msg;
         if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.fields_number > 0)
         {
@@ -1390,7 +1412,7 @@ int32_t SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErec
         {
             ret_val = SICK_SCAN_API_TIMEOUT;
         }
-        sick_scan::WaitForLFErecMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::WaitForLFErecMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
     }
     catch(const std::exception& e)
     {
@@ -1424,10 +1446,10 @@ int32_t SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickSc
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!sick_scan::isLIDoutputstateListenerRegistered(node, sick_scan::WaitForLIDoutputstateMessageHandler::messageCallback))
-            sick_scan::addLIDoutputstateListener(node, sick_scan::WaitForLIDoutputstateMessageHandler::messageCallback);
-        sick_scan::WaitForLIDoutputstateMessageHandler wait_message_handler;
-        sick_scan::WaitForLIDoutputstateMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        if (!sick_scan_xd::isLIDoutputstateListenerRegistered(node, sick_scan_xd::WaitForLIDoutputstateMessageHandler::messageCallback))
+            sick_scan_xd::addLIDoutputstateListener(node, sick_scan_xd::WaitForLIDoutputstateMessageHandler::messageCallback);
+        sick_scan_xd::WaitForLIDoutputstateMessageHandler wait_message_handler;
+        sick_scan_xd::WaitForLIDoutputstateMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
         sick_scan_msg::LIDoutputstateMsg ros_msg;
         if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.output_state.size() + ros_msg.output_count.size() > 0)
         {
@@ -1440,7 +1462,7 @@ int32_t SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickSc
         {
             ret_val = SICK_SCAN_API_TIMEOUT;
         }
-        sick_scan::WaitForLIDoutputstateMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::WaitForLIDoutputstateMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
     }
     catch(const std::exception& e)
     {
@@ -1474,10 +1496,10 @@ int32_t SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRad
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!sick_scan::isRadarScanListenerRegistered(node, sick_scan::WaitForRadarScanMessageHandler::messageCallback))
-            sick_scan::addRadarScanListener(node, sick_scan::WaitForRadarScanMessageHandler::messageCallback);
-        sick_scan::WaitForRadarScanMessageHandler wait_message_handler;
-        sick_scan::WaitForRadarScanMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        if (!sick_scan_xd::isRadarScanListenerRegistered(node, sick_scan_xd::WaitForRadarScanMessageHandler::messageCallback))
+            sick_scan_xd::addRadarScanListener(node, sick_scan_xd::WaitForRadarScanMessageHandler::messageCallback);
+        sick_scan_xd::WaitForRadarScanMessageHandler wait_message_handler;
+        sick_scan_xd::WaitForRadarScanMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
         sick_scan_msg::RadarScan ros_msg;
         if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.targets.width * ros_msg.targets.height + ros_msg.objects.size() > 0)
         {
@@ -1490,7 +1512,7 @@ int32_t SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRad
         {
             ret_val = SICK_SCAN_API_TIMEOUT;
         }
-        sick_scan::WaitForRadarScanMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::WaitForRadarScanMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
     }
     catch(const std::exception& e)
     {
@@ -1524,10 +1546,10 @@ int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Sick
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!sick_scan::isLdmrsObjectArrayListenerRegistered(node, sick_scan::WaitForLdmrsObjectArrayMessageHandler::messageCallback))
-            sick_scan::addLdmrsObjectArrayListener(node, sick_scan::WaitForLdmrsObjectArrayMessageHandler::messageCallback);
-        sick_scan::WaitForLdmrsObjectArrayMessageHandler wait_message_handler;
-        sick_scan::WaitForLdmrsObjectArrayMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        if (!sick_scan_xd::isLdmrsObjectArrayListenerRegistered(node, sick_scan_xd::WaitForLdmrsObjectArrayMessageHandler::messageCallback))
+            sick_scan_xd::addLdmrsObjectArrayListener(node, sick_scan_xd::WaitForLdmrsObjectArrayMessageHandler::messageCallback);
+        sick_scan_xd::WaitForLdmrsObjectArrayMessageHandler wait_message_handler;
+        sick_scan_xd::WaitForLdmrsObjectArrayMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
         sick_scan_msg::SickLdmrsObjectArray ros_msg;
         if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.objects.size() > 0)
         {
@@ -1540,7 +1562,7 @@ int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Sick
         {
             ret_val = SICK_SCAN_API_TIMEOUT;
         }
-        sick_scan::WaitForLdmrsObjectArrayMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::WaitForLdmrsObjectArrayMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
     }
     catch(const std::exception& e)
     {
@@ -1574,10 +1596,10 @@ int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, S
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!sick_scan::isVisualizationMarkerListenerRegistered(node, sick_scan::WaitForVisualizationMarkerMessageHandler::messageCallback))
-            sick_scan::addVisualizationMarkerListener(node, sick_scan::WaitForVisualizationMarkerMessageHandler::messageCallback);
-        sick_scan::WaitForVisualizationMarkerMessageHandler wait_message_handler;
-        sick_scan::WaitForVisualizationMarkerMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        if (!sick_scan_xd::isVisualizationMarkerListenerRegistered(node, sick_scan_xd::WaitForVisualizationMarkerMessageHandler::messageCallback))
+            sick_scan_xd::addVisualizationMarkerListener(node, sick_scan_xd::WaitForVisualizationMarkerMessageHandler::messageCallback);
+        sick_scan_xd::WaitForVisualizationMarkerMessageHandler wait_message_handler;
+        sick_scan_xd::WaitForVisualizationMarkerMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
         ros_visualization_msgs::MarkerArray ros_msg;
         if (wait_message_handler.waitForNextMessage(ros_msg, timeout_sec) && ros_msg.markers.size() > 0)
         {
@@ -1590,7 +1612,7 @@ int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, S
         {
             ret_val = SICK_SCAN_API_TIMEOUT;
         }
-        sick_scan::WaitForVisualizationMarkerMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::WaitForVisualizationMarkerMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
     }
     catch(const std::exception& e)
     {
@@ -1616,7 +1638,7 @@ int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickS
 ** NAV-350 support and messages
 */
 
-static SickScanNavPoseLandmarkMsg convertNAV350mNPOSData(const sick_scan::NAV350mNPOSData& src_msg)
+static SickScanNavPoseLandmarkMsg convertNAV350mNPOSData(const sick_scan_xd::NAV350mNPOSData& src_msg)
 {
     SickScanNavPoseLandmarkMsg dst_msg;
     memset(&dst_msg, 0, sizeof(dst_msg));
@@ -1632,7 +1654,7 @@ static SickScanNavPoseLandmarkMsg convertNAV350mNPOSData(const sick_scan::NAV350
     dst_msg.pose_opt_info_state = src_msg.poseData.optPoseData.infoState;
     dst_msg.pose_opt_quant_used_reflectors = src_msg.poseData.optPoseData.quantUsedReflectors;
     if (dst_msg.pose_valid > 0)
-        sick_scan::convertNAVCartPos3DtoROSPos3D(dst_msg.pose_nav_x, dst_msg.pose_nav_y, dst_msg.pose_nav_phi, dst_msg.pose_x, dst_msg.pose_y, dst_msg.pose_yaw, src_msg.angleOffset);
+        sick_scan_xd::convertNAVCartPos3DtoROSPos3D(dst_msg.pose_nav_x, dst_msg.pose_nav_y, dst_msg.pose_nav_phi, dst_msg.pose_x, dst_msg.pose_y, dst_msg.pose_yaw, src_msg.angleOffset);
     if (dst_msg.pose_opt_valid > 0 && SoftwarePLL::instance().IsInitialized())
         SoftwarePLL::instance().getCorrectedTimeStamp(dst_msg.pose_timestamp_sec, dst_msg.pose_timestamp_nsec, dst_msg.pose_opt_timestamp);
 
@@ -1645,7 +1667,7 @@ static SickScanNavPoseLandmarkMsg convertNAV350mNPOSData(const sick_scan::NAV350
             dst_msg.reflectors.capacity = src_msg.landmarkData.reflectors.size();
             for(int reflector_cnt = 0; reflector_cnt < src_msg.landmarkData.reflectors.size(); reflector_cnt++)
             {
-                const sick_scan::NAV350ReflectorData* src_reflector = &src_msg.landmarkData.reflectors[reflector_cnt];
+                const sick_scan_xd::NAV350ReflectorData* src_reflector = &src_msg.landmarkData.reflectors[reflector_cnt];
                 SickScanNavReflector* dst_reflector = &dst_msg.reflectors.buffer[reflector_cnt];
                 dst_reflector->cartesian_valid = src_reflector->cartesianDataValid;
                 dst_reflector->cartesian_x = src_reflector->cartesianData.x;
@@ -1667,7 +1689,7 @@ static SickScanNavPoseLandmarkMsg convertNAV350mNPOSData(const sick_scan::NAV350
                 dst_reflector->opt_endindex = src_reflector->optReflectorData.endIndex;
                 dst_reflector->pos_valid = src_reflector->cartesianDataValid;
                 if (src_reflector->cartesianDataValid)
-                    sick_scan::convertNAVCartPos2DtoROSPos2D(src_reflector->cartesianData.x, src_reflector->cartesianData.y, dst_reflector->pos_x, dst_reflector->pos_y, src_msg.angleOffset);
+                    sick_scan_xd::convertNAVCartPos2DtoROSPos2D(src_reflector->cartesianData.x, src_reflector->cartesianData.y, dst_reflector->pos_x, dst_reflector->pos_y, src_msg.angleOffset);
                 if (src_reflector->optReflectorDataValid > 0 && SoftwarePLL::instance().IsInitialized())
                     SoftwarePLL::instance().getCorrectedTimeStamp(dst_reflector->opt_timestamp_sec, dst_reflector->opt_timestamp_nsec, src_reflector->optReflectorData.timestamp);
             }
@@ -1680,7 +1702,7 @@ static void freeNavPoseLandmarkMsg(SickScanNavPoseLandmarkMsg& msg)
     free(msg.reflectors.buffer);
     memset(&msg, 0, sizeof(msg));
 }
-static void nav_pose_landmark_callback(rosNodePtr node, const sick_scan::NAV350mNPOSData* msg)
+static void nav_pose_landmark_callback(rosNodePtr node, const sick_scan_xd::NAV350mNPOSData* msg)
 {
     ROS_DEBUG_STREAM("api_impl nav_pose_landmark_callback: NAV350mNPOSData message");
     SickScanNavPoseLandmarkMsg export_msg = convertNAV350mNPOSData(*msg);
@@ -1699,7 +1721,7 @@ int32_t SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickS
         }
         s_callback_handler_navposelandmark_messages.addListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::addNavPoseLandmarkListener(node, nav_pose_landmark_callback);
+        sick_scan_xd::addNavPoseLandmarkListener(node, nav_pose_landmark_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1723,7 +1745,7 @@ int32_t SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, Sic
         }
         s_callback_handler_navposelandmark_messages.removeListener(apiHandle, callback);
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        sick_scan::removeNavPoseLandmarkListener(node, nav_pose_landmark_callback);
+        sick_scan_xd::removeNavPoseLandmarkListener(node, nav_pose_landmark_callback);
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1747,11 +1769,11 @@ int32_t SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickS
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
         rosNodePtr node = castApiHandleToNode(apiHandle);
-        if (!sick_scan::isNavPoseLandmarkListenerRegistered(node, sick_scan::WaitForNAVPOSDataMessageHandler::messageCallback))
-            sick_scan::addNavPoseLandmarkListener(node, sick_scan::WaitForNAVPOSDataMessageHandler::messageCallback);
-        sick_scan::WaitForNAVPOSDataMessageHandler wait_message_handler;
-        sick_scan::WaitForNAVPOSDataMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
-        sick_scan::NAV350mNPOSData navdata_msg;
+        if (!sick_scan_xd::isNavPoseLandmarkListenerRegistered(node, sick_scan_xd::WaitForNAVPOSDataMessageHandler::messageCallback))
+            sick_scan_xd::addNavPoseLandmarkListener(node, sick_scan_xd::WaitForNAVPOSDataMessageHandler::messageCallback);
+        sick_scan_xd::WaitForNAVPOSDataMessageHandler wait_message_handler;
+        sick_scan_xd::WaitForNAVPOSDataMessageHandler::addWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::NAV350mNPOSData navdata_msg;
         if (wait_message_handler.waitForNextMessage(navdata_msg, timeout_sec) && (navdata_msg.poseDataValid > 0 || navdata_msg.landmarkDataValid > 0))
         {
             ROS_INFO_STREAM("SickScanApiWaitNextNavPoseLandmarkMsg: NAV350mNPOSData message");
@@ -1762,7 +1784,7 @@ int32_t SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickS
         {
             ret_val = SICK_SCAN_API_TIMEOUT;
         }
-        sick_scan::WaitForNAVPOSDataMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
+        sick_scan_xd::WaitForNAVPOSDataMessageHandler::removeWaitForMessageHandlerHandler(&wait_message_handler);
     }
     catch(const std::exception& e)
     {

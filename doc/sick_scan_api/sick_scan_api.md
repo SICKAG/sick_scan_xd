@@ -20,7 +20,7 @@ The shared library, which implements the C-API, is built native on Linux or Wind
 
 ### Build the shared library on Linux
 
-Run the following commands to build the shared library `libsick_scan_shared_lib.so` on Linux:
+Run the following commands to build the shared library `libsick_scan_xd_shared_lib.so` on Linux:
 ```
 # Clone repositories
 git clone https://github.com/SICKAG/libsick_ldmrs.git
@@ -41,7 +41,7 @@ cmake -DMSGPACK11_BUILD_TESTS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -G "Unix Ma
 make -j4
 sudo make -j4 install    
 popd
-# Build libsick_scan_shared_lib.so
+# Build libsick_scan_xd_shared_lib.so
 pushd ./build
 export ROS_VERSION=0
 cmake -DROS_VERSION=0 -G "Unix Makefiles" ../sick_scan_xd
@@ -49,21 +49,21 @@ make -j4
 sudo make -j4 install    
 # Check build and library dependencies
 ls -al ./sick_generic_caller
-ls -al ./libsick_scan_shared_lib.so
+ls -al ./libsick_scan_xd_shared_lib.so
 ls -al ./sick_scan_xd_api_test
-ldd -r ./libsick_scan_shared_lib.so
+ldd -r ./libsick_scan_xd_shared_lib.so
 popd
 ```
-After successful build, the shared library `libsick_scan_shared_lib.so` and a tiny test executable `sick_scan_xd_api_test` are created. 
+After successful build, the shared library `libsick_scan_xd_shared_lib.so` and a tiny test executable `sick_scan_xd_api_test` are created. 
 
 ### Build the shared library on Windows
 
-Run the following commands to build the shared library `sick_scan_shared_lib.dll` with Visual Studio 2019 on Windows:
+Run the following commands to build the shared library `sick_scan_xd_shared_lib.dll` with Visual Studio 2019 on Windows:
 ```
 # Clone repositories
 git clone https://github.com/SICKAG/msgpack11.git
 git clone https://github.com/SICKAG/sick_scan_xd.git
-# Build libraries msgpack and sick_scan_shared_lib.dll
+# Build libraries msgpack and sick_scan_xd_shared_lib.dll
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
 set _os=x64
 set _cmake_string=Visual Studio 16
@@ -83,7 +83,7 @@ cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
 if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% sick_scan_xd with cmake & @pause )
 cmake --build . --clean-first --config Debug
 ```
-After successful build, the shared library `sick_scan_shared_lib.dll` and a tiny test executable `sick_scan_xd_api_test.exe` are created. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. Note that LDMRS is not supported on Windows.
+After successful build, the shared library `sick_scan_xd_shared_lib.dll` and a tiny test executable `sick_scan_xd_api_test.exe` are created. To install the library and header in the system folder, run `cmake --build . --target install` with admin priviledges. Note that LDMRS is not supported on Windows.
 
 Note: sick_scan_xd builds and runs with both Visual Studio 2019 and 2022. Visual Studio 2019 is recommended, since ROS on Windows requires VS 2019.
 
@@ -103,7 +103,7 @@ set PATH=.;.\build;..\build\Debug;%PATH%
 .\build\Debug\sick_scan_xd_api_test.exe launch/sick_lms_5xx.launch hostname:=192.168.0.1
 ```
 
-The executable binary `sick_scan_xd_api_test` will just load library `libsick_scan_shared_lib.so` resp. `sick_scan_shared_lib.dll`, start the lidar and print a message when receiving lidar messages, e.g. `sick_scan_xd_api_test: pointcloud callback`. Replace `sick_lms_1xx.launch` in the example by the launchfile corresponding to your type of lidar.
+The executable binary `sick_scan_xd_api_test` will just load library `libsick_scan_xd_shared_lib.so` resp. `sick_scan_xd_shared_lib.dll`, start the lidar and print a message when receiving lidar messages, e.g. `sick_scan_xd_api_test: pointcloud callback`. Replace `sick_lms_1xx.launch` in the example by the launchfile corresponding to your type of lidar.
 
 To load the library, the build folder has to be included in `LD_LIBRARY_PATH` (Linux) resp. `PATH` (Windows). Set this environment variable to your build folder, e.g. on Linux using
 ```
@@ -187,14 +187,14 @@ The sick_scan_xd API can be used on Linux or Windows in any language with suppor
     * SickScanApiClose
     * SickScanApiRelease
 
-All functions named `SickScanApi` are implemented within the library file ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux). A small wrapper is provided ([sick_scan_xd_api_wrapper.c](../../test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c) for C/C++, [sick_scan_api.py](../../python/api/sick_scan_api.py) for python), which loads and unloads the library (functions `SickScanApiLoadLibrary` and `SickScanApiUnloadLibrary`) and delegates the function calls to the binary.
+All functions named `SickScanApi` are implemented within the library file ("sick_scan_xd_shared_lib.dll" on Windows resp. "libsick_scan_xd_shared_lib.so" on Linux). A small wrapper is provided ([sick_scan_xd_api_wrapper.c](../../test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c) for C/C++, [sick_scan_api.py](../../python/api/sick_scan_api.py) for python), which loads and unloads the library (functions `SickScanApiLoadLibrary` and `SickScanApiUnloadLibrary`) and delegates the function calls to the binary.
 
 Note: [sick_scan_api.py](../../python/api/sick_scan_api.py) requires python module numpy. On Windows, we recommend to install and use Python either with Visual Studio 2019 or by installing from https://www.python.org/downloads/windows/ (python installer, embedded version not recommended). Otherwise, please install numpy with `python -m pip install numpy` if numpy is not yet installed.
 
 
 ### Minimalistic usage example in C
 
-File [minimum_sick_scan_api_client.c](../../examples/c/minimum_sick_scan_api_client.c) shows a minimalistic example of a C client using the sick_scan_xd API. To build and run this example, open a command shell in folder `examples/scripts` and run `.\build_run_api_examples_linux.bash` on Linux resp. `build_run_api_examples_windows.cmd` on Windows. Make sure, that the shared library `libsick_scan_shared_lib.so` resp. `sick_scan_shared_lib.dll` has been successfully built in the build-folder.
+File [minimum_sick_scan_api_client.c](../../examples/c/minimum_sick_scan_api_client.c) shows a minimalistic example of a C client using the sick_scan_xd API. To build and run this example, open a command shell in folder `examples/scripts` and run `.\build_run_api_examples_linux.bash` on Linux resp. `build_run_api_examples_windows.cmd` on Windows. Make sure, that the shared library `libsick_scan_xd_shared_lib.so` resp. `sick_scan_xd_shared_lib.dll` has been successfully built in the build-folder.
 
 Alternatively, follow the build and run instructions on Linux:
 ```
@@ -230,7 +230,7 @@ REM Run minimalistic C api example
 
 ### Minimalistic usage example in C++
 
-File [minimum_sick_scan_api_client.cpp](../../examples/cpp/minimum_sick_scan_api_client.cpp) shows a minimalistic example of a C++ client using the sick_scan_xd API. To build and run this example, open a command shell in folder `examples/scripts` and run `.\build_run_api_examples_linux.bash` on Linux resp. `build_run_api_examples_windows.cmd` on Windows. Make sure, that the shared library `libsick_scan_shared_lib.so` resp. `sick_scan_shared_lib.dll` has been successfully built in the build-folder.
+File [minimum_sick_scan_api_client.cpp](../../examples/cpp/minimum_sick_scan_api_client.cpp) shows a minimalistic example of a C++ client using the sick_scan_xd API. To build and run this example, open a command shell in folder `examples/scripts` and run `.\build_run_api_examples_linux.bash` on Linux resp. `build_run_api_examples_windows.cmd` on Windows. Make sure, that the shared library `libsick_scan_xd_shared_lib.so` resp. `sick_scan_xd_shared_lib.dll` has been successfully built in the build-folder.
 
 Alternatively, follow the build and run instructions on Linux:
 ```
@@ -266,7 +266,7 @@ REM Run minimalistic C++ api example
 
 ### Minimalistic usage example in Python
 
-File [minimum_sick_scan_api_client.py](../../examples/python/minimum_sick_scan_api_client.py) shows a minimalistic example of a python client using the sick_scan_xd API. To build and run this example, open a command shell in folder `examples/scripts` and run `.\build_run_api_examples_linux.bash` on Linux resp. `build_run_api_examples_windows.cmd` on Windows. Make sure, that the shared library `libsick_scan_shared_lib.so` resp. `sick_scan_shared_lib.dll` has been successfully built in the build-folder.
+File [minimum_sick_scan_api_client.py](../../examples/python/minimum_sick_scan_api_client.py) shows a minimalistic example of a python client using the sick_scan_xd API. To build and run this example, open a command shell in folder `examples/scripts` and run `.\build_run_api_examples_linux.bash` on Linux resp. `build_run_api_examples_windows.cmd` on Windows. Make sure, that the shared library `libsick_scan_xd_shared_lib.so` resp. `sick_scan_xd_shared_lib.dll` has been successfully built in the build-folder.
 
 Alternatively, follow the run instructions on Linux:
 ```
@@ -286,7 +286,7 @@ Note: [sick_scan_api.py](../../python/api/sick_scan_api.py) requires python modu
 
 ### Complete usage example in C++
 
-A complete C/C++ usage example is implemented in [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp). Note that the shared library ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux) has no dependencies to ROS. The usage example on the other hand supports both ROS-1, ROS-2 and native Linux or Windows. When build on ROS, it converts the SickScanApi-messages into ROS-messages. On ROS, they can be visualized by rviz. The following screenshot shows a pointcloud published by `rosrun sick_scan sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch"`:
+A complete C/C++ usage example is implemented in [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp). Note that the shared library ("sick_scan_xd_shared_lib.dll" on Windows resp. "libsick_scan_xd_shared_lib.so" on Linux) has no dependencies to ROS. The usage example on the other hand supports both ROS-1, ROS-2 and native Linux or Windows. When build on ROS, it converts the SickScanApi-messages into ROS-messages. On ROS, they can be visualized by rviz. The following screenshot shows a pointcloud published by `rosrun sick_scan_xd sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_tim_7xx.launch"`:
 
 ![api_test_linux_ros1_tim7xx.png](api_test_linux_ros1_tim7xx.png)
 
@@ -299,7 +299,7 @@ firefox ./demo/image_viewer_api_test.html &
 
 ### Complete usage example in Python
 
-A complete python usage example is implemented in [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py). It is handy to test the sick_scan_xd library. Like its C++ counterpart [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp), it just loads library `libsick_scan_shared_lib.so` resp. `sick_scan_shared_lib.dll`, starts a lidar and receives the lidar pointcloud and messages via API. On ROS-1, the lidar pointcloud and messages are converted to ROS and published. The lidar pointcloud can be visualized by rviz using topic "/sick_scan_xd_api_test/api_cloud".
+A complete python usage example is implemented in [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py). It is handy to test the sick_scan_xd library. Like its C++ counterpart [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp), it just loads library `libsick_scan_xd_shared_lib.so` resp. `sick_scan_xd_shared_lib.dll`, starts a lidar and receives the lidar pointcloud and messages via API. On ROS-1, the lidar pointcloud and messages are converted to ROS and published. The lidar pointcloud can be visualized by rviz using topic "/sick_scan_xd_api_test/api_cloud".
 
 Run `python3 sick_scan_xd_api_test.py <launchfile> hostname:=<ip-address>` to test the API against a lidar. 
 On Linux e.g.:
@@ -319,7 +319,7 @@ The pthon usage example [sick_scan_xd_api_test.py](../../test/python/sick_scan_x
 `export PYTHONPATH=`pwd`:`pwd`/src/sick_scan_xd/python/api:$PYTHONPATH` on Linux, resp. <br/>
 `set PYTHONPATH=.;.\src\sick_scan_xd\python\api;%PYTHONPATH%` on Windows
 
-Note: The shared library ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux) works standalone and does not have any ROS dependancies. The usage example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) converts API- to ROS-messages for visualization and is therefore dependent on ROS, if ROS is installed. 
+Note: The shared library ("sick_scan_xd_shared_lib.dll" on Windows resp. "libsick_scan_xd_shared_lib.so" on Linux) works standalone and does not have any ROS dependancies. The usage example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) converts API- to ROS-messages for visualization and is therefore dependent on ROS, if ROS is installed. 
 
 If ROS is not installed, [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) uses matplotlib to visualize the pointcloud. The following screenshot shows a TiM-7xx pointcloud on Linux without ROS:
 
@@ -334,14 +334,14 @@ sick_scan_xd provides a tiny server for offline tests which simulates a basic li
 
 Open a new terminal and run the following steps to test the api against a TiM7xx simulation using the python example mentioned above:
 
-1. Build library `libsick_scan_shared_lib.so` incl. emulator with option `-DCMAKE_ENABLE_EMULATOR=1`:
+1. Build library `libsick_scan_xd_shared_lib.so` incl. emulator with option `-DCMAKE_ENABLE_EMULATOR=1`:
    ```
    mkdir -p ./src/build
    pushd ./src/build
    rm -rf ./*
    cmake -DROS_VERSION=0 -DCMAKE_ENABLE_EMULATOR=1 -G "Unix Makefiles" ../sick_scan_xd
    make -j4
-   ls -al libsick_scan_shared_lib.so sick_scan_xd_api_test sick_generic_caller sick_scan_emulator # list size and date of the binaries
+   ls -al libsick_scan_xd_shared_lib.so sick_scan_xd_api_test sick_generic_caller sick_scan_emulator # list size and date of the binaries
    popd
    ```
    Building sick_scan_xd with option `-DCMAKE_ENABLE_EMULATOR=1` requires jsoncpp. Install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" on Linux resp. "vcpkg install jsoncpp:x64-windows" on Windows (vcpkg required). Run the following steps to install Visual Studios package manager vcpkg on Windows:
@@ -377,7 +377,7 @@ Open a new terminal and run the following steps to test the api against a TiM7xx
 
 5. Start rviz and visualize the pointcloud on topic "/sick_scan_xd_api_test/api_cloud".
 
-Note: The shared library ("sick_scan_shared_lib.dll" on Windows resp. "libsick_scan_shared_lib.so" on Linux) works standalone and does not have any ROS dependancies. The usage example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) uses ROS for visualization.
+Note: The shared library ("sick_scan_xd_shared_lib.dll" on Windows resp. "libsick_scan_xd_shared_lib.so" on Linux) works standalone and does not have any ROS dependancies. The usage example [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) uses ROS for visualization.
 
 ## C-API
 

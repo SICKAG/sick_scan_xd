@@ -1,5 +1,5 @@
 REM 
-REM Run sick_scan on ROS-2 Windows with lms5xx emulator
+REM Run sick_scan_xd on ROS-2 Windows with lms5xx emulator
 REM 
 
 if exist "c:\dev\ros2_foxy\local_setup.bat" ( call C:\dev\ros2_foxy\local_setup.bat )
@@ -24,10 +24,10 @@ start "python ../test/emulator/test_server.py" .\src\sick_scan_xd\test\emulator\
 @timeout /t 1
 
 REM 
-REM Run sick_scan on ROS-2 Windows
+REM Run sick_scan_xd on ROS-2 Windows
 REM 
 
-ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
+ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
 
 @pause
 popd

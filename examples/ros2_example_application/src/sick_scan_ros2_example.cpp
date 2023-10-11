@@ -61,11 +61,11 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
-#include <sick_scan/msg/radar_scan.hpp>           // generated in sick_scan_xd by msg-generator
-#include <sick_scan/msg/encoder.hpp>              // generated in sick_scan_xd by msg-generator
-#include <sick_scan/msg/li_doutputstate_msg.hpp>  // generated in sick_scan_xd by msg-generator
-#include <sick_scan/msg/lf_erec_msg.hpp>          // generated in sick_scan_xd by msg-generator
-#include <sick_scan/srv/cola_msg_srv.hpp>         // generated in sick_scan_xd by rosidl-generator
+#include <sick_scan_xd/msg/radar_scan.hpp>           // generated in sick_scan_xd by msg-generator
+#include <sick_scan_xd/msg/encoder.hpp>              // generated in sick_scan_xd by msg-generator
+#include <sick_scan_xd/msg/li_doutputstate_msg.hpp>  // generated in sick_scan_xd by msg-generator
+#include <sick_scan_xd/msg/lf_erec_msg.hpp>          // generated in sick_scan_xd by msg-generator
+#include <sick_scan_xd/srv/cola_msg_srv.hpp>         // generated in sick_scan_xd by rosidl-generator
 
 #define RCLCPP_LOGGER         rclcpp::get_logger("sick_scan_ros2_example")
 #define ROS_INFO_STREAM(...)  RCLCPP_INFO_STREAM(RCLCPP_LOGGER,__VA_ARGS__)
@@ -83,8 +83,8 @@ public:
         if (node)
         {
             m_pointcloud_subscriber = node->create_subscription<sensor_msgs::msg::PointCloud2>(cloud_topic, 10, std::bind(&SickScanMessageReceiver::messageCbPointCloudROS2, this, std::placeholders::_1));
-            m_lferec_subscriber = node->create_subscription<sick_scan::msg::LFErecMsg>(lferec_topic, 10, std::bind(&SickScanMessageReceiver::messageCbLFErecROS2, this, std::placeholders::_1));
-            m_lidoutputstate_subscriber = node->create_subscription<sick_scan::msg::LIDoutputstateMsg>(lidoutputstate_topic, 10, std::bind(&SickScanMessageReceiver::messageCbLIDoutputstateROS2, this, std::placeholders::_1));
+            m_lferec_subscriber = node->create_subscription<sick_scan_xd::msg::LFErecMsg>(lferec_topic, 10, std::bind(&SickScanMessageReceiver::messageCbLFErecROS2, this, std::placeholders::_1));
+            m_lidoutputstate_subscriber = node->create_subscription<sick_scan_xd::msg::LIDoutputstateMsg>(lidoutputstate_topic, 10, std::bind(&SickScanMessageReceiver::messageCbLIDoutputstateROS2, this, std::placeholders::_1));
         }
     }
 protected:
@@ -96,30 +96,30 @@ protected:
     }
 
     /** ROS2-callback for sick_scan lferec messages  */
-    void messageCbLFErecROS2(const std::shared_ptr<sick_scan::msg::LFErecMsg> msg)
+    void messageCbLFErecROS2(const std::shared_ptr<sick_scan_xd::msg::LFErecMsg> msg)
     {
         ROS_INFO_STREAM("sick_scan_ros2_example: lferec message received, " << msg->fields_number << " fields");
     }
 
     /** ROS2-callback for sick_scan lidoutputstate messages  */
-    void messageCbLIDoutputstateROS2(const std::shared_ptr<sick_scan::msg::LIDoutputstateMsg> msg)
+    void messageCbLIDoutputstateROS2(const std::shared_ptr<sick_scan_xd::msg::LIDoutputstateMsg> msg)
     {
         ROS_INFO_STREAM("sick_scan_ros2_example: lidoutputstate message received, " << msg->output_state.size() << " output states, " << msg->output_count.size() << " output counter");
     }
 
     /** Subscriber of pointcloud and sick_scan messages */
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_pointcloud_subscriber;
-    rclcpp::Subscription<sick_scan::msg::LFErecMsg>::SharedPtr m_lferec_subscriber;
-    rclcpp::Subscription<sick_scan::msg::LIDoutputstateMsg>::SharedPtr m_lidoutputstate_subscriber;
+    rclcpp::Subscription<sick_scan_xd::msg::LFErecMsg>::SharedPtr m_lferec_subscriber;
+    rclcpp::Subscription<sick_scan_xd::msg::LIDoutputstateMsg>::SharedPtr m_lidoutputstate_subscriber;
 };
 
 /** Sends a sick_scan ColaMsg service request */
-bool sendSickScanServiceRequest(rclcpp::Node::SharedPtr node, rclcpp::Client<sick_scan::srv::ColaMsgSrv>::SharedPtr sick_scan_srv_colamsg_client, const std::string& cola_msg)
+bool sendSickScanServiceRequest(rclcpp::Node::SharedPtr node, rclcpp::Client<sick_scan_xd::srv::ColaMsgSrv>::SharedPtr sick_scan_srv_colamsg_client, const std::string& cola_msg)
 {
-    std::shared_ptr<sick_scan::srv::ColaMsgSrv::Request> sick_scan_srv_request = std::make_shared<sick_scan::srv::ColaMsgSrv::Request>();
+    std::shared_ptr<sick_scan_xd::srv::ColaMsgSrv::Request> sick_scan_srv_request = std::make_shared<sick_scan_xd::srv::ColaMsgSrv::Request>();
     sick_scan_srv_request->request = cola_msg;
     ROS_INFO_STREAM("sick_scan_ros2_example: sick_scan service request: \"" << sick_scan_srv_request->request << "\"");
-    std::shared_future<std::shared_ptr<sick_scan::srv::ColaMsgSrv::Response>> sick_scan_srv_result = sick_scan_srv_colamsg_client->async_send_request(sick_scan_srv_request);
+    std::shared_future<std::shared_ptr<sick_scan_xd::srv::ColaMsgSrv::Response>> sick_scan_srv_result = sick_scan_srv_colamsg_client->async_send_request(sick_scan_srv_request);
     if (rclcpp::spin_until_future_complete(node, sick_scan_srv_result) == rclcpp::FutureReturnCode::SUCCESS)
     {
         ROS_INFO_STREAM("sick_scan_ros2_example: sick_scan service response: \"" << sick_scan_srv_result.get()->response << "\"");
@@ -156,7 +156,7 @@ int main(int argc, char** argv)
     SickScanMessageReceiver sickscan_message_receiver(node, "/cloud", sick_scan_msg_topic + "/lferec", sick_scan_msg_topic + "/lidoutputstate");
 
     // Create a sick_scan service client
-    rclcpp::Client<sick_scan::srv::ColaMsgSrv>::SharedPtr sick_scan_srv_colamsg_client = node->create_client<sick_scan::srv::ColaMsgSrv>("ColaMsg");
+    rclcpp::Client<sick_scan_xd::srv::ColaMsgSrv>::SharedPtr sick_scan_srv_colamsg_client = node->create_client<sick_scan_xd::srv::ColaMsgSrv>("ColaMsg");
     while (rclcpp::ok() && !sick_scan_srv_colamsg_client->wait_for_service(std::chrono::seconds(1)))
     {
        ROS_INFO_STREAM("sick_scan_ros2_example: Waiting for sick_scan service...");

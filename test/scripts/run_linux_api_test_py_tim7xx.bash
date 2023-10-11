@@ -22,7 +22,7 @@ cp -f ./test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng.json /tmp
 ./build_linux/sick_scan_emulator ./test/emulator/launch/emulator_01_default.launch &
 sleep 1
 
-# Start sick_scan api example
+# Start sick_scan_xd api example
 python3 ./test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
 popd
 

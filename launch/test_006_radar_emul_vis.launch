@@ -13,7 +13,7 @@
           type="static_transform_publisher"
           name="map_radar_broadcaster"
           args="0 0 0 0 0 0 map radar 100"/>
-    <node name="sick_rms_xxxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_rms_xxxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
         <!-- default values: -->
         <param name="scanner_type" type="string" value="sick_rms_xxxx"/>
         <param name="range_max" type="double" value="25.0"/>
@@ -22,7 +22,7 @@
         <param name="timelimit" type="int" value="5"/>
         <param name="emul_sensor" type="bool" value="true"/>
     </node>
-    <node name="radar_object_marker" pkg="sick_scan"
+    <node name="radar_object_marker" pkg="sick_scan_xd"
           type="radar_object_marker" respawn="false" output="screen">
         <param name="rawtarget_sphere_radius" type="double" value="1.0"/>
         <param name="rawtarget_palette_name" type="string" value="viridis.pal"/>
@@ -31,6 +31,6 @@
     </node>
     <!-- rviz -->
     <arg name="rviz" default="true"/>
-    <arg name="rviz_file" default="$(find sick_scan)/launch/rviz/radar.rviz"/>
+    <arg name="rviz_file" default="$(find sick_scan_xd)/launch/rviz/radar.rviz"/>
     <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(arg rviz_file)" output="screen" if="$(arg rviz)"/>
 </launch>

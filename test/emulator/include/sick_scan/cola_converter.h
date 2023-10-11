@@ -67,7 +67,7 @@
 
 #include "sick_scan/ros_wrapper.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * @brief class ColaAsciiBinaryConverter converts between Cola-ASCII and Cola-Binary telegrams.
@@ -105,7 +105,7 @@ namespace sick_scan
      *            parameter_is_ascii = -1: Auto determination (1. assumption is true, 2. assumption is false in case of errors)
      * @return Cola-Binary telegram
      */
-    static std::vector<uint8_t> ColaTelegramToColaBinary(const sick_scan::SickLocColaTelegramMsg & cola_telegram, int parameter_is_ascii = -1);
+    static std::vector<uint8_t> ColaTelegramToColaBinary(const sick_scan_xd::SickLocColaTelegramMsg & cola_telegram, int parameter_is_ascii = -1);
 
     /*!
      * @brief Converts and returns a Cola telegram from Cola-ASCII to Cola-Binary.
@@ -157,5 +157,5 @@ namespace sick_scan
     
   }; // class ColaAsciiBinaryConverter
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_COLA_CONVERTER_H_INCLUDED

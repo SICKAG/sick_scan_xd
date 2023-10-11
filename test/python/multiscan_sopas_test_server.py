@@ -63,7 +63,8 @@ class ColaResponseMap:
                 "sRN LFPlayerFilter": "\x02sRA LFPlayerFilter 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1\x03",                  # "sRN LFPlayerFilter" -> "sRA LFPlayerFilter 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
                 "sWN FREchoFilter": "\x02sWA FREchoFilter\x03",                                                        # "sWN FREchoFilter 1" -> "sWA FREchoFilter"
                 "sWN LFPangleRangeFilter": "\x02sWA LFPangleRangeFilter\x03",                                          # "sWN LFPangleRangeFilter 0 C0490FF9 40490FF9 BFC90FF9 3FC90FF9 1" -> "sWA LFPangleRangeFilter"
-                "sWN LFPlayerFilter": "\x02sWA LFPlayerFilter\x03"                                                     # "sWN LFPlayerFilter 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" -> "sWA LFPlayerFilter"
+                "sWN LFPlayerFilter": "\x02sWA LFPlayerFilter\x03",                                                    # "sWN LFPlayerFilter 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" -> "sWA LFPlayerFilter"
+                "sRN ContaminationResult": "\x02sRA ContaminationResult 0 0\x03",                                      # "sRN ContaminationResult" -> "sRA ContaminationResult 0 0"
             }
 
     # Search for a mapped response given a cola request and returns key and response as strings

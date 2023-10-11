@@ -70,14 +70,14 @@
 #include "sick_scansegment_xd/config.h"
 #endif // SCANSEGMENT_XD_SUPPORT
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   class SickScanServices
   {
   public:
 
-    SickScanServices(rosNodePtr nh = 0, sick_scan::SickScanCommonTcp* common_tcp = 0, ScannerBasicParam * lidar_param = 0);
+    SickScanServices(rosNodePtr nh = 0, sick_scan_xd::SickScanCommonTcp* common_tcp = 0, ScannerBasicParam * lidar_param = 0);
 
     virtual ~SickScanServices();
 
@@ -109,6 +109,16 @@ namespace sick_scan
      */
     bool serviceCbECRChangeArr(sick_scan_srv::ECRChangeArrSrv::Request &service_request, sick_scan_srv::ECRChangeArrSrv::Response &service_response);
     bool serviceCbECRChangeArrROS2(std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Request> service_request, std::shared_ptr<sick_scan_srv::ECRChangeArrSrv::Response> service_response) { return serviceCbECRChangeArr(*service_request, *service_response); }
+
+    /*!
+     * Callback for service messages (GetContaminationResult, Read contamination indication result).
+     * Sends a cola telegram "sRN ContaminationResult" and receives the response from the lidar device.
+     * @param[in] service_request ros service request to lidar
+     * @param[out] service_response service response from lidar
+     * @return true on success, false in case of errors.
+     */
+    bool serviceCbGetContaminationResult(sick_scan_srv::GetContaminationResultSrv::Request &service_request, sick_scan_srv::GetContaminationResultSrv::Response &service_response);
+    bool serviceCbGetContaminationResultROS2(std::shared_ptr<sick_scan_srv::GetContaminationResultSrv::Request> service_request, std::shared_ptr<sick_scan_srv::GetContaminationResultSrv::Response> service_response) { return serviceCbGetContaminationResult(*service_request, *service_response); }
 
     /*!
      * Callback for service messages (LIDoutputstate, Request status change of monitoring fields on event).
@@ -222,10 +232,11 @@ namespace sick_scan
      */
 
     bool m_cola_binary;                             ///< cola ascii or cola binary messages
-    sick_scan::SickScanCommonTcp* m_common_tcp;     ///< common tcp handler
+    sick_scan_xd::SickScanCommonTcp* m_common_tcp;     ///< common tcp handler
     std::string m_client_authorization_pw;
     rosServiceServer<sick_scan_srv::ColaMsgSrv> m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan::SickScanServices::serviceCbColaMsg
     rosServiceServer<sick_scan_srv::ECRChangeArrSrv> m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan::SickScanServices::serviceCbECRChangeArr
+    rosServiceServer<sick_scan_srv::GetContaminationResultSrv> m_srv_server_GetContaminationResult; ///< service "GetContaminationResult", &sick_scan::SickScanServices::serviceCbGetContaminationResult
     rosServiceServer<sick_scan_srv::LIDoutputstateSrv> m_srv_server_LIDoutputstate; ///< service "LIDoutputstate", &sick_scan::SickScanServices::serviceCbLIDoutputstate
     rosServiceServer<sick_scan_srv::SCdevicestateSrv> m_srv_server_SCdevicestate; ///< service "SCdevicestate", &sick_scan::SickScanServices::serviceCbSCdevicestate
     rosServiceServer<sick_scan_srv::SCrebootSrv> m_srv_server_SCreboot; ///< service "SCreboot", &sick_scan::SickScanServices::serviceCbSCreboot
@@ -234,5 +245,5 @@ namespace sick_scan
 
   }; /* class SickScanServices */
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_SCAN_SERVICES_H_ */

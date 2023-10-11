@@ -85,68 +85,68 @@
 #define RCLCPP_ERROR_STREAM(logger,msgstream) ROS_ERROR_STREAM(msgstream)
 
 // Message header
-#include "sick_scan/SickLocColaTelegramMsg.h"
-#include "sick_scan/SickLocDiagnosticMsg.h"
-#include "sick_scan/SickLocResultPortCrcMsg.h"
-#include "sick_scan/SickLocResultPortHeaderMsg.h"
-#include "sick_scan/SickLocResultPortPayloadMsg.h"
-#include "sick_scan/SickLocResultPortTelegramMsg.h"
-#include "sick_scan/SickLocResultPortTestcaseMsg.h"
+#include "sick_scan_xd/SickLocColaTelegramMsg.h"
+#include "sick_scan_xd/SickLocDiagnosticMsg.h"
+#include "sick_scan_xd/SickLocResultPortCrcMsg.h"
+#include "sick_scan_xd/SickLocResultPortHeaderMsg.h"
+#include "sick_scan_xd/SickLocResultPortPayloadMsg.h"
+#include "sick_scan_xd/SickLocResultPortTelegramMsg.h"
+#include "sick_scan_xd/SickLocResultPortTestcaseMsg.h"
 // Services supported in release 3 and later
-#include "sick_scan/SickLocColaTelegramSrv.h"
-#include "sick_scan/SickLocIsSystemReadySrv.h"
-#include "sick_scan/SickLocRequestResultDataSrv.h"
-#include "sick_scan/SickLocRequestTimestampSrv.h"
-#include "sick_scan/SickLocSetPoseSrv.h"
-#include "sick_scan/SickLocSetResultEndiannessSrv.h"
-#include "sick_scan/SickLocSetResultModeSrv.h"
-#include "sick_scan/SickLocSetResultPortSrv.h"
-#include "sick_scan/SickLocSetResultPoseEnabledSrv.h"
-#include "sick_scan/SickLocSetResultPoseIntervalSrv.h"
-#include "sick_scan/SickLocStartLocalizingSrv.h"
-#include "sick_scan/SickLocStateSrv.h"
-#include "sick_scan/SickLocStopSrv.h"
-#include "sick_scan/SickLocTimeSyncSrv.h"
+#include "sick_scan_xd/SickLocColaTelegramSrv.h"
+#include "sick_scan_xd/SickLocIsSystemReadySrv.h"
+#include "sick_scan_xd/SickLocRequestResultDataSrv.h"
+#include "sick_scan_xd/SickLocRequestTimestampSrv.h"
+#include "sick_scan_xd/SickLocSetPoseSrv.h"
+#include "sick_scan_xd/SickLocSetResultEndiannessSrv.h"
+#include "sick_scan_xd/SickLocSetResultModeSrv.h"
+#include "sick_scan_xd/SickLocSetResultPortSrv.h"
+#include "sick_scan_xd/SickLocSetResultPoseEnabledSrv.h"
+#include "sick_scan_xd/SickLocSetResultPoseIntervalSrv.h"
+#include "sick_scan_xd/SickLocStartLocalizingSrv.h"
+#include "sick_scan_xd/SickLocStateSrv.h"
+#include "sick_scan_xd/SickLocStopSrv.h"
+#include "sick_scan_xd/SickLocTimeSyncSrv.h"
 // Services supported in release 4 and later
-#include "sick_scan/SickDevGetLidarConfigSrv.h"
-#include "sick_scan/SickDevGetLidarIdentSrv.h"
-#include "sick_scan/SickDevGetLidarStateSrv.h"
-#include "sick_scan/SickDevSetLidarConfigSrv.h"
-#include "sick_scan/SickGetSoftwareVersionSrv.h"
-#include "sick_scan/SickLocAutoStartActiveSrv.h"
-#include "sick_scan/SickLocAutoStartSavePoseIntervalSrv.h"
-#include "sick_scan/SickLocAutoStartSavePoseSrv.h"
-#include "sick_scan/SickLocForceUpdateSrv.h"
-#include "sick_scan/SickLocInitializePoseSrv.h"
-#include "sick_scan/SickLocInitialPoseSrv.h"
-#include "sick_scan/SickLocMapSrv.h"
-#include "sick_scan/SickLocMapStateSrv.h"
-#include "sick_scan/SickLocOdometryActiveSrv.h"
-#include "sick_scan/SickLocOdometryPortSrv.h"
-#include "sick_scan/SickLocOdometryRestrictYMotionSrv.h"
-#include "sick_scan/SickLocReflectorsForSupportActiveSrv.h"
-#include "sick_scan/SickLocResultEndiannessSrv.h"
-#include "sick_scan/SickLocResultModeSrv.h"
-#include "sick_scan/SickLocResultPortSrv.h"
-#include "sick_scan/SickLocResultPoseIntervalSrv.h"
-#include "sick_scan/SickLocResultStateSrv.h"
-#include "sick_scan/SickLocRingBufferRecordingActiveSrv.h"
-#include "sick_scan/SickLocSaveRingBufferRecordingSrv.h"
-#include "sick_scan/SickLocSetAutoStartActiveSrv.h"
-#include "sick_scan/SickLocSetAutoStartSavePoseIntervalSrv.h"
-#include "sick_scan/SickLocSetMapSrv.h"
-#include "sick_scan/SickLocSetOdometryActiveSrv.h"
-#include "sick_scan/SickLocSetOdometryPortSrv.h"
-#include "sick_scan/SickLocSetOdometryRestrictYMotionSrv.h"
-#include "sick_scan/SickLocSetReflectorsForSupportActiveSrv.h"
-#include "sick_scan/SickLocSetRingBufferRecordingActiveSrv.h"
-#include "sick_scan/SickLocStartDemoMappingSrv.h"
-#include "sick_scan/SickReportUserMessageSrv.h"
-#include "sick_scan/SickSavePermanentSrv.h"
-#include "sick_scan/SickDevSetIMUActiveSrv.h"
-#include "sick_scan/SickDevIMUActiveSrv.h"
+#include "sick_scan_xd/SickDevGetLidarConfigSrv.h"
+#include "sick_scan_xd/SickDevGetLidarIdentSrv.h"
+#include "sick_scan_xd/SickDevGetLidarStateSrv.h"
+#include "sick_scan_xd/SickDevSetLidarConfigSrv.h"
+#include "sick_scan_xd/SickGetSoftwareVersionSrv.h"
+#include "sick_scan_xd/SickLocAutoStartActiveSrv.h"
+#include "sick_scan_xd/SickLocAutoStartSavePoseIntervalSrv.h"
+#include "sick_scan_xd/SickLocAutoStartSavePoseSrv.h"
+#include "sick_scan_xd/SickLocForceUpdateSrv.h"
+#include "sick_scan_xd/SickLocInitializePoseSrv.h"
+#include "sick_scan_xd/SickLocInitialPoseSrv.h"
+#include "sick_scan_xd/SickLocMapSrv.h"
+#include "sick_scan_xd/SickLocMapStateSrv.h"
+#include "sick_scan_xd/SickLocOdometryActiveSrv.h"
+#include "sick_scan_xd/SickLocOdometryPortSrv.h"
+#include "sick_scan_xd/SickLocOdometryRestrictYMotionSrv.h"
+#include "sick_scan_xd/SickLocReflectorsForSupportActiveSrv.h"
+#include "sick_scan_xd/SickLocResultEndiannessSrv.h"
+#include "sick_scan_xd/SickLocResultModeSrv.h"
+#include "sick_scan_xd/SickLocResultPortSrv.h"
+#include "sick_scan_xd/SickLocResultPoseIntervalSrv.h"
+#include "sick_scan_xd/SickLocResultStateSrv.h"
+#include "sick_scan_xd/SickLocRingBufferRecordingActiveSrv.h"
+#include "sick_scan_xd/SickLocSaveRingBufferRecordingSrv.h"
+#include "sick_scan_xd/SickLocSetAutoStartActiveSrv.h"
+#include "sick_scan_xd/SickLocSetAutoStartSavePoseIntervalSrv.h"
+#include "sick_scan_xd/SickLocSetMapSrv.h"
+#include "sick_scan_xd/SickLocSetOdometryActiveSrv.h"
+#include "sick_scan_xd/SickLocSetOdometryPortSrv.h"
+#include "sick_scan_xd/SickLocSetOdometryRestrictYMotionSrv.h"
+#include "sick_scan_xd/SickLocSetReflectorsForSupportActiveSrv.h"
+#include "sick_scan_xd/SickLocSetRingBufferRecordingActiveSrv.h"
+#include "sick_scan_xd/SickLocStartDemoMappingSrv.h"
+#include "sick_scan_xd/SickReportUserMessageSrv.h"
+#include "sick_scan_xd/SickSavePermanentSrv.h"
+#include "sick_scan_xd/SickDevSetIMUActiveSrv.h"
+#include "sick_scan_xd/SickDevIMUActiveSrv.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*
   typedef sensor_msgs::PointCloud2 PointCloud2Msg;
@@ -267,7 +267,7 @@ namespace sick_scan
   typedef ros::ServiceClient SickDevIMUActiveSrvClient;
   typedef ros::ServiceServer SickDevIMUActiveSrvServer;
 
-} // namespace sick_scan
+} // namespace sick_scan_xd
 
 namespace ROS
 {
@@ -315,72 +315,72 @@ namespace ROS
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 
-#define ROS_DEBUG_STREAM(msgstream) RCLCPP_DEBUG_STREAM(rclcpp::get_logger("sick_scan"),msgstream)
-#define ROS_INFO_STREAM(msgstream)  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_scan"),msgstream)
-#define ROS_WARN_STREAM(msgstream)  RCLCPP_WARN_STREAM(rclcpp::get_logger("sick_scan"),msgstream)
-#define ROS_ERROR_STREAM(msgstream) RCLCPP_ERROR_STREAM(rclcpp::get_logger("sick_scan"),msgstream)
+#define ROS_DEBUG_STREAM(msgstream) RCLCPP_DEBUG_STREAM(rclcpp::get_logger("sick_scan_xd"),msgstream)
+#define ROS_INFO_STREAM(msgstream)  RCLCPP_INFO_STREAM(rclcpp::get_logger("sick_scan_xd"),msgstream)
+#define ROS_WARN_STREAM(msgstream)  RCLCPP_WARN_STREAM(rclcpp::get_logger("sick_scan_xd"),msgstream)
+#define ROS_ERROR_STREAM(msgstream) RCLCPP_ERROR_STREAM(rclcpp::get_logger("sick_scan_xd"),msgstream)
 
 // Message header
-#include "sick_scan/msg/sick_loc_cola_telegram_msg.hpp"
-#include "sick_scan/msg/sick_loc_diagnostic_msg.hpp"
-#include "sick_scan/msg/sick_loc_result_port_crc_msg.hpp"
-#include "sick_scan/msg/sick_loc_result_port_header_msg.hpp"
-#include "sick_scan/msg/sick_loc_result_port_payload_msg.hpp"
-#include "sick_scan/msg/sick_loc_result_port_telegram_msg.hpp"
-#include "sick_scan/msg/sick_loc_result_port_testcase_msg.hpp"
+#include "sick_scan_xd/msg/sick_loc_cola_telegram_msg.hpp"
+#include "sick_scan_xd/msg/sick_loc_diagnostic_msg.hpp"
+#include "sick_scan_xd/msg/sick_loc_result_port_crc_msg.hpp"
+#include "sick_scan_xd/msg/sick_loc_result_port_header_msg.hpp"
+#include "sick_scan_xd/msg/sick_loc_result_port_payload_msg.hpp"
+#include "sick_scan_xd/msg/sick_loc_result_port_telegram_msg.hpp"
+#include "sick_scan_xd/msg/sick_loc_result_port_testcase_msg.hpp"
 // Services supported in release 3 and later
-#include "sick_scan/srv/sick_loc_cola_telegram_srv.hpp"
-#include "sick_scan/srv/sick_loc_is_system_ready_srv.hpp"
-#include "sick_scan/srv/sick_loc_request_result_data_srv.hpp"
-#include "sick_scan/srv/sick_loc_request_timestamp_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_pose_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_result_endianness_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_result_mode_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_result_port_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_result_pose_enabled_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_result_pose_interval_srv.hpp"
-#include "sick_scan/srv/sick_loc_start_localizing_srv.hpp"
-#include "sick_scan/srv/sick_loc_state_srv.hpp"
-#include "sick_scan/srv/sick_loc_stop_srv.hpp"
-#include "sick_scan/srv/sick_loc_time_sync_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_cola_telegram_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_is_system_ready_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_request_result_data_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_request_timestamp_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_pose_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_result_endianness_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_result_mode_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_result_port_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_result_pose_enabled_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_result_pose_interval_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_start_localizing_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_state_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_stop_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_time_sync_srv.hpp"
 // Services supported in release 4 and later
-#include "sick_scan/srv/sick_dev_get_lidar_config_srv.hpp"
-#include "sick_scan/srv/sick_dev_get_lidar_ident_srv.hpp"
-#include "sick_scan/srv/sick_dev_get_lidar_state_srv.hpp"
-#include "sick_scan/srv/sick_dev_set_lidar_config_srv.hpp"
-#include "sick_scan/srv/sick_get_software_version_srv.hpp"
-#include "sick_scan/srv/sick_loc_auto_start_active_srv.hpp"
-#include "sick_scan/srv/sick_loc_auto_start_save_pose_interval_srv.hpp"
-#include "sick_scan/srv/sick_loc_auto_start_save_pose_srv.hpp"
-#include "sick_scan/srv/sick_loc_force_update_srv.hpp"
-#include "sick_scan/srv/sick_loc_initialize_pose_srv.hpp"
-#include "sick_scan/srv/sick_loc_initial_pose_srv.hpp"
-#include "sick_scan/srv/sick_loc_map_srv.hpp"
-#include "sick_scan/srv/sick_loc_map_state_srv.hpp"
-#include "sick_scan/srv/sick_loc_odometry_active_srv.hpp"
-#include "sick_scan/srv/sick_loc_odometry_port_srv.hpp"
-#include "sick_scan/srv/sick_loc_odometry_restrict_y_motion_srv.hpp"
-#include "sick_scan/srv/sick_loc_reflectors_for_support_active_srv.hpp"
-#include "sick_scan/srv/sick_loc_result_endianness_srv.hpp"
-#include "sick_scan/srv/sick_loc_result_mode_srv.hpp"
-#include "sick_scan/srv/sick_loc_result_port_srv.hpp"
-#include "sick_scan/srv/sick_loc_result_pose_interval_srv.hpp"
-#include "sick_scan/srv/sick_loc_result_state_srv.hpp"
-#include "sick_scan/srv/sick_loc_ring_buffer_recording_active_srv.hpp"
-#include "sick_scan/srv/sick_loc_save_ring_buffer_recording_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_auto_start_active_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_auto_start_save_pose_interval_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_map_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_odometry_active_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_odometry_port_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_odometry_restrict_y_motion_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_reflectors_for_support_active_srv.hpp"
-#include "sick_scan/srv/sick_loc_set_ring_buffer_recording_active_srv.hpp"
-#include "sick_scan/srv/sick_loc_start_demo_mapping_srv.hpp"
-#include "sick_scan/srv/sick_report_user_message_srv.hpp"
-#include "sick_scan/srv/sick_save_permanent_srv.hpp"
-#include "sick_scan/srv/sick_dev_set_imu_active_srv.hpp"
-#include "sick_scan/srv/sick_dev_imu_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_dev_get_lidar_config_srv.hpp"
+#include "sick_scan_xd/srv/sick_dev_get_lidar_ident_srv.hpp"
+#include "sick_scan_xd/srv/sick_dev_get_lidar_state_srv.hpp"
+#include "sick_scan_xd/srv/sick_dev_set_lidar_config_srv.hpp"
+#include "sick_scan_xd/srv/sick_get_software_version_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_auto_start_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_auto_start_save_pose_interval_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_auto_start_save_pose_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_force_update_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_initialize_pose_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_initial_pose_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_map_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_map_state_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_odometry_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_odometry_port_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_odometry_restrict_y_motion_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_reflectors_for_support_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_result_endianness_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_result_mode_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_result_port_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_result_pose_interval_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_result_state_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_ring_buffer_recording_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_save_ring_buffer_recording_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_auto_start_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_auto_start_save_pose_interval_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_map_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_odometry_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_odometry_port_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_odometry_restrict_y_motion_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_reflectors_for_support_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_set_ring_buffer_recording_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_loc_start_demo_mapping_srv.hpp"
+#include "sick_scan_xd/srv/sick_report_user_message_srv.hpp"
+#include "sick_scan_xd/srv/sick_save_permanent_srv.hpp"
+#include "sick_scan_xd/srv/sick_dev_set_imu_active_srv.hpp"
+#include "sick_scan_xd/srv/sick_dev_imu_active_srv.hpp"
 
 namespace geometry_msgs
 {
@@ -402,7 +402,7 @@ namespace std_msgs
   using namespace msg; // maps ROS2-namespace std_msgs::msg to ROS1-namespace std_msgs, f.e. std_msgs::Header works on both ROS1 and ROS2
 }
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   using namespace msg;
   using namespace srv;
@@ -416,119 +416,119 @@ namespace sick_scan
   typedef nav_msgs::msg::Odometry OdomMsg;
   typedef rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr OdomMsgSubscriber;
 
-  typedef rclcpp::Publisher<sick_scan::SickLocResultPortTelegramMsg>::SharedPtr SickLocResultPortTelegramMsgPublisher;
-  typedef rclcpp::Publisher<sick_scan::SickLocDiagnosticMsg>::SharedPtr SickLocDiagnosticMsgPublisher;
-  typedef rclcpp::Publisher<sick_scan::SickLocResultPortTestcaseMsg>::SharedPtr SickLocResultPortTestcaseMsgPublisher;
+  typedef rclcpp::Publisher<sick_scan_xd::SickLocResultPortTelegramMsg>::SharedPtr SickLocResultPortTelegramMsgPublisher;
+  typedef rclcpp::Publisher<sick_scan_xd::SickLocDiagnosticMsg>::SharedPtr SickLocDiagnosticMsgPublisher;
+  typedef rclcpp::Publisher<sick_scan_xd::SickLocResultPortTestcaseMsg>::SharedPtr SickLocResultPortTestcaseMsgPublisher;
 
-  typedef rclcpp::Subscription<sick_scan::SickLocResultPortTelegramMsg>::SharedPtr SickLocResultPortTelegramMsgSubscriber;
-  typedef rclcpp::Subscription<sick_scan::SickLocResultPortTestcaseMsg>::SharedPtr SickLocResultPortTestcaseMsgSubscriber;
+  typedef rclcpp::Subscription<sick_scan_xd::SickLocResultPortTelegramMsg>::SharedPtr SickLocResultPortTelegramMsgSubscriber;
+  typedef rclcpp::Subscription<sick_scan_xd::SickLocResultPortTestcaseMsg>::SharedPtr SickLocResultPortTestcaseMsgSubscriber;
 
   // Service types supported in release 3 and later
-  typedef rclcpp::Client<sick_scan::SickLocColaTelegramSrv>::SharedPtr SickLocColaTelegramSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocColaTelegramSrv>::SharedPtr SickLocColaTelegramSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocIsSystemReadySrv>::SharedPtr SickLocIsSystemReadySrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocIsSystemReadySrv>::SharedPtr SickLocIsSystemReadySrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocRequestResultDataSrv>::SharedPtr SickLocRequestResultDataSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocRequestResultDataSrv>::SharedPtr SickLocRequestResultDataSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocRequestTimestampSrv>::SharedPtr SickLocRequestTimestampSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocRequestTimestampSrv>::SharedPtr SickLocRequestTimestampSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocSetPoseSrv>::SharedPtr SickLocSetPoseSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetPoseSrv>::SharedPtr SickLocSetPoseSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocSetResultEndiannessSrv>::SharedPtr SickLocSetResultEndiannessSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetResultEndiannessSrv>::SharedPtr SickLocSetResultEndiannessSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocSetResultModeSrv>::SharedPtr SickLocSetResultModeSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetResultModeSrv>::SharedPtr SickLocSetResultModeSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocSetResultPortSrv>::SharedPtr SickLocSetResultPortSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetResultPortSrv>::SharedPtr SickLocSetResultPortSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocSetResultPoseEnabledSrv>::SharedPtr SickLocSetResultPoseEnabledSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetResultPoseEnabledSrv>::SharedPtr SickLocSetResultPoseEnabledSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocSetResultPoseIntervalSrv>::SharedPtr SickLocSetResultPoseIntervalSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetResultPoseIntervalSrv>::SharedPtr SickLocSetResultPoseIntervalSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocStartLocalizingSrv>::SharedPtr SickLocStartLocalizingSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocStartLocalizingSrv>::SharedPtr SickLocStartLocalizingSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocStateSrv>::SharedPtr SickLocStateSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocStateSrv>::SharedPtr SickLocStateSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocStopSrv>::SharedPtr SickLocStopSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocStopSrv>::SharedPtr SickLocStopSrvServer;
-  typedef rclcpp::Client<sick_scan::SickLocTimeSyncSrv>::SharedPtr SickLocTimeSyncSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocTimeSyncSrv>::SharedPtr SickLocTimeSyncSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocColaTelegramSrv>::SharedPtr SickLocColaTelegramSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocColaTelegramSrv>::SharedPtr SickLocColaTelegramSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocIsSystemReadySrv>::SharedPtr SickLocIsSystemReadySrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocIsSystemReadySrv>::SharedPtr SickLocIsSystemReadySrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocRequestResultDataSrv>::SharedPtr SickLocRequestResultDataSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocRequestResultDataSrv>::SharedPtr SickLocRequestResultDataSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocRequestTimestampSrv>::SharedPtr SickLocRequestTimestampSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocRequestTimestampSrv>::SharedPtr SickLocRequestTimestampSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocSetPoseSrv>::SharedPtr SickLocSetPoseSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetPoseSrv>::SharedPtr SickLocSetPoseSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocSetResultEndiannessSrv>::SharedPtr SickLocSetResultEndiannessSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetResultEndiannessSrv>::SharedPtr SickLocSetResultEndiannessSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocSetResultModeSrv>::SharedPtr SickLocSetResultModeSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetResultModeSrv>::SharedPtr SickLocSetResultModeSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocSetResultPortSrv>::SharedPtr SickLocSetResultPortSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetResultPortSrv>::SharedPtr SickLocSetResultPortSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocSetResultPoseEnabledSrv>::SharedPtr SickLocSetResultPoseEnabledSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetResultPoseEnabledSrv>::SharedPtr SickLocSetResultPoseEnabledSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocSetResultPoseIntervalSrv>::SharedPtr SickLocSetResultPoseIntervalSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetResultPoseIntervalSrv>::SharedPtr SickLocSetResultPoseIntervalSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocStartLocalizingSrv>::SharedPtr SickLocStartLocalizingSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocStartLocalizingSrv>::SharedPtr SickLocStartLocalizingSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocStateSrv>::SharedPtr SickLocStateSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocStateSrv>::SharedPtr SickLocStateSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocStopSrv>::SharedPtr SickLocStopSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocStopSrv>::SharedPtr SickLocStopSrvServer;
+  typedef rclcpp::Client<sick_scan_xd::SickLocTimeSyncSrv>::SharedPtr SickLocTimeSyncSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocTimeSyncSrv>::SharedPtr SickLocTimeSyncSrvServer;
   // Service types supported in release 4 and later
-  typedef rclcpp::Client <sick_scan::SickDevGetLidarConfigSrv>::SharedPtr SickDevGetLidarConfigSrvClient;
-  typedef rclcpp::Service<sick_scan::SickDevGetLidarConfigSrv>::SharedPtr SickDevGetLidarConfigSrvServer;
-  typedef rclcpp::Client <sick_scan::SickDevGetLidarIdentSrv>::SharedPtr SickDevGetLidarIdentSrvClient;
-  typedef rclcpp::Service<sick_scan::SickDevGetLidarIdentSrv>::SharedPtr SickDevGetLidarIdentSrvServer;
-  typedef rclcpp::Client <sick_scan::SickDevGetLidarStateSrv>::SharedPtr SickDevGetLidarStateSrvClient;
-  typedef rclcpp::Service<sick_scan::SickDevGetLidarStateSrv>::SharedPtr SickDevGetLidarStateSrvServer;
-  typedef rclcpp::Client <sick_scan::SickDevSetLidarConfigSrv>::SharedPtr SickDevSetLidarConfigSrvClient;
-  typedef rclcpp::Service<sick_scan::SickDevSetLidarConfigSrv>::SharedPtr SickDevSetLidarConfigSrvServer;
-  typedef rclcpp::Client <sick_scan::SickGetSoftwareVersionSrv>::SharedPtr SickGetSoftwareVersionSrvClient;
-  typedef rclcpp::Service<sick_scan::SickGetSoftwareVersionSrv>::SharedPtr SickGetSoftwareVersionSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocAutoStartActiveSrv>::SharedPtr SickLocAutoStartActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocAutoStartActiveSrv>::SharedPtr SickLocAutoStartActiveSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocAutoStartSavePoseIntervalSrv>::SharedPtr SickLocAutoStartSavePoseIntervalSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocAutoStartSavePoseIntervalSrv>::SharedPtr SickLocAutoStartSavePoseIntervalSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocAutoStartSavePoseSrv>::SharedPtr SickLocAutoStartSavePoseSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocAutoStartSavePoseSrv>::SharedPtr SickLocAutoStartSavePoseSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocForceUpdateSrv>::SharedPtr SickLocForceUpdateSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocForceUpdateSrv>::SharedPtr SickLocForceUpdateSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocInitializePoseSrv>::SharedPtr SickLocInitializePoseSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocInitializePoseSrv>::SharedPtr SickLocInitializePoseSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocInitialPoseSrv>::SharedPtr SickLocInitialPoseSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocInitialPoseSrv>::SharedPtr SickLocInitialPoseSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocMapSrv>::SharedPtr SickLocMapSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocMapSrv>::SharedPtr SickLocMapSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocMapStateSrv>::SharedPtr SickLocMapStateSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocMapStateSrv>::SharedPtr SickLocMapStateSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocOdometryActiveSrv>::SharedPtr SickLocOdometryActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocOdometryActiveSrv>::SharedPtr SickLocOdometryActiveSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocOdometryPortSrv>::SharedPtr SickLocOdometryPortSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocOdometryPortSrv>::SharedPtr SickLocOdometryPortSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocOdometryRestrictYMotionSrv>::SharedPtr SickLocOdometryRestrictYMotionSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocOdometryRestrictYMotionSrv>::SharedPtr SickLocOdometryRestrictYMotionSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocReflectorsForSupportActiveSrv>::SharedPtr SickLocReflectorsForSupportActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocReflectorsForSupportActiveSrv>::SharedPtr SickLocReflectorsForSupportActiveSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocResultEndiannessSrv>::SharedPtr SickLocResultEndiannessSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocResultEndiannessSrv>::SharedPtr SickLocResultEndiannessSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocResultModeSrv>::SharedPtr SickLocResultModeSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocResultModeSrv>::SharedPtr SickLocResultModeSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocResultPortSrv>::SharedPtr SickLocResultPortSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocResultPortSrv>::SharedPtr SickLocResultPortSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocResultPoseIntervalSrv>::SharedPtr SickLocResultPoseIntervalSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocResultPoseIntervalSrv>::SharedPtr SickLocResultPoseIntervalSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocResultStateSrv>::SharedPtr SickLocResultStateSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocResultStateSrv>::SharedPtr SickLocResultStateSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocRingBufferRecordingActiveSrv>::SharedPtr SickLocRingBufferRecordingActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocRingBufferRecordingActiveSrv>::SharedPtr SickLocRingBufferRecordingActiveSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocSaveRingBufferRecordingSrv>::SharedPtr SickLocSaveRingBufferRecordingSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSaveRingBufferRecordingSrv>::SharedPtr SickLocSaveRingBufferRecordingSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocSetAutoStartActiveSrv>::SharedPtr SickLocSetAutoStartActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetAutoStartActiveSrv>::SharedPtr SickLocSetAutoStartActiveSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocSetAutoStartSavePoseIntervalSrv>::SharedPtr SickLocSetAutoStartSavePoseIntervalSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetAutoStartSavePoseIntervalSrv>::SharedPtr SickLocSetAutoStartSavePoseIntervalSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocSetMapSrv>::SharedPtr SickLocSetMapSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetMapSrv>::SharedPtr SickLocSetMapSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocSetOdometryActiveSrv>::SharedPtr SickLocSetOdometryActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetOdometryActiveSrv>::SharedPtr SickLocSetOdometryActiveSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocSetOdometryPortSrv>::SharedPtr SickLocSetOdometryPortSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetOdometryPortSrv>::SharedPtr SickLocSetOdometryPortSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocSetOdometryRestrictYMotionSrv>::SharedPtr SickLocSetOdometryRestrictYMotionSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetOdometryRestrictYMotionSrv>::SharedPtr SickLocSetOdometryRestrictYMotionSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocSetReflectorsForSupportActiveSrv>::SharedPtr SickLocSetReflectorsForSupportActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetReflectorsForSupportActiveSrv>::SharedPtr SickLocSetReflectorsForSupportActiveSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocSetRingBufferRecordingActiveSrv>::SharedPtr SickLocSetRingBufferRecordingActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocSetRingBufferRecordingActiveSrv>::SharedPtr SickLocSetRingBufferRecordingActiveSrvServer;
-  typedef rclcpp::Client <sick_scan::SickLocStartDemoMappingSrv>::SharedPtr SickLocStartDemoMappingSrvClient;
-  typedef rclcpp::Service<sick_scan::SickLocStartDemoMappingSrv>::SharedPtr SickLocStartDemoMappingSrvServer;
-  typedef rclcpp::Client <sick_scan::SickReportUserMessageSrv>::SharedPtr SickReportUserMessageSrvClient;
-  typedef rclcpp::Service<sick_scan::SickReportUserMessageSrv>::SharedPtr SickReportUserMessageSrvServer;
-  typedef rclcpp::Client <sick_scan::SickSavePermanentSrv>::SharedPtr SickSavePermanentSrvClient;
-  typedef rclcpp::Service<sick_scan::SickSavePermanentSrv>::SharedPtr SickSavePermanentSrvServer;
-  typedef rclcpp::Client <sick_scan::SickDevSetIMUActiveSrv>::SharedPtr SickDevSetIMUActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickDevSetIMUActiveSrv>::SharedPtr SickDevSetIMUActiveSrvServer;
-  typedef rclcpp::Client <sick_scan::SickDevIMUActiveSrv>::SharedPtr SickDevIMUActiveSrvClient;
-  typedef rclcpp::Service<sick_scan::SickDevIMUActiveSrv>::SharedPtr SickDevIMUActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickDevGetLidarConfigSrv>::SharedPtr SickDevGetLidarConfigSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickDevGetLidarConfigSrv>::SharedPtr SickDevGetLidarConfigSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickDevGetLidarIdentSrv>::SharedPtr SickDevGetLidarIdentSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickDevGetLidarIdentSrv>::SharedPtr SickDevGetLidarIdentSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickDevGetLidarStateSrv>::SharedPtr SickDevGetLidarStateSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickDevGetLidarStateSrv>::SharedPtr SickDevGetLidarStateSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickDevSetLidarConfigSrv>::SharedPtr SickDevSetLidarConfigSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickDevSetLidarConfigSrv>::SharedPtr SickDevSetLidarConfigSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickGetSoftwareVersionSrv>::SharedPtr SickGetSoftwareVersionSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickGetSoftwareVersionSrv>::SharedPtr SickGetSoftwareVersionSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocAutoStartActiveSrv>::SharedPtr SickLocAutoStartActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocAutoStartActiveSrv>::SharedPtr SickLocAutoStartActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocAutoStartSavePoseIntervalSrv>::SharedPtr SickLocAutoStartSavePoseIntervalSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocAutoStartSavePoseIntervalSrv>::SharedPtr SickLocAutoStartSavePoseIntervalSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocAutoStartSavePoseSrv>::SharedPtr SickLocAutoStartSavePoseSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocAutoStartSavePoseSrv>::SharedPtr SickLocAutoStartSavePoseSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocForceUpdateSrv>::SharedPtr SickLocForceUpdateSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocForceUpdateSrv>::SharedPtr SickLocForceUpdateSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocInitializePoseSrv>::SharedPtr SickLocInitializePoseSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocInitializePoseSrv>::SharedPtr SickLocInitializePoseSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocInitialPoseSrv>::SharedPtr SickLocInitialPoseSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocInitialPoseSrv>::SharedPtr SickLocInitialPoseSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocMapSrv>::SharedPtr SickLocMapSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocMapSrv>::SharedPtr SickLocMapSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocMapStateSrv>::SharedPtr SickLocMapStateSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocMapStateSrv>::SharedPtr SickLocMapStateSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocOdometryActiveSrv>::SharedPtr SickLocOdometryActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocOdometryActiveSrv>::SharedPtr SickLocOdometryActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocOdometryPortSrv>::SharedPtr SickLocOdometryPortSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocOdometryPortSrv>::SharedPtr SickLocOdometryPortSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocOdometryRestrictYMotionSrv>::SharedPtr SickLocOdometryRestrictYMotionSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocOdometryRestrictYMotionSrv>::SharedPtr SickLocOdometryRestrictYMotionSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocReflectorsForSupportActiveSrv>::SharedPtr SickLocReflectorsForSupportActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocReflectorsForSupportActiveSrv>::SharedPtr SickLocReflectorsForSupportActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocResultEndiannessSrv>::SharedPtr SickLocResultEndiannessSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocResultEndiannessSrv>::SharedPtr SickLocResultEndiannessSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocResultModeSrv>::SharedPtr SickLocResultModeSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocResultModeSrv>::SharedPtr SickLocResultModeSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocResultPortSrv>::SharedPtr SickLocResultPortSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocResultPortSrv>::SharedPtr SickLocResultPortSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocResultPoseIntervalSrv>::SharedPtr SickLocResultPoseIntervalSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocResultPoseIntervalSrv>::SharedPtr SickLocResultPoseIntervalSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocResultStateSrv>::SharedPtr SickLocResultStateSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocResultStateSrv>::SharedPtr SickLocResultStateSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocRingBufferRecordingActiveSrv>::SharedPtr SickLocRingBufferRecordingActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocRingBufferRecordingActiveSrv>::SharedPtr SickLocRingBufferRecordingActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocSaveRingBufferRecordingSrv>::SharedPtr SickLocSaveRingBufferRecordingSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSaveRingBufferRecordingSrv>::SharedPtr SickLocSaveRingBufferRecordingSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocSetAutoStartActiveSrv>::SharedPtr SickLocSetAutoStartActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetAutoStartActiveSrv>::SharedPtr SickLocSetAutoStartActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocSetAutoStartSavePoseIntervalSrv>::SharedPtr SickLocSetAutoStartSavePoseIntervalSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetAutoStartSavePoseIntervalSrv>::SharedPtr SickLocSetAutoStartSavePoseIntervalSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocSetMapSrv>::SharedPtr SickLocSetMapSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetMapSrv>::SharedPtr SickLocSetMapSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocSetOdometryActiveSrv>::SharedPtr SickLocSetOdometryActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetOdometryActiveSrv>::SharedPtr SickLocSetOdometryActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocSetOdometryPortSrv>::SharedPtr SickLocSetOdometryPortSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetOdometryPortSrv>::SharedPtr SickLocSetOdometryPortSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocSetOdometryRestrictYMotionSrv>::SharedPtr SickLocSetOdometryRestrictYMotionSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetOdometryRestrictYMotionSrv>::SharedPtr SickLocSetOdometryRestrictYMotionSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocSetReflectorsForSupportActiveSrv>::SharedPtr SickLocSetReflectorsForSupportActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetReflectorsForSupportActiveSrv>::SharedPtr SickLocSetReflectorsForSupportActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocSetRingBufferRecordingActiveSrv>::SharedPtr SickLocSetRingBufferRecordingActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocSetRingBufferRecordingActiveSrv>::SharedPtr SickLocSetRingBufferRecordingActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickLocStartDemoMappingSrv>::SharedPtr SickLocStartDemoMappingSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickLocStartDemoMappingSrv>::SharedPtr SickLocStartDemoMappingSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickReportUserMessageSrv>::SharedPtr SickReportUserMessageSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickReportUserMessageSrv>::SharedPtr SickReportUserMessageSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickSavePermanentSrv>::SharedPtr SickSavePermanentSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickSavePermanentSrv>::SharedPtr SickSavePermanentSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickDevSetIMUActiveSrv>::SharedPtr SickDevSetIMUActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickDevSetIMUActiveSrv>::SharedPtr SickDevSetIMUActiveSrvServer;
+  typedef rclcpp::Client <sick_scan_xd::SickDevIMUActiveSrv>::SharedPtr SickDevIMUActiveSrvClient;
+  typedef rclcpp::Service<sick_scan_xd::SickDevIMUActiveSrv>::SharedPtr SickDevIMUActiveSrvServer;
 
-} // namespace sick_scan
+} // namespace sick_scan_xd
 
 namespace ROS
 {
@@ -582,7 +582,7 @@ namespace ROS
 namespace ROS
 {
   /** Creates a new ros node, shortcut for new ros::NodeHandle() on ROS1 resp. rclcpp::Node::make_shared(node_name) on ROS2 */
-  ROS::NodePtr createNode(const std::string& node_name = "sick_scan");
+  ROS::NodePtr createNode(const std::string& node_name = "sick_scan_xd");
 
   /** Deletes a ros node */
   void deleteNode(ROS::NodePtr & node);

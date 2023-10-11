@@ -32,7 +32,7 @@ To create a new device, it is recommended to copy, rename and edit an existing l
 
 1. Hint: Construction of parser:
 ```
-  sick_scan::SickGenericParser *parser = new sick_scan::SickGenericParser(scannerName);
+  sick_scan_xd::SickGenericParser *parser = new sick_scan_xd::SickGenericParser(scannerName);
 ```
 2. Add string constant like the constant SICK_SCANNER_RMS_XXXX_NAME
 

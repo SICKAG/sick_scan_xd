@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- LAUNCH FILE                                     -->
 <!-- SCANNER: MRS1104 and similiar                   -->
-<!-- Call:  roslaunch sick_scan sick_mrs_1xxx.launch -->
+<!-- Call:  roslaunch sick_scan_xd sick_mrs_1xxx.launch -->
 <!-- start and stop angle is given in [rad] in the ROS coordinate sstem-->
 <!--
 default min_angle for this scanner type is  -137.5 degree.
@@ -16,7 +16,7 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <!-- robot_description and robot_state_publisher is prepared but final STL-model is missing -->
-    <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="sick_mrs_1xxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- default values: -->
         <!-- Value interpretation of "filter_echos": 0 = First Echo, 1 = All Echos, 2 = Last Echo (see "sWN FREchoFilter") -->
         <!--
@@ -77,6 +77,7 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->
         <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
         <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
+        <!-- Note: read_timeout_millisec_kill_node less or equal 0 deactivates pointcloud monitoring (not recommended) -->
         <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
 
         <!-- Configuration of ROS quality of service: -->

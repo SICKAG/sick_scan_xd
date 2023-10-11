@@ -26,23 +26,28 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    source ./install/setup.bash
    colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+
    source ./install/setup.bash
-   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
+   colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    source ./install/setup.bash
    ```
    For ROS versions other than foxy, please replace `source /opt/ros/foxy/setup.bash` with your ros distribution.
 
+Note: LDMRS sensors are currently not supported on Raspberry. Build with cmake flag `-DLDMRS=0 -DRASPBERRY=1` on Raspberry:
+   ```
+   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DRASPBERRY=0" --event-handlers console_direct+
+   ```
+
 Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not need or want to support LDMRS, you can skip building libsick_ldmrs. To build sick_generic_caller without LDMRS support, switch off option `BUILD_WITH_LDMRS_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call colcon with option `-DLDMRS=0`:
    ```
-   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
+   colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
    ```
 Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd/picoScan150. If you do not need or want to support multiScan136/sick_scansegment_xd/picoScan150, you can skip building msgpack. To build sick_generic_caller without multiScan136/sick_scansegment_xd/picoScan150 support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
-   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
+   colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
 cmake flags can be combined. Use flags `-DLDMRS=0 -DSCANSEGMENT_XD=0` to build **without LDMRS** and **without multiScan100/picoScan100 support**:
    ```
-   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
+   colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
 
 Note: Depending on the ROS-2 distribution, package diagnostic_updater might not be found (compiler error: `diagnostic_updater.hpp not found`). In this case package diagnostic_updater has to be installed by
@@ -59,19 +64,19 @@ sudo apt install ros-${ROS_DISTRO}-diagnostic-msgs
 * **Without LDMRS-support** and **without multiScan100/picoScan100 support**
 
 ```
-colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
+colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
 ```
 * **Without LDMRS-support** and **with multiScan100/picoScan100 support**
 ```
-colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
+colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
 ```
 * **with LDMRS-support** and **without multiScan100/picoScan100 support**
 ```
-colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
+colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
 ```
 * **with LDMRS-support** and **with multiScan100/picoScan100 support**
 ```
- colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " --event-handlers console_direct+
+ colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " --event-handlers console_direct+
 ```
 
 
@@ -122,7 +127,7 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
    ```
    colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+ 
    call .\install\setup.bat
-   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
+   colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    call .\install\setup.bat
    ```
 
@@ -130,5 +135,5 @@ Note: LDMRS sensors are currently not supported on Windows.
 
 Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd. If you do not need or want to support multiScan136/sick_scansegment_xd, you can skip building msgpack. To build sick_generic_caller without multiScan136/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
-   colcon build --packages-select sick_scan --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
+   colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```

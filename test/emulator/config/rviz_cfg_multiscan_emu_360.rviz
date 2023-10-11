@@ -74,7 +74,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Points
-      Topic: /cloud_fullframe
+      Topic: /cloud_all_fields_fullframe
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -152,5 +152,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1118
-  X: 547
-  Y: 27
+  X: 530
+  Y: 51

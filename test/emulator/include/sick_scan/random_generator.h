@@ -59,7 +59,7 @@
 #include <random>
 // #include <boost/random.hpp>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * class UniformRandomInteger generates uniform distributed integer random numbers.
@@ -135,5 +135,5 @@ namespace sick_scan
   
   }; // class UniformRandomAsciiString
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_RANDOM_H_INCLUDED

@@ -66,11 +66,12 @@
 
 #define SCANSEGMENT_XD_SOPAS_ARGS_BIG_ENDIAN (true) // Arguments of SOPAS commands are big endian encoded
 
-sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScanCommonTcp* common_tcp, ScannerBasicParam * lidar_param)
+sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::SickScanCommonTcp* common_tcp, ScannerBasicParam * lidar_param)
 : m_common_tcp(common_tcp), m_cola_binary(true)
 {
     bool srvSupportColaMsg = true, srvSupportECRChangeArr = true, srvSupportLIDoutputstate = true, srvSupportSCdevicestate = true;
     bool srvSupportSCreboot = true, srvSupportSCsoftreset = true, srvSupportSickScanExit = true;
+    bool srvSupportGetContaminationResult = false;
     if(lidar_param)
     {
       m_cola_binary = lidar_param->getUseBinaryProtocol();
@@ -80,6 +81,12 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
         srvSupportLIDoutputstate = false;
         srvSupportSCreboot = false;
         srvSupportSCsoftreset = false;
+      }
+      if(lidar_param->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0
+      || lidar_param->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0
+      || lidar_param->getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0)
+      {
+        srvSupportGetContaminationResult = true; // "sRN ContaminationResult" supported by MRS-1000, LMS-1000, multiScan
       }
     }
     if(nh)
@@ -91,21 +98,23 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
       rosGetParam(nh, "client_authorization_pw", m_client_authorization_pw);
 
 #if __ROS_VERSION == 2
-#define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsgROS2
-#define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArrROS2
-#define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstateROS2
-#define serviceCbSCdevicestateROS sick_scan::SickScanServices::serviceCbSCdevicestateROS2
-#define serviceCbSCrebootROS sick_scan::SickScanServices::serviceCbSCrebootROS2
-#define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftresetROS2
-#define serviceCbSickScanExitROS sick_scan::SickScanServices::serviceCbSickScanExitROS2
+#define serviceCbColaMsgROS sick_scan_xd::SickScanServices::serviceCbColaMsgROS2
+#define serviceCbECRChangeArrROS sick_scan_xd::SickScanServices::serviceCbECRChangeArrROS2
+#define serviceCbLIDoutputstateROS sick_scan_xd::SickScanServices::serviceCbLIDoutputstateROS2
+#define serviceCbSCdevicestateROS sick_scan_xd::SickScanServices::serviceCbSCdevicestateROS2
+#define serviceCbSCrebootROS sick_scan_xd::SickScanServices::serviceCbSCrebootROS2
+#define serviceCbSCsoftresetROS sick_scan_xd::SickScanServices::serviceCbSCsoftresetROS2
+#define serviceCbSickScanExitROS sick_scan_xd::SickScanServices::serviceCbSickScanExitROS2
+#define serviceCbGetContaminationResultROS sick_scan_xd::SickScanServices::serviceCbGetContaminationResultROS2
 #else
-#define serviceCbColaMsgROS sick_scan::SickScanServices::serviceCbColaMsg
-#define serviceCbECRChangeArrROS sick_scan::SickScanServices::serviceCbECRChangeArr
-#define serviceCbLIDoutputstateROS sick_scan::SickScanServices::serviceCbLIDoutputstate
-#define serviceCbSCdevicestateROS sick_scan::SickScanServices::serviceCbSCdevicestate
-#define serviceCbSCrebootROS sick_scan::SickScanServices::serviceCbSCreboot
-#define serviceCbSCsoftresetROS sick_scan::SickScanServices::serviceCbSCsoftreset
-#define serviceCbSickScanExitROS sick_scan::SickScanServices::serviceCbSickScanExit
+#define serviceCbColaMsgROS sick_scan_xd::SickScanServices::serviceCbColaMsg
+#define serviceCbECRChangeArrROS sick_scan_xd::SickScanServices::serviceCbECRChangeArr
+#define serviceCbLIDoutputstateROS sick_scan_xd::SickScanServices::serviceCbLIDoutputstate
+#define serviceCbSCdevicestateROS sick_scan_xd::SickScanServices::serviceCbSCdevicestate
+#define serviceCbSCrebootROS sick_scan_xd::SickScanServices::serviceCbSCreboot
+#define serviceCbSCsoftresetROS sick_scan_xd::SickScanServices::serviceCbSCsoftreset
+#define serviceCbSickScanExitROS sick_scan_xd::SickScanServices::serviceCbSickScanExit
+#define serviceCbGetContaminationResultROS sick_scan_xd::SickScanServices::serviceCbGetContaminationResult
 #endif
 #if __ROS_VERSION == 1
 #define printServiceCreated(a,b) ROS_INFO_STREAM("SickScanServices: service \"" << a.getService() << "\" created (\"" << b.getService() << "\")");
@@ -125,6 +134,12 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
           auto srv_server_ECRChangeArr = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::ECRChangeArrSrv, "ECRChangeArr", &serviceCbECRChangeArrROS, this);
           m_srv_server_ECRChangeArr = rosServiceServer<sick_scan_srv::ECRChangeArrSrv>(srv_server_ECRChangeArr);
           printServiceCreated(srv_server_ECRChangeArr, m_srv_server_ECRChangeArr);
+        }
+        if(srvSupportGetContaminationResult)
+        {
+          auto srv_server_GetContaminationResult = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::GetContaminationResultSrv, "GetContaminationResult", &serviceCbGetContaminationResultROS, this);
+          m_srv_server_GetContaminationResult = rosServiceServer<sick_scan_srv::GetContaminationResultSrv>(srv_server_GetContaminationResult);
+          printServiceCreated(srv_server_GetContaminationResult, m_srv_server_GetContaminationResult);
         }
         if(srvSupportLIDoutputstate)
         {
@@ -159,7 +174,7 @@ sick_scan::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan::SickScan
     }
 }
 
-sick_scan::SickScanServices::~SickScanServices()
+sick_scan_xd::SickScanServices::~SickScanServices()
 {
 }
 
@@ -170,7 +185,7 @@ sick_scan::SickScanServices::~SickScanServices()
  * @param[out] sopasReplyString sopasReplyBin converted to string
  * @return true on success, false in case of errors.
  */
-bool sick_scan::SickScanServices::sendSopasAndCheckAnswer(const std::string& sopasCmd, std::vector<unsigned char>& sopasReplyBin, std::string& sopasReplyString)
+bool sick_scan_xd::SickScanServices::sendSopasAndCheckAnswer(const std::string& sopasCmd, std::vector<unsigned char>& sopasReplyBin, std::string& sopasReplyString)
 {
   if(m_common_tcp)
   {
@@ -211,7 +226,7 @@ bool sick_scan::SickScanServices::sendSopasAndCheckAnswer(const std::string& sop
  * @param[out] service_response service response from lidar
  * @return true on success, false in case of errors.
  */
-bool sick_scan::SickScanServices::serviceCbColaMsg(sick_scan_srv::ColaMsgSrv::Request &service_request, sick_scan_srv::ColaMsgSrv::Response &service_response)
+bool sick_scan_xd::SickScanServices::serviceCbColaMsg(sick_scan_srv::ColaMsgSrv::Request &service_request, sick_scan_srv::ColaMsgSrv::Response &service_response)
 {
   std::string sopasCmd = service_request.request;
   std::vector<unsigned char> sopasReplyBin;
@@ -237,7 +252,7 @@ bool sick_scan::SickScanServices::serviceCbColaMsg(sick_scan_srv::ColaMsgSrv::Re
  * @param[out] service_response service response from lidar
  * @return true on success, false in case of errors.
  */
-bool sick_scan::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRChangeArrSrv::Request &service_request, sick_scan_srv::ECRChangeArrSrv::Response &service_response)
+bool sick_scan_xd::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRChangeArrSrv::Request &service_request, sick_scan_srv::ECRChangeArrSrv::Response &service_response)
 {
   std::string sopasCmd = std::string("sEN ECRChangeArr ") + (service_request.active ? "1" : "0");
   std::vector<unsigned char> sopasReplyBin;
@@ -258,13 +273,61 @@ bool sick_scan::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRChange
 }
 
 /*!
+* Callbacks for service messages.
+* @param[in] service_request ros service request to lidar
+* @param[out] service_response service response from lidar
+* @return true on success, false in case of errors.
+*/
+bool sick_scan_xd::SickScanServices::serviceCbGetContaminationResult(sick_scan_srv::GetContaminationResultSrv::Request &service_request, sick_scan_srv::GetContaminationResultSrv::Response &service_response)
+{
+  std::string sopasCmd = std::string("sRN ContaminationResult");
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+
+  service_response.success = false;
+  service_response.warning = 0;
+  service_response.error = 0;
+  if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
+    return false;
+  }
+  service_response.success = true;
+
+  std::string response_str((char*)sopasReplyBin.data(), sopasReplyBin.size());
+  std::size_t state_pos = response_str.find("ContaminationResult");
+  int result_idx = 20;
+  if (state_pos != std::string::npos && state_pos + result_idx < sopasReplyBin.size())
+  {
+    uint8_t result_byte = sopasReplyBin[state_pos + result_idx];
+    result_byte = ((result_byte >= '0') ? (result_byte - '0') : (result_byte)); // convert to bin in case of ascii
+    service_response.warning = result_byte;
+    result_idx++;
+    if (result_idx < sopasReplyBin.size() && sopasReplyBin[state_pos + result_idx] == ' ') // jump over ascii separator
+      result_idx++;
+    if (result_idx < sopasReplyBin.size())
+    {
+      result_byte = sopasReplyBin[state_pos + result_idx];
+      result_byte = ((result_byte >= '0') ? (result_byte - '0') : (result_byte)); // convert to bin in case of ascii
+      service_response.error = result_byte;
+    }
+  }
+  ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\""
+    << " (response.success=" << (int)(service_response.success) << ", response.warning=" << (int)(service_response.warning) << ", response.error=" << (int)(service_response.error) << ")");
+
+  return true;
+}
+
+
+/*!
  * Callback for service messages (LIDoutputstate, Request status change of monitoring fields on event).
  * Sends a cola telegram "sEN LIDoutputstate {0|1}" and receives the response from the lidar device.
  * @param[in] service_request ros service request to lidar
  * @param[out] service_response service response from lidar
  * @return true on success, false in case of errors.
  */
-bool sick_scan::SickScanServices::serviceCbLIDoutputstate(sick_scan_srv::LIDoutputstateSrv::Request &service_request, sick_scan_srv::LIDoutputstateSrv::Response &service_response)
+bool sick_scan_xd::SickScanServices::serviceCbLIDoutputstate(sick_scan_srv::LIDoutputstateSrv::Request &service_request, sick_scan_srv::LIDoutputstateSrv::Response &service_response)
 {
   std::string sopasCmd = std::string("sEN LIDoutputstate ") + (service_request.active ? "1" : "0");
   std::vector<unsigned char> sopasReplyBin;
@@ -287,7 +350,7 @@ bool sick_scan::SickScanServices::serviceCbLIDoutputstate(sick_scan_srv::LIDoutp
 /*!
  * Sends the SOPAS authorization command "sMN SetAccessMode 3 F4724744".
  */
-bool sick_scan::SickScanServices::sendAuthorization()
+bool sick_scan_xd::SickScanServices::sendAuthorization()
 {
   std::string sopasCmd = std::string("sMN SetAccessMode 3 ") + m_client_authorization_pw;
   std::vector<unsigned char> sopasReplyBin;
@@ -308,7 +371,7 @@ bool sick_scan::SickScanServices::sendAuthorization()
 /*!
  * Sends the SOPAS command "sMN Run", which applies previous send settings
  */
-bool sick_scan::SickScanServices::sendRun()
+bool sick_scan_xd::SickScanServices::sendRun()
 {
   std::string sopasCmd = std::string("sMN Run");
   std::vector<unsigned char> sopasReplyBin;
@@ -329,7 +392,7 @@ bool sick_scan::SickScanServices::sendRun()
 /*!
  * Sends a multiScan136 command
  */
-bool sick_scan::SickScanServices::sendSopasCmdCheckResponse(const std::string& sopas_request, const std::string& expected_response)
+bool sick_scan_xd::SickScanServices::sendSopasCmdCheckResponse(const std::string& sopas_request, const std::string& expected_response)
 {
   std::vector<unsigned char> sopasReplyBin;
   std::string sopasReplyString;
@@ -351,7 +414,7 @@ bool sick_scan::SickScanServices::sendSopasCmdCheckResponse(const std::string& s
 /*!
 * Sends the multiScan136 start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
 */
-bool sick_scan::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat)
+bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat)
 {
   std::stringstream ip_stream(hostname);
   std::string ip_token;
@@ -420,7 +483,7 @@ bool sick_scan::SickScanServices::sendMultiScanStartCmd(const std::string& hostn
 /*!
  * Sends the multiScan136 stop commands "sWN ScanDataEnable 0" and "sMN Run"
  */
-bool sick_scan::SickScanServices::sendMultiScanStopCmd(void)
+bool sick_scan_xd::SickScanServices::sendMultiScanStopCmd(void)
 {
   if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 0", "sWA ScanDataEnable")) // disble scan data output
   {
@@ -451,7 +514,7 @@ union FLOAT_BYTE32_UNION
 * convertHexStringToFloat("C0490FF9", true) returns -3.14
 * convertHexStringToFloat("3FC90FF9", true) returns +1.57
 */
-float sick_scan::SickScanServices::convertHexStringToFloat(const std::string& hex_str, bool hexStrIsBigEndian)
+float sick_scan_xd::SickScanServices::convertHexStringToFloat(const std::string& hex_str, bool hexStrIsBigEndian)
 {
   FLOAT_BYTE32_UNION hex_buffer;
   if(hexStrIsBigEndian)
@@ -481,7 +544,7 @@ float sick_scan::SickScanServices::convertHexStringToFloat(const std::string& he
 * convertFloatToHexString(-3.14, true) returns "C0490FDB"
 * convertFloatToHexString(+1.57, true) returns "3FC90FF8"
 */
-std::string sick_scan::SickScanServices::convertFloatToHexString(float value, bool hexStrIsBigEndian)
+std::string sick_scan_xd::SickScanServices::convertFloatToHexString(float value, bool hexStrIsBigEndian)
 {
   FLOAT_BYTE32_UNION hex_buffer;
   hex_buffer.value = value;
@@ -503,7 +566,7 @@ std::string sick_scan::SickScanServices::convertFloatToHexString(float value, bo
 /*!
 * Converts a hex string coded in 1/10000 deg (hex_str: 4 byte hex value as string, little or big endian) to an angle in [deg] (float).
 */
-float sick_scan::SickScanServices::convertHexStringToAngleDeg(const std::string& hex_str, bool hexStrIsBigEndian)
+float sick_scan_xd::SickScanServices::convertHexStringToAngleDeg(const std::string& hex_str, bool hexStrIsBigEndian)
 {
   char hex_str_8byte[9] = "00000000";
   for(int m=7,n=hex_str.size()-1; n >= 0; m--,n--)
@@ -533,7 +596,7 @@ float sick_scan::SickScanServices::convertHexStringToAngleDeg(const std::string&
 /*!
 * Converts an angle in [deg] to hex string coded in 1/10000 deg (hex_str: 4 byte hex value as string, little or big endian).
 */
-std::string sick_scan::SickScanServices::convertAngleDegToHexString(float angle_deg, bool hexStrIsBigEndian)
+std::string sick_scan_xd::SickScanServices::convertAngleDegToHexString(float angle_deg, bool hexStrIsBigEndian)
 {
   int32_t angle_val = (int32_t)std::round(angle_deg * 10000.0f);
   FLOAT_BYTE32_UNION hex_buffer;
@@ -561,7 +624,7 @@ std::string sick_scan::SickScanServices::convertAngleDegToHexString(float angle_
 * @param[out] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
 * @param[out] msgpack_validator_filter_settings; // filter settings for msgpack validator: required_echos, azimuth_start, azimuth_end. elevation_start, elevation_end, layer_filter
 */
-bool sick_scan::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter, 
+bool sick_scan_xd::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoFilter, std::string& host_LFPangleRangeFilter, std::string& host_LFPlayerFilter,
   sick_scansegment_xd::MsgpackValidatorFilterConfig& msgpack_validator_filter_settings, const std::string& scanner_type)
 {
   std::vector<std::vector<unsigned char>> sopasRepliesBin;
@@ -725,7 +788,7 @@ bool sick_scan::SickScanServices::queryMultiScanFiltersettings(int& host_FREchoF
 * @param[in] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
 * @param[in] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
 */
-bool sick_scan::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter, const std::string& scanner_type)
+bool sick_scan_xd::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter, const std::string& scanner_type)
 
 {
   bool enableFREchoFilter = true, enableLFPangleRangeFilter = true, enableLFPlayerFilter = true;
@@ -807,7 +870,7 @@ bool sick_scan::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFi
 * @param[out] service_response service response from lidar
 * @return true on success, false in case of errors.
 */
-bool sick_scan::SickScanServices::serviceCbSCdevicestate(sick_scan_srv::SCdevicestateSrv::Request &service_request, sick_scan_srv::SCdevicestateSrv::Response &service_response)
+bool sick_scan_xd::SickScanServices::serviceCbSCdevicestate(sick_scan_srv::SCdevicestateSrv::Request &service_request, sick_scan_srv::SCdevicestateSrv::Response &service_response)
 {
   std::string sopasCmd = std::string("sRN SCdevicestate");
   std::vector<unsigned char> sopasReplyBin;
@@ -837,7 +900,7 @@ bool sick_scan::SickScanServices::serviceCbSCdevicestate(sick_scan_srv::SCdevice
   return true;
 }
 
-bool sick_scan::SickScanServices::serviceCbSCreboot(sick_scan_srv::SCrebootSrv::Request &service_request, sick_scan_srv::SCrebootSrv::Response &service_response)
+bool sick_scan_xd::SickScanServices::serviceCbSCreboot(sick_scan_srv::SCrebootSrv::Request &service_request, sick_scan_srv::SCrebootSrv::Response &service_response)
 {
   std::string sopasCmd = std::string("sMN mSCreboot");
   std::vector<unsigned char> sopasReplyBin;
@@ -869,7 +932,7 @@ bool sick_scan::SickScanServices::serviceCbSCreboot(sick_scan_srv::SCrebootSrv::
   return true;
 }
 
-bool sick_scan::SickScanServices::serviceCbSCsoftreset(sick_scan_srv::SCsoftresetSrv::Request &service_request, sick_scan_srv::SCsoftresetSrv::Response &service_response)
+bool sick_scan_xd::SickScanServices::serviceCbSCsoftreset(sick_scan_srv::SCsoftresetSrv::Request &service_request, sick_scan_srv::SCsoftresetSrv::Response &service_response)
 {
   std::string sopasCmd = std::string("sMN mSCsoftreset");
   std::vector<unsigned char> sopasReplyBin;
@@ -901,7 +964,7 @@ bool sick_scan::SickScanServices::serviceCbSCsoftreset(sick_scan_srv::SCsoftrese
   return true;
 }
 
-bool sick_scan::SickScanServices::serviceCbSickScanExit(sick_scan_srv::SickScanExitSrv::Request &service_request, sick_scan_srv::SickScanExitSrv::Response &service_response)
+bool sick_scan_xd::SickScanServices::serviceCbSickScanExit(sick_scan_srv::SickScanExitSrv::Request &service_request, sick_scan_srv::SickScanExitSrv::Response &service_response)
 {
   /*
   std::string sopasCmd = std::string("sMN mSCsoftreset");

@@ -1,10 +1,10 @@
-# sick_scan FAQ
+# sick_scan_xd FAQ
 
 ## How to run multiple sensors concurrently?
 
 :question: How can I run multiple sensors concurrently with sick_scan_xd ?
 
-:white_check_mark: To support multiple sensors, sick_scan_xd has to be started multiple times, with one sick_scan-node for each sensor. By default, each sick_scan-node connects to "192.168.0.1" and publishes its pointcloud on topic "cloud". Therefore both the node name, the ip-address of the sensor and the pointcloud topic have to be configured differently for each node. 
+:white_check_mark: To support multiple sensors, sick_scan_xd has to be started multiple times, with one sick_scan_xd-node for each sensor. By default, each sick_scan_xd-node connects to "192.168.0.1" and publishes its pointcloud on topic "cloud". Therefore both the node name, the ip-address of the sensor and the pointcloud topic have to be configured differently for each node. 
 
 Node name, ip-address and pointcloud topic can be configured in the launch-file or by commandline argument:
 
@@ -14,7 +14,7 @@ Node name, ip-address and pointcloud topic can be configured in the launch-file 
         <arg name="nodename" default="sick_tim_7xx"/>
         <arg name="hostname" default="192.168.0.1"/>
         <arg name="cloud_topic" default="cloud"/>
-        <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+        <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
             <param name="scanner_type" type="string" value="sick_tim_7xx"/>
             <param name="nodename" type="string" value="$(arg nodename)"/>
             <param name="hostname" type="string" value="$(arg hostname)"/>
@@ -23,17 +23,17 @@ Node name, ip-address and pointcloud topic can be configured in the launch-file 
 
 * Topic, node name and ip configuration by commandline (ROS1-example for TiM7xx):
     ```
-    roslaunch sick_scan sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1
-    roslaunch sick_scan sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2
+    roslaunch sick_scan_xd sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1
+    roslaunch sick_scan_xd sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2
     ```
 
 * Topic, node name and ip configuration by commandline (ROS2-example for TiM7xx):
     ```
-    ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1
-    ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2
+    ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1
+    ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2
     ```
 
-Scripts [run_linux_ros1_simu_tim7xx_twin.bash](./test/scripts/run_linux_ros1_simu_tim7xx_twin.bash) and [run_linux_ros2_simu_tim7xx_twin.bash](./test/scripts/run_linux_ros2_simu_tim7xx_twin.bash) show a complete example with emulation of two TiM7xx sensors and two sick_scan nodes running concurrently using different nodenames and topics.
+Scripts [run_linux_ros1_simu_tim7xx_twin.bash](./test/scripts/run_linux_ros1_simu_tim7xx_twin.bash) and [run_linux_ros2_simu_tim7xx_twin.bash](./test/scripts/run_linux_ros2_simu_tim7xx_twin.bash) show a complete example with emulation of two TiM7xx sensors and two sick_scan_xd nodes running concurrently using different nodenames and topics.
 
 ## Driver restarts again and again after "sFA" message
 
@@ -63,10 +63,10 @@ to be located and used by `roslaunch`.
 
 :white_check_mark: Example to launch a TiM-7xx node in ROS-2:
 ```
-    sick_scan_pkg_prefix = get_package_share_directory('sick_scan')
+    sick_scan_pkg_prefix = get_package_share_directory('sick_scan_xd')
     tim_launch_file_path = os.path.join(sick_scan_pkg_prefix, 'launch/sick_tim_7xx.launch')
     tim_top_node = Node(
-        package='sick_scan',
+        package='sick_scan_xd',
         executable='sick_generic_caller',
         output='screen',
         arguments=[

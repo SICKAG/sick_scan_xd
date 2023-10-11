@@ -58,9 +58,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 713
+      Max Intensity: 712
       Min Color: 0; 0; 0
-      Min Intensity: 0
+      Min Intensity: 18
       Name: PointCloud2
       Position Transformer: XYZ
       Selectable: true
@@ -91,9 +91,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 713
+      Max Intensity: 712
       Min Color: 0; 0; 0
-      Min Intensity: 25
+      Min Intensity: 18
       Name: LaserScan
       Position Transformer: XYZ
       Selectable: true
@@ -105,7 +105,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /sick_nav_350/scan
+        Value: /scan
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -126,9 +126,15 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        base_footprint:
+          Value: true
+        base_link:
+          Value: true
         cloud:
           Value: true
         nav:
+          Value: true
+        odom:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -136,9 +142,12 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        cloud:
-          nav:
-            {}
+        odom:
+          base_footprint:
+            base_link:
+              cloud:
+                nav:
+                  {}
       Update Interval: 0
       Value: true
   Enabled: true

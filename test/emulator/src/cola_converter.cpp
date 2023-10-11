@@ -66,7 +66,7 @@
 /*!
  * @brief static ascii table to convert binary to ascii, f.e. s_ascii_table[0x02]:="<STX>", s_ascii_table[0x03]:="<ETX>", s_ascii_table[0x41]:="A" and so on
  */
-const std::string sick_scan::ColaAsciiBinaryConverter::s_ascii_table[256] =
+const std::string sick_scan_xd::ColaAsciiBinaryConverter::s_ascii_table[256] =
   {
     "", "<SOH>", "<STX>", "<ETX>", "<EOT>", "<ENQ>", "<ACK>", "<BEL>", "\b", "<HT>", "\n", "<VT>", "<FF>", "\n",
     "<SO>", "<SI>", "<DLE>", "<DC1>", "<DC2>", "<DC3>", "<DC4>", "<NAK>", "<SYN>", "<ETB>", "<CAN>", "<EM>", "<SUB>", "<ESC>", "<FS>", "<GS>", "<RS>", "<US>",
@@ -83,7 +83,7 @@ const std::string sick_scan::ColaAsciiBinaryConverter::s_ascii_table[256] =
 /*!
  * @brief static ascii map to convert ascii to binary, f.e. s_ascii_map["<STX>"]:=0x02, s_ascii_map["<ETX>"]:=0x03, s_ascii_map["A"]:=0x41 and so on
  */
-const std::map<std::string, uint8_t> sick_scan::ColaAsciiBinaryConverter::s_ascii_map =
+const std::map<std::string, uint8_t> sick_scan_xd::ColaAsciiBinaryConverter::s_ascii_map =
   {
     {"<SOH>", 0x01}, {"<STX>", 0x02}, {"<ETX>", 0x03}, {"<EOT>", 0x04}, {"<ENQ>", 0x05}, {"<ACK>", 0x06}, {"<BEL>", 0x07}, {"\b", 0x08}, {"<HT>", 0x09},
     {"\n", 0x0A}, {"<VT>", 0x0B}, {"<FF>", 0x0C}, {"\n", 0x0D}, {"<SO>", 0x0E}, {"<SI>", 0x0F}, {"<DLE>", 0x10}, {"<DC1>", 0x11}, {"<DC2>", 0x12},
@@ -102,7 +102,7 @@ const std::map<std::string, uint8_t> sick_scan::ColaAsciiBinaryConverter::s_asci
  * @param[in] cola_telegram Cola-ASCII telegram, starting with 0x02 and ending with 0x03
  * @return Cola-ASCII string, f.e. "<STX>sMN SetAccessMode 3 F4724744<ETX>"
  */
-std::string sick_scan::ColaAsciiBinaryConverter::ConvertColaAscii(const std::vector<uint8_t> & cola_telegram)
+std::string sick_scan_xd::ColaAsciiBinaryConverter::ConvertColaAscii(const std::vector<uint8_t> & cola_telegram)
 {
   std::stringstream cola_ascii;
   for(std::vector<uint8_t>::const_iterator iter = cola_telegram.cbegin(); iter != cola_telegram.cend(); iter++)
@@ -119,7 +119,7 @@ std::string sick_scan::ColaAsciiBinaryConverter::ConvertColaAscii(const std::vec
  * @return Cola-ASCII telegram, f.e. { 0x02, 0x73, 0x4D, 0x4E, 0x20, 0x53, 0x65, 0x74, 0x41, 0x63, 0x63,  0x65,
  * 0x73, 0x73, 0x4D, 0x6F, 0x64, 0x65, 0x20, 0x33, 0x20, 0x46, 0x34, 0x37, 0x32, 0x34, 0x37, 0x34, 0x34, 0x03 }
  */
-std::vector<uint8_t> sick_scan::ColaAsciiBinaryConverter::ConvertColaAscii(const std::string & cola_telegram)
+std::vector<uint8_t> sick_scan_xd::ColaAsciiBinaryConverter::ConvertColaAscii(const std::string & cola_telegram)
 {
   std::vector<uint8_t> cola_ascii;
   cola_ascii.reserve(cola_telegram.size());
@@ -159,12 +159,12 @@ static uint8_t CRC8XOR(uint8_t* msgBlock, size_t len)
  *            parameter_is_ascii = -1: Auto determination (1. assumption is true, 2. assumption is false in case of errors)
  * @return Cola-Binary telegram
  */
-std::vector<uint8_t> sick_scan::ColaAsciiBinaryConverter::ColaAsciiToColaBinary(const std::vector<uint8_t> & cola_telegram, int parameter_is_ascii)
+std::vector<uint8_t> sick_scan_xd::ColaAsciiBinaryConverter::ColaAsciiToColaBinary(const std::vector<uint8_t> & cola_telegram, int parameter_is_ascii)
 {
   // Split telegram in command_type (sRN,sRA,sMN,sMA,sWN), command_name ("SetAccessMode", "LocSetResultPoseEnabled",
   // "LocRequestTimestamp", etc.) and command parameter
-  sick_scan::SickLocColaTelegramMsg cola_msg = sick_scan::ColaParser::decodeColaTelegram(cola_telegram);
-  if(cola_msg.command_type < 0 || cola_msg.command_type >= sick_scan::ColaParser::MAX_COLA_COMMAND_NUMBER)
+  sick_scan_xd::SickLocColaTelegramMsg cola_msg = sick_scan_xd::ColaParser::decodeColaTelegram(cola_telegram);
+  if(cola_msg.command_type < 0 || cola_msg.command_type >= sick_scan_xd::ColaParser::MAX_COLA_COMMAND_NUMBER)
   {
     ROS_ERROR_STREAM("## ERROR in ColaAsciiToColaBinary(): invalid SOPAS command type " << cola_msg.command_type);
     return std::vector<uint8_t>();
@@ -182,13 +182,13 @@ std::vector<uint8_t> sick_scan::ColaAsciiBinaryConverter::ColaAsciiToColaBinary(
      *            parameter_is_ascii = -1: Auto determination (1. assumption is true, 2. assumption is false in case of errors)
      * @return Cola-Binary telegram
      */
-std::vector<uint8_t> sick_scan::ColaAsciiBinaryConverter::ColaTelegramToColaBinary(const sick_scan::SickLocColaTelegramMsg & cola_msg, int parameter_is_ascii)
+std::vector<uint8_t> sick_scan_xd::ColaAsciiBinaryConverter::ColaTelegramToColaBinary(const sick_scan_xd::SickLocColaTelegramMsg & cola_msg, int parameter_is_ascii)
 {
   std::vector<uint8_t> cola_binary;
   cola_binary.reserve(64*1024);
   const uint8_t binary_stx = 0x02;
   const uint8_t binary_separator = 0x20;
-  std::string command_type =  sick_scan::ColaParser::convertSopasCommand((sick_scan::ColaParser::COLA_SOPAS_COMMAND)cola_msg.command_type);
+  std::string command_type =  sick_scan_xd::ColaParser::convertSopasCommand((sick_scan_xd::ColaParser::COLA_SOPAS_COMMAND)cola_msg.command_type);
     
   // Encode the payload
   std::vector<uint8_t> binary_payload;
@@ -264,7 +264,7 @@ std::vector<uint8_t> sick_scan::ColaAsciiBinaryConverter::ColaTelegramToColaBina
  * 0x73, 0x73, 0x4D, 0x6F, 0x64, 0x65, 0x20, 0x33, 0x20, 0x46, 0x34, 0x37, 0x32, 0x34, 0x37, 0x34, 0x34, 0x03 }
  * ("<STX>sMN SetAccessMode 3 F4724744<ETX>")
  */
-std::vector<uint8_t> sick_scan::ColaAsciiBinaryConverter::ColaBinaryToColaAscii(const std::vector<uint8_t> & cola_telegram, bool parameter_to_ascii)
+std::vector<uint8_t> sick_scan_xd::ColaAsciiBinaryConverter::ColaBinaryToColaAscii(const std::vector<uint8_t> & cola_telegram, bool parameter_to_ascii)
 {
   const uint8_t binary_separator = 0x20;
   std::vector<uint8_t> cola_ascii;
@@ -301,8 +301,8 @@ std::vector<uint8_t> sick_scan::ColaAsciiBinaryConverter::ColaBinaryToColaAscii(
     parameter_start_idx++;
   parameter_start_idx++;
   // Concatenate Cola-ASCII telegram
-  std::vector<uint8_t> stx = sick_scan::ColaParser::binarySTX();
-  std::vector<uint8_t> etx = sick_scan::ColaParser::binaryETX();
+  std::vector<uint8_t> stx = sick_scan_xd::ColaParser::binarySTX();
+  std::vector<uint8_t> etx = sick_scan_xd::ColaParser::binaryETX();
   cola_ascii.reserve(2 * cola_telegram.size());
   // Copy STX
   for(size_t n = 0; n < stx.size(); n++)
@@ -339,7 +339,7 @@ std::vector<uint8_t> sick_scan::ColaAsciiBinaryConverter::ColaBinaryToColaAscii(
  * @param[in] cola_telegram Cola telegram (Cola-ASCII to Cola-Binary)
  * @return true for Cola-Binary, false for Cola-ASCII
  */
-bool sick_scan::ColaAsciiBinaryConverter::IsColaBinary(const std::vector<uint8_t> & cola_telegram)
+bool sick_scan_xd::ColaAsciiBinaryConverter::IsColaBinary(const std::vector<uint8_t> & cola_telegram)
 {
   const uint8_t binary_stx = 0x02;
   return cola_telegram.size() >= 4 && cola_telegram[0] == binary_stx && cola_telegram[1] == binary_stx
@@ -351,7 +351,7 @@ bool sick_scan::ColaAsciiBinaryConverter::IsColaBinary(const std::vector<uint8_t
  * @param[in] cola_telegram Cola-Binary telegram
  * @return expected telegram length incl. header, payload and crc, or 0 in case of errors.
  */
-uint32_t sick_scan::ColaAsciiBinaryConverter::ColaBinaryTelegramLength(const std::vector<uint8_t> & cola_telegram)
+uint32_t sick_scan_xd::ColaAsciiBinaryConverter::ColaBinaryTelegramLength(const std::vector<uint8_t> & cola_telegram)
 {
   if(cola_telegram.size() >= 8 && IsColaBinary(cola_telegram))
   {

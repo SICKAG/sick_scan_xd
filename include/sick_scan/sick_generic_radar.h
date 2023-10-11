@@ -74,7 +74,7 @@
 #include "sick_scan/sick_generic_parser.h"
 #include "sick_scan/sick_scan_common_nw.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   class SickScanRadarRawTarget
@@ -188,8 +188,8 @@ namespace sick_scan
     rosPublisher<ros_sensor_msgs::PointCloud2> cloud_radar_track_pub_;
     rosPublisher<sick_scan_msg::RadarScan> radarScan_pub_;
 
-    sick_scan::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
-    sick_scan::SickRangeFilter m_range_filter;
+    sick_scan_xd::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+    sick_scan_xd::SickRangeFilter m_range_filter;
 
   public:
     /* Static access method. */
@@ -240,5 +240,5 @@ namespace sick_scan
   };
 #endif
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif // SICK_GENERIC_RADAR_H_

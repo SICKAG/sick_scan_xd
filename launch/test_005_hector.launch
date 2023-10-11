@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
-    <node name="sick_mrs_1xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_mrs_1xxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_mrs_1xxx"/>
         <param name="slam_echo" type="string" value="laser_POS_000_DIST1"/>
         <param name="slam_bundle" type="bool" value="true"/>
@@ -68,6 +68,6 @@
     </node>
     <!--<node pkg="tf" type="static_transform_publisher" name="map_nav_broadcaster" args="0 0 0 0 0 0 map nav 100"/>-->
     <arg name="rviz" default="true"/>
-    <arg name="rviz_file" default="$(find sick_scan)/launch/rviz/hector.rviz"/>
+    <arg name="rviz_file" default="$(find sick_scan_xd)/launch/rviz/hector.rviz"/>
     <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(arg rviz_file)" output="screen" if="$(arg rviz)"/>
 </launch>

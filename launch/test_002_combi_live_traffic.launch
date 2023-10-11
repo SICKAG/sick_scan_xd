@@ -9,7 +9,7 @@
     <node pkg="tf" type="static_transform_publisher" name="map_radar" args="0 0 0 0 0 0 1 map radar 100"/>
     <node pkg="tf" type="static_transform_publisher" name="map_laser" args="0 0 0 0 0 0 1 map laser 100"/>
     <!-- STARTING MRS61xx - modify your ip address -->
-    <node name="sick_mrs_6xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_mrs_6xxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
         <param name="filter_echos" type="int" value="2"/>
         <param name="scanner_type" type="string" value="sick_mrs_6xxx"/>
         <param name="range_min" type="double" value="0.1"/>
@@ -20,7 +20,7 @@
         <param name="min_ang" type="double" value="-1.047197333"/>
         <param name="max_ang" type="double" value="+1.047197333"/>
     </node>
-    <node name="sick_rms_xxxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_rms_xxxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
         <param name="range_min" type="double" value="0.1"/>
         <param name="range_max" type="double" value="250.0"/>
         <param name="scanner_type" type="string" value="sick_rms_xxxx"/>
@@ -35,15 +35,15 @@
     </node>
     <?ignore
             <arg name="rviz"    default="true" />
-            <arg name="rviz_file" default="$(find sick_scan)/launch/rviz/combi.rviz" />
+            <arg name="rviz_file" default="$(find sick_scan_xd)/launch/rviz/combi.rviz" />
             <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(arg rviz_file)" output="screen" if="$(arg rviz)"/>
             <node pkg="rosbag" type="record" name="rosbag_record_scanner_radar"
             args="record -o ~/rosbag_data/combi -a --lz4"
             if="$(arg record_data)" />
             <node pkg="rosbag" type="record" name="rosbag_record_scanner_radar"
             args="record -a --lz4"/>
-            <node pkg="sick_scan" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen" />
-            <node pkg="sick_scan" type="radar_object_marker" name="radar_object_marker" />
+            <node pkg="sick_scan_xd" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen" />
+            <node pkg="sick_scan_xd" type="radar_object_marker" name="radar_object_marker" />
             ?>
     <?ignore
             rosrun rosbag record record -o /mnt/hgfs/developnt/ros/bags/combi -a --lz4 -x /tf -->

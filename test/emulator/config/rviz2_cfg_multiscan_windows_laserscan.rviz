@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /LaserScan1
-        - /LaserScan1/Status1
         - /LaserScan1/Topic1
       Splitter Ratio: 0.5
     Tree Height: 375
@@ -188,5 +187,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1027
-  X: 120
-  Y: 2
+  X: 1305
+  Y: 647

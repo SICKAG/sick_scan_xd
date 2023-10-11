@@ -37,15 +37,15 @@ sick_scan_xd contains 6 main functional blocks:
         * ROS1: `ros::NodeHandle::getParam`
         * ROS2 and generic: `LaunchParser` (ros-wrapper)
     * Lidar specific setup:
-        * class `sick_scan::SickGenericParser`: lidar specific properties and messages parsing
+        * class `sick_scan_xd::SickGenericParser`: lidar specific properties and messages parsing
         * Set and get lidar specific properties: number of layers, angular resolution, etc.
         * Parse and convert scan data, input: scan data (ascii or binary datagram), output: `ros::sensor_msgs::LaserScan`
-        * class `sick_scan::SickScanCommonTcp`: receive TCP messages, convert and publish pointcloud
+        * class `sick_scan_xd::SickScanCommonTcp`: receive TCP messages, convert and publish pointcloud
     * Start ros services:
-        * class `sick_scan::SickScanServices`: register ros services, convert from/to SOPAS
+        * class `sick_scan_xd::SickScanServices`: register ros services, convert from/to SOPAS
     * Start monitoring:
-        * class `sick_scan::SickScanMonitor`: monitor scan data, reinit on timeout
-        * class `sick_scan::PointCloudMonitor`: monitor pointcloud, reinit on timeout
+        * class `sick_scan_xd::SickScanMonitor`: monitor scan data, reinit on timeout
+        * class `sick_scan_xd::PointCloudMonitor`: monitor pointcloud, reinit on timeout
 * sick_scan_common for the most common lidar devices (LMS, LRS, MRS, NAV, TiM, RMS, etc.):
     * Implemention by SickScanCommon and SickScanCommonTcp
     * Uses SickGenericParser for lidar specific properties and parsing

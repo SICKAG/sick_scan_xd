@@ -76,7 +76,7 @@
 #include "sick_scan/sick_scan_common_nw.h"
 #include "softwarePLL.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
 
@@ -221,7 +221,7 @@ namespace sick_scan
     bool emul;
   };
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 
 
 #endif //SICK_SCAN_SICK_GENERIC_IMU_H

@@ -154,7 +154,7 @@ bool checkForAngleIntervalTestbed()
 
 
 
-void callback(const sick_scan::RadarScan::ConstPtr &oa)
+void callback(const sick_scan_xd::RadarScan::ConstPtr &oa)
   {
   RadarObjectMarkerCfg *cfgPtr = &boost::serialization::singleton<RadarObjectMarkerCfg>::get_mutable_instance();
 

@@ -152,6 +152,8 @@ int sick_scansegment_xd::MsgPackParser::telegramCount = 0;
 #define MsgpackKeyToInt_elemTypes         0x15 // sick_scansegment_xd::MsgpackKeyToInt("elemTypes")
 #define MsgpackKeyToInt_little            0x30 // sick_scansegment_xd::MsgpackKeyToInt("little")
 #define MsgpackKeyToInt_float32           0x31 // sick_scansegment_xd::MsgpackKeyToInt("float32")
+#define MsgpackKeyToInt_uint32            0x32 // sick_scansegment_xd::MsgpackKeyToInt("uint32")
+#define MsgpackKeyToInt_uint8             0x33 // sick_scansegment_xd::MsgpackKeyToInt("uint8")
 #define MsgpackKeyToInt_uint16            0x34 // sick_scansegment_xd::MsgpackKeyToInt("uint16")
 #define MsgpackKeyToInt_ChannelTheta      0x50 // sick_scansegment_xd::MsgpackKeyToInt("ChannelTheta")
 #define MsgpackKeyToInt_ChannelPhi        0x51 // sick_scansegment_xd::MsgpackKeyToInt("ChannelPhi")
@@ -174,6 +176,7 @@ int sick_scansegment_xd::MsgPackParser::telegramCount = 0;
 #define MsgpackKeyToInt_SenderId          0x94 // sick_scansegment_xd::MsgpackKeyToInt("SenderId")
 #define MsgpackKeyToInt_SegmentSize       0x95 // sick_scansegment_xd::MsgpackKeyToInt("SegmentSize")
 #define MsgpackKeyToInt_SegmentData       0x96 // sick_scansegment_xd::MsgpackKeyToInt("SegmentData")
+#define MsgpackKeyToInt_LayerId           0xA0 // sick_scansegment_xd::MsgpackKeyToInt("LayerId")
 #define MsgpackKeyToInt_TelegramCounter   0xB0 // sick_scansegment_xd::MsgpackKeyToInt("TelegramCounter")
 #define MsgpackKeyToInt_TimestampTransmit 0xB1 // sick_scansegment_xd::MsgpackKeyToInt("TimestampTransmit")
 #define MsgpackKeyToInt_MaxValue          0xB2 // max allowed value of a msgpack key
@@ -476,7 +479,7 @@ std::string sick_scansegment_xd::MsgPackParser::MsgpackToHexDump(const std::vect
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
 bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, 
-    sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, ScanSegmentParserOutput& result,
+    sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, ScanSegmentParserOutput& result,
     sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
 	bool use_software_pll, bool verbose)
@@ -533,7 +536,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
 bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, 
-	sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, ScanSegmentParserOutput& result,
+	sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, ScanSegmentParserOutput& result,
     sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, 
 	const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
@@ -650,6 +653,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			msgpack11::MsgPack::object::const_iterator rssiValuesMsg = dataMsg->second.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_RssiValues]);
 			msgpack11::MsgPack::object::const_iterator timestampStartMsg = dataMsg->second.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_TimestampStart]);
 			msgpack11::MsgPack::object::const_iterator timestampStopMsg = dataMsg->second.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_TimestampStop]);
+			msgpack11::MsgPack::object::const_iterator propertiesMsg = dataMsg->second.object_items().find(s_msgpack_keys.values[MsgpackKeyToInt_PropertiesValues]);
 			if (echoCountMsg == dataMsg->second.object_items().end() ||
 				channelPhiMsg == dataMsg->second.object_items().end() || channelThetaMsg == dataMsg->second.object_items().end() ||
 				distValuesMsg == dataMsg->second.object_items().end() || rssiValuesMsg == dataMsg->second.object_items().end() ||
@@ -678,6 +682,29 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				distValuesDataMsg[n] = MsgPackElement(distValuesMsg->second.array_items()[n].object_items());
 			for (int n = 0; n < rssiValuesMsg->second.array_items().size(); n++)
 				rssiValuesDataMsg[n] = MsgPackElement(rssiValuesMsg->second.array_items()[n].object_items());
+      
+			// Get optional property values
+      std::vector<std::vector<uint8_t>> propertyValues; // uint8_t property = propertyValues[echoIdx][pointIdx]
+			if (propertiesMsg != dataMsg->second.object_items().end()) // property values available
+			{
+				propertyValues = std::vector<std::vector<uint8_t>>(propertiesMsg->second.array_items().size());
+				for (int n = 0; n < propertiesMsg->second.array_items().size(); n++)
+				{
+					const MsgPackElement& propertyMsgPackElement = MsgPackElement(propertiesMsg->second.array_items()[n].object_items());
+					propertyValues[n] = std::vector<uint8_t>(propertyMsgPackElement.data->binary_items().size(), 0);
+					if (propertyMsgPackElement.elemSz->int_value() == 1 && propertyMsgPackElement.elemTypes->int_value() == MsgpackKeyToInt_uint8 && propertyMsgPackElement.data->binary_items().size() > 0)
+					{
+						for(int m = 0; m < propertyValues[n].size(); m++)
+						{
+							propertyValues[n][m] = propertyMsgPackElement.data->binary_items()[m];
+						}
+					}
+					else
+					{
+						ROS_WARN_STREAM("## ERROR MsgPackParser::Parse(): invalid property array");
+					}
+				}
+			}
 
 			// Convert all data to float values
 			int iEchoCount = echoCountMsg->second.int32_value();
@@ -690,6 +717,14 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			for (int n = 0; n < rssiValuesDataMsg.size(); n++)
 				rssiValues[n] = MsgPackToFloat32VectorConverter(rssiValuesDataMsg[n], dstIsBigEndian);
 			assert(channelPhi.data().size() == 1 && channelTheta.data().size() > 0 && distValues.size() == iEchoCount && rssiValues.size() == iEchoCount);
+
+      // Check optional propertyValues: if available, we expect as many properties as we have points
+			for (int n = 0; n < propertyValues.size(); n++) 
+			{
+			  // ROS_DEBUG_STREAM("MsgPackParser::Parse(): " << (distValues[n].data().size()) << " dist values, " << (rssiValues[n].data().size()) << " rssi values, " << (propertyValues[n].size()) << " property values (" << (n+1) << ". echo)");
+        if (propertyValues[n].size() != distValues[n].data().size())
+					ROS_WARN_STREAM("## ERROR MsgPackParser::Parse(): invalid property values");
+			}
 
 			// Convert to cartesian coordinates
 			result.scandata.push_back(sick_scansegment_xd::ScanSegmentParserOutput::Scangroup());
@@ -713,7 +748,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				float azimuth = channelTheta.data()[pointIdx] + add_transform_xyz_rpy.azimuthOffset();
 				cos_azimuth[pointIdx] = std::cos(azimuth);
 				sin_azimuth[pointIdx] = std::sin(azimuth);
-                // if (pointIdx > 0)
+        // if (pointIdx > 0)
 				//     SCANSEGMENT_XD_DEBUG_STREAM("azimuth[" << pointIdx << "] = " << (azimuth * 180 / M_PI) << " [deg], delta_azimuth = " << ((channelTheta.data[pointIdx] - channelTheta.data[pointIdx-1]) * 180 / M_PI) << " [deg]");
 			}
 			for (int echoIdx = 0; echoIdx < iEchoCount; echoIdx++)
@@ -724,6 +759,10 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				scanline.points.reserve(iPointCount);
 				for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 				{
+					uint8_t reflectorbit = 0;
+					for (int n = 0; n < propertyValues.size(); n++)
+					  if (pointIdx < propertyValues[n].size())
+					    reflectorbit |= ((propertyValues[n][pointIdx]) & 0x01); // reflector bit is set, if a reflector is detected on any number of echos
 					float dist = 0.001f * distValues[echoIdx].data()[pointIdx]; // convert distance to meter
 						float intensity = rssiValues[echoIdx].data()[pointIdx];
 						float x = dist * cos_azimuth[pointIdx] * cos_elevation;
@@ -739,11 +778,11 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 						}
                     if (range_filter.apply(dist)) 
                     {
-						scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx));
+						scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx, reflectorbit));
 				    }
 					else // point dropped by range filter
 					{
-						scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(0, 0, 0, 0, 0, azimuth, elevation, groupIdx, echoIdx, pointIdx));
+						scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(0, 0, 0, 0, 0, azimuth, elevation, groupIdx, echoIdx, pointIdx, reflectorbit));
 				    }
 				}
 			}

@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /PointCloud21
-      Splitter Ratio: 0.5
+      Splitter Ratio: 0.5029411911964417
     Tree Height: 490
   - Class: rviz_common/Selection
     Name: Selection
@@ -71,7 +71,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /cloud
+        Value: /cloud_unstructured_segments
       Use Fixed Frame: true
       Use rainbow: true
       Value: true

@@ -30,29 +30,41 @@ catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULA
 source ./install_isolated/setup.bash
 
 #
+# print dependencies
+#
+echo -e "\nmake.bash finished.\n"
+echo -e "dependencies or undefined symbols in libsick_scan_xd_shared_lib.so:"
+ldd -r ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so # print undefined symbols in libsick_scan_xd_shared_lib.so
+echo -e "exported symbols in libsick_scan_xd_shared_lib.so:"
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i tixml # print exported symbos in libsick_scan_xd_shared_lib.so
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i tinyxml # print exported symbos in libsick_scan_xd_shared_lib.so
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i SickScanApi # print exported symbos in libsick_scan_xd_shared_lib.so
+
+#
 # print warnings and errors
 #
-
-echo -e "\nmake.bash finished.\n"
-echo -e "catkin_make warnings:"
+echo -e "\ncmake and catkin_make warnings and errors:"
+cat ./src/sick_scan_xd/build_linux/sick_scan_xd_build.log | grep -i "warning:"
+cat ./src/sick_scan_xd/build_linux/sick_scan_xd_build.log | grep -i "undefined:"
+cat ./src/sick_scan_xd/build_linux/sick_scan_xd_build.log | grep -i "error:"
 cat build/catkin_make_install.log | grep -i "warning:"
-echo -e "\ncatkin_make errors:"
+cat build/catkin_make_install.log | grep -i "undefined:"
 cat build/catkin_make_install.log | grep -i "error:"
 
-# print sick_scan binaries
+# print sick_scan_xd binaries
 echo -e "\n"
 echo -e "src/sick_scan_xd/build_linux:"
 ls -al ./src/sick_scan_xd/build_linux/sick_generic_caller
-ls -al ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so
+ls -al ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so
 ls -al ./src/sick_scan_xd/build_linux/sick_scan_xd_api_test
-ldd -r ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so # print undefined symbols in libsick_scan_shared_lib.so
-echo -e "exported symbols in libsick_scan_shared_lib.so:"
-nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so | grep -i tixml # print exported symbos in libsick_scan_shared_lib.so
-nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so | grep -i tinyxml # print exported symbos in libsick_scan_shared_lib.so
-nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_shared_lib.so | grep -i SickScanApi # print exported symbos in libsick_scan_shared_lib.so
-echo -e "devel_isolated/sick_scan/lib/sick_scan:"
-ls -al ./devel_isolated/sick_scan/lib/sick_scan
-echo -e "install_isolated/lib/sick_scan:"
-ls -al ./install_isolated/lib/sick_scan
+ldd -r ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so # print undefined symbols in libsick_scan_xd_shared_lib.so
+echo -e "exported symbols in libsick_scan_xd_shared_lib.so:"
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i tixml # print exported symbos in libsick_scan_xd_shared_lib.so
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i tinyxml # print exported symbos in libsick_scan_xd_shared_lib.so
+nm -C -D ./src/sick_scan_xd/build_linux/libsick_scan_xd_shared_lib.so | grep -i SickScanApi # print exported symbos in libsick_scan_xd_shared_lib.so
+echo -e "devel_isolated/sick_scan_xd/lib/sick_scan_xd:"
+ls -al ./devel_isolated/sick_scan_xd/lib/sick_scan_xd
+echo -e "install_isolated/lib/sick_scan_xd:"
+ls -al ./install_isolated/lib/sick_scan_xd
 popd
 

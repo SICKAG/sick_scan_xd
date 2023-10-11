@@ -75,10 +75,10 @@
   typedef SOCKET socket_t;
 #endif
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
-   * Class sick_scan::ServerSocket implements a server socket connection.
+   * Class sick_scan_xd::ServerSocket implements a server socket connection.
    */
   class ServerSocket
   {
@@ -145,5 +145,5 @@ namespace sick_scan
 
   }; // class ServerSocket
 
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SERVER_SOCKET_H_INCLUDED

@@ -67,7 +67,7 @@
 #include "sick_scan/server_socket.h"
 #include "sick_scan/utils.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * class TestServerThread runs a thread to listen and accept tcp connections from clients
@@ -107,9 +107,9 @@ namespace sick_scan
      * Buffers the last telegram to monitor sim_loc_driver messages in error simulation mode.
      * @param[in] msg result telegram message (SickLocResultPortTelegramMsg)
      */
-    void messageCbResultPortTelegrams(const sick_scan::SickLocResultPortTelegramMsg & msg);
+    void messageCbResultPortTelegrams(const sick_scan_xd::SickLocResultPortTelegramMsg & msg);
     /*! ROS2 version of function messageCbResultPortTelegrams */
-    virtual void messageCbResultPortTelegramsROS2(const std::shared_ptr<sick_scan::SickLocResultPortTelegramMsg> msg) { messageCbResultPortTelegrams(*msg); }
+    virtual void messageCbResultPortTelegramsROS2(const std::shared_ptr<sick_scan_xd::SickLocResultPortTelegramMsg> msg) { messageCbResultPortTelegrams(*msg); }
     
   protected:
   
@@ -125,7 +125,7 @@ namespace sick_scan
     };
   
     typedef std::thread* thread_ptr;             ///< shortcut for pointer to std::thread
-    typedef sick_scan::ServerSocket* socket_ptr; ///< shortcut for pointer to socket
+    typedef sick_scan_xd::ServerSocket* socket_ptr; ///< shortcut for pointer to socket
     
     /*!
     * Closes the send scandata thread
@@ -207,7 +207,7 @@ namespace sick_scan
      * @param[out] telegram_msg last telegram message received
      * @return true, if a new telegram message received, false otherwise (timeout or shutdown)
      */
-    bool errorSimulationWaitForTelegramReceived(double timeout_seconds, sick_scan::SickLocResultPortTelegramMsg & telegram_msg);
+    bool errorSimulationWaitForTelegramReceived(double timeout_seconds, sick_scan_xd::SickLocResultPortTelegramMsg & telegram_msg);
     
     /*
      * member data
@@ -222,11 +222,11 @@ namespace sick_scan
     bool m_tcp_send_scandata_thread_running;                 ///< true: m_tcp_send_scandata_thread is running, otherwise false
     double m_start_scandata_delay;                           ///< delay between scandata activation ("LMCstartmeas" request) and first scandata message, default: 1 second
     bool m_tcp_connection_thread_running;                    ///< true: m_tcp_connection_thread is running, otherwise false
-    std::list<sick_scan::ServerSocket*> m_tcp_sockets;       ///< list of tcp sockets (one socket for each tcp client)
+    std::list<sick_scan_xd::ServerSocket*> m_tcp_sockets;       ///< list of tcp sockets (one socket for each tcp client)
     std::list<thread_ptr> m_tcp_worker_threads;              ///< list of tcp worker thread (one thread for each tcp client, generating telegrams)
     std::mutex m_tcp_worker_threads_mutex;                   ///< mutex to protect m_tcp_worker_threads
     bool m_worker_thread_running;                            ///< true: worker threads started, otherwise false
-    sick_scan::SickLocResultPortTestcaseMsgPublisher m_result_testcases_publisher;  ///< ros publisher for testcases with result port telegrams (type SickLocResultPortTestcaseMsg)
+    sick_scan_xd::SickLocResultPortTestcaseMsgPublisher m_result_testcases_publisher;  ///< ros publisher for testcases with result port telegrams (type SickLocResultPortTestcaseMsg)
     std::string m_result_testcases_frame_id;                 ///< ros frame id of testcase messages (type SickLocResultPortTestcaseMsg), default: "result_testcases"
     bool m_demo_move_in_circles;                             ///< true: simulate a sensor moving in circles, false (default): create random based result port telegrams
     std::string m_scandatafiles;                             ///< comma separated list of jsonfiles to emulate scandata messages, f.e. "tim781s_scandata.pcapng.json,tim781s_sopas.pcapng.json"
@@ -247,13 +247,13 @@ namespace sick_scan
       SEND_INVALID_TELEGRAMS       ///< Testserver sends invalid telegrams (invalid data, false checksums, etc.)
     } ERROR_SIMULATION_FLAG;
   
-    sick_scan::SetGet<ERROR_SIMULATION_FLAG> m_error_simulation_flag; ///< current error simulation flag, default: SIMU_NO_ERROR
+    sick_scan_xd::SetGet<ERROR_SIMULATION_FLAG> m_error_simulation_flag; ///< current error simulation flag, default: SIMU_NO_ERROR
     bool m_error_simulation_enabled;                         ///< default: false (no error simulation), if true, test server simulates errors and communication failures of type ERROR_SIMULATION_FLAG
     thread_ptr m_error_simulation_thread;                    ///< thread to run error simulation, switches m_error_simulation_flag through the error test cases
     bool m_error_simulation_thread_running;                  ///< true: m_error_simulation_thread is running, otherwise false
-    sick_scan::SetGet<sick_scan::SickLocResultPortTelegramMsg> m_last_telegram_received; ///< last telegram message received from sick_scan driver
+    sick_scan_xd::SetGet<sick_scan_xd::SickLocResultPortTelegramMsg> m_last_telegram_received; ///< last telegram message received from sick_scan driver
     
   };
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_TEST_SERVER_THREAD_H_INCLUDED

@@ -6,10 +6,7 @@
 # output_msg.fields[1].field_index = 2, output_msg.fields[1].field_result_mrs = 1 or 2 (clear=1 or infringed=2)
 # output_msg.fields[2].field_index = 3, output_msg.fields[2].field_result_mrs = 1 or 2 (clear=1 or infringed=2)
 
-# ROS-1: 
-#Header header
-# ROS-2: 
 std_msgs/Header header
 
 uint16 fields_number # number of fields
-sick_scan/LFErecFieldMsg[] fields # 3 fields for TiM871S
+sick_scan_xd/LFErecFieldMsg[] fields # 3 fields for TiM871S

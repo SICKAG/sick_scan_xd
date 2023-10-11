@@ -24,29 +24,29 @@ We have to start by profiling the application with Callgrind. To profile an appl
 ```
 valgrind --tool=callgrind program [program_options]
 ```
-### Starting profiling for sick_scan
+### Starting profiling for sick_scan_xd
 In order to establish a reference to the source code during profiling, the program must be compiled with debug symbols, this can be done with catkin_make
 ```
 catkin_make install -DCMAKE_BUILD_TYPE=Debug
 ```
-It is necessary to create a rosmaster so that the sick_scan node can connect to it because we can't use roslaunch during profiling.
+It is necessary to create a rosmaster so that the sick_scan_xd node can connect to it because we can't use roslaunch during profiling.
 ```
 roscore
 ```
 To set the parameters we start a node as usual with roslaunch.
 ```
-roslaunch sick_scan sick_lms_5xx.launch hostname:=192.168.0.151
+roslaunch sick_scan_xd sick_lms_5xx.launch hostname:=192.168.0.151
 ```
-While this node is running we can use ```ps -aef| grep sick_scan``` to determine the program path and the call parameters. 
+While this node is running we can use ```ps -aef| grep sick_scan_xd``` to determine the program path and the call parameters. 
 ```
-rosuser@ROS-NB:~$ ps -aef|grep sick_scan
-rosuser   4839  2443  0 14:43 pts/1    00:00:00 /usr/bin/python /opt/ros/melodic/bin/roslaunch sick_scan sick_lms_5xx.launch hostname:=192.168.0.151
-rosuser   4854  4839  1 14:43 ?        00:00:03 /home/rosuser/ros_catkin_ws/devel/lib/sick_scan/sick_generic_caller __name:=sick_lms_5xx __log:=/home/rosuser/.ros/log/f9861670-304c-11e9-9839-54e1ad2921b6/sick_lms_5xx-1.log
-rosuser   4910  4875  0 14:46 pts/6    00:00:00 grep --color=auto sick_scan
+rosuser@ROS-NB:~$ ps -aef|grep sick_scan_xd
+rosuser   4839  2443  0 14:43 pts/1    00:00:00 /usr/bin/python /opt/ros/melodic/bin/roslaunch sick_scan_xd sick_lms_5xx.launch hostname:=192.168.0.151
+rosuser   4854  4839  1 14:43 ?        00:00:03 /home/rosuser/ros_catkin_ws/devel/lib/sick_scan_xd/sick_generic_caller __name:=sick_lms_5xx __log:=/home/rosuser/.ros/log/f9861670-304c-11e9-9839-54e1ad2921b6/sick_lms_5xx-1.log
+rosuser   4910  4875  0 14:46 pts/6    00:00:00 grep --color=auto sick_scan_xd
 ```
 now we can close the node and restart with callgrid
 ```
-valgrind --tool=callgrind program /home/rosuser/ros_catkin_ws/devel/lib/sick_scan/sick_generic_caller __name:=sick_lms_5xx
+valgrind --tool=callgrind program /home/rosuser/ros_catkin_ws/devel/lib/sick_scan_xd/sick_generic_caller __name:=sick_lms_5xx
 ```
 The result will be stored in a callgrind.out.XXX file where XXX will be the process identifier.
 You can read this file using a text editor, but it won't be very useful because it's very cryptic. 

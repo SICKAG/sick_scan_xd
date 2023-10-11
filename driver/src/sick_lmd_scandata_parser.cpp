@@ -61,7 +61,7 @@
 
 #define deg2rad_const (0.017453292519943295769236907684886f)
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
     /** Increments the number of packets received in the SoftwarePLL */
@@ -634,4 +634,4 @@ namespace sick_scan
                   return true;
     }
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */

@@ -324,6 +324,17 @@ sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParse
     return metadata;
 }
 
+static std::vector<int> s_layer_elevation_table_mdeg; // Optional elevation LUT in mdeg for layers in compact format, s_layer_elevation_table_mdeg[layer_idx] := ideal elevation in mdeg
+
+/*
+* @brief Sets the elevation in mdeg for layers in compact format.
+* @param[in] layer_elevation_table_mdeg layer_elevation_table_mdeg[layer_idx] := ideal elevation in mdeg
+*/
+void sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(const std::vector<int>& layer_elevation_table_mdeg)
+{
+  s_layer_elevation_table_mdeg = layer_elevation_table_mdeg;
+}
+
 /*
 Return a layer-id from a given elevation angle. See compact scanformat documention:
 The line/layer index in the figure below is not a layer id according to layer numbering for multi layer sensors.
@@ -331,12 +342,38 @@ Therefore this functions returns a layer-id from the elevation angle in rad.
 */
 static int getLayerIDfromElevation(float layer_elevation_rad) // layer_elevation in radians
 {
-  static std::map<int,int> elevation_layerid_map;
-  static int max_layer_id = 0;
   int layer_elevation_mdeg = (int)std::lround(layer_elevation_rad * 180000 / M_PI);
-  if (elevation_layerid_map.find(layer_elevation_mdeg) == elevation_layerid_map.end())
-    elevation_layerid_map[layer_elevation_mdeg] = max_layer_id++;
-  return elevation_layerid_map[layer_elevation_mdeg];
+  if (!s_layer_elevation_table_mdeg.empty())
+  {
+    int layer_idx = 0;
+    int elevation_dist = std::abs(layer_elevation_mdeg - s_layer_elevation_table_mdeg[layer_idx]);
+    for(int n = 1; n < s_layer_elevation_table_mdeg.size(); n++)
+    {
+      int dist = std::abs(layer_elevation_mdeg - s_layer_elevation_table_mdeg[n]);
+      if (elevation_dist > dist)
+      {
+        elevation_dist = dist;
+        layer_idx = n;
+      }
+      else
+      {
+        break;
+      }
+    }
+    return layer_idx;
+  }
+  else
+  {
+    static std::map<int,int> elevation_layerid_map;
+    if (elevation_layerid_map.find(layer_elevation_mdeg) == elevation_layerid_map.end())
+    {
+      elevation_layerid_map[layer_elevation_mdeg] = elevation_layerid_map.size() + 1; // Add new layer
+      int layerid = 0;
+      for(std::map<int,int>::iterator iter_layerid_map = elevation_layerid_map.begin(); iter_layerid_map != elevation_layerid_map.end(); iter_layerid_map++)
+        iter_layerid_map->second = layerid++; // Resort by ascending elevation
+    }
+    return elevation_layerid_map[layer_elevation_mdeg];
+  }
 }
 
 /*
@@ -403,7 +440,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
     lut_layer_azimuth_delta[layer_idx] = (lut_layer_azimuth_stop[layer_idx] - lut_layer_azimuth_start[layer_idx]) / (float)(std::max(1, (int)meta_data.NumberOfBeamsPerScan - 1));
     lut_sin_elevation[layer_idx] = std::sin(lut_layer_elevation[layer_idx]);
     lut_cos_elevation[layer_idx] = std::cos(lut_layer_elevation[layer_idx]);
-    lut_groupIdx[layer_idx] = getLayerIDfromElevation(lut_layer_elevation[layer_idx]);
+    lut_groupIdx[layer_idx] = getLayerIDfromElevation(meta_data.Phi[layer_idx]);
   }
   // Parse scan data
   uint32_t byte_cnt = 0;
@@ -509,6 +546,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
         points[echo_idx].echoIdx = echo_idx;
         points[echo_idx].groupIdx = groupIdx;
         points[echo_idx].pointIdx = point_idx;
+        points[echo_idx].reflectorbit |= (beam_property & 0x01); // reflector bit is set, if a reflector is detected on any number of echos
         measurement_data.scandata[layer_idx].scanlines[echo_idx].points[point_idx] = points[echo_idx];
       }
     }
@@ -652,7 +690,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
 * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
 * @param[in] verbose true: enable debug output, false: quiet mode
 */
-bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter, 
+bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, 
     ScanSegmentParserOutput& result, bool use_software_pll, bool verbose)
 {
     // Parse segment data

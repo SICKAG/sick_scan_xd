@@ -74,7 +74,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Points
-      Topic: /cloud
+      Topic: /cloud_unstructured_segments
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true

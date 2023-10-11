@@ -21,15 +21,15 @@ function kill_simu()
     killall sick_scan_emulator ; sleep 1
 }
 
-# Start emulator and run sick_scan
+# Start emulator and run sick_scan_xd
 function run_simu()
 {
     rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xxx.rviz --opengl 210 &
     emulator_launchfile=$1
     echo -e "Starting emulator $emulator_launchfile\n"
-    sleep 1 ; roslaunch sick_scan $emulator_launchfile scanner_type:=sick_lms_1xxx &
-    sleep 1 ; echo -e "Launching sick_scan sick_lms_1xxx.launch\n"
-    sleep 1 ; roslaunch sick_scan sick_lms_1xxx_v2.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+    sleep 1 ; roslaunch sick_scan_xd $emulator_launchfile scanner_type:=sick_lms_1xxx &
+    sleep 1 ; echo -e "Launching sick_scan_xd sick_lms_1xxx.launch\n"
+    sleep 1 ; roslaunch sick_scan_xd sick_lms_1xxx_v2.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
     sleep 1 ; waitUntilRvizClosed 30
     kill_simu
 }
@@ -51,9 +51,9 @@ fi
 
 # Run lms1xxx simulation (firmware version >= 2.0 with scan_freq and ang_res configuration, see https://github.com/SICKAG/sick_scan_xd/issues/122):
 # 1. Start rviz
-# 2. Start sick_scan emulator with field settings for sick_lms_1xxx and play 
+# 2. Start sick_scan_xd emulator with field settings for sick_lms_1xxx and play 
 #    20221110-LMS1xxx-150hz-0.75deg.pcapng.json, 20221110-LMS1xxx-75hz-0.375deg.pcapng.json and 20221110-LMS1xxx-37.5hz-0.1875deg.pcapng.json
-# 3. Start sick_scan driver for lms1xxx
+# 3. Start sick_scan_xd driver for lms1xxx
 # 4. Wait for 'q' or 'Q' to exit, until rviz is closed, or max. 60 seconds
 # 5. Shutdown
 run_simu emulator_lms1xxx-150hz-0.75deg.launch

@@ -43,13 +43,13 @@ function run_mrs1104_simu()
     scan_layer_filter=$5
     # Start rviz if not yet running
     start_rviz
-    # Start sick_scan emulator
-    roslaunch sick_scan emulator_mrs1104.launch scandatafiles:=$pcapng_json_file &
+    # Start sick_scan_xd emulator
+    roslaunch sick_scan_xd emulator_mrs1104.launch scandatafiles:=$pcapng_json_file &
     sleep 1
-    # Start sick_scan driver for mrs1104
-    echo -e "Launching sick_scan sick_mrs_1xxx.launch\n"
-    # roslaunch sick_scan sick_mrs_1xxx.launch hostname:=192.168.0.151 &
-    roslaunch sick_scan sick_mrs_1xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False ang_res:=$ang_res scan_freq:=$scan_freq scan_layer_filter:="$scan_layer_filter" &
+    # Start sick_scan_xd driver for mrs1104
+    echo -e "Launching sick_scan_xd sick_mrs_1xxx.launch\n"
+    # roslaunch sick_scan_xd sick_mrs_1xxx.launch hostname:=192.168.0.151 &
+    roslaunch sick_scan_xd sick_mrs_1xxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False ang_res:=$ang_res scan_freq:=$scan_freq scan_layer_filter:="$scan_layer_filter" &
     sleep 1
     # Wait max. 30 sec or for 'q' or 'Q' or until rviz is closed
     waitUntilRvizClosed $duration_sec

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- Launch File for LDMRS test server -->
 <launch>
-    <node name="sick_test_server" pkg="sick_scan" type="test_server" respawn="false" output="screen">
+    <node name="sick_test_server" pkg="sick_scan_xd" type="test_server" respawn="false" output="screen">
         <param name="scanner_name" type="string" value="sick_ldmrs"/>
         <param name="port" type="int" value="12002"/>
         <param name="send_scan_data_rate" type="double" value="20.0"/> <!-- frequency to generate and send scan data (default: 20 Hz) -->

@@ -8,7 +8,7 @@ from launch.actions import DeclareLaunchArgument
 def generate_launch_description():
 
     ld = LaunchDescription()
-    sick_scan_pkg_prefix = get_package_share_directory('sick_scan')
+    sick_scan_pkg_prefix = get_package_share_directory('sick_scan_xd')
     launchfile = os.path.basename(__file__)[:-3] # convert "<lidar_name>.launch.py" to "<lidar_name>.launch"
     launch_file_path = os.path.join(sick_scan_pkg_prefix, 'launch/' + launchfile) # 'launch/sick_nav_2xx.launch')
     node_arguments=[launch_file_path]
@@ -21,14 +21,14 @@ def generate_launch_description():
     ROS_DISTRO = os.environ.get('ROS_DISTRO') # i.e. 'eloquent', 'foxy', etc.
     if ROS_DISTRO[0] <= "e": # ROS versions eloquent and earlier require "node_executable", ROS foxy and later use "executable"
         node = Node(
-            package='sick_scan',
+            package='sick_scan_xd',
             node_executable='sick_generic_caller',
             output='screen',
             arguments=node_arguments
         )
     else: # ROS versions eloquent and earlier require "node_executable", ROS foxy and later use "executable"
         node = Node(
-            package='sick_scan',
+            package='sick_scan_xd',
             executable='sick_generic_caller',
             output='screen',
             arguments=node_arguments

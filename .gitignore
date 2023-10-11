@@ -93,6 +93,7 @@ demo/scan.csv
 
 # Note: emulator testfiles (pcapng and json records) are ignored except a few very short test examples
 test/emulator/scandata/*.*
+test/emulator/scandata/20230719_mrs1104_infringement
 
 test/scripts/run_win64_ros1_simu_lms5xx.cmd
 test/scripts/make_win64_vs2022.cmd
@@ -131,3 +132,5 @@ tools/python_installer/python-3.9.13-amd64.exe
 test/scripts/run_win64_picoscan_emulator.cmd
 
 test/emulator/scandata/20230719_mrs1104_infringement/
+
+doc/20230919_sick_scan_xd_timeout_settings.pptx

@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /LaserScan1
       Splitter Ratio: 0.3034934401512146
     Tree Height: 490
   - Class: rviz_common/Selection
@@ -126,7 +125,7 @@ Visualization Manager:
       Class: rviz_default_plugins/LaserScan
       Color: 255; 255; 255
       Color Transformer: Intensity
-      Decay Time: 0.5
+      Decay Time: 1
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
@@ -151,7 +150,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: world_0
+    Fixed Frame: world_5
     Frame Rate: 30
   Name: root
   Tools:

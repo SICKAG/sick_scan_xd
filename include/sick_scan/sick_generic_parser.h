@@ -88,7 +88,7 @@
 #include "sick_scan/sick_range_filter.h"
 #include "sick_scan/dataDumper.h"
 // namespace sensor_msgs
-namespace sick_scan
+namespace sick_scan_xd
 {
   enum EVAL_FIELD_SUPPORT // type of eval field support:
   {
@@ -286,5 +286,5 @@ namespace sick_scan
     RangeFilterResultHandling m_range_filter_handling = RANGE_FILTER_DEACTIVATED;
   };
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_GENERIC_PARSER_H_ */

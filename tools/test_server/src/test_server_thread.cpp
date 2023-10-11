@@ -79,7 +79,7 @@
  * @param[in] scanner_name scanner type, f.e. "sick_ldmrs"
  * @param[in] ip_port ip port for tcp connections, default: 2112
  */
-sick_scan::test::TestServerThread::TestServerThread(rosNodePtr nh, const std::string & scanner_name, int ip_port)
+sick_scan_xd::test::TestServerThread::TestServerThread(rosNodePtr nh, const std::string & scanner_name, int ip_port)
 : m_nh(nh), m_scanner_name(scanner_name), m_ip_port(ip_port), m_server_thread(0), m_run_server_thread(false)
 {
 }
@@ -87,7 +87,7 @@ sick_scan::test::TestServerThread::TestServerThread(rosNodePtr nh, const std::st
 /*!
  * Destructor. Stops the server thread and closes all tcp connections.
  */
-sick_scan::test::TestServerThread::~TestServerThread()
+sick_scan_xd::test::TestServerThread::~TestServerThread()
 {
 }
 
@@ -95,10 +95,10 @@ sick_scan::test::TestServerThread::~TestServerThread()
  * Starts the server thread, starts to listen and accept tcp connections from clients.
  * @return true on success, false on failure.
  */
-bool sick_scan::test::TestServerThread::start(void)
+bool sick_scan_xd::test::TestServerThread::start(void)
 {
   m_run_server_thread = true;
-  m_server_thread = new std::thread(&sick_scan::test::TestServerThread::run, this);
+  m_server_thread = new std::thread(&sick_scan_xd::test::TestServerThread::run, this);
   return true;
 }
 
@@ -106,7 +106,7 @@ bool sick_scan::test::TestServerThread::start(void)
  * Stops the server thread and closes all tcp connections.
  * @return true on success, false on failure.
  */
-bool sick_scan::test::TestServerThread::stop(void)
+bool sick_scan_xd::test::TestServerThread::stop(void)
 {
   m_run_server_thread = false;
   if(m_server_thread != 0)
@@ -121,10 +121,10 @@ bool sick_scan::test::TestServerThread::stop(void)
 /*
  * @brief Thread callback, runs the tcp communication with clients
  */
-bool sick_scan::test::TestServerThread::run(void)
+bool sick_scan_xd::test::TestServerThread::run(void)
 {
   assert(m_nh != 0);
-  ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(): starting tcp communication thread, simulating scanner type \"" << m_scanner_name << "\"");
+  ROS_INFO_STREAM("sick_scan_xd::test::TestServerThread::run(): starting tcp communication thread, simulating scanner type \"" << m_scanner_name << "\"");
   double send_scan_data_rate = 1/20.0; // frequency to generate and send scan data (default: 20 Hz)
   rosGetParam(m_nh, "send_scan_data_rate", send_scan_data_rate);
   
@@ -147,24 +147,24 @@ bool sick_scan::test::TestServerThread::run(void)
   }
 
   // Create listening socket and wait for connection from a client
-  sick_scan::ServerSocket tcp_socket;
+  sick_scan_xd::ServerSocket tcp_socket;
   if (tcp_socket.open(m_ip_port)
     && tcp_socket.connect()
     && tcp_socket.is_open())
   {
-    ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): tcp connection established");
+    ROS_INFO_STREAM("sick_scan_xd::test::TestServerThread::run(" << m_scanner_name << "): tcp connection established");
   }
   else
   {
-    ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerThread::run(" << m_scanner_name << "): tcp connection port " << m_ip_port << " failed");
+    ROS_ERROR_STREAM("## ERROR sick_scan_xd::test::TestServerThread::run(" << m_scanner_name << "): tcp connection port " << m_ip_port << " failed");
   }
 
   // Create device specific message handler
-  sick_scan::test::TestServerLidarMsg* msg_handler = 0;
+  sick_scan_xd::test::TestServerLidarMsg* msg_handler = 0;
   if(m_scanner_name == "sick_ldmrs")
-    msg_handler = new sick_scan::test::TestServerLDMRSMsg(m_nh, send_scan_data_rate, scan_data_payload);
+    msg_handler = new sick_scan_xd::test::TestServerLDMRSMsg(m_nh, send_scan_data_rate, scan_data_payload);
   else
-    msg_handler = new sick_scan::test::TestServerColaMsg(m_nh, send_scan_data_rate, scan_data_payload);
+    msg_handler = new sick_scan_xd::test::TestServerColaMsg(m_nh, send_scan_data_rate, scan_data_payload);
   assert(msg_handler);
 
   // Run event loop, receive messages, create and send responses and scan data
@@ -176,21 +176,21 @@ bool sick_scan::test::TestServerThread::run(void)
   bool message_is_binary = false;
   while(rosOk() && m_run_server_thread && tcp_socket.is_open())
   {
-    // ROS_DEBUG_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): tcp connection established, running event loop...");
+    // ROS_DEBUG_STREAM("sick_scan_xd::test::TestServerThread::run(" << m_scanner_name << "): tcp connection established, running event loop...");
     // Receive message
     if(msg_handler->receiveMessage(tcp_socket, message_received, message_is_binary))
     {
-      ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): received " << message_received.size() 
+      ROS_INFO_STREAM("sick_scan_xd::test::TestServerThread::run(" << m_scanner_name << "): received " << message_received.size() 
         << " byte " << (message_is_binary?"binary":"text") << " message \"" << binDumpVecToString(&message_received, !message_is_binary) << "\"");
       // Generate response
       if(msg_handler->createResponse(message_received, message_is_binary, message_response))
       {
-        ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): sending " << message_response.size() 
+        ROS_INFO_STREAM("sick_scan_xd::test::TestServerThread::run(" << m_scanner_name << "): sending " << message_response.size() 
           << " byte response \"" << binDumpVecToString(&message_response, !message_is_binary) << "\"");
         // Send response
         if(!tcp_socket.write(message_response.data(), message_response.size()))
         {
-          ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerThread::run(" << m_scanner_name << "): failed to send " << message_response.size() 
+          ROS_ERROR_STREAM("## ERROR sick_scan_xd::test::TestServerThread::run(" << m_scanner_name << "): failed to send " << message_response.size() 
             << " byte response \"" << binDumpVecToString(&message_received, !message_is_binary) << "\"");
         }
       }
@@ -203,7 +203,7 @@ bool sick_scan::test::TestServerThread::run(void)
         // Send scan data
         if(!tcp_socket.write(scandata_message.data(), scandata_message.size()))
         {
-          ROS_ERROR_STREAM("## ERROR sick_scan::test::TestServerThread::run(" << m_scanner_name << "): failed to send " << scandata_message.size() 
+          ROS_ERROR_STREAM("## ERROR sick_scan_xd::test::TestServerThread::run(" << m_scanner_name << "): failed to send " << scandata_message.size() 
             << " byte scan data \"" << binDumpVecToString(&message_received) << "\"");
         }
       }
@@ -212,12 +212,12 @@ bool sick_scan::test::TestServerThread::run(void)
   }
 
   // Close tcp connection
-  ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): closing tcp connection");
+  ROS_INFO_STREAM("sick_scan_xd::test::TestServerThread::run(" << m_scanner_name << "): closing tcp connection");
   if(tcp_socket.is_open())
   {
     tcp_socket.close();
   }
-  ROS_INFO_STREAM("sick_scan::test::TestServerThread::run(" << m_scanner_name << "): exiting tcp communication thread");
+  ROS_INFO_STREAM("sick_scan_xd::test::TestServerThread::run(" << m_scanner_name << "): exiting tcp communication thread");
   m_run_server_thread = false;
   return true;
 }

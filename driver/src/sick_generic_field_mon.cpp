@@ -60,7 +60,7 @@
 #include <sick_scan/sick_scan_common.h>
 #include <sick_scan/sick_generic_field_mon.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   /*

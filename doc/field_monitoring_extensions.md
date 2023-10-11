@@ -4,7 +4,7 @@ The LMS1xx, LMS5xx, TiM7xx and TiM7xxS families have the following extended sett
 
 ## Field monitoring messages
 
-LMS1xx, LMS5xx, TiM7xx and TiM7xxS scanner support field monitoring. Fields can be configured by Sopas ET. Once they are configured, sick_scan publishes ros messages containing the monitoring information from the lidar. 
+LMS1xx, LMS5xx, TiM7xx and TiM7xxS scanner support field monitoring. Fields can be configured by Sopas ET. Once they are configured, sick_scan_xd publishes ros messages containing the monitoring information from the lidar. 
 
 By default, field monitoring is enabled in the launch files [sick_lms_1xx.launch](../launch/sick_lms_1xx.launch),  [sick_lms_5xx.launch](../launch/sick_lms_5xx.launch),
 [sick_tim_7xx.launch](../launch/sick_tim_7xx.launch) resp. [sick_tim_7xxS.launch](../launch/sick_tim_7xxS.launch) by following settings:
@@ -66,7 +66,7 @@ Note: Field monitoring currently supports binary cola messages only, which is th
 The point cloud, the monitored fields and their status can be visualized using rviz. Use the [rviz configuration file](../test/emulator/config/rviz_emulator_cfg.rviz) 
 and run
 ```
-rosrun rviz rviz -d ./src/sick_scan/test/emulator/config/rviz_emulator_cfg.rviz
+rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg.rviz
 ```
 
 Otherwise you can just add visualizations of type `/cloud/PointCloud2` and `/sick_tim_7xxS/marker` (resp. `/sick_tim_1xx/marker` for lms_1xx,  `/sick_tim_5xx/marker` for lms_5xx and  `/sick_tim_7xx/marker` for tim_7xx):
@@ -83,12 +83,12 @@ The following screenshot shows a LMS511 example with a segmented field, two rect
 
 Note: Some combinations of rviz, OpenGL 3, VMware and graphic card drivers may cause visualization issues. In case of missing markers, try rviz with Open GL 2 using the command
 ```
-rosrun rviz rviz -d ./src/sick_scan/test/emulator/config/rviz_emulator_cfg.rviz --opengl 210
+rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg.rviz --opengl 210
 ```
 
 ## Cola commands
 
-Cola commands can be sent for diagnosis and development using the ros service ColaMsg. This service is implemented in sick_scan and started by 
+Cola commands can be sent for diagnosis and development using the ros service ColaMsg. This service is implemented in sick_scan_xd and started by 
 ```
 <param name="start_services" type="bool" value="True"/>
 ```
@@ -102,7 +102,7 @@ response: "sRA SCdevicestate \\x00"
 
 ## Tools, emulation and unittests
 
-Package sick_scan implements some tools to support unittests, development and emulation of Tim781S devices:
+Package sick_scan_xd implements some tools to support unittests, development and emulation of Tim781S devices:
 
 - sick_scan_emulator to emulate lidar devices and enable unittests (currently for Tim781S only)
 
@@ -112,11 +112,11 @@ Package sick_scan implements some tools to support unittests, development and em
 
 sick_scan_emulator implements a simple test server for cola commands. It rececives Cola-commands, returns Tim781S-like responses and sends Scandata from a json-file. Run
 ```
-roslaunch sick_scan emulator_01_default.launch
+roslaunch sick_scan_xd emulator_01_default.launch
 ```
-to emulate a local Tim781S device. Then start and connect the sick_scan driver by
+to emulate a local Tim781S device. Then start and connect the sick_scan_xd driver by
 ```
-roslaunch sick_scan sick_tim_7xxS.launch hostname:=127.0.0.1
+roslaunch sick_scan_xd sick_tim_7xxS.launch hostname:=127.0.0.1
 ```
 
 Note that sick_scan_emulator just implements a simple server for offline tests. It does not emulate a lidar device completely and should only be used for development and testing.
@@ -125,16 +125,16 @@ Scandata messages are parsed from json-file(s). These json-files are configured 
 
 A LMS111 device can be emulated by running
 ```
-roslaunch sick_scan emulator_lms1xx.launch &
-rosrun rviz rviz -d ./src/sick_scan/test/emulator/config/rviz_lms1xx.rviz &
-roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1
+roslaunch sick_scan_xd emulator_lms1xx.launch &
+rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz &
+roslaunch sick_scan_xd sick_lms_1xx.launch hostname:=127.0.0.1
 ```
 
 A LMS511 device can be emulated by running
 ```
-roslaunch sick_scan emulator_lms5xx.launch &
-rosrun rviz rviz -d ./src/sick_scan/test/emulator/config/rviz_lms5xx.rviz &
-roslaunch sick_scan sick_lms_5xx.launch hostname:=127.0.0.1
+roslaunch sick_scan_xd emulator_lms5xx.launch &
+rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms5xx.rviz &
+roslaunch sick_scan_xd sick_lms_5xx.launch hostname:=127.0.0.1
 ```
 
 ### Unittests
@@ -149,14 +149,14 @@ cd test/scripts
 or start emulator, driver and rviz by running
 ```
 source ./install/setup.bash
-# Start sick_scan emulator
-roslaunch sick_scan emulator_01_default.launch &
+# Start sick_scan_xd emulator
+roslaunch sick_scan_xd emulator_01_default.launch &
 sleep 1
 # Start rviz
-rosrun rviz rviz -d ./src/sick_scan/test/emulator/config/rviz_emulator_cfg.rviz --opengl 210 &
+rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg.rviz --opengl 210 &
 sleep 1
-# Start sick_scan driver for TiM871S
-roslaunch sick_scan sick_tim_7xxS.launch hostname:=127.0.0.1
+# Start sick_scan_xd driver for TiM871S
+roslaunch sick_scan_xd sick_tim_7xxS.launch hostname:=127.0.0.1
 ```
 
 ### Pcapng converter tool
@@ -164,7 +164,7 @@ roslaunch sick_scan sick_tim_7xxS.launch hostname:=127.0.0.1
 The pcapng converter tool [pcap_json_converter.py](../test/pcap_json_converter/pcap_json_converter.py) converts pcapng-files to json-files. Run the following steps to create a json-file with scandata for the emulator:
 
 1. Start wireshark and filter the tcp traffic on port 2112 with the filter expression `tcp and tcp.port==2112`.
-2. Start TiM781S and run the sick_scan driver.
+2. Start TiM781S and run the sick_scan_xd driver.
 3. Capture the network traffic for some time.
 4. Stop capturing and save the network traffic in a pcapng-file.
 5. Convert the pcapng-file to json by `python pcap_json_converter.py --pcap_filename=<filepath>.pcapng`. Result is a jsonfile `<filepath>.pcapng.json`

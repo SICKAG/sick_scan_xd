@@ -60,26 +60,26 @@
 #include "sick_scan/result_port_parser.h"
 
 /** assert macro to verify result telegrams, throws an std::invalid_argument exception in case of assertion failures */
-#define PARSE_ASSERT(assertion,info) sick_scan::ResultPortParser::parseAssert((assertion),(#assertion),info,__FILE__,__LINE__)
+#define PARSE_ASSERT(assertion,info) sick_scan_xd::ResultPortParser::parseAssert((assertion),(#assertion),info,__FILE__,__LINE__)
 
 /*
  * Constructor of class ResultPortParser, which implements a parser for
  * result port telegrams for SIM Localization.
  * @param[in] frame_id frame_id of published ros messages (type SickLocResultPortTelegramMsg)
  */
-sick_scan::ResultPortParser::ResultPortParser(const std::string & frame_id) : m_publish_frame_id(frame_id), m_result_port_telegram(), m_little_endian_payload(false)
+sick_scan_xd::ResultPortParser::ResultPortParser(const std::string & frame_id) : m_publish_frame_id(frame_id), m_result_port_telegram(), m_little_endian_payload(false)
 {
 }
 
 /*
  * Shortcut to print error messages and to throw an std::invalid_argument exception in case of assertion failures
  */
-void sick_scan::ResultPortParser::parseAssert(bool assertion, const std::string & assertion_msg, const std::string & info, const std::string & file, int line)
+void sick_scan_xd::ResultPortParser::parseAssert(bool assertion, const std::string & assertion_msg, const std::string & info, const std::string & file, int line)
 {
   if(!assertion)
   {
     std::stringstream exc_info;
-    exc_info << "sick_scan::ResultPortParser: assertion \"" << assertion_msg << "\" failed, " << info << " (" << file << ":" << line;
+    exc_info << "sick_scan_xd::ResultPortParser: assertion \"" << assertion_msg << "\" failed, " << info << " (" << file << ":" << line;
     throw std::invalid_argument(exc_info.str());
   }
 }
@@ -94,7 +94,7 @@ void sick_scan::ResultPortParser::parseAssert(bool assertion, const std::string 
  * @return number of bytes decoded
  * @throws std::invalid_argument in case of parse errors
  */
-template<typename T> size_t sick_scan::ResultPortParser::copyBytesToValue(const std::vector<uint8_t> & binary_data, size_t start_byte, T & value, const std::string & info, bool little_endian)
+template<typename T> size_t sick_scan_xd::ResultPortParser::copyBytesToValue(const std::vector<uint8_t> & binary_data, size_t start_byte, T & value, const std::string & info, bool little_endian)
 {
   PARSE_ASSERT(binary_data.size() >= start_byte + sizeof(value), std::string("ResultPortParser::copyBytesToValue(): invalid size (") + info + ")");
   value = 0;
@@ -124,7 +124,7 @@ template<typename T> size_t sick_scan::ResultPortParser::copyBytesToValue(const 
  * @return number of bytes decoded := dst_array.size()
  * @throws std::invalid_argument in case of parse errors
  */
-template<typename T> size_t sick_scan::ResultPortParser::copyBytesToArray(const std::vector<uint8_t> & binary_data, size_t start_byte, std::vector<T> & dst_array, const std::string & info)
+template<typename T> size_t sick_scan_xd::ResultPortParser::copyBytesToArray(const std::vector<uint8_t> & binary_data, size_t start_byte, std::vector<T> & dst_array, const std::string & info)
 {
   PARSE_ASSERT(binary_data.size() >= start_byte + dst_array.size(), std::string("ResultPortParser::copyBytesToArray(): invalid size (") + info + ")");
   for (size_t n = 0; n < dst_array.size(); n++)
@@ -156,7 +156,7 @@ template<typename T> size_t sick_scan::ResultPortParser::copyBytesToArray(const 
  * @param[in] binary_data_with_trailer true (default): binary_data (input) contains 2 byte trailer
  * @return CRC16 checksum
  */
-uint16_t sick_scan::ResultPortParser::computeChecksum(const std::vector<uint8_t> & binary_data, bool binary_data_with_trailer)
+uint16_t sick_scan_xd::ResultPortParser::computeChecksum(const std::vector<uint8_t> & binary_data, bool binary_data_with_trailer)
 {
   PARSE_ASSERT(binary_data_with_trailer == false || binary_data.size() >= 2, std::string("ResultPortParser::computeChecksum(): invalid input, binary_data.size() = ") + std::to_string(binary_data.size()));
   size_t len = binary_data_with_trailer ? (binary_data.size() - 2) : (binary_data.size());
@@ -173,7 +173,7 @@ uint16_t sick_scan::ResultPortParser::computeChecksum(const std::vector<uint8_t>
  * @param[in] payload_type the PayloadType of a telegram_header
  * @return true for little endian payloads, false otherwise
  */
-bool sick_scan::ResultPortParser::isLittleEndianPayload(uint16_t payload_type)
+bool sick_scan_xd::ResultPortParser::isLittleEndianPayload(uint16_t payload_type)
 {
   return (payload_type == 0x06c2);
 }
@@ -186,7 +186,7 @@ bool sick_scan::ResultPortParser::isLittleEndianPayload(uint16_t payload_type)
  * @return number of bytes decoded
  * @throws std::invalid_argument in case of parse errors
  */
-size_t sick_scan::ResultPortParser::decodeResultPortHeader(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan::SickLocResultPortHeaderMsg & telegram_header)
+size_t sick_scan_xd::ResultPortParser::decodeResultPortHeader(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan_xd::SickLocResultPortHeaderMsg & telegram_header)
 {
   size_t bytes_decoded = 0;
 
@@ -235,7 +235,7 @@ size_t sick_scan::ResultPortParser::decodeResultPortHeader(const std::vector<uin
  * @return number of bytes decoded
  * @throws std::invalid_argument in case of parse errors
  */
-size_t sick_scan::ResultPortParser::decodeResultPortPayload(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan::SickLocResultPortPayloadMsg & telegram_payload)
+size_t sick_scan_xd::ResultPortParser::decodeResultPortPayload(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan_xd::SickLocResultPortPayloadMsg & telegram_payload)
 {
   size_t bytes_decoded = 0;
   
@@ -295,7 +295,7 @@ size_t sick_scan::ResultPortParser::decodeResultPortPayload(const std::vector<ui
  * @return number of bytes decoded
  * @throws std::invalid_argument in case of parse errors
  */
-size_t sick_scan::ResultPortParser::decodeResultPortTrailer(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan::SickLocResultPortCrcMsg & telegram_trailer)
+size_t sick_scan_xd::ResultPortParser::decodeResultPortTrailer(const std::vector<uint8_t> & binary_data, size_t start_byte, sick_scan_xd::SickLocResultPortCrcMsg & telegram_trailer)
 {
   size_t bytes_decoded = 0;
   
@@ -311,7 +311,7 @@ size_t sick_scan::ResultPortParser::decodeResultPortTrailer(const std::vector<ui
  * @param[in] binary_data binary data (106 byte binary result port telegram), f.e. { 0x53, 0x49, 0x43, 0x4B, 0x00, ... }
  * @return true if binary_data successfully decode, false otherwise.
  */
-bool sick_scan::ResultPortParser::decode(const std::vector<uint8_t> & binary_data)
+bool sick_scan_xd::ResultPortParser::decode(const std::vector<uint8_t> & binary_data)
 {
   try
   {
@@ -340,7 +340,7 @@ bool sick_scan::ResultPortParser::decode(const std::vector<uint8_t> & binary_dat
   }
   catch(const std::invalid_argument & exc)
   {
-    ROS_ERROR_STREAM("## ERROR in sick_scan::ResultPortParser::decode(): exception " << exc.what());
+    ROS_ERROR_STREAM("## ERROR in sick_scan_xd::ResultPortParser::decode(): exception " << exc.what());
   }
   return false;
 }
@@ -351,7 +351,7 @@ bool sick_scan::ResultPortParser::decode(const std::vector<uint8_t> & binary_dat
  * @param[out] binary_data binary data (destination buffer)
  * @param[in] little_endian true: binary_data encoded in little endian format, false (default): binary_data encoded in big endian format
  */
-template<typename T> void sick_scan::ResultPortParser::encodePushValue(T value, std::vector<uint8_t> & binary_data, bool little_endian)
+template<typename T> void sick_scan_xd::ResultPortParser::encodePushValue(T value, std::vector<uint8_t> & binary_data, bool little_endian)
 {
   if(little_endian) // Little endian: LSB first, MSB last
   {
@@ -375,7 +375,7 @@ template<typename T> void sick_scan::ResultPortParser::encodePushValue(T value, 
  * @param[in] telegram_header header of result port telegram
  * @param[out] binary_data destination buffer
  */
-void sick_scan::ResultPortParser::encodeResultPortHeader(const sick_scan::SickLocResultPortHeaderMsg & telegram_header, std::vector<uint8_t> & binary_data)
+void sick_scan_xd::ResultPortParser::encodeResultPortHeader(const sick_scan_xd::SickLocResultPortHeaderMsg & telegram_header, std::vector<uint8_t> & binary_data)
 {
   encodePushValue(telegram_header.magicword, binary_data);
   encodePushValue(telegram_header.length, binary_data);
@@ -394,7 +394,7 @@ void sick_scan::ResultPortParser::encodeResultPortHeader(const sick_scan::SickLo
  * @param[in] telegram_payload payload of result port telegram
  * @param[out] binary_data destination buffer
  */
-void sick_scan::ResultPortParser::encodeResultPortPayload(const sick_scan::SickLocResultPortPayloadMsg & telegram_payload, std::vector<uint8_t> & binary_data)
+void sick_scan_xd::ResultPortParser::encodeResultPortPayload(const sick_scan_xd::SickLocResultPortPayloadMsg & telegram_payload, std::vector<uint8_t> & binary_data)
 {
   encodePushValue(telegram_payload.errorcode, binary_data, m_little_endian_payload);
   encodePushValue(telegram_payload.scancounter, binary_data, m_little_endian_payload);
@@ -417,7 +417,7 @@ void sick_scan::ResultPortParser::encodeResultPortPayload(const sick_scan::SickL
  * @param[in] checksum checksum (trailer) of result port telegram
  * @param[out] binary_data destination buffer
  */
-void sick_scan::ResultPortParser::encodeResultPortTrailer(uint16_t checksum, std::vector<uint8_t> & binary_data)
+void sick_scan_xd::ResultPortParser::encodeResultPortTrailer(uint16_t checksum, std::vector<uint8_t> & binary_data)
 {
   encodePushValue(checksum, binary_data);
 }
@@ -426,7 +426,7 @@ void sick_scan::ResultPortParser::encodeResultPortTrailer(uint16_t checksum, std
  * Encodes the result port telegram and returns its binary data.
  * @return binary data (106 byte binary result port telegram), f.e. { 0x53, 0x49, 0x43, 0x4B, 0x00, ... }
  */
-std::vector<uint8_t> sick_scan::ResultPortParser::encode(void)
+std::vector<uint8_t> sick_scan_xd::ResultPortParser::encode(void)
 {
   std::vector<uint8_t> binary_data;
   binary_data.reserve(106);

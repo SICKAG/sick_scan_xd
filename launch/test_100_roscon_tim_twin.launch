@@ -14,8 +14,8 @@
 
 -->
 <launch>
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_scan)/urdf/example.urdf.xacro'"/>
-    <node name="sick_tim_5xx_1" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_scan_xd)/urdf/example.urdf.xacro'"/>
+    <node name="sick_tim_5xx_1" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_tim_5xx"/>
         <param name="frame_id" value="/laser_1"/>
         <param name="min_ang" type="double" value="-2.35619449"/><!-- -135° -->
@@ -28,7 +28,7 @@
         <remap from="scan" to="scan_1"/>
         <remap from="cloud" to="cloud_1"/>
     </node>
-    <node name="sick_tim_5xx_2" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen">
+    <node name="sick_tim_5xx_2" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
         <param name="scanner_type" type="string" value="sick_tim_5xx"/>
         <param name="frame_id" value="/laser_2"/>
         <param name="min_ang" type="double" value="-2.35619449"/><!-- -135° -->
@@ -41,12 +41,12 @@
         <remap from="scan" to="scan_2"/>
         <remap from="cloud" to="cloud_2"/>
     </node>
-    <node name="sick_sensor_alignment" pkg="sick_scan" type="sensor_alignment" respawn="false" output="screen">
+    <node name="sick_sensor_alignment" pkg="sick_scan_xd" type="sensor_alignment" respawn="false" output="screen">
     </node>
     <node name="rqt_reconfigure_laser_1_laser_2" pkg="rqt_reconfigure" type="rqt_reconfigure" respawn="false"
           output="screen">
     </node>
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find sick_scan)/launch/rviz/sick_win_align.rviz" respawn="false"
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find sick_scan_xd)/launch/rviz/sick_win_align.rviz" respawn="false"
           output="screen">
     </node>
 </launch>

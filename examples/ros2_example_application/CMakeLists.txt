@@ -22,7 +22,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
-find_package(sick_scan REQUIRED)
+find_package(sick_scan_xd REQUIRED)
 
 add_executable(sick_scan_ros2_example src/sick_scan_ros2_example.cpp)
 
@@ -33,7 +33,7 @@ ament_target_dependencies(
         "std_msgs"
         "geometry_msgs"
         "visualization_msgs"
-        "sick_scan"
+        "sick_scan_xd"
 )
 
 install(TARGETS sick_scan_ros2_example DESTINATION lib/${PROJECT_NAME})

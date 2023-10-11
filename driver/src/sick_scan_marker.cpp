@@ -101,24 +101,24 @@ static ros_std_msgs::ColorRGBA gray(void) // invalid fields (default)
     return color(0.5f, 0.5f, 0.5f);
 }
 
-sick_scan::SickScanMarker::SickScanMarker(rosNodePtr nh, const std::string & marker_topic, const std::string & marker_frame_id)
+sick_scan_xd::SickScanMarker::SickScanMarker(rosNodePtr nh, const std::string & marker_topic, const std::string & marker_frame_id)
 : m_nh(nh), m_scan_mon_fieldset(0), m_marker_output_legend_offset_x(-0.5)
 {
     if(nh)
     {
         m_frame_id = marker_frame_id.empty() ? "/cloud" : marker_frame_id;
         m_marker_publisher = rosAdvertise<ros_visualization_msgs::MarkerArray>(nh, marker_topic.empty() ? "sick_scan/marker" : marker_topic, 1);
-        m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, true);
+        m_add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(nh, true);
     }
 }
 
-sick_scan::SickScanMarker::~SickScanMarker()
+sick_scan_xd::SickScanMarker::~SickScanMarker()
 {
 }
 
-void sick_scan::SickScanMarker::updateMarker(const std::vector<SickScanMonField>& fields, int fieldset, int _eval_field_logic)
+void sick_scan_xd::SickScanMarker::updateMarker(const std::vector<SickScanMonField>& fields, int fieldset, int _eval_field_logic)
 {
-    sick_scan::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan::EVAL_FIELD_SUPPORT)_eval_field_logic;
+    sick_scan_xd::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan_xd::EVAL_FIELD_SUPPORT)_eval_field_logic;
     m_scan_mon_fields = fields;
     if(eval_field_logic == USE_EVAL_FIELD_TIM7XX_LOGIC)
     {
@@ -133,16 +133,16 @@ void sick_scan::SickScanMarker::updateMarker(const std::vector<SickScanMonField>
     publishMarker();
 }
 
-void sick_scan::SickScanMarker::updateMarker(sick_scan_msg::LIDoutputstateMsg& msg, int _eval_field_logic)
+void sick_scan_xd::SickScanMarker::updateMarker(sick_scan_msg::LIDoutputstateMsg& msg, int _eval_field_logic)
 {
-    sick_scan::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan::EVAL_FIELD_SUPPORT)_eval_field_logic;
+    sick_scan_xd::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan_xd::EVAL_FIELD_SUPPORT)_eval_field_logic;
     SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
     if(fieldMon && eval_field_logic == USE_EVAL_FIELD_TIM7XX_LOGIC)
     {
         m_scan_mon_fieldset = fieldMon->getActiveFieldset();
         ROS_DEBUG_STREAM("SickScanMarker: active_fieldset = " << fieldMon->getActiveFieldset());
     }
-    int num_devices = (int)MIN(msg.output_count.size(), msg.output_state.size());
+    int num_devices = (int)std::min<size_t>(msg.output_count.size(), msg.output_state.size());
     std::vector<std::string> output_state(num_devices);
     std::vector<std::string> output_count(num_devices);
     std::vector<ros_std_msgs::ColorRGBA> output_colors(num_devices);
@@ -175,9 +175,9 @@ void sick_scan::SickScanMarker::updateMarker(sick_scan_msg::LIDoutputstateMsg& m
     publishMarker();
 }
 
-void sick_scan::SickScanMarker::updateMarker(sick_scan_msg::LFErecMsg& msg, int _eval_field_logic)
+void sick_scan_xd::SickScanMarker::updateMarker(sick_scan_msg::LFErecMsg& msg, int _eval_field_logic)
 {
-    sick_scan::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan::EVAL_FIELD_SUPPORT)_eval_field_logic;
+    sick_scan_xd::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan_xd::EVAL_FIELD_SUPPORT)_eval_field_logic;
     SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
     if(fieldMon && eval_field_logic == USE_EVAL_FIELD_TIM7XX_LOGIC)
     {
@@ -226,7 +226,7 @@ void sick_scan::SickScanMarker::updateMarker(sick_scan_msg::LFErecMsg& msg, int 
     publishMarker();
 }
 
-void sick_scan::SickScanMarker::publishMarker(void)
+void sick_scan_xd::SickScanMarker::publishMarker(void)
 {
     ros_visualization_msgs::MarkerArray marker_array;
     marker_array.markers.reserve(m_scan_mon_field_marker.size() + m_scan_mon_field_legend.size() + m_scan_outputstate_legend.size());
@@ -269,20 +269,20 @@ static void appendTrianglePoints(int point_count, const std::vector<float>& poin
     }
 }
 
-std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFieldMarker(const std::vector<FieldInfo>& field_info)
+std::vector<ros_visualization_msgs::Marker> sick_scan_xd::SickScanMarker::createMonFieldMarker(const std::vector<FieldInfo>& field_info)
 {
     int nr_triangles = 0;
     for(int field_info_idx = 0; field_info_idx < field_info.size(); field_info_idx++)
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
-        const sick_scan::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
+        const sick_scan_xd::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
         SickScanMonFieldType field_typ = mon_field.fieldType();
         if(field_typ == MON_FIELD_DYNAMIC) // dynamic fields have two rectangle (first rectangle for v = max, second rectangle for v = 0)
-            nr_triangles += 2 * MAX(0, mon_field.getPointCount()/2 - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
+            nr_triangles += 2 * std::max<int>(0, mon_field.getPointCount()/2 - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
         else
-            nr_triangles += MAX(0, mon_field.getPointCount() - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
+            nr_triangles += std::max<int>(0, mon_field.getPointCount() - 2); // 3 points: 1 triangle, 4 points: 3 triangles, and so on
         // std::map<SickScanMonFieldType,std::string> field_type_str = { {MON_FIELD_RADIAL, "MON_FIELD_RADIAL"}, {MON_FIELD_RECTANGLE, "MON_FIELD_RECTANGLE"}, {MON_FIELD_SEGMENTED, "MON_FIELD_SEGMENTED"}, {MON_FIELD_DYNAMIC, "MON_FIELD_DYNAMIC"} };
-        // ROS_INFO_STREAM("sick_scan::SickScanMarker::createMonFieldMarker(): field[" << field_info_idx << "]: type=" << field_type_str[field_typ] << ", " << (mon_field.getPointCount()) << " points");
+        // ROS_INFO_STREAM("sick_scan_xd::SickScanMarker::createMonFieldMarker(): field[" << field_info_idx << "]: type=" << field_type_str[field_typ] << ", " << (mon_field.getPointCount()) << " points");
     }
 
     // Draw fields using marker triangles
@@ -314,7 +314,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
         ros_std_msgs::ColorRGBA field_color = field_info[field_info_idx].field_color;
-        const sick_scan::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
+        const sick_scan_xd::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
         int point_count = mon_field.getPointCount();
         const std::vector<float>& points_x = mon_field.getFieldPointsX();
         const std::vector<float>& points_y = mon_field.getFieldPointsY();
@@ -355,7 +355,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
     for(int field_info_idx = 0; field_info_idx < field_info.size(); field_info_idx++)
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
-        const sick_scan::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
+        const sick_scan_xd::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
         if(mon_field.getPointCount() >= 3)
         {
             ros_geometry_msgs::Point triangle_centroid;
@@ -416,7 +416,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
     return marker_array;
 }
 
-std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFieldLegend(const std::vector<FieldInfo>& field_info)
+std::vector<ros_visualization_msgs::Marker> sick_scan_xd::SickScanMarker::createMonFieldLegend(const std::vector<FieldInfo>& field_info)
 {
     std::vector<ros_visualization_msgs::Marker> marker_array;
     marker_array.reserve(2 * field_info.size());
@@ -458,7 +458,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
     return marker_array;
 }
 
-std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMonFieldsetLegend(int fieldset)
+std::vector<ros_visualization_msgs::Marker> sick_scan_xd::SickScanMarker::createMonFieldsetLegend(int fieldset)
 {
     std::vector<ros_visualization_msgs::Marker> marker_array;
     marker_array.reserve(2);
@@ -494,7 +494,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createMon
 }
 
 
-std::vector<ros_visualization_msgs::Marker> sick_scan::SickScanMarker::createOutputStateLegend(const std::vector<std::string>& output_state, const std::vector<std::string>& output_count, const std::vector<ros_std_msgs::ColorRGBA>& output_colors)
+std::vector<ros_visualization_msgs::Marker> sick_scan_xd::SickScanMarker::createOutputStateLegend(const std::vector<std::string>& output_state, const std::vector<std::string>& output_count, const std::vector<ros_std_msgs::ColorRGBA>& output_colors)
 {
     std::vector<ros_visualization_msgs::Marker> marker_array;
     marker_array.reserve(2 * output_count.size());

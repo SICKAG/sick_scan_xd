@@ -38,7 +38,7 @@
 
 #include <sick_scan/sick_ros_wrapper.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
 enum ExitCode
@@ -59,5 +59,5 @@ enum ExitCode
                                ros_sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask) = 0;
   };
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* ABSTRACT_PARSER_H_ */

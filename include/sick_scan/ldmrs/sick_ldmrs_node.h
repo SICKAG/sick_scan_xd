@@ -13,7 +13,7 @@
 #include <sick_ldmrs/devices/LD_MRS.hpp>
 #include "sick_scan/sick_scan_common.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   class SickLdmrsNode
   {
@@ -34,7 +34,7 @@ namespace sick_scan
     devices::LDMRS* m_ldmrs;
   };
 
-} // namespace sick_scan
+} // namespace sick_scan_xd
 
 #endif // LDMRS_SUPPORT && LDMRS_SUPPORT > 0
 #endif // __SICK_SCAN_LDMRS_NODE_INCLUDED

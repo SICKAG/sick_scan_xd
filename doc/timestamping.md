@@ -27,4 +27,4 @@ It is assumed that the transfer between lidar and PC is near latency-free.
 The software PLL generates an assignment between the tick of the IP data transmission and the system time of the PC via an estimated line mapping. On the basis of this straight line equation, the start of the scan is then calculated relative to the system time. This generation time stamp is the time of the first shot of the scan. This timestamp is assigned to the pointcloud timestamp. From there, the rotation speed and the angular distance from shot to shot can be used to approximately calculate the time for each shot.
 
 
-More details can be found [here](https://github.com/SICKAG/sick_scan/blob/master/doc/timing.md)
+More details can be found [here](https://github.com/SICKAG/sick_scan_xd/blob/master/doc/timing.md)

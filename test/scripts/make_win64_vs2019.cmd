@@ -51,17 +51,17 @@ rem cmake --build . --clean-first --config Release
 rem Run "cmake --build . --target install" with admin priviledges to install library and header in system folders
 rem cmake --build . --target install
 rem if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% sick_scan_xd release with cmake & @pause )
-rem devenv sick_scan.sln /clean     "Debug|x64"
-rem devenv sick_scan.sln /rebuild   "Debug|x64"
-rem devenv sick_scan.sln /clean     "Release|x64"
-rem devenv sick_scan.sln /rebuild   "Release|x64"
-start "sick_scan.sln" sick_scan.sln
-if exist .\Debug\sick_scan_shared_lib.dll  ( @echo sick_scan_shared_lib.dll debug successfully built ) else ( @echo ERROR building sick_scan_shared_lib.dll debug & @pause )
-if exist .\Debug\sick_scan_xd_api_test.exe ( @echo sick_scan_xd_api_test debug successfully built    ) else ( @echo ERROR building sick_scan_xd_api_test debug & @pause )
-if exist .\Debug\sick_generic_caller.exe   ( @echo sick_generic_caller debug successfully built      ) else ( @echo ERROR building sick_generic_caller debug & @pause )
-rem if exist .\Release\sick_scan_shared_lib.dll  ( @echo sick_scan_shared_lib.dll release successfully built ) else ( @echo ERROR building sick_scan_shared_lib.dll release & @pause )
-rem if exist .\Release\sick_scan_xd_api_test.exe ( @echo sick_scan_xd_api_test release successfully built    ) else ( @echo ERROR building sick_scan_xd_api_test release & @pause )
-rem if exist .\Release\sick_generic_caller.exe   ( @echo sick_generic_caller release successfully built      ) else ( @echo ERROR building sick_generic_caller release & @pause )
+rem devenv sick_scan_xd.sln /clean     "Debug|x64"
+rem devenv sick_scan_xd.sln /rebuild   "Debug|x64"
+rem devenv sick_scan_xd.sln /clean     "Release|x64"
+rem devenv sick_scan_xd.sln /rebuild   "Release|x64"
+start "sick_scan_xd.sln" sick_scan_xd.sln
+if exist .\Debug\sick_scan_xd_shared_lib.dll ( @echo sick_scan_xd_shared_lib.dll debug successfully built ) else ( @echo ERROR building sick_scan_xd_shared_lib.dll debug & @pause )
+if exist .\Debug\sick_scan_xd_api_test.exe   ( @echo sick_scan_xd_api_test debug successfully built       ) else ( @echo ERROR building sick_scan_xd_api_test debug & @pause )
+if exist .\Debug\sick_generic_caller.exe     ( @echo sick_generic_caller debug successfully built         ) else ( @echo ERROR building sick_generic_caller debug & @pause )
+rem if exist .\Release\sick_scan_xd_shared_lib.dll ( @echo sick_scan_xd_shared_lib.dll release successfully built ) else ( @echo ERROR building sick_scan_xd_shared_lib.dll release & @pause )
+rem if exist .\Release\sick_scan_xd_api_test.exe   ( @echo sick_scan_xd_api_test release successfully built    ) else ( @echo ERROR building sick_scan_xd_api_test release & @pause )
+rem if exist .\Release\sick_generic_caller.exe     ( @echo sick_generic_caller release successfully built      ) else ( @echo ERROR building sick_generic_caller release & @pause )
 popd
 popd
 @timeout /t 10

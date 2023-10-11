@@ -66,7 +66,7 @@
  * @param[in] binary_data binary input data
  * @return hex string
  */
-std::string sick_scan::Utils::toHexString(const std::vector<uint8_t> & binary_data)
+std::string sick_scan_xd::Utils::toHexString(const std::vector<uint8_t> & binary_data)
 {
   //std::string hex_string;
   //hex_string.reserve(binary_data.size() * 2);
@@ -83,7 +83,7 @@ std::string sick_scan::Utils::toHexString(const std::vector<uint8_t> & binary_da
  * @param[in] binary_data binary input data
  * @return hex string
  */
-std::string sick_scan::Utils::toAsciiString(const uint8_t* binary_data, int length)
+std::string sick_scan_xd::Utils::toAsciiString(const uint8_t* binary_data, int length)
 {
   std::stringstream out;
   for(int n = 0; n < length; n++)
@@ -108,7 +108,7 @@ std::string sick_scan::Utils::toAsciiString(const uint8_t* binary_data, int leng
  * Replaces all substrings of a string by another string.
  * https://stackoverflow.com/questions/3418231/replace-part-of-a-string-with-another-string/3418285
  */
-void sick_scan::Utils::replaceAll(std::string& str, const std::string& from, const std::string& to) 
+void sick_scan_xd::Utils::replaceAll(std::string& str, const std::string& from, const std::string& to) 
 {
   // boost::replace_all(str, from, to);
   if(!str.empty() && !from.empty())
@@ -125,7 +125,7 @@ void sick_scan::Utils::replaceAll(std::string& str, const std::string& from, con
 /*
  * Shortcut to replace linefeeds by colon-separators
  */
-void sick_scan::Utils::flattenString(std::string & s)
+void sick_scan_xd::Utils::flattenString(std::string & s)
 {
   replaceAll(s, "\n", ", ");
   replaceAll(s, ": , ", ": ");
@@ -136,7 +136,7 @@ void sick_scan::Utils::flattenString(std::string & s)
 /*!
  * Splits a string into its space separated substrings
  */
-std::vector<std::string> sick_scan::Utils::splitSpaces(const std::string & s)
+std::vector<std::string> sick_scan_xd::Utils::splitSpaces(const std::string & s)
 {
   std::vector<std::string> parts;
   parts.push_back("");

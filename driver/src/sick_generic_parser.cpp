@@ -73,7 +73,7 @@
 #include <sick_scan/sick_scan_common.h>
 #include <sick_scan/sick_ros_wrapper.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   using namespace std;
 
@@ -1190,7 +1190,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
   {
     // echoMask introduced to get a workaround for cfg bug using MRS1104
     bool dumpData = false;
-    int verboseLevel = 0;
+    int verboseLevel = 0; // for low level debugging only
 
     int HEADER_FIELDS = 32;
     char *cur_field;
@@ -1208,32 +1208,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
 
     if (verboseLevel > 0)
     {
-      ROS_WARN("Verbose LEVEL activated. Only for DEBUG.");
-    }
-
-    if (verboseLevel > 0)
-    {
-      static int cnt = 0;
-      char szDumpFileName[511] = {0};
-      char szDir[255] = {0};
-#ifdef _MSC_VER
-      strcpy(szDir,"C:\\temp\\");
-#else
-      strcpy(szDir, "/tmp/");
-#endif
-      sprintf(szDumpFileName, "%stmp%06d.bin", szDir, cnt);
-      bool isBinary = this->getCurrentParamPtr()->getUseBinaryProtocol();
-      if (isBinary)
-      {
-        FILE *ftmp;
-        ftmp = fopen(szDumpFileName, "wb");
-        if (ftmp != NULL)
-        {
-          fwrite(datagram, datagram_length, 1, ftmp);
-          fclose(ftmp);
-        }
-      }
-      cnt++;
+      sick_scan_xd::SickScanCommon::dumpDatagramForDebugging((unsigned char *)datagram, datagram_length, true);
     }
 
     strncpy(datagram_copy, datagram, datagram_length); // datagram will be changed by strtok
@@ -1257,28 +1232,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
 
     if (verboseLevel > 0)
     {
-      static int cnt = 0;
-      char szDumpFileName[511] = {0};
-      char szDir[255] = {0};
-#ifdef _MSC_VER
-      strcpy(szDir,"C:\\temp\\");
-#else
-      strcpy(szDir, "/tmp/");
-#endif
-      sprintf(szDumpFileName, "%stmp%06d.txt", szDir, cnt);
-      ROS_WARN("Verbose LEVEL activated. Only for DEBUG.");
-      FILE *ftmp;
-      ftmp = fopen(szDumpFileName, "w");
-      if (ftmp != NULL)
-      {
-        int i;
-        for (i = 0; i < count; i++)
-        {
-          fprintf(ftmp, "%3d: %s\n", i, fields[i]);
-        }
-        fclose(ftmp);
-      }
-      cnt++;
+      sick_scan_xd::SickScanCommon::dumpDatagramForDebugging((unsigned char *)fields.data(), fields.size(), true);
     }
 
     // Validate header. Total number of tokens is highly unreliable as this may
@@ -1604,4 +1558,4 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
 
   }
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */

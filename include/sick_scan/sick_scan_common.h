@@ -96,7 +96,7 @@
 
 void swap_endian(unsigned char *ptr, int numBytes);
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   class SickScanCommon
@@ -294,7 +294,7 @@ namespace sick_scan
 
     void check_angle_range(SickScanConfig &conf);
 
-    void update_config(sick_scan::SickScanConfig &new_config, uint32_t level = 0);
+    void update_config(sick_scan_xd::SickScanConfig &new_config, uint32_t level = 0);
 
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
     rcl_interfaces::msg::SetParametersResult update_config_cb(const std::vector<rclcpp::Parameter> &parameters);
@@ -359,6 +359,8 @@ namespace sick_scan
     ros_sensor_msgs::PointCloud2 cloud_polar_;
 
     void messageCbNavOdomVelocity(const sick_scan_msg::NAVOdomVelocity& msg);
+
+    static bool dumpDatagramForDebugging(unsigned char *buffer, int bufLen, bool isBinary = true);
 
     //////
     // Dynamic Reconfigure
@@ -429,8 +431,6 @@ namespace sick_scan
     */
     bool isCompatibleDevice(const std::string identStr) const;
 
-    bool dumpDatagramForDebugging(unsigned char *buffer, int bufLen);
-
 #ifdef USE_DIAGNOSTIC_UPDATER
     std::shared_ptr<diagnostic_updater::Updater> diagnostics_;
 #endif
@@ -486,7 +486,7 @@ namespace sick_scan
 
 
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
-    dynamic_reconfigure::Server<sick_scan::SickScanConfig> dynamic_reconfigure_server_;
+    dynamic_reconfigure::Server<sick_scan_xd::SickScanConfig> dynamic_reconfigure_server_;
 #endif
     // Parser
     SickGenericParser *parser_ = 0;
@@ -527,7 +527,7 @@ namespace sick_scan
     int m_read_timeout_millisec_default;
     int m_read_timeout_millisec_startup;
 
-    sick_scan::SickCloudTransform m_add_transform_xyz_rpy;
+    sick_scan_xd::SickCloudTransform m_add_transform_xyz_rpy;
 
     struct ScanLayerFilterCfg // Optional ScanLayerFilter setting
     {
@@ -550,5 +550,5 @@ namespace sick_scan
     rosNodePtr m_nh;
   };
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_TIM3XX_COMMON_H_ */

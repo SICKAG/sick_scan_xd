@@ -65,7 +65,7 @@
 #include <sick_scan/sick_scan_common.h>
 #include <sick_scan/sick_scan_services.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   /*
@@ -87,14 +87,14 @@ namespace sick_scan
     * @brief Monitors incoming scanner messages.
     *        In case of read timeouts, checkState returns ExitError, otherwise ExitSuccess.
     */
-    sick_scan::ExitCode checkState(NodeRunState runState, SickScanCommonTcp* scanner, sick_scan::SickGenericParser *parser, sick_scan::SickScanServices* services);
+    sick_scan_xd::ExitCode checkState(NodeRunState runState, SickScanCommonTcp* scanner, sick_scan_xd::SickGenericParser *parser, sick_scan_xd::SickScanServices* services);
 
     /*
     * @brief Monitors incoming scanner messages.
     *        In case of read timeouts, checkStateReinitOnError closes the tcp connection, re-initializes the scanner.
     *        Returns ExitSuccess (no timeout or successful re-init), or ExitError otherwise.
     */
-    sick_scan::ExitCode checkStateReinitOnError(rosNodePtr nh, NodeRunState runState, SickScanCommonTcp* scanner, sick_scan::SickGenericParser *parser, sick_scan::SickScanServices* services);
+    sick_scan_xd::ExitCode checkStateReinitOnError(rosNodePtr nh, NodeRunState runState, SickScanCommonTcp* scanner, sick_scan_xd::SickGenericParser *parser, sick_scan_xd::SickScanServices* services);
 
   protected:
 
@@ -153,5 +153,5 @@ namespace sick_scan
 
   };
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif // SICK_GENERIC_MONITORING_H_

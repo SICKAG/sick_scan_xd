@@ -18,9 +18,9 @@ int main(int argc, char** argv)
 {
   // Create a sick_scan instance and initialize lidar with commandline arguments
 #ifdef _MSC_VER
-	const char* sick_scan_api_lib = "sick_scan_shared_lib.dll";
+	const char* sick_scan_api_lib = "sick_scan_xd_shared_lib.dll";
 #else
-	const char* sick_scan_api_lib = "libsick_scan_shared_lib.so";
+	const char* sick_scan_api_lib = "libsick_scan_xd_shared_lib.so";
 #endif
   SickScanApiLoadLibrary(sick_scan_api_lib);
   SickScanApiHandle apiHandle = SickScanApiCreate(argc, argv);

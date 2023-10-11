@@ -20,8 +20,8 @@ for sick_scan_launch_file in sick_tim_7xx.launch sick_tim_7xxS.launch ; do
   for emulator_launch_cfg in emulator_01_default.launch emulator_03_2nd_fieldset.launch emulator_02_toggle_fieldsets.launch ; do # emulator_04_fieldset_test.launch
     echo -e "Starting TiM7xx/TiM7xxS emulation $emulator_launch_cfg\n"
     
-    # Start sick_scan emulator
-    roslaunch sick_scan $emulator_launch_cfg &
+    # Start sick_scan_xd emulator
+    roslaunch sick_scan_xd $emulator_launch_cfg &
     sleep 1
     
     # Start rviz
@@ -30,9 +30,9 @@ for sick_scan_launch_file in sick_tim_7xx.launch sick_tim_7xxS.launch ; do
     rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg.rviz --opengl 210 &
     sleep 1
     
-    # Start sick_scan driver for TiM7xx/TiM7xxS
-    echo -e "Launching sick_scan $sick_scan_launch_file\n"
-    roslaunch sick_scan $sick_scan_launch_file hostname:=127.0.0.1 &
+    # Start sick_scan_xd driver for TiM7xx/TiM7xxS
+    echo -e "Launching sick_scan_xd $sick_scan_launch_file\n"
+    roslaunch sick_scan_xd $sick_scan_launch_file hostname:=127.0.0.1 &
     sleep 1
     
     # rosservice call /sick_tim_7xx/SCdevicestate "{}" # query device state

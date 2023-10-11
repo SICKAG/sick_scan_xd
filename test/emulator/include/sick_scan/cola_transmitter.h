@@ -61,10 +61,10 @@
 #include "sick_scan/fifo_buffer.h"
 #include "sick_scan/server_socket.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
-   * Class sick_scan::ColaTransmitter connects to the localization controller and
+   * Class sick_scan_xd::ColaTransmitter connects to the localization controller and
    * sends or receives cola telegrams. Base class for ColaSender and ColaReceiver.
    */
   class ColaTransmitter
@@ -191,13 +191,13 @@ namespace sick_scan
 
     std::string m_server_address;                        ///< ip address of the localization controller, default: 192.168.0.1
     int m_tcp_port;                                     ///< tcp port of the localization controller, default: 2111 for command requests and 2112 for  command responses
-    sick_scan::ClientSocket m_tcp_socket;               ///< tcp socket connected to the localization controller
+    sick_scan_xd::ClientSocket m_tcp_socket;               ///< tcp socket connected to the localization controller
     double m_receive_timeout;                           ///< default timeout in seconds for receive functions
     bool m_receiver_thread_running;                     ///< true: m_receiver_thread is running, otherwise false
     std::thread* m_receiver_thread;                     ///< thread to receive responses from localization server
-    sick_scan::FifoBuffer<ColaResponseContainer, std::mutex> m_response_fifo; ///< fifo buffer for receiver thread for responses from localization server
+    sick_scan_xd::FifoBuffer<ColaResponseContainer, std::mutex> m_response_fifo; ///< fifo buffer for receiver thread for responses from localization server
   
   }; // class ColaTransmitter
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_COLA_TRANSMITTER_H_INCLUDED

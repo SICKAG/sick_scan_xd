@@ -17,7 +17,7 @@ sleep 1
 firefox ./demo/image_viewer_api_test.html &
 sleep 1
 
-# Run sick_scan api example
+# Run sick_scan_xd api example
 ./build_linux/sick_scan_xd_api_test ./launch/sick_lms_5xx.launch hostname:=127.0.0.1 port:=2112 sw_pll_only_publish:=False
 popd
 

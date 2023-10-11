@@ -60,11 +60,11 @@
 #include <sick_ldmrs/datatypes/Object.hpp>
 
 #if __ROS_VERSION == 2 // ROS-2 (Linux or Windows)
-#include <sick_scan/msg/sick_ldmrs_object_array.hpp>
+#include <sick_scan_xd/msg/sick_ldmrs_object_array.hpp>
 #include <diagnostic_updater/diagnostic_updater.hpp> // part of diagnostic_msgs of ROS2, not available on ROS2-Windows until foxy patch 4
 #include <diagnostic_updater/publisher.hpp>
 #else
-#include <sick_scan/SickLdmrsObjectArray.h>
+#include <sick_scan_xd/SickLdmrsObjectArray.h>
 #endif
 
 namespace sick_ldmrs_driver
@@ -108,7 +108,7 @@ public:
   void validate_config(SickLDMRSDriverConfig &conf);
   void update_config(SickLDMRSDriverConfig &new_config, uint32_t level = 0);
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
-  void update_config_cb(sick_scan::SickLDMRSDriverConfig &new_config, uint32_t level = 0);
+  void update_config_cb(sick_scan_xd::SickLDMRSDriverConfig &new_config, uint32_t level = 0);
 #endif
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 2
   rcl_interfaces::msg::SetParametersResult update_config_cb(const std::vector<rclcpp::Parameter> &parameters);
@@ -135,7 +135,7 @@ private:
   // Dynamic Reconfigure
   SickLDMRSDriverConfig config_;
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
-  dynamic_reconfigure::Server<sick_scan::SickLDMRSDriverConfig> dynamic_reconfigure_server_;
+  dynamic_reconfigure::Server<sick_scan_xd::SickLDMRSDriverConfig> dynamic_reconfigure_server_;
 #endif
 
   // sick_ldmrs library objects
@@ -145,8 +145,8 @@ private:
   double expected_frequency_;
 
   bool initialized_;
-  sick_scan::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
-  sick_scan::SickRangeFilter m_range_filter;
+  sick_scan_xd::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+  sick_scan_xd::SickRangeFilter m_range_filter;
 };
 
 } /* namespace sick_ldmrs_driver */

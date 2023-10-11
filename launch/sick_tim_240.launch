@@ -10,7 +10,7 @@
 
 <!-- You can launch a TIM_240-scanner on a specific ip address (e.g. 192.68.0.71) using the following example call:
 
-     roslaunch sick_scan sick_tim_240.launch hostname:=192.168.0.71
+     roslaunch sick_scan_xd sick_tim_240.launch hostname:=192.168.0.71
 
 -->
 <!-- Using node option required="true" will close roslaunch after node exits -->
@@ -24,7 +24,7 @@
     <arg name="nodename" default="sick_tim_240"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
-    <node name="$(arg nodename)" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_tim_240"/>
         <!-- datagram shows values from -90 ... 120 (211 values) -->
         <!-- -120 deg -->
@@ -75,6 +75,7 @@
         <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->
         <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
         <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
+        <!-- Note: read_timeout_millisec_kill_node less or equal 0 deactivates pointcloud monitoring (not recommended) -->
         <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
 
         <!-- Configuration of ROS quality of service: -->

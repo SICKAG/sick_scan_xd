@@ -85,7 +85,7 @@
 #include "sick_scan/dataDumper.h"
 
 #endif
-namespace sick_scan
+namespace sick_scan_xd
 {
 
   bool SickScanImu::isImuDatagram(char *datagram, size_t datagram_length)
@@ -300,10 +300,7 @@ namespace sick_scan
   {
     int exitCode = ExitSuccess;
     bool dumpData = false;
-    int verboseLevel = 0;
 
-    // !!!!!
-    // verboseLevel = 1;
     int HEADER_FIELDS = 32;
     char *cur_field;
     size_t count;
@@ -316,12 +313,6 @@ namespace sick_scan
     std::vector<char> datagram_copy_vec;
     datagram_copy_vec.resize(datagram_length + 1); // to avoid using malloc. destructor frees allocated mem.
     char *datagram_copy = &(datagram_copy_vec[0]);
-
-    if (verboseLevel > 0)
-    {
-      ROS_WARN("Verbose LEVEL activated. Only for DEBUG.");
-    }
-
 
     strncpy(datagram_copy, datagram, datagram_length); // datagram will be changed by strtok
     datagram_copy[datagram_length] = 0;
@@ -505,8 +496,8 @@ namespace sick_scan
   }
   void SickScanImu::imuParserTest()
   {
-    sick_scan::SickScanImu scanImu(NULL, 0);
-    sick_scan::SickScanImuValue imuValue;
+    sick_scan_xd::SickScanImu scanImu(NULL, 0);
+    sick_scan_xd::SickScanImuValue imuValue;
     //                                             checked with online converter
     //                                             https://www.h-schmidt.net/FloatConverter/IEEE754de.html
     //                                    55570143 0.9998779 -0.0057373047 0.016174316  0.0 0.0 0.002130192             -0.31136206 -0.10777917 9.823472

@@ -33,8 +33,8 @@ ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_multis
 sleep 1
 
 # Start sick_generic_caller with sick_scansegment_xd
-echo -e "run_lidar3d.bash: sick_scan sick_multiscan.launch.py ..."
-ros2 launch sick_scan sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=2 &
+echo -e "run_lidar3d.bash: sick_scan_xd sick_multiscan.launch.py ..."
+ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=2 &
 sleep 3 
 
 # Play pcapng-files to emulate multiScan compact V4 scandata

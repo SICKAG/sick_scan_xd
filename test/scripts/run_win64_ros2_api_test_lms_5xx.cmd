@@ -37,9 +37,9 @@ REM
 
 set PYTHONPATH=.;.\src\sick_scan_xd\python\api;%PYTHONPATH%
 
-rem ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
+rem ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
 rem set PATH=%PATH%;.\src\sick_scan_xd\build_win64\Debug;.\src\sick_scan_xd\build\Debug
-rem ros2 run sick_scan sick_scan_xd_api_test ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
+rem ros2 run sick_scan_xd sick_scan_xd_api_test ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
 python ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_lms_5xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False
 
 @pause

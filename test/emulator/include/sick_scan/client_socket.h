@@ -59,10 +59,10 @@
 
 #include "sick_scan/server_socket.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
-   * Class sick_scan::ClientSocket encapsulates connecting, closing and setting socket options
+   * Class sick_scan_xd::ClientSocket encapsulates connecting, closing and setting socket options
    * for tcp client sockets implemented by boost::asio::ip::tcp::socket.
    */
   class ClientSocket
@@ -107,5 +107,5 @@ namespace sick_scan
     
   }; // class ClientSocket
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_CLIENT_SOCKET_H_INCLUDED

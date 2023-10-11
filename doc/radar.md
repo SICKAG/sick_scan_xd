@@ -62,7 +62,7 @@ After parsing the telegram, the driver sends an ROS message of type RadarScan. R
 Header header
 RadarPreHeader radarPreHeader
 sensor_msgs/PointCloud2 targets
-sick_scan/RadarObject[] objects
+sick_scan_xd/RadarObject[] objects
 ```
 ### RadarPreHeader
 The radar preheader contains information that provides general information about the radar. This data record can usually be ignored for object recognition with regard to raw targets and tracking objects.
@@ -70,7 +70,7 @@ For details please refer to the message specification of Sick.
 
 ### targets
 
-The list with the raw targetss of type sick_scan/targets contains the information about the raw targets.
+The list with the raw targets of type sick_scan_xd/targets contains the information about the raw targets.
 Each raw target contains the following data fields in a pointcloud2-message (height: 1, width: number of raw targets):
 ```
  std::string channelRawTargetId[] = { "x", "y", "z", "vrad","amplitude" };
@@ -87,7 +87,7 @@ valSingle[4] = rawTargetList[i].Ampl();               // amplitude
 
 ### objects
 
-The list with the objects of type sick_scan/RadarObject[] contains the information about the track objects. 
+The list with the objects of type sick_scan_xd/RadarObject[] contains the information about the track objects. 
 
 ```
 int32 id

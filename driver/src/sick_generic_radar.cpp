@@ -78,7 +78,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
 
 
@@ -107,7 +107,7 @@ namespace sick_scan
 
     radarScan_pub_ = rosAdvertise<sick_scan_msg::RadarScan>(nh, nodename + "/radar", 100);
     
-    m_add_transform_xyz_rpy = sick_scan::SickCloudTransform(nh, true); // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+    m_add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(nh, true); // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 
     float range_min = 0, range_max = 100;
     int range_filter_handling = 0;
@@ -117,7 +117,7 @@ namespace sick_scan
     rosGetParam(nh, "range_max", range_max);
     rosDeclareParam(nh, "range_filter_handling", range_filter_handling);
     rosGetParam(nh, "range_filter_handling", range_filter_handling);
-    m_range_filter = sick_scan::SickRangeFilter(range_min, range_max, (sick_scan::RangeFilterResultHandling)range_filter_handling);
+    m_range_filter = sick_scan_xd::SickRangeFilter(range_min, range_max, (sick_scan_xd::RangeFilterResultHandling)range_filter_handling);
     ROS_INFO_STREAM("Range filter configuration for SickScanRadar: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
 
   }
@@ -632,27 +632,7 @@ namespace sick_scan
 
     if (verboseLevel > 0)
     {
-      ROS_WARN("Verbose LEVEL activated. Only for DEBUG.");
-    }
-
-    if (verboseLevel > 0)
-    {
-      static int cnt = 0;
-      char szDumpFileName[2*255] = {0};
-      char szDir[255] = {0};
-#ifdef _MSC_VER
-      strcpy(szDir, "C:\\temp\\");
-#else
-      strcpy(szDir, "/tmp/");
-#endif
-      sprintf(szDumpFileName, "%stmp%06d.bin", szDir, cnt);
-      FILE *ftmp;
-      ftmp = fopen(szDumpFileName, "wb");
-      if (ftmp != NULL)
-      {
-        fwrite(datagram, datagram_length, 1, ftmp);
-        fclose(ftmp);
-      }
+      sick_scan_xd::SickScanCommon::dumpDatagramForDebugging((unsigned char *)datagram, datagram_length, useBinaryProtocol);
     }
 
     strncpy(datagram_copy, datagram, datagram_length); // datagram will be changed by strtok
@@ -680,28 +660,14 @@ namespace sick_scan
 
     if (verboseLevel > 0 && !useBinaryProtocol)
     {
-      static int cnt = 0;
-      char szDumpFileName[2*255] = {0};
-      char szDir[255] = {0};
-#ifdef _MSC_VER
-      strcpy(szDir, "C:\\temp\\");
-#else
-      strcpy(szDir, "/tmp/");
-#endif
-      sprintf(szDumpFileName, "%stmp%06d.txt", szDir, cnt);
-      ROS_WARN("Verbose LEVEL activated. Only for DEBUG.");
-      FILE *ftmp;
-      ftmp = fopen(szDumpFileName, "w");
-      if (ftmp != NULL)
+      std::vector<unsigned char> raw_fields;
+      for (int i = 0; i < count; i++)
       {
-        int i;
-        for (i = 0; i < count; i++)
-        {
-          fprintf(ftmp, "%3d: %s\n", i, fields[i].data);
-        }
-        fclose(ftmp);
+        for(int j = 0; j < fields[i].len; j++)
+          raw_fields.push_back(fields[i].data[j]);
+        raw_fields.push_back(' ');
       }
-      cnt++;
+      sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(raw_fields.data(), raw_fields.size(), useBinaryProtocol);
     }
 
 
@@ -1702,7 +1668,7 @@ namespace sick_scan
           if (numFilteredTargets < numTargets)
             m_range_filter.resizePointCloud(numFilteredTargets, cloud_); // targets dropped by range filter, resize pointcloud
 #ifndef ROSSIMU
-            sick_scan::PointCloud2withEcho sick_cloud_msg(&cloud_, 1, 0);
+            sick_scan_xd::PointCloud2withEcho sick_cloud_msg(&cloud_, 1, 0);
             switch (iLoop)
             {
               case RADAR_PROC_RAW_TARGET:

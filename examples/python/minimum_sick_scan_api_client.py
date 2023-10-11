@@ -41,9 +41,9 @@ cli_args = " ".join(sys.argv[1:])
 
 # Load sick_scan_library
 if os.name == "nt": # Load windows dll
-    sick_scan_library = SickScanApiLoadLibrary(["build/Debug/", "build_win64/Debug/", "../../build/Debug/", "../../build_win64/Debug/", "./", "../"], "sick_scan_shared_lib.dll")
+    sick_scan_library = SickScanApiLoadLibrary(["build/Debug/", "build_win64/Debug/", "../../build/Debug/", "../../build_win64/Debug/", "./", "../"], "sick_scan_xd_shared_lib.dll")
 else: # Load linux so
-    sick_scan_library = SickScanApiLoadLibrary(["build/", "build_linux/", "../../build/", "../../build_linux/", "./", "../"], "libsick_scan_shared_lib.so")
+    sick_scan_library = SickScanApiLoadLibrary(["build/", "build_linux/", "../../build/", "../../build_linux/", "./", "../"], "libsick_scan_xd_shared_lib.so")
 
 # Create a sick_scan instance and initialize a TiM-7xx
 api_handle = SickScanApiCreate(sick_scan_library)

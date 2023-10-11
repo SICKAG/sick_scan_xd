@@ -67,7 +67,7 @@
 
 #include <sick_scan/sick_ros_wrapper.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   enum SickScanMonFieldType
   {
@@ -199,5 +199,5 @@ namespace sick_scan
   };
 #endif
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif // SICK_GENERIC_RADAR_H_

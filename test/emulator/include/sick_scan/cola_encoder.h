@@ -62,7 +62,7 @@
 #include "sick_scan/ros_wrapper.h"
 #include "sick_scan/cola_parser.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * @brief class ColaEncoder encodes service requests to cola telegrams, parses cola responses and
@@ -77,7 +77,7 @@ namespace sick_scan
      * @param[in] service_request ros request for service SickDevSetLidarConfigSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickDevSetLidarConfigSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickDevSetLidarConfigSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickDevSetLidarConfigSrv
@@ -85,14 +85,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickDevSetLidarConfigSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevSetLidarConfigSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevSetLidarConfigSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickDevGetLidarConfigSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickDevGetLidarConfigSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickDevGetLidarConfigSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickDevGetLidarConfigSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickDevGetLidarConfigSrv
@@ -100,14 +100,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickDevGetLidarConfigSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevGetLidarConfigSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevGetLidarConfigSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocSetMapSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocSetMapSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocSetMapSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocSetMapSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocSetMapSrv
@@ -115,14 +115,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocSetMapSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetMapSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetMapSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocMapSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocMapSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocMapSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocMapSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocMapSrv
@@ -130,14 +130,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocMapSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocMapSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocMapSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocMapStateSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocMapStateSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocMapStateSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocMapStateSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocMapStateSrv
@@ -145,14 +145,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocMapStateSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocMapStateSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocMapStateSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocInitializePoseSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocInitializePoseSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocInitializePoseSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocInitializePoseSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocInitializePoseSrv
@@ -160,14 +160,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocInitializePoseSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocInitializePoseSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocInitializePoseSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocInitialPoseSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocInitialPoseSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocInitialPoseSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocInitialPoseSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocInitialPoseSrv
@@ -175,7 +175,7 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocInitialPoseSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocInitialPoseSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocInitialPoseSrv::Response& service_response);
     
     
     /*!
@@ -183,7 +183,7 @@ namespace sick_scan
      * @param[in] service_request ros request for service SickLocSetReflectorsForSupportActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocSetReflectorsForSupportActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocSetReflectorsForSupportActiveSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocSetReflectorsForSupportActiveSrv
@@ -191,14 +191,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocSetReflectorsForSupportActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetReflectorsForSupportActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetReflectorsForSupportActiveSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocReflectorsForSupportActiveSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocReflectorsForSupportActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocReflectorsForSupportActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocReflectorsForSupportActiveSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocReflectorsForSupportActiveSrv
@@ -206,14 +206,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocReflectorsForSupportActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocReflectorsForSupportActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocReflectorsForSupportActiveSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocSetOdometryActiveSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocSetOdometryActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocSetOdometryActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocSetOdometryActiveSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocSetOdometryActiveSrv
@@ -221,14 +221,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocSetOdometryActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetOdometryActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetOdometryActiveSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocOdometryActiveSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocOdometryActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocOdometryActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocOdometryActiveSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocOdometryActiveSrv
@@ -236,14 +236,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocOdometryActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocOdometryActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocOdometryActiveSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocSetOdometryPortSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocSetOdometryPortSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocSetOdometryPortSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocSetOdometryPortSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocSetOdometryPortSrv
@@ -251,14 +251,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocSetOdometryPortSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetOdometryPortSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetOdometryPortSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocOdometryPortSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocOdometryPortSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocOdometryPortSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocOdometryPortSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocOdometryPortSrv
@@ -266,14 +266,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocOdometryPortSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocOdometryPortSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocOdometryPortSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocSetOdometryRestrictYMotionSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocSetOdometryRestrictYMotionSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocSetOdometryRestrictYMotionSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocSetOdometryRestrictYMotionSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocSetOdometryRestrictYMotionSrv
@@ -281,14 +281,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocSetOdometryRestrictYMotionSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetOdometryRestrictYMotionSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetOdometryRestrictYMotionSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocOdometryRestrictYMotionSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocOdometryRestrictYMotionSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocOdometryRestrictYMotionSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocOdometryRestrictYMotionSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocOdometryRestrictYMotionSrv
@@ -296,14 +296,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocOdometryRestrictYMotionSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocOdometryRestrictYMotionSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocOdometryRestrictYMotionSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocSetAutoStartActiveSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocSetAutoStartActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocSetAutoStartActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocSetAutoStartActiveSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocSetAutoStartActiveSrv
@@ -311,14 +311,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocSetAutoStartActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetAutoStartActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetAutoStartActiveSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocAutoStartActiveSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocAutoStartActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocAutoStartActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocAutoStartActiveSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocAutoStartActiveSrv
@@ -326,14 +326,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocAutoStartActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocAutoStartActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocAutoStartActiveSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocSetAutoStartSavePoseIntervalSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocSetAutoStartSavePoseIntervalSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocSetAutoStartSavePoseIntervalSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocSetAutoStartSavePoseIntervalSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocSetAutoStartSavePoseIntervalSrv
@@ -341,14 +341,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocSetAutoStartSavePoseIntervalSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetAutoStartSavePoseIntervalSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetAutoStartSavePoseIntervalSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocAutoStartSavePoseIntervalSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocAutoStartSavePoseIntervalSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocAutoStartSavePoseIntervalSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocAutoStartSavePoseIntervalSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocAutoStartSavePoseIntervalSrv
@@ -356,14 +356,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocAutoStartSavePoseIntervalSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocAutoStartSavePoseIntervalSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocAutoStartSavePoseIntervalSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocSetRingBufferRecordingActiveSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocSetRingBufferRecordingActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocSetRingBufferRecordingActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocSetRingBufferRecordingActiveSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocSetRingBufferRecordingActiveSrv
@@ -371,14 +371,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocSetRingBufferRecordingActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSetRingBufferRecordingActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSetRingBufferRecordingActiveSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocRingBufferRecordingActiveSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocRingBufferRecordingActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocRingBufferRecordingActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocRingBufferRecordingActiveSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocRingBufferRecordingActiveSrv
@@ -386,14 +386,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocRingBufferRecordingActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocRingBufferRecordingActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocRingBufferRecordingActiveSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickDevGetLidarIdentSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickDevGetLidarIdentSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickDevGetLidarIdentSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickDevGetLidarIdentSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickDevGetLidarIdentSrv
@@ -401,14 +401,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickDevGetLidarIdentSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevGetLidarIdentSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevGetLidarIdentSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickDevGetLidarStateSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickDevGetLidarStateSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickDevGetLidarStateSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickDevGetLidarStateSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickDevGetLidarStateSrv
@@ -416,14 +416,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickDevGetLidarStateSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevGetLidarStateSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevGetLidarStateSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickGetSoftwareVersionSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickGetSoftwareVersionSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickGetSoftwareVersionSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickGetSoftwareVersionSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickGetSoftwareVersionSrv
@@ -431,14 +431,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickGetSoftwareVersionSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickGetSoftwareVersionSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickGetSoftwareVersionSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocAutoStartSavePoseSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocAutoStartSavePoseSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocAutoStartSavePoseSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocAutoStartSavePoseSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocAutoStartSavePoseSrv
@@ -446,14 +446,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocAutoStartSavePoseSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocAutoStartSavePoseSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocAutoStartSavePoseSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocForceUpdateSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocForceUpdateSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocForceUpdateSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocForceUpdateSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocForceUpdateSrv
@@ -461,14 +461,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocForceUpdateSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocForceUpdateSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocForceUpdateSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocSaveRingBufferRecordingSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocSaveRingBufferRecordingSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocSaveRingBufferRecordingSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocSaveRingBufferRecordingSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocSaveRingBufferRecordingSrv
@@ -476,14 +476,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocSaveRingBufferRecordingSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocSaveRingBufferRecordingSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocSaveRingBufferRecordingSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocStartDemoMappingSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocStartDemoMappingSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocStartDemoMappingSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocStartDemoMappingSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocStartDemoMappingSrv
@@ -491,14 +491,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocStartDemoMappingSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocStartDemoMappingSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocStartDemoMappingSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickReportUserMessageSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickReportUserMessageSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickReportUserMessageSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickReportUserMessageSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickReportUserMessageSrv
@@ -506,14 +506,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickReportUserMessageSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickReportUserMessageSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickReportUserMessageSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickSavePermanentSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickSavePermanentSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickSavePermanentSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickSavePermanentSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickSavePermanentSrv
@@ -521,14 +521,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickSavePermanentSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickSavePermanentSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickSavePermanentSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocResultPortSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocResultPortSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocResultPortSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocResultPortSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocResultPortSrv
@@ -536,14 +536,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocResultPortSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultPortSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultPortSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocResultModeSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocResultModeSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocResultModeSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocResultModeSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocResultModeSrv
@@ -551,14 +551,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocResultModeSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultModeSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultModeSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocResultEndiannessSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocResultEndiannessSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocResultEndiannessSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocResultEndiannessSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocResultEndiannessSrv
@@ -566,14 +566,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocResultEndiannessSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultEndiannessSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultEndiannessSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocResultStateSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocResultStateSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocResultStateSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocResultStateSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocResultStateSrv
@@ -581,14 +581,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocResultStateSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultStateSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultStateSrv::Response& service_response);
     
     /*!
      * Converts the service request for service SickLocResultPoseIntervalSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickLocResultPoseIntervalSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickLocResultPoseIntervalSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickLocResultPoseIntervalSrv::Request& service_request);
     
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickLocResultPoseIntervalSrv
@@ -596,14 +596,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickLocResultPoseIntervalSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickLocResultPoseIntervalSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickLocResultPoseIntervalSrv::Response& service_response);
 
     /*!
      * Converts the service request for service SickDevSetIMUActiveSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickDevSetIMUActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickDevSetIMUActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickDevSetIMUActiveSrv::Request& service_request);
 
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickDevSetIMUActiveSrv
@@ -611,14 +611,14 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickDevSetIMUActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevSetIMUActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevSetIMUActiveSrv::Response& service_response);
 
     /*!
      * Converts the service request for service SickDevIMUActiveSrv into a cola ascii telegram
      * @param[in] service_request ros request for service SickDevIMUActiveSrv
      * @return cola ascii telegram
      */
-    static std::string encodeServiceRequest(const sick_scan::SickDevIMUActiveSrv::Request& service_request);
+    static std::string encodeServiceRequest(const sick_scan_xd::SickDevIMUActiveSrv::Request& service_request);
 
     /*!
      * Parses a cola response and converts the arguments to a service response for service SickDevIMUActiveSrv
@@ -626,9 +626,9 @@ namespace sick_scan
      * @param[out] service_response converted response for service SickDevIMUActiveSrv
      * @return true on succes or false in case of parse errors
      */
-    static bool parseServiceResponse(const sick_scan::SickLocColaTelegramMsg& cola_response, sick_scan::SickDevIMUActiveSrv::Response& service_response);
+    static bool parseServiceResponse(const sick_scan_xd::SickLocColaTelegramMsg& cola_response, sick_scan_xd::SickDevIMUActiveSrv::Response& service_response);
 
   }; // class ColaEncoder
 
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_COLA_ENCODER_H_INCLUDED

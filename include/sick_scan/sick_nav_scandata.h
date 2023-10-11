@@ -64,7 +64,7 @@
 
 #include <sick_scan/sick_ros_wrapper.h>
 
-namespace sick_scan
+namespace sick_scan_xd
 {
     /** Container for NAV350 optional pose data */
     class NAV350OptPoseData
@@ -229,5 +229,5 @@ namespace sick_scan
       std::vector<uint16_t> layerID;
     };
 
-} /* namespace sick_scan */
+} /* namespace sick_scan_xd */
 #endif /* SICK_NAV_SCANDATA_H_ */

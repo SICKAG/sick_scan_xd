@@ -37,23 +37,23 @@ if [ $roscore_running -lt 1 ] ; then
   sleep 3
 fi
 
-# Start sick_scan emulator with field settings for sick_lms_1xx, play 20210302_lms111.pcapng_full.json
-roslaunch sick_scan emulator_lms1xx.launch scanner_type:=sick_lms_1xx &
+# Start sick_scan_xd emulator with field settings for sick_lms_1xx, play 20210302_lms111.pcapng_full.json
+roslaunch sick_scan_xd emulator_lms1xx.launch scanner_type:=sick_lms_1xx &
 # Start rviz
 sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
-# Start sick_scan driver for lms1xx
-sleep 1 ; echo -e "Launching sick_scan sick_lms_1xx.launch\n"
-roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+# Start sick_scan_xd driver for lms1xx
+sleep 1 ; echo -e "Launching sick_scan_xd sick_lms_1xx.launch\n"
+roslaunch sick_scan_xd sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed
 waitUntilRvizClosed 60
 
 # Shutdown and restart with 20220802_lms111.pcapng.json
 kill_simu
-echo -e "Restart sick_scan lms111 simulation with 20220802_lms111.pcapng.json\n"
-roslaunch sick_scan emulator_lms111.launch scanner_type:=sick_lms_111 &
+echo -e "Restart sick_scan_xd lms111 simulation with 20220802_lms111.pcapng.json\n"
+roslaunch sick_scan_xd emulator_lms111.launch scanner_type:=sick_lms_111 &
 sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_lms1xx.rviz --opengl 210 &
-sleep 1 ; roslaunch sick_scan sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
+sleep 1 ; roslaunch sick_scan_xd sick_lms_1xx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
 waitUntilRvizClosed 60
 
 # Shutdown

@@ -29,8 +29,8 @@ rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_cfg_multiscan_e
 sleep 1
 
 # Start sick_generic_caller with multiscan in compact format
-echo -e "run_multiscan.bash: sick_scan sick_multiscan.launch ..."
-roslaunch sick_scan sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=2 &
+echo -e "run_multiscan.bash: sick_scan_xd sick_multiscan.launch ..."
+roslaunch sick_scan_xd sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=2 &
 sleep 3 
 
 # Play compact pcapng-files to emulate MRS100 output

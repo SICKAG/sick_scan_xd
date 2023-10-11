@@ -65,7 +65,7 @@
 
 #include "sick_scan/ros_wrapper.h"
 
-namespace sick_scan
+namespace sick_scan_xd
 {
   /*!
    * class SetGet implements setter and getter template functions for thread-protected set and get of a value.
@@ -174,7 +174,7 @@ namespace sick_scan
     /*!
      * Shortcut to print a SickLocColaTelegramMsg in flatten format, replacing linefeeds by colon-separators
      */
-    static std::string flattenToString(const sick_scan::SickLocColaTelegramMsg & cola_telegram)
+    static std::string flattenToString(const sick_scan_xd::SickLocColaTelegramMsg & cola_telegram)
     {
       std::stringstream s;
       s << flattenToString(&cola_telegram.header)
@@ -191,7 +191,7 @@ namespace sick_scan
     /*!
      * Shortcut to print a SickLocColaTelegramMsg in flatten format, replacing linefeeds by colon-separators
      */
-    static std::string flattenToString(const sick_scan::SickLocResultPortTelegramMsg & telegram)
+    static std::string flattenToString(const sick_scan_xd::SickLocResultPortTelegramMsg & telegram)
     {
       
       std::stringstream s;
@@ -281,5 +281,5 @@ namespace sick_scan
   
   }; // class Utils
   
-} // namespace sick_scan
+} // namespace sick_scan_xd
 #endif // __SIM_LOC_UTILS_H_INCLUDED

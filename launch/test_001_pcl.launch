@@ -13,12 +13,12 @@
     <node pkg="tf" type="static_transform_publisher" name="map_Object" args="0 0 0 0 0 0 1 map Objects 100"/>
     <node pkg="tf" type="static_transform_publisher" name="map_laser" args="0 0 0 0 0 0 1 map laser   100"/>
     <?ignore
-            <node pkg="rosbag" type="play" name="player" output="screen" args="--clock -q -l -s 10 -u 10 $(find sick_scan)/test/data/2018-07-03-17-23-09_0_laser.bag"/>
+            <node pkg="rosbag" type="play" name="player" output="screen" args="--clock -q -l -s 10 -u 10 $(find sick_scan_xd)/test/data/2018-07-03-17-23-09_0_laser.bag"/>
             ?>
     <node pkg="rosbag" type="play" name="player" output="screen"
           args="--clock -q -l /mnt/hgfs/E/20_SICK/20180703_Ros_bags/2018-07-03-17-29-11_1.bag"/>
-    <node pkg="sick_scan" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen"/>
-    <node pkg="sick_scan" type="radar_object_marker" name="radar_object_marker"/>
+    <node pkg="sick_scan_xd" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen"/>
+    <node pkg="sick_scan_xd" type="radar_object_marker" name="radar_object_marker"/>
     <!--
     -->
 </launch>

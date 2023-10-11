@@ -71,13 +71,13 @@ public:
     void runUnittest()
     {
         std::string sopas_reply = "sRA LMPscancfg \\x00\\x00\\x03\\x20\\x00\\x01\\x00\\x00\\x09\\xc4\\x00\\x00\\x00\\x00\\x00\\x36\\xee\\x80\\x00\\x00\\x09\\xc4\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x09\\xc4\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x09\\xc4\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00";
-        sick_scan::SickScanParseUtil::LMPscancfg scancfg;
-        if (!sick_scan::SickScanParseUtil::SopasToLMPscancfg(sopas_reply, scancfg))
+        sick_scan_xd::SickScanParseUtil::LMPscancfg scancfg;
+        if (!sick_scan_xd::SickScanParseUtil::SopasToLMPscancfg(sopas_reply, scancfg))
             std::cerr << "## ERROR SickScanParseUtil::SopasToLMPscancfg failed: " << scancfg.print() << std::endl;
         else
             std::cout << "SickScanParseUtil::SopasToLMPscancfg success: " << scancfg.print() << std::endl;
         std::string sopas_cmd;
-        if (!sick_scan::SickScanParseUtil::LMPscancfgToSopas(scancfg, sopas_cmd))
+        if (!sick_scan_xd::SickScanParseUtil::LMPscancfgToSopas(scancfg, sopas_cmd))
             std::cerr << "## ERROR SickScanParseUtil::LMPscancfgToSopas failed: \"" << sopas_cmd << "\"" << std::endl;
         else
             std::cout << "SickScanParseUtil::LMPscancfgToSopas success: \"" << sopas_cmd << "\"" << std::endl;
@@ -87,7 +87,7 @@ static SickScanParseUtilUnittest selftester = SickScanParseUtilUnittest();
 #endif  // debugging and unittest
 
 // returns the given angle in rad normalized to -PI ... +PI
-double sick_scan::normalizeAngleRad(double angle_rad, double angle_min, double angle_max)
+double sick_scan_xd::normalizeAngleRad(double angle_rad, double angle_min, double angle_max)
 {
 while(angle_rad > angle_max)
     angle_rad -= (2 * M_PI);
@@ -127,7 +127,7 @@ template<typename T> static std::string convertHex(T value)
     return s.str();
 }
 
-std::string sick_scan::SickScanParseUtil::LMPscancfg::print() const
+std::string sick_scan_xd::SickScanParseUtil::LMPscancfg::print() const
 {
     std::stringstream scancfg_msg;
     scancfg_msg << "scan_frequency=" << scan_frequency << ", active_sector_cnt=" << active_sector_cnt;
@@ -145,9 +145,9 @@ std::string sick_scan::SickScanParseUtil::LMPscancfg::print() const
 *
 * LRS-36x1 reply to "sRN LMPscancfg" (Cola-B example): "sRA LMPscancfg \x00\x00\x03\x20\x00\x01\x00\x00\x09\xc4\x00\x00\x00\x00\x00\x36\xee\x80\x00\x00\x09\xc4\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\xc4\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x09\xc4\x00\x00\x00\x00\x00\x00\x00\x00"
 */
-bool sick_scan::SickScanParseUtil::SopasToLMPscancfg(const std::string& sopas_reply, sick_scan::SickScanParseUtil::LMPscancfg& scancfg)
+bool sick_scan_xd::SickScanParseUtil::SopasToLMPscancfg(const std::string& sopas_reply, sick_scan_xd::SickScanParseUtil::LMPscancfg& scancfg)
 {
-    scancfg = sick_scan::SickScanParseUtil::LMPscancfg();
+    scancfg = sick_scan_xd::SickScanParseUtil::LMPscancfg();
     size_t offset = 0;
     // Check for LMPscancfg or mLMPsetscancfg reply
     std::vector<std::string> sopas_reply_ids = { "sRA LMPscancfg " , "sAN mLMPsetscancfg " };
@@ -175,7 +175,7 @@ bool sick_scan::SickScanParseUtil::SopasToLMPscancfg(const std::string& sopas_re
     scancfg.sector_cfg.reserve(max_sector_cnt);
     for (int sector_cnt = 0; success == true && sector_cnt < max_sector_cnt && offset < sopas_reply.length(); sector_cnt++)
     {
-        sick_scan::SickScanParseUtil::LMPscancfgSector scancfg_sector;
+        sick_scan_xd::SickScanParseUtil::LMPscancfgSector scancfg_sector;
         success = success && convertBin(sopas_reply, offset, scancfg_sector.angular_resolution); // angular resolution in 1/10000 deg
         success = success && convertBin(sopas_reply, offset, scancfg_sector.start_angle); // start angle in 1/10000 deg
         success = success && convertBin(sopas_reply, offset, scancfg_sector.stop_angle); // stop angle in 1/10000 deg
@@ -185,7 +185,7 @@ bool sick_scan::SickScanParseUtil::SopasToLMPscancfg(const std::string& sopas_re
     {
         ROS_WARN_STREAM("## ERROR in LMPscancfg reply: \"" << sopas_reply << "\"");
         ROS_WARN_STREAM("## SickScanParseUtil::SopasToLMPscancfg(): convertBin() failed with " << scancfg.print());
-        scancfg = sick_scan::SickScanParseUtil::LMPscancfg();
+        scancfg = sick_scan_xd::SickScanParseUtil::LMPscancfg();
     }
     else
     {
@@ -200,7 +200,7 @@ bool sick_scan::SickScanParseUtil::SopasToLMPscancfg(const std::string& sopas_re
 * Example: "\x02sMN mLMPsetscancfg +2000 +1 +7500 +3600000 0 +2500 0 0 +2500 0 0 +2500 0 0\x03"
 
 */
-bool sick_scan::SickScanParseUtil::LMPscancfgToSopas(const sick_scan::SickScanParseUtil::LMPscancfg& scancfg, std::string& sopas_cmd)
+bool sick_scan_xd::SickScanParseUtil::LMPscancfgToSopas(const sick_scan_xd::SickScanParseUtil::LMPscancfg& scancfg, std::string& sopas_cmd)
 {
     sopas_cmd = "";
     std::stringstream sopas_hex;

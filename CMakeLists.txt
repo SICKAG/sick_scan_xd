@@ -3,7 +3,7 @@
 ####################################################
 cmake_minimum_required(VERSION 3.5)
 
-project(sick_scan)
+project(sick_scan_xd)
 
 # Emulator build options
 option(ENABLE_EMULATOR "Build emulator for offline and unittests (ON) or without emulator (OFF)" ON)
@@ -116,6 +116,14 @@ else()
     link_libraries(dl)      # dynamic loading of libraries
 endif()
 
+if(RASPBERRY EQUAL 1)
+    add_compile_options(-DRASPBERRY=1)
+    message(STATUS "Building sick_scan_xd for target RASPBERRY")
+else()
+    add_compile_options(-DRASPBERRY=0)
+endif()
+
+
 # Checks and prints a message, if a header file does not exist
 function(check_header_exists headerfilepath headerfilename packagename)
     if(NOT EXISTS ${headerfilepath})
@@ -206,6 +214,7 @@ if(ROS_VERSION EQUAL 1)
         FILES
         ColaMsgSrv.srv
         ECRChangeArrSrv.srv
+        GetContaminationResultSrv.srv
         LIDoutputstateSrv.srv
         SCdevicestateSrv.srv
         SCrebootSrv.srv
@@ -328,6 +337,7 @@ if(ROS_VERSION EQUAL 2)
         # service files
         "srv/ColaMsgSrv.srv"
         "srv/ECRChangeArrSrv.srv"
+        "srv/GetContaminationResultSrv.srv"
         "srv/LIDoutputstateSrv.srv"
         "srv/SCdevicestateSrv.srv"
         "srv/SCrebootSrv.srv"
@@ -339,7 +349,9 @@ if(ROS_VERSION EQUAL 2)
 endif()
 
 # Support for LDMRS
-if(${BUILD_WITH_LDMRS_SUPPORT} OR BUILD_WITH_LDMRS_SUPPORT EQUAL ON)
+if(RASPBERRY EQUAL 1)
+    message(STATUS "Building ${PROJECT_NAME} for raspberry without ldmrs support")
+elseif(${BUILD_WITH_LDMRS_SUPPORT} OR BUILD_WITH_LDMRS_SUPPORT EQUAL ON)
     message(STATUS "Building ${PROJECT_NAME} with LDMRS support")
     add_compile_options(-DLDMRS_SUPPORT=1)
     find_package(SickLDMRS REQUIRED)
@@ -483,7 +495,7 @@ if(ROS_VERSION EQUAL 1)
     )
 endif()
 
-include_directories(include include/${PROJECT_NAME}_xd_api include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/${PROJECT_NAME} tools/test_server/include roswrap/src/include/launchparser)
+include_directories(include include/sick_scan_xd_api include/tinyxml ${catkin_INCLUDE_DIRS} ${LDMRS_INCLUDES} include/sick_scan tools/test_server/include roswrap/src/include/launchparser)
 if(ROS_VERSION EQUAL 0)
     include_directories(roswrap/src/msg_header)
 endif()
@@ -509,16 +521,16 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_generic_parser.cpp
         driver/src/sick_generic_radar.cpp
         driver/src/sick_lmd_scandata_parser.cpp
-        driver/src/${PROJECT_NAME}_common.cpp
-        driver/src/${PROJECT_NAME}_common_nw.cpp
-        driver/src/${PROJECT_NAME}_common_tcp.cpp
-        driver/src/${PROJECT_NAME}_config_internal.cpp
-        driver/src/${PROJECT_NAME}_marker.cpp
-        driver/src/${PROJECT_NAME}_messages.cpp
-        driver/src/${PROJECT_NAME}_parse_util.cpp
-        driver/src/${PROJECT_NAME}_services.cpp
-        driver/src/${PROJECT_NAME}_xd_api/api_impl.cpp
-        driver/src/${PROJECT_NAME}_xd_api/${PROJECT_NAME}_api_converter.cpp
+        driver/src/sick_scan_common.cpp
+        driver/src/sick_scan_common_nw.cpp
+        driver/src/sick_scan_common_tcp.cpp
+        driver/src/sick_scan_config_internal.cpp
+        driver/src/sick_scan_marker.cpp
+        driver/src/sick_scan_messages.cpp
+        driver/src/sick_scan_parse_util.cpp
+        driver/src/sick_scan_services.cpp
+        driver/src/sick_scan_xd_api/api_impl.cpp
+        driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
         driver/src/sick_nav_scandata_parser.cpp
         driver/src/softwarePLL.cpp
         driver/src/tcp/Mutex.cpp
@@ -587,11 +599,11 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     if(ROS_VERSION EQUAL 0)
         include_directories(roswrap/src/include roswrap/src/rossimu/melodic/include roswrap/src/rossimu/kinetic/include roswrap/src/cfgsimu roswrap/src/toojpeg roswrap/src/tools)
         file(GLOB SRC_ROSSIMU_FILES 
-            roswrap/src/cfgsimu/${PROJECT_NAME}/time_modi.cpp
+            roswrap/src/cfgsimu/sick_scan/time_modi.cpp
             roswrap/src/rossimu/kinetic/src/rossimu.cpp
             roswrap/src/rossimu/kinetic/src/duration.cpp
             roswrap/src/rossimu/kinetic/src/rate.cpp
-            roswrap/src/tools/${PROJECT_NAME}/pointcloud_utils.cpp
+            roswrap/src/tools/sick_scan/pointcloud_utils.cpp
         )
     endif()
 
@@ -611,15 +623,15 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/sick_generic_parser.cpp
         driver/src/sick_generic_radar.cpp
         driver/src/sick_lmd_scandata_parser.cpp
-        driver/src/${PROJECT_NAME}_common.cpp
-        driver/src/${PROJECT_NAME}_common_nw.cpp
-        driver/src/${PROJECT_NAME}_common_tcp.cpp
-        driver/src/${PROJECT_NAME}_marker.cpp
-        driver/src/${PROJECT_NAME}_messages.cpp
-        driver/src/${PROJECT_NAME}_parse_util.cpp
-        driver/src/${PROJECT_NAME}_services.cpp
-        driver/src/${PROJECT_NAME}_xd_api/api_impl.cpp
-        driver/src/${PROJECT_NAME}_xd_api/${PROJECT_NAME}_api_converter.cpp
+        driver/src/sick_scan_common.cpp
+        driver/src/sick_scan_common_nw.cpp
+        driver/src/sick_scan_common_tcp.cpp
+        driver/src/sick_scan_marker.cpp
+        driver/src/sick_scan_messages.cpp
+        driver/src/sick_scan_parse_util.cpp
+        driver/src/sick_scan_services.cpp
+        driver/src/sick_scan_xd_api/api_impl.cpp
+        driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
         driver/src/softwarePLL.cpp
         driver/src/tcp/Mutex.cpp
         driver/src/tcp/SickThread.cpp
@@ -700,35 +712,45 @@ if(ROS_VERSION EQUAL 2)
     )
 
     if(WIN32 OR EXISTS "/opt/ros/eloquent" OR EXISTS "/opt/ros/foxy" OR EXISTS "/opt/ros/galactic") # rosidl_typesupport for ROS2 eloquent, foxy, galaxy
+        rosidl_target_interfaces(${PROJECT_NAME}_lib ${PROJECT_NAME} "rosidl_typesupport_c")
         rosidl_target_interfaces(${PROJECT_NAME}_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
+        rosidl_target_interfaces(${PROJECT_NAME}_shared_lib ${PROJECT_NAME} "rosidl_typesupport_c")
         rosidl_target_interfaces(${PROJECT_NAME}_shared_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
-        # rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_cpp")
+        rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_c") # required?
+        rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_cpp") # required?
     else() # rosidl_typesupport for ROS2 humble or later
+        rosidl_get_typesupport_target(c_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_c")
         rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+        target_link_libraries(${PROJECT_NAME}_lib "${c_typesupport_target}")
         target_link_libraries(${PROJECT_NAME}_lib "${cpp_typesupport_target}")
+        target_link_libraries(${PROJECT_NAME}_shared_lib "${p_typesupport_target}")
         target_link_libraries(${PROJECT_NAME}_shared_lib "${cpp_typesupport_target}")
+        target_link_libraries(sick_generic_caller "${c_typesupport_target}")
         target_link_libraries(sick_generic_caller "${cpp_typesupport_target}")
     endif()
 
 endif()
 
 # Build test and usage example for sick_scan_xd_api
-add_executable(${PROJECT_NAME}_xd_api_test
-    driver/src/${PROJECT_NAME}_xd_api/${PROJECT_NAME}_api_converter.cpp
-    test/src/${PROJECT_NAME}_xd_api/${PROJECT_NAME}_xd_api_test.cpp
-    test/src/${PROJECT_NAME}_xd_api/${PROJECT_NAME}_xd_api_wrapper.c
-    test/src/${PROJECT_NAME}_xd_api/toojpeg/toojpeg.cpp
+add_executable(sick_scan_xd_api_test
+    driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
+    test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp
+    test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c
+    test/src/sick_scan_xd_api/toojpeg/toojpeg.cpp
 )
-target_include_directories(${PROJECT_NAME}_xd_api_test PUBLIC test/src/${PROJECT_NAME}_xd_api/toojpeg)
+target_include_directories(sick_scan_xd_api_test PUBLIC test/src/sick_scan_xd_api/toojpeg)
 if(ROS_VERSION EQUAL 1)
-    target_link_libraries(${PROJECT_NAME}_xd_api_test ${catkin_LIBRARIES})
-    add_dependencies(${PROJECT_NAME}_xd_api_test
+    target_link_libraries(sick_scan_xd_api_test ${catkin_LIBRARIES})
+    add_dependencies(sick_scan_xd_api_test
         ${PROJECT_NAME}_gencfg
         ${catkin_EXPORTED_TARGETS}
         ${${PROJECT_NAME}_EXPORTED_TARGETS})
 endif()
+if(ROS_VERSION EQUAL 0 AND NOT WIN32)
+    target_link_options(sick_scan_xd_api_test PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+endif()
 
-# install sick_scan_shared_lib incl. API headerfiles
+# install sick_scan_xd_shared_lib incl. API headerfiles
 if(ROS_VERSION EQUAL 0)
     include(GNUInstallDirs)
     set_target_properties(${PROJECT_NAME}_shared_lib PROPERTIES PUBLIC_HEADER "include/sick_scan_xd_api/sick_scan_api.h;python/api/sick_scan_api.py")
@@ -739,7 +761,7 @@ if(ROS_VERSION EQUAL 0)
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 
-    # Export sick_scan_shared_lib target to be used by other projects
+    # Export sick_scan_xd_shared_lib target to be used by other projects
     install(EXPORT sick_scan_xd_Export
         FILE sick_scan_xd-config.cmake
         NAMESPACE sick_scan_xd::
@@ -754,13 +776,13 @@ if(ROS_VERSION EQUAL 1)
     install(TARGETS sick_generic_caller
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-    install(TARGETS ${PROJECT_NAME}_xd_api_test
+    install(TARGETS sick_scan_xd_api_test
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
     # install(TARGETS ${PROJECT_NAME}_test RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-    install(FILES include/${PROJECT_NAME}/abstract_parser.h
-        include/${PROJECT_NAME}/${PROJECT_NAME}_common.h
+    install(FILES include/sick_scan/abstract_parser.h
+        include/sick_scan/sick_scan_common.h
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
     install(DIRECTORY test/
@@ -779,7 +801,7 @@ if(ROS_VERSION EQUAL 1)
 endif()
 
 if(ROS_VERSION EQUAL 2)
-    install(TARGETS sick_generic_caller ${PROJECT_NAME}_xd_api_test
+    install(TARGETS sick_generic_caller sick_scan_xd_api_test
         DESTINATION lib/${PROJECT_NAME})
 
     install(TARGETS ${PROJECT_NAME}_lib ${PROJECT_NAME}_shared_lib
@@ -795,7 +817,7 @@ endif()
 # build and install emulator
 #
 if((${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) AND (NOT WIN32 OR ROS_VERSION EQUAL 2)) # sick_scan_emulator not supported on native Windows
-    add_executable(${PROJECT_NAME}_emulator
+    add_executable(sick_scan_emulator
         test/emulator/src/test_server.cpp
         test/emulator/src/test_server_thread.cpp
         test/emulator/src/client_socket.cpp
@@ -816,16 +838,16 @@ if((${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) AND (NOT WIN32 OR ROS_VERSIO
         ${SRC_ROSSIMU_FILES}
         ${SRC_WIN_FILES}
         )
-    target_link_libraries(${PROJECT_NAME}_emulator
+    target_link_libraries(sick_scan_emulator
         ${catkin_LIBRARIES}
         ${roslib_LIBRARIES}
         ${PROJECT_NAME}_lib
         ${MSGPACK11_LIBRARIES} 
         ${LIB_JSONCPP})
-    target_include_directories(${PROJECT_NAME}_emulator PUBLIC test test/emulator/include)
+    target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
     
     if(ROS_VERSION EQUAL 1)
-        install(TARGETS ${PROJECT_NAME}_emulator
+        install(TARGETS sick_scan_emulator
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
         install(DIRECTORY test/emulator/launch/
             DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
@@ -834,7 +856,7 @@ if((${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) AND (NOT WIN32 OR ROS_VERSIO
         install(DIRECTORY test/emulator/scandata/
             DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scandata)
     else()
-        install(TARGETS ${PROJECT_NAME}_emulator
+        install(TARGETS sick_scan_emulator
             RUNTIME DESTINATION lib/${PROJECT_NAME})
         install(DIRECTORY test/emulator/launch/
             DESTINATION share/${PROJECT_NAME})

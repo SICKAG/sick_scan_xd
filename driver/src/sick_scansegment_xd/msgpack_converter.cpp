@@ -83,7 +83,7 @@ sick_scansegment_xd::MsgPackConverter::MsgPackConverter() : m_verbose(false), m_
  * @param[in] msgpack_output_fifolength max. output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
  * @param[in] verbose true: enable debug output, false: quiet mode (default)
  */
-sick_scansegment_xd::MsgPackConverter::MsgPackConverter(const sick_scan::SickCloudTransform& add_transform_xyz_rpy, sick_scan::SickRangeFilter& range_filter,
+sick_scansegment_xd::MsgPackConverter::MsgPackConverter(const sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter,
 sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat, int msgpack_output_fifolength, bool verbose)
     : m_verbose(verbose), m_input_fifo(input_fifo), m_scandataformat(scandataformat), m_converter_thread(0), m_run_converter_thread(false), m_msgpack_validator_enabled(false), m_discard_msgpacks_not_validated(false)
 {

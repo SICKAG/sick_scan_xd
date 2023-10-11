@@ -25,7 +25,7 @@ function killSimulation () {
   sleep 1
 }
 
-# "rostopic echo -n 10" makes sure tha sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop)
+# "rostopic echo -n 10" makes sure tha sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop)
 function rostopicEcho10Times () {
   # rostopic echo -n 10 /cloud > /dev/null # ROS1
   python3 ./src/sick_scan_xd/test/python/ros2_wait_for_cloud_message.py # ROS2 equivalent
@@ -38,7 +38,7 @@ function killRestartEmulator () {
   killall -9 sick_scan_emulator
   sleep $delay
   echo -e "run_simu_reconnnect.bash: restarting sick_scan_emulator...\n"
-  ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch scanner_type:=sick_mrs_1xxx &
+  ros2 run sick_scan_xd sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch scanner_type:=sick_mrs_1xxx &
 }
 
 # killRestartEmulatorOnce delay kills sick_scan_emulator, restarts sick_scan_emulator after a given delay in seconds and waits for the pointcloud messages
@@ -46,7 +46,7 @@ function killRestartEmulatorOnce () {
   local delay=$1
   killRestartEmulator $delay
   sleep 20
-  rostopicEcho10Times # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+  rostopicEcho10Times # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 }
 
 # killRestartEmulatorTwice delay kills sick_scan_emulator and restarts sick_scan_emulator twice with a given delay and waits for the pointcloud messages
@@ -56,7 +56,7 @@ function killRestartEmulatorTwice () {
   sleep $delay
   killRestartEmulator $delay
   sleep 20
-  rostopicEcho10Times # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+  rostopicEcho10Times # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 }
 
 # killRestartEmulatorTwice delay kills sick_scan_emulator and restarts sick_scan_emulator three times with a given delay and waits for the pointcloud messages
@@ -68,7 +68,7 @@ function killRestartEmulatorThreeTimes () {
   sleep $delay
   killRestartEmulator $delay
   sleep 20
-  rostopicEcho10Times # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+  rostopicEcho10Times # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 }
 
 # killRestartEmulatorTwice delay kills sick_scan_emulator and restarts sick_scan_emulator a random number of times with a random delay and finally waits for the pointcloud messages
@@ -81,7 +81,7 @@ function killRestartEmulatorRandomly () {
     sleep $rand_delay
   done
   sleep 20
-  rostopicEcho10Times # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+  rostopicEcho10Times # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 }
 
 # Run ros2 simulation with reconnecting
@@ -95,18 +95,18 @@ source ./install/setup.bash
 
 echo -e "run_simu_reconnnect.bash: starting mrs1104 emulation\n"
 
-# Start sick_scan emulator
+# Start sick_scan_xd emulator
 cp -f ./src/sick_scan_xd/test/emulator/scandata/20210722_143600_ros2_mrs1104_sick_scan_xd.pcapng.json /tmp/lmd_scandata.pcapng.json
-ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch scanner_type:=sick_mrs_1xxx &
+ros2 run sick_scan_xd sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs1104.launch scanner_type:=sick_mrs_1xxx &
 sleep 1
 
 # Start rviz
 ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2_mrs1104.rviz &
 sleep 1
 
-# Start sick_scan driver for mrs1104
-echo -e "run_simu_reconnnect.bash: Launching sick_scan sick_mrs_1xxx.launch\n"
-ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False & 
+# Start sick_scan_xd driver for mrs1104
+echo -e "run_simu_reconnnect.bash: Launching sick_scan_xd sick_mrs_1xxx.launch\n"
+ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_1xxx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False & 
 sleep 10
 
 # Shutdown and restart emulator during both init and measurement, driver has to reconnect
@@ -124,7 +124,7 @@ for n in {1..10} ; do
 done
 
 # Ensure that driver receives tcp messages after reconnect
-rostopicEcho10Times # make sure sick_scan driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
+rostopicEcho10Times # make sure sick_scan_xd driver publishes the pointcloud (otherwise rostopic echo will stuck in an endless loop here)
 for n in {1..10} ; do  
   echo -e "mrs1104 emulation running. Close rviz or press 'q' to exit..." ; read -t 1.0 -n1 -s key
   if [[ $key = "q" ]] || [[ $key = "Q" ]]; then break ; fi

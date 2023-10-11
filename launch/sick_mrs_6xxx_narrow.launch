@@ -10,7 +10,7 @@
     <!-- robot_description and robot_state_publisher will be published here -->
 
     <!-- robot_description and robot_state_publisher will be published here -->
-    <node name="sick_mrs_6xxx" pkg="sick_scan" type="sick_generic_caller" respawn="false" output="screen" required="true">
+    <node name="sick_mrs_6xxx" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- default values: -->
         <!--
           <param name="scanner_type" type="string" value="sick_mrs_6xxx"
@@ -67,6 +67,7 @@
         <param name="read_timeout_millisec_default" type="int" value="5000"/>     <!-- 5 sec read timeout in operational mode (measurement mode), default: 5000 milliseconds -->
         <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
         <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
+        <!-- Note: read_timeout_millisec_kill_node less or equal 0 deactivates pointcloud monitoring (not recommended) -->
         <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
 
         <!-- Configuration of ROS quality of service: -->

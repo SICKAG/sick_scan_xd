@@ -54,6 +54,7 @@
  */
 #include "sick_scansegment_xd/scansegment_threads.h"
 #include "sick_scansegment_xd/udp_sockets.h"
+#include "sick_scansegment_xd/compact_parser.h"
 #include "sick_scansegment_xd/msgpack_converter.h"
 #include "sick_scansegment_xd/msgpack_exporter.h"
 #include "sick_scansegment_xd/msgpack_validator.h"
@@ -74,16 +75,21 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     if (!config.Init(node))
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): Config::Init() failed, using default values.");
-        return sick_scan::ExitError;
+        return sick_scan_xd::ExitError;
     }
     config.PrintConfig();
+    if (config.scandataformat == SCANDATA_COMPACT && scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
+    {
+        std::vector<int> layer_elevation_table_mdeg = { 22710, 17560, 12480, 7510, 2490, 70, -2430, -7290, -12790, -17280, -21940, -26730, -31860, -34420, -37180, -42790 };
+        sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(layer_elevation_table_mdeg);
+    }
     // Run sick_scansegment_xd (msgpack receive, convert and publish)
     ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") started.");
     sick_scansegment_xd::MsgPackThreads msgpack_threads;
     if(!msgpack_threads.start(config))
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::start() failed");
-        return sick_scan::ExitError;
+        return sick_scan_xd::ExitError;
     }
     msgpack_threads.join();
     // Close sick_scansegment_xd
@@ -92,7 +98,7 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::stop() failed");
     }
     ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") finished.");
-    return sick_scan::ExitSuccess;
+    return sick_scan_xd::ExitSuccess;
 }
 
 /*
@@ -148,7 +154,7 @@ void sick_scansegment_xd::MsgPackThreads::join(void)
     }
 }
 
-// Send "start" trigger via UDP
+/* Send "start" trigger via UDP
 static void sendStartTrigger(sick_scansegment_xd::Config& config)
 {
   if (config.send_udp_start)
@@ -163,6 +169,7 @@ static void sendStartTrigger(sick_scansegment_xd::Config& config)
       ROS_INFO_STREAM ("sick_scansegment_xd: start string sent on udp socket " << config.hostname << ":" << config.port);
   }
 }
+*/
 
 /*
  * @brief Thread callback, initializes and runs msgpack receiver, converter and publisher.
@@ -180,7 +187,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         ROS_INFO_STREAM("sick_scansegment_xd initializing...");
 
         // Send "start" trigger via UDP
-        sendStartTrigger(m_config);
+        // sendStartTrigger(m_config);
 
         // Initialize udp receiver
         sick_scansegment_xd::UdpReceiver* udp_receiver = 0;
@@ -218,25 +225,25 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: MsgPackConverter::Start(), UdpReceiver::Start() or MsgPackExporter::Start() failed, not receiving udp packages from " << m_config.udp_sender << ":" << m_config.udp_port);
 
         // Send "start" via UDP
-        sendStartTrigger(m_config);
+        // sendStartTrigger(m_config);
 
         // Start SOPAS services (ROS-1 or ROS-2 only)
-        sick_scan::SickScanCommonTcp* sopas_tcp = 0;
-        sick_scan::SickScanServices* sopas_service = 0;
+        sick_scan_xd::SickScanCommonTcp* sopas_tcp = 0;
+        sick_scan_xd::SickScanServices* sopas_service = 0;
         std::string scannerName = SICK_SCANNER_SCANSEGMENT_XD_NAME;
-        sick_scan::SickGenericParser parser = sick_scan::SickGenericParser(scannerName);
-        sick_scan::ScannerBasicParam basic_param;
+        sick_scan_xd::SickGenericParser parser = sick_scan_xd::SickGenericParser(scannerName);
+        sick_scan_xd::ScannerBasicParam basic_param;
         basic_param.setScannerName(scannerName);
         bool multiscan_write_filtersettings = m_config.host_set_FREchoFilter || m_config.host_set_LFPangleRangeFilter || m_config.host_set_LFPlayerFilter;
         if (m_config.start_sopas_service || m_config.send_sopas_start_stop_cmd || m_config.host_read_filtersettings || multiscan_write_filtersettings)
         {
             ROS_INFO_STREAM("MsgPackThreads: initializing sopas tcp (" << m_config.hostname << ":" << m_config.sopas_tcp_port << ", timeout:" << (0.001*m_config.sopas_timeout_ms) << ", binary:" << m_config.sopas_cola_binary << ")");
-            sopas_tcp = new sick_scan::SickScanCommonTcp(m_config.hostname, m_config.sopas_tcp_port, m_config.sopas_timeout_ms, m_config.node, &parser, m_config.sopas_cola_binary ? 'B' : 'A');
+            sopas_tcp = new sick_scan_xd::SickScanCommonTcp(m_config.hostname, m_config.sopas_tcp_port, m_config.sopas_timeout_ms, m_config.node, &parser, m_config.sopas_cola_binary ? 'B' : 'A');
             ROS_INFO_STREAM("MsgPackThreads: initializing device");
             sopas_tcp->init_device(); // sopas_tcp->init();
             sopas_tcp->setReadTimeOutInMs(m_config.sopas_timeout_ms);
             ROS_INFO_STREAM("MsgPackThreads: initializing services");
-            sopas_service = new sick_scan::SickScanServices(m_config.node, sopas_tcp, &basic_param);
+            sopas_service = new sick_scan_xd::SickScanServices(m_config.node, sopas_tcp, &basic_param);
             ROS_INFO_STREAM("MsgPackThreads: ros services initialized");
         }
         else
@@ -285,7 +292,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.port, m_config.scanner_type, m_config.scandataformat);
+                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat);
             }
             else
             {

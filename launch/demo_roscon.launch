@@ -35,25 +35,25 @@
           name="map_laser_broadcaster"
           args="0 0 0 0 0 0 map laser 100"/>
 
-    <node name="radar_object_marker" pkg="sick_scan"
+    <node name="radar_object_marker" pkg="sick_scan_xd"
           type="radar_object_marker" respawn="false" output="screen">
         <param name="rawtarget_sphere_radius" type="double" value="$(arg rawtarget_sphere_radius)"/>
         <param name="rawtarget_palette_name" type="string" value="$(arg rawtarget_palette_name)"/>
         <param name="rawtarget_palette_min_ampl" type="double" value="$(arg rawtarget_palette_min_ampl)"/>
         <param name="rawtarget_palette_max_ampl" type="double" value="$(arg rawtarget_palette_max_ampl)"/>
     </node>
-    <node pkg="sick_scan" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen"/>
+    <node pkg="sick_scan_xd" type="pcl_converter" name="pcl_converter" args="/cloud /image" output="screen"/>
 
     <node pkg="rosbag"
           type="play"
           name="rosbag_play_video"
-          args="$(find sick_scan)/test/demo_roscon/demo_ra_la_001.bag $(find sick_scan)/test/demo_roscon/demo_video_001.bag -s 10 -u 230 -l"
+          args="$(find sick_scan_xd)/test/demo_roscon/demo_ra_la_001.bag $(find sick_scan_xd)/test/demo_roscon/demo_video_001.bag -s 10 -u 230 -l"
 
     />
 
     <!-- rviz -->
     <arg name="rviz" default="true"/>
-    <arg name="rviz_file" default="$(find sick_scan)/launch/rviz/demo_roscon.rviz"/>
+    <arg name="rviz_file" default="$(find sick_scan_xd)/launch/rviz/demo_roscon.rviz"/>
     <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(arg rviz_file)" output="screen" if="$(arg rviz)"/>
 
 

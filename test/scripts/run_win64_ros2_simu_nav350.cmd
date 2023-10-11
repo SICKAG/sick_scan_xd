@@ -1,5 +1,5 @@
 REM 
-REM Run sick_scan on ROS-2 Windows with nav350 pcapng player
+REM Run sick_scan_xd on ROS-2 Windows with nav350 pcapng player
 REM 
 
 if exist "c:\dev\ros2_foxy\local_setup.bat" ( call C:\dev\ros2_foxy\local_setup.bat )
@@ -26,10 +26,10 @@ start "python sopas_json_test_server.py" cmd /k python ./src/sick_scan_xd/test/p
 @timeout /t 3
 
 REM 
-REM Run sick_scan on ROS-2 Windows
+REM Run sick_scan_xd on ROS-2 Windows
 REM 
 
-ros2 launch sick_scan sick_nav_350.launch.py hostname:=127.0.0.1
+ros2 launch sick_scan_xd sick_nav_350.launch.py hostname:=127.0.0.1
 popd
 @pause
 

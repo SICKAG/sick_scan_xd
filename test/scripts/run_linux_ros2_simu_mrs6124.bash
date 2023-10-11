@@ -26,15 +26,15 @@ source ./install/setup.bash
 #
 # Run simulation:
 # 1. Start sick_scan_emulator
-# 2. Start sick_scan driver sick_generic_caller
+# 2. Start sick_scan_xd driver sick_generic_caller
 # 3. Run rviz
 #
 
 echo -e "run_linux_ros2_simu_mrs6124.bash: starting MRS6124 emulation with sick_mrs_6xxx.launch\n"
 cp -f ./src/sick_scan_xd/test/emulator/scandata/20220727_mrs6124.pcapng.json /tmp/lmd_scandata.pcapng.json
-sleep 1 ; ros2 run sick_scan sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs6124.launch scanner_type:=sick_mrs_6xxx &
-# sleep 1 ; ros2 run sick_scan sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_6xxx.launch hostname:=127.0.0.1 port:=2111 & 
-sleep 1 ; ros2 launch sick_scan sick_mrs_6xxx.launch.py hostname:=127.0.0.1 port:=2111 &
+sleep 1 ; ros2 run sick_scan_xd sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_mrs6124.launch scanner_type:=sick_mrs_6xxx &
+# sleep 1 ; ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_mrs_6xxx.launch hostname:=127.0.0.1 port:=2111 & 
+sleep 1 ; ros2 launch sick_scan_xd sick_mrs_6xxx.launch.py hostname:=127.0.0.1 port:=2111 &
 sleep 1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2_mrs6124.rviz &
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed ...
