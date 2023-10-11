@@ -109,19 +109,18 @@ namespace sick_scansegment_xd
         const std::string& frameid(void) const { return m_frameid ; }                        // ros frame_id of the pointcloud
         bool fullframe(void) const { return m_update_method == 0; }                          // returns true for fullframe pointcloud, or false for segmented pointcloud
         int coordinateNotation(void) const { return  m_coordinate_notation; }                // 0 = cartesian, 1 = polar, 2 = both cartesian and polar, 3 = customized fields
-        // const std::map<std::string, bool>& fields(void) const { return m_field_enabled; }    // names of enabled field names (i.e. field enabled if m_field_enabled[field_name]==true), where field_name is "x", "y", "z", "i", "range", "azimuth", "elevation", "layer", "echo" or "reflector"
-        // const std::map<int8_t, bool>& echos(void) const { return m_echo_enabled; }           // enabled echos (i.e. point inserted in pointcloud, if m_echo_enabled[echo_idx]==true)
-        // const std::map<int8_t, bool>& layers(void) const { return m_layer_enabled; }         // enabled layers (i.e. point inserted in pointcloud, if m_layer_enabled[layer_idx]==true)
-        // const std::map<int8_t, bool>& reflectors(void) const { return m_reflector_enabled; } // enabled reflectors (i.e. point inserted in pointcloud, if m_reflector_enabled[reflector_bit]==true)
-        // const std::map<int8_t, bool>& infringed(void) const { return m_infringed_enabled; }  // enabled infringments (i.e. point inserted in pointcloud, if m_infringed_enabled[infringed_bit]==true)
         PointCloud2MsgPublisher& publisher(void) { return m_publisher; }                     // ros publisher of customized pointcloud
         inline bool fieldEnabled(const std::string& fieldname)                               // returns true, if a field given its name (like "x", "y", "z", "i", etc.) is enabled (i.e. activated in the launchfile), otherwise false
         { 
             return m_field_enabled[fieldname]; 
         }
-        inline bool pointEnabled(const sick_scansegment_xd::PointXYZRAEI32f& lidar_point)    // returns true, if a point is enabled (i.e. properties echo, layer, reflectorbit etc. are activated in the launchfile), otherwise false
+        inline bool pointEnabled(sick_scansegment_xd::PointXYZRAEI32f& lidar_point) // returns true, if a point is enabled (i.e. properties echo, layer, reflectorbit etc. are activated in the launchfile), otherwise false
         {
-	        return m_echo_enabled[lidar_point.echo] && m_layer_enabled[lidar_point.layer] && m_reflector_enabled[lidar_point.reflectorbit] && m_infringed_enabled[lidar_point.infringed];
+	        return m_echo_enabled[lidar_point.echo] 
+            && m_layer_enabled[lidar_point.layer] 
+            && m_reflector_enabled[lidar_point.reflectorbit] 
+            && m_infringed_enabled[lidar_point.infringed]
+            && m_range_filter.apply(lidar_point.range); // note: range can be set depending on filter settings
         }
         void print(void) const;
     protected:
@@ -133,6 +132,7 @@ namespace sick_scansegment_xd
         std::string m_frameid = "";    // ros frame_id of the pointcloud
         int m_coordinate_notation = 0; // 0 = cartesian, 1 = polar, 2 = both cartesian and polar, 3 = customized fields
         int m_update_method = 0;       // 0 = fullframe pointcloud, 1 = segmented pointcloud
+        sick_scan_xd::SickRangeFilter m_range_filter; // Optional range filter
         std::map<std::string, bool> m_field_enabled; // names of enabled field names (i.e. field enabled if m_field_enabled[field_name]==true), where field_name is "x", "y", "z", "i", "range", "azimuth", "elevation", "layer", "echo" or "reflector"
         std::map<int8_t, bool> m_echo_enabled; // enabled echos (i.e. point inserted in pointcloud, if m_echo_enabled[echo_idx]==true)
         std::map<int8_t, bool> m_layer_enabled; // enabled layers (i.e. point inserted in pointcloud, if m_layer_enabled[layer_idx]==true)

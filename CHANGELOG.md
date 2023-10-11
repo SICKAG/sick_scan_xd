@@ -7,16 +7,19 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+## Released ##
+
 ### Release v3.0.0
+
+This release has a new major version as it breaks with the previously used ROS module name "sick_scan".
+For consistency, the ROS module name has been changed to "sick_scan_xd" to match the name used everywhere else.
 
   - **add** New topics for additional data and properties
   - **add** Official ARM64 support 
-  - **add** ROS module name consistency
   - **add** Service for requesting contamination detection information
-  - **add** Improvements from customer tickets and documentation enhancements
-
-## Released ##
-		   	   
+  - **changed** Improvements from customer tickets and documentation enhancements
+  - **fix** ROS module name consistency
+	   	   
 ### Release v2.10.3
   - **fix** avoid problems with min/max definition in the STL and preprocessor definitions
 

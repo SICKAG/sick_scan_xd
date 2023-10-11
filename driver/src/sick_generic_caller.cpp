@@ -50,7 +50,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 *
-*  Last modified: 25th June 2022
+*  Last modified: 18th September 2023
 *
 *      Authors:
 *         Michael Lehning <michael.lehning@lehning.de>
@@ -61,8 +61,8 @@
 *
 *
 *
-*  Copyright 2018/2019/2020/2021/2022 SICK AG
-*  Copyright 2018/2019/2020/2021/2022 Ing.-Büro Dr. Michael Lehning
+*  Copyright 2018/2019/2020/2021/2022/2023 SICK AG
+*  Copyright 2018/2019/2020/2021/2022/2023 Ing.-Büro Dr. Michael Lehning
 *  
 */
 

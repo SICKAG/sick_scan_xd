@@ -60,6 +60,7 @@
 #define SICK_RANGE_FILTER_H_
 
 #include <cfloat>
+#include <iomanip>
 #include <sick_scan/sick_ros_wrapper.h>
 
 namespace sick_scan_xd
@@ -157,6 +158,16 @@ namespace sick_scan_xd
             }
             cloud = resized_pointcloud;
 		}
+
+        /*
+        * Returns a human readable string of the filter configuration
+        */
+        std::string print(void) const
+        {
+            std::stringstream s;
+            s << "(" << std::fixed << std::setprecision(3) << m_range_min << "," << m_range_max << "," << (int)(m_settings) << ")";
+            return s.str();
+        }
 
     protected:
 

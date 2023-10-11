@@ -122,10 +122,11 @@
             echos=2: last echo
             or any other combination of 0,1,2
 
-        Parameter "layers" defines which echos are included in the pointcloud, e.g
-            layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 for all layers
-            layers=5 for the 0 degree layer
-            or any other combination of 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        Parameter "layers" defines which layers are included in the pointcloud, e.g
+            layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 for all layers
+            layers=6 for the 0 degree layer
+            or any other combination of 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+        Note: layer ids enumerate from 1 up to 16.
 
         Parameter "reflectors" filters the points by the reflector bit, i.e.
             reflectors=0,1 for points with reflector bit set or not set
@@ -137,6 +138,23 @@
             infringed=0 for points with infringement bit not set
             infringed=1 for points with infringement bit set
         Parameter "infringed" is currently not supported (reserved for future use)
+
+        Optional parameter "rangeFilter" configures how invalid measurements are filtered in the customized pointcloud.
+            rangeFilter=<range_min>,<range_max>,<filter_flag>
+        The range (distance) of invalid scan points is 0 and can be filtered, i.e. removed from the pointcloud or set to 0, FLT_MAX or NAN.
+        Parameter "rangeFilter" of a customized pointcloud works the same way as the general parameter "range_min", "range_max" and "range_filter_handling":
+        If the range (distance) of a scan point is less than <range_min> or greater than <range_max>, this point is filtered depending on <filter_flag>:
+            <filter_flag> = 0: RANGE_FILTER_DEACTIVATED,  do not apply range filter (default)
+            <filter_flag> = 1: RANGE_FILTER_DROP,         drop point, if range is not within [range_min, range_max]
+            <filter_flag> = 2: RANGE_FILTER_TO_ZERO,      set range to 0, if range is not within [range_min, range_max]
+            <filter_flag> = 3: RANGE_FILTER_TO_RANGE_MAX, set range to range_max, if range is not within [range_min, range_max]
+            <filter_flag> = 4: RANGE_FILTER_TO_FLT_MAX,   set range to FLT_MAX, if range is not within [range_min, range_max]
+            <filter_flag> = 5: RANGE_FILTER_TO_NAN        set range to NAN, if range is not within [range_min, range_max]
+        Note: Using range_filter_handling 4 or 5 requires handling of FLT_MAX and NAN values in an application.
+        The working range of a picoScan is specified by 0.05 m up to 120 m. Example to drop invalid measurements:
+            rangeFilter=0.05,120,1
+        Note: "structured" pointclouds contain all scan points (valid and invalid), i.e. these pointclouds are not filtered. Each scan point has a fixed offset in a structured pointcloud.
+        "unstructured" pointclouds contain all valid measurements, i.e. these pointclouds are filtered and contain valid scan points only. Azimuth and elevation of the n-th scan point is not constant.
 
         Parameter "topic" defines the ros topic, e.g. topic=/cloud_fullframe for cartesian fullframe pointclouds
 
@@ -151,65 +169,65 @@
         <!-- A list predefined pointclouds is configured below. Use all of them or just a subset, according to your needs. Further customized pointclouds can be added in the following configuration -->
         <!-- param name="custom_pointclouds" type="string" value="cloud_unstructured_segments cloud_polar_unstructured_segments cloud_unstructured_fullframe cloud_unstructured_echo1 cloud_unstructured_echo1_segments cloud_unstructured_echo2 cloud_unstructured_echo2_segments cloud_unstructured_echo3 cloud_unstructured_echo3_segments cloud_unstructured_reflector cloud_unstructured_reflector_segments cloud_structured_hires0 cloud_structured_hires0_segments cloud_structured_hires1 cloud_structured_hires1_segments cloud_structured cloud_structured_segments cloud_all_fields_segments cloud_all_fields_fullframe"/ -->
 
-        <!-- cloud_unstructured_segments: cartesian coordinates, segmented, all echos, all layers, max. 2700 points, mean ca. 1000 points per cloud -->
-        <param name="cloud_unstructured_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_segments frameid=world publish=1"/>
+        <!-- cloud_unstructured_segments: cartesian coordinates, segmented, all echos, all layers, range filter on, max. 2700 points, mean ca. 1000 points per cloud -->
+        <param name="cloud_unstructured_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_segments frameid=world publish=1"/>
         
-        <!-- cloud_unstructured_fullframe: cartesian coordinates, fullframe, all echos, all layers, max. 32400 points, mean ca. 10000 points per cloud -->
-        <param name="cloud_unstructured_fullframe" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_fullframe frameid=world publish=1"/>
+        <!-- cloud_unstructured_fullframe: cartesian coordinates, fullframe, all echos, all layers, range filter on, max. 32400 points, mean ca. 10000 points per cloud -->
+        <param name="cloud_unstructured_fullframe" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_fullframe frameid=world publish=1"/>
 
-        <!-- cloud_polar_unstructured_segments: polar coordinates, segmented, all echos, all layers, max. 2700 points, mean ca. 1000 points per cloud -->
-        <param name="cloud_polar_unstructured_segments" type="string" value="coordinateNotation=1 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_polar_unstructured_segments frameid=world publish=1"/>
+        <!-- cloud_polar_unstructured_segments: polar coordinates, segmented, all echos, all layers, range filter on, max. 2700 points, mean ca. 1000 points per cloud -->
+        <param name="cloud_polar_unstructured_segments" type="string" value="coordinateNotation=1 updateMethod=1 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_polar_unstructured_segments frameid=world publish=1"/>
 
-        <!-- cloud_polar_unstructured_fullframe: polar coordinates, fullframe, all echos, all layers -->
-        <param name="cloud_polar_unstructured_fullframe" type="string" value="coordinateNotation=1 updateMethod=0 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_polar_unstructured_fullframe frameid=world publish=1"/>
+        <!-- cloud_polar_unstructured_fullframe: polar coordinates, fullframe, all echos, all layers, range filter on -->
+        <param name="cloud_polar_unstructured_fullframe" type="string" value="coordinateNotation=1 updateMethod=0 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_polar_unstructured_fullframe frameid=world publish=1"/>
 
-        <!-- cloud_unstructured_echo1: cartesian coordinates, fullframe, first echo, all layers -->
-        <param name="cloud_unstructured_echo1" type="string" value="coordinateNotation=0 updateMethod=0 echos=0 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo1 frameid=world publish=1"/>
+        <!-- cloud_unstructured_echo1: cartesian coordinates, fullframe, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo1" type="string" value="coordinateNotation=0 updateMethod=0 echos=0 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo1 frameid=world publish=1"/>
 
-        <!-- cloud_unstructured_echo1_segments: cartesian coordinates, segmented, first echo, all layers -->
-        <param name="cloud_unstructured_echo1_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo1_segments frameid=world publish=1"/>
+        <!-- cloud_unstructured_echo1_segments: cartesian coordinates, segmented, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo1_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo1_segments frameid=world publish=1"/>
 
-        <!-- cloud_unstructured_echo2: cartesian coordinates, fullframe, first echo, all layers -->
-        <param name="cloud_unstructured_echo2" type="string" value="coordinateNotation=0 updateMethod=0 echos=1 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo2 frameid=world publish=1"/>
+        <!-- cloud_unstructured_echo2: cartesian coordinates, fullframe, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo2" type="string" value="coordinateNotation=0 updateMethod=0 echos=1 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo2 frameid=world publish=1"/>
 
-        <!-- cloud_unstructured_echo2_segments: cartesian coordinates, segmented, first echo, all layers -->
-        <param name="cloud_unstructured_echo2_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=1 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo2_segments frameid=world publish=1"/>
+        <!-- cloud_unstructured_echo2_segments: cartesian coordinates, segmented, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo2_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=1 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo2_segments frameid=world publish=1"/>
 
-        <!-- cloud_unstructured_echo3: cartesian coordinates, fullframe, first echo, all layers -->
-        <param name="cloud_unstructured_echo3" type="string" value="coordinateNotation=0 updateMethod=0 echos=2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_echo3 frameid=world publish=1"/>
+        <!-- cloud_unstructured_echo3: cartesian coordinates, fullframe, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo3" type="string" value="coordinateNotation=0 updateMethod=0 echos=2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo3 frameid=world publish=1"/>
 
-        <!-- cloud_unstructured_echo3_segments: cartesian coordinates, segmented, first echo, all layers -->
-        <param name="cloud_unstructured_echo3_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=1 infringed=0,1 topic=/cloud_unstructured_echo3_segments frameid=world publish=1"/>
+        <!-- cloud_unstructured_echo3_segments: cartesian coordinates, segmented, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo3_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo3_segments frameid=world publish=1"/>
 
-        <!-- cloud_unstructured_reflector: cartesian coordinates, fullframe, first echo, all layers -->
-        <param name="cloud_unstructured_reflector" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=1 infringed=0,1 topic=/cloud_unstructured_reflector frameid=world publish=1"/>
+        <!-- cloud_unstructured_reflector: cartesian coordinates, fullframe, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_reflector" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_reflector frameid=world publish=1"/>
 
-        <!-- cloud_unstructured_reflector_segments: cartesian coordinates, segmented, first echo, all layers -->
-        <param name="cloud_unstructured_reflector_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=1 infringed=0,1 topic=/cloud_unstructured_reflector_segments frameid=world publish=1"/>
+        <!-- cloud_unstructured_reflector_segments: cartesian coordinates, segmented, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_reflector_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_reflector_segments frameid=world publish=1"/>
 
-        <!-- cloud_structured_hires0: cartesian and polar coordinates, fullframe, all echos, high resolution layer 5, fields=x,y,z,i,range,azimuth,elevation, 12*2880x3=103680 points per cloud -->
-        <param name="cloud_structured_hires0" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=5 reflectors=0,1 infringed=0,1 topic=/cloud_structured_hires0 frameid=world publish=1"/>
+        <!-- cloud_structured_hires0: cartesian and polar coordinates, fullframe, all echos, range filter off, high resolution layer 6, fields=x,y,z,i,range,azimuth,elevation, number of points: 2880 x NumEchos x NumSegments -->
+        <param name="cloud_structured_hires0" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=6 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_hires0 frameid=world publish=1"/>
 
-        <!-- cloud_structured_hires0_segments: cartesian and polar coordinates, segments, all echos, high resolution layer 5, fields=x,y,z,i,range,azimuth,elevation, 2880x3=8640 points per cloud -->
-        <param name="cloud_structured_hires0_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=5 reflectors=0,1 infringed=0,1 topic=/cloud_structured_hires0_segments frameid=world publish=1"/>
+        <!-- cloud_structured_hires0_segments: cartesian and polar coordinates, segments, all echos, range filter off, high resolution layer 6, fields=x,y,z,i,range,azimuth,elevation -->
+        <param name="cloud_structured_hires0_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=6 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_hires0_segments frameid=world publish=1"/>
 
-        <!-- cloud_structured_hires1: cartesian and polar coordinates, fullframe, all echos, high resolution layer 13, fields=x,y,z,i,range,azimuth,elevation, 12*2880x3=103680 points per cloud -->
-        <param name="cloud_structured_hires1" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=13 reflectors=0,1 infringed=0,1 topic=/cloud_structured_hires1 frameid=world publish=1"/>
+        <!-- cloud_structured_hires1: cartesian and polar coordinates, fullframe, all echos, range filter off, high resolution layer 14, fields=x,y,z,i,range,azimuth,elevation, number of points: 2880 x NumEchos x NumSegments -->
+        <param name="cloud_structured_hires1" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=14 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_hires1 frameid=world publish=1"/>
 
-        <!-- cloud_structured_hires1_segments: cartesian and polar coordinates, segments, all echos, high resolution layer 13, fields=x,y,z,i,range,azimuth,elevation, 2880x3=8640 points per cloud -->
-        <param name="cloud_structured_hires1_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=13 reflectors=0,1 infringed=0,1 topic=/cloud_structured_hires1_segments frameid=world publish=1"/>
+        <!-- cloud_structured_hires1_segments: cartesian and polar coordinates, segments, all echos, range filter off, high resolution layer 14, fields=x,y,z,i,range,azimuth,elevation -->
+        <param name="cloud_structured_hires1_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=14 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_hires1_segments frameid=world publish=1"/>
 
-        <!-- cloud_structured: cartesian and polar coordinates, fullframe, all echos, low resolution layers 0,1,2,3,4,6,7,8,9,10,11,12,14,15, fields=x,y,z,i,range,azimuth,elevation, 12*360*14*3=181440 points per cloud -->
-        <param name="cloud_structured" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=0,1,2,3,4,6,7,8,9,10,11,12,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_structured frameid=world publish=1"/>
+        <!-- cloud_structured: cartesian and polar coordinates, fullframe, all echos, range filter off, low resolution layers 1,2,3,4,5,7,8,9,10,11,12,13,15,16, fields=x,y,z,i,range,azimuth,elevation, 12*360*14*3=181440 points per cloud -->
+        <param name="cloud_structured" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=1,2,3,4,5,7,8,9,10,11,12,13,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured frameid=world publish=1"/>
 
-        <!-- cloud_structured_segments: cartesian and polar coordinates, segments, all echos, low resolution layers 0,1,2,3,4,6,7,8,9,10,11,12,14,15, fields=x,y,z,i,range,azimuth,elevation, 360*14*3=15120 points per cloud -->
-        <param name="cloud_structured_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=0,1,2,3,4,6,7,8,9,10,11,12,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_structured_segments frameid=world publish=1"/>
+        <!-- cloud_structured_segments: cartesian and polar coordinates, segments, all echos, range filter off, low resolution layers 1,2,3,4,5,7,8,9,10,11,12,13,15,16, fields=x,y,z,i,range,azimuth,elevation, 360*14*3=15120 points per cloud -->
+        <param name="cloud_structured_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=1,2,3,4,5,7,8,9,10,11,12,13,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_segments frameid=world publish=1"/>
 
-        <!-- cloud_all_fields_segments: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), segments, all echos, all layers -->
-        <param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_all_fields_segments frameid=world publish=1"/>
+        <!-- cloud_all_fields_segments: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), segments, all echos, all layers, range filter off -->
+        <param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_segments frameid=world publish=1"/>
 
-        <!-- cloud_all_fields_fullframe: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), fullframe, all echos, all layers -->
-        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
+        <!-- cloud_all_fields_fullframe: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), fullframe, all echos, all layers, range filter off -->
+        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
 
     </node>
 

@@ -197,6 +197,12 @@ namespace sick_scansegment_xd
         static bool Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, 
             ScanSegmentParserOutput& result, bool use_software_pll = true, bool verbose = false);
 
+        /*
+        * @brief Sets the elevation in mdeg for layers in compact format.
+        * @param[in] layer_elevation_table_mdeg layer_elevation_table_mdeg[layer_idx] := ideal elevation in mdeg
+        */
+        static void SetLayerElevationTable(const std::vector<int>& layer_elevation_table_mdeg);
+
     }; // class CompactDataParser
 
 } // namespace sick_scansegment_xd

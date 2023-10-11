@@ -54,6 +54,7 @@
  */
 #include "sick_scansegment_xd/scansegment_threads.h"
 #include "sick_scansegment_xd/udp_sockets.h"
+#include "sick_scansegment_xd/compact_parser.h"
 #include "sick_scansegment_xd/msgpack_converter.h"
 #include "sick_scansegment_xd/msgpack_exporter.h"
 #include "sick_scansegment_xd/msgpack_validator.h"
@@ -77,6 +78,11 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
         return sick_scan_xd::ExitError;
     }
     config.PrintConfig();
+    if (config.scandataformat == SCANDATA_COMPACT && scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
+    {
+        std::vector<int> layer_elevation_table_mdeg = { 22710, 17560, 12480, 7510, 2490, 70, -2430, -7290, -12790, -17280, -21940, -26730, -31860, -34420, -37180, -42790 };
+        sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(layer_elevation_table_mdeg);
+    }
     // Run sick_scansegment_xd (msgpack receive, convert and publish)
     ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") started.");
     sick_scansegment_xd::MsgPackThreads msgpack_threads;

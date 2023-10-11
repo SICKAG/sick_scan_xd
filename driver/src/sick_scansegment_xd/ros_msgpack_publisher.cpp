@@ -93,6 +93,23 @@ sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguratio
 				key_value_pairs["fields"] = "x,y,z,azimuth,elevation,range,i";
 		else if (m_coordinate_notation != 3) // coordinateNotation=3: customized pointcloud fields from configuration
 				ROS_ERROR_STREAM("## ERROR CustomPointCloudConfiguration(name=" << cfg_name << ", value=" << cfg_str << "): coordinateNotation has invalid value " << m_coordinate_notation << ", check configuration");
+		if (!key_value_pairs["rangeFilter"].empty()) // Configuration of optional range filter
+		{
+			const std::string& range_filter_str = key_value_pairs["rangeFilter"];
+			std::vector<std::string> range_filter_args;
+			sick_scansegment_xd::util::parseVector(range_filter_str, range_filter_args, ',');
+			if(range_filter_args.size() == 3)
+			{
+				float range_min = std::stof(range_filter_args[0]);
+				float range_max = std::stof(range_filter_args[1]);
+				int range_filter_handling = std::stoi(range_filter_args[2]);
+				m_range_filter = sick_scan_xd::SickRangeFilter(range_min, range_max, (sick_scan_xd::RangeFilterResultHandling)range_filter_handling);
+			}
+			else if(!range_filter_args.empty())
+			{
+				ROS_ERROR_STREAM("## ERROR CustomPointCloudConfiguration(name=" << cfg_name << ", value=" << cfg_str << "): rangeFilter has invalid value " << range_filter_str << ", check configuration");				
+			}
+		}
 		std::vector<std::string> fields;
 		std::vector<int> echos, layers, reflectors, infringed;
 		sick_scansegment_xd::util::parseVector(key_value_pairs["fields"], fields, ',');
@@ -100,6 +117,8 @@ sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguratio
 		sick_scansegment_xd::util::parseVector(key_value_pairs["layers"], layers, ',');
 		sick_scansegment_xd::util::parseVector(key_value_pairs["reflectors"], reflectors, ',');
 		sick_scansegment_xd::util::parseVector(key_value_pairs["infringed"], infringed, ',');
+		for(int n = 0; n < layers.size(); n++)
+		   layers[n] -= 1; // layer_ids in the launchfile enumerate from 1 up to 16, layer_idx starts from 0, i.e. layer_idx = layer_id - 1
 		// default if not configured in launchfile: all fields, echos, layers, reflectors and infringements enabled
 		if (fields.empty()) 
 		    fields = { "x", "y", "z", "i", "range", "azimuth", "elevation", "layer", "echo", "reflector" };
@@ -142,6 +161,7 @@ void sick_scansegment_xd::CustomPointCloudConfiguration::print(void) const
 		ROS_INFO_STREAM("CustomPointCloudConfiguration(" << m_cfg_name << "): layers_enabled = " << printValuesEnabled(m_layer_enabled));
 		ROS_INFO_STREAM("CustomPointCloudConfiguration(" << m_cfg_name << "): reflector_enabled = " << printValuesEnabled(m_reflector_enabled));
 		ROS_INFO_STREAM("CustomPointCloudConfiguration(" << m_cfg_name << "): infringed_enabled = " << printValuesEnabled(m_infringed_enabled));
+		ROS_INFO_STREAM("CustomPointCloudConfiguration(" << m_cfg_name << "): range_filter = " << m_range_filter.print());
 }
 
 std::string sick_scansegment_xd::CustomPointCloudConfiguration::printValuesEnabled(const std::map<std::string,bool>& mapped_values, const std::string& delim)
@@ -495,10 +515,11 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
   {
     for (int point_idx = 0; point_cnt < max_number_of_points && point_idx < lidar_points[echo_idx].size(); point_idx++)
     {
-			if (pointcloud_cfg.pointEnabled(lidar_points[echo_idx][point_idx]))
+			sick_scansegment_xd::PointXYZRAEI32f cur_lidar_point = lidar_points[echo_idx][point_idx];
+			if (pointcloud_cfg.pointEnabled(cur_lidar_point))
 			{
 				size_t pointcloud_offset = point_cnt * pointcloud_msg.point_step; // offset in bytes in pointcloud_msg.data (destination)
-				const uint8_t* src_lidar_point = (const uint8_t*)(&lidar_points[echo_idx][point_idx]); // pointer to source lidar point (type sick_scansegment_xd::PointXYZRAEI32f)
+				const uint8_t* src_lidar_point = (const uint8_t*)(&cur_lidar_point); // pointer to source lidar point (type sick_scansegment_xd::PointXYZRAEI32f)
 				for(int field_idx = 0; field_idx < field_properties.size(); field_idx++)
 				{
 					size_t field_offset = field_properties[field_idx].fieldoffset;
