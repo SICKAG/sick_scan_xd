@@ -126,7 +126,7 @@ namespace sick_scansegment_xd
         std::string scanner_type;                    // currently supported: "sick_multiscan" and "sick_picoscan"
 
         std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a Multiscan136 lidar or Multiscan136 emulator
-        int udp_port;                               // = 2115; // default udp port for multiScan136 resp. multiScan136 emulator is 2115
+        int udp_port;                               // = 2115; // default udp port for multiScan136 and picoScan is 2115
         
         // segment and fullframe pointclouds replaced by customized pointcloud configuration
         // std::string publish_topic;               // = "/cloud"; // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
@@ -151,6 +151,9 @@ namespace sick_scansegment_xd
         // std::string send_udp_start_string;          // udp string to start multiScan136, default: "magicalActivate"
         int udp_timeout_ms;                         // Timeout for udp messages in milliseconds, default: 60*1000
         int scandataformat;                         // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
+        bool imu_enable;                            // IMU enabled or disabled
+        int imu_udp_port;                           // default udp port for multiScan imu data is 7503
+        int imu_latency_microsec;                   // imu latency in microseconds
 
         // SOPAS settings
         std::string sopas_tcp_port;                 // TCP port for SOPAS commands, default port: 2111

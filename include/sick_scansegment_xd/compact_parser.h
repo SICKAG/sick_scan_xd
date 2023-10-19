@@ -72,11 +72,13 @@ namespace sick_scansegment_xd
     class CompactDataHeader
     {
     public:
-        uint32_t commandId = 0;           // Telegram type, expected value: 1
+        uint32_t commandId = 0;           // Telegram type, expected value: 1 for scan data, 2 for imu data
         uint64_t telegramCounter = 0;     // Incrementing telegram counter, starting with 1, number of telegrams since power on
         uint64_t timeStampTransmit = 0;   // Sensor timestamp in microseconds since 1.1.1970 00:00 UTC
         uint32_t telegramVersion = 0;     // Telegram version, expected value: 3
         uint32_t sizeModule0 = 0;         // Size of first module in byte
+        CompactImuData imudata;               // IMU data in case of commandId == 2;
+        bool isImu() const { return commandId == 2 && imudata.valid; } // true if the telegram is imu data
         std::string to_string() const;    // returns a human readable description of the header data
     }; // class CompactDataHeader
 
@@ -186,6 +188,7 @@ namespace sick_scansegment_xd
 
         /*
         * @brief Parses a scandata segment in compact format.
+        * @param[in] parser_config configuration and settings for multiScan and picoScan parser
         * @param[in] payload binary segment data in compact format
         * @param[in] system_timestamp receive timestamp of segment_data (system time)
         * @param[in] add_transform_xyz_rpy Optionally apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
@@ -194,7 +197,7 @@ namespace sick_scansegment_xd
         * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
         * @param[in] verbose true: enable debug output, false: quiet mode
         */
-        static bool Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, 
+        static bool Parse(const ScanSegmentParserConfig& parser_config, const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, 
             ScanSegmentParserOutput& result, bool use_software_pll = true, bool verbose = false);
 
         /*

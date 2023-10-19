@@ -144,7 +144,7 @@ sick_scansegment_xd::Config::Config()
 {
     node = 0;                           // Created by Config::Init()
     udp_sender = "";                    // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan136 lidar or multiScan136 emulator
-    udp_port = 2115;                    // default udp port for multiScan136 resp. multiScan136 emulator is 2115
+    udp_port = 2115;                    // default udp port for multiScan136 and picoScan is 2115
     // segment and fullframe pointclouds replaced by customized pointcloud configuration
     // publish_topic = "/cloud";           // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
     // publish_topic_all_segments = "/cloud_fullframe"; // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
@@ -167,7 +167,10 @@ sick_scansegment_xd::Config::Config()
     // send_udp_start = false;                // Send udp start string to multiScan136, default: True
     // send_udp_start_string = "magicalActivate"; // udp string to start multiScan136, default: "magicalActivate"
     udp_timeout_ms = 60000;                  // Timeout for udp messages in milliseconds, default: 60*1000
-    scandataformat = 1;                        // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
+    scandataformat = 2;                      // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2
+    imu_enable = true;                       // IMU enabled or disabled
+    imu_udp_port = 7503;                     // default udp port for multiScan imu data is 7503
+    imu_latency_microsec = 0;                // imu latency in microseconds
 
     // SOPAS default settings
     sopas_tcp_port = "2111";                 // TCP port for SOPAS commands, default port: 2111
@@ -239,6 +242,9 @@ void sick_scansegment_xd::Config::PrintHelp(void)
     // ROS_INFO_STREAM("-send_udp_start=0|1 : send udp start string to multiScan136, default:" << send_udp_start);
     // ROS_INFO_STREAM("-send_udp_start_string=<string> : udp string to start multiScan136, default: \"magicalActivate\"" << send_udp_start_string);
     ROS_INFO_STREAM("-scandataformat=1|2 : set ScanDataFormat, 1 for msgpack or 2 for compact scandata, default: " << scandataformat);
+    ROS_INFO_STREAM("-imu_enable=0|1 : enable or disable IMU data, default: " << imu_enable);
+    ROS_INFO_STREAM("-imu_udp_port=<port>: udp port for multiScan imu data, default: " << imu_udp_port);
+    ROS_INFO_STREAM("-imu_latency_microsec=<micro_sec>: imu latency in microseconds, default: " << imu_latency_microsec);
 }
 
 /*
@@ -273,6 +279,9 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     // ROS_DECL_GET_PARAMETER(node, "send_udp_start_string", send_udp_start_string);
     ROS_DECL_GET_PARAMETER(node, "udp_timeout_ms", udp_timeout_ms);
     ROS_DECL_GET_PARAMETER(node, "scandataformat", scandataformat);
+    ROS_DECL_GET_PARAMETER(node, "imu_enable", imu_enable);
+    ROS_DECL_GET_PARAMETER(node, "imu_udp_port", imu_udp_port);
+    ROS_DECL_GET_PARAMETER(node, "imu_latency_microsec", imu_latency_microsec);
     ROS_DECL_GET_PARAMETER(node, "sopas_tcp_port", sopas_tcp_port);
     ROS_DECL_GET_PARAMETER(node, "start_sopas_service", start_sopas_service);
     ROS_DECL_GET_PARAMETER(node, "send_sopas_start_stop_cmd", send_sopas_start_stop_cmd);
@@ -340,6 +349,12 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     std::string str_laserscan_layer_filter = "0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0";
     ROS_DECL_GET_PARAMETER(node, "laserscan_layer_filter", str_laserscan_layer_filter);
     sick_scansegment_xd::util::parseVector(str_laserscan_layer_filter, laserscan_layer_filter);
+
+    if (imu_enable && scandataformat != 2)
+    {
+      ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::Config::Init(): IMU requieres scandataformat 2, IMU deactivated.");
+      imu_enable = false;
+    }
 
     return true;
 }
@@ -413,6 +428,9 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     // setOptionalArgument(cli_parameter_map, "send_udp_start_string", send_udp_start_string);
     setOptionalArgument(cli_parameter_map, "udp_timeout_ms", udp_timeout_ms);
     setOptionalArgument(cli_parameter_map, "scandataformat", scandataformat);
+    setOptionalArgument(cli_parameter_map, "imu_enable", imu_enable);
+    setOptionalArgument(cli_parameter_map, "imu_udp_port", imu_udp_port);
+    setOptionalArgument(cli_parameter_map, "imu_latency_microsec", imu_latency_microsec);
     setOptionalArgument(cli_parameter_map, "sopas_tcp_port", sopas_tcp_port);
     setOptionalArgument(cli_parameter_map, "start_sopas_service", start_sopas_service);
     setOptionalArgument(cli_parameter_map, "send_sopas_start_stop_cmd", send_sopas_start_stop_cmd);
@@ -451,6 +469,12 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
 
     PrintConfig();
 
+    if (imu_enable && scandataformat != 2)
+    {
+      ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::Config::Init(): IMU requieres scandataformat 2, IMU deactivated.");
+      imu_enable = false;
+    }
+
     return true;
 }
 
@@ -483,6 +507,9 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     //ROS_INFO_STREAM("send_udp_start_string:            " << send_udp_start_string);
     ROS_INFO_STREAM("udp_timeout_ms:                   " << udp_timeout_ms);
     ROS_INFO_STREAM("scandataformat:                   " << scandataformat);
+    ROS_INFO_STREAM("imu_enable:                       " << imu_enable);
+    ROS_INFO_STREAM("imu_udp_port:                     " << imu_udp_port);
+    ROS_INFO_STREAM("imu_latency_microsec:             " << imu_latency_microsec);
     ROS_INFO_STREAM("sopas_tcp_port:                   " << sopas_tcp_port);
     ROS_INFO_STREAM("start_sopas_service:              " << start_sopas_service);
     ROS_INFO_STREAM("send_sopas_start_stop_cmd:        " << send_sopas_start_stop_cmd);

@@ -85,6 +85,36 @@
 
 namespace sick_scansegment_xd
 {
+    /*
+    * @brief class ScanSegmentParserConfig is a container for configuration and settings for multiScan and picoScan parser
+    */
+    class ScanSegmentParserConfig
+    {
+    public:
+        int imu_latency_microsec = 0; // imu latency in microseconds
+    };
+
+
+    /*
+    * @brief class CompactImuData is a container for imu data in compact format
+    */
+    class CompactImuData
+    {
+    public:
+        bool valid = false;
+        float acceleration_x = 0; // 4 bytes float in m/s^2, acceleration along the x-axis including gravity
+        float acceleration_y = 0; // 4 bytes float in m/s^2, acceleration along the y-axis including gravity
+        float acceleration_z = 0; // 4 bytes float in m/s^2, acceleration along the z-axis including gravity
+        float angular_velocity_x = 0; // 4 bytes float in rad/s
+        float angular_velocity_y = 0; // 4 bytes float in rad/s
+        float angular_velocity_z = 0; // 4 bytes float in rad/s
+        float orientation_w = 0; // 4 bytes float, orientation quaternion w
+        float orientation_x = 0; // 4 bytes float, orientation quaternion x
+        float orientation_y = 0; // 4 bytes float, orientation quaternion y
+        float orientation_z = 0; // 4 bytes float, orientation quaternion z
+        std::string to_string() const; // returns a human readable description of the imu data
+    };
+
     class ScanSegmentParserOutput
     {
     public:
@@ -142,6 +172,11 @@ namespace sick_scansegment_xd
          * @brief scandata contains all data of a msgpack or compact scan.
          */
         std::vector<Scangroup> scandata;
+
+        /*
+         * @brief optional imu data
+         */
+        CompactImuData imudata;
 
         /*
          * @brief Timestamp of scandata (message received time or measurement time)

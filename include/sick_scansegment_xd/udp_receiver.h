@@ -97,8 +97,9 @@ namespace sick_scansegment_xd
          * @param[in] verbose true: enable debug output, false: quiet mode (default)
          * @param[in] export_udp_msg: true: export binary udp and msgpack data to file (*.udp and *.msg), default: false
          * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
+         * @param[in] PayloadFifo* fifo: Fifo to handle payload data
          */
-        bool Init(const std::string& udp_sender, int udp_port, int udp_input_fifolength = 20, bool verbose = false, bool export_udp_msg = false, int scandataformat = 1);
+        bool Init(const std::string& udp_sender, int udp_port, int udp_input_fifolength = 20, bool verbose = false, bool export_udp_msg = false, int scandataformat = 1, PayloadFifo* fifo = 0);
 
         /*
          * @brief Starts receiving udp packages in a background thread and pops msgpack data packages to the fifo.
@@ -152,6 +153,7 @@ namespace sick_scansegment_xd
          */
         UdpReceiverSocketImpl* m_socket_impl;     // implementation of the udp receiver socket
         PayloadFifo* m_fifo_impl;                 // implementation of a thread safe fifo buffer to share the payload of udp packages
+        bool m_fifo_impl_created;                 // m_fifo_impl has been created and needs be deleted at exit
         std::thread* m_receiver_thread;           // background thread to receive udp packages
         bool m_run_receiver_thread;               // flag to start and stop the udp receiver thread
 

@@ -229,6 +229,9 @@ namespace sick_scansegment_xd
             return bytes_received;
         }
 
+        /** Return the udp port */
+        int port(void) const { return m_udp_port; }
+
     protected:
 
         std::string m_udp_sender; // IP of udp sender

@@ -128,16 +128,44 @@ if (((byte_required) = (byte_cnt) + (bytes_to_read)) > (module_size))           
     return (metadata);                                                                         \
 }
 
+/** returns a human readable description of the imu  data */
+std::string sick_scansegment_xd::CompactImuData::to_string() const
+{
+    std::stringstream description;
+    if (valid)
+    {
+      description << "acceleration_x:" << std::fixed << std::setprecision(1) << acceleration_x;
+      description << ", acceleration_y:" << std::fixed << std::setprecision(1) << acceleration_y;
+      description << ", acceleration_z:" << std::fixed << std::setprecision(1) << acceleration_z;
+      description << ", angular_velocity_x:" << std::fixed << std::setprecision(1) << angular_velocity_x;
+      description << ", angular_velocity_y:" << std::fixed << std::setprecision(1) << angular_velocity_y;
+      description << ", angular_velocity_z:" << std::fixed << std::setprecision(1) << angular_velocity_z;
+      description << ", orientation_w:" << std::fixed << std::setprecision(1) << orientation_w;
+      description << ", orientation_x:" << std::fixed << std::setprecision(1) << orientation_x;
+      description << ", orientation_y:" << std::fixed << std::setprecision(1) << orientation_y;
+      description << ", orientation_z:" << std::fixed << std::setprecision(1) << orientation_z;
+    }
+    return description.str();
+}
+
+
 /** returns a human readable description of the header data */
 std::string sick_scansegment_xd::CompactDataHeader::to_string() const
 {
     std::stringstream description;
     description << "commandId:" << commandId;
-    description << ", telegramCounter:" << telegramCounter;
-    description << ", timeStampTransmit:" << timeStampTransmit;
     description << ", telegramVersion:" << telegramVersion;
-    description << ", sizeModule0:" << sizeModule0;
-    return description.str();
+    description << ", timeStampTransmit:" << timeStampTransmit;
+    if (isImu())
+    {
+      description << ", IMU, " << imudata.to_string();
+    }
+    else
+    {
+      description << ", telegramCounter:" << telegramCounter;
+      description << ", sizeModule0:" << sizeModule0;
+    }
+  return description.str();
 }
 
 /** returns a human readable description of the module metadata */
@@ -210,12 +238,57 @@ sick_scansegment_xd::CompactDataHeader sick_scansegment_xd::CompactDataParser::P
     uint32_t byte_cnt = 0;
     sick_scansegment_xd::CompactDataHeader header;
     header.commandId = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);         // Telegram type, expected value: 1
-    header.telegramCounter = readUnsigned<uint64_t>(scandata + byte_cnt, &byte_cnt);   // Incrementing telegram counter, starting with 1, number of telegrams since power up
-    header.timeStampTransmit = readUnsigned<uint64_t>(scandata + byte_cnt, &byte_cnt); // Sensor timestamp in microseconds since 1.1.1970 00:00 UTC
-    header.telegramVersion = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);   // Telegram version, expected value: 4
-    header.sizeModule0 = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);       // Size of first module in byte
-    if (header.commandId != 1)
-      ROS_WARN_STREAM("CompactDataParser::ParseHeader: header.commandId = " << header.commandId << ", expected expected 1."); // TODO: To be clarified whether header.commandId is always 1 or not.
+    if (header.commandId == 1) // scan data in compact format
+    {
+      header.telegramCounter = readUnsigned<uint64_t>(scandata + byte_cnt, &byte_cnt);   // Incrementing telegram counter, starting with 1, number of telegrams since power up
+      header.timeStampTransmit = readUnsigned<uint64_t>(scandata + byte_cnt, &byte_cnt); // Sensor timestamp in microseconds since 1.1.1970 00:00 UTC
+      header.telegramVersion = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);   // Telegram version, expected value: 4
+      header.sizeModule0 = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);       // Size of first module in byte
+    }
+    else if (header.commandId == 2) // imu data in compact format, all values in little endian
+    {
+      header.telegramCounter = 0; // not transmitted
+      header.sizeModule0 = 0; // no further payload
+      header.telegramVersion = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);   // Telegram version, expected value: 1
+      header.imudata.acceleration_x = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float in m/s^2, acceleration along the x-axis including gravity
+      header.imudata.acceleration_y = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float in m/s^2, acceleration along the y-axis including gravity
+      header.imudata.acceleration_z = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float in m/s^2, acceleration along the z-axis including gravity
+      header.imudata.angular_velocity_x = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float in rad/s
+      header.imudata.angular_velocity_y = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float in rad/s
+      header.imudata.angular_velocity_z = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float in rad/s
+      header.imudata.orientation_w = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float, orientation quaternion w
+      header.imudata.orientation_x = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float, orientation quaternion x
+      header.imudata.orientation_y = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float, orientation quaternion y
+      header.imudata.orientation_z = readFloat32(scandata + byte_cnt, &byte_cnt); // 4 bytes float, orientation quaternion z
+      header.timeStampTransmit = readUnsigned<uint64_t>(scandata + byte_cnt, &byte_cnt); // Sensor timestamp in microseconds since 1.1.1970 00:00 UTC
+      header.imudata.valid = true;
+    }
+    else
+    {
+      ROS_WARN_STREAM("CompactDataParser::ParseHeader: header.commandId = " << header.commandId << " not supported");
+    }
+    /* Create dummy IMU data, TEST ONLY **
+    static int dummy_imu_data_cnt = 0;
+    if (((++dummy_imu_data_cnt) % 2) == 0)
+    {
+      uint64_t timeStampTransmit = header.timeStampTransmit;
+      header = sick_scansegment_xd::CompactDataHeader();
+      header.commandId = 2;
+      header.telegramVersion = 1;
+      header.imudata.acceleration_x = 1;
+      header.imudata.acceleration_y = 2;
+      header.imudata.acceleration_z = 3;
+      header.imudata.angular_velocity_x = 4;
+      header.imudata.angular_velocity_y = 5;
+      header.imudata.angular_velocity_z = 6;
+      header.imudata.orientation_w = 7;
+      header.imudata.orientation_x = 8;
+      header.imudata.orientation_y = 9;
+      header.imudata.orientation_z = 10;
+      header.timeStampTransmit = timeStampTransmit;
+      header.imudata.valid = true;
+    }
+    ** End of dummy IMU data */
     return header;
 }
 
@@ -600,6 +673,12 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
         segment_data->segmentHeader = compact_header;
         segment_data->segmentModules.clear();
     }
+    if (compact_header.commandId == 2) // imu data in compact format have always 64 byte payload, payload length is not coded in the header
+    {
+        payload_length_bytes = 60; // i.e. 64 byte excl. 4 byte CRC
+        num_bytes_required  = 64;  // 64 byte incl. 4 byte CRC
+        return compact_header.imudata.valid;
+    }
     // Read compact data modules
     uint32_t module_size = compact_header.sizeModule0;
     uint32_t module_offset = header_size_bytes;
@@ -680,8 +759,50 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
     return success;
 }
 
+#define EXPORT_MEASUREMENT_AZIMUTH_ACCELERATION_CSV 0 // Measurement of IMU latency (development only): Export ticks (imu resp. lidar timestamp in micro seconds), imu acceleration and lidar max azimuth of board cube
+#if EXPORT_MEASUREMENT_AZIMUTH_ACCELERATION_CSV
+/*
+* @brief Returns the max azimuth aperture (i.e. max - min azimuth) of all scan points within a cube, i.e. the max azimuth aperture of all points p
+*        with x_min <= p.x <= x_max && y_min <= p.y <= y_max && z_min <= p.z <= z_max && p.azimuth >= azimuth_min && p.azimuth <= azimuth_max
+*/
+static bool getMaxAzimuthApertureWithinCube(const std::vector<sick_scansegment_xd::ScanSegmentParserOutput::Scangroup>& scandata, 
+  float x_min, float x_max, float y_min, float y_max, float z_min, float z_max, float azimuth_min, float azimuth_max,
+  double& azimuth_aperture, uint64_t& timestamp_microsec)
+{
+  bool success = false;
+  azimuth_aperture = 0;
+  timestamp_microsec = 0;
+  for(int group_idx = 0; group_idx < scandata.size(); group_idx++)
+  {
+    for(int line_idx = 0; line_idx < scandata[group_idx].scanlines.size(); line_idx++)
+    {
+      uint64_t timestampStart_microsec = (uint64_t)scandata[group_idx].timestampStart_sec * 1000000UL + (uint64_t)scandata[group_idx].timestampStart_nsec / 1000;
+      uint64_t timestampStop_microsec  = (uint64_t)scandata[group_idx].timestampStop_sec  * 1000000UL + (uint64_t)scandata[group_idx].timestampStop_nsec  / 1000;
+      double point_azi_min = FLT_MAX, point_azi_max = -FLT_MAX;
+      for(int point_idx = 0; point_idx < scandata[group_idx].scanlines[line_idx].points.size(); point_idx++)
+      {
+        const sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& p = scandata[group_idx].scanlines[line_idx].points[point_idx];
+        if (p.x >= x_min && p.x <= x_max && p.y >= y_min && p.y <= y_max && p.z >= z_min && p.z<= z_max && p.azimuth >= azimuth_min && p.azimuth <= azimuth_max)
+        {
+          point_azi_min = std::min(point_azi_min, (double)p.azimuth);
+          point_azi_max = std::max(point_azi_max, (double)p.azimuth);
+        }
+      }
+      if (point_azi_max > point_azi_min && azimuth_aperture < (point_azi_max - point_azi_min))
+      {
+        azimuth_aperture = point_azi_max - point_azi_min;
+        timestamp_microsec = timestampStart_microsec;
+        success = true;
+      }
+    }
+  }
+  return success;
+}
+#endif // EXPORT_MEASUREMENT_AZIMUTH_ACCELERATION_CSV
+
 /*
 * @brief Parses a scandata segment in compact format.
+* @param[in] parser_config configuration and settings for multiScan and picoScan parser
 * @param[in] segment_data binary segment data in compact format
 * @param[in] system_timestamp receive timestamp of segment_data (system time)
 * @param[in] add_transform_xyz_rpy Optionally apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
@@ -690,8 +811,8 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
 * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
 * @param[in] verbose true: enable debug output, false: quiet mode
 */
-bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, 
-    ScanSegmentParserOutput& result, bool use_software_pll, bool verbose)
+bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig& parser_config, const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, 
+    sick_scan_xd::SickRangeFilter& range_filter, ScanSegmentParserOutput& result, bool use_software_pll, bool verbose)
 {
     // Parse segment data
     sick_scansegment_xd::CompactSegmentData segment_data;
@@ -704,6 +825,7 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& p
     // Convert segment data to ScanSegmentParserOutput
     sick_scansegment_xd::CompactDataHeader& segmentHeader = segment_data.segmentHeader;
     result.scandata.clear();
+    result.imudata = segment_data.segmentHeader.imudata;
     result.segmentIndex = 0;
     result.telegramCnt = segmentHeader.telegramCounter;
     for (int module_idx = 0; module_idx < segment_data.segmentModules.size(); module_idx++)
@@ -778,13 +900,17 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& p
                 << " scandata of segment " << moduleMetadata.SegmentCounter << " appended to segment " << result.segmentIndex);
         }
     }
-    if (result.scandata.empty())
+    if (result.scandata.empty() && !result.imudata.valid)
     {
         ROS_ERROR_STREAM("## ERROR CompactDataParser::Parse(): CompactDataParser::ParseSegment() failed (no scandata found)");
         return false;
     }
     // Convert timestamp from sensor time to system time
     uint64_t sensor_timeStamp = segmentHeader.timeStampTransmit; // Sensor timestamp in microseconds since 1.1.1970 00:00 UTC
+    if (result.imudata.valid)
+        sensor_timeStamp -= parser_config.imu_latency_microsec;
+    if (!result.scandata.empty())
+        sensor_timeStamp = (uint64_t)result.scandata[0].timestampStart_sec * 1000000UL + (uint64_t)result.scandata[0].timestampStart_nsec / 1000; // i.e. start of scan in microseconds
     result.timestamp_sec = (sensor_timeStamp / 1000000);
     result.timestamp_nsec= 1000 * (sensor_timeStamp % 1000000);
     if (use_software_pll)
@@ -805,5 +931,24 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& p
     }
     result.timestamp = sick_scansegment_xd::Timestamp(result.timestamp_sec, result.timestamp_nsec);
     
+#if EXPORT_MEASUREMENT_AZIMUTH_ACCELERATION_CSV // Measurement of IMU latency (development only): Export ticks (imu resp. lidar timestamp in micro seconds), imu acceleration and lidar max azimuth of board cube
+    ROS_INFO_STREAM("CompactDataParser::Parse(): header = " << segmentHeader.to_string() << ", system timestamp = " << result.timestamp);
+    if (result.imudata.valid) // Export imu acceleration
+    {
+    	std::ofstream csv_ostream("/tmp/imu_latency.csv", std::ios::app);
+      csv_ostream << segmentHeader.timeStampTransmit << ";" << ";" << std::fixed << std::setprecision(3) << (result.imudata.acceleration_z) << "\n";
+    }
+    else // Export lidar azimuth of calibration board
+    {
+      uint64_t timestamp_microsec_azi = 0;
+      double azimuth_aperture = 0;
+      if (getMaxAzimuthApertureWithinCube(result.scandata, 0.5f, 1.5f, -1.0f, +1.0f, -1.0f, +1.0f, -M_PI, +M_PI, azimuth_aperture, timestamp_microsec_azi))
+      {
+        std::ofstream csv_ostream("/tmp/imu_latency.csv", std::ios::app);
+        csv_ostream << timestamp_microsec_azi << ";" << std::fixed << std::setprecision(3) << (azimuth_aperture * 180 / M_PI) << ";" << "\n";
+      }
+    }
+#endif // EXPORT_MEASUREMENT_AZIMUTH_ACCELERATION_CSV
+
     return true;
 }

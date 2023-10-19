@@ -41,7 +41,7 @@ rem set PATH=%ProgramFiles(x86)%\Microsoft Visual Studio\Shared\Python39_64;%PAT
 @echo.
 @echo Playing pcapng-files to emulate multiScan
 @echo.
-python ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230607-multiscan-compact-v4-5layer.pcapng --udp_port=2115 --repeat=3
+python ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230607-multiscan-compact-v4-5layer.pcapng --udp_port=2115 --repeat=3 --filter=pcap_filter_multiscan_hildesheim
 @timeout /t 3
 popd
 
