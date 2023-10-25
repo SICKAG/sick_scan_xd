@@ -50,7 +50,8 @@ python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231011-multiscan-compact-hires0-imu-latency-02-10periods.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
 # mv /tmp/imu_latency.csv ./20231011b_multiscan_timestamp_azimuth_imuacceleration.csv
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231011-multiscan-compact-hires0-imu-latency-03-manuell.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
-# mv /tmp/imu_latency.csv ./20231011c_multiscan_timestamp_azimuth_imuacceleration.csv
+# python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231024-multiscan-imu-02.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
+# mv /tmp/imu_latency.csv ./20231024_multiscan_timestamp_azimuth_imuacceleration.csv
 sleep 3
 
 # Shutdown

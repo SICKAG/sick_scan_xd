@@ -29,7 +29,7 @@ def binning_decay(timestamp_way_offset, decay_microsec):
 
 def filter_azimuth(timestamp_way_offset, min_azimuth):
     """
-    remove azimuth angles less than 30 degree (single outlier)
+    remove azimuth angles less than e.g. 16 degree (other segments or outliers)
     """
     timestamp_azimuth_pairs = np.zeros([0,2])
     for row in range(len(timestamp_way_offset)):
@@ -119,7 +119,7 @@ parser = argparse.ArgumentParser(
                     description="Calculates delay between LIDAR and IMU\n"
                                )
 
-csv_filename = '../test/20231009_multiscan_timestamp_azimuth_imuacceleration.csv'
+csv_filename = '../test/20231024_multiscan_timestamp_azimuth_imuacceleration.csv'
 parser.add_argument('--csv_filename', help='CSV data file with timestamp', default=csv_filename, type=str)
 args = parser.parse_args()
 
@@ -130,6 +130,7 @@ with open(csv_filename) as file:
 
 timestamp_way_offset = np.zeros([0,2])
 timestamp_imu_z = np.zeros([0,2])
+timestamp_start = -1.0
 for line in lines:
     line = line.replace(',', '.')  # replace german "," with "."
     token_list = line.split(";")
@@ -139,6 +140,10 @@ for line in lines:
                 continue
             if idx == 0:
                 timestamp = float(token)
+                # convert timestamp to milliseconds from start
+                if timestamp_start < 0:
+                    timestamp_start = timestamp
+                timestamp = 0.001 * (timestamp - timestamp_start)
             if idx == 1:
                 way_offset = float(token)
                 timestamp_way_offset = np.vstack((timestamp_way_offset,np.array(([timestamp, way_offset]))))
@@ -147,55 +152,58 @@ for line in lines:
                 timestamp_imu_z = np.vstack((timestamp_imu_z,np.array(([timestamp, imu_value]))))
 
 # binning of azimuth angles in 1, 2 or 3 lidar segments with decay time ca. 10 milliseconds
-timestamp_way_offset = binning_decay(timestamp_way_offset, 10000)
+# timestamp_way_offset = binning_decay(timestamp_way_offset, 10000)
 
-# remove azimuth angles less than 30 degree (single outlier)
-timestamp_way_offset = filter_azimuth(timestamp_way_offset, 30)
+# remove azimuth angles less than 16 degree (other lidar segments)
+timestamp_way_offset = filter_azimuth(timestamp_way_offset, 16)
 
 # X axis parameter:
 xaxis_azi_org = np.array(timestamp_way_offset[:, 0])
 # Y axis parameter:
 yaxis_azi_org = np.array(timestamp_way_offset[:, 1])
 
-
 xaxis_imu_org = np.array(timestamp_imu_z[:,0])
 yaxis_imu_org = np.array(timestamp_imu_z[:,1])
 
 timestamp_azi_gradient = calc_azimuth_gradient(timestamp_way_offset)
 xaxis_azi_grad = np.array(timestamp_azi_gradient[:,0])
-yaxis_azi_grad = np.array(timestamp_azi_gradient[:,1])
+yaxis_azi_grad = -np.array(timestamp_azi_gradient[:,1])
 
-# Min imu acceleration at point of free fall => max azimuth gradient, max velocity
-timestamp_min_imu_accel = filter_local_minima(timestamp_imu_z)
-timestamp_max_velocity = filter_local_maxima(timestamp_azi_gradient)
+compute_derivates = False
+if compute_derivates:
 
-# Sort timestamp_min_imu_accel by ascending values and get 9 minima for the 9 periods
-timestamp_min_imu_accel_sorted = timestamp_min_imu_accel[timestamp_min_imu_accel[:, 1].argsort()] # sort by acceleration
-timestamp_min_imu_accel = timestamp_min_imu_accel_sorted[0:8,:] # 9 minima for 9 periods
-timestamp_min_imu_accel = timestamp_min_imu_accel[timestamp_min_imu_accel[:, 0].argsort()] # resort by timestamp
-xaxis_min_imu_accel = np.array(timestamp_min_imu_accel[:,0])
-yaxis_min_imu_accel = np.array(timestamp_min_imu_accel[:,1])
-xaxis_max_velocity = np.array(timestamp_max_velocity[:,0])
-yaxis_max_velocity = np.array(timestamp_max_velocity[:,1])
+    # Min imu acceleration at point of free fall => max azimuth gradient, max velocity
+    timestamp_min_imu_accel = filter_local_minima(timestamp_imu_z)
+    timestamp_max_velocity = filter_local_maxima(timestamp_azi_gradient)
 
-# Find max velocity closest to min acceleration
-min_imu_latency_sec = 1.0e6
-for row in range(len(timestamp_min_imu_accel)):
-    imu_timestamp = timestamp_min_imu_accel[row, 0]
-    lidar_timestamp, dt = get_closest_timestamp(timestamp_max_velocity, imu_timestamp)
-    imu_latency_sec = dt * 1.0e-6 # delta timestamp in micro seconds to latency in second
-    min_imu_latency_sec = min(min_imu_latency_sec, imu_latency_sec)
-    print(f"imu latency: {imu_latency_sec:.6} sec")
+    # Sort timestamp_min_imu_accel by ascending values and get 9 minima for the 9 periods
+    timestamp_min_imu_accel_sorted = timestamp_min_imu_accel[timestamp_min_imu_accel[:, 1].argsort()] # sort by acceleration
+    timestamp_min_imu_accel = timestamp_min_imu_accel_sorted[0:8,:] # 9 minima for 9 periods
+    timestamp_min_imu_accel = timestamp_min_imu_accel[timestamp_min_imu_accel[:, 0].argsort()] # resort by timestamp
+    xaxis_min_imu_accel = np.array(timestamp_min_imu_accel[:,0])
+    yaxis_min_imu_accel = np.array(timestamp_min_imu_accel[:,1])
+    xaxis_max_velocity = np.array(timestamp_max_velocity[:,0])
+    yaxis_max_velocity = np.array(timestamp_max_velocity[:,1])
 
-print(f"\nimu_delay_tester ({csv_filename}): min imu latency = {min_imu_latency_sec:.6} sec")
+    # Find max velocity closest to min acceleration
+    min_imu_latency_sec = 1.0e6
+    for row in range(len(timestamp_min_imu_accel)):
+        imu_timestamp = timestamp_min_imu_accel[row, 0]
+        lidar_timestamp, dt = get_closest_timestamp(timestamp_max_velocity, imu_timestamp)
+        imu_latency_sec = dt * 1.0e-6 # delta timestamp in micro seconds to latency in second
+        min_imu_latency_sec = min(min_imu_latency_sec, imu_latency_sec)
+        print(f"imu latency: {imu_latency_sec:.6} sec")
 
-# Compute lidar acceleration, i.e. 2.nd derivate
-y_2nd_derivate = calc_2nd_derivate_from_xy(xaxis_azi_org, yaxis_azi_org)
+    print(f"\nimu_delay_tester ({csv_filename}): min imu latency = {min_imu_latency_sec:.6} sec")
+
+    # Compute lidar acceleration, i.e. 2.nd derivate
+    y_2nd_derivate = calc_2nd_derivate_from_xy(xaxis_azi_org, yaxis_azi_org)
 
 show_plot = True
 if show_plot:
 
     fig, (ax1, ax2, ax3) = plt.subplots(3)
+    # fig, (ax1, ax2) = plt.subplots(2)
 
     ax1.set_title('azimuth over time')
     ax1.scatter(xaxis_azi_org, yaxis_azi_org)
@@ -214,19 +222,16 @@ if show_plot:
     fig.show()
     plt.savefig(fname=csv_filename[:-4]+'.png')
 
-    fig, (ax1, ax2) = plt.subplots(2)
-
-    ax1.set_title('filtered maxima velocity over time')
-    ax1.scatter(xaxis_max_velocity, yaxis_max_velocity)
-    ax1.plot(xaxis_max_velocity, yaxis_max_velocity)
-
-    ax2.set_title('filtered minima imu acceleration over time')
-    ax2.scatter(xaxis_min_imu_accel, yaxis_min_imu_accel)
-    ax2.plot(xaxis_min_imu_accel, yaxis_min_imu_accel)
-
-    fig.set_figheight(10) # height = 1000 px
-    fig.set_figwidth(20)  # width = 2000 px
-    fig.show()
+    # fig, (ax1, ax2) = plt.subplots(2)
+    # ax1.set_title('filtered maxima velocity over time')
+    # ax1.scatter(xaxis_max_velocity, yaxis_max_velocity)
+    # ax1.plot(xaxis_max_velocity, yaxis_max_velocity)
+    # ax2.set_title('filtered minima imu acceleration over time')
+    # ax2.scatter(xaxis_min_imu_accel, yaxis_min_imu_accel)
+    # ax2.plot(xaxis_min_imu_accel, yaxis_min_imu_accel)
+    # fig.set_figheight(10) # height = 1000 px
+    # fig.set_figwidth(20)  # width = 2000 px
+    # fig.show()
 
     # show_acceleration = True
     # f = plt.figure(1)

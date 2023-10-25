@@ -788,9 +788,9 @@ static bool getMaxAzimuthApertureWithinCube(const std::vector<sick_scansegment_x
           point_azi_max = std::max(point_azi_max, (double)p.azimuth);
         }
       }
-      if (point_azi_max > point_azi_min && azimuth_aperture < (point_azi_max - point_azi_min))
+      if (point_azi_max > point_azi_min && azimuth_aperture < point_azi_max) // (point_azi_max - point_azi_min))
       {
-        azimuth_aperture = point_azi_max - point_azi_min;
+        azimuth_aperture = point_azi_max; // - point_azi_min;
         timestamp_microsec = timestampStart_microsec;
         success = true;
       }
