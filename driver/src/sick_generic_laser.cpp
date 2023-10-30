@@ -676,6 +676,7 @@ bool startGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr n
 {
   if (s_generic_laser_thread == 0)
   {
+    runState = scanner_init;
     s_generic_laser_thread = new GenericLaserCallable(argc, argv, nodeName, nhPriv, exit_code);
   }
   return (s_generic_laser_thread != 0);

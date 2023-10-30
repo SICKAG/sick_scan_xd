@@ -336,11 +336,13 @@ void sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(const std::v
 }
 
 /*
-Return a layer-id from a given elevation angle. See compact scanformat documention:
-The line/layer index in the figure below is not a layer id according to layer numbering for multi layer sensors.
-Therefore this functions returns a layer-id from the elevation angle in rad.
+* @brief Return a layer-id from a given elevation angle. See compact scanformat documention:
+* The line/layer index in the figure below is not a layer id according to layer numbering for multi layer sensors.
+* Therefore this functions returns a layer-id from the elevation angle in rad.
+* @param[in] layer_elevation_rad layer_elevation in radians
+* @return layer-id
 */
-static int getLayerIDfromElevation(float layer_elevation_rad) // layer_elevation in radians
+int sick_scansegment_xd::CompactDataParser::GetLayerIDfromElevation(float layer_elevation_rad) // layer_elevation in radians
 {
   int layer_elevation_mdeg = (int)std::lround(layer_elevation_rad * 180000 / M_PI);
   if (!s_layer_elevation_table_mdeg.empty())
@@ -375,6 +377,21 @@ static int getLayerIDfromElevation(float layer_elevation_rad) // layer_elevation
     return elevation_layerid_map[layer_elevation_mdeg];
   }
 }
+
+/*
+* @brief Return the typical (default) elevation of a given layer index
+* @param[in] layer_idx layer index
+* @return layer elevation in degree
+*/
+float sick_scansegment_xd::CompactDataParser::GetElevationDegFromLayerIdx(int layer_idx)
+{
+  if (layer_idx >= 0 && layer_idx < s_layer_elevation_table_mdeg.size())
+  {
+    return 0.001f * s_layer_elevation_table_mdeg[layer_idx];
+  }
+  return 0;
+}
+
 
 /*
 * @brief Parses module measurement data in compact format.
@@ -440,7 +457,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
     lut_layer_azimuth_delta[layer_idx] = (lut_layer_azimuth_stop[layer_idx] - lut_layer_azimuth_start[layer_idx]) / (float)(std::max(1, (int)meta_data.NumberOfBeamsPerScan - 1));
     lut_sin_elevation[layer_idx] = std::sin(lut_layer_elevation[layer_idx]);
     lut_cos_elevation[layer_idx] = std::cos(lut_layer_elevation[layer_idx]);
-    lut_groupIdx[layer_idx] = getLayerIDfromElevation(meta_data.Phi[layer_idx]);
+    lut_groupIdx[layer_idx] = GetLayerIDfromElevation(meta_data.Phi[layer_idx]);
   }
   // Parse scan data
   uint32_t byte_cnt = 0;
@@ -685,12 +702,11 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
 * @param[in] segment_data binary segment data in compact format
 * @param[in] system_timestamp receive timestamp of segment_data (system time)
 * @param[in] add_transform_xyz_rpy Optionally apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
-* @param[in] range_filter Optionally apply an additional range filter, default: deactivated
 * @param[out] result scandata converted to ScanSegmentParserOutput
 * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
 * @param[in] verbose true: enable debug output, false: quiet mode
 */
-bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, 
+bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, 
     ScanSegmentParserOutput& result, bool use_software_pll, bool verbose)
 {
     // Parse segment data
@@ -726,11 +742,8 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& p
                 points_out.reserve(points_in.size());
                 for(int point_idx = 0; point_idx < points_in.size(); point_idx++)
                 {
-                    if (range_filter.apply(points_in[point_idx].range))
-                    {
-                        add_transform_xyz_rpy.applyTransform(points_in[point_idx].x, points_in[point_idx].y, points_in[point_idx].z);
-                        points_out.push_back(points_in[point_idx]);
-                    }
+                    add_transform_xyz_rpy.applyTransform(points_in[point_idx].x, points_in[point_idx].y, points_in[point_idx].z);
+                    points_out.push_back(points_in[point_idx]);
                 }
                 scandata.scanlines[line_idx].points = points_out;
             }

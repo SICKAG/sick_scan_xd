@@ -194,7 +194,7 @@ namespace sick_scansegment_xd
         * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
         * @param[in] verbose true: enable debug output, false: quiet mode
         */
-        static bool Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, 
+        static bool Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy,
             ScanSegmentParserOutput& result, bool use_software_pll = true, bool verbose = false);
 
         /*
@@ -202,6 +202,22 @@ namespace sick_scansegment_xd
         * @param[in] layer_elevation_table_mdeg layer_elevation_table_mdeg[layer_idx] := ideal elevation in mdeg
         */
         static void SetLayerElevationTable(const std::vector<int>& layer_elevation_table_mdeg);
+
+        /*
+        * @brief Return a layer-id from a given elevation angle. See compact scanformat documention:
+        * The line/layer index in the figure below is not a layer id according to layer numbering for multi layer sensors.
+        * Therefore this functions returns a layer-id from the elevation angle in rad.
+        * @param[in] layer_elevation_rad layer_elevation in radians
+        * @return layer-id
+        */
+        static int GetLayerIDfromElevation(float layer_elevation_rad);
+
+        /*
+        * @brief Return the typical (default) elevation of a given layer index
+        * @param[in] layer_idx layer index
+        * @return layer elevation in degree
+        */
+        static float GetElevationDegFromLayerIdx(int layer_idx);
 
     }; // class CompactDataParser
 

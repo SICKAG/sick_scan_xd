@@ -4975,7 +4975,8 @@ namespace sick_scan_xd
 
                   // Apply range filter
                   float range_meter = rangeTmpPtr[iEcho * rangeNum + rangeIdxScan];
-                  if (range_filter.apply(range_meter)) // otherwise point dropped by range filter
+                  bool range_modified = false;
+                  if (range_filter.apply(range_meter, range_modified)) // otherwise point dropped by range filter
                   {
                     // ROS_DEBUG_STREAM("alpha:" << alpha << " elevPreCalc:" << std::to_string(elevationPreCalculated) << " layer:" << layer << " elevDeg:" << elevationAngleDegree
                     //   << " numOfLayers:" << numOfLayers << " elevAngleX200:" << elevAngleX200);

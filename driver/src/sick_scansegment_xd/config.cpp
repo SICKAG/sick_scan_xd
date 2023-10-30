@@ -145,15 +145,9 @@ sick_scansegment_xd::Config::Config()
     node = 0;                           // Created by Config::Init()
     udp_sender = "";                    // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan136 lidar or multiScan136 emulator
     udp_port = 2115;                    // default udp port for multiScan136 resp. multiScan136 emulator is 2115
-    // segment and fullframe pointclouds replaced by customized pointcloud configuration
-    // publish_topic = "/cloud";           // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
-    // publish_topic_all_segments = "/cloud_fullframe"; // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
-    // segment_count = 12;               // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
-    // all_segments_azimuth_min_deg = -180;   // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-    // all_segments_azimuth_max_deg = +180;   // if received segments cover azimuth angle range from all_segments_azimuth_min_deg to all_segments_azimuth_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
-    // all_segments_elevation_min_deg = -90;  // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-    // all_segments_elevation_max_deg = +90;  // if received segments cover elevation angle range from all_segments_elevation_min_deg to all_segments_elevation_max_deg. -90...+90 for multiScan136 (360 deg fullscan)
-    publish_frame_id = "world";            // frame id of ros Laserscan messages, default: "world"
+    publish_frame_id = "world";            // frame id of ros Laserscan messages, default: "world_<layer-id>"
+    publish_laserscan_segment_topic = "scan_segment";     // topic of ros Laserscan segment messages
+    publish_laserscan_fullframe_topic = "scan_fullframe"; //topic of ros Laserscan fullframe messages
     udp_input_fifolength = 20;             // max. udp input fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
     msgpack_output_fifolength = 20;        // max. msgpack output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
     verbose_level = 1;                     // verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1
@@ -223,9 +217,6 @@ void sick_scansegment_xd::Config::PrintHelp(void)
     ROS_INFO_STREAM("Commandline options are:");
     ROS_INFO_STREAM("-udp_sender=<ip> : ip address of udp sender, Use \"\" (default) to receive msgpacks from any udp sender, use \"127.0.0.1\" to restrict to localhost (loopback device), or use the ip-address of a multiScan136 lidar or multiScan136 emulator");
     ROS_INFO_STREAM("-udp_port=<port> : udp port for multiScan136 resp. multiScan136 emulator, default: " << udp_port);
-    // segment and fullframe pointclouds replaced by customized pointcloud configuration
-    // ROS_INFO_STREAM("-publish_topic=<topic> : ros topic to publish received msgpack data converted top PointCloud2 messages, default: /cloud");
-    // ROS_INFO_STREAM("-publish_frame_id=<id> : frame id of ros Laserscan messages, default: world");
     ROS_INFO_STREAM("-udp_input_fifolength=<size> : max. udp input fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length");
     ROS_INFO_STREAM("-msgpack_output_fifolength=<size> : max. msgpack output fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length");
     ROS_INFO_STREAM("-verbose_level=[0-2] : verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: " << verbose_level);
@@ -253,13 +244,11 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "hostname", hostname);
     ROS_DECL_GET_PARAMETER(node, "udp_sender", udp_sender);
     ROS_DECL_GET_PARAMETER(node, "udp_port", udp_port);
-    // segment and fullframe pointclouds replaced by customized pointcloud configuration
-    // ROS_DECL_GET_PARAMETER(node, "publish_topic", publish_topic);
-    // ROS_DECL_GET_PARAMETER(node, "publish_topic_all_segments", publish_topic_all_segments);
-    // ROS_DECL_GET_PARAMETER(node, "segment_count", segment_count);
     ROS_DECL_GET_PARAMETER(node, "all_segments_min_deg", all_segments_min_deg);
     ROS_DECL_GET_PARAMETER(node, "all_segments_max_deg", all_segments_max_deg);
     ROS_DECL_GET_PARAMETER(node, "publish_frame_id", publish_frame_id);
+    ROS_DECL_GET_PARAMETER(node, "publish_laserscan_segment_topic", publish_laserscan_segment_topic);
+    ROS_DECL_GET_PARAMETER(node, "publish_laserscan_fullframe_topic", publish_laserscan_fullframe_topic);
     ROS_DECL_GET_PARAMETER(node, "udp_input_fifolength", udp_input_fifolength);
     ROS_DECL_GET_PARAMETER(node, "msgpack_output_fifolength", msgpack_output_fifolength);
     ROS_DECL_GET_PARAMETER(node, "verbose_level", verbose_level);
@@ -327,14 +316,6 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     bool add_transform_check_dynamic_updates = false;
     ROS_DECL_GET_PARAMETER(node, "add_transform_check_dynamic_updates", add_transform_check_dynamic_updates);
     add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(node, str_add_transform_xyz_rpy, false, add_transform_check_dynamic_updates);
-    // Optional range filter
-    float range_min = 0, range_max = 100;
-    int range_filter_handling = 0;
-    ROS_DECL_GET_PARAMETER(node, "range_min", range_min);
-    ROS_DECL_GET_PARAMETER(node, "range_max", range_max);
-    ROS_DECL_GET_PARAMETER(node, "range_filter_handling", range_filter_handling);
-    range_filter = sick_scan_xd::SickRangeFilter(range_min, range_max, (sick_scan_xd::RangeFilterResultHandling)range_filter_handling);
-    ROS_INFO_STREAM("Range filter configuration for sick_scansegment_xd: range_min=" << range_min << ", range_max=" << range_max << ", range_filter_handling=" << range_filter_handling);
 
     // Configuration of laserscan messages (ROS only), activate/deactivate laserscan messages for each layer
     std::string str_laserscan_layer_filter = "0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0";
@@ -392,13 +373,11 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     // Overwrite with commandline arguments
     setOptionalArgument(cli_parameter_map, "udp_sender", udp_sender);
     setOptionalArgument(cli_parameter_map, "udp_port", udp_port);
-    // segment and fullframe pointclouds replaced by customized pointcloud configuration
-    // setOptionalArgument(cli_parameter_map, "publish_topic", publish_topic);
-    // setOptionalArgument(cli_parameter_map, "publish_topic_all_segments", publish_topic_all_segments);
-    // setOptionalArgument(cli_parameter_map, "segment_count", segment_count);
     setOptionalArgument(cli_parameter_map, "all_segments_min_deg", all_segments_min_deg);
     setOptionalArgument(cli_parameter_map, "all_segments_max_deg", all_segments_max_deg);
     setOptionalArgument(cli_parameter_map, "publish_frame_id", publish_frame_id);
+    setOptionalArgument(cli_parameter_map, "publish_laserscan_segment_topic", publish_laserscan_segment_topic);
+    setOptionalArgument(cli_parameter_map, "publish_laserscan_fullframe_topic", publish_laserscan_fullframe_topic);
     setOptionalArgument(cli_parameter_map, "udp_input_fifolength", udp_input_fifolength);
     setOptionalArgument(cli_parameter_map, "msgpack_output_fifolength", msgpack_output_fifolength);
     setOptionalArgument(cli_parameter_map, "verbose_level", verbose_level);
@@ -463,12 +442,11 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     ROS_INFO_STREAM("scanner_type:                     " << scanner_type);
     ROS_INFO_STREAM("udp_sender:                       " << udp_sender);
     ROS_INFO_STREAM("udp_port:                         " << udp_port);
-    // ROS_INFO_STREAM("publish_topic:                    " << publish_topic);
-    // ROS_INFO_STREAM("publish_topic_all_segments:       " << publish_topic_all_segments);
-    // ROS_INFO_STREAM("segment_count:                    " << segment_count);
     ROS_INFO_STREAM("all_segments_min_deg:             " << all_segments_min_deg);
     ROS_INFO_STREAM("all_segments_max_deg:             " << all_segments_max_deg);
     ROS_INFO_STREAM("publish_frame_id:                 " << publish_frame_id);
+    ROS_INFO_STREAM("publish_laserscan_segment_topic:  " << publish_laserscan_segment_topic);
+    ROS_INFO_STREAM("publish_laserscan_fullframe_topic:" << publish_laserscan_fullframe_topic);
     ROS_INFO_STREAM("udp_input_fifolength:             " << udp_input_fifolength);
     ROS_INFO_STREAM("msgpack_output_fifolength:        " << msgpack_output_fifolength);
     ROS_INFO_STREAM("verbose_level:                    " << verbose_level);

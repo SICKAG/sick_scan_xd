@@ -78,7 +78,7 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
         return sick_scan_xd::ExitError;
     }
     config.PrintConfig();
-    if (config.scandataformat == SCANDATA_COMPACT && scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
+    if (scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
     {
         std::vector<int> layer_elevation_table_mdeg = { 22710, 17560, 12480, 7510, 2490, 70, -2430, -7290, -12790, -17280, -21940, -26730, -31860, -34420, -37180, -42790 };
         sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(layer_elevation_table_mdeg);
@@ -208,7 +208,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
 
         // Initialize msgpack converter and connect to udp receiver
-        sick_scansegment_xd::MsgPackConverter msgpack_converter(m_config.add_transform_xyz_rpy, m_config.range_filter, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
+        sick_scansegment_xd::MsgPackConverter msgpack_converter(m_config.add_transform_xyz_rpy, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
         assert(udp_receiver->Fifo());
         assert(msgpack_converter.Fifo());
 
@@ -267,7 +267,18 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
                 }
                 // Send SOPAS commands to read filter settings
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->queryMultiScanFiltersettings(m_config.host_FREchoFilter, m_config.host_LFPangleRangeFilter, m_config.host_LFPlayerFilter, m_config.msgpack_validator_filter_settings, m_config.scanner_type);
+                if (sopas_service->queryMultiScanFiltersettings(m_config.host_FREchoFilter, m_config.host_LFPangleRangeFilter, m_config.host_LFPlayerFilter, m_config.msgpack_validator_filter_settings, m_config.scanner_type))
+                {
+                    // Overwrite configured LFPangleRangeFilter and LFPlayerFilter with settings received from lidar
+                    bool angle_range_filter_enabled = ros_msgpack_publisher->initLFPangleRangeFilterSettings(m_config.host_LFPangleRangeFilter);
+                    bool layer_filter_enabled = ros_msgpack_publisher->initLFPlayerFilterSettings(m_config.host_LFPlayerFilter);
+                    float fullframe_azimuth_min_deg = 0, fullframe_azimuth_max_deg = 0, fullframe_elevation_min_deg = 0, fullframe_elevation_max_deg = 0;
+                    ros_msgpack_publisher->GetFullframeAngleRanges(fullframe_azimuth_min_deg, fullframe_azimuth_max_deg, fullframe_elevation_min_deg, fullframe_elevation_max_deg);
+                    if (angle_range_filter_enabled)
+                        ROS_INFO_STREAM("expected azimuth range of fullframe scans: " << std::fixed << std::setprecision(3) << fullframe_azimuth_min_deg << " to " << fullframe_azimuth_max_deg << " deg");
+                    if (layer_filter_enabled)
+                        ROS_INFO_STREAM("expected elevation range of fullframe scans: " << std::fixed << std::setprecision(3) << fullframe_elevation_min_deg << " to " << fullframe_elevation_max_deg << " deg");
+                }
             }
             else
             {
