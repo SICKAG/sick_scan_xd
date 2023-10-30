@@ -1585,8 +1585,7 @@ namespace sick_scan_xd
     sopasCmdMaskVec[CMD_APPLICATION_MODE] = "\x02sWN SetActiveApplications 1 %s %d\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES] = "\x02sWN LMPoutputRange 1 %X %X %X\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES_NAV3] = "\x02sWN LMPoutputRange 1 %X %X %X %X %X %X %X %X %X %X %X %X\x03";
-    //sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG]=  "\x02sWN LMDscandatacfg %02d 00 %d 00 %d 0 %d 0 0 0 1 +1\x03"; //outputChannelFlagId,rssiFlag, rssiResolutionIs16Bit ,EncoderSetings
-    sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 0 0 %02d 0 0 0 1 1\x03";//outputChannelFlagId,rssiFlag, rssiResolutionIs16Bit ,EncoderSetings
+    sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 0 0 %02d 0 0 0 1 %d\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
     /*
    configuration
  * in ASCII
@@ -3241,32 +3240,46 @@ namespace sick_scan_xd
       {
         if (false==this->parser_->getCurrentParamPtr()->getUseScancfgList())
         {
+          // Timing flag LMDscandatacfg (LMS-1XX, LMS-1XXX, LMS-4XXX, LMS-5XX, MRS-1XXX, MRS-6XXX, NAV-2XX, TIM-240, TIM-4XX, TIM-5XX, TIM-7XX, TIM-7XXS):
+          // -1: use default (i.e. off for TiM-240, otherwise on), 0: do not send time information, 1: send time information
+          int scandatacfg_timingflag = -1;
+          rosDeclareParam(nh, "scandatacfg_timingflag", scandatacfg_timingflag);
+          rosGetParam(nh, "scandatacfg_timingflag", scandatacfg_timingflag);
+          if (scandatacfg_timingflag < 0)
+          {
+            if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+              scandatacfg_timingflag = 0; // default for TiM-240: Timing flag LMDscandatacfg off
+            else
+              scandatacfg_timingflag = 1; // default: Timing flag LMDscandatacfg on
+          }
+
           //normal scanconfig handling
-        char requestLMDscandatacfg[MAX_STR_LEN];
-        // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
-        // sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 00 %d 00 0 0 0 1 1\x03";
-        const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG].c_str();
-          sprintf(requestLMDscandatacfg, pcCmdMask, outputChannelFlagId, rssiFlag ? 1 : 0,
+          char requestLMDscandatacfg[MAX_STR_LEN];
+          // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
+          // sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 00 %d 00 0 0 0 1 %d\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
+          const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG].c_str();
+            sprintf(requestLMDscandatacfg, pcCmdMask, outputChannelFlagId, rssiFlag ? 1 : 0,
                   rssiResolutionIs16Bit ? 1 : 0,
-                EncoderSettings != -1 ? EncoderSettings : 0);
-        if (useBinaryCmd)
-        {
-          std::vector<unsigned char> reqBinary;
-          this->convertAscii2BinaryCmd(requestLMDscandatacfg, &reqBinary);
-          // FOR MRS6124 this should be
-          // like this:
-          // 0000  02 02 02 02 00 00 00 20 73 57 4e 20 4c 4d 44 73   .......sWN LMDs
-          // 0010  63 61 6e 64 61 74 61 63 66 67 20 1f 00 01 01 00   candatacfg .....
-          // 0020  00 00 00 00 00 00 00 01 5c
-          result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]);
-          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
-        }
-        else
-        {
-          std::vector<unsigned char> lmdScanDataCfgReply;
-          result = sendSopasAndCheckAnswer(requestLMDscandatacfg, &lmdScanDataCfgReply);
-          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmdScanDataCfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
-        }
+                  EncoderSettings != -1 ? EncoderSettings : 0,
+                  scandatacfg_timingflag);
+          if (useBinaryCmd)
+          {
+            std::vector<unsigned char> reqBinary;
+            this->convertAscii2BinaryCmd(requestLMDscandatacfg, &reqBinary);
+            // FOR MRS6124 this should be
+            // like this:
+            // 0000  02 02 02 02 00 00 00 20 73 57 4e 20 4c 4d 44 73   .......sWN LMDs
+            // 0010  63 61 6e 64 61 74 61 63 66 67 20 1f 00 01 01 00   candatacfg .....
+            // 0020  00 00 00 00 00 00 00 01 5c
+            result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]);
+            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
+          }
+          else
+          {
+            std::vector<unsigned char> lmdScanDataCfgReply;
+            result = sendSopasAndCheckAnswer(requestLMDscandatacfg, &lmdScanDataCfgReply);
+            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmdScanDataCfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
+          }
         }
         else
         {
