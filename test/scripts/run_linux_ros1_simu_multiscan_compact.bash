@@ -5,6 +5,7 @@ function killall_simu()
 {
   killall sick_generic_caller
   pkill -f multiscan_sopas_test_server.py
+<<<<<<< HEAD
   pkill -f polar_to_cartesian_pointcloud_ros1.py
 }
 
@@ -89,6 +90,9 @@ function run_multiscan_simu()
   python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py "${multiscan_pcap_player[@]}"
   sleep 3
   return 0 # return success
+=======
+  pkill -f multiscan_pcap_player.py
+>>>>>>> multiscan_imu
 }
 
 # 
@@ -107,12 +111,34 @@ sleep 1
 # Run multiscan simulation with default configuration
 run_multiscan_simu 0
 
+<<<<<<< HEAD
 # Run testcases with angle range filter
 killall_cleanup ; run_multiscan_simu 1
 killall_cleanup ; run_multiscan_simu 2
 killall_cleanup ; run_multiscan_simu 3
 killall_cleanup ; run_multiscan_simu 4
 killall_cleanup ; run_multiscan_simu 5
+=======
+# Play compact pcapng-files to emulate MRS100 output
+rostopic echo -p /multiScan/imu &
+echo -e "\nPlaying pcapng-files to emulate multiScan, using compact format ...\n"
+# 20231009-multiscan-compact-imu-01.pcapng: compact, all layers, last echo, imu, max. 30 sec.
+python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231009-multiscan-compact-imu-01.pcapng --udp_port=-1 --repeat=1 --verbose=0 --max_seconds=15 --filter=pcap_filter_multiscan_hildesheim
+# 20230607-multiscan-compact-v4-5layer.pcapng: compact, 5 layer, no imu
+python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230607-multiscan-compact-v4-5layer.pcapng --udp_port=-1 --repeat=1 --verbose=0 --max_seconds=15 --filter=pcap_filter_multiscan_hildesheim
+# pcapng files for measurement of imu latency (compact, hires0 layer, imu and lidar oscillating)
+# rm -rf /tmp/imu_latency.csv ./*.csv
+# python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231009-multiscan-compact-hires0-imu-latency-01-10periods.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
+# mv /tmp/imu_latency.csv ./20231009_multiscan_timestamp_azimuth_imuacceleration.csv
+# python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231011-multiscan-compact-hires0-imu-latency-01-10periods.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
+# mv /tmp/imu_latency.csv ./20231011a_multiscan_timestamp_azimuth_imuacceleration.csv
+# python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231011-multiscan-compact-hires0-imu-latency-02-10periods.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
+# mv /tmp/imu_latency.csv ./20231011b_multiscan_timestamp_azimuth_imuacceleration.csv
+# python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231011-multiscan-compact-hires0-imu-latency-03-manuell.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
+# python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231024-multiscan-imu-02.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
+# mv /tmp/imu_latency.csv ./20231024_multiscan_timestamp_azimuth_imuacceleration.csv
+sleep 3
+>>>>>>> multiscan_imu
 
 # Shutdown
 echo -e "run_multiscan.bash finished, killing all processes ..."

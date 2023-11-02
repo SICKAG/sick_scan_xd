@@ -189,12 +189,12 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         // Send "start" trigger via UDP
         // sendStartTrigger(m_config);
 
-        // Initialize udp receiver
+        // Initialize udp receiver for scan data
         sick_scansegment_xd::UdpReceiver* udp_receiver = 0;
         while(udp_receiver == 0)
         {
             udp_receiver = new sick_scansegment_xd::UdpReceiver();
-            if(udp_receiver->Init(m_config.udp_sender, m_config.udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat))
+            if(udp_receiver->Init(m_config.udp_sender, m_config.udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat, 0))
             {
                 ROS_INFO_STREAM("sick_scansegment_xd: udp socket to " << m_config.udp_sender << ":" << m_config.udp_port << " initialized");
             }
@@ -207,8 +207,33 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             }
         }
 
+        // Initialize udp receiver for imu data
+        sick_scansegment_xd::UdpReceiver* udp_receiver_imu = 0;
+        while(m_config.imu_enable && m_config.scandataformat == SCANDATA_COMPACT && udp_receiver_imu == 0)
+        {
+            udp_receiver_imu = new sick_scansegment_xd::UdpReceiver();
+            if(udp_receiver_imu->Init(m_config.udp_sender, m_config.imu_udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat, udp_receiver->Fifo())) // udp receiver for scan and imu data share the same fifo
+            {
+                // m_config.imu_latency_microsec
+                ROS_INFO_STREAM("sick_scansegment_xd: udp socket to " << m_config.udp_sender << ":" << m_config.imu_udp_port << " initialized");
+            }
+            else
+            {
+                ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: UdpReceiver::Init(" << m_config.udp_sender << "," << m_config.imu_udp_port << ") failed, retrying...");
+                delete(udp_receiver_imu);
+                udp_receiver_imu = 0;
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
+        }
+
         // Initialize msgpack converter and connect to udp receiver
+<<<<<<< HEAD
         sick_scansegment_xd::MsgPackConverter msgpack_converter(m_config.add_transform_xyz_rpy, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
+=======
+        ScanSegmentParserConfig scansegment_parser_config;
+        scansegment_parser_config.imu_latency_microsec = m_config.imu_latency_microsec;
+        sick_scansegment_xd::MsgPackConverter msgpack_converter(scansegment_parser_config, m_config.add_transform_xyz_rpy, m_config.range_filter, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
+>>>>>>> multiscan_imu
         assert(udp_receiver->Fifo());
         assert(msgpack_converter.Fifo());
 
@@ -220,9 +245,20 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 
         // Run udp receiver, msgpack converter and msgpack exporter in background tasks
         if (msgpack_converter.Start() && udp_receiver->Start() && msgpack_exporter.Start())
+        {
             ROS_INFO_STREAM("MsgPackThreads: Start msgpack converter, udp receiver and msgpack exporter, receiving from " << m_config.udp_sender << ":" << m_config.udp_port);
+            if (udp_receiver_imu)
+            {
+                if (udp_receiver_imu->Start())
+                    ROS_INFO_STREAM("MsgPackThreads: udp receiver for imu data started, receiving from " << m_config.udp_sender << ":" << m_config.imu_udp_port);
+                else
+                    ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: UdpReceiver::Start() failed for imu data, not receiving imu udp packages from " << m_config.udp_sender << ":" << m_config.imu_udp_port);
+            }
+        }
         else
+        {
             ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: MsgPackConverter::Start(), UdpReceiver::Start() or MsgPackExporter::Start() failed, not receiving udp packages from " << m_config.udp_sender << ":" << m_config.udp_port);
+        }
 
         // Send "start" via UDP
         // sendStartTrigger(m_config);
@@ -303,7 +339,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat);
+                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable);
             }
             else
             {
@@ -343,6 +379,11 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         DELETE_PTR(sopas_tcp);
 
         // Shutdown, cleanup and exit
+        if (udp_receiver_imu)
+        {
+            udp_receiver_imu->Close();
+            delete(udp_receiver_imu);
+        }
         msgpack_converter.Fifo()->Shutdown();
         udp_receiver->Fifo()->Shutdown();
         msgpack_exporter.Close();

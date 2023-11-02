@@ -44,6 +44,9 @@
         <!-- param name="send_udp_start_port" type="int" value="2115" / -->                 <!-- IP port of multiScan136 to post start and stop commands (obsolete, will be removed in future release) -->
         <param name="udp_timeout_ms" type="int" value="60000" />                            <!-- Timeout for udp messages in milliseconds, default: 60*1000 -->
         <param name="scandataformat" type="int" value="$(arg scandataformat)" />            <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1 -->
+        <param name="imu_enable" type="bool" value="True"/>                                 <!-- Enable inertial measurement unit IMU, compact format only -->
+        <param name="imu_udp_port" type="int" value="7503"/>                                <!-- udp port for multiScan imu data (if imu_enable is true) -->
+        <param name="imu_latency_microsec" type="int" value="0"/>                           <!-- imu latency in microseconds -->
         
         <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
         <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->

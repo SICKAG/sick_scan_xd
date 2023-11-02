@@ -414,7 +414,7 @@ bool sick_scan_xd::SickScanServices::sendSopasCmdCheckResponse(const std::string
 /*!
 * Sends the multiScan136 start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
 */
-bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat)
+bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat, bool imu_enable)
 {
   std::stringstream ip_stream(hostname);
   std::string ip_token;
@@ -465,6 +465,12 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEnable 1\") failed.");
     return false;
   }
+  // if (imu_enable && !sendSopasCmdCheckResponse("sEN InertialMeasurementUnit 1", "sEA InertialMeasurementUnit")) // enable imu data transfer
+  //   ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sEN InertialMeasurementUnit 1\") failed.");
+  if (imu_enable && !sendSopasCmdCheckResponse("sWN ImuDataEnable 1", "sWA ImuDataEnable")) // enable imu data transfer
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ImuDataEnable 1\") failed.");
+  }
   if (!sendSopasCmdCheckResponse("sMN LMCstartmeas", "sAN LMCstartmeas")) // start measurement
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sMN LMCstartmeas\") failed.");
@@ -485,7 +491,12 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
  */
 bool sick_scan_xd::SickScanServices::sendMultiScanStopCmd(void)
 {
-  if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 0", "sWA ScanDataEnable")) // disble scan data output
+  if (!sendSopasCmdCheckResponse("sEN InertialMeasurementUnit 0", "sEA InertialMeasurementUnit")) // disable imu data output
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStopCmd(): sendSopasCmdCheckResponse(\"sEN InertialMeasurementUnit 0\") failed.");
+    return false;
+  }
+  if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 0", "sWA ScanDataEnable")) // disable scan data output
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStopCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEnable 0\") failed.");
     return false;

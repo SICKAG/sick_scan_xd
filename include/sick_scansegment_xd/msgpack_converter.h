@@ -92,13 +92,18 @@ namespace sick_scansegment_xd
 
         /*
          * @brief Initializing constructor
+         * @param[in] parser_config configuration and settings for multiScan and picoScan parser
          * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
          * @param[in] input_fifo input fifo buffering udp packages
-         * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
+         * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2
          * @param[in] msgpack_output_fifolength max. output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
          * @param[in] verbose true: enable debug output, false: quiet mode (default)
          */
+<<<<<<< HEAD
          MsgPackConverter(const sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat = 1, int msgpack_output_fifolength = 20, bool verbose = false);
+=======
+         MsgPackConverter(const ScanSegmentParserConfig& parser_config, const sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat = 2, int msgpack_output_fifolength = 20, bool verbose = false);
+>>>>>>> multiscan_imu
 
         /*
          * @brief Default destructor.
@@ -141,7 +146,8 @@ namespace sick_scansegment_xd
         * Configuration and parameter
         */
        bool m_verbose;                                          // true: enable debug output, false: quiet mode (default)
-
+       ScanSegmentParserConfig m_parser_config;                 // configuration and settings for multiScan and picoScan parser
+       
         /*
          * Member data to run the converter
          */

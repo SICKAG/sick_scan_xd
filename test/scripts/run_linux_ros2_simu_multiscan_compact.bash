@@ -39,8 +39,15 @@ sleep 3
 
 # Play pcapng-files to emulate multiScan compact V4 scandata
 echo -e "\nPlaying pcapng-files to emulate multiScan\n"
+<<<<<<< HEAD
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230607-multiscan-compact-v4-5layer.pcapng --udp_port=2115 --repeat=1
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231009-multiscan-compact-imu-01.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim --max_seconds=15
+=======
+# 20230607-multiscan-compact-v4-5layer.pcapng: compact, 5 layer, no imu
+python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230607-multiscan-compact-v4-5layer.pcapng --udp_port=2115 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
+# 20231009-multiscan-compact-imu-01.pcapng: compact, all layers, last echo, imu
+python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231009-multiscan-compact-imu-01.pcapng --udp_port=2115 --repeat=1 --verbose=0 --max_seconds=30 --filter=pcap_filter_multiscan_hildesheim
+>>>>>>> multiscan_imu
 sleep 3
 
 # Shutdown

@@ -380,6 +380,8 @@ namespace sick_scansegment_xd
         SegmentPointsCollector m_points_collector;    // collects all points of 12 segments (12 segments * 30 deg = 360 deg)
         LaserscanMsgPublisher m_publisher_laserscan_360;     // ros publisher to publish LaserScan messages of all segments (360 degree)
         LaserscanMsgPublisher m_publisher_laserscan_segment; // ros publisher to publish LaserScan messages of the current segment
+        ImuMsgPublisher m_publisher_imu;                     // ros publisher to publish Imu messages
+        bool m_publisher_imu_initialized = false;            // imu messages enabled, ros publisher for Imu messages initialized
         double m_scan_time = 0;                              // scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
         std::vector<int> m_laserscan_layer_filter;           // Configuration of laserscan messages (ROS only), activate/deactivate laserscan messages for each layer
 	    std::vector<CustomPointCloudConfiguration> m_custom_pointclouds_cfg; // Configuration of customized pointclouds

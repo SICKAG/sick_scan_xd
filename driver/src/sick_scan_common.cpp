@@ -3679,7 +3679,7 @@ namespace sick_scan_xd
         startProtocolSequence.push_back(CMD_START_SCANDATA);
       }
 
-      if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 4)  // MRS1104 - start IMU-Transfer
+      if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 4) // MRS1104: start IMU-Transfer
       {
         bool imu_enable = false;
         rosDeclareParam(nh, "imu_enable", imu_enable);
@@ -3698,7 +3698,10 @@ namespace sick_scan_xd
                 "IMU USAGE NOT POSSIBLE IN ASCII COMMUNICATION MODE.\nTo use the IMU the communication with the scanner must be set to binary mode.\n This can be done by inserting the line:\n<param name=\"use_binary_protocol\" type=\"bool\" value=\"True\" />\n into the launchfile.\n See also https://github.com/SICKAG/sick_scan_xd/blob/master/doc/IMU.md");
             exit(0);
           }
-
+        }
+        else
+        {
+          ROS_INFO("IMU data transfer not enabled");
         }
       }
     }
