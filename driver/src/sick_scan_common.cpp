@@ -1585,13 +1585,13 @@ namespace sick_scan_xd
     sopasCmdMaskVec[CMD_APPLICATION_MODE] = "\x02sWN SetActiveApplications 1 %s %d\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES] = "\x02sWN LMPoutputRange 1 %X %X %X\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES_NAV3] = "\x02sWN LMPoutputRange 1 %X %X %X %X %X %X %X %X %X %X %X %X\x03";
-    sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 0 0 %02d 0 0 0 1 %d\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
+    sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 0 0 %02d 0 0 0 %d 1\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
     /*
    configuration
  * in ASCII
  * sWN LMDscandatacfg  %02d 00 %d   %d  0    %02d    0  0    0  1  1
  *                      |      |    |   |     |      |  |    |  |  | +----------> Output rate       -> All scans: 1--> every 1 scan
- *                      |      |    |   |     |      |  |    |  +----------------> Time             ->True (unused in Data Processing)
+ *                      |      |    |   |     |      |  |    |  +----------------> Time             ->True (unused in Data Processing, TiM240:false)
  *                      |      |    |   |     |      |  |    +-------------------> Comment          ->False
  *                      |      |    |   |     |      |  +------------------------> Device Name      ->False
  *                      |      |    |   |     |      +---------------------------> Position         ->False

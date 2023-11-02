@@ -5,7 +5,7 @@ function killall_simu()
 {
   killall sick_generic_caller
   pkill -f multiscan_sopas_test_server.py
-<<<<<<< HEAD
+  pkill -f multiscan_pcap_player.py
   pkill -f polar_to_cartesian_pointcloud_ros1.py
 }
 
@@ -90,9 +90,6 @@ function run_multiscan_simu()
   python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py "${multiscan_pcap_player[@]}"
   sleep 3
   return 0 # return success
-=======
-  pkill -f multiscan_pcap_player.py
->>>>>>> multiscan_imu
 }
 
 # 
@@ -111,14 +108,13 @@ sleep 1
 # Run multiscan simulation with default configuration
 run_multiscan_simu 0
 
-<<<<<<< HEAD
 # Run testcases with angle range filter
 killall_cleanup ; run_multiscan_simu 1
 killall_cleanup ; run_multiscan_simu 2
 killall_cleanup ; run_multiscan_simu 3
 killall_cleanup ; run_multiscan_simu 4
 killall_cleanup ; run_multiscan_simu 5
-=======
+
 # Play compact pcapng-files to emulate MRS100 output
 rostopic echo -p /multiScan/imu &
 echo -e "\nPlaying pcapng-files to emulate multiScan, using compact format ...\n"
@@ -138,7 +134,6 @@ python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231024-multiscan-imu-02.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim
 # mv /tmp/imu_latency.csv ./20231024_multiscan_timestamp_azimuth_imuacceleration.csv
 sleep 3
->>>>>>> multiscan_imu
 
 # Shutdown
 echo -e "run_multiscan.bash finished, killing all processes ..."

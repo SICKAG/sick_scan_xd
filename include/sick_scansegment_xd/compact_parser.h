@@ -192,16 +192,11 @@ namespace sick_scansegment_xd
         * @param[in] payload binary segment data in compact format
         * @param[in] system_timestamp receive timestamp of segment_data (system time)
         * @param[in] add_transform_xyz_rpy Optionally apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
-        * @param[in] range_filter Optionally apply an additional range filter, default: deactivated
         * @param[out] result scandata converted to ScanSegmentParserOutput
         * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
         * @param[in] verbose true: enable debug output, false: quiet mode
         */
-<<<<<<< HEAD
-        static bool Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy,
-=======
-        static bool Parse(const ScanSegmentParserConfig& parser_config, const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, 
->>>>>>> multiscan_imu
+        static bool Parse(const ScanSegmentParserConfig& parser_config, const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, 
             ScanSegmentParserOutput& result, bool use_software_pll = true, bool verbose = false);
 
         /*

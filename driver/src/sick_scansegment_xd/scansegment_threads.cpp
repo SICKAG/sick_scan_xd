@@ -227,13 +227,9 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
 
         // Initialize msgpack converter and connect to udp receiver
-<<<<<<< HEAD
-        sick_scansegment_xd::MsgPackConverter msgpack_converter(m_config.add_transform_xyz_rpy, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
-=======
         ScanSegmentParserConfig scansegment_parser_config;
         scansegment_parser_config.imu_latency_microsec = m_config.imu_latency_microsec;
-        sick_scansegment_xd::MsgPackConverter msgpack_converter(scansegment_parser_config, m_config.add_transform_xyz_rpy, m_config.range_filter, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
->>>>>>> multiscan_imu
+        sick_scansegment_xd::MsgPackConverter msgpack_converter(scansegment_parser_config, m_config.add_transform_xyz_rpy, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
         assert(udp_receiver->Fifo());
         assert(msgpack_converter.Fifo());
 
@@ -339,7 +335,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable);
+                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable, m_config.imu_udp_port);
             }
             else
             {
@@ -372,7 +368,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         if(sopas_tcp && sopas_service && m_config.send_sopas_start_stop_cmd && sopas_tcp->isConnected())
         {
             sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-            sopas_service->sendMultiScanStopCmd();
+            sopas_service->sendMultiScanStopCmd(m_config.imu_enable);
         }
         // Stop SOPAS services
         DELETE_PTR(sopas_service);

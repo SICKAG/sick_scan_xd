@@ -126,18 +126,8 @@ namespace sick_scansegment_xd
         std::string scanner_type;                    // currently supported: "sick_multiscan" and "sick_picoscan"
 
         std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a Multiscan136 lidar or Multiscan136 emulator
-<<<<<<< HEAD
         int udp_port;                               // = 2115; // default udp port for multiScan136 resp. multiScan136 emulator is 2115
 
-=======
-        int udp_port;                               // = 2115; // default udp port for multiScan136 and picoScan is 2115
-        
-        // segment and fullframe pointclouds replaced by customized pointcloud configuration
-        // std::string publish_topic;               // = "/cloud"; // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
-        // std::string publish_topic_all_segments;  // = "/cloud_fullframe" // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
-        
-        // int segment_count;                       // 12 // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
->>>>>>> multiscan_imu
         double all_segments_min_deg = -180;         // -180 // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
         double all_segments_max_deg = +180;         // +180 // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan)
 

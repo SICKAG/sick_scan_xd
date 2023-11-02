@@ -62,7 +62,7 @@
 
 /** Configuration of customized pointclouds */
 
-sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguration(const std::string& cfg_name, const std::string& cfg_str) 
+sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguration(const std::string& cfg_name, const std::string& cfg_str)
 {
 		// Split into list of parameters, each parameter is a key-value-pair
 		std::vector<std::string> parameters;
@@ -109,7 +109,7 @@ sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguratio
 			}
 			else if(!range_filter_args.empty())
 			{
-				ROS_ERROR_STREAM("## ERROR CustomPointCloudConfiguration(name=" << cfg_name << ", value=" << cfg_str << "): rangeFilter has invalid value " << range_filter_str << ", check configuration");				
+				ROS_ERROR_STREAM("## ERROR CustomPointCloudConfiguration(name=" << cfg_name << ", value=" << cfg_str << "): rangeFilter has invalid value " << range_filter_str << ", check configuration");
 			}
 		}
 		std::vector<std::string> fields;
@@ -122,7 +122,7 @@ sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguratio
 		for(int n = 0; n < layers.size(); n++)
 		   layers[n] -= 1; // layer_ids in the launchfile enumerate from 1 up to 16, layer_idx starts from 0, i.e. layer_idx = layer_id - 1
 		// default if not configured in launchfile: all fields, echos, layers, reflectors and infringements enabled
-		if (fields.empty()) 
+		if (fields.empty())
 		    fields = { "x", "y", "z", "i", "range", "azimuth", "elevation", "layer", "echo", "reflector" };
 		if (echos.empty())
 		    echos = { 0, 1, 2 };
@@ -273,11 +273,11 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 	// m_segment_count = config.segment_count;
 	m_all_segments_azimuth_min_deg = (float)config.all_segments_min_deg;
   m_all_segments_azimuth_max_deg = (float)config.all_segments_max_deg;
-	if (config.host_set_LFPangleRangeFilter) 
+	if (config.host_set_LFPangleRangeFilter)
 	{
 		initLFPangleRangeFilterSettings(config.host_LFPangleRangeFilter);
 	}
-	if (config.host_set_LFPlayerFilter) 
+	if (config.host_set_LFPlayerFilter)
 	{
 		initLFPlayerFilterSettings(config.host_LFPlayerFilter);
 	}
@@ -290,30 +290,14 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
     if (qos_val >= 0)
         qos = qos_converter.convert(qos_val);
 	  m_publisher_laserscan_segment = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_segment_topic, qos);
-		ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << m_publisher_laserscan_segment->get_topic_name() << "\"");
-<<<<<<< HEAD
-	  m_publisher_laserscan_360 = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
-		ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << m_publisher_laserscan_360->get_topic_name() << "\"");
-=======
-	  // m_publisher_laserscan_360 = create_publisher<ros_sensor_msgs::LaserScan>("scan_360", qos);
-		// ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << m_publisher_laserscan_360->get_topic_name() << "\"");
+	  ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << m_publisher_laserscan_segment->get_topic_name() << "\"");
+      m_publisher_laserscan_360 = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
+      ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << m_publisher_laserscan_360->get_topic_name() << "\"");
 		if (config.imu_enable)
 		{
 			m_publisher_imu = create_publisher<ros_sensor_msgs::Imu>("~/imu", qos);
 			m_publisher_imu_initialized = true;
 		}
-	/* segment and fullframe pointclouds replaced by customized pointcloud configuration
-	if(m_publish_topic != "")
-	{
-	    m_publisher_cur_segment = create_publisher<PointCloud2Msg>(m_publish_topic, qos);
-		ROS_INFO_STREAM("RosMsgpackPublisher: publishing PointCloud2 messages on topic \"" << m_publisher_cur_segment->get_topic_name() << "\"");
-	}
-	if(m_publish_topic_all_segments != "")
-	{
-	    m_publisher_all_segments = create_publisher<PointCloud2Msg>(m_publish_topic_all_segments, qos);
-	} 
-	*/
->>>>>>> multiscan_imu
 #elif defined __ROS_VERSION && __ROS_VERSION > 0 // ROS-1 publisher
     int qos = 16 * 12 * 3; // 16 layers, 12 segments, 3 echos
 		int qos_val = -1;
@@ -321,37 +305,23 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
     rosGetParam(m_node, "ros_qos", qos_val);
     if (qos_val >= 0)
         qos = qos_val;
-<<<<<<< HEAD
-    m_publisher_laserscan_segment = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_segment_topic, qos);
-		m_publisher_laserscan_360 = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
-=======
     m_publisher_laserscan_segment = m_node->advertise<ros_sensor_msgs::LaserScan>("scan_segment", qos);
-		// m_publisher_laserscan_360 = m_node->advertise<ros_sensor_msgs::LaserScan>("scan_360", qos);
+    m_publisher_laserscan_360 = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
+
 		if (config.imu_enable)
 		{
 			m_publisher_imu = m_node->advertise<ros_sensor_msgs::Imu>("imu", qos);
 			m_publisher_imu_initialized = true;
 		}
-		/* segment and fullframe pointclouds replaced by customized pointcloud configuration
-		if(m_publish_topic != "")
-		{
-			m_publisher_cur_segment = m_node->advertise<PointCloud2Msg>(m_publish_topic, qos);
-		}
-		if(m_publish_topic_all_segments != "")
-		{
-			m_publisher_all_segments = m_node->advertise<PointCloud2Msg>(m_publish_topic_all_segments, qos);
-		} 
-		*/
->>>>>>> multiscan_imu
 #endif
 
   /* Configuration of customized pointclouds:
 
 	Parameter "custom_pointclouds" lists all customized pointclouds to be published. Each pointcloud is given by its name and configured by the following parameters:
 	"<name_of_custom_pointcloud>" type="string" value="list of key-value-pairs"
-	
+
 	The list of key-value-pairs defines the pointcloud properties. List of supported key-value-pairs for customized pointclouds:
-	
+
 	Parameter "coordinateNotation" is an enum to configure pointcloud coordinates:
 			coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i), identical to customized with fields=x,y,z,i
 			coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i), identical to customized with fields=azimuth,elevation,range,i
@@ -362,11 +332,11 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 			updateMethod=0: fullframe pointcloud (default)
 			updateMethod=1: segmented pointcloud
 
-	Parameter "fields" defines the fields of the pointcloud for coordinateNotation == 3 (customized pointcloud fields), e.g. 
+	Parameter "fields" defines the fields of the pointcloud for coordinateNotation == 3 (customized pointcloud fields), e.g.
 			fields=x,y,z,i: cartesian pointcloud
 			fields=range,azimuth,elevation: polar pointcloud
 			or any other combination of x,y,z,i,range,azimuth,elevation,layer,echo,reflector
-	
+
 	Parameter "echos" defines which echos are included in the pointcloud, e.g.
 			echos=0,1,2: all echos
 			echos=2: last echo
@@ -400,7 +370,7 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 
         <!-- custom_pointcloud_cartesian_segmented: cartesian coordinates, segmented, all echos, all layer, topic "cloud_unstructured_segments" -->
         <param name="custom_pointcloud_cartesian_segmented" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_segments frameid=world publish=1"/>
-        
+
         <!-- custom_pointcloud_polar_segmented: polar coordinates, segmented, all echos, all layer, topic "cloud_polar_unstructured_segments" -->
         <param name="custom_pointcloud_polar_segmented" type="string" value="coordinateNotation=1 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_polar_unstructured_segments frameid=world publish=1"/>
 
@@ -540,7 +510,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishLaserScanMsg(rosNodePtr no
 			}
 		}
 	}
-#endif	
+#endif
 }
 
 /*
@@ -553,7 +523,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishLaserScanMsg(rosNodePtr no
 * @param[in] pointcloud_cfg configuration of customized pointcloud
 * @param[out] pointcloud_msg customized pointcloud message
 */
-void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, 
+void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points,
   CustomPointCloudConfiguration& pointcloud_cfg, PointCloud2Msg& pointcloud_msg)
 {
   // set pointcloud header
@@ -652,7 +622,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
  * @param[out] laser_scan_msg_map laserscan message: ros_sensor_msgs::LaserScan for each echo and layer is laser_scan_msg_map[echo][layer]
  * @param[in] frame_id frame id of laserscan message, will be expanded to "<frame_id>_<layer_idx>"
  */
-void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count, 
+void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count,
   LaserScanMsgMap& laser_scan_msg_map, const std::string& frame_id, bool is_fullframe)
 {
 #if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
@@ -671,11 +641,11 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
   typedef std::map<int,std::map<int,LaserScanMsgSegments>> LaserScanMsgEchoLayerSegments; // LaserScanMsgMap[echo][layer][segment] := laserscan points in one segment
   typedef std::map<int,std::map<int,LaserScanMsgPoints>> LaserScanMsgEchoLayerSortedPoints; // LaserScanMsgEchoLayerSortedPoints[echo][layer] := sorted list of concatenated laserscan points
 	struct SortSegmentsAscendingAzimuth
-	{ 
+	{
 			bool operator()(const LaserScanMsgPoints& segment1, const LaserScanMsgPoints& segment2) { return !segment1.empty() && !segment2.empty() && segment1[0].azimuth < segment2[0].azimuth; }
 	};
 	struct SortSegmentsDescendingAzimuth
-	{ 
+	{
 			bool operator()(const LaserScanMsgPoints& segment1, const LaserScanMsgPoints& segment2) { return !segment1.empty() && !segment2.empty() && segment1[0].azimuth > segment2[0].azimuth; }
 	};
 	struct ScanPointPrinter
@@ -739,7 +709,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
     		//   ROS_INFO_STREAM("convertPointsToLaserscanMsg(" << (is_fullframe ? "fullframe": "segment") << "): echo" << echo << ", layer" << layer << ", segment" << segment_cnt << ", unsorted azimuth=[" << ScanPointPrinter::printAzimuthTable(segment_points) << "]");
 			}
 			if(segments.size() > 1)
-			{ 
+			{
 				if(segment_cnt_azimuth_ascending > 0 && segment_cnt_azimuth_descending > 0)
 				{
 					ROS_ERROR_STREAM("## ERROR convertPointsToLaserscanMsg(): " << segment_cnt_azimuth_ascending << " segments ordered by ascending azimuth, " << segment_cnt_azimuth_descending << " segments ordered by descending azimuth");
@@ -932,14 +902,14 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 			{
 				const sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
-				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZRAEI32f(point.x, point.y, point.z, point.range, 
+				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZRAEI32f(point.x, point.y, point.z, point.range,
 				   point.azimuth, point.elevation, point.i, point.groupIdx, point.echoIdx, point.reflectorbit));
 				lidar_points_min_azimuth = std::min(lidar_points_min_azimuth, point.azimuth);
 				lidar_points_max_azimuth = std::max(lidar_points_max_azimuth, point.azimuth);
 			}
 		}
 	}
-	
+
   // Versendung von Vollumläufen als ROS-Nachricht:
 	// a. Prozess läuft an
 	// b. Segmente werden verworfen, bis ein Segment mit Startwinkel 0° eintrifft.
@@ -959,12 +929,12 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		float precheck_max_azimuth_deg = m_points_collector.max_azimuth * 180.0f / (float)M_PI;
 		bool publish_cloud_360 = (precheck_max_azimuth_deg - precheck_min_azimuth_deg + 1 >= m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg - 1) // fast pre-check
 		    && m_points_collector.allSegmentsCovered(m_all_segments_azimuth_min_deg, m_all_segments_azimuth_max_deg, m_all_segments_elevation_min_deg, m_all_segments_elevation_max_deg); // all segments collected in m_points_collector
-		// ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.lastSegmentIdx=" << m_points_collector.lastSegmentIdx() 
-		//     << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count 
+		// ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.lastSegmentIdx=" << m_points_collector.lastSegmentIdx()
+		//     << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count
 		//     << ", azimuth_range_collected=(" << precheck_min_azimuth_deg << "," << precheck_max_azimuth_deg << ")=" << (precheck_max_azimuth_deg - precheck_min_azimuth_deg)
 		//     << ", azimuth_range_configured=(" << m_all_segments_azimuth_min_deg << "," << m_all_segments_azimuth_max_deg << ")=" << (m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg)
 		//     << ", m_points_collector.allSegmentsCovered=" << publish_cloud_360);
-		if (m_points_collector.total_point_count <= 0 || m_points_collector.telegram_cnt <= 0 || publish_cloud_360 || m_points_collector.lastSegmentIdx() > segment_idx) 
+		if (m_points_collector.total_point_count <= 0 || m_points_collector.telegram_cnt <= 0 || publish_cloud_360 || m_points_collector.lastSegmentIdx() > segment_idx)
 		{
 			// 1. publish 360 degree point cloud if all segments collected
 			// 2. start a new collection of all points (first time call, all segments covered, or segment index wrap around)
@@ -1033,7 +1003,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 					}
 					else
 					{
-						ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.lastSegmentIdx() 
+						ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.lastSegmentIdx()
 							<< ", current telegram: " << telegram_cnt << ", last telegram in collector: " << m_points_collector.telegram_cnt
 							<< ", datagram(s) missing, 360-degree-pointcloud not published");
 						if (m_points_collector.numEchos() > 1)
@@ -1047,7 +1017,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		}
 		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx " << segment_idx << " of " << m_segment_count << ", " << m_points_collector.total_point_count << " points in collector");
 	}
-  
+
 	// Publish PointCloud2 message for the current segment
 	for (int cloud_cnt = 0; cloud_cnt < m_custom_pointclouds_cfg.size(); cloud_cnt++)
 	{

@@ -67,6 +67,7 @@ class ColaResponseMap:
                 "sRN ContaminationResult": "\x02sRA ContaminationResult 0 0\x03",                                      # "sRN ContaminationResult" -> "sRA ContaminationResult 0 0"
                 "sEN InertialMeasurementUnit": "\x02sEA InertialMeasurementUnit\x03",                                  # "sEN InertialMeasurementUnit" -> "sEA InertialMeasurementUnit"
                 "sWN ImuDataEnable": "\x02sWA ImuDataEnable 1\x03",                                                    # "sWN ImuDataEnable" -> "sWA ImuDataEnable"
+                "sWN ImuDataEthSettings": "\x02sWA ImuDataEthSettings\x03",                                            # "sWN ImuDataEthSettings" -> "sWA ImuDataEthSettings"
             }
 
     # Search for a mapped response given a cola request and returns key and response as strings

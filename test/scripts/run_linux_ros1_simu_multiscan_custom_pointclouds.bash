@@ -60,8 +60,6 @@ sleep 1
 
 # Run Multiscan136 emulator (sopas test server)
 python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
-rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_cfg_multiscan_emu_laserscan.rviz & 
-sleep 1
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_cfg_multiscan_custom_fullframe.rviz & 
 sleep 1
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_cfg_multiscan_custom_segments.rviz & 

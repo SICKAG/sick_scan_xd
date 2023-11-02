@@ -99,11 +99,7 @@ namespace sick_scansegment_xd
          * @param[in] msgpack_output_fifolength max. output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
          * @param[in] verbose true: enable debug output, false: quiet mode (default)
          */
-<<<<<<< HEAD
-         MsgPackConverter(const sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat = 1, int msgpack_output_fifolength = 20, bool verbose = false);
-=======
-         MsgPackConverter(const ScanSegmentParserConfig& parser_config, const sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat = 2, int msgpack_output_fifolength = 20, bool verbose = false);
->>>>>>> multiscan_imu
+         MsgPackConverter(const ScanSegmentParserConfig& parser_config, const sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat = 2, int msgpack_output_fifolength = 20, bool verbose = false);
 
         /*
          * @brief Default destructor.

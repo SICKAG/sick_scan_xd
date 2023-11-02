@@ -144,23 +144,10 @@ sick_scansegment_xd::Config::Config()
 {
     node = 0;                           // Created by Config::Init()
     udp_sender = "";                    // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan136 lidar or multiScan136 emulator
-<<<<<<< HEAD
     udp_port = 2115;                    // default udp port for multiScan136 resp. multiScan136 emulator is 2115
     publish_frame_id = "world";            // frame id of ros Laserscan messages, default: "world_<layer-id>"
     publish_laserscan_segment_topic = "scan_segment";     // topic of ros Laserscan segment messages
     publish_laserscan_fullframe_topic = "scan_fullframe"; //topic of ros Laserscan fullframe messages
-=======
-    udp_port = 2115;                    // default udp port for multiScan136 and picoScan is 2115
-    // segment and fullframe pointclouds replaced by customized pointcloud configuration
-    // publish_topic = "/cloud";           // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
-    // publish_topic_all_segments = "/cloud_fullframe"; // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
-    // segment_count = 12;               // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
-    // all_segments_azimuth_min_deg = -180;   // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-    // all_segments_azimuth_max_deg = +180;   // if received segments cover azimuth angle range from all_segments_azimuth_min_deg to all_segments_azimuth_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
-    // all_segments_elevation_min_deg = -90;  // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
-    // all_segments_elevation_max_deg = +90;  // if received segments cover elevation angle range from all_segments_elevation_min_deg to all_segments_elevation_max_deg. -90...+90 for multiScan136 (360 deg fullscan)
-    publish_frame_id = "world";            // frame id of ros Laserscan messages, default: "world"
->>>>>>> multiscan_imu
     udp_input_fifolength = 20;             // max. udp input fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
     msgpack_output_fifolength = 20;        // max. msgpack output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
     verbose_level = 1;                     // verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1
@@ -175,7 +162,7 @@ sick_scansegment_xd::Config::Config()
     // send_udp_start_string = "magicalActivate"; // udp string to start multiScan136, default: "magicalActivate"
     udp_timeout_ms = 60000;                  // Timeout for udp messages in milliseconds, default: 60*1000
     scandataformat = 2;                      // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2
-    imu_enable = true;                       // IMU enabled or disabled
+    imu_enable = false;                      // IMU enabled or disabled
     imu_udp_port = 7503;                     // default udp port for multiScan imu data is 7503
     imu_latency_microsec = 0;                // imu latency in microseconds
 

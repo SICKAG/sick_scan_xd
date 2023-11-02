@@ -282,11 +282,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                 }
                 // std::cout << "UdpReceiver: payload_length_bytes = " << payload_length_bytes << " byte" << std::endl;
                 // CRC check
-<<<<<<< HEAD
                 size_t bytes_valid = std::min<size_t>(bytes_received, (size_t)bytes_to_receive);
-=======
-                size_t bytes_valid = std::min(bytes_received, (size_t)bytes_to_receive);
->>>>>>> multiscan_imu
                 uint32_t u32PayloadCRC = Convert4Byte(udp_payload.data() + bytes_valid - sizeof(uint32_t)); // last 4 bytes are CRC
                 std::vector<uint8_t> msgpack_payload(udp_payload.begin() + udp_payload_offset, udp_payload.begin() + bytes_valid - sizeof(uint32_t));
                 uint32_t u32MsgPackCRC = crc32(0, msgpack_payload.data(), msgpack_payload.size());
@@ -301,11 +297,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                             << std::dec << (msgpack_payload.size()) << " byte payload, message dropped");
                         ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): decoded payload size: " << payload_length_bytes << " bytes, bytes_to_receive (expected udp message length): "
                             << bytes_to_receive << " byte, bytes_valid (received udp message length): " << bytes_valid << " byte");
-<<<<<<< HEAD
                         timestamp_last_print_crc_error = chrono_system_clock::now();
-=======
-                        timestamp_last_print = chrono_system_clock::now();
->>>>>>> multiscan_imu
                     }
                     continue;
                 }

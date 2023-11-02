@@ -827,13 +827,8 @@ static bool getMaxAzimuthApertureWithinCube(const std::vector<sick_scansegment_x
 * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
 * @param[in] verbose true: enable debug output, false: quiet mode
 */
-<<<<<<< HEAD
-bool sick_scansegment_xd::CompactDataParser::Parse(const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, 
-    ScanSegmentParserOutput& result, bool use_software_pll, bool verbose)
-=======
 bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig& parser_config, const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, 
-    sick_scan_xd::SickRangeFilter& range_filter, ScanSegmentParserOutput& result, bool use_software_pll, bool verbose)
->>>>>>> multiscan_imu
+    ScanSegmentParserOutput& result, bool use_software_pll, bool verbose)
 {
     // Parse segment data
     sick_scansegment_xd::CompactSegmentData segment_data;
