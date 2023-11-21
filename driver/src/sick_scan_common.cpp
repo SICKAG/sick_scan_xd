@@ -874,7 +874,7 @@ namespace sick_scan_xd
   {
     delete cloud_marker_;
     delete diagnosticPub_;
-    printf("sick_scan_xd driver closed.\n");
+    printf("SickScanCommon closed.\n");
   }
 
 
@@ -1494,7 +1494,7 @@ namespace sick_scan_xd
     sopasCmdVec[CMD_START_MEASUREMENT] = "\x02sMN LMCstartmeas\x03";
     sopasCmdVec[CMD_STOP_MEASUREMENT] = "\x02sMN LMCstopmeas\x03";
     sopasCmdVec[CMD_APPLICATION_MODE_FIELD_ON] = "\x02sWN SetActiveApplications 1 FEVL 1\x03"; // <STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}1<ETX>
-    sopasCmdVec[CMD_APPLICATION_MODE_FIELD_OFF] = "\x02sWN SetActiveApplications 1 FEVL 0\x03"; // <STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}1<ETX>
+    sopasCmdVec[CMD_APPLICATION_MODE_FIELD_OFF] = "\x02sWN SetActiveApplications 1 FEVL 0\x03"; // <STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}0<ETX>
     sopasCmdVec[CMD_APPLICATION_MODE_RANGING_ON] = "\x02sWN SetActiveApplications 1 RANG 1\x03";
     sopasCmdVec[CMD_SET_TO_COLA_A_PROTOCOL] = "\x02sWN EIHstCola 0\x03";
     sopasCmdVec[CMD_GET_PARTIAL_SCANDATA_CFG] = "\x02sRN LMDscandatacfg\x03";//<STX>sMN{SPC}mLMPsetscancfg{SPC } +5000{SPC}+1{SPC}+5000{SPC}-450000{SPC}+2250000<ETX>
@@ -1781,9 +1781,9 @@ namespace sick_scan_xd
       switch (numberOfLayers)
       {
         case 4:
+          sopasCmdChain.push_back(CMD_DEVICE_IDENT);
           sopasCmdChain.push_back(CMD_APPLICATION_MODE_FIELD_OFF);
           sopasCmdChain.push_back(CMD_APPLICATION_MODE_RANGING_ON);
-          sopasCmdChain.push_back(CMD_DEVICE_IDENT);
           sopasCmdChain.push_back(CMD_SERIAL_NUMBER);
 
           break;
@@ -2275,6 +2275,7 @@ namespace sick_scan_xd
             {
               return ExitFatal;
             }
+            deviceIdentStr = deviceIdent;
 //					ROS_ERROR("BINARY REPLY REQUIRED");
           }
           else
@@ -2310,6 +2311,7 @@ namespace sick_scan_xd
             {
               return ExitFatal;
             }
+            deviceIdentStr = fullIdentVersionInfo;
 
           }
           break;
@@ -2331,7 +2333,8 @@ namespace sick_scan_xd
             {
               return ExitFatal;
             }
-          }
+             deviceIdentStr = sopasReplyStrVec[CMD_DEVICE_IDENT_LEGACY];
+         }
           break;
           /*
           DEVICE_STATE
@@ -5457,6 +5460,16 @@ namespace sick_scan_xd
         buffer[2 + ii] = szApplStr[ii]; // idx: 1,2,3,4
       }
       buffer[6] = dummy1 ? 0x01 : 0x00;
+      if (buffer[6] == 0x00 && parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0) // activate FEVL in case of MRS1xxx with firmware version > 1
+      {
+        size_t device_idx = deviceIdentStr.find("MRS1xxx"); // Get MRS1xxx version from device ident string
+        size_t version_idx = ((device_idx != std::string::npos) ? deviceIdentStr.find("V", device_idx) : std::string::npos);
+        char version_id = ((version_idx != std::string::npos) ? deviceIdentStr[version_idx + 1] : '0');
+        if (version_id > '1')
+        {
+          buffer[6] = 0x01; // MRS1xxx with firmware version > 1 supports RANG+FEVL -> overwrite with "<STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}1<ETX>"
+        }
+      }
       bufferLen = 7;
     }
 

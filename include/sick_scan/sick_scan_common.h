@@ -483,7 +483,7 @@ namespace sick_scan_xd
     uint8_t* diagnosticPub_; // always 0
 #endif
     double expectedFrequency_;
-
+    std::string deviceIdentStr; // devide id from sopas response to "sRN DeviceIdent"
 
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1
     dynamic_reconfigure::Server<sick_scan_xd::SickScanConfig> dynamic_reconfigure_server_;

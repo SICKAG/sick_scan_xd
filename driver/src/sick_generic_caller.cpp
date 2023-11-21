@@ -138,6 +138,12 @@ int main(int argc, char** argv)
 #if defined __ROS_VERSION && __ROS_VERSION == 2
     // Pass command line arguments to rclcpp.
     rclcpp::init(argc, argv);
+    bool ros_signal_handler = rclcpp::signal_handlers_installed();
+    ROS_INFO_STREAM("ROS2 signal handler are " << (ros_signal_handler? "" : " NOT") << "installed");
+    if (rclcpp::uninstall_signal_handlers())
+      ROS_INFO_STREAM("ROS2 signal handler uninstalled");
+    else
+      ROS_ERROR_STREAM("## ERROR: Failed to uninstall ROS2 signal handler");
     rclcpp::NodeOptions node_options;
     node_options.allow_undeclared_parameters(true);
     //node_options.automatically_declare_initial_parameters(true);
@@ -148,7 +154,8 @@ int main(int argc, char** argv)
   ros::NodeHandle nh("~");
   rosNodePtr node = &nh;
 #endif
-  signal(SIGINT, rosSignalHandler);
+  signal(SIGINT, rosSignalHandler);  // SIGINT = 2, Ctrl-C or kill -2
+  signal(SIGTERM, rosSignalHandler); // SIGTERM = 15, default kill level
 
   ROS_INFO_STREAM(versionInfo);
   for (int i = 0; i < argc_tmp; i++)
@@ -175,6 +182,7 @@ int main(int argc, char** argv)
       rosSpin(node);
     }
     stopScannerAndExit();
+    joinGenericLaser();
   }
   catch(const std::exception& e)
   {

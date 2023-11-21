@@ -9,6 +9,15 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Released ##
 
+### Release v3.1.0
+
+  - **add** IMU support for multiScan
+  - **add** LaserScan output for picoScan
+  - **fix** API reinit 
+  - **fix** multiScan data output with range filter activated
+  - **fix** adapt multiScan startup and shutdown sequence
+  - **fix** adaptations for MRS-1000 v2 firmware
+
 ### Release v3.0.0
 
 This release has a new major version as it breaks with the previously used ROS module name "sick_scan".

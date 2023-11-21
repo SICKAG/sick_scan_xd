@@ -274,6 +274,10 @@ bool ros::ok(void)
 {
 	return(true);
 }
+bool ros::isShuttingDown(void)
+{
+	return(false);
+}
 ros::NodeHandle::~NodeHandle(void)
 {
 }

@@ -93,11 +93,12 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     }
     msgpack_threads.join();
     // Close sick_scansegment_xd
-    if(!msgpack_threads.stop())
+    std::cout << "sick_scansegment_xd::run() finishing" << std::endl;
+    if(!msgpack_threads.stop(false))
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::stop() failed");
     }
-    ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") finished.");
+    std::cout << "sick_scansegment_xd (" << config.scanner_type << ") finished." << std::endl;
     return sick_scan_xd::ExitSuccess;
 }
 
@@ -114,7 +115,7 @@ sick_scansegment_xd::MsgPackThreads::MsgPackThreads()
  */
 sick_scansegment_xd::MsgPackThreads::~MsgPackThreads()
 {
-    stop();
+    stop(true);
 }
 
 /*
@@ -131,12 +132,13 @@ bool sick_scansegment_xd::MsgPackThreads::start(const sick_scansegment_xd::Confi
 /*
  * @brief Stops running threads and closes msgpack receiver, converter and publisher.
  */
-bool sick_scansegment_xd::MsgPackThreads::stop()
+bool sick_scansegment_xd::MsgPackThreads::stop(bool do_join)
 {
     m_run_scansegment_thread = false;
     if(m_scansegment_thread)
     {
-        m_scansegment_thread->join();
+        if (do_join && m_scansegment_thread->joinable()) // std::thread::joinable() is false if std::thread::join finished successfull before
+            m_scansegment_thread->join();
         delete m_scansegment_thread;
         m_scansegment_thread = 0;
     }
@@ -148,9 +150,10 @@ bool sick_scansegment_xd::MsgPackThreads::stop()
  */
 void sick_scansegment_xd::MsgPackThreads::join(void)
 {
-    if(m_scansegment_thread)
+    if(m_scansegment_thread && m_scansegment_thread->joinable())
     {
         m_scansegment_thread->join();
+        std::cout << "sick_scansegment_xd::join(): sick_scansegment_xd thread finished" << std::endl;
     }
 }
 
@@ -367,25 +370,36 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         // Send stop command (sopas and/or rest-api)
         if(sopas_tcp && sopas_service && m_config.send_sopas_start_stop_cmd && sopas_tcp->isConnected())
         {
+            std::cout << "sick_scansegment_xd exit: sending stop commands..." << std::endl;
             sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
             sopas_service->sendMultiScanStopCmd(m_config.imu_enable);
+            std::cout << "sick_scansegment_xd exit: stop commands sent." << std::endl;
         }
         // Stop SOPAS services
-        DELETE_PTR(sopas_service);
-        DELETE_PTR(sopas_tcp);
-
-        // Shutdown, cleanup and exit
-        if (udp_receiver_imu)
+        std::cout << "sick_scansegment_xd exit: stopping services and communication..." << std::endl;
+        try
         {
-            udp_receiver_imu->Close();
-            delete(udp_receiver_imu);
+            DELETE_PTR(sopas_service);
+            DELETE_PTR(sopas_tcp);
+
+            // Shutdown, cleanup and exit
+            if (udp_receiver_imu)
+            {
+                udp_receiver_imu->Close();
+                delete(udp_receiver_imu);
+            }
+            msgpack_converter.Fifo()->Shutdown();
+            udp_receiver->Fifo()->Shutdown();
+            msgpack_exporter.Close();
+            msgpack_converter.Close();
+            udp_receiver->Close();
+            delete(udp_receiver);
+            std::cout << "sick_scansegment_xd exit: services and communication stopped." << std::endl;
         }
-        msgpack_converter.Fifo()->Shutdown();
-        udp_receiver->Fifo()->Shutdown();
-        msgpack_exporter.Close();
-        msgpack_converter.Close();
-        udp_receiver->Close();
-        delete(udp_receiver);
+        catch(const std::exception& e)
+        {
+            std::cerr << "## ERROR sick_scansegment_xd exit: exception \"" << e.what() << "\"" << std::endl;
+        }
     }
 
     return true;

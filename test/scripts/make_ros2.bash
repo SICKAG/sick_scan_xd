@@ -23,7 +23,7 @@ if [ $LDMRS_SUPPORT -gt 0 ] ; then
   colcon build --packages-select libsick_ldmrs --cmake-args " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
   source ./install/setup.bash
 fi
-colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
+# colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" --event-handlers console_direct+
 colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" " -DCMAKE_BUILD_TYPE=$BUILDTYPE" $ROS2_CMAKE_ARGS --event-handlers console_direct+
 source ./install/setup.bash
 

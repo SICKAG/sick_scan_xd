@@ -90,7 +90,7 @@ namespace sick_scansegment_xd
         /*
 	     * @brief Stops running threads and closes msgpack receiver, converter and publisher.
 	     */
-        bool stop(void);
+        bool stop(bool do_join);
 
         /*
 	     * @brief Joins running threads and returns after they finished.

@@ -17,6 +17,8 @@ enum NodeRunState
 
 bool startGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhPriv, int* exit_code);
 
+void joinGenericLaser(void);
+
 int mainGenericLaser(int argc, char **argv, std::string scannerName, rosNodePtr nh);
 
 void rosSignalHandler(int signalRecv);

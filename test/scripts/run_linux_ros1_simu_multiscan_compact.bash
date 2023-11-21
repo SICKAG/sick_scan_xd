@@ -1,19 +1,18 @@
 #!/bin/bash
 
 # killall and cleanup after exit
-function killall_simu()
+function killall_cleanup()
 {
+  rosnode kill multiScan
+  sleep 3
   killall sick_generic_caller
+  killall rviz
+  killall static_transform_publisher
   pkill -f multiscan_sopas_test_server.py
   pkill -f multiscan_pcap_player.py
   pkill -f polar_to_cartesian_pointcloud_ros1.py
-}
-
-# killall and cleanup after exit
-function killall_cleanup()
-{
-  rosnode kill -a
-  killall_simu
+  sleep 3 ; rosnode kill -a ; killall -9 sick_generic_caller
+  sleep 3
 }
 
 # start static transforms for laserscan messages (all laserscan frame ids "world_1", "world_2", "world_3", ... "world_16"  for all layers are mapped to "world_6")
@@ -107,6 +106,9 @@ sleep 1
 
 # Run multiscan simulation with default configuration
 run_multiscan_simu 0
+# echo -e "\nrun_multiscan_simu: shutdown simu...\n\n"
+# killall_cleanup
+# exit
 
 # Run testcases with angle range filter
 killall_cleanup ; run_multiscan_simu 1
@@ -138,4 +140,5 @@ sleep 3
 # Shutdown
 echo -e "run_multiscan.bash finished, killing all processes ..."
 killall_cleanup
+rosnode kill -a
 popd

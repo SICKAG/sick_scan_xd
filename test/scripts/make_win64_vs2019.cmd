@@ -20,20 +20,15 @@ REM
 REM Build msgpack11 on Windows
 REM 
 
-if not exist %_cmake_build_dir%\msgpack11 mkdir %_cmake_build_dir%\msgpack11
-pushd %_cmake_build_dir%\msgpack11
-cmake -DMSGPACK11_BUILD_TESTS=0 -G "%_cmake_string%" ../../../msgpack11
-if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 with cmake & @pause )
-cmake --build . --clean-first --config Debug
-if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 debug with cmake & @pause )
-cmake --build . --clean-first --config Release
-if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 release with cmake & @pause )
-rem start "msgpack11.sln" msgpack11.sln
-rem devenv msgpack11.sln /clean     "Debug|x64"
-rem devenv msgpack11.sln /rebuild   "Debug|x64"
-rem devenv msgpack11.sln /clean     "Release|x64"
-rem devenv msgpack11.sln /rebuild   "Release|x64"
-popd
+rem if not exist %_cmake_build_dir%\msgpack11 mkdir %_cmake_build_dir%\msgpack11
+rem pushd %_cmake_build_dir%\msgpack11
+rem cmake -DMSGPACK11_BUILD_TESTS=0 -G "%_cmake_string%" ../../../msgpack11
+rem if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 with cmake & @pause )
+rem cmake --build . --clean-first --config Debug
+rem if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 debug with cmake & @pause )
+rem cmake --build . --clean-first --config Release
+rem if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 release with cmake & @pause )
+rem popd
 
 REM 
 REM Build sick_scan_xd on Windows native (no ROS) with Visual Studio 2019 and cmake
