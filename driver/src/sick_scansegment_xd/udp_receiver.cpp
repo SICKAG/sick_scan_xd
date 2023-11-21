@@ -81,7 +81,7 @@ static uint32_t crc32(uint32_t crc, const uint8_t* buf, size_t len)
 /*
  * @brief Default constructor.
  */
-sick_scansegment_xd::UdpReceiver::UdpReceiver() : m_verbose(false), m_export_udp_msg(false), m_socket_impl(0), m_fifo_impl(0), m_receiver_thread(0), m_run_receiver_thread(false),
+sick_scansegment_xd::UdpReceiver::UdpReceiver() : m_verbose(false), m_export_udp_msg(false), m_socket_impl(0), m_fifo_impl(0), m_fifo_impl_created(false), m_receiver_thread(0), m_run_receiver_thread(false),
     m_udp_recv_buffer_size(0), m_udp_timeout_recv_nonblocking(0), m_udp_sender_timeout(0)
 {
 }
@@ -103,7 +103,7 @@ sick_scansegment_xd::UdpReceiver::~UdpReceiver()
  * @param[in] export_udp_msg: true: export binary udp and msgpack data to file (*.udp and *.msg), default: false
  * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
  */
-bool sick_scansegment_xd::UdpReceiver::Init(const std::string& udp_sender, int udp_port, int udp_input_fifolength, bool verbose, bool export_udp_msg, int scandataformat)
+bool sick_scansegment_xd::UdpReceiver::Init(const std::string& udp_sender, int udp_port, int udp_input_fifolength, bool verbose, bool export_udp_msg, int scandataformat, PayloadFifo* fifo)
 {
     if (m_socket_impl || m_fifo_impl || m_receiver_thread)
         Close();
@@ -125,7 +125,16 @@ bool sick_scansegment_xd::UdpReceiver::Init(const std::string& udp_sender, int u
         return false;
     }
 
-    m_fifo_impl = new PayloadFifo(udp_input_fifolength);
+    if (fifo) // Use/share fifo of another udp receiver
+    {
+        m_fifo_impl = fifo;
+        m_fifo_impl_created = false;
+    }
+    else // Create a new fifo for udp payload
+    {
+        m_fifo_impl = new PayloadFifo(udp_input_fifolength);
+        m_fifo_impl_created = true;
+    }
     m_socket_impl = new UdpReceiverSocketImpl();
     if (!m_socket_impl->Init(udp_sender, udp_port))
     {
@@ -151,7 +160,7 @@ bool sick_scansegment_xd::UdpReceiver::Start(void)
 void sick_scansegment_xd::UdpReceiver::Close(void)
 {
     m_run_receiver_thread = false;
-    if (m_fifo_impl)
+    if (m_fifo_impl && m_fifo_impl_created)
     {
         m_fifo_impl->Shutdown();
     }
@@ -166,11 +175,12 @@ void sick_scansegment_xd::UdpReceiver::Close(void)
         delete m_socket_impl;
         m_socket_impl = 0;
     }
-    if (m_fifo_impl)
+    if (m_fifo_impl && m_fifo_impl_created)
     {
         delete m_fifo_impl;
-        m_fifo_impl = 0;
     }
+    m_fifo_impl = 0;
+    m_fifo_impl_created = false;
 }
 
 /*
@@ -189,13 +199,15 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
         std::vector<uint8_t> udp_payload(m_udp_recv_buffer_size, 0);
         double udp_recv_timeout = -1; // initial timeout: block until first datagram received
         chrono_system_time timestamp_last_print = chrono_system_clock::now();
+        chrono_system_time timestamp_last_print_crc_error = chrono_system_clock::now();
         chrono_system_time timestamp_last_udp_recv = chrono_system_clock::now();
         while (m_run_receiver_thread)
         {
             size_t bytes_received = m_socket_impl->Receive(udp_payload, udp_recv_timeout, m_udp_msg_start_seq);
             bool do_print = (sick_scansegment_xd::Seconds(timestamp_last_print, chrono_system_clock::now()) > 1.0); // avoid printing with more than 1 Hz
+            bool do_print_crc_error = (sick_scansegment_xd::Seconds(timestamp_last_print_crc_error, chrono_system_clock::now()) > 1.0); // avoid printing crc errors with more than 1 Hz
             // std::cout << "UdpReceiver::Run(): " << bytes_received << " bytes received" << std::endl;
-            ROS_DEBUG_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received (udp_receiver.cpp:" << __LINE__ << ")");
+            ROS_DEBUG_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received (port " << m_socket_impl->port() << ", udp_receiver.cpp:" << __LINE__ << ")");
             if(bytes_received > m_udp_msg_start_seq.size() + 8 && std::equal(udp_payload.begin(), udp_payload.begin() + m_udp_msg_start_seq.size(), m_udp_msg_start_seq.begin()))
             {
                 // Received \x02\x02\x02\x02 | 4Bytes payload length | Payload | CRC32
@@ -233,8 +245,9 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                         {
                             std::vector<uint8_t> chunk_payload(m_udp_recv_buffer_size, 0);
                             size_t chunk_bytes_received = m_socket_impl->Receive(chunk_payload);
-                            ROS_INFO_STREAM("UdpReceiver::Run(): chunk of " << chunk_bytes_received << " bytes received (udp_receiver.cpp:" << __LINE__ << ")");
-                            udp_payload.insert(udp_payload.end(), chunk_payload.begin(), chunk_payload.end());
+                            if (m_verbose)
+                                ROS_INFO_STREAM("UdpReceiver::Run(): chunk of " << chunk_bytes_received << " bytes received (udp_receiver.cpp:" << __LINE__ << ")");
+                            udp_payload.insert(udp_payload.begin() + bytes_received, chunk_payload.begin(), chunk_payload.begin() + chunk_bytes_received);
                             bytes_received += chunk_bytes_received;
                         }
                     }
@@ -256,26 +269,35 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                 }
                 if (bytes_received != bytes_to_receive)
                 {
-                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << bytes_received << " bytes received, " << bytes_to_receive << " bytes expected, payload_length=" << payload_length_bytes << " bytes");
-                    timestamp_last_print = chrono_system_clock::now();
+                    if (bytes_received < bytes_to_receive)
+                    {
+                        ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << bytes_received << " bytes received, " << bytes_to_receive << " bytes expected, payload_length=" << payload_length_bytes << " bytes");
+                        timestamp_last_print = chrono_system_clock::now();
+                    }
+                    else if(m_verbose)
+                    {
+                        ROS_INFO_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received, " << bytes_to_receive << " bytes expected, payload_length=" << payload_length_bytes << " bytes");
+                        timestamp_last_print = chrono_system_clock::now();
+                    }
                 }
                 // std::cout << "UdpReceiver: payload_length_bytes = " << payload_length_bytes << " byte" << std::endl;
                 // CRC check
-                uint32_t u32PayloadCRC = Convert4Byte(udp_payload.data() + bytes_received - sizeof(uint32_t)); // last 4 bytes are CRC
-                std::vector<uint8_t> msgpack_payload(udp_payload.begin() + udp_payload_offset, udp_payload.begin() + bytes_received - sizeof(uint32_t));
+                size_t bytes_valid = std::min<size_t>(bytes_received, (size_t)bytes_to_receive);
+                uint32_t u32PayloadCRC = Convert4Byte(udp_payload.data() + bytes_valid - sizeof(uint32_t)); // last 4 bytes are CRC
+                std::vector<uint8_t> msgpack_payload(udp_payload.begin() + udp_payload_offset, udp_payload.begin() + bytes_valid - sizeof(uint32_t));
                 uint32_t u32MsgPackCRC = crc32(0, msgpack_payload.data(), msgpack_payload.size());
                 if (check_crc && u32PayloadCRC != u32MsgPackCRC)
                 {
                     crc_error = true;
-                    if (do_print)
+                    if (do_print_crc_error)
                     {
                         ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): CRC 0x" << std::setfill('0') << std::setw(2) << std::hex << u32PayloadCRC
-                            << " received from " << std::dec << bytes_received << " udp bytes different to CRC 0x"
+                            << " received from " << std::dec << (bytes_valid - sizeof(uint32_t)) << " udp bytes different to CRC 0x"
                             << std::setfill('0') << std::setw(2) << std::hex << u32MsgPackCRC << " computed from "
                             << std::dec << (msgpack_payload.size()) << " byte payload, message dropped");
                         ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): decoded payload size: " << payload_length_bytes << " bytes, bytes_to_receive (expected udp message length): "
-                            << bytes_to_receive << " byte, bytes_received (received udp message length): " << bytes_received << " byte");
-                        timestamp_last_print = chrono_system_clock::now();
+                            << bytes_to_receive << " byte, bytes_valid (received udp message length): " << bytes_valid << " byte");
+                        timestamp_last_print_crc_error = chrono_system_clock::now();
                     }
                     continue;
                 }

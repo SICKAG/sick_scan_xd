@@ -92,7 +92,7 @@
 #include <signal.h>
 
 #define SICK_GENERIC_MAJOR_VER "3"
-#define SICK_GENERIC_MINOR_VER "0"
+#define SICK_GENERIC_MINOR_VER "1"
 #define SICK_GENERIC_PATCH_LEVEL "0"
 
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
@@ -129,7 +129,10 @@ public:
   }
   void join(void)
   {
-    generic_laser_thread->join();
+    if(generic_laser_thread && generic_laser_thread->joinable())
+    {
+      generic_laser_thread->join();
+    }
   }
   int argc;
   char** argv;
@@ -181,13 +184,8 @@ bool stopScannerAndExit(bool force_immediate_shutdown)
       success = s_scanner->stopScanData(force_immediate_shutdown);
     }
     runState = scanner_finalize;
-    if(s_generic_laser_thread)
-    {
-      s_generic_laser_thread->join();
-      delete s_generic_laser_thread;
-      s_generic_laser_thread = 0;
-    }
   }
+  joinGenericLaser();
   return success;
 }
 
@@ -203,9 +201,13 @@ void rosSignalHandler(int signalRecv)
   ROS_INFO_STREAM("You are leaving the following version of this node:\n");
   ROS_INFO_STREAM(getVersionInfo() << "\n");
   s_shutdownSignalReceived = true;
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   stopScannerAndExit(true);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::cout << "rosSignalHandler exit." << std::endl;
   rosShutdown();
 }
+
 
 inline bool ends_with(std::string const &value, std::string const &ending)
 {
@@ -433,6 +435,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   {
 #if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
     exit_code = sick_scansegment_xd::run(nhPriv, scannerName);
+    std::cout << "sick_generic_laser: sick_scansegment_xd finished with " << (exit_code == sick_scan_xd::ExitSuccess ? "success" : "ERROR") << std::endl;
     return;
 #else
     ROS_ERROR_STREAM("SCANSEGMENT_XD_SUPPORT deactivated, " << scannerName << " not supported. Please build sick_scan_xd with option SCANSEGMENT_XD_SUPPORT");
@@ -676,9 +679,23 @@ bool startGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr n
 {
   if (s_generic_laser_thread == 0)
   {
+    runState = scanner_init;
     s_generic_laser_thread = new GenericLaserCallable(argc, argv, nodeName, nhPriv, exit_code);
   }
   return (s_generic_laser_thread != 0);
+}
+
+/*!
+\brief Waits until all GenericLaser jobs finished.
+*/
+void joinGenericLaser(void)
+{
+  if (s_generic_laser_thread != 0)
+  {
+    s_generic_laser_thread->join();
+    delete s_generic_laser_thread;
+    s_generic_laser_thread = 0;
+  }
 }
 
 /*!

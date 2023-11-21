@@ -479,7 +479,7 @@ std::string sick_scansegment_xd::MsgPackParser::MsgpackToHexDump(const std::vect
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
 bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpack_data, fifo_timestamp msgpack_timestamp, 
-    sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, ScanSegmentParserOutput& result,
+    sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, ScanSegmentParserOutput& result,
     sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
 	bool use_software_pll, bool verbose)
@@ -495,7 +495,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
 	// std::cout << std::endl << "MsgPack hexdump: " << std::endl << msgpack_hexdump << std::endl << std::endl;
 	std::string msgpack_string((char*)msgpack_data.data(), msgpack_data.size());
 	std::istringstream msgpack_istream(msgpack_string);
-	return Parse(msgpack_istream, msgpack_timestamp, add_transform_xyz_rpy, range_filter, result, msgpack_validator_data_collector, msgpack_validator, msgpack_validator_enabled, discard_msgpacks_not_validated, use_software_pll, verbose);
+	return Parse(msgpack_istream, msgpack_timestamp, add_transform_xyz_rpy, result, msgpack_validator_data_collector, msgpack_validator, msgpack_validator_enabled, discard_msgpacks_not_validated, use_software_pll, verbose);
 }
 
 /*
@@ -536,7 +536,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(const std::vector<uint8_t>& msgpa
  * @param[in] verbose true: enable debug output, false: quiet mode
  */
 bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fifo_timestamp msgpack_timestamp, 
-	sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter, ScanSegmentParserOutput& result,
+	sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, ScanSegmentParserOutput& result,
     sick_scansegment_xd::MsgPackValidatorData& msgpack_validator_data_collector, 
 	const sick_scansegment_xd::MsgPackValidator& msgpack_validator,
 	bool msgpack_validator_enabled, bool discard_msgpacks_not_validated,
@@ -764,26 +764,19 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 					  if (pointIdx < propertyValues[n].size())
 					    reflectorbit |= ((propertyValues[n][pointIdx]) & 0x01); // reflector bit is set, if a reflector is detected on any number of echos
 					float dist = 0.001f * distValues[echoIdx].data()[pointIdx]; // convert distance to meter
-						float intensity = rssiValues[echoIdx].data()[pointIdx];
-						float x = dist * cos_azimuth[pointIdx] * cos_elevation;
-						float y = dist * sin_azimuth[pointIdx] * cos_elevation;
-						float z = dist * sin_elevation;
-						add_transform_xyz_rpy.applyTransform(x, y, z);
-    				    float azimuth = channelTheta.data()[pointIdx];
-						float azimuth_norm = normalizeAngle(azimuth);
-						if (msgpack_validator_enabled)
-						{
-							msgpack_validator_data.update(echoIdx, segment_idx, azimuth_norm, elevation);
-							msgpack_validator_data_collector.update(echoIdx, segment_idx, azimuth_norm, elevation);
-						}
-                    if (range_filter.apply(dist)) 
-                    {
-						scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx, reflectorbit));
-				    }
-					else // point dropped by range filter
+					float intensity = rssiValues[echoIdx].data()[pointIdx];
+					float x = dist * cos_azimuth[pointIdx] * cos_elevation;
+					float y = dist * sin_azimuth[pointIdx] * cos_elevation;
+					float z = dist * sin_elevation;
+					add_transform_xyz_rpy.applyTransform(x, y, z);
+					float azimuth = channelTheta.data()[pointIdx];
+					float azimuth_norm = normalizeAngle(azimuth);
+					if (msgpack_validator_enabled)
 					{
-						scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(0, 0, 0, 0, 0, azimuth, elevation, groupIdx, echoIdx, pointIdx, reflectorbit));
-				    }
+						msgpack_validator_data.update(echoIdx, segment_idx, azimuth_norm, elevation);
+						msgpack_validator_data_collector.update(echoIdx, segment_idx, azimuth_norm, elevation);
+					}
+					scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx, reflectorbit));
 				}
 			}
 

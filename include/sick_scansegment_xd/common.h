@@ -100,6 +100,8 @@ typedef sensor_msgs::msg::PointCloud2 PointCloud2Msg;
 typedef rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr PointCloud2MsgPublisher;
 typedef sensor_msgs::msg::LaserScan LaserScanMsg;
 typedef rclcpp::Publisher<LaserScanMsg>::SharedPtr LaserscanMsgPublisher;
+typedef sensor_msgs::msg::Imu ImuMsg;
+typedef rclcpp::Publisher<ImuMsg>::SharedPtr ImuMsgPublisher;
 typedef sensor_msgs::msg::PointField PointField;
 typedef rclcpp::Clock rosClock;
 
@@ -110,6 +112,7 @@ typedef rclcpp::Clock rosClock;
 typedef sensor_msgs::PointCloud2 PointCloud2Msg;
 typedef ros::Publisher PointCloud2MsgPublisher;
 typedef ros::Publisher LaserscanMsgPublisher;
+typedef ros::Publisher ImuMsgPublisher;
 typedef sensor_msgs::PointField PointField;
 typedef ros::Time rosClock;
 
@@ -119,6 +122,8 @@ typedef ros_sensor_msgs::PointCloud2 PointCloud2Msg;
 typedef rosPublisher<PointCloud2Msg> PointCloud2MsgPublisher;
 typedef ros_sensor_msgs::LaserScan LaserScanMsg;
 typedef rosPublisher<LaserScanMsg> LaserscanMsgPublisher;
+typedef ros_sensor_msgs::Imu ImuMsg;
+typedef rosPublisher<ImuMsg> ImuMsgPublisher;
 typedef ros_sensor_msgs::PointField PointField;
 typedef rosTime rosClock;
 typedef int rosQoS;

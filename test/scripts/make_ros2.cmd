@@ -35,7 +35,7 @@ REM
 REM Build msgpack11 and sick_scan_xd on Windows with colcon for ROS2
 REM 
 
-colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+ 
+# colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+ 
 colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" --event-handlers "console_direct+"
 call .\install\setup.bat
 start "sick_scan_xd.sln" .\build\sick_scan_xd\sick_scan_xd.sln

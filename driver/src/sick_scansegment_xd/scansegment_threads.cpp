@@ -78,7 +78,7 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
         return sick_scan_xd::ExitError;
     }
     config.PrintConfig();
-    if (config.scandataformat == SCANDATA_COMPACT && scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
+    if (scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
     {
         std::vector<int> layer_elevation_table_mdeg = { 22710, 17560, 12480, 7510, 2490, 70, -2430, -7290, -12790, -17280, -21940, -26730, -31860, -34420, -37180, -42790 };
         sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(layer_elevation_table_mdeg);
@@ -93,11 +93,12 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     }
     msgpack_threads.join();
     // Close sick_scansegment_xd
-    if(!msgpack_threads.stop())
+    std::cout << "sick_scansegment_xd::run() finishing" << std::endl;
+    if(!msgpack_threads.stop(false))
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::stop() failed");
     }
-    ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") finished.");
+    std::cout << "sick_scansegment_xd (" << config.scanner_type << ") finished." << std::endl;
     return sick_scan_xd::ExitSuccess;
 }
 
@@ -114,7 +115,7 @@ sick_scansegment_xd::MsgPackThreads::MsgPackThreads()
  */
 sick_scansegment_xd::MsgPackThreads::~MsgPackThreads()
 {
-    stop();
+    stop(true);
 }
 
 /*
@@ -131,12 +132,13 @@ bool sick_scansegment_xd::MsgPackThreads::start(const sick_scansegment_xd::Confi
 /*
  * @brief Stops running threads and closes msgpack receiver, converter and publisher.
  */
-bool sick_scansegment_xd::MsgPackThreads::stop()
+bool sick_scansegment_xd::MsgPackThreads::stop(bool do_join)
 {
     m_run_scansegment_thread = false;
     if(m_scansegment_thread)
     {
-        m_scansegment_thread->join();
+        if (do_join && m_scansegment_thread->joinable()) // std::thread::joinable() is false if std::thread::join finished successfull before
+            m_scansegment_thread->join();
         delete m_scansegment_thread;
         m_scansegment_thread = 0;
     }
@@ -148,9 +150,10 @@ bool sick_scansegment_xd::MsgPackThreads::stop()
  */
 void sick_scansegment_xd::MsgPackThreads::join(void)
 {
-    if(m_scansegment_thread)
+    if(m_scansegment_thread && m_scansegment_thread->joinable())
     {
         m_scansegment_thread->join();
+        std::cout << "sick_scansegment_xd::join(): sick_scansegment_xd thread finished" << std::endl;
     }
 }
 
@@ -189,12 +192,12 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         // Send "start" trigger via UDP
         // sendStartTrigger(m_config);
 
-        // Initialize udp receiver
+        // Initialize udp receiver for scan data
         sick_scansegment_xd::UdpReceiver* udp_receiver = 0;
         while(udp_receiver == 0)
         {
             udp_receiver = new sick_scansegment_xd::UdpReceiver();
-            if(udp_receiver->Init(m_config.udp_sender, m_config.udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat))
+            if(udp_receiver->Init(m_config.udp_sender, m_config.udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat, 0))
             {
                 ROS_INFO_STREAM("sick_scansegment_xd: udp socket to " << m_config.udp_sender << ":" << m_config.udp_port << " initialized");
             }
@@ -207,8 +210,29 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             }
         }
 
+        // Initialize udp receiver for imu data
+        sick_scansegment_xd::UdpReceiver* udp_receiver_imu = 0;
+        while(m_config.imu_enable && m_config.scandataformat == SCANDATA_COMPACT && udp_receiver_imu == 0)
+        {
+            udp_receiver_imu = new sick_scansegment_xd::UdpReceiver();
+            if(udp_receiver_imu->Init(m_config.udp_sender, m_config.imu_udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat, udp_receiver->Fifo())) // udp receiver for scan and imu data share the same fifo
+            {
+                // m_config.imu_latency_microsec
+                ROS_INFO_STREAM("sick_scansegment_xd: udp socket to " << m_config.udp_sender << ":" << m_config.imu_udp_port << " initialized");
+            }
+            else
+            {
+                ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: UdpReceiver::Init(" << m_config.udp_sender << "," << m_config.imu_udp_port << ") failed, retrying...");
+                delete(udp_receiver_imu);
+                udp_receiver_imu = 0;
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
+        }
+
         // Initialize msgpack converter and connect to udp receiver
-        sick_scansegment_xd::MsgPackConverter msgpack_converter(m_config.add_transform_xyz_rpy, m_config.range_filter, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
+        ScanSegmentParserConfig scansegment_parser_config;
+        scansegment_parser_config.imu_latency_microsec = m_config.imu_latency_microsec;
+        sick_scansegment_xd::MsgPackConverter msgpack_converter(scansegment_parser_config, m_config.add_transform_xyz_rpy, udp_receiver->Fifo(), m_config.scandataformat, m_config.msgpack_output_fifolength, m_config.verbose_level > 1);
         assert(udp_receiver->Fifo());
         assert(msgpack_converter.Fifo());
 
@@ -220,9 +244,20 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 
         // Run udp receiver, msgpack converter and msgpack exporter in background tasks
         if (msgpack_converter.Start() && udp_receiver->Start() && msgpack_exporter.Start())
+        {
             ROS_INFO_STREAM("MsgPackThreads: Start msgpack converter, udp receiver and msgpack exporter, receiving from " << m_config.udp_sender << ":" << m_config.udp_port);
+            if (udp_receiver_imu)
+            {
+                if (udp_receiver_imu->Start())
+                    ROS_INFO_STREAM("MsgPackThreads: udp receiver for imu data started, receiving from " << m_config.udp_sender << ":" << m_config.imu_udp_port);
+                else
+                    ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: UdpReceiver::Start() failed for imu data, not receiving imu udp packages from " << m_config.udp_sender << ":" << m_config.imu_udp_port);
+            }
+        }
         else
+        {
             ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: MsgPackConverter::Start(), UdpReceiver::Start() or MsgPackExporter::Start() failed, not receiving udp packages from " << m_config.udp_sender << ":" << m_config.udp_port);
+        }
 
         // Send "start" via UDP
         // sendStartTrigger(m_config);
@@ -267,7 +302,18 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
                 }
                 // Send SOPAS commands to read filter settings
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->queryMultiScanFiltersettings(m_config.host_FREchoFilter, m_config.host_LFPangleRangeFilter, m_config.host_LFPlayerFilter, m_config.msgpack_validator_filter_settings, m_config.scanner_type);
+                if (sopas_service->queryMultiScanFiltersettings(m_config.host_FREchoFilter, m_config.host_LFPangleRangeFilter, m_config.host_LFPlayerFilter, m_config.msgpack_validator_filter_settings, m_config.scanner_type))
+                {
+                    // Overwrite configured LFPangleRangeFilter and LFPlayerFilter with settings received from lidar
+                    bool angle_range_filter_enabled = ros_msgpack_publisher->initLFPangleRangeFilterSettings(m_config.host_LFPangleRangeFilter);
+                    bool layer_filter_enabled = ros_msgpack_publisher->initLFPlayerFilterSettings(m_config.host_LFPlayerFilter);
+                    float fullframe_azimuth_min_deg = 0, fullframe_azimuth_max_deg = 0, fullframe_elevation_min_deg = 0, fullframe_elevation_max_deg = 0;
+                    ros_msgpack_publisher->GetFullframeAngleRanges(fullframe_azimuth_min_deg, fullframe_azimuth_max_deg, fullframe_elevation_min_deg, fullframe_elevation_max_deg);
+                    if (angle_range_filter_enabled)
+                        ROS_INFO_STREAM("expected azimuth range of fullframe scans: " << std::fixed << std::setprecision(3) << fullframe_azimuth_min_deg << " to " << fullframe_azimuth_max_deg << " deg");
+                    if (layer_filter_enabled)
+                        ROS_INFO_STREAM("expected elevation range of fullframe scans: " << std::fixed << std::setprecision(3) << fullframe_elevation_min_deg << " to " << fullframe_elevation_max_deg << " deg");
+                }
             }
             else
             {
@@ -292,7 +338,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat);
+                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable, m_config.imu_udp_port);
             }
             else
             {
@@ -324,20 +370,36 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         // Send stop command (sopas and/or rest-api)
         if(sopas_tcp && sopas_service && m_config.send_sopas_start_stop_cmd && sopas_tcp->isConnected())
         {
+            std::cout << "sick_scansegment_xd exit: sending stop commands..." << std::endl;
             sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-            sopas_service->sendMultiScanStopCmd();
+            sopas_service->sendMultiScanStopCmd(m_config.imu_enable);
+            std::cout << "sick_scansegment_xd exit: stop commands sent." << std::endl;
         }
         // Stop SOPAS services
-        DELETE_PTR(sopas_service);
-        DELETE_PTR(sopas_tcp);
+        std::cout << "sick_scansegment_xd exit: stopping services and communication..." << std::endl;
+        try
+        {
+            DELETE_PTR(sopas_service);
+            DELETE_PTR(sopas_tcp);
 
-        // Shutdown, cleanup and exit
-        msgpack_converter.Fifo()->Shutdown();
-        udp_receiver->Fifo()->Shutdown();
-        msgpack_exporter.Close();
-        msgpack_converter.Close();
-        udp_receiver->Close();
-        delete(udp_receiver);
+            // Shutdown, cleanup and exit
+            if (udp_receiver_imu)
+            {
+                udp_receiver_imu->Close();
+                delete(udp_receiver_imu);
+            }
+            msgpack_converter.Fifo()->Shutdown();
+            udp_receiver->Fifo()->Shutdown();
+            msgpack_exporter.Close();
+            msgpack_converter.Close();
+            udp_receiver->Close();
+            delete(udp_receiver);
+            std::cout << "sick_scansegment_xd exit: services and communication stopped." << std::endl;
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << "## ERROR sick_scansegment_xd exit: exception \"" << e.what() << "\"" << std::endl;
+        }
     }
 
     return true;

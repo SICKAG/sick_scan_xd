@@ -127,16 +127,13 @@ namespace sick_scansegment_xd
 
         std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a Multiscan136 lidar or Multiscan136 emulator
         int udp_port;                               // = 2115; // default udp port for multiScan136 resp. multiScan136 emulator is 2115
-        
-        // segment and fullframe pointclouds replaced by customized pointcloud configuration
-        // std::string publish_topic;               // = "/cloud"; // ros topic to publish received msgpack data converted top PointCloud2 messages, default: "/cloud"
-        // std::string publish_topic_all_segments;  // = "/cloud_fullframe" // ros topic to publish PointCloud2 messages of all segments (360 deg), default: "/cloud_fullframe"
-        
-        // int segment_count;                       // 12 // number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment
+
         double all_segments_min_deg = -180;         // -180 // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
         double all_segments_max_deg = +180;         // +180 // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan)
 
         std::string publish_frame_id;               // = "world"; // frame id of ros Laserscan messages, default: "world"
+        std::string publish_laserscan_segment_topic;   // topic of ros Laserscan segment messages
+        std::string publish_laserscan_fullframe_topic; //topic of ros Laserscan fullframe messages
         int udp_input_fifolength;                   // = 20; // max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
         int msgpack_output_fifolength;              // = 20; // max. msgpack output fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
         int verbose_level;                          // = 1; // verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1
@@ -151,6 +148,9 @@ namespace sick_scansegment_xd
         // std::string send_udp_start_string;          // udp string to start multiScan136, default: "magicalActivate"
         int udp_timeout_ms;                         // Timeout for udp messages in milliseconds, default: 60*1000
         int scandataformat;                         // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
+        bool imu_enable;                            // IMU enabled or disabled
+        int imu_udp_port;                           // default udp port for multiScan imu data is 7503
+        int imu_latency_microsec;                   // imu latency in microseconds
 
         // SOPAS settings
         std::string sopas_tcp_port;                 // TCP port for SOPAS commands, default port: 2111
@@ -179,7 +179,6 @@ namespace sick_scansegment_xd
 
         // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
         sick_scan_xd::SickCloudTransform add_transform_xyz_rpy;
-        sick_scan_xd::SickRangeFilter range_filter;
 
         // Configuration of laserscan messages (ROS only), activate/deactivate laserscan messages for each layer
         std::vector<int> laserscan_layer_filter; // Default: { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, i.e. laserscan messages for layer 5 activated (elevation -0.07 degree, max number of scan points)

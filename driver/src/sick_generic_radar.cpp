@@ -1619,14 +1619,14 @@ namespace sick_scan_xd
           size_t numFilteredTargets = 0;
           for (int i = 0; i < numTargets; i++)
           {
-            bool tgt_valid = true;
+            bool tgt_valid = true, range_modified = false;
             switch (iLoop)
             {
               case 0:
                 {
                   float angle = deg2rad * rawTargetList[i].Azimuth();
                   float range = rawTargetList[i].Dist();
-                  tgt_valid = m_range_filter.apply(range);
+                  tgt_valid = m_range_filter.apply(range, range_modified);
                   if (tgt_valid)
                   {
                     valSingle[0] = range * cos(angle);

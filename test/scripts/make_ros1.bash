@@ -14,12 +14,12 @@ rm -f ./build/catkin_make_install.log
 # Build and install msgpack11
 #
 
-mkdir -p ./build/msgpack11
-pushd ./build/msgpack11
-cmake -G "Unix Makefiles" -D CMAKE_CXX_FLAGS=-fPIC -D CMAKE_BUILD_TYPE=Release -D MSGPACK11_BUILD_TESTS=0 ../../src/msgpack11  2>&1 | tee -a ../catkin_make_install.log
-make              2>&1 | tee -a ../catkin_make_install.log
-sudo make install 2>&1 | tee -a ../catkin_make_install.log
-popd
+#mkdir -p ./build/msgpack11
+#pushd ./build/msgpack11
+#cmake -G "Unix Makefiles" -D CMAKE_CXX_FLAGS=-fPIC -D CMAKE_BUILD_TYPE=Release -D MSGPACK11_BUILD_TESTS=0 ../../src/msgpack11  2>&1 | tee -a ../catkin_make_install.log
+#make              2>&1 | tee -a ../catkin_make_install.log
+#sudo make install 2>&1 | tee -a ../catkin_make_install.log
+#popd
 
 #
 # Build and install sick_scan_xd

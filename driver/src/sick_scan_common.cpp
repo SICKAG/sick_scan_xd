@@ -874,7 +874,7 @@ namespace sick_scan_xd
   {
     delete cloud_marker_;
     delete diagnosticPub_;
-    printf("sick_scan_xd driver closed.\n");
+    printf("SickScanCommon closed.\n");
   }
 
 
@@ -1494,7 +1494,7 @@ namespace sick_scan_xd
     sopasCmdVec[CMD_START_MEASUREMENT] = "\x02sMN LMCstartmeas\x03";
     sopasCmdVec[CMD_STOP_MEASUREMENT] = "\x02sMN LMCstopmeas\x03";
     sopasCmdVec[CMD_APPLICATION_MODE_FIELD_ON] = "\x02sWN SetActiveApplications 1 FEVL 1\x03"; // <STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}1<ETX>
-    sopasCmdVec[CMD_APPLICATION_MODE_FIELD_OFF] = "\x02sWN SetActiveApplications 1 FEVL 0\x03"; // <STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}1<ETX>
+    sopasCmdVec[CMD_APPLICATION_MODE_FIELD_OFF] = "\x02sWN SetActiveApplications 1 FEVL 0\x03"; // <STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}0<ETX>
     sopasCmdVec[CMD_APPLICATION_MODE_RANGING_ON] = "\x02sWN SetActiveApplications 1 RANG 1\x03";
     sopasCmdVec[CMD_SET_TO_COLA_A_PROTOCOL] = "\x02sWN EIHstCola 0\x03";
     sopasCmdVec[CMD_GET_PARTIAL_SCANDATA_CFG] = "\x02sRN LMDscandatacfg\x03";//<STX>sMN{SPC}mLMPsetscancfg{SPC } +5000{SPC}+1{SPC}+5000{SPC}-450000{SPC}+2250000<ETX>
@@ -1585,14 +1585,13 @@ namespace sick_scan_xd
     sopasCmdMaskVec[CMD_APPLICATION_MODE] = "\x02sWN SetActiveApplications 1 %s %d\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES] = "\x02sWN LMPoutputRange 1 %X %X %X\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES_NAV3] = "\x02sWN LMPoutputRange 1 %X %X %X %X %X %X %X %X %X %X %X %X\x03";
-    //sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG]=  "\x02sWN LMDscandatacfg %02d 00 %d 00 %d 0 %d 0 0 0 1 +1\x03"; //outputChannelFlagId,rssiFlag, rssiResolutionIs16Bit ,EncoderSetings
-    sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 0 0 %02d 0 0 0 1 1\x03";//outputChannelFlagId,rssiFlag, rssiResolutionIs16Bit ,EncoderSetings
+    sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 0 0 %02d 0 0 0 %d 1\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
     /*
    configuration
  * in ASCII
  * sWN LMDscandatacfg  %02d 00 %d   %d  0    %02d    0  0    0  1  1
  *                      |      |    |   |     |      |  |    |  |  | +----------> Output rate       -> All scans: 1--> every 1 scan
- *                      |      |    |   |     |      |  |    |  +----------------> Time             ->True (unused in Data Processing)
+ *                      |      |    |   |     |      |  |    |  +----------------> Time             ->True (unused in Data Processing, TiM240:false)
  *                      |      |    |   |     |      |  |    +-------------------> Comment          ->False
  *                      |      |    |   |     |      |  +------------------------> Device Name      ->False
  *                      |      |    |   |     |      +---------------------------> Position         ->False
@@ -1782,9 +1781,9 @@ namespace sick_scan_xd
       switch (numberOfLayers)
       {
         case 4:
+          sopasCmdChain.push_back(CMD_DEVICE_IDENT);
           sopasCmdChain.push_back(CMD_APPLICATION_MODE_FIELD_OFF);
           sopasCmdChain.push_back(CMD_APPLICATION_MODE_RANGING_ON);
-          sopasCmdChain.push_back(CMD_DEVICE_IDENT);
           sopasCmdChain.push_back(CMD_SERIAL_NUMBER);
 
           break;
@@ -2276,6 +2275,7 @@ namespace sick_scan_xd
             {
               return ExitFatal;
             }
+            deviceIdentStr = deviceIdent;
 //					ROS_ERROR("BINARY REPLY REQUIRED");
           }
           else
@@ -2311,6 +2311,7 @@ namespace sick_scan_xd
             {
               return ExitFatal;
             }
+            deviceIdentStr = fullIdentVersionInfo;
 
           }
           break;
@@ -2332,7 +2333,8 @@ namespace sick_scan_xd
             {
               return ExitFatal;
             }
-          }
+             deviceIdentStr = sopasReplyStrVec[CMD_DEVICE_IDENT_LEGACY];
+         }
           break;
           /*
           DEVICE_STATE
@@ -3241,32 +3243,46 @@ namespace sick_scan_xd
       {
         if (false==this->parser_->getCurrentParamPtr()->getUseScancfgList())
         {
+          // Timing flag LMDscandatacfg (LMS-1XX, LMS-1XXX, LMS-4XXX, LMS-5XX, MRS-1XXX, MRS-6XXX, NAV-2XX, TIM-240, TIM-4XX, TIM-5XX, TIM-7XX, TIM-7XXS):
+          // -1: use default (i.e. off for TiM-240, otherwise on), 0: do not send time information, 1: send time information
+          int scandatacfg_timingflag = -1;
+          rosDeclareParam(nh, "scandatacfg_timingflag", scandatacfg_timingflag);
+          rosGetParam(nh, "scandatacfg_timingflag", scandatacfg_timingflag);
+          if (scandatacfg_timingflag < 0)
+          {
+            if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+              scandatacfg_timingflag = 0; // default for TiM-240: Timing flag LMDscandatacfg off
+            else
+              scandatacfg_timingflag = 1; // default: Timing flag LMDscandatacfg on
+          }
+
           //normal scanconfig handling
-        char requestLMDscandatacfg[MAX_STR_LEN];
-        // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
-        // sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 00 %d 00 0 0 0 1 1\x03";
-        const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG].c_str();
-          sprintf(requestLMDscandatacfg, pcCmdMask, outputChannelFlagId, rssiFlag ? 1 : 0,
+          char requestLMDscandatacfg[MAX_STR_LEN];
+          // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
+          // sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 00 %d 00 0 0 0 1 %d\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
+          const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG].c_str();
+            sprintf(requestLMDscandatacfg, pcCmdMask, outputChannelFlagId, rssiFlag ? 1 : 0,
                   rssiResolutionIs16Bit ? 1 : 0,
-                EncoderSettings != -1 ? EncoderSettings : 0);
-        if (useBinaryCmd)
-        {
-          std::vector<unsigned char> reqBinary;
-          this->convertAscii2BinaryCmd(requestLMDscandatacfg, &reqBinary);
-          // FOR MRS6124 this should be
-          // like this:
-          // 0000  02 02 02 02 00 00 00 20 73 57 4e 20 4c 4d 44 73   .......sWN LMDs
-          // 0010  63 61 6e 64 61 74 61 63 66 67 20 1f 00 01 01 00   candatacfg .....
-          // 0020  00 00 00 00 00 00 00 01 5c
-          result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]);
-          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
-        }
-        else
-        {
-          std::vector<unsigned char> lmdScanDataCfgReply;
-          result = sendSopasAndCheckAnswer(requestLMDscandatacfg, &lmdScanDataCfgReply);
-          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmdScanDataCfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
-        }
+                  EncoderSettings != -1 ? EncoderSettings : 0,
+                  scandatacfg_timingflag);
+          if (useBinaryCmd)
+          {
+            std::vector<unsigned char> reqBinary;
+            this->convertAscii2BinaryCmd(requestLMDscandatacfg, &reqBinary);
+            // FOR MRS6124 this should be
+            // like this:
+            // 0000  02 02 02 02 00 00 00 20 73 57 4e 20 4c 4d 44 73   .......sWN LMDs
+            // 0010  63 61 6e 64 61 74 61 63 66 67 20 1f 00 01 01 00   candatacfg .....
+            // 0020  00 00 00 00 00 00 00 01 5c
+            result = sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]);
+            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReplyBinVec[CMD_SET_PARTIAL_SCANDATA_CFG]); // No response, non-recoverable connection error (return error and do not try other commands)
+          }
+          else
+          {
+            std::vector<unsigned char> lmdScanDataCfgReply;
+            result = sendSopasAndCheckAnswer(requestLMDscandatacfg, &lmdScanDataCfgReply);
+            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, lmdScanDataCfgReply); // No response, non-recoverable connection error (return error and do not try other commands)
+          }
         }
         else
         {
@@ -3666,7 +3682,7 @@ namespace sick_scan_xd
         startProtocolSequence.push_back(CMD_START_SCANDATA);
       }
 
-      if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 4)  // MRS1104 - start IMU-Transfer
+      if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 4) // MRS1104: start IMU-Transfer
       {
         bool imu_enable = false;
         rosDeclareParam(nh, "imu_enable", imu_enable);
@@ -3685,7 +3701,10 @@ namespace sick_scan_xd
                 "IMU USAGE NOT POSSIBLE IN ASCII COMMUNICATION MODE.\nTo use the IMU the communication with the scanner must be set to binary mode.\n This can be done by inserting the line:\n<param name=\"use_binary_protocol\" type=\"bool\" value=\"True\" />\n into the launchfile.\n See also https://github.com/SICKAG/sick_scan_xd/blob/master/doc/IMU.md");
             exit(0);
           }
-
+        }
+        else
+        {
+          ROS_INFO("IMU data transfer not enabled");
         }
       }
     }
@@ -4975,7 +4994,8 @@ namespace sick_scan_xd
 
                   // Apply range filter
                   float range_meter = rangeTmpPtr[iEcho * rangeNum + rangeIdxScan];
-                  if (range_filter.apply(range_meter)) // otherwise point dropped by range filter
+                  bool range_modified = false;
+                  if (range_filter.apply(range_meter, range_modified)) // otherwise point dropped by range filter
                   {
                     // ROS_DEBUG_STREAM("alpha:" << alpha << " elevPreCalc:" << std::to_string(elevationPreCalculated) << " layer:" << layer << " elevDeg:" << elevationAngleDegree
                     //   << " numOfLayers:" << numOfLayers << " elevAngleX200:" << elevAngleX200);
@@ -5440,6 +5460,16 @@ namespace sick_scan_xd
         buffer[2 + ii] = szApplStr[ii]; // idx: 1,2,3,4
       }
       buffer[6] = dummy1 ? 0x01 : 0x00;
+      if (buffer[6] == 0x00 && parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0) // activate FEVL in case of MRS1xxx with firmware version > 1
+      {
+        size_t device_idx = deviceIdentStr.find("MRS1xxx"); // Get MRS1xxx version from device ident string
+        size_t version_idx = ((device_idx != std::string::npos) ? deviceIdentStr.find("V", device_idx) : std::string::npos);
+        char version_id = ((version_idx != std::string::npos) ? deviceIdentStr[version_idx + 1] : '0');
+        if (version_id > '1')
+        {
+          buffer[6] = 0x01; // MRS1xxx with firmware version > 1 supports RANG+FEVL -> overwrite with "<STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}1<ETX>"
+        }
+      }
       bufferLen = 7;
     }
 

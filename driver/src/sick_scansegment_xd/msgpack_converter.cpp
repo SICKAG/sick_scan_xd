@@ -77,19 +77,18 @@ sick_scansegment_xd::MsgPackConverter::MsgPackConverter() : m_verbose(false), m_
 
 /*
  * @brief Initializing constructor
+ * @param[in] parser_config configuration and settings for multiScan and picoScan parser
  * @param[in] add_transform_xyz_rpy Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
  * @param[in] input_fifo input fifo buffering udp packages
  * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
  * @param[in] msgpack_output_fifolength max. output fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
  * @param[in] verbose true: enable debug output, false: quiet mode (default)
  */
-sick_scansegment_xd::MsgPackConverter::MsgPackConverter(const sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scan_xd::SickRangeFilter& range_filter,
-sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat, int msgpack_output_fifolength, bool verbose)
-    : m_verbose(verbose), m_input_fifo(input_fifo), m_scandataformat(scandataformat), m_converter_thread(0), m_run_converter_thread(false), m_msgpack_validator_enabled(false), m_discard_msgpacks_not_validated(false)
+sick_scansegment_xd::MsgPackConverter::MsgPackConverter(const ScanSegmentParserConfig& parser_config, const sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat, int msgpack_output_fifolength, bool verbose)
+    : m_parser_config(parser_config), m_verbose(verbose), m_input_fifo(input_fifo), m_scandataformat(scandataformat), m_converter_thread(0), m_run_converter_thread(false), m_msgpack_validator_enabled(false), m_discard_msgpacks_not_validated(false)
 {
     m_output_fifo = new sick_scansegment_xd::Fifo<ScanSegmentParserOutput>(msgpack_output_fifolength);
     m_add_transform_xyz_rpy = add_transform_xyz_rpy;
-    m_range_filter = range_filter;
 }
 
 /*
@@ -176,12 +175,12 @@ bool sick_scansegment_xd::MsgPackConverter::Run(void)
                     bool parse_success = false;
                     if (m_scandataformat == SCANDATA_MSGPACK)
                     {
-                        parse_success = sick_scansegment_xd::MsgPackParser::Parse(input_payload, input_timestamp, m_add_transform_xyz_rpy, m_range_filter, msgpack_output, msgpack_validator_data_collector, 
+                        parse_success = sick_scansegment_xd::MsgPackParser::Parse(input_payload, input_timestamp, m_add_transform_xyz_rpy, msgpack_output, msgpack_validator_data_collector, 
                             m_msgpack_validator, m_msgpack_validator_enabled, m_discard_msgpacks_not_validated, true, m_verbose);
                     }
                     else if (m_scandataformat == SCANDATA_COMPACT)
                     {
-                        parse_success = sick_scansegment_xd::CompactDataParser::Parse(input_payload, input_timestamp, m_add_transform_xyz_rpy, m_range_filter, msgpack_output);
+                        parse_success = sick_scansegment_xd::CompactDataParser::Parse(m_parser_config, input_payload, input_timestamp, m_add_transform_xyz_rpy, msgpack_output);
                     }
                     else
                     {

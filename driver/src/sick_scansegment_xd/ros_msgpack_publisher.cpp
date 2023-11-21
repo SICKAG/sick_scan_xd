@@ -51,8 +51,10 @@
  *
  *
  */
+#include <climits>
 
 #include <sick_scan/sick_generic_callback.h>
+#include "sick_scansegment_xd/compact_parser.h"
 #include "sick_scansegment_xd/ros_msgpack_publisher.h"
 #if defined ROSSIMU
 #include "sick_scan/pointcloud_utils.h"
@@ -60,7 +62,7 @@
 
 /** Configuration of customized pointclouds */
 
-sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguration(const std::string& cfg_name, const std::string& cfg_str) 
+sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguration(const std::string& cfg_name, const std::string& cfg_str)
 {
 		// Split into list of parameters, each parameter is a key-value-pair
 		std::vector<std::string> parameters;
@@ -107,7 +109,7 @@ sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguratio
 			}
 			else if(!range_filter_args.empty())
 			{
-				ROS_ERROR_STREAM("## ERROR CustomPointCloudConfiguration(name=" << cfg_name << ", value=" << cfg_str << "): rangeFilter has invalid value " << range_filter_str << ", check configuration");				
+				ROS_ERROR_STREAM("## ERROR CustomPointCloudConfiguration(name=" << cfg_name << ", value=" << cfg_str << "): rangeFilter has invalid value " << range_filter_str << ", check configuration");
 			}
 		}
 		std::vector<std::string> fields;
@@ -120,7 +122,7 @@ sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguratio
 		for(int n = 0; n < layers.size(); n++)
 		   layers[n] -= 1; // layer_ids in the launchfile enumerate from 1 up to 16, layer_idx starts from 0, i.e. layer_idx = layer_id - 1
 		// default if not configured in launchfile: all fields, echos, layers, reflectors and infringements enabled
-		if (fields.empty()) 
+		if (fields.empty())
 		    fields = { "x", "y", "z", "i", "range", "azimuth", "elevation", "layer", "echo", "reflector" };
 		if (echos.empty())
 		    echos = { 0, 1, 2 };
@@ -186,6 +188,71 @@ std::string sick_scansegment_xd::CustomPointCloudConfiguration::printValuesEnabl
 		return s.str();
 }
 
+/* @brief Determine and initialize all_segments_min/max_deg by LFPangleRangeFilter
+** host_set_LFPangleRangeFilter = "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
+** Returns true, if angleRangeFilterSettings are enabled, otherwise false.
+*/
+bool sick_scansegment_xd::RosMsgpackPublisher::initLFPangleRangeFilterSettings(const std::string& host_LFPangleRangeFilter)
+{
+	std::vector<std::string> parameter_token;
+	sick_scansegment_xd::util::parseVector(host_LFPangleRangeFilter, parameter_token, ' ');
+	try
+	{
+		if(parameter_token.size() >= 3 && std::stoi(parameter_token[0]) > 0) // LFPangleRangeFilter enabled, i.e. all_segments_min/max_deg given by LFPangleRangeFilter settings
+		{
+			float all_segments_azimuth_min_deg = std::stof(parameter_token[1]);
+			float all_segments_azimuth_max_deg = std::stof(parameter_token[2]);
+			m_all_segments_azimuth_min_deg = std::max<float>(m_all_segments_azimuth_min_deg, all_segments_azimuth_min_deg);
+			m_all_segments_azimuth_max_deg = std::min<float>(m_all_segments_azimuth_max_deg, all_segments_azimuth_max_deg);
+			return true;
+		}
+	}
+	catch(const std::exception& e)
+	{
+		ROS_ERROR_STREAM("## ERROR in RosMsgpackPublisher: can't parse LFPangleRangeFilter settings, exception " << e.what() << ", check LFPangleRangeFilter configuration in the launchfile");
+		throw e; // fatal error: rethrow exception, which will be caught in sick_generic_caller and handled by exiting with error
+	}
+	return false;
+}
+
+/* @brief Determine and initialize all_segments_elevation_min/max_deg by host_LFPlayerFilter"
+** host_LFPlayerFilter = "<enabled> <layer0enabled>  <layer1enabled> ...  <layer15enabled>", default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
+** Returns true, if layerFilterSettings are enabled, otherwise false.
+*/
+bool sick_scansegment_xd::RosMsgpackPublisher::initLFPlayerFilterSettings(const std::string& host_LFPlayerFilter)
+{
+	std::vector<std::string> parameter_token;
+	sick_scansegment_xd::util::parseVector(host_LFPlayerFilter, parameter_token, ' ');
+	try
+	{
+		if(parameter_token.size() >= 17 && std::stoi(parameter_token[0]) > 0) // LFPlayerFilter enabled
+		{
+			float all_segments_elevation_min_deg = 999;
+			float all_segments_elevation_max_deg = -999;
+			for(int n = 1; n < parameter_token.size(); n++)
+			{
+				if(std::stoi(parameter_token[n]) > 0)
+				{
+					float layer_elevation_deg = sick_scansegment_xd::CompactDataParser::GetElevationDegFromLayerIdx(n - 1);
+					all_segments_elevation_min_deg = std::min<float>(all_segments_elevation_min_deg, layer_elevation_deg);
+					all_segments_elevation_max_deg = std::max<float>(all_segments_elevation_max_deg, layer_elevation_deg);
+				}
+			}
+			if (all_segments_elevation_max_deg > all_segments_elevation_min_deg)
+			{
+				m_all_segments_elevation_min_deg = all_segments_elevation_min_deg;
+				m_all_segments_elevation_max_deg = all_segments_elevation_max_deg;
+				return true;
+			}
+		}
+	}
+	catch(const std::exception& e)
+	{
+		ROS_ERROR_STREAM("## ERROR in RosMsgpackPublisher: can't parse initLFPlayerFilterSettings settings, exception " << e.what() << ", check initLFPlayerFilterSettings configuration in the launchfile");
+		throw e; // fatal error: rethrow exception, which will be caught in sick_generic_caller and handled by exiting with error
+	}
+	return false;
+}
 
 /*
  * @brief RosMsgpackPublisher constructor
@@ -201,37 +268,19 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 {
 	m_active = false;
   m_frame_id = config.publish_frame_id;
-	// segment and fullframe pointclouds replaced by customized pointcloud configuration
-	// m_publish_topic = config.publish_topic;
-	// m_publish_topic_all_segments = config.publish_topic_all_segments;
 	m_node = config.node;
 	m_laserscan_layer_filter = config.laserscan_layer_filter;
 	// m_segment_count = config.segment_count;
 	m_all_segments_azimuth_min_deg = (float)config.all_segments_min_deg;
   m_all_segments_azimuth_max_deg = (float)config.all_segments_max_deg;
-	if (config.host_set_LFPangleRangeFilter) 
+	if (config.host_set_LFPangleRangeFilter)
 	{
-		// Determine all_segments_min/max_deg by LFPangleRangeFilter
-		// host_set_LFPangleRangeFilter = "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
-    std::vector<std::string> parameter_token;
-    sick_scansegment_xd::util::parseVector(config.host_LFPangleRangeFilter, parameter_token, ' ');
-		try
-		{
-			if(parameter_token.size() >= 3 && std::stoi(parameter_token[0]) > 0) // LFPangleRangeFilter enabled, i.e. all_segments_min/max_deg given by LFPangleRangeFilter settings
-			{
-				float all_segments_azimuth_min_deg = std::stof(parameter_token[1]);
-				float all_segments_azimuth_max_deg = std::stof(parameter_token[2]);
-				m_all_segments_azimuth_min_deg = std::max<float>(m_all_segments_azimuth_min_deg, all_segments_azimuth_min_deg);
-				m_all_segments_azimuth_max_deg = std::min<float>(m_all_segments_azimuth_max_deg, all_segments_azimuth_max_deg);
-			}
-		}
-		catch(const std::exception& e)
-		{
-			ROS_ERROR_STREAM("## ERROR in RosMsgpackPublisher: can't parse LFPangleRangeFilter settings, exception " << e.what() << ", check LFPangleRangeFilter configuration in the launchfile");
-			throw e; // fatal error: rethrow exception, which will be caught in sick_generic_caller and handled by exiting with error
-		}
+		initLFPangleRangeFilterSettings(config.host_LFPangleRangeFilter);
 	}
-
+	if (config.host_set_LFPlayerFilter)
+	{
+		initLFPlayerFilterSettings(config.host_LFPlayerFilter);
+	}
 #if defined __ROS_VERSION && __ROS_VERSION > 1 // ROS-2 publisher
     rosQoS qos = rclcpp::SystemDefaultsQoS();
     QoSConverter qos_converter;
@@ -240,21 +289,15 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
     rosGetParam(m_node, "ros_qos", qos_val);
     if (qos_val >= 0)
         qos = qos_converter.convert(qos_val);
-	  m_publisher_laserscan_segment = create_publisher<ros_sensor_msgs::LaserScan>("~/scan_segment", qos);
-		ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << m_publisher_laserscan_segment->get_topic_name() << "\"");
-	  // m_publisher_laserscan_360 = create_publisher<ros_sensor_msgs::LaserScan>("scan_360", qos);
-		// ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << m_publisher_laserscan_360->get_topic_name() << "\"");
-	/* segment and fullframe pointclouds replaced by customized pointcloud configuration
-	if(m_publish_topic != "")
-	{
-	    m_publisher_cur_segment = create_publisher<PointCloud2Msg>(m_publish_topic, qos);
-		ROS_INFO_STREAM("RosMsgpackPublisher: publishing PointCloud2 messages on topic \"" << m_publisher_cur_segment->get_topic_name() << "\"");
-	}
-	if(m_publish_topic_all_segments != "")
-	{
-	    m_publisher_all_segments = create_publisher<PointCloud2Msg>(m_publish_topic_all_segments, qos);
-	} 
-	*/
+	  m_publisher_laserscan_segment = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_segment_topic, qos);
+	  ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << m_publisher_laserscan_segment->get_topic_name() << "\"");
+      m_publisher_laserscan_360 = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
+      ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << m_publisher_laserscan_360->get_topic_name() << "\"");
+		if (config.imu_enable)
+		{
+			m_publisher_imu = create_publisher<ros_sensor_msgs::Imu>("~/imu", qos);
+			m_publisher_imu_initialized = true;
+		}
 #elif defined __ROS_VERSION && __ROS_VERSION > 0 // ROS-1 publisher
     int qos = 16 * 12 * 3; // 16 layers, 12 segments, 3 echos
 		int qos_val = -1;
@@ -263,26 +306,22 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
     if (qos_val >= 0)
         qos = qos_val;
     m_publisher_laserscan_segment = m_node->advertise<ros_sensor_msgs::LaserScan>("scan_segment", qos);
-		// m_publisher_laserscan_360 = m_node->advertise<ros_sensor_msgs::LaserScan>("scan_360", qos);
-		/* segment and fullframe pointclouds replaced by customized pointcloud configuration
-		if(m_publish_topic != "")
+    m_publisher_laserscan_360 = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
+
+		if (config.imu_enable)
 		{
-			m_publisher_cur_segment = m_node->advertise<PointCloud2Msg>(m_publish_topic, qos);
+			m_publisher_imu = m_node->advertise<ros_sensor_msgs::Imu>("imu", qos);
+			m_publisher_imu_initialized = true;
 		}
-		if(m_publish_topic_all_segments != "")
-		{
-			m_publisher_all_segments = m_node->advertise<PointCloud2Msg>(m_publish_topic_all_segments, qos);
-		} 
-		*/
 #endif
 
   /* Configuration of customized pointclouds:
 
 	Parameter "custom_pointclouds" lists all customized pointclouds to be published. Each pointcloud is given by its name and configured by the following parameters:
 	"<name_of_custom_pointcloud>" type="string" value="list of key-value-pairs"
-	
+
 	The list of key-value-pairs defines the pointcloud properties. List of supported key-value-pairs for customized pointclouds:
-	
+
 	Parameter "coordinateNotation" is an enum to configure pointcloud coordinates:
 			coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i), identical to customized with fields=x,y,z,i
 			coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i), identical to customized with fields=azimuth,elevation,range,i
@@ -293,11 +332,11 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 			updateMethod=0: fullframe pointcloud (default)
 			updateMethod=1: segmented pointcloud
 
-	Parameter "fields" defines the fields of the pointcloud for coordinateNotation == 3 (customized pointcloud fields), e.g. 
+	Parameter "fields" defines the fields of the pointcloud for coordinateNotation == 3 (customized pointcloud fields), e.g.
 			fields=x,y,z,i: cartesian pointcloud
 			fields=range,azimuth,elevation: polar pointcloud
 			or any other combination of x,y,z,i,range,azimuth,elevation,layer,echo,reflector
-	
+
 	Parameter "echos" defines which echos are included in the pointcloud, e.g.
 			echos=0,1,2: all echos
 			echos=2: last echo
@@ -331,7 +370,7 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 
         <!-- custom_pointcloud_cartesian_segmented: cartesian coordinates, segmented, all echos, all layer, topic "cloud_unstructured_segments" -->
         <param name="custom_pointcloud_cartesian_segmented" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_unstructured_segments frameid=world publish=1"/>
-        
+
         <!-- custom_pointcloud_polar_segmented: polar coordinates, segmented, all echos, all layer, topic "cloud_polar_unstructured_segments" -->
         <param name="custom_pointcloud_polar_segmented" type="string" value="coordinateNotation=1 updateMethod=1 echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_polar_unstructured_segments frameid=world publish=1"/>
 
@@ -373,7 +412,55 @@ sick_scansegment_xd::RosMsgpackPublisher::~RosMsgpackPublisher()
 {
 }
 
-        /** Shortcut to publish a PointCloud2Msg */
+/** Prints (elevation,azimuth) values of all lidar points */
+std::string sick_scansegment_xd::RosMsgpackPublisher::printElevationAzimuthTable(const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points)
+{
+	std::stringstream s;
+	for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
+	{
+		s << (echoIdx > 0 ? ", " : "") << "echo" << echoIdx << ":[";
+		int last_elevation_mdeg = -99999, last_azimuth_ideg = -99999;
+		for (int n = 0; n < lidar_points[echoIdx].size(); n++)
+		{
+			const sick_scansegment_xd::PointXYZRAEI32f& point = lidar_points[echoIdx][n];
+			float elevation_deg = point.elevation * 180.0f / (float)M_PI;
+			float azimuth_fdeg = point.azimuth * 180.0f / (float)M_PI;
+			int elevation_mdeg = (int)(1000.0f * elevation_deg);
+			int azimuth_ideg = (int)(azimuth_fdeg);
+			if (elevation_mdeg != last_elevation_mdeg || azimuth_ideg != last_azimuth_ideg)
+				s << (n > 0 ? "," : "") << " (" << (elevation_mdeg/1000) << "," << azimuth_ideg << ")";
+			last_elevation_mdeg = elevation_mdeg;
+			last_azimuth_ideg = azimuth_ideg;
+		}
+		s << " ]";
+	}
+
+	return s.str();
+}
+
+
+/** Prints (elevation,azimuth) values of the coverage table of collected lidar points */
+std::string sick_scansegment_xd::RosMsgpackPublisher::printCoverageTable(const std::map<int, std::map<int, int>>& elevation_azimuth_histograms)
+{
+	std::stringstream s;
+	s << "[";
+	for (std::map<int, std::map<int, int>>::const_iterator coverage_elevation_iter = elevation_azimuth_histograms.cbegin(); coverage_elevation_iter != elevation_azimuth_histograms.cend(); coverage_elevation_iter++)
+	{
+		int elevation_mdeg = coverage_elevation_iter->first;
+		const std::map<int, int>& azimuth_histogram = coverage_elevation_iter->second;
+		for (std::map<int, int>::const_iterator coverage_azimuth_iter = azimuth_histogram.cbegin(); coverage_azimuth_iter != azimuth_histogram.cend(); coverage_azimuth_iter++)
+		{
+			const int& azimuth_ideg = coverage_azimuth_iter->first;
+			const int& azimuth_cnt = coverage_azimuth_iter->second;
+			if (azimuth_cnt > 0)
+				s << " (" << (elevation_mdeg/1000) << "," << azimuth_ideg << "),";
+		}
+	}
+	s << " ]";
+  return s.str();
+}
+
+/** Shortcut to publish a PointCloud2Msg */
 void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation)
 {
   if (coordinate_notation == 0) // coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i) => notify cartesian pointcloud listener
@@ -423,21 +510,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishLaserScanMsg(rosNodePtr no
 			}
 		}
 	}
-#endif	
-}
-
-/** Shortcut to publish a PointCloud2Msg
-void sick_scansegment_xd::RosMsgpackPublisher::publish(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, 
-    LaserscanMsgPublisher& laserscan_publisher, LaserScanMsgMap& laser_scan_msg_map, int32_t num_echos, int32_t segment_idx)
-{
-	publish(node, publisher, pointcloud_msg, num_echos, segment_idx);
-#if defined RASPBERRY && RASPBERRY > 0 // polar pointcloud deactivated on Raspberry for performance reasons
-#else
- 	publish(node, publisher, pointcloud_msg_polar, num_echos, segment_idx);
 #endif
-  publish(node, laserscan_publisher, laser_scan_msg_map, num_echos, segment_idx);
 }
-*/
 
 /*
 * Converts the lidarpoints to a customized PointCloud2Msg containing configured fields (e.g. x, y, z, i, range, azimuth, elevation, layer, echo, reflector).
@@ -449,7 +523,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::publish(rosNodePtr node, PointClo
 * @param[in] pointcloud_cfg configuration of customized pointcloud
 * @param[out] pointcloud_msg customized pointcloud message
 */
-void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, 
+void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points,
   CustomPointCloudConfiguration& pointcloud_cfg, PointCloud2Msg& pointcloud_msg)
 {
   // set pointcloud header
@@ -540,247 +614,212 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
 }
 
 /*
- * Converts the lidarpoints from a msgpack to a PointCloud2Msg and to LaserScan messages for each layer.
- * Note: For performance reasons, LaserScan messages are not created for the collected 360-degree scans (i.e. is_cloud_360 is true).
- * @param[in] timestamp_sec seconds part of timestamp
- * @param[in] timestamp_nsec  nanoseconds part of timestamp
- * @param[in] last_timestamp_sec seconds part of last timestamp
- * @param[in] last_timestamp_nsec  nanoseconds part of last timestamp
- * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
- * @param[in] total_point_count total number of points in all echos
- * @param[out] pointcloud_msg cartesian pointcloud message
- * @param[out] pointcloud_msg_polar polar pointcloud message
- * @param[out] laser_scan_msg_map laserscan message: ros_sensor_msgs::LaserScan for each echo and layer is laser_scan_msg_map[echo][layer]
- */
-void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count, 
-  PointCloud2Msg& pointcloud_msg, PointCloud2Msg& pointcloud_msg_polar, LaserScanMsgMap& laser_scan_msg_map, bool is_cloud_360, const std::string& frame_id)
-{
-  // set pointcloud header
-  // pointcloud_msg.header.stamp = rosTimeNow();
-  pointcloud_msg.header.stamp.sec = timestamp_sec;
-#if defined __ROS_VERSION && __ROS_VERSION > 1
-  pointcloud_msg.header.stamp.nanosec = timestamp_nsec;
-#elif defined __ROS_VERSION && __ROS_VERSION > 0
-  pointcloud_msg.header.stamp.nsec = timestamp_nsec;
-#endif
-  pointcloud_msg.header.frame_id = frame_id;
-  
-  // set pointcloud field properties
-  int numChannels = 4; // "x", "y", "z", "i"
-  std::string channelId[] = { "x", "y", "z", "i" };
-  pointcloud_msg.height = 1;
-  pointcloud_msg.width = (uint32_t)total_point_count;
-  pointcloud_msg.is_bigendian = false;
-  pointcloud_msg.is_dense = true;
-  pointcloud_msg.point_step = numChannels * sizeof(float);
-  pointcloud_msg.row_step = pointcloud_msg.point_step * pointcloud_msg.width;
-  pointcloud_msg.fields.resize(numChannels);
-  for (int i = 0; i < numChannels; i++)
-  {
-    pointcloud_msg.fields[i].name = channelId[i];
-    pointcloud_msg.fields[i].offset = i * sizeof(float);
-    pointcloud_msg.fields[i].count = 1;
-    pointcloud_msg.fields[i].datatype = PointField::FLOAT32;
-  }
-  pointcloud_msg.data.clear();
-  pointcloud_msg.data.resize(pointcloud_msg.row_step * pointcloud_msg.height, 0);
-  float* pfdata = reinterpret_cast<float*>(&pointcloud_msg.data[0]);
-
-#if defined RASPBERRY && RASPBERRY > 0 // polar pointcloud deactivated on Raspberry for performance reasons
-#else
-  pointcloud_msg_polar = pointcloud_msg;
-  pointcloud_msg_polar.fields[0].name = "range";
-  pointcloud_msg_polar.fields[1].name = "azimuth";
-  pointcloud_msg_polar.fields[2].name = "elevation";
-  pointcloud_msg_polar.data.clear();
-  pointcloud_msg_polar.data.resize(pointcloud_msg_polar.row_step * pointcloud_msg_polar.height, 0);
-  float* pfdata_polar = reinterpret_cast<float*>(&pointcloud_msg_polar.data[0]);
-#endif	
-  size_t data_cnt = 0;
-  int echoIdx, pointIdx;
-  for (echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
-  {
-    for (pointIdx = 0; data_cnt < numChannels * pointcloud_msg.width && pointIdx < lidar_points[echoIdx].size(); pointIdx++, data_cnt+=4)
-    {
-			pfdata[data_cnt + 0] = lidar_points[echoIdx][pointIdx].x;
-			pfdata[data_cnt + 1] = lidar_points[echoIdx][pointIdx].y;
-			pfdata[data_cnt + 2] = lidar_points[echoIdx][pointIdx].z;
-			pfdata[data_cnt + 3] = lidar_points[echoIdx][pointIdx].i;
-#if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
-#else
-			pfdata_polar[data_cnt + 0] = lidar_points[echoIdx][pointIdx].range;
-			pfdata_polar[data_cnt + 1] = lidar_points[echoIdx][pointIdx].azimuth;
-			pfdata_polar[data_cnt + 2] = lidar_points[echoIdx][pointIdx].elevation;
-			pfdata_polar[data_cnt + 3] = lidar_points[echoIdx][pointIdx].i;
-			int echo = lidar_points[echoIdx][pointIdx].echo;
-			int layer = lidar_points[echoIdx][pointIdx].layer;
-			bool layer_enabled = (m_laserscan_layer_filter.empty() ? 1 : (m_laserscan_layer_filter[layer]));
-			if (!is_cloud_360 && layer_enabled)
-			{
-				// laser_scan_msg = laser_scan_msg_map[layer]
-				ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_map[echo][layer];
-				if (laser_scan_msg.ranges.size() == 0) // Initialize new LaserScan message
-				{
-					laser_scan_msg.ranges.clear();
-					laser_scan_msg.intensities.clear();
-					laser_scan_msg.ranges.reserve(total_point_count);
-					laser_scan_msg.intensities.reserve(total_point_count);
-					laser_scan_msg.angle_min = lidar_points[echoIdx][pointIdx].azimuth;
-					laser_scan_msg.angle_max = lidar_points[echoIdx][pointIdx].azimuth;
-					laser_scan_msg.range_min = lidar_points[echoIdx][pointIdx].range;
-					laser_scan_msg.range_max = lidar_points[echoIdx][pointIdx].range;
-				}
-				else
-				{
-					laser_scan_msg.range_min = std::min(lidar_points[echoIdx][pointIdx].range, laser_scan_msg.range_min);
-					laser_scan_msg.range_max = std::max(lidar_points[echoIdx][pointIdx].range, laser_scan_msg.range_max);
-					laser_scan_msg.angle_min = std::min(lidar_points[echoIdx][pointIdx].azimuth, laser_scan_msg.angle_min);
-					laser_scan_msg.angle_max = std::max(lidar_points[echoIdx][pointIdx].azimuth, laser_scan_msg.angle_max);
-				}
-				// Append point to LaserScan message
-				laser_scan_msg.ranges.push_back(lidar_points[echoIdx][pointIdx].range);
-				laser_scan_msg.intensities.push_back(lidar_points[echoIdx][pointIdx].i);
-			}
-#endif			
-    }
-  }
-  if (!is_cloud_360)
-  {
-#if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
-#else
-		for(LaserScanMsgMap::iterator laser_scan_echo_iter = laser_scan_msg_map.begin(); laser_scan_echo_iter != laser_scan_msg_map.end(); laser_scan_echo_iter++)
-		{
-			int echo_idx = laser_scan_echo_iter->first;
-			std::map<int,ros_sensor_msgs::LaserScan>& laser_scan_layer_map = laser_scan_echo_iter->second;
-			for(std::map<int,ros_sensor_msgs::LaserScan>::iterator laser_scan_msg_iter = laser_scan_layer_map.begin(); laser_scan_msg_iter != laser_scan_layer_map.end(); laser_scan_msg_iter++)
-			{
-				int layer_idx = laser_scan_msg_iter->first;
-				ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_iter->second;
-				if (laser_scan_msg.ranges.size() > 1 && laser_scan_msg.angle_max > laser_scan_msg.angle_min)
-				{
-					float angle_diff = laser_scan_msg.angle_max - laser_scan_msg.angle_min;
-					while (angle_diff > (float)(2.0 * M_PI))
-						angle_diff -= (float)(2.0 * M_PI);
-					while (angle_diff < 0)
-						angle_diff += (float)(2.0 * M_PI);
-					laser_scan_msg.angle_increment = angle_diff / (float)(laser_scan_msg.ranges.size() - 1);
-					laser_scan_msg.range_min -= 1.0e-03f;
-					laser_scan_msg.range_max += 1.0e-03f;
-					laser_scan_msg.header = pointcloud_msg.header;
-					laser_scan_msg.header.frame_id = frame_id + "_" + std::to_string(layer_idx);
-					// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
-					laser_scan_msg.scan_time = m_scan_time;
-					// time_increment = 1 / measurement_frequency = scan_time / (number of scan points in a full 360-degree rotation of the sensor)
-					laser_scan_msg.time_increment = laser_scan_msg.scan_time / (float)(laser_scan_msg.ranges.size() * 2.0 * M_PI / angle_diff);
-					// ROS_INFO_STREAM("convert to LaserScan: frame_id=" << laser_scan_msg.header.frame_id << ", num_points=" << laser_scan_msg.ranges.size() << ", angle_min=" << (laser_scan_msg.angle_min * 180.0 / M_PI) << ", angle_max=" << (laser_scan_msg.angle_max * 180.0 / M_PI));
-				}
-				else
-				{
-					laser_scan_msg.ranges.clear();
-					laser_scan_msg.intensities.clear();
-				}
-			}
-		}
-#endif		
-  }
-}
-
-/*
  * Converts the lidarpoints from a msgpack to a LaserScan messages for each layer.
- * Note: For performance reasons, LaserScan messages are not created for the collected 360-degree scans (i.e. is_cloud_360 is true).
  * @param[in] timestamp_sec seconds part of timestamp
  * @param[in] timestamp_nsec  nanoseconds part of timestamp
- * @param[in] last_timestamp_sec seconds part of last timestamp
- * @param[in] last_timestamp_nsec  nanoseconds part of last timestamp
  * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
  * @param[in] total_point_count total number of points in all echos
  * @param[out] laser_scan_msg_map laserscan message: ros_sensor_msgs::LaserScan for each echo and layer is laser_scan_msg_map[echo][layer]
+ * @param[in] frame_id frame id of laserscan message, will be expanded to "<frame_id>_<layer_idx>"
  */
-void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count, 
-  LaserScanMsgMap& laser_scan_msg_map, const std::string& frame_id)
+void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count,
+  LaserScanMsgMap& laser_scan_msg_map, const std::string& frame_id, bool is_fullframe)
 {
-  int echoIdx, pointIdx;
-  for (echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
-  {
-    for (pointIdx = 0; pointIdx < lidar_points[echoIdx].size(); pointIdx++)
-    {
 #if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
 #else
-			int echo = lidar_points[echoIdx][pointIdx].echo;
-			int layer = lidar_points[echoIdx][pointIdx].layer;
-			bool layer_enabled = (m_laserscan_layer_filter.empty() ? 1 : (m_laserscan_layer_filter[layer]));
-			if ( layer_enabled)
-			{
-				// laser_scan_msg = laser_scan_msg_map[layer]
-				ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_map[echo][layer];
-				if (laser_scan_msg.ranges.size() == 0) // Initialize new LaserScan message
-				{
-					laser_scan_msg.ranges.clear();
-					laser_scan_msg.intensities.clear();
-					laser_scan_msg.ranges.reserve(total_point_count);
-					laser_scan_msg.intensities.reserve(total_point_count);
-					laser_scan_msg.angle_min = lidar_points[echoIdx][pointIdx].azimuth;
-					laser_scan_msg.angle_max = lidar_points[echoIdx][pointIdx].azimuth;
-					laser_scan_msg.range_min = lidar_points[echoIdx][pointIdx].range;
-					laser_scan_msg.range_max = lidar_points[echoIdx][pointIdx].range;
-				}
-				else
-				{
-					laser_scan_msg.range_min = std::min(lidar_points[echoIdx][pointIdx].range, laser_scan_msg.range_min);
-					laser_scan_msg.range_max = std::max(lidar_points[echoIdx][pointIdx].range, laser_scan_msg.range_max);
-					laser_scan_msg.angle_min = std::min(lidar_points[echoIdx][pointIdx].azimuth, laser_scan_msg.angle_min);
-					laser_scan_msg.angle_max = std::max(lidar_points[echoIdx][pointIdx].azimuth, laser_scan_msg.angle_max);
-				}
-				// Append point to LaserScan message
-				laser_scan_msg.ranges.push_back(lidar_points[echoIdx][pointIdx].range);
-				laser_scan_msg.intensities.push_back(lidar_points[echoIdx][pointIdx].i);
-			}
-#endif			
-    }
-  }
-  {
-#if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
-#else
-		for(LaserScanMsgMap::iterator laser_scan_echo_iter = laser_scan_msg_map.begin(); laser_scan_echo_iter != laser_scan_msg_map.end(); laser_scan_echo_iter++)
+  // Split lidar points into echos, layers and segments
+	struct LaserScanMsgPoint
+	{
+	  LaserScanMsgPoint(float _range = 0, float _azimuth = 0, float _i = 0) : range(_range), azimuth(_azimuth), i(_i) {}
+	  LaserScanMsgPoint(const sick_scansegment_xd::PointXYZRAEI32f& lidar_point) : range(lidar_point.range), azimuth(lidar_point.azimuth), i(lidar_point.i) {}
+		float range;     // polar coordinate range in meter
+		float azimuth;   // polar coordinate azimuth in radians
+		float i;         // intensity
+	};
+	typedef std::vector<LaserScanMsgPoint> LaserScanMsgPoints; // list of laserscan points in one segment
+	typedef std::vector<LaserScanMsgPoints> LaserScanMsgSegments; // list of laserscan segments
+  typedef std::map<int,std::map<int,LaserScanMsgSegments>> LaserScanMsgEchoLayerSegments; // LaserScanMsgMap[echo][layer][segment] := laserscan points in one segment
+  typedef std::map<int,std::map<int,LaserScanMsgPoints>> LaserScanMsgEchoLayerSortedPoints; // LaserScanMsgEchoLayerSortedPoints[echo][layer] := sorted list of concatenated laserscan points
+	struct SortSegmentsAscendingAzimuth
+	{
+			bool operator()(const LaserScanMsgPoints& segment1, const LaserScanMsgPoints& segment2) { return !segment1.empty() && !segment2.empty() && segment1[0].azimuth < segment2[0].azimuth; }
+	};
+	struct SortSegmentsDescendingAzimuth
+	{
+			bool operator()(const LaserScanMsgPoints& segment1, const LaserScanMsgPoints& segment2) { return !segment1.empty() && !segment2.empty() && segment1[0].azimuth > segment2[0].azimuth; }
+	};
+	struct ScanPointPrinter
+	{
+		static std::string printAzimuthTable(const std::vector<sick_scansegment_xd::PointXYZRAEI32f>& points)
 		{
-			int echo_idx = laser_scan_echo_iter->first;
-			std::map<int,ros_sensor_msgs::LaserScan>& laser_scan_layer_map = laser_scan_echo_iter->second;
-			for(std::map<int,ros_sensor_msgs::LaserScan>::iterator laser_scan_msg_iter = laser_scan_layer_map.begin(); laser_scan_msg_iter != laser_scan_layer_map.end(); laser_scan_msg_iter++)
+			std::stringstream s;
+			for (int pointIdx = 0; pointIdx < points.size(); pointIdx++)
+				s << (pointIdx>0?",":"") << std::fixed << std::setprecision(1) << points[pointIdx].azimuth * 180.0 / M_PI;
+			return s.str();
+		}
+		static std::string printAzimuthTable(const LaserScanMsgPoints& points)
+		{
+			std::stringstream s;
+			for (int pointIdx = 0; pointIdx < points.size(); pointIdx++)
+				s << (pointIdx>0?",":"") << std::fixed << std::setprecision(1) << points[pointIdx].azimuth * 180.0 / M_PI;
+			return s.str();
+		}
+	};
+
+  LaserScanMsgEchoLayerSegments points_echo_layer_segment_map;
+  for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
+  {
+		int last_layer = INT_MAX;
+		float last_azimuth = FLT_MAX;
+		// if (is_fullframe)
+    //   ROS_INFO_STREAM("convertPointsToLaserscanMsg(" << (is_fullframe ? "fullframe": "segment") << "): echo" << echoIdx << ", unsorted azimuth=[" << ScanPointPrinter::printAzimuthTable(lidar_points[echoIdx]) << "]");
+    for (int pointIdx = 0; pointIdx < lidar_points[echoIdx].size(); pointIdx++)
+    {
+			const sick_scansegment_xd::PointXYZRAEI32f& lidar_point = lidar_points[echoIdx][pointIdx];
+			bool layer_enabled = (m_laserscan_layer_filter.empty() ? 1 : (m_laserscan_layer_filter[lidar_point.layer]));
+			if (layer_enabled)
 			{
-				int layer_idx = laser_scan_msg_iter->first;
-				ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_iter->second;
-				if (laser_scan_msg.ranges.size() > 1 && laser_scan_msg.angle_max > laser_scan_msg.angle_min)
+				LaserScanMsgSegments& point_segment = points_echo_layer_segment_map[lidar_point.echo][lidar_point.layer];
+				if (point_segment.empty() || last_layer != lidar_point.layer || std::abs(last_azimuth - lidar_point.azimuth) > (2.0*M_PI/180.0)) // start of a new segment
+					point_segment.push_back(LaserScanMsgPoints());
+        point_segment.back().push_back(LaserScanMsgPoint(lidar_point)); // append lidar point to last segment
+				last_layer = lidar_point.layer;
+				last_azimuth = lidar_point.azimuth;
+			}
+		}
+	}
+
+	// Sort segments and concatenate points sorted by azimuth
+	LaserScanMsgEchoLayerSortedPoints sorted_points_echo_layer_map;
+	for(std::map<int,std::map<int,LaserScanMsgSegments>>::iterator iter_echos = points_echo_layer_segment_map.begin(); iter_echos != points_echo_layer_segment_map.end(); iter_echos++)
+	{
+		const int& echo = iter_echos->first;
+		for(std::map<int,LaserScanMsgSegments>::iterator iter_layer = iter_echos->second.begin(); iter_layer != iter_echos->second.end(); iter_layer++)
+		{
+			const int& layer = iter_layer->first;
+			LaserScanMsgSegments& segments = iter_layer->second;
+			// All points within a segment should be ordered by ascending azimuth values. Now we have to sort the segments by ascending start azimuth
+			int segment_cnt_azimuth_ascending = 0, segment_cnt_azimuth_descending = 0;
+			for(int segment_cnt = 0; segment_cnt < segments.size(); segment_cnt++)
+			{
+				const LaserScanMsgPoints& segment_points = segments[segment_cnt];
+				segment_cnt_azimuth_ascending += ((segment_points.size() > 1 && segment_points[0].azimuth < segment_points[1].azimuth) ? 1 : 0);
+				segment_cnt_azimuth_descending += ((segment_points.size() > 1 && segment_points[0].azimuth > segment_points[1].azimuth) ? 1 : 0);
+		    // if (is_fullframe)
+    		//   ROS_INFO_STREAM("convertPointsToLaserscanMsg(" << (is_fullframe ? "fullframe": "segment") << "): echo" << echo << ", layer" << layer << ", segment" << segment_cnt << ", unsorted azimuth=[" << ScanPointPrinter::printAzimuthTable(segment_points) << "]");
+			}
+			if(segments.size() > 1)
+			{
+				if(segment_cnt_azimuth_ascending > 0 && segment_cnt_azimuth_descending > 0)
 				{
-					float angle_diff = laser_scan_msg.angle_max - laser_scan_msg.angle_min;
-					while (angle_diff > (float)(2.0 * M_PI))
-						angle_diff -= (float)(2.0 * M_PI);
-					while (angle_diff < 0)
-						angle_diff += (float)(2.0 * M_PI);
-					laser_scan_msg.angle_increment = angle_diff / (float)(laser_scan_msg.ranges.size() - 1);
-					laser_scan_msg.range_min -= 1.0e-03f;
-					laser_scan_msg.range_max += 1.0e-03f;
-  				laser_scan_msg.header.stamp.sec = timestamp_sec;
-#if defined __ROS_VERSION && __ROS_VERSION > 1
-  				laser_scan_msg.header.stamp.nanosec = timestamp_nsec;
-#elif defined __ROS_VERSION && __ROS_VERSION > 0
-  				laser_scan_msg.header.stamp.nsec = timestamp_nsec;
-#endif
-					laser_scan_msg.header.frame_id = frame_id + "_" + std::to_string(layer_idx);
-					// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
-					laser_scan_msg.scan_time = m_scan_time;
-					// time_increment = 1 / measurement_frequency = scan_time / (number of scan points in a full 360-degree rotation of the sensor)
-					laser_scan_msg.time_increment = laser_scan_msg.scan_time / (float)(laser_scan_msg.ranges.size() * 2.0 * M_PI / angle_diff);
-					// ROS_INFO_STREAM("convert to LaserScan: frame_id=" << laser_scan_msg.header.frame_id << ", num_points=" << laser_scan_msg.ranges.size() << ", angle_min=" << (laser_scan_msg.angle_min * 180.0 / M_PI) << ", angle_max=" << (laser_scan_msg.angle_max * 180.0 / M_PI));
+					ROS_ERROR_STREAM("## ERROR convertPointsToLaserscanMsg(): " << segment_cnt_azimuth_ascending << " segments ordered by ascending azimuth, " << segment_cnt_azimuth_descending << " segments ordered by descending azimuth");
+					return; // scan points within a segment must be ordered by either ascending or descending azimuth values
 				}
+				if (segment_cnt_azimuth_ascending > 0)
+			    std::sort(segments.begin(), segments.end(), SortSegmentsAscendingAzimuth());
+				else if(segment_cnt_azimuth_descending > 0)
+					std::sort(segments.begin(), segments.end(), SortSegmentsDescendingAzimuth());
 				else
 				{
-					laser_scan_msg.ranges.clear();
-					laser_scan_msg.intensities.clear();
+					ROS_ERROR_STREAM("## ERROR convertPointsToLaserscanMsg(): " << segment_cnt_azimuth_ascending << " segments ordered by ascending azimuth, " << segment_cnt_azimuth_descending << " segments ordered by descending azimuth");
+					return; // scan points within a segment must be ordered by either ascending or descending azimuth values
+				}
+			}
+			for(int segment_cnt = 0; segment_cnt < segments.size(); segment_cnt++)
+			{
+				const LaserScanMsgPoints& segment_points = segments[segment_cnt];
+			  sorted_points_echo_layer_map[echo][layer].insert(sorted_points_echo_layer_map[echo][layer].end(), segment_points.begin(), segment_points.end());
+		    // if (is_fullframe)
+    		//   ROS_INFO_STREAM("convertPointsToLaserscanMsg(" << (is_fullframe ? "fullframe": "segment") << "): echo" << echo << ", layer" << layer << ", segment" << segment_cnt << ", sorted azimuth=[" << ScanPointPrinter::printAzimuthTable(segment_points) << "]");
+			}
+		  // Verify all points within the current segment have ascending or descending order (debug and verification only)
+			// for(int segment_cnt = 0; segment_cnt < iter_layer->second.size(); segment_cnt++)
+			// {
+			//   const LaserScanMsgPoints& segment_points = segments[segment_cnt];
+			//   bool azimuth_ascending = (segment_points.size() > 1 && segment_points[0].azimuth < segment_points[1].azimuth);
+			//   ROS_INFO_STREAM("convertPointsToLaserscanMsg(" << (is_fullframe ? "fullframe": "segment") << "): echo" << echo << ", layer" << layer << ", segment" << segment_cnt << ": " << segment_points.size() << " points, azimuth in " << (azimuth_ascending ? "ascending":"descending") << " order");
+			//   for(int point_cnt = 1; point_cnt < segment_points.size(); point_cnt++)
+			//   {
+			//   	bool ascending = segment_points[point_cnt - 1].azimuth < segment_points[point_cnt].azimuth;
+			// 	  if (azimuth_ascending != ascending)
+			//      ROS_ERROR_STREAM("## ERROR convertPointsToLaserscanMsg(): echo" << echo << ", layer" << layer << ", segment" << segment_cnt << ": points in segment not ordered by azimuth");
+			//   }
+			// }
+			// Convert to laserscan message, laser_scan_msg = laser_scan_msg_map[layer]
+			LaserScanMsgPoints sorted_points = sorted_points_echo_layer_map[echo][layer];
+			if (!sorted_points.empty())
+			{
+				ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_map[echo][layer];
+				laser_scan_msg.ranges.clear();
+				laser_scan_msg.intensities.clear();
+				laser_scan_msg.ranges.reserve(sorted_points.size());
+				laser_scan_msg.intensities.reserve(sorted_points.size());
+				laser_scan_msg.angle_min = sorted_points.front().azimuth;
+				laser_scan_msg.angle_max = sorted_points.back().azimuth;
+				laser_scan_msg.range_min = sorted_points.front().range;
+				laser_scan_msg.range_max = sorted_points.front().range;
+				float delta_azimuth_expected = (laser_scan_msg.angle_max - laser_scan_msg.angle_min) / std::max(1.0f, (float)sorted_points.size() - 1.0f);
+				for(int point_cnt = 0; point_cnt < sorted_points.size(); point_cnt++)
+				{
+					laser_scan_msg.ranges.push_back(sorted_points[point_cnt].range);
+				  laser_scan_msg.intensities.push_back(sorted_points[point_cnt].i);
+					laser_scan_msg.range_min = std::min(sorted_points[point_cnt].range, laser_scan_msg.range_min);
+					laser_scan_msg.range_max = std::max(sorted_points[point_cnt].range, laser_scan_msg.range_max);
+		      // Verify all azimuth values monotonously ordered (debug and verification only)
+					// if (point_cnt > 0)
+					// {
+					// 	float delta_azimuth = sorted_points[point_cnt].azimuth - sorted_points[point_cnt - 1].azimuth;
+					// 	if (std::abs(delta_azimuth - delta_azimuth_expected) > 0.1 * M_PI / 180.0)
+					// 	  ROS_ERROR_STREAM("## ERROR convertPointsToLaserscanMsg(): delta_azimuth: " << (delta_azimuth * 180.0 / M_PI) << ", expected: " << (delta_azimuth_expected * 180.0 / M_PI) << ", " << point_cnt << ". point of " << sorted_points.size() << " points");
+					// }
 				}
 			}
 		}
-#endif		
-  }
+	}
+
+  // Create laserscan messages for all echos and layers
+	int num_echos = (int)lidar_points.size();
+	for(LaserScanMsgMap::iterator laser_scan_echo_iter = laser_scan_msg_map.begin(); laser_scan_echo_iter != laser_scan_msg_map.end(); laser_scan_echo_iter++)
+	{
+		int echo_idx = laser_scan_echo_iter->first;
+		std::map<int,ros_sensor_msgs::LaserScan>& laser_scan_layer_map = laser_scan_echo_iter->second;
+		for(std::map<int,ros_sensor_msgs::LaserScan>::iterator laser_scan_msg_iter = laser_scan_layer_map.begin(); laser_scan_msg_iter != laser_scan_layer_map.end(); laser_scan_msg_iter++)
+		{
+			int layer_idx = laser_scan_msg_iter->first;
+			ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_iter->second;
+			if (laser_scan_msg.ranges.size() > 1 && laser_scan_msg.angle_max > laser_scan_msg.angle_min)
+			{
+				float angle_diff = laser_scan_msg.angle_max - laser_scan_msg.angle_min;
+				while (angle_diff > (float)(2.0 * M_PI))
+					angle_diff -= (float)(2.0 * M_PI);
+				while (angle_diff < 0)
+					angle_diff += (float)(2.0 * M_PI);
+				laser_scan_msg.angle_increment = angle_diff / (float)(laser_scan_msg.ranges.size() - 1);
+				laser_scan_msg.range_min -= 1.0e-03f;
+				laser_scan_msg.range_max += 1.0e-03f;
+				laser_scan_msg.header.stamp.sec = timestamp_sec;
+#if defined __ROS_VERSION && __ROS_VERSION > 1
+				laser_scan_msg.header.stamp.nanosec = timestamp_nsec;
+#elif defined __ROS_VERSION && __ROS_VERSION > 0
+				laser_scan_msg.header.stamp.nsec = timestamp_nsec;
+#endif
+				laser_scan_msg.header.frame_id = frame_id + "_" + std::to_string(layer_idx + 1);
+				if (num_echos > 1)
+				  laser_scan_msg.header.frame_id = laser_scan_msg.header.frame_id + "_" + std::to_string(echo_idx);
+				// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
+				laser_scan_msg.scan_time = m_scan_time;
+				// time_increment = 1 / measurement_frequency = scan_time / (number of scan points in a full 360-degree rotation of the sensor)
+				laser_scan_msg.time_increment = laser_scan_msg.scan_time / (float)(laser_scan_msg.ranges.size() * 2.0 * M_PI / angle_diff);
+				// ROS_INFO_STREAM("convert to LaserScan: frame_id=" << laser_scan_msg.header.frame_id << ", num_points=" << laser_scan_msg.ranges.size() << ", angle_min=" << (laser_scan_msg.angle_min * 180.0 / M_PI) << ", angle_max=" << (laser_scan_msg.angle_max * 180.0 / M_PI));
+			}
+			else
+			{
+				laser_scan_msg.ranges.clear();
+				laser_scan_msg.intensities.clear();
+			}
+		}
+	}
+#endif // !RASPBERRY
 }
 
 /*
@@ -792,6 +831,48 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 {
 	if (!m_active)
 		return; // publishing deactivated
+	// Publish optional IMU data
+	if (msgpack_data.scandata.empty() && msgpack_data.imudata.valid)
+	{
+		if (m_publisher_imu_initialized)
+		{
+		  ROS_DEBUG_STREAM("Publishing IMU data: { " << msgpack_data.imudata.to_string() << " }");
+			// Convert to ros_sensor_msgs::Imu
+			ros_sensor_msgs::Imu imu_msg;
+			imu_msg.header.stamp.sec = msgpack_data.timestamp_sec;
+#if defined __ROS_VERSION && __ROS_VERSION > 1
+      imu_msg.header.stamp.nanosec = msgpack_data.timestamp_nsec;
+#else
+			imu_msg.header.stamp.nsec = msgpack_data.timestamp_nsec;
+#endif
+			imu_msg.header.frame_id = m_frame_id;
+			imu_msg.orientation.w = msgpack_data.imudata.orientation_w;
+			imu_msg.orientation.x = msgpack_data.imudata.orientation_x;
+			imu_msg.orientation.y = msgpack_data.imudata.orientation_y;
+			imu_msg.orientation.z = msgpack_data.imudata.orientation_z;
+			imu_msg.angular_velocity.x = msgpack_data.imudata.angular_velocity_x;
+			imu_msg.angular_velocity.y = msgpack_data.imudata.angular_velocity_y;
+			imu_msg.angular_velocity.z = msgpack_data.imudata.angular_velocity_z;
+			imu_msg.linear_acceleration.x = msgpack_data.imudata.acceleration_x;
+			imu_msg.linear_acceleration.y = msgpack_data.imudata.acceleration_y;
+			imu_msg.linear_acceleration.z = msgpack_data.imudata.acceleration_z;
+			// ros imu message definition: A covariance matrix of all zeros will be interpreted as "covariance unknown"
+			for(int n = 0; n < 9; n++)
+			{
+				imu_msg.orientation_covariance[n] = 0;
+				imu_msg.angular_velocity_covariance[n] = 0;
+				imu_msg.linear_acceleration_covariance[n] = 0;
+			}
+			// Publish imu message
+			sick_scan_xd::notifyImuListener(m_node, &imu_msg);
+#if defined __ROS_VERSION && __ROS_VERSION > 1
+	   m_publisher_imu->publish(imu_msg);
+#else
+	   m_publisher_imu.publish(imu_msg);
+#endif
+		}
+		return;
+	}
 	// Reorder points in consecutive lidarpoints for echo 0, echo 1 and echo 2 as described in https://github.com/michael1309/sick_lidar3d_pretest/issues/5
 	size_t echo_count = 0;           // number of echos (multiScan136: 1 or 3 echos)
 	size_t point_count_per_echo = 0; // number of points per echo
@@ -821,15 +902,15 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
 			{
 				const sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
-				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZRAEI32f(point.x, point.y, point.z, point.range, 
+				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZRAEI32f(point.x, point.y, point.z, point.range,
 				   point.azimuth, point.elevation, point.i, point.groupIdx, point.echoIdx, point.reflectorbit));
 				lidar_points_min_azimuth = std::min(lidar_points_min_azimuth, point.azimuth);
 				lidar_points_max_azimuth = std::max(lidar_points_max_azimuth, point.azimuth);
 			}
 		}
 	}
-	
-    // Versendung von Vollumläufen als ROS-Nachricht:
+
+  // Versendung von Vollumläufen als ROS-Nachricht:
 	// a. Prozess läuft an
 	// b. Segmente werden verworfen, bis ein Segment mit Startwinkel 0° eintrifft.
 	// c. Es werden dann 12 Segmente aufgesammelt, bis 360° erreicht sind.
@@ -842,45 +923,41 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	// 	  iv.  Konfiguration erfolgt über YAML-Datei.
 	// if(m_publish_topic_all_segments != "")
 	{
+		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): check allSegmentsCovered, segment_idx=" << segment_idx);
+  	// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): collected azimuth table = " << printElevationAzimuthTable(m_points_collector.lidar_points));
 		float precheck_min_azimuth_deg = m_points_collector.min_azimuth * 180.0f / (float)M_PI;
 		float precheck_max_azimuth_deg = m_points_collector.max_azimuth * 180.0f / (float)M_PI;
 		bool publish_cloud_360 = (precheck_max_azimuth_deg - precheck_min_azimuth_deg + 1 >= m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg - 1) // fast pre-check
 		    && m_points_collector.allSegmentsCovered(m_all_segments_azimuth_min_deg, m_all_segments_azimuth_max_deg, m_all_segments_elevation_min_deg, m_all_segments_elevation_max_deg); // all segments collected in m_points_collector
-		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.lastSegmentIdx=" << m_points_collector.lastSegmentIdx() 
-		//     << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count << ", m_points_collector.allSegmentsCovered=" << publish_cloud_360);
-		if (m_points_collector.total_point_count <= 0 || m_points_collector.telegram_cnt <= 0 || publish_cloud_360 || m_points_collector.lastSegmentIdx() > segment_idx) 
+		// ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.lastSegmentIdx=" << m_points_collector.lastSegmentIdx()
+		//     << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count
+		//     << ", azimuth_range_collected=(" << precheck_min_azimuth_deg << "," << precheck_max_azimuth_deg << ")=" << (precheck_max_azimuth_deg - precheck_min_azimuth_deg)
+		//     << ", azimuth_range_configured=(" << m_all_segments_azimuth_min_deg << "," << m_all_segments_azimuth_max_deg << ")=" << (m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg)
+		//     << ", m_points_collector.allSegmentsCovered=" << publish_cloud_360);
+		if (m_points_collector.total_point_count <= 0 || m_points_collector.telegram_cnt <= 0 || publish_cloud_360 || m_points_collector.lastSegmentIdx() > segment_idx)
 		{
 			// 1. publish 360 degree point cloud if all segments collected
 			// 2. start a new collection of all points (first time call, all segments covered, or segment index wrap around)
 			if (m_points_collector.total_point_count > 0 && m_points_collector.telegram_cnt > 0 && publish_cloud_360)
 			{
 				// publish 360 degree point cloud
-					// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
-          m_scan_time = (msgpack_data.timestamp_sec + 1.0e-9 * msgpack_data.timestamp_nsec) - (m_points_collector.timestamp_sec + 1.0e-9 * m_points_collector.timestamp_nsec);
-          for (int cloud_cnt = 0; cloud_cnt < m_custom_pointclouds_cfg.size(); cloud_cnt++)
+				// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
+				m_scan_time = (msgpack_data.timestamp_sec + 1.0e-9 * msgpack_data.timestamp_nsec) - (m_points_collector.timestamp_sec + 1.0e-9 * m_points_collector.timestamp_nsec);
+				for (int cloud_cnt = 0; cloud_cnt < m_custom_pointclouds_cfg.size(); cloud_cnt++)
+				{
+					CustomPointCloudConfiguration& custom_pointcloud_cfg = m_custom_pointclouds_cfg[cloud_cnt];
+					if (custom_pointcloud_cfg.publish() && custom_pointcloud_cfg.fullframe())
 					{
-		        CustomPointCloudConfiguration& custom_pointcloud_cfg = m_custom_pointclouds_cfg[cloud_cnt];
-						if (custom_pointcloud_cfg.publish() && custom_pointcloud_cfg.fullframe())
-						{
-							PointCloud2Msg pointcloud_msg_custom_fields;
-              convertPointsToCustomizedFieldsCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
-              publishPointCloud2Msg(m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields, std::max(1, (int)echo_count), -1, custom_pointcloud_cfg.coordinateNotation());
-							ROS_DEBUG_STREAM("publishPointCloud2Msg: " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
-						}
+						PointCloud2Msg pointcloud_msg_custom_fields;
+						convertPointsToCustomizedFieldsCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
+						publishPointCloud2Msg(m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields, std::max(1, (int)echo_count), -1, custom_pointcloud_cfg.coordinateNotation());
+						// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): published " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
 					}
-					// PointCloud2Msg pointcloud_msg, pointcloud_msg_polar;
-          // LaserScanMsgMap laser_scan_msg_map; // laser_scan_msg_map[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
-					// convertPointsToLaserscanMsg(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, m_points_collector.total_point_count, laser_scan_msg_map, m_frame_id);
-					// publishLaserscanMsg(m_node, m_publisher_laserscan_360, laser_scan_msg_map, std::max(1, (int)echo_count), -1);
-					// segment and fullframe pointclouds replaced by customized pointcloud configuration
-					// convertPointsToCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, m_points_collector.total_point_count, 
-					//     pointcloud_msg, pointcloud_msg_polar, laser_scan_msg_map, true, m_frame_id);
-					// publish(m_node, m_publisher_all_segments, pointcloud_msg, pointcloud_msg_polar, m_publisher_laserscan_360, laser_scan_msg_map, 
-					//     std::max(1, (int)echo_count), -1); // pointcloud, number of echos, segment index (or -1 if pointcloud contains data from multiple segments)
-					// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): cloud_fullframe published, " << m_points_collector.total_point_count << " points, " << pointcloud_msg.data.size() << " byte, "
-					//     << m_points_collector.segment_list.size() << " segments (" << sick_scansegment_xd::util::printVector(m_points_collector.segment_list, ",") << "), "
-					//     << m_points_collector.telegram_list.size() << " telegrams (" << sick_scansegment_xd::util::printVector(m_points_collector.telegram_list, ",") << "), "
-					//     << "min_azimuth=" << (m_points_collector.min_azimuth * 180.0 / M_PI) << ", max_azimuth=" << (m_points_collector.max_azimuth * 180.0 / M_PI) << " [deg]");
+				}
+				// publish 360 degree Laserscan message
+				LaserScanMsgMap laser_scan_msg_map; // laser_scan_msg_map[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
+				convertPointsToLaserscanMsg(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, m_points_collector.total_point_count, laser_scan_msg_map, m_frame_id, true);
+				publishLaserScanMsg(m_node, m_publisher_laserscan_360, laser_scan_msg_map, std::max(1, (int)echo_count), -1);
 			}
 			// Start a new 360 degree collection
 			m_points_collector = SegmentPointsCollector(telegram_cnt);
@@ -893,8 +970,13 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			m_points_collector.appendLidarPoints(lidar_points, segment_idx, telegram_cnt);
 			m_points_collector.min_azimuth = lidar_points_min_azimuth;
 			m_points_collector.max_azimuth = lidar_points_max_azimuth;
+		  // ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): started new point collection with segment_idx=" << segment_idx);
+		  // ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, lidar_points_min_azimuth=" << (lidar_points_min_azimuth * 180.0f / M_PI) << ", lidar_points_max_azimuth=" << (lidar_points_max_azimuth* 180.0f / M_PI));
+  		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, azimuth table = " << printElevationAzimuthTable(lidar_points));
+    	// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected azimuth table = " << printElevationAzimuthTable(m_points_collector.lidar_points));
+  		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected coverage table = " << printCoverageTable(m_points_collector.segment_coverage));
 		}
-		else if (telegram_cnt == m_points_collector.telegram_cnt + 1) // append lidar points to m_points_collector
+		else if (telegram_cnt > m_points_collector.telegram_cnt) // append lidar points to m_points_collector
 		{
 			if (m_points_collector.lidar_points.size() < lidar_points.size())
 				m_points_collector.lidar_points.resize(lidar_points.size());
@@ -904,6 +986,10 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			m_points_collector.appendLidarPoints(lidar_points, segment_idx, telegram_cnt);
 			m_points_collector.min_azimuth = std::min(m_points_collector.min_azimuth, lidar_points_min_azimuth);
 			m_points_collector.max_azimuth = std::max(m_points_collector.max_azimuth, lidar_points_max_azimuth);
+		  // ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, lidar_points_min_azimuth=" << (lidar_points_min_azimuth * 180.0f / M_PI) << ", lidar_points_max_azimuth=" << (lidar_points_max_azimuth* 180.0f / M_PI));
+  		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, azimuth table = " << printElevationAzimuthTable(lidar_points));
+    	// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected azimuth table = " << printElevationAzimuthTable(m_points_collector.lidar_points));
+  		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected coverage table = " << printCoverageTable(m_points_collector.segment_coverage));
 		}
 		else
 		{
@@ -917,7 +1003,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 					}
 					else
 					{
-						ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.lastSegmentIdx() 
+						ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.lastSegmentIdx()
 							<< ", current telegram: " << telegram_cnt << ", last telegram in collector: " << m_points_collector.telegram_cnt
 							<< ", datagram(s) missing, 360-degree-pointcloud not published");
 						if (m_points_collector.numEchos() > 1)
@@ -931,7 +1017,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		}
 		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx " << segment_idx << " of " << m_segment_count << ", " << m_points_collector.total_point_count << " points in collector");
 	}
-  
+
 	// Publish PointCloud2 message for the current segment
 	for (int cloud_cnt = 0; cloud_cnt < m_custom_pointclouds_cfg.size(); cloud_cnt++)
 	{
@@ -947,13 +1033,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 #if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
 #else
 	LaserScanMsgMap laser_scan_msg_map; // laser_scan_msg_map[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
-	PointCloud2Msg pointcloud_msg_all_fields, pointcloud_msg_segment, pointcloud_msg_segment_polar;
-	convertPointsToLaserscanMsg(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, total_point_count, laser_scan_msg_map, m_frame_id);
+	convertPointsToLaserscanMsg(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, total_point_count, laser_scan_msg_map, m_frame_id, false);
 	publishLaserScanMsg(m_node, m_publisher_laserscan_segment, laser_scan_msg_map, std::max(1, (int)echo_count), segment_idx);
-	// segment and fullframe pointclouds replaced by customized pointcloud configuration
-	// convertPointsToCloud(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, total_point_count, pointcloud_msg_segment, pointcloud_msg_segment_polar, laser_scan_msg_map, false, m_frame_id);
-	// publish(m_node, m_publisher_cur_segment, pointcloud_msg_segment, pointcloud_msg_segment_polar, m_publisher_laserscan_segment, laser_scan_msg_map, 
-	//     std::max(1, (int)echo_count), segment_idx); // pointcloud, number of echos, segment index (or -1 if pointcloud contains data from multiple segments)
 #endif
 }
 

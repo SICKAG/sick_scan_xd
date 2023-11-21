@@ -683,10 +683,11 @@ void ldmrsScanToPointCloud2(const datatypes::Scan* scan, sick_scan_xd::SickCloud
   {
     const ScanPoint& p = (*scan)[i];
     float range = p.getDist();
-    if (range_filter.apply(range)) // otherwise point dropped by range filter
+    bool range_modified = false;
+    if (range_filter.apply(range, range_modified)) // otherwise point dropped by range filter
     {
       float azi = p.getHAngle(), ele = -p.getVAngle();
-      if (fabs(range - p.getDist()) > FLT_EPSILON) // range modified, transform polar to cartesian
+      if (range_modified) // range modified, transform polar to cartesian
       {
         data_p->x = range * cos(ele) * cos(azi);
         data_p->y = range * cos(ele) * sin(azi);

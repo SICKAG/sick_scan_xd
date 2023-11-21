@@ -36,9 +36,40 @@ def extractMessageStart(payload):
         payload = payload[stx_index:]
     return payload
 
-def readPcapngFile(pcap_filename, verbose):
-    blocks_payload = []
-    blocks_timestamp = []
+# Filter pcap blocks by src ip, dst ip and port: send a pcap block if its src ip, dst ip and port is found in these lists (or all if this list empty), default: empty
+class PcapFilter:
+    def __init__(self, src_ip = [], dst_ip = [], port = [], proto = []):
+        self.src_ip = src_ip  # optional filter pcap blocks by src ip: send a pcap block if its src ip is found in this list (or all if this list empty), default: empty
+        self.dst_ip = dst_ip  # optional filter pcap blocks by dst ip: send a pcap block if its dst ip is found in this list (or all if this list empty), default: empty
+        self.port = port      # optional filter pcap blocks by ip port: send a pcap block if its ip port is found in this list (or all if this list empty), default: empty
+        self.proto = proto    # optional filter pcap blocks by protocoll ("TCP", UDP. or "IP"): send a pcap block if its protocol name is found in this list (or all if this list empty), default: empty
+
+# Container for decoded pcap blocks, containing the payload, timestamp, ip port, src ip and dst ip
+class PcapDecodedBlock:
+    def __init__(self, rawblock = None, timestamp = 0.0):
+        self.timestamp = timestamp
+        self.payload = bytes()
+        self.dst_ip = ""
+        self.src_ip = ""
+        self.dst_port = 0
+        self.proto = ""
+        if rawblock is not None:
+            self.payload = bytes(rawblock.payload)
+            self.dst_ip = rawblock.underlayer.dst
+            self.src_ip = rawblock.underlayer.src
+            self.proto = rawblock.name
+            if "dport" in rawblock.underlayer.payload.fields:
+                self.dst_port = rawblock.underlayer.payload.fields["dport"]
+            if rawblock.name == "IP":
+                self.dst_ip = rawblock.dst
+                self.src_ip = rawblock.src
+    def print(self):
+        payload_start_hex_str = "".join("\\x{:02x}".format(payload_byte) for payload_byte in self.payload[:4])
+        return "{} byte payload {}..., timestamp={}, src_ip={}, dst_ip={}, port={}".format(len(self.payload), payload_start_hex_str, self.timestamp, self.src_ip, self.dst_ip, self.dst_port)
+
+def readPcapngFile(pcap_filename, pcap_filter, verbose):
+    pcap_decoded_blocks = []
+    payload_length_accumulated_since_stx = 0
     with open(pcap_filename, 'rb') as pcap_file:
         pcap_scanner = FileScanner(pcap_file)
         for block_cnt, block in enumerate(pcap_scanner):
@@ -64,34 +95,47 @@ def readPcapngFile(pcap_filename, verbose):
                 # print("block {}: payload = {}".format(block_cnt, block_decoded.payload))
                 
                 # Decode payload
-                if isinstance(block_decoded.payload, scapy.packet.Raw) and len(block_decoded.payload) > 0:                
-                    payload = bytes(block_decoded.payload)
-                    if len(payload) < 64000:
-                        payload = extractMessageStart(payload)
-                        if verbose > 0:
-                            print("pcap block {}: {} byte payload".format(block_cnt, len(payload)))
-                        blocks_payload.append(payload)
-                        blocks_timestamp.append(block.timestamp)
-    return blocks_payload, blocks_timestamp
+                if isinstance(block_decoded.payload, scapy.packet.Raw) and len(block_decoded.payload) > 0:
+                    pcap_decoded_block = PcapDecodedBlock(block_decoded, block.timestamp)
+                    if len(pcap_filter.src_ip) > 0 and pcap_decoded_block.src_ip not in pcap_filter.src_ip:
+                        continue # wrong source ip
+                    if len(pcap_filter.dst_ip) > 0 and pcap_decoded_block.dst_ip not in pcap_filter.dst_ip:
+                        continue # wrong destination ip
+                    if pcap_decoded_block.dst_port > 0 and len(pcap_filter.port) > 0 and pcap_decoded_block.dst_port not in pcap_filter.port:
+                        continue # wrong port
+                    if len(pcap_filter.proto) > 0 and pcap_decoded_block.proto not in pcap_filter.proto:
+                        continue; # wrong protocol
+                    if pcap_decoded_block.payload.find(b'\x02\x02\x02\x02') >= 0:
+                        payload_length_accumulated_since_stx = 0
+                    payload_length_accumulated_since_stx = payload_length_accumulated_since_stx + len(pcap_decoded_block.payload)
+                    if verbose > 0:
+                        print("pcap block {}: {}, {} byte since stx".format(block_cnt, pcap_decoded_block.print(), payload_length_accumulated_since_stx))
+                    if len(pcap_decoded_block.payload) < 64000:
+                        pcap_decoded_block.payload = extractMessageStart(pcap_decoded_block.payload)
+                        pcap_decoded_blocks.append(pcap_decoded_block)
+    return pcap_decoded_blocks
 
 if __name__ == "__main__":
 
-    pcap_filename = "multiscan.pcapng" # "../../../../30_LieferantenDokumente/40_Realdaten/20201103_Realdaten/multiscan.pcapng"
-    udp_port = 2115 # UDP port to send msgpack datagrams
+    pcap_filename = "multiscan.pcapng"
+    udp_port = -1 # 2115 # UDP port to send msgpack datagrams (-1 for udp port from pcapng file)
     udp_send_rate = 0 # send rate in msgpacks per second, 240 for multiScan, or 0 to send corresponding to pcap-timestamps, or udp_send_rate > 1000 for max. rate
-    udp_prompt = 0 # prompt for key press after sending each udp packet (debugging only)
+    udp_prompt = 0 # prompt for key after sending each udp packet (debugging only)
     udp_dst_ip = "<broadcast>"
     num_repetitions = 1
     verbose = 0
+    max_seconds = 3600.0
 
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--pcap_filename", help="pcapng filepath", default=pcap_filename, type=str)
-    arg_parser.add_argument("--udp_port", help="udp port", default=udp_port, type=int)
+    arg_parser.add_argument("--udp_port", help="dst udp port, or -1 for udp port from pcapng file)", default=udp_port, type=int)
     arg_parser.add_argument("--send_rate", help="udp send rate in msgpacks per second, 240 for multiScan, or 0 to send by pcap-timestamps, or > 10000 for max. rate", default=udp_send_rate, type=int)
-    arg_parser.add_argument("--prompt", help="prompt for key press after sending each udp packet (debugging only)", default=udp_prompt, type=int)
+    arg_parser.add_argument("--prompt", help="prompt for key after sending each udp packet (debugging only)", default=udp_prompt, type=int)
     arg_parser.add_argument("--dst_ip", help="udp destination ip, e.g. 127.0.0.1 or <broadcast>", default=udp_dst_ip, type=str)
     arg_parser.add_argument("--repeat", help="number of repetitions", default=num_repetitions, type=int)
     arg_parser.add_argument("--verbose", help="print verbose messages", default=verbose, type=int)
+    arg_parser.add_argument("--filter", help="enable pcap filter by name, e.g. pcap_filter_multiscan_hildesheim for src_ip=192.168.0.1, dst_ip=192.168.0.100", default="", type=str)
+    arg_parser.add_argument("--max_seconds", help="max seconds to play", default=max_seconds, type=float)
     cli_args = arg_parser.parse_args()
     pcap_filename = cli_args.pcap_filename
     udp_port = cli_args.udp_port
@@ -100,11 +144,17 @@ if __name__ == "__main__":
     udp_dst_ip = cli_args.dst_ip
     num_repetitions = cli_args.repeat
     verbose = cli_args.verbose
-    
+    max_seconds = cli_args.max_seconds
+
+    # Optional filter pcap blocks by src ip, dst ip and port: send a pcap block if its src ip, dst ip and port is found in these lists (or all if this list empty), default: empty
+    pcap_filter = PcapFilter()
+    if cli_args.filter == "pcap_filter_multiscan_hildesheim": # pcapng filter multiscan Hildesheim: src_ip=192.168.0.1, dst_ip=192.168.0.100, ports 2115 (scandata) and 7503 (imu)
+        pcap_filter = PcapFilter([ "192.168.0.1" ], [ "192.168.0.100" ], [ 2115, 7503 ], [ "UDP", "IP" ] ) 
+
     # Read and parse pcap file, extract udp raw data
     print("multiscan_pcap_player: reading pcapfile \"{}\" ...".format(pcap_filename))
-    blocks_payload, blocks_timestamp = readPcapngFile(pcap_filename, verbose)
-    print("multiscan_pcap_player: sending {} udp packets ...".format(len(blocks_payload)))
+    pcap_blocks = readPcapngFile(pcap_filename, pcap_filter, verbose)
+    print("multiscan_pcap_player: sending {} udp packets ...".format(len(pcap_blocks)))
     
     # Init upd sender
     udp_sender_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) # UDP socket
@@ -112,37 +162,55 @@ if __name__ == "__main__":
     print("multiscan_pcap_player: sending on udp port {}, send_rate={}".format(udp_port, udp_send_rate))
    
     # Send udp raw data
+    timestamp_end = time.perf_counter() + max_seconds
+    udp_port_last = udp_port
     for repeat_cnt in range(num_repetitions):    
+        if time.perf_counter() >= timestamp_end:
+            break
         send_timestamp = 0
-        for block_cnt, payload in enumerate(blocks_payload):
-            # Send payload
+        for block_cnt, pcap_block in enumerate(pcap_blocks):
+            block_payload = pcap_block.payload
+            block_timestamp = pcap_block.timestamp
+            dst_udp_port = 0
+            if udp_port >= 0:
+                dst_udp_port = udp_port # send to configured udp port
+            elif pcap_block.dst_port > 0:
+                dst_udp_port = pcap_block.dst_port # send to udp port from pcapng file
+            elif udp_port_last > 0:
+                dst_udp_port = udp_port_last # udp port = 0: fragmented ip packet, send to udp port of previous udp packet
+            else:
+                continue # invalid udp port
+            udp_port_last = dst_udp_port
+            # Send block_payload
             if verbose > 0 or udp_prompt > 0:
-                print("pcap message {}: sending {} byte (udp {}:{})".format(block_cnt, len(payload), udp_dst_ip, udp_port))
+                payload_hex_str = "".join("\\x{:02x}".format(payload_byte) for payload_byte in block_payload[:4])
+                print("pcap message {}: sending {} byte {}... (udp {}:{})".format(block_cnt, len(block_payload), payload_hex_str, udp_dst_ip, dst_udp_port))
                 if udp_prompt > 0:
-                    payload_hex_str = "".join("{:02x}".format(payload_byte) for payload_byte in payload)
+                    payload_hex_str = "".join("{:02x}".format(payload_byte) for payload_byte in block_payload)
                     if len(payload_hex_str) > 32:
                         payload_hex_str = payload_hex_str[0:32] + "..."
-                    if payload.find(b'\x02\x02\x02\x02') >= 0:
+                    if block_payload.find(b'\x02\x02\x02\x02') >= 0:
                         time.sleep(0.1)
-                        input("pcap message {}: press ENTER to send {} byte {} >".format(block_cnt, len(payload), payload_hex_str))
+                        input("pcap message {}: press ENTER to send {} byte {} >".format(block_cnt, len(block_payload), payload_hex_str))
                     else:
-                        print("pcap message {}: sending {} byte {} ...".format(block_cnt, len(payload), payload_hex_str))
-            # udp_sender_socket.sendto(payload, ('<broadcast>', udp_port))
-            # udp_sender_socket.sendto(payload, ('127.0.0.1', udp_port))
-            udp_sender_socket.sendto(payload, (udp_dst_ip, udp_port))
+                        print("pcap message {}: sending {} byte {} ...".format(block_cnt, len(block_payload), payload_hex_str))
+            # udp_sender_socket.sendto(block_payload, ('<broadcast>', dst_udp_port))
+            # udp_sender_socket.sendto(block_payload, ('127.0.0.1', dst_udp_port))
+            udp_sender_socket.sendto(block_payload, (udp_dst_ip, dst_udp_port))
             if udp_prompt > 0:
-                print("pcap message {}: {} byte sent".format(block_cnt, len(payload), udp_dst_ip, udp_port))
-                # payload_hex_str = "".join("\\x{:02x}".format(payload_byte) for payload_byte in payload)
-                # print("payload dump ({} byte): {}".format(len(payload), payload_hex_str))
+                print("pcap message {}: {} byte sent".format(block_cnt, len(block_payload), udp_dst_ip, dst_udp_port))
+                # payload_hex_str = "".join("\\x{:02x}".format(payload_byte) for payload_byte in block_payload)
+                # print("block_payload dump ({} byte): {}".format(len(block_payload), payload_hex_str))
             # Send next message with delay from pcap timestamps or with configured rate
-            msg_timestamp = blocks_timestamp[block_cnt]
-            if send_timestamp > 0 and msg_timestamp > send_timestamp and udp_send_rate < 10000:
+            if time.perf_counter() >= timestamp_end:
+                break
+            if send_timestamp > 0 and block_timestamp > send_timestamp and udp_send_rate < 10000:
                 if udp_send_rate <= 0: #  delay from pcap timestamps
-                    delay = msg_timestamp - send_timestamp
+                    delay = block_timestamp - send_timestamp
                 else: # delay from configured rate
                     delay = 1.0 / udp_send_rate
                 time.sleep(delay)
             # else: # brute force delay, for performance tests on 2. PC only
             #     forced_delay(2.0e-4)
-            send_timestamp = msg_timestamp
+            send_timestamp = block_timestamp
     print("multiscan_pcap_player finished.")

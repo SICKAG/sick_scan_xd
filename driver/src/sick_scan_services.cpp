@@ -412,9 +412,15 @@ bool sick_scan_xd::SickScanServices::sendSopasCmdCheckResponse(const std::string
 
 #if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
 /*!
-* Sends the multiScan136 start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
+* Sends the multiScan start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
+* @param[in] hostname IP address of multiScan136, default 192.168.0.1
+* @param[in] port IP port of multiScan136, default 2115
+* @param[in] scanner_type type of scanner, currently supported are multiScan136 and picoScan150
+* @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1 
+* @param[in] imu_enable: Imu data transfer enabled
+* @param[in] imu_udp_port: UDP port of imu data (if imu_enable is true)
 */
-bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat)
+bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat, bool imu_enable, int imu_udp_port)
 {
   std::stringstream ip_stream(hostname);
   std::string ip_token;
@@ -430,16 +436,21 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
     ROS_ERROR_STREAM("## In case of multiscan/sick_scansegment_xd lidars, check parameter \"udp_receiver_ip\", too.");
     return false;
   }
-  std::stringstream eth_settings_cmd, scandataformat_cmd;
+  std::stringstream eth_settings_cmd, imu_eth_settings_cmd, scandataformat_cmd;
   scandataformat_cmd << "sWN ScanDataFormat " << scandataformat;
   eth_settings_cmd << "sWN ScanDataEthSettings 1";
+  imu_eth_settings_cmd << "sWN ImuDataEthSettings 1";
   for (int i = 0; i < ip_tokens.size(); i++)
   {
     eth_settings_cmd << " +";
     eth_settings_cmd << ip_tokens[i];
+    imu_eth_settings_cmd << " +";
+    imu_eth_settings_cmd << ip_tokens[i];
   }
   eth_settings_cmd << " +";
   eth_settings_cmd << port;
+  imu_eth_settings_cmd << " +";
+  imu_eth_settings_cmd << imu_udp_port;
   if (!sendSopasCmdCheckResponse(eth_settings_cmd.str(), "sWA ScanDataEthSettings")) // configure destination scan data output destination , f.e. "sWN ScanDataEthSettings 1 +192 +168 +0 +52 +2115" (ip 192.168.0.52 port 2115)
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEthSettings 1\") failed.");
@@ -460,19 +471,38 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiscanStartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataPreformatting 1\") failed.");
     return false;
   }
+  if (imu_enable && !sendSopasCmdCheckResponse(imu_eth_settings_cmd.str(), "sWA ImuDataEthSettings")) // imu data eth settings
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"" << imu_eth_settings_cmd.str() << "\") failed.");
+  }
+  if (!sendRun())
+  {
+    return false;
+  }
+  if (!sendAuthorization())
+  {
+     return false;
+  }
   if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 1", "sWA ScanDataEnable")) // enable scan data output
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEnable 1\") failed.");
     return false;
   }
+  if (imu_enable && !sendSopasCmdCheckResponse("sWN ImuDataEnable 1", "sWA ImuDataEnable")) // enable imu data transfer
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ImuDataEnable 1\") failed.");
+  }
+  if (!sendRun())
+  {
+    return false;
+  }
+  if (!sendAuthorization())
+  {
+     return false;
+  }
   if (!sendSopasCmdCheckResponse("sMN LMCstartmeas", "sAN LMCstartmeas")) // start measurement
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sMN LMCstartmeas\") failed.");
-    return false;
-  }
-  if (!sendSopasCmdCheckResponse("sMN Run", "sAN Run")) // apply the settings
-  {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sMN Run\") failed.");
     return false;
   }
   return true;
@@ -483,16 +513,20 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
 /*!
  * Sends the multiScan136 stop commands "sWN ScanDataEnable 0" and "sMN Run"
  */
-bool sick_scan_xd::SickScanServices::sendMultiScanStopCmd(void)
+bool sick_scan_xd::SickScanServices::sendMultiScanStopCmd(bool imu_enable)
 {
-  if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 0", "sWA ScanDataEnable")) // disble scan data output
+  if (!sendSopasCmdCheckResponse("sWN ScanDataEnable 0", "sWA ScanDataEnable")) // disable scan data output
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStopCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataEnable 0\") failed.");
     return false;
   }
-  if (!sendSopasCmdCheckResponse("sMN Run", "sAN Run")) // apply the settings
+  if (imu_enable && !sendSopasCmdCheckResponse("sWN ImuDataEnable 0", "sWA ImuDataEnable")) // disable imu data output
   {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStopCmd(): sendSopasCmdCheckResponse(\"sMN Run\") failed.");
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStopCmd(): sendSopasCmdCheckResponse(\"sWN ImuDataEnable 0\") failed.");
+    return false;
+  }
+  if (!sendRun())
+  {
     return false;
   }
   return true;

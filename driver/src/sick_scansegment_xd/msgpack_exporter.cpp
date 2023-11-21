@@ -195,7 +195,7 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
                 size_t msg_udp_received_counter = (msgpack_counter - msg_first_udp_counter) + 1;
                 if (m_measure_timing)
                 {
-                    int msg_cnt_delta = (int)msg_udp_received_counter - (int)msg_exported_counter;
+                    int msg_cnt_delta = std::max(0, (int)msg_udp_received_counter - (int)msg_exported_counter);
                     double packages_lost_rate = std::abs((double)msg_cnt_delta) / (double)msg_udp_received_counter;
                     bool do_print_message = m_verbose &&
                         (sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(last_print_timestamp, fifo_clock::now()) > 1.0) && // avoid printing with more than 1 Hz
@@ -216,7 +216,7 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
                     if (m_verbose && ((msg_exported_counter%100) == 0 || sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(last_print_timestamp, fifo_clock::now()) > 0.1)) // avoid printing with more than 100 Hz
                     {
                         ROS_INFO_STREAM("MsgPack/Compact-Exporter:   " << current_udp_fifo_size << " udp packages still in input fifo, " << current_output_fifo_size << " messages still in output fifo, current segment index: " << msgpack_output.segmentIndex);
-                        ROS_INFO_STREAM("MsgPack/Compact-Exporter: " << msg_udp_received_counter << " udp messages received, " << msg_exported_counter << " messages exported, " << (100.0 * packages_lost_rate) << "% package lost.");
+                        ROS_INFO_STREAM("MsgPack/Compact-Exporter: " << msg_udp_received_counter << " udp scandata messages received, " << msg_exported_counter << " messages exported (scan+imu), " << (100.0 * packages_lost_rate) << "% package lost.");
                         ROS_INFO_STREAM("MsgPack/Compact-Exporter: max. " << max_count_udp_messages_in_fifo << " udp messages buffered, max " << max_count_output_messages_in_fifo << " export messages buffered.");
                         std::stringstream s;
                         s << "MsgPack/Compact-Exporter: " << msg_exported_counter << " messages exported at " << std::fixed << std::setprecision(3) << msg_exported_rate << " Hz, mean time: " 

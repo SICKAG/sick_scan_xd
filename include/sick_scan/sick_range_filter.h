@@ -101,11 +101,13 @@ namespace sick_scan_xd
         * Apply an optional range filter.
         * Note: Range filter applies only to Pointcloud messages, not to LaserScan messages.
         * @param[in+out] range range in meter (input: range from scan message, output: range after filter)
+        * @param[out] range_modified true, if range has been overwritten, otherwise false
         * @return false if point dropped, otherwise true (i.e. append a point to the pointcloud, if apply returns true)
         */
-        bool apply(float& range) const
+        bool apply(float& range, bool& range_modified) const
         {
             bool ret_val = true;
+            range_modified = false;
             if ((m_settings != RANGE_FILTER_DEACTIVATED) && (range < m_range_min || range > m_range_max)) // range not in [range_min, range_max], apply filter
             {
                 switch(m_settings)
@@ -117,15 +119,19 @@ namespace sick_scan_xd
                         break;
                     case RANGE_FILTER_TO_ZERO:      // set range = 0, if range is not within [range_min, range_max]
                         range = 0;
+                        range_modified = true;
                         break;
                     case RANGE_FILTER_TO_RANGE_MAX: // set range = range_max, if range is not within [range_min, range_max]
                         range = m_range_max;
+                        range_modified = true;
                         break;
                     case RANGE_FILTER_TO_FLT_MAX:   // set range = FLT_MAX, if range is not within [range_min, range_max]
                         range = FLT_MAX;
+                        range_modified = true;
                         break;
                     case RANGE_FILTER_TO_NAN:       // set range = NAN, if range is not within [range_min, range_max]
                         range = std::nanf("");
+                        range_modified = true;
                         break;
                     default:
                         ROS_ERROR_STREAM("## ERROR SickRangeFilter::apply(): invalid setting " << m_settings << ", please check parameter \"range_filter_handling\" in the configuration and/or launch-file.");
@@ -133,6 +139,39 @@ namespace sick_scan_xd
                 }
             }
 			return ret_val;
+        }
+
+        /*
+        * Overwrites x,y,z of a lidar_point if range has been set to 0, max, FLT_MAX or NaN by apply
+        * @return true if x,y,z have been set, false otherwise
+        */
+        bool applyXYZ(float& x, float& y, float& z, float azimuth, float elevation)
+        {
+            bool ret_val = false;
+            switch(m_settings) 
+            {
+                case RANGE_FILTER_TO_ZERO:
+                    x = y = z = 0.0f;
+                    ret_val = true;
+                    break;
+                case RANGE_FILTER_TO_RANGE_MAX:
+                    x = m_range_max * cos(elevation) * cos(azimuth);
+                    y = m_range_max * cos(elevation) * sin(azimuth);
+                    z = m_range_max * sin(elevation);
+                    ret_val = true;
+                    break;
+                case RANGE_FILTER_TO_FLT_MAX: 
+                    x = y = z = FLT_MAX;
+                    ret_val = true;
+                    break;
+                case RANGE_FILTER_TO_NAN:
+                    x = y = z = std::nanf("");;
+                    ret_val = true;
+                    break;
+                default:
+                    break;
+            }
+            return ret_val;
         }
 
         /*
@@ -168,6 +207,13 @@ namespace sick_scan_xd
             s << "(" << std::fixed << std::setprecision(3) << m_range_min << "," << m_range_max << "," << (int)(m_settings) << ")";
             return s.str();
         }
+
+        /*
+        * Returns the filter configuration
+        */
+        float rangeMin(void) const { return m_range_min; }
+        float rangeMax(void) const { return m_range_max; }
+        RangeFilterResultHandling setting(void) const { return m_settings; }
 
     protected:
 

@@ -155,14 +155,17 @@ namespace sick_scan_xd
      * @param[in] hostname IP address of multiScan136, default 192.168.0.1
      * @param[in] port IP port of multiScan136, default 2115
      * @param[in] scanner_type type of scanner, currently supported are multiScan136 and picoScan150
-     * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
+     * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1 
+     * @param[in] imu_enable: Imu data transfer enabled
+     * @param[in] imu_udp_port: UDP port of imu data (if imu_enable is true)
      */
-    bool sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat);
+    bool sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat, bool imu_enable, int imu_udp_port);
 
     /*!
      * Sends the multiScan stop commands "sWN ScanDataEnable 0" and "sMN Run"
+     * @param[in] imu_enable: Imu data transfer enabled
      */
-    bool sendMultiScanStopCmd(void);
+    bool sendMultiScanStopCmd(bool imu_enable);
 
     /*!
     * Sends the SOPAS command to query multiScan136 filter settings (FREchoFilter, LFPangleRangeFilter, host_LFPlayerFilter)
