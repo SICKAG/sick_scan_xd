@@ -21,7 +21,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
 
 3. Build sick_generic_caller:
    ```
-   source /opt/ros/foxy/setup.bash # replace foxy by your ros distro
+   source /opt/ros/humble/setup.bash # replace foxy by your ros distro
    colcon build --packages-select libsick_ldmrs --event-handlers console_direct+
    source ./install/setup.bash
    colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+
@@ -29,7 +29,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    source ./install/setup.bash
    ```
-   For ROS versions other than foxy, please replace `source /opt/ros/foxy/setup.bash` with your ros distribution.
+   For ROS versions other than foxy, please replace `source /opt/ros/humble/setup.bash` with your ros distribution.
 
 Note: LDMRS sensors are currently not supported on Raspberry. Build with cmake flag `-DLDMRS=0 -DRASPBERRY=1` on Raspberry:
    ```
