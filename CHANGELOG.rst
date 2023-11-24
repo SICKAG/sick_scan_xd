@@ -2,8 +2,8 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.1.1 (2023-11-24)
+------------------
 * bloom pretest with package version 3.1
 * bloom pretest with package version 3.1
 * Contributors: rostest
