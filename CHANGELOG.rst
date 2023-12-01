@@ -2,8 +2,8 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.1.3 (2023-12-01)
+------------------
 * 3.1.1
 * Update CHANGELOG.rst
 * Build options for bloom release, merge bugfix updates (mrs1xxx_init, tim240_protocol_switch, nav350_imk), documentation update (msgpack11 removed)
