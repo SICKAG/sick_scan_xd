@@ -2,8 +2,14 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Build options for bloom release, merge bugfix updates (mrs1xxx_init, tim240_protocol_switch, nav350_imk), documentation update (msgpack11 removed)
+* Contributors: rostest
+
 3.1.1 (2023-11-24)
 ------------------
+* bloom pretest with release 3.1
 * bloom pretest with package version 3.1
 * bloom pretest with package version 3.1
 * Contributors: rostest
