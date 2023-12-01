@@ -74,12 +74,11 @@ Start src\sick_scan_xd\test\docker\vc_xsrv_config.xlaunch to run the VcXsrv X-se
    cd sick_scan_ws
    ```
 
-2. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
    mkdir src
    pushd src
    git clone https://github.com/SICKAG/libsick_ldmrs.git
-   git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```

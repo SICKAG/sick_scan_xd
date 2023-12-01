@@ -123,6 +123,7 @@ namespace sick_scan_xd
       CMD_APPLICATION_MODE_FIELD_ON,
       CMD_APPLICATION_MODE_FIELD_OFF,
       CMD_APPLICATION_MODE_RANGING_ON,
+      CMD_READ_ACTIVE_APPLICATIONS, // "sRN SetActiveApplications"
       CMD_SET_ACCESS_MODE_3,
       CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER,
       CMD_SET_OUTPUT_RANGES,
@@ -430,6 +431,8 @@ namespace sick_scan_xd
     \return true, if this driver supports the scanner identified by the identification string
     */
     bool isCompatibleDevice(const std::string identStr) const;
+
+    bool switchColaProtocol(bool useBinaryCmd);
 
 #ifdef USE_DIAGNOSTIC_UPDATER
     std::shared_ptr<diagnostic_updater::Updater> diagnostics_;

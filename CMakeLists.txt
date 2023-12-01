@@ -111,9 +111,6 @@ endif()
 if(WIN32)
     add_compile_options(-D_WINSOCK_DEPRECATED_NO_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_WIN32_WINNT=0x0A00)
     link_libraries(ws2_32)    
-else()
-    link_libraries(pthread) # std::thread requires pthread on linux
-    link_libraries(dl)      # dynamic loading of libraries
 endif()
 
 if(RASPBERRY EQUAL 1)
@@ -550,12 +547,12 @@ if(ROS_VERSION EQUAL 1)
         ${catkin_EXPORTED_TARGETS}
         ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
-    target_link_libraries(${PROJECT_NAME}_lib ${MSGPACK11_LIBRARIES} ${catkin_LIBRARIES})
-    target_link_libraries(${PROJECT_NAME}_shared_lib ${MSGPACK11_LIBRARIES} ${catkin_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME}_lib ${catkin_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME}_shared_lib ${catkin_LIBRARIES})
 
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
     
-    target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES})
+    target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
     
     #
     #  radar_object_marker (receives radar msg. and publishes marker array for rviz or similar
@@ -646,10 +643,10 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     if(ROS_VERSION EQUAL 0)    
         # target_compile_options(${PROJECT_NAME}_shared_lib PUBLIC "-fPIC")
         # target_link_options(${PROJECT_NAME}_shared_lib PUBLIC "-fPIC")
-        target_link_libraries(${PROJECT_NAME}_shared_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES})
+        target_link_libraries(${PROJECT_NAME}_shared_lib ${SICK_LDMRS_LIBRARIES})
     endif()
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
-    target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES})
+    target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
 
 endif()
 
@@ -725,15 +722,17 @@ add_executable(sick_scan_xd_api_test
     test/src/sick_scan_xd_api/toojpeg/toojpeg.cpp
 )
 target_include_directories(sick_scan_xd_api_test PUBLIC test/src/sick_scan_xd_api/toojpeg)
-if(ROS_VERSION EQUAL 1)
-    target_link_libraries(sick_scan_xd_api_test ${catkin_LIBRARIES})
-    add_dependencies(sick_scan_xd_api_test
-        ${PROJECT_NAME}_gencfg
-        ${catkin_EXPORTED_TARGETS}
-        ${${PROJECT_NAME}_EXPORTED_TARGETS})
-endif()
-if(ROS_VERSION EQUAL 0 AND NOT WIN32)
-    target_link_options(sick_scan_xd_api_test PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+if(NOT WIN32)
+    target_link_libraries(sick_scan_xd_api_test "dl") # link with dl for dynamic library loading
+    if(ROS_VERSION EQUAL 0)
+        target_link_libraries(sick_scan_xd_api_test "pthread") # pthread required for std::thread
+        target_link_options(sick_scan_xd_api_test PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+    elseif(ROS_VERSION EQUAL 1)
+        target_link_libraries(sick_scan_xd_api_test ${catkin_LIBRARIES})
+        add_dependencies(sick_scan_xd_api_test ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+    elseif(ROS_VERSION EQUAL 2)
+        target_link_libraries(sick_scan_xd_api_test "pthread") # pthread required for std::thread
+    endif()
 endif()
 
 # install sick_scan_xd_shared_lib incl. API headerfiles
@@ -827,11 +826,12 @@ if((${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) AND (NOT WIN32 OR ROS_VERSIO
     target_link_libraries(sick_scan_emulator
         ${catkin_LIBRARIES}
         ${roslib_LIBRARIES}
-        ${PROJECT_NAME}_lib
-        ${MSGPACK11_LIBRARIES} 
+        ${PROJECT_NAME}_lib 
         ${LIB_JSONCPP})
     target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
-    
+    if(NOT WIN32 AND NOT ROS_VERSION EQUAL 1)
+        target_link_libraries(sick_scan_emulator "pthread") # pthread required for std::thread
+    endif()    
     if(ROS_VERSION EQUAL 1)
         install(TARGETS sick_scan_emulator
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
@@ -863,8 +863,11 @@ if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
         tools/test_server/src/test_server_cola_msg.cpp
         tools/test_server/src/test_server_ldmrs_msg.cpp
         tools/test_server/src/test_server_thread.cpp)
-    target_link_libraries(test_server ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} ${MSGPACK11_LIBRARIES} ${LIB_JSONCPP})
+    target_link_libraries(test_server ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} ${LIB_JSONCPP})
     target_include_directories(test_server PUBLIC test test/emulator/include)
+    if(NOT WIN32 AND NOT ROS_VERSION EQUAL 1)
+        target_link_libraries(test_server "pthread") # pthread required for std::thread
+    endif()    
     if(ROS_VERSION EQUAL 2)
         ament_target_dependencies(test_server "rclcpp" )
     endif()
@@ -876,4 +879,3 @@ if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
         tools/test_server/launch
         DESTINATION share/${PROJECT_NAME})
 endif()
-

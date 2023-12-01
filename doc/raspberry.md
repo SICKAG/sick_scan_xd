@@ -13,7 +13,7 @@ Cmake option " -DRASPBERRY=1" activates compiler settings for the Raspberry. Las
 The following screenshot shows sick_scan_xd running under ROS-1 on a Raspberry Pi 4 connected to a multiscan lidar. A Linux-PC uses rviz to display the fullframe pointcloud generated on the Raspberry. The ssh-terminal shows the sick_scan_xd log messages on the Raspberry:
 ![screenshot raspberry performance test](screenshots/raspberry-perftest-04.png)
 
-On a Raspberry Pi 4, sick_scan_xd processes 240 msgpacks/second with a mean latency of 2.7 milliseconds/msgpack.
+On a Raspberry Pi 4, sick_scan_xd processes 240 messages/second with a mean latency of 2.7 milliseconds/message.
 
 ## Performance
 
@@ -55,7 +55,7 @@ Performance problems can have very different reasons. Notes to help with the eli
     ```
     The result should look like the follwing screenshot:
     ![screenshot raspberry performance test](screenshots/raspberry-perftest-01.png)
-    If you otherwise observe the loss of UDP packets, message drops, missing pointclouds or mean latency times significantly higher than 6 milliseconds/msgpack, check the system load of your Raspberry and try to eliminate cpu or network intensive processes.
+    If you otherwise observe the loss of UDP packets, message drops, missing pointclouds or mean latency times significantly higher than 6 milliseconds/message, check the system load of your Raspberry and try to eliminate cpu or network intensive processes.
 
 4. Start sick_scan and the sopas test server on the Raspberry as above, but run the udp player `multiscan_perftest_player.py` on another PC in your local subnet, e.g.
     ```
@@ -63,7 +63,7 @@ Performance problems can have very different reasons. Notes to help with the eli
     ```
     Replace the example ip adress `192.168.1.27` by the ip adress of your Raspberry. The result should look like the follwing screenshot:
     ![screenshot raspberry performance test](screenshots/raspberry-perftest-02.png)
-    If you otherwise observe the loss of UDP packets, message drops, missing pointclouds or mean latency times significantly higher than 6 milliseconds/msgpack, check the system load of your Raspberry and try to eliminate cpu or network intensive processes. sick_scan_xd (i.e. process sick_generic_caller) should consume ca. 80% of one core resp. cause ca. 20% of the total cpu load.
+    If you otherwise observe the loss of UDP packets, message drops, missing pointclouds or mean latency times significantly higher than 6 milliseconds/message, check the system load of your Raspberry and try to eliminate cpu or network intensive processes. sick_scan_xd (i.e. process sick_generic_caller) should consume ca. 80% of one core resp. cause ca. 20% of the total cpu load.
 
 ## Troubleshooting
 
@@ -80,7 +80,6 @@ On your local Linux PC (Raspberry IP-address is 192.168.178.52 in this example):
 mkdir -p ./sick_scan_xd_raspberry_pi_pretest/src
 pushd ./sick_scan_xd_raspberry_pi_pretest/src
 git clone https://github.com/SICKAG/libsick_ldmrs.git
-git clone https://github.com/SICKAG/msgpack11.git
 git clone -b feature/raspberry_pi_pretest https://github.com/SICKAG/sick_scan_xd.git
 popd
 scp -rp ./sick_scan_xd_raspberry_pi_pretest 192.168.178.52:/home/rostest/sick_scan_xd_raspberry_pi_pretest

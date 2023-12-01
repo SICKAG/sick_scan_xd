@@ -24,20 +24,12 @@ Run the following commands to build the shared library `libsick_scan_xd_shared_l
 ```
 # Clone repositories
 git clone https://github.com/SICKAG/libsick_ldmrs.git
-git clone https://github.com/SICKAG/msgpack11.git
 git clone https://github.com/SICKAG/sick_scan_xd.git
 # Build libsick_ldmrs library
 mkdir -p ./build
 mkdir -p ./libsick_ldmrs/build
 pushd libsick_ldmrs/build
 cmake -G "Unix Makefiles" ..
-make -j4
-sudo make -j4 install    
-popd
-# Build msgpack library
-mkdir -p ./msgpack11/build
-pushd msgpack11/build
-cmake -DMSGPACK11_BUILD_TESTS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -G "Unix Makefiles" ..
 make -j4
 sudo make -j4 install    
 popd
@@ -60,10 +52,9 @@ After successful build, the shared library `libsick_scan_xd_shared_lib.so` and a
 
 Run the following commands to build the shared library `sick_scan_xd_shared_lib.dll` with Visual Studio 2019 on Windows:
 ```
-# Clone repositories
-git clone https://github.com/SICKAG/msgpack11.git
+# Clone repository sick_scan_xd
 git clone https://github.com/SICKAG/sick_scan_xd.git
-# Build libraries msgpack and sick_scan_xd_shared_lib.dll
+# Build libraries sick_scan_xd_shared_lib.dll
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
 set _os=x64
 set _cmake_string=Visual Studio 16
@@ -71,13 +62,6 @@ set _msvc=Visual Studio 2019
 set _cmake_build_dir=build
 cd sick_scan_xd
 if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
-if not exist %_cmake_build_dir%\msgpack11 mkdir %_cmake_build_dir%\msgpack11
-pushd %_cmake_build_dir%\msgpack11
-cmake -DMSGPACK11_BUILD_TESTS=0 -G "%_cmake_string%" ../../../msgpack11
-if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 with cmake & @pause )
-cmake --build . --clean-first --config Debug
-cmake --build . --clean-first --config Release
-popd
 pushd %_cmake_build_dir%
 cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
 if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% sick_scan_xd with cmake & @pause )

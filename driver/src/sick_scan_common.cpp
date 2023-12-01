@@ -183,6 +183,20 @@ const std::string binScanfGetStringFromVec(std::vector<unsigned char> *replyDumm
   return (s);
 }
 
+static char getFirmwareVersionIdMRS1xxx(const std::string& deviceIdentStr) // Get MRS1xxx firmware version from device ident string
+{
+  size_t device_idx = deviceIdentStr.find("MRS1xxx"); // Get MRS1xxx version from device ident string
+  size_t version_idx = ((device_idx != std::string::npos) ? deviceIdentStr.find("V", device_idx) : std::string::npos);
+  char version_id = ((version_idx != std::string::npos) ? deviceIdentStr[version_idx + 1] : '0');
+  return version_id;
+}
+
+static bool& isFieldEvaluationActive()
+{
+  static bool field_evaluation_active = false;
+  return field_evaluation_active;
+}
+
 namespace sick_scan_xd
 {
   /*!
@@ -1184,6 +1198,22 @@ namespace sick_scan_xd
     return ExitSuccess;
   }
 
+  bool SickScanCommon::switchColaProtocol(bool useBinaryCmd)
+  {
+    std::vector<unsigned char> sopas_response;
+    std::vector<std::string> sopas_change_cola_commands = { cmdSetAccessMode3(), sopasCmdVec[(useBinaryCmd ? CMD_SET_TO_COLA_B_PROTOCOL : CMD_SET_TO_COLA_A_PROTOCOL)] };
+    for(int n = 0; n < sopas_change_cola_commands.size(); n++)
+    {
+      if (sendSopasAorBgetAnswer(sopas_change_cola_commands[n], &sopas_response, !useBinaryCmd) != 0) // no answer
+      {
+        ROS_WARN_STREAM("checkColaDialect: no lidar response to sopas requests \"" << sopas_change_cola_commands[n] << "\", aborting");
+        return false;
+      }
+    }
+    ROS_INFO_STREAM("checkColaDialect: switched to Cola-" << (useBinaryCmd ? "B" : "A"));
+    return true;
+  }
+
   // Check Cola-Configuration of the scanner:
   // * Send "sRN DeviceState" with configured cola-dialect (Cola-B = useBinaryCmd)
   // * If lidar does not answer:
@@ -1192,6 +1222,13 @@ namespace sick_scan_xd
   //     * Switch to configured cola-dialect (Cola-B = useBinaryCmd) using "sWN EIHstCola" and restart
   ExitCode SickScanCommon::checkColaTypeAndSwitchToConfigured(bool useBinaryCmd)
   {
+    static bool tim240_binary_mode = useBinaryCmd;
+    bool useBinaryCmdCfg = useBinaryCmd;
+    if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+    {
+      useBinaryCmd = tim240_binary_mode; // TiM240 does not respond to any request if once sent a sopas command in wrong cola dialect. Toggle Cola dialect directly after restart required for TiM240.
+      ROS_INFO_STREAM("checkColaDialect using Cola-" << (useBinaryCmd ? "B" : "A") << " (TiM-240)");
+    }
     if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_DEVICE_STATE], 0, useBinaryCmd) != 0) // no answer
     {
       ROS_WARN_STREAM("checkColaDialect: lidar response not in configured Cola-dialect Cola-" << (useBinaryCmd ? "B" : "A") << ", trying different Cola configuration");
@@ -1200,30 +1237,33 @@ namespace sick_scan_xd
       {
         ROS_WARN_STREAM("checkColaDialect: no lidar response in any cola configuration, check lidar and network!");
         ROS_WARN_STREAM("SickScanCommon::init_scanner() failed, aborting.");
-        return ExitError;
       }
       else
       {
         ROS_WARN_STREAM("checkColaDialect: lidar response in configured Cola-dialect Cola-" << (!useBinaryCmd ? "B" : "A") << ", changing Cola configuration and restart!");
-        std::vector<std::string> sopas_change_cola_commands = {
-          cmdSetAccessMode3(), // sopasCmdVec[CMD_SET_ACCESS_MODE_3],
-          sopasCmdVec[(useBinaryCmd ? CMD_SET_TO_COLA_B_PROTOCOL : CMD_SET_TO_COLA_A_PROTOCOL)]
-        };
-        for(int n = 0; n < sopas_change_cola_commands.size(); n++)
-        {
-          if (sendSopasAorBgetAnswer(sopas_change_cola_commands[n], &sopas_response, !useBinaryCmd) != 0) // no answer
-          {
-            ROS_WARN_STREAM("checkColaDialect: no lidar response to sopas requests \"" << sopas_change_cola_commands[n] << "\", aborting");
-            return ExitError;
-          }
-        }
+        switchColaProtocol(useBinaryCmd);
         ROS_INFO_STREAM("checkColaDialect: restarting after Cola configuration change.");
-        return ExitError;
       }
+      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+      {
+        tim240_binary_mode = !tim240_binary_mode; // TiM240 does not respond to any request if once sent a sopas command in wrong cola dialect. Toggle Cola dialect directly after restart required for TiM240.
+        ROS_INFO_STREAM("checkColaDialect: switching to Cola-" << (useBinaryCmd ? "B" : "A") << " after restart (TiM-240)");
+      }
+      return ExitError;
     }
     else
     {
       ROS_INFO_STREAM("checkColaDialect: lidar response in configured Cola-dialect Cola-" << (useBinaryCmd ? "B" : "A"));
+      if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_TIM_240_NAME) == 0)
+      {
+        if (useBinaryCmd != useBinaryCmdCfg)
+        {
+          ROS_INFO_STREAM("checkColaDialect sucessful using Cola-" << (useBinaryCmd ? "B" : "A") << ", switch to Cola-" << (useBinaryCmdCfg ? "B" : "A") << " (TiM-240)");
+          switchColaProtocol(useBinaryCmdCfg);
+          tim240_binary_mode = useBinaryCmdCfg;
+          return ExitError; // Restart after protocol switch required for TiM240
+        }
+      }
     }
     return ExitSuccess;
   }
@@ -1496,6 +1536,7 @@ namespace sick_scan_xd
     sopasCmdVec[CMD_APPLICATION_MODE_FIELD_ON] = "\x02sWN SetActiveApplications 1 FEVL 1\x03"; // <STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}1<ETX>
     sopasCmdVec[CMD_APPLICATION_MODE_FIELD_OFF] = "\x02sWN SetActiveApplications 1 FEVL 0\x03"; // <STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}0<ETX>
     sopasCmdVec[CMD_APPLICATION_MODE_RANGING_ON] = "\x02sWN SetActiveApplications 1 RANG 1\x03";
+    sopasCmdVec[CMD_READ_ACTIVE_APPLICATIONS] = "\x02sRN SetActiveApplications\x03";
     sopasCmdVec[CMD_SET_TO_COLA_A_PROTOCOL] = "\x02sWN EIHstCola 0\x03";
     sopasCmdVec[CMD_GET_PARTIAL_SCANDATA_CFG] = "\x02sRN LMDscandatacfg\x03";//<STX>sMN{SPC}mLMPsetscancfg{SPC } +5000{SPC}+1{SPC}+5000{SPC}-450000{SPC}+2250000<ETX>
     sopasCmdVec[CMD_GET_PARTIAL_SCAN_CFG] = "\x02sRN LMPscancfg\x03";
@@ -1645,6 +1686,7 @@ namespace sick_scan_xd
     // sopasCmdErrMsg[CMD_ALIGNMENT_MODE] = "Error setting Alignmentmode";
     sopasCmdErrMsg[CMD_SCAN_LAYER_FILTER] = "Error setting ScanLayerFilter";
     sopasCmdErrMsg[CMD_APPLICATION_MODE] = "Error setting Meanfilter";
+    sopasCmdErrMsg[CMD_READ_ACTIVE_APPLICATIONS] = "Error reading active applications by \"sRA SetActiveApplications\"";
     sopasCmdErrMsg[CMD_SET_ACCESS_MODE_3] = "Error Access Mode Client";
     sopasCmdErrMsg[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER] = "Error Access Mode Client";
     sopasCmdErrMsg[CMD_SET_OUTPUT_RANGES] = "Error setting angular ranges";
@@ -1776,6 +1818,10 @@ namespace sick_scan_xd
     if (tryToStopMeasurement)
     {
       sopasCmdChain.push_back(CMD_STOP_MEASUREMENT);
+      if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0)
+      {
+          sopasCmdChain.push_back(CMD_READ_ACTIVE_APPLICATIONS); // "sRN SetActiveApplications"
+      }
       int numberOfLayers = parser_->getCurrentParamPtr()->getNumberOfLayers();
 
       switch (numberOfLayers)
@@ -2160,13 +2206,32 @@ namespace sick_scan_xd
         if (useBinaryCmdNow)
         {
           this->convertAscii2BinaryCmd(sopasCmd.c_str(), &reqBinary);
-          result = sendSopasAndCheckAnswer(reqBinary, &replyDummy);
+          if (reqBinary.size() > 0)
+          {
+            result = sendSopasAndCheckAnswer(reqBinary, &replyDummy);
+          }
+          else
+          {
+            result = 0;
+          }
           sopasReplyBinVec[cmdId] = replyDummy;
         }
         else
         {
           result = sendSopasAndCheckAnswer(sopasCmd.c_str(), &replyDummy);
         }
+
+        if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0 && sopasCmd == sopasCmdVec[CMD_READ_ACTIVE_APPLICATIONS]) // "sRN SetActiveApplications"
+        {
+          std::string sopas_reply = DataDumper::binDataToAsciiString(replyDummy.data(), replyDummy.size());
+          ROS_INFO_STREAM("response to \"sRN SetActiveApplications\": " << sopas_reply);
+          if (sopas_reply.find("FEVL\\x01") != std::string::npos)
+            isFieldEvaluationActive() = true;
+          if (sopas_reply.find("FEVL\\x00") != std::string::npos)
+            isFieldEvaluationActive() = false;
+          ROS_INFO_STREAM("FieldEvaluationActive = " << (isFieldEvaluationActive() ? "true": "false"));
+        }
+
         if (result == 0) // command sent successfully
         {
           // useBinaryCmd holds information about last successful command mode
@@ -3979,6 +4044,8 @@ namespace sick_scan_xd
           std::vector<uint8_t> addLandmarkRequest = { 0x02, 0x02, 0x02, 0x02, 0, 0, 0, 0 };
           addLandmarkRequest.insert(addLandmarkRequest.end(), addLandmarkRequestPayload.begin(), addLandmarkRequestPayload.end());
           setLengthAndCRCinBinarySopasRequest(&addLandmarkRequest);
+          ROS_DEBUG_STREAM("Sending landmarks, " << addLandmarkRequest.size() << " byte sopas request (" << addLandmarkRequestPayload.size()
+            << " byte payload): \"" << DataDumper::binDataToAsciiString(addLandmarkRequest.data(), addLandmarkRequest.size()) << "\"");
           if (sendSopasAndCheckAnswer(addLandmarkRequest, &sopas_response) != 0)
             return ExitError;
           // Store mapping layout: "sMN mNLAYStoreLayout"
@@ -5326,7 +5393,7 @@ namespace sick_scan_xd
     std::string keyWord1 = "sWN FREchoFilter";
     std::string keyWord2 = "sEN LMDscandata";
     std::string keyWord3 = "sWN LMDscandatacfg";
-    std::string keyWord4 = "sWN SetActiveApplications";
+    std::string keyWord4 = "sWN SetActiveApplications"; // "sWN SetActiveApplications 2 FEVL <0|1> RANG 1" for MRS-1xxx with firmware >= 2.x
     std::string keyWord5 = "sEN IMUData";
     std::string keyWord6 = "sWN EIIpAddr";
     std::string keyWord7 = "sMN mLMPsetscancfg";
@@ -5443,7 +5510,7 @@ namespace sick_scan_xd
 
     }
 
-    if (cmdAscii.find(keyWord4) != std::string::npos)
+    if (cmdAscii.find(keyWord4) != std::string::npos) // "sWN SetActiveApplications 1 FEVL 1" or "sWN SetActiveApplications 1 RANG 1"
     {
       char tmpStr[1024] = {0};
       char szApplStr[255] = {0};
@@ -5460,18 +5527,24 @@ namespace sick_scan_xd
         buffer[2 + ii] = szApplStr[ii]; // idx: 1,2,3,4
       }
       buffer[6] = dummy1 ? 0x01 : 0x00;
-      if (buffer[6] == 0x00 && parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0) // activate FEVL in case of MRS1xxx with firmware version > 1
+      bufferLen = 7;
+      if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0) // activate FEVL and RANG in case of MRS1xxx with firmware version > 1
       {
-        size_t device_idx = deviceIdentStr.find("MRS1xxx"); // Get MRS1xxx version from device ident string
-        size_t version_idx = ((device_idx != std::string::npos) ? deviceIdentStr.find("V", device_idx) : std::string::npos);
-        char version_id = ((version_idx != std::string::npos) ? deviceIdentStr[version_idx + 1] : '0');
+        char version_id = getFirmwareVersionIdMRS1xxx(deviceIdentStr); // Get MRS1xxx version from device ident string
         if (version_id > '1')
         {
-          buffer[6] = 0x01; // MRS1xxx with firmware version > 1 supports RANG+FEVL -> overwrite with "<STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}1<ETX>"
+          // buffer[6] = 0x01; // MRS1xxx with firmware version > 1 supports RANG+FEVL -> overwrite with "<STX>sWN{SPC}SetActiveApplications{SPC}1{SPC}FEVL{SPC}1<ETX>"
+          // MRS1xxx with firmware version > 1 supports RANG+FEVL -> overwrite with "<STX>sWN{SPC}SetActiveApplications{SPC}2{SPC}FEVL{SPC}1{SPC}RANG{SPC}1<ETX>"
+          // resp. binary "sWN SetActiveApplications \00\02\46\45\56\4C\01\52\41\4e\47\01"
+          uint8_t field_evaluation_status = isFieldEvaluationActive() ? 0x01: 0x00;
+          std::vector<uint8_t> binary_parameter = {0x00, 0x02, 0x46, 0x45, 0x56, 0x4C, field_evaluation_status, 0x52, 0x41, 0x4e, 0x47, 0x01};
+          for (int ii = 0; ii < binary_parameter.size(); ii++)
+            buffer[ii] = binary_parameter[ii];
+          bufferLen = binary_parameter.size();
         }
       }
-      bufferLen = 7;
     }
+
 
     if (cmdAscii.find(keyWord5) != std::string::npos)
     {
@@ -5838,12 +5911,11 @@ namespace sick_scan_xd
   void SickScanCommon::setLengthAndCRCinBinarySopasRequest(std::vector<uint8_t>* requestBinary)
   {
 
-  int msgLen = (int)requestBinary->size();
+  int msgLen = (int)requestBinary->size(); // requestBinary = { 4 byte 0x02020202 } + { 4 byte placeholder for payload length } + { payload }
   msgLen -= 8;
   for (int i = 0; i < 4; i++)
   {
-    unsigned char bigEndianLen = msgLen & (0xFF << (3 - i) * 8);
-    (*requestBinary)[i + 4] = ((unsigned char) (bigEndianLen)); // HIER WEITERMACHEN!!!!
+    (*requestBinary)[4 + i] = (uint8_t)((msgLen >> (3 - i) * 8) & 0xFF); // payload length is always 4 byte big endian encoded
   }
   unsigned char xorVal = 0x00;
   xorVal = sick_crc8((unsigned char *) (&((*requestBinary)[8])), requestBinary->size() - 8);

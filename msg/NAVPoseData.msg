@@ -14,8 +14,8 @@ uint8 nav_mode
 uint32 info_state
 uint8 quant_used_reflectors
 
-# pose in ros coordinates
+# pose in ros units
 int8 pose_valid   # pose_x, pose_y and pose_yaw are valid if pose_valid > 0
-float32 pose_x    # x position in ros coordinates in m
-float32 pose_y    # y position in ros coordinates in m
+float32 pose_x    # x position in ros units in m
+float32 pose_y    # y position in ros units in m
 float32 pose_yaw  # yaw angle in radians

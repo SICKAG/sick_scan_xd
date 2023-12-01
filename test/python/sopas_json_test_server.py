@@ -50,6 +50,7 @@ class SopasTestServer:
     def receiveTelegram(self, recv_timeout_sec):
         payload = bytearray(b"")
         payload_idx = -1
+        payload_len = -1
         ready_to_recv = select.select([self.clientsocket], [], [], recv_timeout_sec)
         if ready_to_recv[0]:
             try:
@@ -60,11 +61,17 @@ class SopasTestServer:
                 while True:
                     byte_recv = self.clientsocket.recv(1)
                     payload = payload + byte_recv
+                    if len(payload) == 8 and payload[0:4] == b"\x02\x02\x02\x02": # i.e. 4 byte 0x02020202 + 4 byte payload length
+                        payload_len = int.from_bytes(payload[4:8], byteorder='big', signed=False)
+                        # print("SopasTestServer.receiveTelegram(): decoded payload_len = {} byte".format(payload_len))
                     if payload in self.json_tcp_payloads:
                         payload_idx = self.json_tcp_payloads.index(payload)
                         break
+                    if payload_len > 0 and len(payload) >= payload_len + 9: # 4 byte 0x02020202 + 4 byte payload length + payload + 1 byte CRC
+                        break
             except Exception as exc:
                 print("## ERROR SopasTestServer.receiveTelegram(): exception {}".format(exc))
+                print("## ERROR SopasTestServer.receiveTelegram(): received {} byte telegram {}".format(len(payload), payload))
             if self.verbosity > 1:
                 print("SopasTestServer.receiveTelegram(): received {} byte telegram {}".format(len(payload), payload))
             elif self.verbosity > 0:
@@ -100,6 +107,11 @@ class SopasTestServer:
                         if self.verbosity > 0:
                             print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
                         self.sendTelegram(response_payload)
+            elif received_telegram[8:28] == b"sMN mNLAYAddLandmark":
+                response_payload = b"\x02\x02\x02\x02\x00\x00\x00\x20\x73\x41\x4e\x20\x6d\x4e\x4c\x41\x59\x41\x64\x64\x4c\x61\x6e\x64\x6d\x61\x72\x6b\x20\x00\x00\x04\x00\x00\x00\x01\x00\x02\x00\x03\x7c" # "....... sAN mNLAYAddLandmark ............"
+                if self.verbosity > 0:
+                    print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
+                self.sendTelegram(response_payload)
             else:
                 print("## ERROR SopasTestServer: request={} not found in json file".format(received_telegram))
                 #response_payload = received_telegram

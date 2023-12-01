@@ -152,17 +152,6 @@ src/
 After doing this please rerun the command
 catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0
 
-:question: cmake cannot find header msgpack11.hpp
-
-:white_check_mark: You probably forgot to checkout https://github.com/SICKAG/msgpack11.git. Please clone the following repositories:
-```
-git clone https://github.com/SICKAG/libsick_ldmrs.git
-git clone https://github.com/SICKAG/msgpack11.git
-git clone https://github.com/SICKAG/sick_scan_xd.git
-```
-and rebuild. See the build instructions [Build on Linux generic without ROS](INSTALL-GENERIC.md#build-on-linux-generic-without-ros), [Build on Linux ROS1](INSTALL-ROS1.md#build-on-linux-ros1), [Build on Linux ROS2](INSTALL-ROS2.md#build-on-linux-ros2), [Build on Windows](INSTALL-GENERIC.md#build-on-windows) or [Build on Windows ROS2](INSTALL-ROS2.md#build-on-windows-ros2) for further details.
-
-
 ## rviz shows a grey point cloud
 
 :question: rviz shows a grey point cloud. The size of points can be adjusted.
