@@ -11,6 +11,7 @@ default max_angle for this scanner type is +137.5 degree.
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
+    <arg name="laserscan_topic" default="scan"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="imu_frame_id" default="imu_link"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
@@ -42,6 +43,7 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="cloud_output_mode" type="int" value="2"/>
         <param name="imu_enable_additional_info" type="bool" value="True"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="laserscan_topic" type="string" value="$(arg laserscan_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="sw_pll_only_publish" type="bool" value="true"/>
         <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->

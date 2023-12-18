@@ -507,6 +507,10 @@ namespace sick_scan_xd
     rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
     rosGetParam(nh, "cloud_topic", cloud_topic_val);
 
+    std::string laserscan_topic = nodename + "/scan";
+    rosDeclareParam(nh, "laserscan_topic", laserscan_topic);
+    rosGetParam(nh, "laserscan_topic", laserscan_topic);
+
     rosDeclareParam(nh, "frame_id", config_.frame_id);
     rosGetParam(nh, "frame_id", config_.frame_id);
 
@@ -617,8 +621,9 @@ namespace sick_scan_xd
 
 
     Encoder_pub = rosAdvertise<sick_scan_msg::Encoder>(nh, nodename + "/encoder", 100);
+
     // scan publisher
-    pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, nodename + "/scan", 1000);
+    pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, laserscan_topic, 1000);
 
 #if defined USE_DIAGNOSTIC_UPDATER
     if(diagnostics_)
