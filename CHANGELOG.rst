@@ -2,14 +2,18 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-3.1.5 (2023-12-01)
-------------------
+Forthcoming
+-----------
+
+3.1.5 (2023-12-01 12:49)
+------------------------
+* Update CHANGELOG.rst and package version
 * build options for bloom support
 * build options for bloom support
 * Contributors: rostest
 
-3.1.3 (2023-12-01)
-------------------
+3.1.3 (2023-12-01 11:27)
+------------------------
 * Update CHANGELOG.rst and package version
 * 3.1.1
 * Update CHANGELOG.rst
