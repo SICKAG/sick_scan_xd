@@ -420,7 +420,7 @@ bool sick_scan_xd::SickScanServices::sendSopasCmdCheckResponse(const std::string
 * @param[in] imu_enable: Imu data transfer enabled
 * @param[in] imu_udp_port: UDP port of imu data (if imu_enable is true)
 */
-bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat, bool imu_enable, int imu_udp_port)
+bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat, bool imu_enable, int imu_udp_port, int performanceprofilenumber)
 {
   std::stringstream ip_stream(hostname);
   std::string ip_token;
@@ -436,8 +436,9 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
     ROS_ERROR_STREAM("## In case of multiscan/sick_scansegment_xd lidars, check parameter \"udp_receiver_ip\", too.");
     return false;
   }
-  std::stringstream eth_settings_cmd, imu_eth_settings_cmd, scandataformat_cmd;
+  std::stringstream eth_settings_cmd, imu_eth_settings_cmd, scandataformat_cmd, performanceprofilenumber_cmd;
   scandataformat_cmd << "sWN ScanDataFormat " << scandataformat;
+  performanceprofilenumber_cmd << "sWN PerformanceProfileNumber " << performanceprofilenumber;
   eth_settings_cmd << "sWN ScanDataEthSettings 1";
   imu_eth_settings_cmd << "sWN ImuDataEthSettings 1";
   for (int i = 0; i < ip_tokens.size(); i++)
@@ -465,6 +466,12 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
   {
     ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiscanStartCmd(): sendSopasCmdCheckResponse(\"sWN ScanDataFormat 1\") failed.");
     return false;
+  }
+  // TODO : maybe add a check on the 'performanceprofilenumber' value passed, like on the scandataformat above
+  if (!sendSopasCmdCheckResponse(performanceprofilenumber_cmd.str(), "sWA PerformanceProfileNumber"))
+  {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiscanStartCmd(): sendSopasCmdCheckResponse(\"sWN PerformanceProfileNumber ..\") failed.");
+      return false;
   }
   if (scanner_type == SICK_SCANNER_SCANSEGMENT_XD_NAME && !sendSopasCmdCheckResponse("sWN ScanDataPreformatting 1", "sWA ScanDataPreformatting")) // ScanDataPreformatting for multiScan136 only
   {

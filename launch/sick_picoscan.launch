@@ -14,6 +14,7 @@
     <arg name="all_segments_min_deg" default="-138.0" />      <!-- angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published,  -->
     <arg name="all_segments_max_deg" default="+138.0" />      <!-- if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan), -138...+138 for picoScan (fullscan) -->
     <arg name="custom_pointclouds" default="cloud_unstructured_segments cloud_unstructured_fullframe cloud_polar_unstructured_segments cloud_polar_unstructured_fullframe cloud_all_fields_fullframe"/> <!-- Default pointclouds: segmented and fullframe pointclouds, with all layers and echos in both cartesian and polar coordinates -->
+    <arg name="performanceprofilenumber" default="1"/>
     <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_picoscan"/>
 
@@ -41,6 +42,7 @@
         <param name="send_udp_start_string" type="string" value="magicalActivate" />        <!-- udp string to start picoScan150 -->
         <param name="udp_timeout_ms" type="int" value="60000" />                            <!-- Timeout for udp messages in milliseconds, default: 60*1000 -->
         <param name="scandataformat" type="int" value="$(arg scandataformat)" />            <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1 -->
+	<param name="performanceprofilenumber" type="int" value="$(arg performanceprofilenumber)"/>
         
         <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
         <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->

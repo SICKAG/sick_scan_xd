@@ -338,7 +338,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable, m_config.imu_udp_port);
+                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable, m_config.imu_udp_port, m_config.performanceprofilenumber);
             }
             else
             {
