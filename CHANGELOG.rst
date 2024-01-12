@@ -2,8 +2,15 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Specified ROS version for humble bloom release
+* Contributors: rostest
+
 3.1.6 (2024-01-08)
 ------------------
+* Update CHANGELOG.rst
+* Contributors: rostest
 
 3.1.5 (2023-12-01 12:49)
 ------------------------
