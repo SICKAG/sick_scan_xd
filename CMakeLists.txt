@@ -736,7 +736,7 @@ if(ROS_VERSION EQUAL 0)
 elseif(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) # i.e. development
     set(BUILD_SICK_SCAN_XD_API_TEST 1)
 else()
-    set(BUILD_SICK_SCAN_XD_API_TEST 2)
+    set(BUILD_SICK_SCAN_XD_API_TEST 0)
 endif()
 if(BUILD_SICK_SCAN_XD_API_TEST EQUAL 1)
     add_executable(sick_scan_xd_api_test
