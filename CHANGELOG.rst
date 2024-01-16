@@ -2,8 +2,8 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.1.10 (2024-01-16)
+-------------------
 * Update package.xml, assume ROS_VERSION 2 by default.
 * Contributors: rostest
 
