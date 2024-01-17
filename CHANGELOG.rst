@@ -2,8 +2,16 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Building api test deactivated on ROS2 to avoid pthread dependencies
+* Contributors: rostest
+
 3.1.10 (2024-01-16)
 -------------------
+* Update package.xml
+* 3.1.6
+* Update CHANGELOG.rst
 * Update package.xml, assume ROS_VERSION 2 by default.
 * Contributors: rostest
 
