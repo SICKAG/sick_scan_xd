@@ -731,7 +731,7 @@ endif()
 # - sick_scan_xd_api_test for development and test only
 # Native Windows and Linux (ROS_VERSION==0): 
 # - build sick_scan_xd_api_test (development, test and usage example)
-if(ROS_VERSION EQUAL 0)
+if(ROS_VERSION EQUAL 0) # build API test on native Windows or Linux
     set(BUILD_SICK_SCAN_XD_API_TEST 1)
 elseif(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) # i.e. development
     set(BUILD_SICK_SCAN_XD_API_TEST 1)
@@ -786,10 +786,10 @@ if(ROS_VERSION EQUAL 1)
     install(TARGETS sick_generic_caller
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-    install(TARGETS sick_scan_xd_api_test
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-    # install(TARGETS ${PROJECT_NAME}_test RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+    if(BUILD_SICK_SCAN_XD_API_TEST EQUAL 1)
+        install(TARGETS sick_scan_xd_api_test
+            RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+    endif()
 
     install(FILES include/sick_scan/abstract_parser.h
         include/sick_scan/sick_scan_common.h
@@ -811,14 +811,13 @@ if(ROS_VERSION EQUAL 1)
 endif()
 
 if(ROS_VERSION EQUAL 2)
-    install(TARGETS sick_generic_caller sick_scan_xd_api_test
-        DESTINATION lib/${PROJECT_NAME})
 
-    install(TARGETS ${PROJECT_NAME}_lib ${PROJECT_NAME}_shared_lib
-        DESTINATION lib)
-
-    install(DIRECTORY launch
-        DESTINATION share/${PROJECT_NAME})
+    if(BUILD_SICK_SCAN_XD_API_TEST EQUAL 1)
+        install(TARGETS sick_scan_xd_api_test DESTINATION lib/${PROJECT_NAME})
+    endif()
+    install(TARGETS sick_generic_caller DESTINATION lib/${PROJECT_NAME})
+    install(TARGETS ${PROJECT_NAME}_lib ${PROJECT_NAME}_shared_lib DESTINATION lib)
+    install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
         
     ament_package()        
 endif()
