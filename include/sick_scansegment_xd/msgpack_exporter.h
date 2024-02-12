@@ -148,6 +148,11 @@ namespace sick_scansegment_xd
        bool RunCb(void);
 
        /*
+        * @brief Returns the list of registered listeners
+        */
+       std::list<sick_scansegment_xd::MsgPackExportListenerIF*> GetExportListener();
+
+       /*
         * Configuration and parameter
         */
        std::string m_logfolder;                                 // output folder for optional csv-files
@@ -163,6 +168,8 @@ namespace sick_scansegment_xd
        std::thread* m_exporter_thread;                                // background thread to export ScanSegmentParserOutput data
        bool m_run_exporter_thread;                                    // flag to start and stop the exporter thread
        std::list< sick_scansegment_xd::MsgPackExportListenerIF*> m_listener; // list of export listener, which will be notified calling listener->HandleMsgPackData() after successful conversion of received msgpack data
+       std::mutex m_listener_mutex; // mutex to protect m_listener access
+
 
 	};  // class MsgPackExporter
 

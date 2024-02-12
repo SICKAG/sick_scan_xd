@@ -30,6 +30,20 @@ roslaunch sick_scan_xd sick_multiscan.launch hostname:=192.168.0.1 udp_receiver_
 ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 
 ```
 
+## IMU support
+
+IMU support for multiScan and picoScan is enabled by default and can be configured in the launchfile:
+```
+<param name="imu_enable" type="bool" value="True"/>  <!-- Enable inertial measurement unit IMU, compact format only -->
+<param name="imu_udp_port" type="int" value="7503"/> <!-- udp port for multiScan imu data (if imu_enable is true) -->
+```
+
+sick_scan_xd receives IMU data by UDP and publishes [ROS-1 sensor_msgs/Imu](https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Imu.html) resp. [ROS-2 sensor_msgs/msg/Imu](https://docs.ros2.org/latest/api/sensor_msgs/msg/Imu.html) messages.
+
+Note: IMU support requires compact format, which is the default. If msgpack communication is configured, imu support is automatically disabled.
+
+IMU support for picoScan requires firmware version 1.1 or newer, see https://www.sick.com/de/en/downloads/media/swp680096 for firmware downloads.
+
 ## SOPAS support
 
 On ROS-1 and ROS-2, service `ColaMsg` is provided to send CoLa commands to the lidar. Using this service, filters can be applied during runtime. 

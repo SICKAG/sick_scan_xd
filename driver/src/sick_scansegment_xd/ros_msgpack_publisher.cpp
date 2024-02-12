@@ -797,6 +797,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 				laser_scan_msg.angle_increment = angle_diff / (float)(laser_scan_msg.ranges.size() - 1);
 				laser_scan_msg.range_min -= 1.0e-03f;
 				laser_scan_msg.range_max += 1.0e-03f;
+				laser_scan_msg.range_min = std::max(0.0f, laser_scan_msg.range_min);
 				laser_scan_msg.header.stamp.sec = timestamp_sec;
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 				laser_scan_msg.header.stamp.nanosec = timestamp_nsec;

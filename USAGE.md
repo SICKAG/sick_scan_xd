@@ -8,9 +8,13 @@ The sick_scan_xd driver can be started on the command line by `sick_generic_call
 
 - On Linux with ROS-1, call
 
+    ```./devel_isolated/setup.bash```
+
     ```roslaunch sick_scan_xd <launchfile>```
 
 - On Linux with ROS-2, call
+
+    ```source ./install/setup.bash```
 
     ```ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/<launchfile>```
 
@@ -19,6 +23,8 @@ The sick_scan_xd driver can be started on the command line by `sick_generic_call
     ```sick_generic_caller <launchfile>```
 
 - On Windows with ROS-2, call
+
+    ```call .\install\setup.bat```
 
     ```ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/<launchfile>```
 

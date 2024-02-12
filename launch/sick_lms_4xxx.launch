@@ -25,6 +25,7 @@
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
+    <arg name="laserscan_topic" default="scan"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="nodename" default="sick_lms_4xxx"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
@@ -74,6 +75,7 @@
 
         <param name="hostname" type="string" value="$(arg hostname)"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="laserscan_topic" type="string" value="$(arg laserscan_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="port" type="string" value="2112"/>
         <param name="timelimit" type="int" value="5"/>

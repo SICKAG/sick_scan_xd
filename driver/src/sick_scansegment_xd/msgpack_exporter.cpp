@@ -91,6 +91,7 @@ sick_scansegment_xd::MsgPackExporter::~MsgPackExporter()
  */
 void sick_scansegment_xd::MsgPackExporter::AddExportListener(sick_scansegment_xd::MsgPackExportListenerIF* listener)
 {
+    std::unique_lock<std::mutex> lock(m_listener_mutex);
     m_listener.push_back(listener);
 }
 
@@ -99,6 +100,7 @@ void sick_scansegment_xd::MsgPackExporter::AddExportListener(sick_scansegment_xd
  */
 void sick_scansegment_xd::MsgPackExporter::RemoveExportListener(sick_scansegment_xd::MsgPackExportListenerIF* listener)
 {
+    std::unique_lock<std::mutex> lock(m_listener_mutex);
     for (std::list<sick_scansegment_xd::MsgPackExportListenerIF*>::iterator iter = m_listener.begin(); iter != m_listener.end(); )
     {
         if (*iter == listener)
@@ -106,6 +108,15 @@ void sick_scansegment_xd::MsgPackExporter::RemoveExportListener(sick_scansegment
         else
             iter++;
     }
+}
+
+/*
+ * @brief Returns the list of registered listeners
+ */
+std::list<sick_scansegment_xd::MsgPackExportListenerIF*> sick_scansegment_xd::MsgPackExporter::GetExportListener()
+{
+    std::unique_lock<std::mutex> lock(m_listener_mutex);
+    return m_listener;
 }
 
 /*
@@ -168,10 +179,11 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
             sick_scansegment_xd::ScanSegmentParserOutput msgpack_output;
             fifo_timestamp msgpack_timestamp;
             size_t msgpack_counter = 0;
-            if (m_msgpack_fifo->Pop(msgpack_output, msgpack_timestamp, msgpack_counter))
+            if (m_msgpack_fifo->Pop(msgpack_output, msgpack_timestamp, msgpack_counter) && m_run_exporter_thread)
             {
                 // Notify registered listeners about new scandata (msgpack or compact)
-                for (std::list<sick_scansegment_xd::MsgPackExportListenerIF*>::iterator iter = m_listener.begin(); iter != m_listener.end(); iter++)
+                std::list<sick_scansegment_xd::MsgPackExportListenerIF*> listener = GetExportListener();
+                for (std::list<sick_scansegment_xd::MsgPackExportListenerIF*>::iterator iter = listener.begin(); iter != listener.end(); iter++)
                 {
                     if (*iter)
                     {

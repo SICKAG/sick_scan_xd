@@ -915,7 +915,12 @@ namespace sick_scan_xd
         while (getline(imk_stream, line))
         {
           // Ignore comments and headers
-          if (line[0] == '#' || strncmp(line.c_str(), "globID", 6) == 0)
+          for(int n = 0; n < line.size(); n++)
+          {
+            if (isspace(line[n]))
+              line[n] = ' ';
+          }
+          if (line.empty() || line[0] == '#' || strncmp(line.c_str(), "globID", 6) == 0)
             continue;
           // Split into arguments
           std::stringstream ss(line);
@@ -923,8 +928,12 @@ namespace sick_scan_xd
           std::vector<std::string> args;
           while (std::getline(ss, token, ' '))
           {
-            args.push_back(token);
+            if (!token.empty())
+              args.push_back(token);
           }
+          // Ignore empty lines
+          if (args.empty())
+            continue;
           // Parse arguments
           if (args.size() < 7)
           {
@@ -942,6 +951,15 @@ namespace sick_scan_xd
             landmark.layerID.push_back((uint16_t)(atoi(args[n].c_str()) & 0xFFFF));
           navImkLandmarks.push_back(landmark);
         }      
+      }
+      ROS_INFO_STREAM("sick_scan_xd::readNAVIMKfile(\"" << nav_imk_file << "\"): " << navImkLandmarks.size() << " landmarks:");
+      for(int n = 0; n < navImkLandmarks.size(); n++)
+      {
+        std::stringstream imk_stream;
+        imk_stream << (int)navImkLandmarks[n].globID << " " << (int)navImkLandmarks[n].x_mm << " " << (int)navImkLandmarks[n].y_mm << " " << (int)navImkLandmarks[n].type << " " << (int)navImkLandmarks[n].subType << " " << (int)navImkLandmarks[n].size_mm;
+        for(int m = 0; m < navImkLandmarks[n].layerID.size(); m++)
+          imk_stream << " " << (int)navImkLandmarks[n].layerID[m];
+        ROS_INFO_STREAM("landmark " << (n + 1) << ": " << imk_stream.str());
       }
       return navImkLandmarks;
     }

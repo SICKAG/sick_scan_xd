@@ -816,6 +816,24 @@ class SickScanOdomVelocityMsg(ctypes.Structure):
         ("timestamp_nsec", ctypes.c_uint32) # nanoseconds part of system timestamp of the odometry data
     ]
 
+class SickScanLogMsg(ctypes.Structure):
+    """ 
+    general log message
+    """
+    _fields_ = [
+        ("log_level", ctypes.c_int32),      # log_level defined in ros::console::levels: Info=1, Warn=2, Error=3, Fatal=4
+        ("log_message", ctypes.c_char_p)    # log message
+    ]
+
+class SickScanDiagnosticMsg(ctypes.Structure):
+    """ 
+    general log message
+    """
+    _fields_ = [
+        ("status_code", ctypes.c_int32),    # status_code defined in SICK_DIAGNOSTIC_STATUS: OK=0 (normal operation), WARN=1 (warning), ERROR=2 (error, should not occure), INIT=3 (initialization after startup or reconnection), EXIT=4 (sick_scan_xd exiting)
+        ("status_message", ctypes.c_char_p) # diagnostic message
+    ]
+
 class SickScanApiErrorCodes(Enum): # 
     """ 
     Error codes, return values of SickScanApi-functions
@@ -852,6 +870,9 @@ SickScanRadarScanCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINT
 SickScanLdmrsObjectArrayCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanLdmrsObjectArray))           # sick_scan_api.h: typedef void(* SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
 SickScanVisualizationMarkerCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanVisualizationMarkerMsg))  # sick_scan_api.h: typedef void(* SickScanVisualizationMarkerCallback)(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg);
 SickScanNavPoseLandmarkCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanNavPoseLandmarkMsg))          # sick_scan_api.h: typedef void(* SickScanNavPoseLandmarkCallback)(SickScanApiHandle apiHandle, const SickScanNavPoseLandmarkMsg* msg);
+SickScanLogMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanLogMsg))                               # sick_scan_api.h: typedef void(* SickScanLogMsgCallback)(SickScanApiHandle apiHandle, const SickScanLogMsg* msg);
+SickScanDiagnosticMsgCallback = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(SickScanDiagnosticMsg))                 # sick_scan_api.h: typedef void(* SickScanDiagnosticMsgCallback)(SickScanApiHandle apiHandle, const SickScanDiagnosticMsg* msg); 
+
 
 """ 
 Functions to initialize and close the API and a lidar
@@ -941,6 +962,21 @@ def SickScanApiLoadLibrary(paths, lib_filname):
     # sick_scan_api.h: int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
     sick_scan_library.SickScanApiDeregisterVisualizationMarkerMsg.argtypes = [ctypes.c_void_p, SickScanVisualizationMarkerCallback]
     sick_scan_library.SickScanApiDeregisterVisualizationMarkerMsg.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiRegisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+    sick_scan_library.SickScanApiRegisterDiagnosticMsg.argtypes = [ctypes.c_void_p, SickScanDiagnosticMsgCallback]
+    sick_scan_library.SickScanApiRegisterDiagnosticMsg.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiDeregisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+    sick_scan_library.SickScanApiDeregisterDiagnosticMsg.argtypes = [ctypes.c_void_p, SickScanDiagnosticMsgCallback]
+    sick_scan_library.SickScanApiDeregisterDiagnosticMsg.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiRegisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+    sick_scan_library.SickScanApiRegisterLogMsg.argtypes = [ctypes.c_void_p, SickScanLogMsgCallback]
+    sick_scan_library.SickScanApiRegisterLogMsg.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiDeregisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+    sick_scan_library.SickScanApiDeregisterLogMsg.argtypes = [ctypes.c_void_p, SickScanLogMsgCallback]
+    sick_scan_library.SickScanApiDeregisterLogMsg.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
+    sick_scan_library.SickScanApiGetStatus.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int32), ctypes.c_char_p, ctypes.c_int32]
+    sick_scan_library.SickScanApiGetStatus.restype = ctypes.c_int
     # sick_scan_api.h: int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
     sick_scan_library.SickScanApiWaitNextCartesianPointCloudMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanPointCloudMsg), ctypes.c_double]
     sick_scan_library.SickScanApiWaitNextCartesianPointCloudMsg.restype = ctypes.c_int
@@ -1150,6 +1186,40 @@ def SickScanApiDeregisterNavPoseLandmarkMsg(sick_scan_library, api_handle, callb
     Deregister a callback for SickScanNavPoseLandmarkMsg messages
     """ 
     return sick_scan_library.SickScanApiDeregisterNavPoseLandmarkMsg(api_handle, callback)
+
+""" 
+Diagnostic functions
+""" 
+
+def SickScanApiRegisterDiagnosticMsg(sick_scan_library, api_handle, callback):
+    """ 
+    Register a callback for diagnostic messages (notification in case of changed status, e.g. after errors)
+    """ 
+    return sick_scan_library.SickScanApiRegisterDiagnosticMsg(api_handle, callback)
+
+def SickScanApiDeregisterDiagnosticMsg(sick_scan_library, api_handle, callback):
+    """ 
+    Deregister a callback for diagnostic messages (notification in case of changed status, e.g. after errors)
+    """ 
+    return sick_scan_library.SickScanApiDeregisterDiagnosticMsg(api_handle, callback)
+
+def SickScanApiRegisterLogMsg(sick_scan_library, api_handle, callback):
+    """ 
+    Register a callback for log messages (all informational and error messages)
+    """ 
+    return sick_scan_library.SickScanApiRegisterLogMsg(api_handle, callback)
+
+def SickScanApiDeregisterLogMsg(sick_scan_library, api_handle, callback):
+    """ 
+    Deregister a callback for log messages (all informational and error messages)
+    """ 
+    return sick_scan_library.SickScanApiDeregisterLogMsg(api_handle, callback)
+
+def SickScanApiGetStatus(sick_scan_library, api_handle, status_code, message_buffer, message_buffer_size):
+    """ 
+    Query current status and status message
+    """ 
+    return sick_scan_library.SickScanApiGetStatus(api_handle, status_code, message_buffer, message_buffer_size)
 
 """ 
 Polling functions

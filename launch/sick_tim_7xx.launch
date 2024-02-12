@@ -23,6 +23,7 @@
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="port" default="2112"/>
     <arg name="cloud_topic" default="cloud"/>
+    <arg name="laserscan_topic" default="scan"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
@@ -52,6 +53,7 @@
         <param name="intensity" type="bool" value="True"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="laserscan_topic" type="string" value="$(arg laserscan_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="port" type="string" value="$(arg port)"/>
         <param name="timelimit" type="int" value="5"/>

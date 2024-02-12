@@ -24,20 +24,12 @@ Run the following commands to build the shared library `libsick_scan_xd_shared_l
 ```
 # Clone repositories
 git clone https://github.com/SICKAG/libsick_ldmrs.git
-git clone https://github.com/SICKAG/msgpack11.git
 git clone https://github.com/SICKAG/sick_scan_xd.git
 # Build libsick_ldmrs library
 mkdir -p ./build
 mkdir -p ./libsick_ldmrs/build
 pushd libsick_ldmrs/build
 cmake -G "Unix Makefiles" ..
-make -j4
-sudo make -j4 install    
-popd
-# Build msgpack library
-mkdir -p ./msgpack11/build
-pushd msgpack11/build
-cmake -DMSGPACK11_BUILD_TESTS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=ON -G "Unix Makefiles" ..
 make -j4
 sudo make -j4 install    
 popd
@@ -60,10 +52,9 @@ After successful build, the shared library `libsick_scan_xd_shared_lib.so` and a
 
 Run the following commands to build the shared library `sick_scan_xd_shared_lib.dll` with Visual Studio 2019 on Windows:
 ```
-# Clone repositories
-git clone https://github.com/SICKAG/msgpack11.git
+# Clone repository sick_scan_xd
 git clone https://github.com/SICKAG/sick_scan_xd.git
-# Build libraries msgpack and sick_scan_xd_shared_lib.dll
+# Build libraries sick_scan_xd_shared_lib.dll
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
 set _os=x64
 set _cmake_string=Visual Studio 16
@@ -71,13 +62,6 @@ set _msvc=Visual Studio 2019
 set _cmake_build_dir=build
 cd sick_scan_xd
 if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
-if not exist %_cmake_build_dir%\msgpack11 mkdir %_cmake_build_dir%\msgpack11
-pushd %_cmake_build_dir%\msgpack11
-cmake -DMSGPACK11_BUILD_TESTS=0 -G "%_cmake_string%" ../../../msgpack11
-if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 with cmake & @pause )
-cmake --build . --clean-first --config Debug
-cmake --build . --clean-first --config Release
-popd
 pushd %_cmake_build_dir%
 cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
 if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% sick_scan_xd with cmake & @pause )
@@ -327,6 +311,30 @@ If ROS is not installed, [sick_scan_xd_api_test.py](../../test/python/sick_scan_
 
 Note: [sick_scan_api.py](../../python/api/sick_scan_api.py) requires python module numpy. On Windows without ROS, [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) requires numpy and matplotlib. On Windows, we recommend to install and use Python either with Visual Studio 2019 or by installing from https://www.python.org/downloads/windows/ (python installer, embedded version not recommended). These python distributions provide the necessary packages and tools. Otherwise, please install numpy and matplotlib with `python -m pip install numpy` and `python -m pip install matplotlib` if not yet done.
 
+### Diagnostic
+
+The API provides the following functions for diagnostics:
+
+* SickScanApiRegisterDiagnosticMsg and SickScanApiDeregisterDiagnosticMsg: Register resp. deregister a callback to receive diagnostic messages. Diagnostic messages contain a status code and status message. The status code is one of the following numbers:
+   * OK=0 (normal operation)
+   * WARN=1 (warning)
+   * ERROR=2 (error, should not occure)
+   * INIT=3 (initialization after startup or reconnection)
+   * EXIT=4 (sick_scan_xd exiting)
+   
+   The status message is descriptional C-string. 
+   
+   A typical sequence of the status code is:
+   * INIT at startup, then 
+   * after lidar initialization is completed: change to OK (normal operation) and run, and
+   * EXIT at shutdown.
+   Diagnostic messages are generated whenever the status changed or an ERROR occured. Status code 2 (i.e. error) should not occure under normal operation.
+
+* SickScanApiRegisterLogMsg and SickScanApiDeregisterLogMsg: Register resp. deregister a callback to receive log messages. This callback will receive all informational or error messages printed on console. The log messages contain a log level (Info=1, Warn=2, Error=3, Fatal=4) and the log message.
+
+* SickScanApiGetStatus queries the current status. This function returns the current status code (OK=0 i.e. normal operation, WARN=1, ERROR=2, INIT=3 i.e. initialization after startup or reconnection or EXIT=4) and the descriptional status message.
+
+To monitor sick_scan_xd resp. the lidar, it is recommended to register a callback for diagnostic messages using SickScanApiRegisterDiagnosticMsg and to display the error message in case for status code 2 (error). See [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp) and [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) for an example.
 
 ### Simulation and unittest
 

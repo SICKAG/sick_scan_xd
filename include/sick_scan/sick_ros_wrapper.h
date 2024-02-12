@@ -75,6 +75,7 @@
 #include <thread>
 #include <vector>
 #include <chrono>
+#include <cstdarg>
 
 #if !defined __ROS_VERSION
 #define __ROS_VERSION 0 // default: native Linux or Windows
@@ -119,9 +120,9 @@ bool shutdownSignalReceived();
 
 #if __ROS_VERSION == 0  // native Linux or Windows uses ros simu
 #include <sick_scan/rosconsole_simu.hpp>
-#define diagnostic_msgs_DiagnosticStatus_OK    0
-#define diagnostic_msgs_DiagnosticStatus_WARN  1
-#define diagnostic_msgs_DiagnosticStatus_ERROR 2
+#define diagnostic_msgs_DiagnosticStatus_OK    (SICK_DIAGNOSTIC_STATUS::OK)
+#define diagnostic_msgs_DiagnosticStatus_WARN  (SICK_DIAGNOSTIC_STATUS::WARN)
+#define diagnostic_msgs_DiagnosticStatus_ERROR (SICK_DIAGNOSTIC_STATUS::SICK_DIAG_ERROR)
 #endif
 
 #include <ros/ros.h>
@@ -157,6 +158,8 @@ typedef ros::NodeHandle* rosNodePtr;
 #define diagnostic_msgs_DiagnosticStatus_ERROR diagnostic_msgs::DiagnosticStatus::ERROR
 #endif
 #define ROS_HEADER_SEQ(msgheader,value) msgheader.seq=value
+
+#include "sick_scan/sick_scan_logging.h"
 
 template <typename T> void rosDeclareParam(rosNodePtr nh, const std::string& param_name, const T& param_value) { }
 template <typename T> bool rosGetParam(rosNodePtr nh, const std::string& param_name, T& param_value) { return nh->getParam(param_name, param_value); }
@@ -277,17 +280,7 @@ typedef rclcpp::Node::SharedPtr rosNodePtr;
 #endif
 #define ROS_HEADER_SEQ(msgheader,seq)
 
-#define RCLCPP_LOGGER         rclcpp::get_logger("sick_scan_xd")
-#define ROS_FATAL(...)        RCLCPP_FATAL(RCLCPP_LOGGER,__VA_ARGS__)
-#define ROS_ERROR(...)        RCLCPP_ERROR(RCLCPP_LOGGER,__VA_ARGS__)
-#define ROS_WARN(...)         RCLCPP_WARN(RCLCPP_LOGGER,__VA_ARGS__)
-#define ROS_INFO(...)         RCLCPP_INFO(RCLCPP_LOGGER,__VA_ARGS__)
-#define ROS_DEBUG(...)        RCLCPP_DEBUG(RCLCPP_LOGGER,__VA_ARGS__)
-#define ROS_FATAL_STREAM(...) RCLCPP_FATAL_STREAM(RCLCPP_LOGGER,__VA_ARGS__)
-#define ROS_ERROR_STREAM(...) RCLCPP_ERROR_STREAM(RCLCPP_LOGGER,__VA_ARGS__)
-#define ROS_WARN_STREAM(...)  RCLCPP_WARN_STREAM(RCLCPP_LOGGER,__VA_ARGS__)
-#define ROS_INFO_STREAM(...)  RCLCPP_INFO_STREAM(RCLCPP_LOGGER,__VA_ARGS__)
-#define ROS_DEBUG_STREAM(...) RCLCPP_DEBUG_STREAM(RCLCPP_LOGGER,__VA_ARGS__)
+#include "sick_scan/sick_scan_logging.h"
 
 inline void rosConvParam(const std::string& str_value, std::string& val){ val = str_value; }
 inline void rosConvParam(const std::string& str_value, bool& val){ val = std::stoi(str_value) > 0; }

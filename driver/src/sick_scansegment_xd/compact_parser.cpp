@@ -77,7 +77,7 @@ union COMPACT_8BYTE_UNION
 
 typedef enum ReadBeamAzimOrderEnum
 {
-    READ_BEAM_AZIM, 
+    READ_BEAM_AZIM,
     READ_BEAM_PROP
 } ReadBeamAzimOrder;
 
@@ -317,6 +317,8 @@ sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParse
     // NumberOfLinesInModule
     CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NumberOfLinesInModule");
     metadata.NumberOfLinesInModule = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);    // Number of layers in this module
+    if (metadata.NumberOfLinesInModule > 16)
+      ROS_WARN_STREAM("## ERROR CompactDataParser::ParseModuleMetaData(): unexpected NumberOfLinesInModule=" << metadata.NumberOfLinesInModule);
     // NumberOfBeamsPerScan
     CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NumberOfBeamsPerScan");
     metadata.NumberOfBeamsPerScan = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);     // Number of beams per layer (all layers have the same number of beams)
@@ -474,7 +476,7 @@ float sick_scansegment_xd::CompactDataParser::GetElevationDegFromLayerIdx(int la
 * @param[out] measurement_data parsed and converted module measurement data
 * @return true on success, false on error
 */
-bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const uint8_t* payload, uint32_t num_bytes, const sick_scansegment_xd::CompactDataHeader& compact_header, 
+bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const uint8_t* payload, uint32_t num_bytes, const sick_scansegment_xd::CompactDataHeader& compact_header,
   const sick_scansegment_xd::CompactModuleMetaData& meta_data, float azimuth_offset, sick_scansegment_xd::CompactModuleMeasurementData& measurement_data)
 {
   measurement_data = sick_scansegment_xd::CompactModuleMeasurementData();
@@ -782,7 +784,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
 * @brief Returns the max azimuth aperture (i.e. max - min azimuth) of all scan points within a cube, i.e. the max azimuth aperture of all points p
 *        with x_min <= p.x <= x_max && y_min <= p.y <= y_max && z_min <= p.z <= z_max && p.azimuth >= azimuth_min && p.azimuth <= azimuth_max
 */
-static bool getMaxAzimuthApertureWithinCube(const std::vector<sick_scansegment_xd::ScanSegmentParserOutput::Scangroup>& scandata, 
+static bool getMaxAzimuthApertureWithinCube(const std::vector<sick_scansegment_xd::ScanSegmentParserOutput::Scangroup>& scandata,
   float x_min, float x_max, float y_min, float y_max, float z_min, float z_max, float azimuth_min, float azimuth_max,
   double& azimuth_aperture, uint64_t& timestamp_microsec)
 {
@@ -827,7 +829,7 @@ static bool getMaxAzimuthApertureWithinCube(const std::vector<sick_scansegment_x
 * @param[in] use_software_pll true (default): result timestamp from sensor ticks by software pll, false: result timestamp from msg receiving
 * @param[in] verbose true: enable debug output, false: quiet mode
 */
-bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig& parser_config, const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, 
+bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig& parser_config, const std::vector<uint8_t>& payload, fifo_timestamp system_timestamp, sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy,
     ScanSegmentParserOutput& result, bool use_software_pll, bool verbose)
 {
     // Parse segment data
@@ -943,7 +945,7 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
         }
     }
     result.timestamp = sick_scansegment_xd::Timestamp(result.timestamp_sec, result.timestamp_nsec);
-    
+
 #if EXPORT_MEASUREMENT_AZIMUTH_ACCELERATION_CSV // Measurement of IMU latency (development only): Export ticks (imu resp. lidar timestamp in micro seconds), imu acceleration and lidar max azimuth of board cube
     ROS_INFO_STREAM("CompactDataParser::Parse(): header = " << segmentHeader.to_string() << ", system timestamp = " << result.timestamp);
     if (result.imudata.valid) // Export imu acceleration

@@ -41,6 +41,7 @@ sleep 1
 multiscan_pcap_player &
 
 # Run sick_scan_xd api example with sick_multiscan.launch
+# gdb --args ./build_linux/sick_scan_xd_api_test ./launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=1
 ./build_linux/sick_scan_xd_api_test ./launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=1
 
 # Finish

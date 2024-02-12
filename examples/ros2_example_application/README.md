@@ -6,12 +6,11 @@ This project contains a tiny ROS-2 example. It shows how to use sick_scan_xd mes
 
 Run the following steps to build sick_scan_xd:
 
-1. Clone repositories https://github.com/SICKAG/libsick_ldmrs, https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd parrallel to your application folder. For this example we assume that a folder `workspace/src` exist, incl. a ROS-2 application which will be using sick_scan_xd services and messages.
+1. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd parrallel to your application folder. For this example we assume that a folder `workspace/src` exist, incl. a ROS-2 application which will be using sick_scan_xd services and messages.
 
    ```
    pushd ./workspace/src
    git clone https://github.com/SICKAG/libsick_ldmrs.git
-   git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
@@ -21,10 +20,9 @@ Run the following steps to build sick_scan_xd:
    ```
    cp -rf workspace/src/sick_scan_xd/examples/ros2_example_application workspace/src/ros2_example_application
    ```
-   After this step, folder `workspace/src` should have the following 4 subfolders:
+   After this step, folder `workspace/src` should have the following 3 subfolders:
    ```
    workspace/src/libsick_ldmrs
-   workspace/src/msgpack11
    workspace/src/sick_scan_xd
    workspace/src/ros2_example_application
    ```
@@ -36,7 +34,6 @@ Run the following steps to build sick_scan_xd:
    source /opt/ros/$ROS_DISTRO/setup.bash # replace $ROS_DISTRO by your ros distro
    colcon build --packages-select libsick_ldmrs --event-handlers console_direct+
    source ./install/setup.bash
-   colcon build --packages-select msgpack11 --cmake-args " -DMSGPACK11_BUILD_TESTS=0" --event-handlers console_direct+
    colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
    source ./install/setup.bash
    ```
@@ -46,7 +43,7 @@ Run the following steps to build sick_scan_xd:
    colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DLDMRS=0" --event-handlers console_direct+
    ```
 
-   Note: msgpack11 is only required to support multiScan136/sick_scansegment_xd/picoScan150. If you do not need or want to support multiScan136/sick_scansegment_xd/picoScan150, you can skip building msgpack. To build sick_generic_caller without multiScan136/sick_scansegment_xd/picoScan150 support, run colcon with cmake option `-DSCANSEGMENT_XD=0`:
+   Note: To build sick_generic_caller without multiScan136/sick_scansegment_xd/picoScan150 support, run colcon with cmake option `-DSCANSEGMENT_XD=0`:
    ```
    colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
    ```
