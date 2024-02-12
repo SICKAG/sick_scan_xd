@@ -134,3 +134,5 @@ test/scripts/run_win64_picoscan_emulator.cmd
 test/emulator/scandata/20230719_mrs1104_infringement/
 
 doc/20230919_sick_scan_xd_timeout_settings.pptx
+
+test/docker/archive/

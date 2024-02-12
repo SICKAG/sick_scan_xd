@@ -13,7 +13,9 @@
 """
 
 import argparse
+import json
 import socket
+import sys
 import time
 
 from pcapng import FileScanner
@@ -115,9 +117,23 @@ def readPcapngFile(pcap_filename, pcap_filter, verbose):
                         pcap_decoded_blocks.append(pcap_decoded_block)
     return pcap_decoded_blocks
 
+def readJsonFile(json_filename, verbose):
+    pcap_blocks = []
+    with open(json_filename, "r") as file_stream:
+        json_blocks = json.load(file_stream)
+        for json_block in json_blocks:
+            if len(json_block) == 2:
+                pcap_block = PcapDecodedBlock()
+                pcap_block.timestamp = json_block[0]
+                pcap_block.payload = bytes.fromhex(json_block[1])
+                pcap_blocks.append(pcap_block)
+    return pcap_blocks
+
 if __name__ == "__main__":
 
-    pcap_filename = "multiscan.pcapng"
+    pcap_filename = "" # default: read upd packets rom pcapng-file
+    json_filename = "" # alternative: read upd packets from json-file
+    save_udp_jsonfile = "" # save upd packets to json-file
     udp_port = -1 # 2115 # UDP port to send msgpack datagrams (-1 for udp port from pcapng file)
     udp_send_rate = 0 # send rate in msgpacks per second, 240 for multiScan, or 0 to send corresponding to pcap-timestamps, or udp_send_rate > 1000 for max. rate
     udp_prompt = 0 # prompt for key after sending each udp packet (debugging only)
@@ -127,7 +143,9 @@ if __name__ == "__main__":
     max_seconds = 3600.0
 
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--pcap_filename", help="pcapng filepath", default=pcap_filename, type=str)
+    arg_parser.add_argument("--pcap_filename", help="read upd packets rom pcapng-file", default=pcap_filename, type=str)
+    arg_parser.add_argument("--json_filename", help="read upd packets from json-file", default=json_filename, type=str)
+    arg_parser.add_argument("--save_udp_jsonfile", help="save upd packets to json-file", default=save_udp_jsonfile, type=str)
     arg_parser.add_argument("--udp_port", help="dst udp port, or -1 for udp port from pcapng file)", default=udp_port, type=int)
     arg_parser.add_argument("--send_rate", help="udp send rate in msgpacks per second, 240 for multiScan, or 0 to send by pcap-timestamps, or > 10000 for max. rate", default=udp_send_rate, type=int)
     arg_parser.add_argument("--prompt", help="prompt for key after sending each udp packet (debugging only)", default=udp_prompt, type=int)
@@ -136,8 +154,11 @@ if __name__ == "__main__":
     arg_parser.add_argument("--verbose", help="print verbose messages", default=verbose, type=int)
     arg_parser.add_argument("--filter", help="enable pcap filter by name, e.g. pcap_filter_multiscan_hildesheim for src_ip=192.168.0.1, dst_ip=192.168.0.100", default="", type=str)
     arg_parser.add_argument("--max_seconds", help="max seconds to play", default=max_seconds, type=float)
+
     cli_args = arg_parser.parse_args()
     pcap_filename = cli_args.pcap_filename
+    json_filename = cli_args.json_filename
+    save_udp_jsonfile = cli_args.save_udp_jsonfile
     udp_port = cli_args.udp_port
     udp_send_rate = cli_args.send_rate
     udp_prompt = cli_args.prompt
@@ -152,8 +173,17 @@ if __name__ == "__main__":
         pcap_filter = PcapFilter([ "192.168.0.1" ], [ "192.168.0.100" ], [ 2115, 7503 ], [ "UDP", "IP" ] ) 
 
     # Read and parse pcap file, extract udp raw data
-    print("multiscan_pcap_player: reading pcapfile \"{}\" ...".format(pcap_filename))
-    pcap_blocks = readPcapngFile(pcap_filename, pcap_filter, verbose)
+    pcap_blocks = []
+    if pcap_filename != "":
+        print("multiscan_pcap_player: reading pcapfile \"{}\" ...".format(pcap_filename))
+        pcap_blocks = readPcapngFile(pcap_filename, pcap_filter, verbose)
+    elif json_filename != "":
+        pcap_blocks = readJsonFile(json_filename, verbose)
+    else:
+        print("## ERROR multiscan_pcap_player: neither pcapng of json file specified, use option --pcap_filename or --json_filename to configure inputfile with upd packets")
+    if len(pcap_blocks) == 0:
+        print("## ERROR multiscan_pcap_player: no udp packets found, aborting.")
+        sys.exit(-1)
     print("multiscan_pcap_player: sending {} udp packets ...".format(len(pcap_blocks)))
     
     # Init upd sender
@@ -162,6 +192,7 @@ if __name__ == "__main__":
     print("multiscan_pcap_player: sending on udp port {}, send_rate={}".format(udp_port, udp_send_rate))
    
     # Send udp raw data
+    save_udp_json_blocks = []
     timestamp_end = time.perf_counter() + max_seconds
     udp_port_last = udp_port
     for repeat_cnt in range(num_repetitions):    
@@ -197,6 +228,9 @@ if __name__ == "__main__":
             # udp_sender_socket.sendto(block_payload, ('<broadcast>', dst_udp_port))
             # udp_sender_socket.sendto(block_payload, ('127.0.0.1', dst_udp_port))
             udp_sender_socket.sendto(block_payload, (udp_dst_ip, dst_udp_port))
+            if save_udp_jsonfile:
+                payload_hex_str = "".join("{:02x}".format(payload_byte) for payload_byte in block_payload)
+                save_udp_json_blocks.append((block_timestamp, payload_hex_str))
             if udp_prompt > 0:
                 print("pcap message {}: {} byte sent".format(block_cnt, len(block_payload), udp_dst_ip, dst_udp_port))
                 # payload_hex_str = "".join("\\x{:02x}".format(payload_byte) for payload_byte in block_payload)
@@ -213,4 +247,9 @@ if __name__ == "__main__":
             # else: # brute force delay, for performance tests on 2. PC only
             #     forced_delay(2.0e-4)
             send_timestamp = block_timestamp
+    if save_udp_jsonfile:
+        with open(save_udp_jsonfile, "w") as file_stream:
+            json.dump(save_udp_json_blocks, file_stream, indent=2)
+            print(f"multiscan_pcap_player: udp packets saved to file {save_udp_jsonfile}")
+
     print("multiscan_pcap_player finished.")

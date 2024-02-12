@@ -10,7 +10,8 @@
 #include "sick_scan_api.h"
 #include "sick_scan_api_dump.h"
 #include "sick_scan/sick_generic_laser.h"
-#include <sick_scan/sick_generic_callback.h>
+#include "sick_scan/sick_generic_callback.h"
+#include "sick_scan/sick_scan_logging.h"
 
 template <typename HandleType, class MsgType> std::list<sick_scan_xd::SickWaitForMessageHandler<HandleType, MsgType>*> sick_scan_xd::SickWaitForMessageHandler<HandleType, MsgType>::s_wait_for_message_handler_list;
 template <typename HandleType, class MsgType> std::mutex sick_scan_xd::SickWaitForMessageHandler<HandleType, MsgType>::s_wait_for_message_handler_mutex;
@@ -27,6 +28,8 @@ static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanRadarScan>   
 static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanLdmrsObjectArray>       s_callback_handler_ldmrsobjectarray_messages;
 static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanVisualizationMarkerMsg> s_callback_handler_visualizationmarker_messages;
 static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanNavPoseLandmarkMsg>     s_callback_handler_navposelandmark_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanDiagnosticMsg>          s_callback_handler_diagnostic_messages;
+static sick_scan_xd::SickCallbackHandler<SickScanApiHandle,SickScanLogMsg>                 s_callback_handler_log_messages;
 
 #if __ROS_VERSION == 2 // workaround for missing imu quaternion operator << in ROS2
 #   define ROS_VECTOR3D_TO_STREAM(msg)   ((msg).x) << "," << ((msg).y) << "," << ((msg).z)
@@ -813,7 +816,8 @@ int32_t SickScanApiClose(SickScanApiHandle apiHandle)
             ROS_ERROR_STREAM("## ERROR SickScanApiClose(): invalid apiHandle");
             return SICK_SCAN_API_NOT_INITIALIZED;
         }
-        stopScannerAndExit(true);
+        // stopScannerAndExit(true);
+        rosSignalHandler(SIGINT); // Send Ctrl-C for gentle shutdown
         return SICK_SCAN_API_SUCCESS;
     }
     catch(const std::exception& e)
@@ -1229,6 +1233,159 @@ int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle,
         ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterVisualizationMarkerMsg(): unknown exception ");
     }
     return SICK_SCAN_API_ERROR;
+}
+
+/*
+*  Functions for diagnostic and logging
+*/
+// Register a callback for diagnostic messages (notification in case of changed status, e.g. after errors)
+int32_t SickScanApiRegisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback)
+{
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiRegisterDiagnosticMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_diagnostic_messages.addListener(apiHandle, callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterDiagnosticMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterDiagnosticMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
+}
+
+// Deregister a callback for diagnostic messages (notification in case of changed status, e.g. after errors)
+int32_t SickScanApiDeregisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback)
+{
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterDiagnosticMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_diagnostic_messages.removeListener(apiHandle, callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterDiagnosticMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterDiagnosticMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
+}
+
+// Register a callback for log messages (all informational and error messages)
+int32_t SickScanApiRegisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback)
+{
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiRegisterLogMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_log_messages.addListener(apiHandle, callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterLogMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiRegisterLogMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
+}
+
+// Deregister a callback for log messages (all informational and error messages)
+int32_t SickScanApiDeregisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback)
+{
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterLogMsg(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        s_callback_handler_log_messages.removeListener(apiHandle, callback);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterLogMsg(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiDeregisterLogMsg(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
+}
+
+// Query current status and status message
+int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size)
+{
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiGetStatus(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        SICK_DIAGNOSTIC_STATUS diagnostic_code = SICK_DIAGNOSTIC_STATUS::WARN;
+        std::string diagnostic_message;
+        getDiagnosticStatus(diagnostic_code, diagnostic_message);
+        int32_t len = std::min<int32_t>(message_buffer_size, (int32_t)diagnostic_message.length() + 1);
+        *status_code = diagnostic_code;
+        strncpy(message_buffer, diagnostic_message.c_str(), len);
+        message_buffer[len-1] = '\0';
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiGetStatus(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiGetStatus(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
+}
+
+// Notifies all registered log message listener, i.e. all registered listener callbacks are called for all messages of type INFO, WARN, ERROR or FATAL 
+void notifyLogMessageListener(int msg_level, const std::string& message)
+{
+    SickScanLogMsg msg;
+    msg.log_level = msg_level;
+    msg.log_message = (char*)calloc(message.length() + 1, sizeof(char));
+    strncpy(msg.log_message, message.c_str(), message.length());
+    s_callback_handler_log_messages.notifyListener(&msg);
+    free(msg.log_message);
+    // std::cout << "SICK_LOG_MESSAGE " << msg_level << ": \"" << message << "\""<< std::endl;
+}
+
+// Notifies all registered listener about a new diagnostic status
+void notifyDiagnosticListener(SICK_DIAGNOSTIC_STATUS status_code, const std::string& status_message)
+{
+    SickScanDiagnosticMsg msg;
+    msg.status_code = status_code;
+    msg.status_message = (char*)calloc(status_message.length() + 1, sizeof(char));
+    strncpy(msg.status_message, status_message.c_str(), status_message.length());
+    s_callback_handler_diagnostic_messages.notifyListener(&msg);
+    free(msg.status_message);
+    // std::cout << "SICK_DIAGNOSTIC_STATUS " << status_code << ": \"" << status_message << "\""<< std::endl;
 }
 
 /*

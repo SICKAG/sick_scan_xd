@@ -11,7 +11,6 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
 2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
    git clone https://github.com/SICKAG/libsick_ldmrs.git
-   git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
@@ -26,17 +25,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
    popd
    ```
 
-4. Build msgpack11 library (required only once for multiScan100/picoScan100):
-   ```
-   mkdir -p ./build
-   pushd ./build
-   cmake -G "Unix Makefiles" -DMSGPACK11_BUILD_TESTS=0 -DCMAKE_POSITION_INDEPENDENT_CODE=ON ../msgpack11
-   make -j4
-   sudo make install
-   popd
-   ```
-
-5. Build sick_generic_caller and libsick_scan_xd_shared_lib.so:
+4. Build sick_generic_caller and libsick_scan_xd_shared_lib.so:
    ```
    mkdir -p ./build
    pushd ./build
@@ -58,7 +47,7 @@ Note: libsick_ldmrs is only required to support LDMRS sensors. If you do not nee
    cmake -DROS_VERSION=0 -DLDMRS=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
 
-Note: msgpack11 is only required to support multiScan100/picoScan100. If you do not need or want to support multiScan100/picoScan100, you can skip building msgpack. To build sick_generic_caller without multiScan100/picoScan100 support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: To build sick_generic_caller without multiScan100/picoScan100 support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "Unix Makefiles" ../sick_scan_xd
    ```
@@ -86,25 +75,12 @@ To install sick_scan_xd on Windows, follow the steps below:
    cd sick_scan_ws
    ```
 
-3. Clone repositories https://github.com/SICKAG/msgpack11.git and https://github.com/SICKAG/sick_scan_xd:
+3. Clone repository https://github.com/SICKAG/sick_scan_xd:
    ```
-   git clone https://github.com/SICKAG/msgpack11.git
    git clone https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-4. Build mspack with cmake and Visual Studio 2019:
-   ```
-   mkdir sick_scan_xd\build\msgpack11
-   pushd sick_scan_xd\build\msgpack11
-   cmake -DMSGPACK11_BUILD_TESTS=0 -G "Visual Studio 16 2019" ../../../msgpack11
-   cmake --build . --clean-first --config Debug
-   cmake --build . --clean-first --config Release
-   REM open msgpack11.sln in Visual Studio 2019
-   popd
-   ```
-   For development or debugging, open file `sick_scan_xd\build\msgpack11\msgpack11.sln` in Visual Studio.
-
-5. Build sick_generic_caller and sick_scan_xd_shared_lib.dll with cmake and Visual Studio 2019:
+4. Build sick_generic_caller and sick_scan_xd_shared_lib.dll with cmake and Visual Studio 2019:
    ```
    cd sick_scan_xd
    set _os=x64
@@ -125,7 +101,7 @@ After successful build, binary files `sick_generic_caller.exe` and `sick_scan_xd
 
 Note: LDMRS sensors are currently not supported on Windows.
 
-Note: msgpack11 is only required to support multiScan100/picoScan100. If you do not need or want to support multiScan100/picoScan100, you can skip building msgpack. To build sick_generic_caller without multiScan100/picoScan100 support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
+Note: To build sick_generic_caller without multiScan100/picoScan100 support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
    ```
    cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "%_cmake_string%" ..
    ```

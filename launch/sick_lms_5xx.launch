@@ -12,6 +12,7 @@ Check IP-address, if you scanner is not found after roslaunch.
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
+    <arg name="laserscan_topic" default="scan"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="nodename" default="sick_lms_5xx"/>
@@ -38,6 +39,7 @@ Check IP-address, if you scanner is not found after roslaunch.
         <param name="max_ang" type="double" value="1.658062789" />
 
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="laserscan_topic" type="string" value="$(arg laserscan_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="scanner_type" type="string" value="sick_lms_5xx"/>
         

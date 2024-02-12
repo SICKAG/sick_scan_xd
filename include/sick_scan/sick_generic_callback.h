@@ -168,6 +168,20 @@ namespace sick_scan_xd
             }
         }
 
+        void notifyListener(const MsgType* msg)
+        {
+            std::vector<HandleType> handle_list;
+            {
+                std::unique_lock<std::mutex> lock(m_listeners_mutex);
+                for(typename std::map<HandleType, std::list<callbackFunctionPtr>>::iterator iter_listeners = m_listeners.begin(); iter_listeners != m_listeners.end(); iter_listeners++)
+                    handle_list.push_back(iter_listeners->first);
+            }
+            for(int n = 0; n < handle_list.size(); n++)
+            {
+                notifyListener(handle_list[n], msg);
+            }
+        }
+
         void removeListener(HandleType handle, callbackFunctionPtr listener)
         {
             std::unique_lock<std::mutex> lock(m_listeners_mutex);

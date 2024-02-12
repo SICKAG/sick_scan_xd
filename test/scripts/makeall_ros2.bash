@@ -6,9 +6,7 @@
 
 printf "\033c"
 pushd ../../../..
-rm -rf ./log
-rm -rf ./build
-rm -rf ./install 
+rm -rf ./build ./devel ./install ./build_isolated ./devel_isolated ./install_isolated ./log
 # if [ -d ./ros2_example_application ] ; then rm -rf ./ros2_example_application ; fi
 popd 
 

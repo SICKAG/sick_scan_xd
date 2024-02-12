@@ -11,8 +11,10 @@ default max_angle for this scanner type is +137.5 degree.
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
+    <arg name="laserscan_topic" default="scan"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
+    <arg name="imu_enable" default="true"/> 
     <arg name="imu_frame_id" default="imu_link"/> 
     <arg name="nodename" default="sick_mrs_1xxx"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
@@ -44,13 +46,14 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="port" type="string" value="2112"/>
         <param name="timelimit" type="int" value="5"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="laserscan_topic" type="string" value="$(arg laserscan_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
         <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
         <param name="scandatacfg_timingflag" type="int" value="-1"/> <!-- Set timing flag LMDscandatacfg (LMS-1XX, LMS-1XXX, LMS-4XXX, LMS-5XX, MRS-1XXX, MRS-6XXX, NAV-2XX, TIM-240, TIM-4XX, TIM-5XX, TIM-7XX, TIM-7XXS): -1: use default (off for TiM-240, otherwise on), 0: do not send time information, 1: send time information -->
 
-        <param name="imu_enable" type="bool" value="True"/>
+        <param name="imu_enable" type="bool" value="$(arg imu_enable)"/>
         <param name="imu_enable_additional_info" type="bool" value="True"/>                 
         
         

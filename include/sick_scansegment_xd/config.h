@@ -148,6 +148,7 @@ namespace sick_scansegment_xd
         // std::string send_udp_start_string;          // udp string to start multiScan136, default: "magicalActivate"
         int udp_timeout_ms;                         // Timeout for udp messages in milliseconds, default: 60*1000
         int scandataformat;                         // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
+        int performanceprofilenumber;               // Set performance profile by sending "sWN PerformanceProfileNumber" if performanceprofilenumber >= 0 (picoScan), default: -1
         bool imu_enable;                            // IMU enabled or disabled
         int imu_udp_port;                           // default udp port for multiScan imu data is 7503
         int imu_latency_microsec;                   // imu latency in microseconds

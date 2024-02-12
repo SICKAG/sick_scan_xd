@@ -24,10 +24,15 @@ sleep 1
 
 # Start sick_scan_xd driver for rms
 echo -e "Launching sick_scan_xd sick_nav_350.launch\n"
-# nav_landmark_imk_file=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20230126_nav350_4reflectors_moving.imk
-# roslaunch sick_scan_xd sick_nav_350.launch hostname:=127.0.0.1 nav_do_initial_mapping:=False nav_set_landmark_layout_by_imk_file:=$nav_landmark_imk_file sw_pll_only_publish:=False &
-# roslaunch sick_scan_xd sick_nav_350.launch hostname:=127.0.0.1 nav_do_initial_mapping:=False sw_pll_only_publish:=False &
-roslaunch sick_scan_xd sick_nav_350.launch hostname:=127.0.0.1 nav_do_initial_mapping:=True sw_pll_only_publish:=False &
+if false ; then
+  nav_landmark_imk_file=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20230126_nav350_4reflectors_moving.imk
+  nav_landmark_imk_file=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20231130_issue229.imk
+  nav_landmark_imk_file=`(pwd)`/src/sick_scan_xd/test/emulator/scandata/20231130_issue229_tvz.imk
+  roslaunch sick_scan_xd sick_nav_350.launch hostname:=127.0.0.1 nav_do_initial_mapping:=False nav_set_landmark_layout_by_imk_file:=$nav_landmark_imk_file sw_pll_only_publish:=False &
+else
+  # roslaunch sick_scan_xd sick_nav_350.launch hostname:=127.0.0.1 nav_do_initial_mapping:=False sw_pll_only_publish:=False &
+  roslaunch sick_scan_xd sick_nav_350.launch hostname:=127.0.0.1 nav_do_initial_mapping:=True sw_pll_only_publish:=False &
+fi
 sleep 1
 
 # Wait for 'q' or 'Q' to exit or until rviz is closed
@@ -53,5 +58,6 @@ done
 echo -e "Finishing NAV-350 emulation, shutdown ros nodes\n"
 rosnode kill -a ; sleep 1
 killall sick_generic_caller ; sleep 1
+pkill -f sopas_json_test_server.py
 popd
 

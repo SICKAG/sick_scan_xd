@@ -28,6 +28,7 @@ int main(int argc, char** argv)
   // Run application or main loop
   // getchar();
   std::this_thread::sleep_for(std::chrono::seconds(15));
+  // std::this_thread::sleep_for(std::chrono::hours(24));
 
   // Close lidar and release sick_scan api
   SickScanApiDeregisterCartesianPointCloudMsg(apiHandle, &customizedPointCloudMsgCb);

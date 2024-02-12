@@ -203,6 +203,16 @@ def pySickScanNavPoseLandmarkCallback(api_handle, navposelandmark_msg):
     navposelandmark_msg = navposelandmark_msg.contents # dereference msg pointer
     print("pySickScanNavPoseLandmarkCallback: api_handle={}, NavPoseLandmark message: x={:.3}, y={:.3}, yaw={:.4}, {} reflectors".format(api_handle, navposelandmark_msg.pose_x, navposelandmark_msg.pose_y, navposelandmark_msg.pose_yaw, navposelandmark_msg.reflectors.size))
 
+# Callback for SickScanDiagnosticMsg messages
+def pySickScanDiagnosticMsgCallback(api_handle, diagnostic_msg):
+    diagnostic_msg = diagnostic_msg.contents # dereference msg pointer
+    print("pySickScanDiagnosticMsgCallback: api_handle={}, status_code={}, status_message={}".format(api_handle, diagnostic_msg.status_code, diagnostic_msg.status_message))
+
+# Callback for SickScanLogMsg messages
+def pySickScanLogMsgCallback(api_handle, log_msg):
+    log_msg = log_msg.contents # dereference msg pointer
+    print("pySickScanLogMsgCallback: api_handle={}, log_level={}, log_message={}".format(api_handle, log_msg.log_level, log_msg.log_message))
+
 #
 # Python examples for SickScanApiWaitNext-functions ("message polling")
 #
@@ -381,6 +391,14 @@ if __name__ == "__main__":
         navposelandmark_callback = SickScanNavPoseLandmarkCallback(pySickScanNavPoseLandmarkCallback)
         SickScanApiRegisterNavPoseLandmarkMsg(sick_scan_library, api_handle, navposelandmark_callback)
 
+        # Register a callback for SickScanDiagnosticMsg messages
+        diagnostic_msg_callback = SickScanDiagnosticMsgCallback(pySickScanDiagnosticMsgCallback)
+        SickScanApiRegisterDiagnosticMsg(sick_scan_library, api_handle, diagnostic_msg_callback)
+
+        # Register a callback for SickScanLogMsg messages
+        log_msg_callback = SickScanLogMsgCallback(pySickScanLogMsgCallback)
+        SickScanApiRegisterLogMsg(sick_scan_library, api_handle, log_msg_callback)
+
     # Run main loop
     if __ROS_VERSION == 0:
         while True:
@@ -432,6 +450,9 @@ if __name__ == "__main__":
         SickScanApiDeregisterVisualizationMarkerMsg(sick_scan_library, api_handle, visualizationmarker_callback)
         SickScanApiDeregisterNavPoseLandmarkMsg(sick_scan_library, api_handle, navposelandmark_callback)
     SickScanApiClose(sick_scan_library, api_handle)
+    if not api_test_settings.polling:
+        SickScanApiDeregisterDiagnosticMsg(sick_scan_library, api_handle, diagnostic_msg_callback)
+        SickScanApiDeregisterLogMsg(sick_scan_library, api_handle, log_msg_callback)
     SickScanApiRelease(sick_scan_library, api_handle)
     SickScanApiUnloadLibrary(sick_scan_library)
     print("sick_scan_xd_api_test.py finished.")

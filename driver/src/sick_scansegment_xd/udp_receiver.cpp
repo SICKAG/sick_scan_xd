@@ -155,6 +155,16 @@ bool sick_scansegment_xd::UdpReceiver::Start(void)
 }
 
 /*
+ * @brief Stops the udp receiver thread
+ */
+void sick_scansegment_xd::UdpReceiver::Stop(bool do_join)
+{
+    m_run_receiver_thread = false;
+    if (do_join && m_receiver_thread && m_receiver_thread->joinable())
+        m_receiver_thread->join();
+}
+
+/*
  * @brief Stop to receive data and shutdown the udp socket
  */
 void sick_scansegment_xd::UdpReceiver::Close(void)
@@ -166,7 +176,8 @@ void sick_scansegment_xd::UdpReceiver::Close(void)
     }
     if (m_receiver_thread)
     {
-        m_receiver_thread->join();
+        if (m_receiver_thread->joinable())
+          m_receiver_thread->join();
         delete m_receiver_thread;
         m_receiver_thread = 0;
     }

@@ -780,6 +780,7 @@ namespace sick_scan_xd
             diagnostics_->broadcast(getDiagnosticErrorCode(),
                                "sendSOPASCommand: no full reply available for read after timeout.");
 #endif
+        setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS_ERROR, "SOPAS timeout");
         return ExitError;
       }
 
