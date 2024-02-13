@@ -4,19 +4,14 @@ Changelog for package sick_scan_xd
 
 Forthcoming
 -----------
-* add: IMU support for multiScan and picoScan
-* add: support bloom releases for ROS-2 humble
-* add: docker tests for ROS1 noetic incl. testcases for multiScan, picoScan, MRS1xxx
-* add: PR #255, support picoScan performance profiles
-* change: configuration time flag LMDscandatacfg switched off for the TiM240
-* fix: #218 (API reinit)
-* fix: #220 (Fullframe Laserscan messages multi- and picoScan)
-* fix: #221 (No scandata while activated scan range filter)
-* fix: #222 (rviz visualization of polar pointclouds)
-* fix: #247 (Launchfile option for laserscan topic)
-* fix: #256 (Clean API-exit picoScan and multiScan)
-* fix: #260 (Provide API-functions to query lidar status, error codes and error messages)
-* Contributors: Manuel Aiple
+* ROS2 humble environment on bloom build
+* Update build options `#276 <https://github.com/SICKAG/sick_scan_xd/issues/276>`_, support for picoscan without addons and api verbosity
+* Contributors: rostest
+
+3.2.0 (2024-02-12)
+------------------
+* Release v3.2.0
+* Contributors: Michael Lehning
 
 3.1.0 (2023-11-21)
 ------------------
@@ -64,7 +59,7 @@ Forthcoming
 * Correct cmake option handling and adapt documentation
 * Merge branch 'master' into develop
   # Conflicts:
-  # driver/src/sick_scan_common.cpp
+  #	driver/src/sick_scan_common.cpp
 * Feature/lrs3601 angle settings
 * Documentation updated (regarding comments from Silas)
 * fix: address points raised by catkin_lint
@@ -349,7 +344,7 @@ Forthcoming
 2.5.0 (2022-03-09)
 ------------------
 * Merge pull request `#25 <https://github.com/SICKAG/sick_scan_xd/issues/25>`_ from SICKAG/feature/lidar_stop_exit
-  Fix issue `#24 <https://github.com/SICKAG/sick_scan_xd/issues/24>`_ (stop scanner at exit), new ros service SickScanExit to…
+  Fix issue `#24 <https://github.com/SICKAG/sick_scan_xd/issues/24>`_ (stop scanner at exit), new ros service SickScanExit toâ€¦
 * Fix issue `#24 <https://github.com/SICKAG/sick_scan_xd/issues/24>`_ (stop scanner at exit), new ros service SickScanExit to stop scanner and exit
 * Contributors: rostest
 
