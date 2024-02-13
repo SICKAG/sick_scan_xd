@@ -656,7 +656,12 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         target_link_libraries(${PROJECT_NAME}_shared_lib ${SICK_LDMRS_LIBRARIES})
     endif()
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
-    target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
+    if(ROS_VERSION EQUAL 0 AND NOT WIN32)
+        target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} "pthread") # pthread required for std::thread
+        target_link_options(sick_generic_caller PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+    else()    
+        target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
+    endif()
 
 endif()
 

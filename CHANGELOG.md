@@ -5,7 +5,7 @@ features that will be removed in future versions **Removed** for deprecated feat
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
 
-## Released ##
+## Unreleased ##
 
 ### Release v3.2.0
 
@@ -21,6 +21,8 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **fix** #247 (Launchfile option for laserscan topic)
   - **fix** #256 (Clean API-exit picoScan and multiScan)
   - **fix** #260 (Provide API-functions to query lidar status, error codes and error messages)
+
+## Released ##
 
 ### Release v3.1.0
 

@@ -168,8 +168,9 @@ class SickScanPointCloudMsg(ctypes.Structure):
         ("data", SickScanUint8Array),                # Actual point data, size is (row_step*height)
         ("is_dense", ctypes.c_uint8),                # True if there are no invalid points
         ("num_echos", ctypes.c_int32),               # number of echos
-        ("segment_idx", ctypes.c_int32)              # segment index (or -1 if pointcloud contains data from multiple segments)
-    ]
+        ("segment_idx", ctypes.c_int32),             # segment index (or -1 if pointcloud contains data from multiple segments)
+        ("topic", ctypes.c_char * 256)               # ros topic this pointcloud is published
+   ]
 
 class SickScanVector3Msg(ctypes.Structure):
     """ 
@@ -977,6 +978,12 @@ def SickScanApiLoadLibrary(paths, lib_filname):
     # sick_scan_api.h:  int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
     sick_scan_library.SickScanApiGetStatus.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int32), ctypes.c_char_p, ctypes.c_int32]
     sick_scan_library.SickScanApiGetStatus.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level);
+    sick_scan_library.SickScanApiSetVerboseLevel.argtypes = [ctypes.c_void_p, ctypes.c_int32]
+    sick_scan_library.SickScanApiSetVerboseLevel.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle);
+    sick_scan_library.SickScanApiGetVerboseLevel.argtypes = [ctypes.c_void_p]
+    sick_scan_library.SickScanApiGetVerboseLevel.restype = ctypes.c_int
     # sick_scan_api.h: int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
     sick_scan_library.SickScanApiWaitNextCartesianPointCloudMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanPointCloudMsg), ctypes.c_double]
     sick_scan_library.SickScanApiWaitNextCartesianPointCloudMsg.restype = ctypes.c_int
@@ -1220,6 +1227,20 @@ def SickScanApiGetStatus(sick_scan_library, api_handle, status_code, message_buf
     Query current status and status message
     """ 
     return sick_scan_library.SickScanApiGetStatus(api_handle, status_code, message_buffer, message_buffer_size)
+
+def SickScanApiSetVerboseLevel(sick_scan_library, api_handle, verbose_level):
+    """ 
+    Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
+    i.e. print messages on console above the given verbose level.
+    Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
+    """ 
+    return sick_scan_library.SickScanApiSetVerboseLevel(api_handle, verbose_level)
+
+def SickScanApiGetVerboseLevel(sick_scan_library, api_handle):
+    """ 
+    Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
+    """ 
+    return sick_scan_library.SickScanApiGetVerboseLevel(api_handle)
 
 """ 
 Polling functions

@@ -517,7 +517,6 @@ namespace sick_scan_xd
     {
         datagram_pub_ = rosAdvertise<ros_std_msgs::String>(nh, nodename + "/datagram", 1000);
     }
-    std::string cloud_topic_val = "cloud";
     rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
     rosGetParam(nh, "cloud_topic", cloud_topic_val);
 
@@ -5155,8 +5154,8 @@ namespace sick_scan_xd
                   range_filter.resizePointCloud(rangeNumPointcloudAllEchos, cloud_polar_);
                 }
 
-                sick_scan_xd::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0);
-                sick_scan_xd::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0);
+                sick_scan_xd::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0, cloud_topic_val);
+                sick_scan_xd::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0, cloud_topic_val);
 #ifdef ROSSIMU
                 notifyPolarPointcloudListener(nh, &cloud_msg_polar);
                 notifyCartesianPointcloudListener(nh, &cloud_msg);
@@ -5256,7 +5255,7 @@ namespace sick_scan_xd
                     assert(partialCloud.data.size() == partialCloud.width * partialCloud.point_step);
 
 
-                    sick_scan_xd::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0);
+                    sick_scan_xd::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0, cloud_topic_val);
                     notifyCartesianPointcloudListener(nh, &partial_cloud_msg);
                     rosPublish(cloud_pub_, partialCloud);
                     //memcpy(&(partialCloud.data[0]), &(cloud_.data[0]) + i * cloud_.point_step, cloud_.point_step * numPartialShots);
