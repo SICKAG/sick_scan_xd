@@ -2,8 +2,8 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+3.2.1 (2024-02-13)
+------------------
 * ROS2 humble environment on bloom build
 * Update build options `#276 <https://github.com/SICKAG/sick_scan_xd/issues/276>`_, support for picoscan without addons and api verbosity
 * Contributors: rostest
