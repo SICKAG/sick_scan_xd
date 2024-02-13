@@ -95,9 +95,11 @@ elseif(DEFINED SICK_TARGET_ENDIANESS)
 endif()
 
 # ROS Version
-message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ROS_VERSION=${ROS_VERSION} CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
+message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ENV{ROS_DISTRO}=$ENV{ROS_DISTRO} ROS_VERSION=${ROS_VERSION} CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
 if(DEFINED CMAKE_PREFIX_PATH AND "${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/humble")
-    set(ROS_VERSION 2)
+    set(ROS_VERSION 2)  # required for ROS2 humble bloom releases with jenkins buildfarm
+elseif(NOT DEFINED ROS_VERSION AND EXISTS "/opt/ros/humble/setup.sh")
+    set(ROS_VERSION 2)  # required for ROS2 humble bloom releases with jenkins buildfarm
 endif()
 if(NOT DEFINED ROS_VERSION AND DEFINED ENV{ROS_VERSION})
     set(ROS_VERSION $ENV{ROS_VERSION})
