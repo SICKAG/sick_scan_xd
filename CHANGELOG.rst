@@ -2,7 +2,7 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-3.2.4 (2024-03-14)
+Forthcoming
 ------------------
 * fix: CMakeLists.txt for ROS2 jenkins build
 * Contributors: rostest
