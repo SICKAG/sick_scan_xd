@@ -14,6 +14,7 @@ The generic sick_scan_xd API ships with the API-header, the library (binary or s
 
 ![apiComponentsDiagram1.png](apiComponentsDiagram1.png)
 
+**Note: Running multiple lidars simultaneously in one process is not supported.** Currently the sick_scan_xd API does not support the single or multi-threaded use of 2 or more lidars in one process, since the sick_scan_xd library is not guaranteed to be thread-safe. To run multiple lidars simultaneously, we recommend using ROS or running sick_scan_xd in multiple and separate processes, so that each process serves one sensor.
 ## Build and test shared library
 
 The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../../INSTALL-GENERIC.md#build-on-linux-generic-without-ros) for Linux resp. [Build on Windows](../../INSTALL-GENERIC.md#build-on-windows) for Windows.
