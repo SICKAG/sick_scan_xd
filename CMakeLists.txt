@@ -95,9 +95,11 @@ elseif(DEFINED SICK_TARGET_ENDIANESS)
 endif()
 
 # ROS Version
-message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ROS_VERSION=${ROS_VERSION} CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
+message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ENV{ROS_DISTRO}=$ENV{ROS_DISTRO} ROS_VERSION=${ROS_VERSION} CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
 if(DEFINED CMAKE_PREFIX_PATH AND "${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/humble")
-    set(ROS_VERSION 2)
+    set(ROS_VERSION 2)  # required for ROS2 humble bloom releases with jenkins buildfarm
+elseif(NOT DEFINED ROS_VERSION AND EXISTS "/opt/ros/humble/setup.sh")
+    set(ROS_VERSION 2)  # required for ROS2 humble bloom releases with jenkins buildfarm
 endif()
 if(NOT DEFINED ROS_VERSION AND DEFINED ENV{ROS_VERSION})
     set(ROS_VERSION $ENV{ROS_VERSION})
@@ -656,7 +658,12 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         target_link_libraries(${PROJECT_NAME}_shared_lib ${SICK_LDMRS_LIBRARIES})
     endif()
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
-    target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
+    if(ROS_VERSION EQUAL 0 AND NOT WIN32)
+        target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} "pthread") # pthread required for std::thread
+        target_link_options(sick_generic_caller PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+    else()    
+        target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
+    endif()
 
 endif()
 
@@ -851,6 +858,7 @@ if((${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) AND (NOT WIN32 OR ROS_VERSIO
         ${catkin_LIBRARIES}
         ${roslib_LIBRARIES}
         ${PROJECT_NAME}_lib 
+        ${SICK_LDMRS_LIBRARIES}
         ${LIB_JSONCPP})
     target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
     if(NOT WIN32 AND NOT ROS_VERSION EQUAL 1)

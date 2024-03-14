@@ -179,14 +179,19 @@ For ROS-2 follow the instructions on https://docs.ros.org/en/humble/How-To-Guide
     catkin_prepare_release
     bloom-release --rosdistro humble --track humble sick_scan_xd # at first time: call with option --new-track
     ```
-    For the first time bloom-relase configuration with option --new-track:
+    For the initial release (i.e. at the first time): Run bloom-relase configuration with option --new-track:
     `bloom-release --new-track --rosdistro humble --track humble sick_scan_xd`
     * Release repository url: https://github.com/ros2-gbp/sick_scan_xd-release.git
     * Upstream: <default>
     * Upstream Repository URI: https://github.com/SICKAG/sick_scan_xd.git
     * Upstream Devel Branch: feature/bloom_pretest
     * ROS Distro: humble
-
+    After the initial release has been approved: Run
+    ```
+    sudo rosdep init
+    rosdep update
+    ```
+    
 ## Check status
 
 * ROS-1 release repository: https://github.com/SICKAG/sick_scan_xd-release

@@ -11,6 +11,8 @@ function killall_cleanup()
   pkill -f multiscan_sopas_test_server.py
   pkill -f multiscan_pcap_player.py
   pkill -f polar_to_cartesian_pointcloud_ros1.py
+  pkill -f sick_scan_xd_simu.py
+  pkill -f sopas_json_test_server.py
   sleep 3 ; rosnode kill -a ; killall -9 sick_generic_caller
   sleep 3
 }

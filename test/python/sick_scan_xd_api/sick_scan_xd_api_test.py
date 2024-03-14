@@ -50,7 +50,18 @@ class ApiTestSettings:
         self.plot_points_y = []
         self.plot_points_z = []
         self.polling = False
-
+        self.polling_functions = {}
+        self.polling_functions["SickScanApiWaitNextCartesianPointCloudMsg"] = True # default if polling is True: poll cartesian pointcloud message by SickScanApiWaitNextCartesianPointCloudMsg
+        self.polling_functions["SickScanApiWaitNextPolarPointCloudMsg"] = False
+        self.polling_functions["SickScanApiWaitNextImuMsg"] = False
+        self.polling_functions["SickScanApiWaitNextLFErecMsg"] = False
+        self.polling_functions["SickScanApiWaitNextLIDoutputstateMsg"] = False
+        self.polling_functions["SickScanApiWaitNextRadarScanMsg"] = False
+        self.polling_functions["SickScanApiWaitNextLdmrsObjectArrayMsg"] = False
+        self.polling_functions["SickScanApiWaitNextVisualizationMarkerMsg"] = False
+        self.polling_functions["SickScanApiWaitNextNavPoseLandmarkMsg"] = False
+        self.verbose_level = 2 # Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels)
+        
 # Convert a SickScanCartesianPointCloudMsg to 3D arrays
 def pySickScanCartesianPointCloudMsgToXYZ(pointcloud_msg):
     # get pointcloud fields
@@ -95,8 +106,9 @@ def pySickScanCartesianPointCloudMsgToXYZ(pointcloud_msg):
 # Callback for cartesian pointcloud messages
 def pySickScanCartesianPointCloudMsgCallback(api_handle, pointcloud_msg):
     pointcloud_msg = pointcloud_msg.contents # dereference msg pointer (pointcloud_msg = pointcloud_msg[0])
-    print("pySickScanCartesianPointCloudMsgCallback (ROS-{}): api_handle={}, {}x{} pointcloud, {} echo(s), segment {}".format(
-        __ROS_VERSION, api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx))
+    print("pySickScanCartesianPointCloudMsgCallback (ROS-{}): api_handle={}, {}x{} pointcloud, {} echo(s), segment {}, {} fields, frame_id \"{}\", topic {}, timestamp {}.{:06d}".format(
+        __ROS_VERSION, api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx, pointcloud_msg.fields.size, 
+        pointcloud_msg.header.frame_id, pointcloud_msg.topic, pointcloud_msg.header.timestamp_sec, pointcloud_msg.header.timestamp_nsec))
     global api_test_settings
     # Note: Pointcloud conversion and visualization consumes cpu time, therefore we convert and publish the cartesian pointcloud with low frequency.
     cur_timestamp = datetime.datetime.now()
@@ -112,8 +124,9 @@ def pySickScanCartesianPointCloudMsgCallback(api_handle, pointcloud_msg):
 # Callback for polar pointcloud messages
 def pySickScanPolarPointCloudMsgCallback(api_handle, pointcloud_msg):
     pointcloud_msg = pointcloud_msg.contents # dereference msg pointer (pointcloud_msg = pointcloud_msg[0])
-    print("pySickScanPolarPointCloudMsgCallback (ROS-{}): api_handle={}, {}x{} pointcloud, {} echo(s), segment {}".format(
-        __ROS_VERSION, api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx))
+    print("pySickScanPolarPointCloudMsgCallback (ROS-{}): api_handle={}, {}x{} pointcloud, {} echo(s), segment {}, {} fields, frame_id \"{}\", topic {}, timestamp {}.{:06d}".format(
+        __ROS_VERSION, api_handle, pointcloud_msg.width, pointcloud_msg.height, pointcloud_msg.num_echos , pointcloud_msg.segment_idx, pointcloud_msg.fields.size, 
+        pointcloud_msg.header.frame_id, pointcloud_msg.topic, pointcloud_msg.header.timestamp_sec, pointcloud_msg.header.timestamp_nsec))
     if __ROS_VERSION == 1:
         # Convert polar pointcloud_msg to cartesian ros pointcloud and publish.
         # Note: Pointcloud conversion from polar to cartesian is too cpu-intensive to process all segments from a Multiscan136.
@@ -203,6 +216,16 @@ def pySickScanNavPoseLandmarkCallback(api_handle, navposelandmark_msg):
     navposelandmark_msg = navposelandmark_msg.contents # dereference msg pointer
     print("pySickScanNavPoseLandmarkCallback: api_handle={}, NavPoseLandmark message: x={:.3}, y={:.3}, yaw={:.4}, {} reflectors".format(api_handle, navposelandmark_msg.pose_x, navposelandmark_msg.pose_y, navposelandmark_msg.pose_yaw, navposelandmark_msg.reflectors.size))
 
+# Callback for SickScanDiagnosticMsg messages
+def pySickScanDiagnosticMsgCallback(api_handle, diagnostic_msg):
+    diagnostic_msg = diagnostic_msg.contents # dereference msg pointer
+    print("pySickScanDiagnosticMsgCallback: api_handle={}, status_code={}, status_message={}".format(api_handle, diagnostic_msg.status_code, diagnostic_msg.status_message))
+
+# Callback for SickScanLogMsg messages
+def pySickScanLogMsgCallback(api_handle, log_msg):
+    log_msg = log_msg.contents # dereference msg pointer
+    print("pySickScanLogMsgCallback: api_handle={}, log_level={}, log_message={}".format(api_handle, log_msg.log_level, log_msg.log_message))
+
 #
 # Python examples for SickScanApiWaitNext-functions ("message polling")
 #
@@ -232,72 +255,76 @@ def pyrunSickScanApiTestWaitNext(sick_scan_library, api_handle):
     navodom_msg.coordbase = 0
     global api_test_settings
     while api_test_settings.polling:
-        # Get/poll the next cartesian PointCloud message
-        ret = SickScanApiWaitNextCartesianPointCloudMsg(sick_scan_library, api_handle, ctypes.pointer(pointcloud_msg), wait_next_message_timeout)
-        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
-            pySickScanCartesianPointCloudMsgCallback(api_handle, ctypes.pointer(pointcloud_msg))
-        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
-            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextCartesianPointCloudMsg failed, error code {} ({})".format(ret, int(ret)))
-        SickScanApiFreePointCloudMsg(sick_scan_library, api_handle, ctypes.pointer(pointcloud_msg))
-        # Get/poll the next polar PointCloud message
-        ret = SickScanApiWaitNextPolarPointCloudMsg(sick_scan_library, api_handle, ctypes.pointer(pointcloud_msg), wait_next_message_timeout)
-        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
-            pySickScanPolarPointCloudMsgCallback(api_handle, ctypes.pointer(pointcloud_msg))
-        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
-            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextPolarPointCloudMsg failed, error code {} ({})".format(ret, int(ret)))
-        SickScanApiFreePointCloudMsg(sick_scan_library, api_handle, ctypes.pointer(pointcloud_msg))
-        # Get/poll the next Imu message
-        ret = SickScanApiWaitNextImuMsg(sick_scan_library, api_handle, ctypes.pointer(imu_msg), wait_next_message_timeout)
-        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
-            pySickScanImuMsgCallback(api_handle, ctypes.pointer(imu_msg))
-        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
-            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextImuMsg failed, error code {} ({})".format(ret, int(ret)))
-        SickScanApiFreeImuMsg(sick_scan_library, api_handle, ctypes.pointer(imu_msg))
-        # Get/poll the next LFErec message
-        ret = SickScanApiWaitNextLFErecMsg(sick_scan_library, api_handle, ctypes.pointer(lferec_msg), wait_next_message_timeout)
-        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
-            pySickScanLFErecMsgCallback(api_handle, ctypes.pointer(lferec_msg))
-        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
-            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextLFErecMsg failed, error code {} ({})".format(ret, int(ret)))
-        SickScanApiFreeLFErecMsg(sick_scan_library, api_handle, ctypes.pointer(lferec_msg))
-        # Get/poll the next LIDoutputstate message
-        ret = SickScanApiWaitNextLIDoutputstateMsg(sick_scan_library, api_handle, ctypes.pointer(lidoutputstate_msg), wait_next_message_timeout)
-        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
-            pySickScanLIDoutputstateMsgCallback(api_handle, ctypes.pointer(lidoutputstate_msg))
-        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
-            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextLIDoutputstateMsg failed, error code {} ({})".format(ret, int(ret)))
-        SickScanApiFreeLIDoutputstateMsg(sick_scan_library, api_handle, ctypes.pointer(lidoutputstate_msg))
-        # Get/poll the next RadarScan message
-        ret = SickScanApiWaitNextRadarScanMsg(sick_scan_library, api_handle, ctypes.pointer(radarscan_msg), wait_next_message_timeout)
-        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
-            pySickScanRadarScanCallback(api_handle, ctypes.pointer(radarscan_msg))
-        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
-            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextRadarScanMsg failed, error code {} ({})".format(ret, int(ret)))
-        SickScanApiFreeRadarScanMsg(sick_scan_library, api_handle, ctypes.pointer(radarscan_msg))
-        # Get/poll the next LdmrsObjectArray message
-        ret = SickScanApiWaitNextLdmrsObjectArrayMsg(sick_scan_library, api_handle, ctypes.pointer(ldmrsobjectarray_msg), wait_next_message_timeout)
-        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
-            pySickScanLdmrsObjectArrayCallback(api_handle, ctypes.pointer(ldmrsobjectarray_msg))
-        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
-            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextLdmrsObjectArrayMsg failed, error code {} ({})".format(ret, int(ret)))
-        SickScanApiFreeLdmrsObjectArrayMsg(sick_scan_library, api_handle, ctypes.pointer(ldmrsobjectarray_msg))
-        # Get/poll the next VisualizationMarker message
-        ret = SickScanApiWaitNextVisualizationMarkerMsg(sick_scan_library, api_handle, ctypes.pointer(visualizationmarker_msg), wait_next_message_timeout)
-        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
-            pySickScanVisualizationMarkerCallback(api_handle, ctypes.pointer(visualizationmarker_msg))
-        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
-            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextVisualizationMarkerMsg failed, error code {} ({})".format(ret, int(ret)))
-        SickScanApiFreeVisualizationMarkerMsg(sick_scan_library, api_handle, ctypes.pointer(visualizationmarker_msg))
-        # Get/poll the next SickScanNavPoseLandmarkMsg message
-        ret = SickScanApiWaitNextNavPoseLandmarkMsg(sick_scan_library, api_handle, ctypes.pointer(navposelandmark_msg), wait_next_message_timeout)
-        if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
-            pySickScanNavPoseLandmarkCallback(api_handle, ctypes.pointer(navposelandmark_msg))
-        elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
-            print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextNavPoseLandmarkMsg failed, error code {} ({})".format(ret, int(ret)))
-        SickScanApiFreeNavPoseLandmarkMsg(sick_scan_library, api_handle, ctypes.pointer(navposelandmark_msg))
-        # Send NAV350 odom message example
-        # ret = SickScanApiNavOdomVelocityMsg(sick_scan_library, api_handle, ctypes.pointer(navodom_msg))
-        # ret = SickScanApiOdomVelocityMsg(sick_scan_library, api_handle, ctypes.pointer(odom_msg))
+        if api_test_settings.polling_functions["SickScanApiWaitNextCartesianPointCloudMsg"]: # Get/poll the next cartesian PointCloud message
+            ret = SickScanApiWaitNextCartesianPointCloudMsg(sick_scan_library, api_handle, ctypes.pointer(pointcloud_msg), wait_next_message_timeout)
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                pySickScanCartesianPointCloudMsgCallback(api_handle, ctypes.pointer(pointcloud_msg))
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                print("pyrunSickScanApiTestWaitNext: success")
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SICK_SCAN_API_TIMEOUT, SickScanApiWaitNextCartesianPointCloudMsg failed, error code {} ({})".format(ret, int(ret)))
+            elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextCartesianPointCloudMsg failed, error code {} ({})".format(ret, int(ret)))
+            SickScanApiFreePointCloudMsg(sick_scan_library, api_handle, ctypes.pointer(pointcloud_msg))
+        if api_test_settings.polling_functions["SickScanApiWaitNextPolarPointCloudMsg"]: # Get/poll the next polar PointCloud message
+            ret = SickScanApiWaitNextPolarPointCloudMsg(sick_scan_library, api_handle, ctypes.pointer(pointcloud_msg), wait_next_message_timeout)
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                pySickScanPolarPointCloudMsgCallback(api_handle, ctypes.pointer(pointcloud_msg))
+            elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextPolarPointCloudMsg failed, error code {} ({})".format(ret, int(ret)))
+            SickScanApiFreePointCloudMsg(sick_scan_library, api_handle, ctypes.pointer(pointcloud_msg))
+        if api_test_settings.polling_functions["SickScanApiWaitNextImuMsg"]: # Get/poll the next Imu message
+            ret = SickScanApiWaitNextImuMsg(sick_scan_library, api_handle, ctypes.pointer(imu_msg), wait_next_message_timeout)
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                pySickScanImuMsgCallback(api_handle, ctypes.pointer(imu_msg))
+            elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextImuMsg failed, error code {} ({})".format(ret, int(ret)))
+            SickScanApiFreeImuMsg(sick_scan_library, api_handle, ctypes.pointer(imu_msg))
+        if api_test_settings.polling_functions["SickScanApiWaitNextLFErecMsg"]: # Get/poll the next LFErec message
+            ret = SickScanApiWaitNextLFErecMsg(sick_scan_library, api_handle, ctypes.pointer(lferec_msg), wait_next_message_timeout)
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                pySickScanLFErecMsgCallback(api_handle, ctypes.pointer(lferec_msg))
+            elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextLFErecMsg failed, error code {} ({})".format(ret, int(ret)))
+            SickScanApiFreeLFErecMsg(sick_scan_library, api_handle, ctypes.pointer(lferec_msg))
+        if api_test_settings.polling_functions["SickScanApiWaitNextLIDoutputstateMsg"]: # Get/poll the next LIDoutputstate message
+            ret = SickScanApiWaitNextLIDoutputstateMsg(sick_scan_library, api_handle, ctypes.pointer(lidoutputstate_msg), wait_next_message_timeout)
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                pySickScanLIDoutputstateMsgCallback(api_handle, ctypes.pointer(lidoutputstate_msg))
+            elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextLIDoutputstateMsg failed, error code {} ({})".format(ret, int(ret)))
+            SickScanApiFreeLIDoutputstateMsg(sick_scan_library, api_handle, ctypes.pointer(lidoutputstate_msg))
+        if api_test_settings.polling_functions["SickScanApiWaitNextRadarScanMsg"]: # Get/poll the next RadarScan message
+            ret = SickScanApiWaitNextRadarScanMsg(sick_scan_library, api_handle, ctypes.pointer(radarscan_msg), wait_next_message_timeout)
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                pySickScanRadarScanCallback(api_handle, ctypes.pointer(radarscan_msg))
+            elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextRadarScanMsg failed, error code {} ({})".format(ret, int(ret)))
+            SickScanApiFreeRadarScanMsg(sick_scan_library, api_handle, ctypes.pointer(radarscan_msg))
+        if api_test_settings.polling_functions["SickScanApiWaitNextLdmrsObjectArrayMsg"]: # Get/poll the next LdmrsObjectArray message
+            ret = SickScanApiWaitNextLdmrsObjectArrayMsg(sick_scan_library, api_handle, ctypes.pointer(ldmrsobjectarray_msg), wait_next_message_timeout)
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                pySickScanLdmrsObjectArrayCallback(api_handle, ctypes.pointer(ldmrsobjectarray_msg))
+            elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextLdmrsObjectArrayMsg failed, error code {} ({})".format(ret, int(ret)))
+            SickScanApiFreeLdmrsObjectArrayMsg(sick_scan_library, api_handle, ctypes.pointer(ldmrsobjectarray_msg))
+        if api_test_settings.polling_functions["SickScanApiWaitNextVisualizationMarkerMsg"]: # Get/poll the next VisualizationMarker message
+            ret = SickScanApiWaitNextVisualizationMarkerMsg(sick_scan_library, api_handle, ctypes.pointer(visualizationmarker_msg), wait_next_message_timeout)
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                pySickScanVisualizationMarkerCallback(api_handle, ctypes.pointer(visualizationmarker_msg))
+            elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextVisualizationMarkerMsg failed, error code {} ({})".format(ret, int(ret)))
+            SickScanApiFreeVisualizationMarkerMsg(sick_scan_library, api_handle, ctypes.pointer(visualizationmarker_msg))
+        if api_test_settings.polling_functions["SickScanApiWaitNextNavPoseLandmarkMsg"]: # Get/poll the next SickScanNavPoseLandmarkMsg message
+            ret = SickScanApiWaitNextNavPoseLandmarkMsg(sick_scan_library, api_handle, ctypes.pointer(navposelandmark_msg), wait_next_message_timeout)
+            if ret == int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS):
+                pySickScanNavPoseLandmarkCallback(api_handle, ctypes.pointer(navposelandmark_msg))
+            elif ret != int(SickScanApiErrorCodes.SICK_SCAN_API_SUCCESS) and ret != int(SickScanApiErrorCodes.SICK_SCAN_API_TIMEOUT):
+                print("## ERROR pyrunSickScanApiTestWaitNext: SickScanApiWaitNextNavPoseLandmarkMsg failed, error code {} ({})".format(ret, int(ret)))
+            SickScanApiFreeNavPoseLandmarkMsg(sick_scan_library, api_handle, ctypes.pointer(navposelandmark_msg))
+            # Send NAV350 odom message example
+            # ret = SickScanApiNavOdomVelocityMsg(sick_scan_library, api_handle, ctypes.pointer(navodom_msg))
+            # ret = SickScanApiOdomVelocityMsg(sick_scan_library, api_handle, ctypes.pointer(odom_msg))
 
 #
 # Python usage example for sick_scan_api
@@ -310,9 +337,12 @@ if __name__ == "__main__":
     cli_arg_start_idx = 1
     for n, cli_arg in enumerate(sys.argv):
         if cli_arg.startswith("_polling:="):
-            cli_arg_start_idx = n + 1
+            cli_arg_start_idx = max(n + 1, cli_arg_start_idx)
             if int(cli_arg[10:]) > 0:
                 api_test_settings.polling = True
+        if cli_arg.startswith("_verbose:="):
+            cli_arg_start_idx = max(n + 1, cli_arg_start_idx)
+            api_test_settings.verbose_level = int(cli_arg[10:])
     cli_args = " ".join(sys.argv[cli_arg_start_idx:])
     if __ROS_VERSION == 0 and plt_enabled:
         api_test_settings.plot_figure = plt.figure()
@@ -381,6 +411,22 @@ if __name__ == "__main__":
         navposelandmark_callback = SickScanNavPoseLandmarkCallback(pySickScanNavPoseLandmarkCallback)
         SickScanApiRegisterNavPoseLandmarkMsg(sick_scan_library, api_handle, navposelandmark_callback)
 
+        # Register a callback for SickScanDiagnosticMsg messages
+        diagnostic_msg_callback = SickScanDiagnosticMsgCallback(pySickScanDiagnosticMsgCallback)
+        SickScanApiRegisterDiagnosticMsg(sick_scan_library, api_handle, diagnostic_msg_callback)
+
+        # Register a callback for SickScanLogMsg messages
+        log_msg_callback = SickScanLogMsgCallback(pySickScanLogMsgCallback)
+        SickScanApiRegisterLogMsg(sick_scan_library, api_handle, log_msg_callback)
+
+        # Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels)
+        SickScanApiSetVerboseLevel(sick_scan_library, api_handle, api_test_settings.verbose_level)
+        verbose_level = SickScanApiGetVerboseLevel(sick_scan_library, api_handle)
+        if api_test_settings.verbose_level != verbose_level:
+            print(f"## ERROR sick_scan_xd_api_test: SickScanApiSetVerboseLevel(verbose_level={api_test_settings.verbose_level}) failed, running with verbose_level={verbose_level}")
+        else:
+            print(f"sick_scan_xd_api_test running with verbose_level={verbose_level}")
+
     # Run main loop
     if __ROS_VERSION == 0:
         while True:
@@ -432,6 +478,9 @@ if __name__ == "__main__":
         SickScanApiDeregisterVisualizationMarkerMsg(sick_scan_library, api_handle, visualizationmarker_callback)
         SickScanApiDeregisterNavPoseLandmarkMsg(sick_scan_library, api_handle, navposelandmark_callback)
     SickScanApiClose(sick_scan_library, api_handle)
+    if not api_test_settings.polling:
+        SickScanApiDeregisterDiagnosticMsg(sick_scan_library, api_handle, diagnostic_msg_callback)
+        SickScanApiDeregisterLogMsg(sick_scan_library, api_handle, log_msg_callback)
     SickScanApiRelease(sick_scan_library, api_handle)
     SickScanApiUnloadLibrary(sick_scan_library)
     print("sick_scan_xd_api_test.py finished.")

@@ -2,57 +2,21 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-3.1.11 (2024-01-17)
--------------------
-* Building api test deactivated on ROS2 to avoid pthread dependencies
-* Contributors: rostest
-
-3.1.10 (2024-01-16)
--------------------
-* Update package.xml
-* 3.1.6
-* Update CHANGELOG.rst
-* Update package.xml, assume ROS_VERSION 2 by default.
-* Contributors: rostest
-
-3.1.8 (2024-01-15)
+3.2.4 (2024-03-14)
 ------------------
-* Removed pthread dependency under ROS-2, update CHANGELOG.rst
-* Removed pthread dependency under ROS-2
+* fix: CMakeLists.txt for ROS2 jenkins build
 * Contributors: rostest
 
-3.1.7 (2024-01-12)
+3.2.1 (2024-02-13)
 ------------------
-* Update CHANGELOG.rst
-* Specified ROS version for humble bloom release
+* ROS2 humble environment on bloom build
+* Update build options `#276 <https://github.com/SICKAG/sick_scan_xd/issues/276>`_, support for picoscan without addons and api verbosity
 * Contributors: rostest
 
-3.1.6 (2024-01-08)
+3.2.0 (2024-02-12)
 ------------------
-* Update CHANGELOG.rst
-* Contributors: rostest
-
-3.1.5 (2023-12-01 12:49)
-------------------------
-* Update CHANGELOG.rst and package version
-* build options for bloom support
-* build options for bloom support
-* Contributors: rostest
-
-3.1.3 (2023-12-01 11:27)
-------------------------
-* Update CHANGELOG.rst and package version
-* 3.1.1
-* Update CHANGELOG.rst
-* Build options for bloom release, merge bugfix updates (mrs1xxx_init, tim240_protocol_switch, nav350_imk), documentation update (msgpack11 removed)
-* Contributors: rostest
-
-3.1.1 (2023-11-24)
-------------------
-* bloom pretest with release 3.1
-* bloom pretest with package version 3.1
-* bloom pretest with package version 3.1
-* Contributors: rostest
+* Release v3.2.0
+* Contributors: Michael Lehning
 
 3.1.0 (2023-11-21)
 ------------------
@@ -100,7 +64,7 @@ Changelog for package sick_scan_xd
 * Correct cmake option handling and adapt documentation
 * Merge branch 'master' into develop
   # Conflicts:
-  #	driver/src/sick_scan_common.cpp
+  # driver/src/sick_scan_common.cpp
 * Feature/lrs3601 angle settings
 * Documentation updated (regarding comments from Silas)
 * fix: address points raised by catkin_lint
@@ -385,7 +349,6 @@ Changelog for package sick_scan_xd
 2.5.0 (2022-03-09)
 ------------------
 * Merge pull request `#25 <https://github.com/SICKAG/sick_scan_xd/issues/25>`_ from SICKAG/feature/lidar_stop_exit
-  Fix issue `#24 <https://github.com/SICKAG/sick_scan_xd/issues/24>`_ (stop scanner at exit), new ros service SickScanExit to…
 * Fix issue `#24 <https://github.com/SICKAG/sick_scan_xd/issues/24>`_ (stop scanner at exit), new ros service SickScanExit to stop scanner and exit
 * Contributors: rostest
 

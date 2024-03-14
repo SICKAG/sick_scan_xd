@@ -273,6 +273,8 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 	// m_segment_count = config.segment_count;
 	m_all_segments_azimuth_min_deg = (float)config.all_segments_min_deg;
   m_all_segments_azimuth_max_deg = (float)config.all_segments_max_deg;
+  m_host_FREchoFilter = config.host_FREchoFilter;
+	m_host_set_FREchoFilter = config.host_set_FREchoFilter;
 	if (config.host_set_LFPangleRangeFilter)
 	{
 		initLFPangleRangeFilterSettings(config.host_LFPangleRangeFilter);
@@ -461,18 +463,18 @@ std::string sick_scansegment_xd::RosMsgpackPublisher::printCoverageTable(const s
 }
 
 /** Shortcut to publish a PointCloud2Msg */
-void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation)
+void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation, const std::string& topic)
 {
   if (coordinate_notation == 0) // coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i) => notify cartesian pointcloud listener
 	{
-		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
+		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx, topic);
 		notifyCartesianPointcloudListener(node, &cloud_msg_with_echo);
 	}
 #if defined RASPBERRY && RASPBERRY > 0 // polar pointcloud deactivated on Raspberry for performance reasons
 #else
   if (coordinate_notation == 1) // coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i) => notify polar pointcloud listener
 	{
-		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx);
+		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx, topic);
 		notifyPolarPointcloudListener(node, &cloud_msg_with_echo);
 	}
 #endif
@@ -530,7 +532,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
   pointcloud_msg.header.stamp.sec = timestamp_sec;
 #if defined __ROS_VERSION && __ROS_VERSION > 1
   pointcloud_msg.header.stamp.nanosec = timestamp_nsec;
-#elif defined __ROS_VERSION && __ROS_VERSION > 0
+#else
   pointcloud_msg.header.stamp.nsec = timestamp_nsec;
 #endif
   pointcloud_msg.header.frame_id = pointcloud_cfg.frameid();
@@ -779,9 +781,22 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 
   // Create laserscan messages for all echos and layers
 	int num_echos = (int)lidar_points.size();
+	int num_echos_publish = num_echos;
 	for(LaserScanMsgMap::iterator laser_scan_echo_iter = laser_scan_msg_map.begin(); laser_scan_echo_iter != laser_scan_msg_map.end(); laser_scan_echo_iter++)
 	{
 		int echo_idx = laser_scan_echo_iter->first;
+		bool echo_enabled = true;
+		// If only one echo is activated by FREchoFilter, but 3 echos are received, we apply the FREchoFilter for laserscan messages:
+    if (m_host_set_FREchoFilter && num_echos > 1 && (m_host_FREchoFilter == 0 || m_host_FREchoFilter == 2)) // m_host_FREchoFilter == 0: FIRST_ECHO only (EchoCount=1), m_host_FREchoFilter == 1: ALL_ECHOS, m_host_FREchoFilter == 2: LAST_ECHO (EchoCount=1)
+		{
+			num_echos_publish = 1;
+			if (m_host_FREchoFilter == 0 && echo_idx > 0)
+			  echo_enabled = false; // m_host_FREchoFilter == 0: FIRST_ECHO only (EchoCount=1)
+			else if (m_host_FREchoFilter == 2 && echo_idx < num_echos - 1)
+			  echo_enabled = false; // m_host_FREchoFilter == 2: LAST_ECHO only (EchoCount=1)
+		}
+		if (!echo_enabled)
+			continue; 
 		std::map<int,ros_sensor_msgs::LaserScan>& laser_scan_layer_map = laser_scan_echo_iter->second;
 		for(std::map<int,ros_sensor_msgs::LaserScan>::iterator laser_scan_msg_iter = laser_scan_layer_map.begin(); laser_scan_msg_iter != laser_scan_layer_map.end(); laser_scan_msg_iter++)
 		{
@@ -797,6 +812,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 				laser_scan_msg.angle_increment = angle_diff / (float)(laser_scan_msg.ranges.size() - 1);
 				laser_scan_msg.range_min -= 1.0e-03f;
 				laser_scan_msg.range_max += 1.0e-03f;
+				laser_scan_msg.range_min = std::max(0.0f, laser_scan_msg.range_min);
 				laser_scan_msg.header.stamp.sec = timestamp_sec;
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 				laser_scan_msg.header.stamp.nanosec = timestamp_nsec;
@@ -804,7 +820,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 				laser_scan_msg.header.stamp.nsec = timestamp_nsec;
 #endif
 				laser_scan_msg.header.frame_id = frame_id + "_" + std::to_string(layer_idx + 1);
-				if (num_echos > 1)
+				if (num_echos_publish > 1)
 				  laser_scan_msg.header.frame_id = laser_scan_msg.header.frame_id + "_" + std::to_string(echo_idx);
 				// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
 				laser_scan_msg.scan_time = m_scan_time;
@@ -818,6 +834,24 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 				laser_scan_msg.intensities.clear();
 			}
 		}
+	}
+	// Remove filtered echos
+	for(LaserScanMsgMap::iterator laser_scan_echo_iter = laser_scan_msg_map.begin(); laser_scan_echo_iter != laser_scan_msg_map.end(); )
+	{
+		int echo_idx = laser_scan_echo_iter->first;
+		bool echo_found = false;
+		std::map<int,ros_sensor_msgs::LaserScan>& laser_scan_layer_map = laser_scan_echo_iter->second;
+		for(std::map<int,ros_sensor_msgs::LaserScan>::iterator laser_scan_msg_iter = laser_scan_layer_map.begin(); !echo_found && laser_scan_msg_iter != laser_scan_layer_map.end(); laser_scan_msg_iter++)
+		{
+			int layer_idx = laser_scan_msg_iter->first;
+			ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_iter->second;
+			if (!laser_scan_msg.header.frame_id.empty() && !laser_scan_msg.ranges.empty())
+				echo_found = true;
+		}
+		if(!echo_found)
+			laser_scan_echo_iter = laser_scan_msg_map.erase(laser_scan_echo_iter);
+		else
+			laser_scan_echo_iter++;
 	}
 #endif // !RASPBERRY
 }
@@ -950,7 +984,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 					{
 						PointCloud2Msg pointcloud_msg_custom_fields;
 						convertPointsToCustomizedFieldsCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
-						publishPointCloud2Msg(m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields, std::max(1, (int)echo_count), -1, custom_pointcloud_cfg.coordinateNotation());
+						publishPointCloud2Msg(m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields, std::max(1, (int)echo_count), -1, custom_pointcloud_cfg.coordinateNotation(), custom_pointcloud_cfg.topic());
 						// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): published " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
 					}
 				}
@@ -1026,7 +1060,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		{
 			PointCloud2Msg pointcloud_msg_custom_fields;
 			convertPointsToCustomizedFieldsCloud(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
-			publishPointCloud2Msg(m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields, std::max(1, (int)echo_count), segment_idx, custom_pointcloud_cfg.coordinateNotation());
+			publishPointCloud2Msg(m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields, std::max(1, (int)echo_count), segment_idx, custom_pointcloud_cfg.coordinateNotation(), custom_pointcloud_cfg.topic());
 			ROS_DEBUG_STREAM("publishPointCloud2Msg: " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
 		}
 	}

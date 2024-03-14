@@ -107,6 +107,11 @@ namespace sick_scansegment_xd
         bool Start(void);
 
         /*
+         * @brief Stops the udp receiver thread
+         */
+        void Stop(bool do_join = true);
+
+        /*
          * @brief Stop to receive data and shutdown the udp socket
          */
         void Close(void);

@@ -1,4 +1,19 @@
-## Build on Linux ROS1
+# Build on Linux ROS1
+
+To build resp. install sick_scan_xd on Linux with ROS-1, you can build sick_scan_xd from sources or install prebuilt binaries.
+
+## Install prebuilt binaries
+
+Run the following steps to install sick_scan_xd on Linux with ROS 1 noetic:
+
+```
+sudo apt update
+sudo apt-get install ros-noetic-sick-scan-xd
+```
+
+After successful installation, you can run sick_scan_xd using `roslaunch sick_scan_xd <launchfile>`, e.g. `roslaunch sick_scan_xd sick_picoscan.launch` for picoscan. sick_scan_xd can be removed by `sudo apt-get remove ros-noetic-sick-scan-xd`.
+
+## Build from sources
 
 Run the following steps to build sick_scan_xd on Linux with ROS 1:
 

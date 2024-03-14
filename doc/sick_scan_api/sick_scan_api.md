@@ -166,6 +166,13 @@ The sick_scan_xd API can be used on Linux or Windows in any language with suppor
    * [Complete usage example in C++](#complete-usage-example-in-c)
    * [Complete usage example in Python](#complete-usage-example-in-python)
 
+   Note for multiScan and picoScan lidars:
+
+   * The WaitNext-functions of the API return the next received message. For multiScan and picoScan, this can be a scan segment (i.e. a part of the full scan) or a fullframe poincloud (i.e. all scan points of a 360 degree scan). Depending on the timing, you may not receive all messages, i.e. you may e.g. receive scan points of different segments. We therefore recommend to register a message callback instead of a WaitNext-function. With a registered message callback, you will get all fullframe and segment pointcloud messages.
+
+   * For multiScan and picoScan, pointcloud messages can contain a scan segment (i.e. a part of the full scan) or a fullframe poincloud  (i.e. all scan points of a 360 degree scan). The type can be determined by the topic (default: "/cloud_unstructured_segments" for segments, "/cloud_unstructured_fullframe" for fullframe pointclouds) or by segment index (-1 for fullframe, 0 up to 11 for segment pointclouds).
+
+
 3. Close lidar and API by
     * `SickScanApiDeregister<MsgType>Msg`-functions
     * SickScanApiClose
@@ -311,6 +318,32 @@ If ROS is not installed, [sick_scan_xd_api_test.py](../../test/python/sick_scan_
 
 Note: [sick_scan_api.py](../../python/api/sick_scan_api.py) requires python module numpy. On Windows without ROS, [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) requires numpy and matplotlib. On Windows, we recommend to install and use Python either with Visual Studio 2019 or by installing from https://www.python.org/downloads/windows/ (python installer, embedded version not recommended). These python distributions provide the necessary packages and tools. Otherwise, please install numpy and matplotlib with `python -m pip install numpy` and `python -m pip install matplotlib` if not yet done.
 
+### Diagnostic
+
+The API provides the following functions for diagnostics:
+
+* SickScanApiRegisterDiagnosticMsg and SickScanApiDeregisterDiagnosticMsg: Register resp. deregister a callback to receive diagnostic messages. Diagnostic messages contain a status code and status message. The status code is one of the following numbers:
+   * OK=0 (normal operation)
+   * WARN=1 (warning)
+   * ERROR=2 (error, should not occure)
+   * INIT=3 (initialization after startup or reconnection)
+   * EXIT=4 (sick_scan_xd exiting)
+   
+   The status message is descriptional C-string. 
+   
+   A typical sequence of the status code is:
+   * INIT at startup, then 
+   * after lidar initialization is completed: change to OK (normal operation) and run, and
+   * EXIT at shutdown.
+   Diagnostic messages are generated whenever the status changed or an ERROR occured. Status code 2 (i.e. error) should not occure under normal operation.
+
+* SickScanApiRegisterLogMsg and SickScanApiDeregisterLogMsg: Register resp. deregister a callback to receive log messages. This callback will receive all informational or error messages printed on console. The log messages contain a log level (Info=1, Warn=2, Error=3, Fatal=4) and the log message.
+
+* SickScanApiGetStatus queries the current status. This function returns the current status code (OK=0 i.e. normal operation, WARN=1, ERROR=2, INIT=3 i.e. initialization after startup or reconnection or EXIT=4) and the descriptional status message.
+
+* SickScanApiSetVerboseLevel and SickScanApiGetVerboseLevel sets resp. returns the verbose level. The verbose level can be 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros\:\:console\:\:levels). Default verbose level is 1 (INFO), i.e. sick_scan_xd prints informational, warnings and error messages on the console. Logging callbacks registered with SickScanApiRegisterLogMsg will receive all informational, warnings and error messages independant of the verbose level.
+
+To monitor sick_scan_xd resp. the lidar, it is recommended to register a callback for diagnostic messages using SickScanApiRegisterDiagnosticMsg and to display the error message in case for status code 2 (error). See [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp) and [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) for an example.
 
 ### Simulation and unittest
 

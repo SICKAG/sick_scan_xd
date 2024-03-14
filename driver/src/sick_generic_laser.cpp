@@ -92,7 +92,7 @@
 #include <signal.h>
 
 #define SICK_GENERIC_MAJOR_VER "3"
-#define SICK_GENERIC_MINOR_VER "1"
+#define SICK_GENERIC_MINOR_VER "2"
 #define SICK_GENERIC_PATCH_LEVEL "0"
 
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
@@ -145,6 +145,9 @@ public:
 static GenericLaserCallable* s_generic_laser_thread = 0;
 
 static NodeRunState runState = scanner_init;
+SICK_DIAGNOSTIC_STATUS s_status_code = SICK_DIAGNOSTIC_STATUS::INIT;
+std::string s_status_message = "";
+int32_t s_verbose_level = 1; // verbose level: 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels), default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
 
 /*!
 \brief splitting expressions like <tag>:=<value> into <tag> and <value>
@@ -184,6 +187,7 @@ bool stopScannerAndExit(bool force_immediate_shutdown)
       success = s_scanner->stopScanData(force_immediate_shutdown);
     }
     runState = scanner_finalize;
+    setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
   }
   joinGenericLaser();
   return success;
@@ -201,13 +205,70 @@ void rosSignalHandler(int signalRecv)
   ROS_INFO_STREAM("You are leaving the following version of this node:\n");
   ROS_INFO_STREAM(getVersionInfo() << "\n");
   s_shutdownSignalReceived = true;
+  ROS_INFO_STREAM("sick_generic_laser: stop and exit (line " << __LINE__ << ")");
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   stopScannerAndExit(true);
+  ROS_INFO_STREAM("sick_generic_laser: exit (line " << __LINE__ << ")");
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  std::cout << "rosSignalHandler exit." << std::endl;
+  std::cout << "sick_generic_laser: exit (line " << __LINE__ << ")" << std::endl;
   rosShutdown();
+  std::cout << "sick_generic_laser: exit (line " << __LINE__ << ")" << std::endl;
 }
 
+
+// fprintf-like conversion of va_args to string, thanks to https://codereview.stackexchange.com/questions/115760/use-va-list-to-format-a-string
+std::string vargs_to_string(const char *const format, ...)
+{
+  std::size_t length = std::max<size_t>((size_t)1024, 2 * strlen(format));
+  std::vector<char> temp;
+  std::va_list args;
+  for (int cnt = 0; temp.size() <= length && cnt < 10; cnt++)
+  {
+    temp.resize(length + 1);
+    va_start(args, format);
+#ifdef WIN32
+    std::size_t required_length = _vsnprintf_s(temp.data(), temp.size(), _TRUNCATE, format, args);
+#else
+    std::size_t required_length = std::vsnprintf(temp.data(), temp.size(), format, args);
+#endif
+    va_end(args);
+    length = std::max<size_t>(length, required_length);
+  }
+  return std::string {temp.data(), length};
+}
+
+// Set the global diagnostic status and message (OK, WARN, ERROR, INIT or EXIT)
+void setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS status_code, const std::string& status_message)
+{
+  static bool status_first_time = true;
+  bool notify_status_update = (status_first_time || s_status_code != status_code || s_status_code == SICK_DIAGNOSTIC_STATUS_WARN || s_status_code == SICK_DIAGNOSTIC_STATUS_ERROR);
+  s_status_code = status_code;
+  s_status_message = status_message;
+  if (notify_status_update) // status changed, notify registered listener
+    notifyDiagnosticListener(s_status_code, s_status_message);
+  status_first_time = false;
+}
+
+// Returns the global diagnostic status and message (OK, WARN, ERROR, INIT or EXIT)
+void getDiagnosticStatus(SICK_DIAGNOSTIC_STATUS& status_code, std::string& status_message)
+{
+ status_code = s_status_code;
+ status_message = s_status_message;
+}
+
+// Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
+// i.e. print messages on console above the given verbose level.
+// Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
+void setVerboseLevel(int32_t verbose_level)
+{
+  s_verbose_level = verbose_level;
+}
+
+// Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
+int32_t getVerboseLevel()
+{
+  return s_verbose_level;
+}
 
 inline bool ends_with(std::string const &value, std::string const &ending)
 {
@@ -403,6 +464,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   rosDeclareParam(nhPriv, "frame_id", frame_id);
   rosGetParam(nhPriv, "frame_id", frame_id);
 
+  setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::INIT, "sick_scan_xd initializing " + hostname + ":" + port);
   if(scannerName == "sick_ldmrs")
   {
 #if defined LDMRS_SUPPORT && LDMRS_SUPPORT > 0
@@ -416,6 +478,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
       return;
     }
     ROS_INFO("LDMRS initialized.");
+    setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
     // Run event loop
     // rosSpin(nhPriv);
     while(rosOk()) // return after signal, while rosSpin runs in sick_generic_caller
@@ -569,6 +632,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
     switch (runState)
     {
       case scanner_init:
+        setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::INIT, "sick_scan_xd initializing " + hostname + ":" + port);
         ROS_INFO_STREAM("Start initialising scanner [Ip: " << hostname  << "] [Port:" << port << "]");
         // attempt to connect/reconnect
         DELETE_PTR(s_scanner);  // disconnect scanner
@@ -610,17 +674,23 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
           if (changeIP)
           {
             runState = scanner_finalize;
+            setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
           }
-          runState = scanner_run; // after initialising switch to run state
+          else
+          {
+            runState = scanner_run; // after initialising switch to run state
+            setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
 #if __ROS_VERSION > 0
-          ROS_INFO_STREAM("Setup completed, sick_scan_xd is up and running. Pointcloud is published on topic \"" << cloud_topic << "\"");
+            ROS_INFO_STREAM("Setup completed, sick_scan_xd is up and running. Pointcloud is published on topic \"" << cloud_topic << "\"");
 #else
-          ROS_INFO("Setup completed, sick_scan_xd is up and running.");
+            ROS_INFO("Setup completed, sick_scan_xd is up and running.");
 #endif
+          }
         }
         else
         {
           runState = scanner_init; // If there was an error, try to restart scanner
+          setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::INIT, "sick_scan_xd initializing " + hostname + ":" + port);
         }
         break;
 
@@ -636,8 +706,13 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
           if(scan_msg_monitor && message_monitoring_enabled) // Monitor scanner messages
           {
             exit_code = scan_msg_monitor->checkStateReinitOnError(nhPriv, runState, s_scanner, parser, services);
-            if(exit_code != sick_scan_xd::ExitSuccess) // scanner re-init failed after read timeout or tcp error
+            if(exit_code == sick_scan_xd::ExitSuccess) // monitoring reports normal operation
             {
+              setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
+            }
+            else // scanner re-init failed after read timeout or tcp error
+            {
+              setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS_ERROR, "read timeout");
               ROS_ERROR("## ERROR in sick_generic_laser main loop: read timeout, scanner re-init failed");
             }
           }
@@ -646,14 +721,19 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
         {
           runState = scanner_finalize; // interrupt
         }
+        break;
+
       case scanner_finalize:
+        setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
         break; // ExitError or similiar -> interrupt while-Loop
+
       default:
         ROS_ERROR("Invalid run state in main loop");
         break;
     }
   }
   printf("sick_generic_laser: leaving main loop...");
+  setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
 
   if(pointcloud_monitor)
     pointcloud_monitor->stopPointCloudMonitoring();
@@ -692,6 +772,7 @@ void joinGenericLaser(void)
 {
   if (s_generic_laser_thread != 0)
   {
+
     s_generic_laser_thread->join();
     delete s_generic_laser_thread;
     s_generic_laser_thread = 0;

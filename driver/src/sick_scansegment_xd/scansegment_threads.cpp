@@ -71,6 +71,7 @@
 int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
 {
     // sick_scansegment_xd configuration
+    setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::INIT, "sick_scan_xd initializing " + scannerName);
     sick_scansegment_xd::Config config;
     if (!config.Init(node))
     {
@@ -93,6 +94,7 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     }
     msgpack_threads.join();
     // Close sick_scansegment_xd
+    setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
     std::cout << "sick_scansegment_xd::run() finishing" << std::endl;
     if(!msgpack_threads.stop(false))
     {
@@ -338,7 +340,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable, m_config.imu_udp_port);
+                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable, m_config.imu_udp_port, m_config.performanceprofilenumber);
             }
             else
             {
@@ -347,6 +349,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
 
         // Run event loop and monitor tcp-connection and udp messages
+        setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
         while(m_run_scansegment_thread && rosOk())
         {
             if (!sopas_tcp->isConnected())
@@ -360,11 +363,21 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: udp receive timeout, stop and reconnect...");
                 break;
             }
+            setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
         // Close msgpack receiver, converter and exporter
+        setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
+        ROS_INFO_STREAM("sick_scansegment_xd finishing.");
         msgpack_exporter.RemoveExportListener(ros_msgpack_publisher->ExportListener());
+        if (udp_receiver_imu)
+        {
+            udp_receiver_imu->Close();
+            DELETE_PTR(udp_receiver_imu);
+        }
+        udp_receiver->Stop();
+        udp_receiver->Fifo()->Shutdown();
         ROS_INFO_STREAM("sick_scansegment_xd finishing.");
 
         // Send stop command (sopas and/or rest-api)
@@ -379,21 +392,14 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         std::cout << "sick_scansegment_xd exit: stopping services and communication..." << std::endl;
         try
         {
+            // Shutdown, cleanup and exit
             DELETE_PTR(sopas_service);
             DELETE_PTR(sopas_tcp);
-
-            // Shutdown, cleanup and exit
-            if (udp_receiver_imu)
-            {
-                udp_receiver_imu->Close();
-                delete(udp_receiver_imu);
-            }
             msgpack_converter.Fifo()->Shutdown();
-            udp_receiver->Fifo()->Shutdown();
             msgpack_exporter.Close();
             msgpack_converter.Close();
             udp_receiver->Close();
-            delete(udp_receiver);
+            DELETE_PTR(udp_receiver);
             std::cout << "sick_scansegment_xd exit: services and communication stopped." << std::endl;
         }
         catch(const std::exception& e)

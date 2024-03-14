@@ -517,9 +517,12 @@ namespace sick_scan_xd
     {
         datagram_pub_ = rosAdvertise<ros_std_msgs::String>(nh, nodename + "/datagram", 1000);
     }
-    std::string cloud_topic_val = "cloud";
     rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
     rosGetParam(nh, "cloud_topic", cloud_topic_val);
+
+    std::string laserscan_topic = nodename + "/scan";
+    rosDeclareParam(nh, "laserscan_topic", laserscan_topic);
+    rosGetParam(nh, "laserscan_topic", laserscan_topic);
 
     rosDeclareParam(nh, "frame_id", config_.frame_id);
     rosGetParam(nh, "frame_id", config_.frame_id);
@@ -629,10 +632,10 @@ namespace sick_scan_xd
 
     imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, nodename + "/imu", 100);
 
-
     Encoder_pub = rosAdvertise<sick_scan_msg::Encoder>(nh, nodename + "/encoder", 100);
+
     // scan publisher
-    pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, nodename + "/scan", 1000);
+    pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, laserscan_topic, 1000);
 
 #if defined USE_DIAGNOSTIC_UPDATER
     if(diagnostics_)
@@ -5151,8 +5154,8 @@ namespace sick_scan_xd
                   range_filter.resizePointCloud(rangeNumPointcloudAllEchos, cloud_polar_);
                 }
 
-                sick_scan_xd::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0);
-                sick_scan_xd::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0);
+                sick_scan_xd::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0, cloud_topic_val);
+                sick_scan_xd::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0, cloud_topic_val);
 #ifdef ROSSIMU
                 notifyPolarPointcloudListener(nh, &cloud_msg_polar);
                 notifyCartesianPointcloudListener(nh, &cloud_msg);
@@ -5252,7 +5255,7 @@ namespace sick_scan_xd
                     assert(partialCloud.data.size() == partialCloud.width * partialCloud.point_step);
 
 
-                    sick_scan_xd::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0);
+                    sick_scan_xd::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0, cloud_topic_val);
                     notifyCartesianPointcloudListener(nh, &partial_cloud_msg);
                     rosPublish(cloud_pub_, partialCloud);
                     //memcpy(&(partialCloud.data[0]), &(cloud_.data[0]) + i * cloud_.point_step, cloud_.point_step * numPartialShots);

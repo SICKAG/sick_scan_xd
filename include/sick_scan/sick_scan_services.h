@@ -159,7 +159,7 @@ namespace sick_scan_xd
      * @param[in] imu_enable: Imu data transfer enabled
      * @param[in] imu_udp_port: UDP port of imu data (if imu_enable is true)
      */
-    bool sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat, bool imu_enable, int imu_udp_port);
+    bool sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat, bool imu_enable, int imu_udp_port, int performanceprofilenumber);
 
     /*!
      * Sends the multiScan stop commands "sWN ScanDataEnable 0" and "sMN Run"

@@ -3,6 +3,7 @@
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
+    <arg name="laserscan_topic" default="scan"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="scan_cfg_list_entry" default="1"/>
     <arg name="skip" default="0"/>
@@ -14,6 +15,7 @@
         <param name="scanner_type" type="string" value="sick_lrs_4xxx"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="laserscan_topic" type="string" value="$(arg laserscan_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
         <param name="port" type="string" value="2112"/>
         <param name="timelimit" type="int" value="5"/>

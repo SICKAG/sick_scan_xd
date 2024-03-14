@@ -7,6 +7,21 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### Release v3.2.0
+
+  - **add** IMU support for multiScan and picoScan
+  - **add** support bloom releases for ROS-2 humble
+  - **add** docker tests for ROS1 noetic incl. testcases for multiScan, picoScan, MRS1xxx
+  - **add** PR #255, support picoScan performance profiles
+  - **changed** configuration time flag LMDscandatacfg switched off for the TiM240
+  - **fix** #218 (API reinit)
+  - **fix** #220 (Fullframe Laserscan messages multi- and picoScan)
+  - **fix** #221 (No scandata while activated scan range filter)
+  - **fix** #222 (rviz visualization of polar pointclouds)
+  - **fix** #247 (Launchfile option for laserscan topic)
+  - **fix** #256 (Clean API-exit picoScan and multiScan)
+  - **fix** #260 (Provide API-functions to query lidar status, error codes and error messages)
+
 ## Released ##
 
 ### Release v3.1.0
@@ -28,7 +43,7 @@ For consistency, the ROS module name has been changed to "sick_scan_xd" to match
   - **add** Service for requesting contamination detection information
   - **changed** Improvements from customer tickets and documentation enhancements
   - **fix** ROS module name consistency
-	   	   
+           
 ### Release v2.10.3
   - **fix** avoid problems with min/max definition in the STL and preprocessor definitions
 

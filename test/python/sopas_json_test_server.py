@@ -95,7 +95,12 @@ class SopasTestServer:
             if len(received_telegram) <= 0: # timeout (no message rececived)
                 continue
             # Lookup sopas response to sopas request
-            if json_tcp_payload_idx >= 0 and json_tcp_payload_idx + 1 < len(self.json_tcp_payloads):
+            if received_telegram[8:25] == b"sRN SCdevicestate":
+                response_payload = b"\x02\x02\x02\x02\x00\x00\x00\x13\x73\x52\x41\x20\x53\x43\x64\x65\x76\x69\x63\x65\x73\x74\x61\x74\x65\x20\x01\x1e" # always send "sRA SCdevicestate 1" (simulate device ready) even if json file recorded "sRA SCdevicestate 0" (device not ready)
+                if self.verbosity > 0:
+                    print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
+                self.sendTelegram(response_payload)
+            elif json_tcp_payload_idx >= 0 and json_tcp_payload_idx + 1 < len(self.json_tcp_payloads):
                 response_payload = self.json_tcp_payloads[json_tcp_payload_idx + 1]
                 if self.verbosity > 0:
                     print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
@@ -109,6 +114,21 @@ class SopasTestServer:
                         self.sendTelegram(response_payload)
             elif received_telegram[8:28] == b"sMN mNLAYAddLandmark":
                 response_payload = b"\x02\x02\x02\x02\x00\x00\x00\x20\x73\x41\x4e\x20\x6d\x4e\x4c\x41\x59\x41\x64\x64\x4c\x61\x6e\x64\x6d\x61\x72\x6b\x20\x00\x00\x04\x00\x00\x00\x01\x00\x02\x00\x03\x7c" # "....... sAN mNLAYAddLandmark ............"
+                if self.verbosity > 0:
+                    print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
+                self.sendTelegram(response_payload)
+            elif received_telegram[8:33] == b"sRN SetActiveApplications":
+                response_payload = b"\x02\x02\x02\x02\x00\x00\x00\x19sAN SetActiveApplications\x1b"
+                if self.verbosity > 0:
+                    print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
+                self.sendTelegram(response_payload)
+            elif received_telegram[8:27] == b"sWN ScanLayerFilter":
+                response_payload = b"\x02\x02\x02\x02\x00\x00\x00\x14\x73\x57\x41\x20\x53\x63\x61\x6e\x4c\x61\x79\x65\x72\x46\x69\x6c\x74\x65\x72\x20\x39" # "........sWA ScanLayerFilter"
+                if self.verbosity > 0:
+                    print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
+                self.sendTelegram(response_payload)
+            elif received_telegram[8:24] == b"sWN FREchoFilter":
+                response_payload = b"\x02\x02\x02\x02\x00\x00\x00\x11\x73\x57\x41\x20\x46\x52\x45\x63\x68\x6f\x46\x69\x6c\x74\x65\x72\x20\x70" # "........sWA FREchoFilter"
                 if self.verbosity > 0:
                     print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
                 self.sendTelegram(response_payload)
@@ -140,7 +160,7 @@ if __name__ == "__main__":
 
     # Configuration
     tcp_port = 2111 # tcp port to listen for tcp connections
-    scandata_id = "sSN LMDradardata"
+    scandata_ids = [ "sSN LMDradardata", "sSN LMDscandata", "sSN InertialMeasurementUnit" ]
     json_file = "../emulator/scandata/20221018_rms_1xxx_ascii_rawtarget_object.pcapng.json"  # input jsonfile with sopas requests, responses and telegrams
     verbosity = 2  # print all telegrams
     send_rate = 10 # send 10 scandata telegrams per second
@@ -150,14 +170,15 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--tcp_port", help="tcp port to listen for tcp connections", default=tcp_port, type=int)
     arg_parser.add_argument("--json_file", help="input jsonfile with sopas requests, responses and telegrams", default=json_file, type=str)
-    arg_parser.add_argument("--scandata_id", help="sopas id of scandata telegrams, e.g. \"sSN LMDradardata\"", default=scandata_id, type=str)
+    arg_parser.add_argument("--scandata_id", help="sopas id of scandata telegrams, e.g. \"sSN LMDradardata\"", default="", type=str)
     arg_parser.add_argument("--send_rate", help="send rate in telegrams per second", default=send_rate, type=float)
     arg_parser.add_argument("--verbosity", help="verbosity (0, 1 or 2)", default=verbosity, type=int)
     arg_parser.add_argument("--scandata_after", help="start to send scandata after some seconds", default=send_scandata_after, type=float)
     cli_args = arg_parser.parse_args()
     tcp_port = cli_args.tcp_port
     json_file = cli_args.json_file
-    scandata_id = cli_args.scandata_id
+    if len(cli_args.scandata_id) > 0:
+        scandata_ids = [ cli_args.scandata_id ]
     verbosity = cli_args.verbosity
     send_rate = cli_args.send_rate
     send_scandata_after = cli_args.scandata_after
@@ -187,15 +208,17 @@ if __name__ == "__main__":
     server.connect()
     server.start()
 
-    # Send sopas telegrams, e.g. "sSN LMDradardata ..."
+    # Send sopas telegrams, e.g. "sSN LMDradardata ..." or "sSN LMDscandata ..."
     time.sleep(send_scandata_after)
-    print("sopas_json_test_server: start sending scandata \"{}\" ...".format(scandata_id))
-    scandata_id = bytearray(scandata_id.encode())
+    print("sopas_json_test_server: start sending telegrams {} ...".format(" , ".join(scandata_ids)))
+    for n in range(len(scandata_ids)):
+        scandata_ids[n] = bytearray(scandata_ids[n].encode())
     while True:
         for payload in json_tcp_payloads:
-            if payload.find(scandata_id,0) >= 0:
-                # print("sopas_json_test_server: sending scandata \"{}\" ...".format(payload))
-                server.sendTelegram(payload)
-                time.sleep(1.0 / send_rate)
+            for scandata_id in scandata_ids:
+                if payload.find(scandata_id,0) >= 0:
+                    # print("sopas_json_test_server: sending scandata \"{}\" ...".format(payload))
+                    server.sendTelegram(payload)
+                    time.sleep(1.0 / send_rate)
 
     server.stop()

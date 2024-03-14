@@ -7,6 +7,7 @@
 <launch>
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
+    <arg name="laserscan_topic" default="scan"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="True"/>
     <arg name="skip" default="0"/>
@@ -19,6 +20,7 @@
         <param name="intensity" type="bool" value="True"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
+        <param name="laserscan_topic" type="string" value="$(arg laserscan_topic)"/>
         <param name="sw_pll_only_publish" type="bool" value="$(arg sw_pll_only_publish)"/>
         <param name="use_generation_timestamp" type="bool" value="true"/> <!-- Use the lidar generation timestamp (true, default) or send timestamp (false) for the software pll converted message timestamp -->
         <param name="frame_id" type="str" value="$(arg frame_id)"/>

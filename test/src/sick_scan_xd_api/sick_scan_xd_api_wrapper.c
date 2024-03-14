@@ -104,6 +104,27 @@ static SickScanApiRegisterVisualizationMarkerMsg_PROCTYPE ptSickScanApiRegisterV
 typedef int32_t(*SickScanApiDeregisterVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
 static SickScanApiDeregisterVisualizationMarkerMsg_PROCTYPE ptSickScanApiDeregisterVisualizationMarkerMsg = 0;
 
+typedef int32_t(*SickScanApiRegisterDiagnosticMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+static SickScanApiRegisterDiagnosticMsg_PROCTYPE ptSickScanApiRegisterDiagnosticMsg = 0;
+
+typedef int32_t(*SickScanApiDeregisterDiagnosticMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+static SickScanApiDeregisterDiagnosticMsg_PROCTYPE ptSickScanApiDeregisterDiagnosticMsg = 0;
+
+typedef int32_t(*SickScanApiRegisterLogMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+static SickScanApiRegisterLogMsg_PROCTYPE ptSickScanApiRegisterLogMsg = 0;
+
+typedef int32_t(*SickScanApiDeregisterLogMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+static SickScanApiDeregisterLogMsg_PROCTYPE ptSickScanApiDeregisterLogMsg = 0;
+
+typedef int32_t (*SickScanApiGetStatus_PROCTYPE)(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
+static SickScanApiGetStatus_PROCTYPE ptSickScanApiGetStatus = 0;
+
+typedef int32_t (*SickScanApiSetVerboseLevel_PROCTYPE)(SickScanApiHandle apiHandle, int32_t verbose_level);
+static SickScanApiSetVerboseLevel_PROCTYPE ptSickScanApiSetVerboseLevel = 0;
+
+typedef int32_t (*SickScanApiGetVerboseLevel_PROCTYPE)(SickScanApiHandle apiHandle);
+static SickScanApiGetVerboseLevel_PROCTYPE ptSickScanApiGetVerboseLevel = 0;
+
 typedef int32_t(*SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
 static SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE ptSickScanApiWaitNextCartesianPointCloudMsg = 0;
 
@@ -240,6 +261,13 @@ int32_t SickScanApiUnloadLibrary()
     ptSickScanApiDeregisterLdmrsObjectArrayMsg = 0;
     ptSickScanApiRegisterVisualizationMarkerMsg = 0;
     ptSickScanApiDeregisterVisualizationMarkerMsg = 0;
+    ptSickScanApiRegisterDiagnosticMsg = 0;
+    ptSickScanApiDeregisterDiagnosticMsg = 0;
+    ptSickScanApiRegisterLogMsg = 0;
+    ptSickScanApiDeregisterLogMsg = 0;
+    ptSickScanApiGetStatus = 0;
+    ptSickScanApiSetVerboseLevel = 0;
+    ptSickScanApiGetVerboseLevel = 0;
     ptSickScanApiWaitNextCartesianPointCloudMsg = 0;
     ptSickScanApiWaitNextPolarPointCloudMsg = 0;
     ptSickScanApiFreePointCloudMsg = 0;
@@ -479,6 +507,76 @@ int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle,
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiDeregisterVisualizationMarkerMsg: library call SickScanApiDeregisterVisualizationMarkerMsg() failed, error code %d\n", ret);
     return ret;
+}
+
+/*
+*  Functions for diagnostic and logging
+*/
+
+// Register / deregister a callback for diagnostic messages (notification in case of changed status, e.g. after errors)
+int32_t SickScanApiRegisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterDiagnosticMsg, "SickScanApiRegisterDiagnosticMsg", SickScanApiRegisterDiagnosticMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiRegisterDiagnosticMsg ? (ptSickScanApiRegisterDiagnosticMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiRegisterDiagnosticMsg: library call SickScanApiRegisterDiagnosticMsg() failed, error code %d\n", ret);
+    return ret;
+}
+int32_t SickScanApiDeregisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterDiagnosticMsg, "SickScanApiDeregisterDiagnosticMsg", SickScanApiDeregisterDiagnosticMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiDeregisterDiagnosticMsg ? (ptSickScanApiDeregisterDiagnosticMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiDeregisterDiagnosticMsg: library call SickScanApiDeregisterDiagnosticMsg() failed, error code %d\n", ret);
+    return ret;
+}
+
+// Register / deregister a callback for log messages (all informational and error messages)
+int32_t SickScanApiRegisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLogMsg, "SickScanApiRegisterLogMsg", SickScanApiRegisterLogMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiRegisterLogMsg ? (ptSickScanApiRegisterLogMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiRegisterLogMsg: library call SickScanApiRegisterLogMsg() failed, error code %d\n", ret);
+    return ret;
+}
+int32_t SickScanApiDeregisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLogMsg, "SickScanApiDeregisterLogMsg", SickScanApiDeregisterLogMsg_PROCTYPE);
+    int32_t ret = (ptSickScanApiDeregisterLogMsg ? (ptSickScanApiDeregisterLogMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiDeregisterLogMsg: library call SickScanApiDeregisterLogMsg() failed, error code %d\n", ret);
+    return ret;
+}
+
+// Query current status and status message
+int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiGetStatus, "SickScanApiGetStatus", SickScanApiGetStatus_PROCTYPE);
+    int32_t ret = (ptSickScanApiGetStatus ? (ptSickScanApiGetStatus(apiHandle, status_code, message_buffer, message_buffer_size)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiGetStatus: library call SickScanApiGetStatus() failed, error code %d\n", ret);
+    return ret;
+}
+
+// Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
+// i.e. print messages on console above the given verbose level.
+// Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
+int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiSetVerboseLevel, "SickScanApiSetVerboseLevel", SickScanApiSetVerboseLevel_PROCTYPE);
+    int32_t ret = (ptSickScanApiSetVerboseLevel ? (ptSickScanApiSetVerboseLevel(apiHandle, verbose_level)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiSetVerboseLevel: library call SickScanApiSetVerboseLevel() failed, error code %d\n", ret);
+    return ret;
+}
+
+// Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
+int32_t SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiGetVerboseLevel, "SickScanApiGetVerboseLevel", SickScanApiGetVerboseLevel_PROCTYPE);
+    int32_t verbose_level = (ptSickScanApiGetVerboseLevel ? (ptSickScanApiGetVerboseLevel(apiHandle)) : SICK_SCAN_API_NOT_INITIALIZED);
+    return verbose_level;
 }
 
 /*

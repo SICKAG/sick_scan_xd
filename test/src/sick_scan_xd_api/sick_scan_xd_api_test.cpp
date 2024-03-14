@@ -214,16 +214,48 @@ static void apiTestNavPoseLandmarkMsgCallback(SickScanApiHandle apiHandle, const
 	printf("[Info]: apiTestNavPoseLandmarkMsgCallback(apiHandle:%p): pose_x=%f, pose_y=%f, yaw=%f, %d reflectors\n", apiHandle, msg->pose_x, msg->pose_y, msg->pose_yaw, (int)msg->reflectors.size);
 }
 
+// Example callback for diagnostic messages
+static void apiTestDiagnosticMsgCallback(SickScanApiHandle apiHandle, const SickScanDiagnosticMsg* msg)
+{
+  if (msg->status_code == 1) // status_code defined in SICK_DIAGNOSTIC_STATUS: WARN=1
+	  printf("[WARN]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d (WARNING), status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
+  else if (msg->status_code == 1) // status_code defined in SICK_DIAGNOSTIC_STATUS: ERROR=2
+	  printf("[ERROR]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d (ERROR), status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
+  else
+	  printf("[Info]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d, status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
+  int32_t status_code = -1;
+  char message_buffer[1024] = "";
+  if (SickScanApiGetStatus(apiHandle, &status_code, message_buffer, (int32_t)sizeof(message_buffer)) == SICK_SCAN_API_SUCCESS)
+  {
+	  printf("[Info]: SickScanApiGetStatus(apiHandle:%p): status_code = %d, message = \"%s\"\n", apiHandle, status_code, message_buffer);
+  }
+  else
+  {
+	  printf("[ERROR]: SickScanApiGetStatus(apiHandle:%p) failed\n", apiHandle);
+  }
+}
+
+// Example callback for diagnostic messages
+static void apiTestLogMsgCallback(SickScanApiHandle apiHandle, const SickScanLogMsg* msg)
+{
+  if (msg->log_level == 2) // log_level defined in ros::console::levels: Warn=2
+  	printf("[WARN]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d (WARNING), log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
+  else if (msg->log_level >= 3) // log_level defined in ros::console::levels: Error=3, Fatal=4
+  	printf("[ERROR]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d (ERROR), log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
+  else
+  	printf("[Info]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d, log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
+}
+
 // Receive lidar message by SickScanApiWaitNext-functions ("message polling")
 static void runSickScanApiTestWaitNext(SickScanApiHandle* apiHandle, bool* run_flag)
 {
 	double wait_next_message_timeout = 0.1; // wait max. 0.1 seconds for the next message (otherwise SickScanApiWaitNext-function return with timeout)
-    SickScanPointCloudMsg pointcloud_msg;
+  SickScanPointCloudMsg pointcloud_msg;
 	SickScanImuMsg imu_msg;
 	SickScanLFErecMsg lferec_msg;
-    SickScanLIDoutputstateMsg lidoutputstate_msg;
-    SickScanRadarScan radarscan_msg;
-    SickScanLdmrsObjectArray ldmrsobjectarray_msg;
+  SickScanLIDoutputstateMsg lidoutputstate_msg;
+  SickScanRadarScan radarscan_msg;
+  SickScanLdmrsObjectArray ldmrsobjectarray_msg;
 	SickScanVisualizationMarkerMsg visualizationmarker_msg;
 	SickScanNavPoseLandmarkMsg navposelandmark_msg;
 	SickScanOdomVelocityMsg odom_msg;
@@ -377,6 +409,15 @@ int sick_scan_api_test_main(int argc, char** argv, const std::string& sick_scan_
     // Register a callback for NAV350 Pose- and Landmark messages messages
     if ((ret = SickScanApiRegisterNavPoseLandmarkMsg(apiHandle, apiTestNavPoseLandmarkMsgCallback)) != SICK_SCAN_API_SUCCESS)
       exitOnError("SickScanApiRegisterVisualizationSickScanApiRegisterNavPoseLandmarkMsgMarkerMsg failed", ret);
+
+    // Register a callback for diagnostic messages (notification in case of changed status, e.g. after errors)
+    if ((ret = SickScanApiRegisterDiagnosticMsg(apiHandle, apiTestDiagnosticMsgCallback)) != SICK_SCAN_API_SUCCESS)
+      exitOnError("SickScanApiRegisterDiagnosticMsg failed", ret);
+
+    // Register a callback for log messages (all informational and error messages)
+    if ((ret = SickScanApiRegisterLogMsg(apiHandle, apiTestLogMsgCallback)) != SICK_SCAN_API_SUCCESS)
+      exitOnError("SickScanApiRegisterLogMsg failed", ret);
+
   }
 
   // Run main loop
@@ -420,6 +461,11 @@ int sick_scan_api_test_main(int argc, char** argv, const std::string& sick_scan_
     exitOnError("SickScanApiClose failed", ret);
   if ((ret = SickScanApiRelease(apiHandle)) != SICK_SCAN_API_SUCCESS)
     exitOnError("SickScanApiRelease failed", ret);
+  if (!polling)
+  {
+    SickScanApiDeregisterDiagnosticMsg(apiHandle, apiTestDiagnosticMsgCallback);
+    SickScanApiDeregisterLogMsg(apiHandle, apiTestLogMsgCallback);
+  }
 
   return user_key;
 }

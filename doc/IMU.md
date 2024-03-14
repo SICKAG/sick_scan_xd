@@ -1,5 +1,8 @@
 ## IMU Support
+
 The scanners of the MRS6xxx and MRS1xxx series will be optionally available with an IMU in 2019. 
+
+See [IMU support](sick_scan_segment_xd#imu-support) for the IMU support of multiScan and picoScan.
 
 ## Activating IMU Messages
 By setting the following config parameter in the launch file, the output of [imu messages](http://docs.ros.org/melodic/api/sensor_msgs/html/msg/Imu.html) can be enabled with a compatible scanner. Currently the messages are published in the /Imu Topic.

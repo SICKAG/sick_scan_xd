@@ -147,6 +147,7 @@ typedef struct SickScanPointCloudMsgType // equivalent to ros::std_msgs::PointCl
   uint8_t is_dense;               // True if there are no invalid points
   int32_t num_echos;              // number of echos
   int32_t segment_idx;            // segment index (or -1 if pointcloud contains data from multiple segments)
+  char topic[256];                // ros topic this pointcloud is published
 } SickScanPointCloudMsg;
 
 typedef struct SickScanVector3MsgType // equivalent to geometry_msgs/Vector3
@@ -432,6 +433,18 @@ typedef struct SickScanOdomVelocityMsgType // Velocity/odometry data in system c
   uint32_t timestamp_nsec; // nanoseconds part of system timestamp of the odometry data
 } SickScanOdomVelocityMsg;
 
+typedef struct SickScanLogMsgType // general log message
+{
+  int32_t log_level; // log_level defined in ros::console::levels: Info=1, Warn=2, Error=3, Fatal=4
+  char* log_message; // log message
+} SickScanLogMsg;
+
+typedef struct SickScanDiagnosticMsgType // general diagnostic message
+{
+  int32_t status_code; // status_code defined in SICK_DIAGNOSTIC_STATUS: OK=0 (normal operation), WARN=1 (warning), ERROR=2 (error, should not occure), INIT=3 (initialization after startup or reconnection), EXIT=4 (sick_scan_xd exiting)
+  char* status_message; // diagnostic message
+} SickScanDiagnosticMsg;
+
 /*
 *  Callback declarations
 */
@@ -445,6 +458,8 @@ typedef void(* SickScanRadarScanCallback)(SickScanApiHandle apiHandle, const Sic
 typedef void(* SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
 typedef void(* SickScanVisualizationMarkerCallback)(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg);
 typedef void(* SickScanNavPoseLandmarkCallback)(SickScanApiHandle apiHandle, const SickScanNavPoseLandmarkMsg* msg);
+typedef void(* SickScanLogMsgCallback)(SickScanApiHandle apiHandle, const SickScanLogMsg* msg);
+typedef void(* SickScanDiagnosticMsgCallback)(SickScanApiHandle apiHandle, const SickScanDiagnosticMsg* msg); 
 
 /*
 *  Functions to initialize and close the API and a lidar
@@ -514,6 +529,29 @@ SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterVisualizationMarkerMs
 // Register / deregister a callback for SickScanNavPoseLandmark messages
 SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
 SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+
+/*
+*  Functions for diagnostic and logging
+*/
+
+// Register / deregister a callback for diagnostic messages (notification in case of changed status, e.g. after errors)
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+
+// Register / deregister a callback for log messages (all informational and error messages)
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+
+// Query current status and status message
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
+
+// Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
+// i.e. print messages on console above the given verbose level.
+// Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level);
+
+// Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle);
 
 /*
 *  Polling functions

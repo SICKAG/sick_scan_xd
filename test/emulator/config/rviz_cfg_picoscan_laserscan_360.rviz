@@ -120,7 +120,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: world_1_0
+    Fixed Frame: world_1
     Frame Rate: 30
   Name: root
   Tools:
@@ -181,4 +181,4 @@ Window Geometry:
     collapsed: true
   Width: 1343
   X: 1183
-  Y: 743
+  Y: 706
