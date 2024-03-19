@@ -712,11 +712,22 @@ int32_t SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* lau
         }
         // Split launchfile_args by spaces
         ROS_INFO_STREAM("SickScanApiInitByLaunchfile: launchfile_args = \"" << launchfile_args << "\"");
-        std::istringstream args_stream(launchfile_args);
+        std::string args_string(launchfile_args);
         std::string arg;
         std::vector<std::string> args;
-        while (getline(args_stream, arg, ' ' ))
+
+        std::string endToken = ".launch";
+        std::size_t pos = args_string.find(endToken);
+        std::string filepath = args_string.substr(0, pos + endToken.length());
+        args_string.erase(0, pos + endToken.length() + 1);
+        args.push_back(filepath);
+        while ((pos = args_string.find(' ')) != std::string::npos) {
+            arg = args_string.substr(0, pos);
             args.push_back(arg);
+            args_string.erase(0, pos + 1);
+        }
+        args.push_back(args_string);
+
         // Convert to argc, argv
         int argc = args.size() + 1;
         char** argv = (char**)malloc(argc * sizeof(char*));
