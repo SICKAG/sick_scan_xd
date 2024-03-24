@@ -416,7 +416,7 @@ bool sick_scan_xd::SickScanServices::sendSopasCmdCheckResponse(const std::string
 * @param[in] hostname IP address of multiScan136, default 192.168.0.1
 * @param[in] port IP port of multiScan136, default 2115
 * @param[in] scanner_type type of scanner, currently supported are multiScan136 and picoScan150
-* @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1 
+* @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 
 * @param[in] imu_enable: Imu data transfer enabled
 * @param[in] imu_udp_port: UDP port of imu data (if imu_enable is true)
 */
