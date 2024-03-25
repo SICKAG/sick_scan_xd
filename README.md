@@ -41,6 +41,28 @@ This project provides a driver for the SICK LiDARs and Radar sensors mentioned [
 * sick_scan_xd has no dependencies to 3rd party libraries like boost or pthread.
 * sick_scan_xd offers all features on all targets if the devices support the features.
 
+## Repository organization
+
+The repository supports two main branches.
+
+The **"master"** branch is the branch that contains official releases that are tagged and versioned and also included in the ROS distribution. 
+
+If you want to work with this official branch, you must explicitly specify this branch in the 'git clone' command by adding "-b master".
+
+The "develop" branch is the default branch and contains the latest development status.
+
+Example:
+
+Checking out the latest revision (usually older than the develop version, but officially released):
+```
+git clone -b master https://github.com/SICKAG/sick_scan_xd.git
+```
+
+Checking out the latest development status:
+```
+git clone https://github.com/SICKAG/sick_scan_xd.git
+```
+
 ## Build targets
 
 sick_scan_xd can be build on Linux and Windows, with and without ROS, with and without LDMRS. The following table shows the allowed combinations and how to build.
