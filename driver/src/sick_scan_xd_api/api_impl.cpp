@@ -63,6 +63,7 @@ static SickScanPointCloudMsg convertPointCloudMsg(const sick_scan_xd::PointCloud
     export_msg.header.timestamp_sec = sec(msg.header.stamp); // msg.header.stamp.sec;
     export_msg.header.timestamp_nsec = nsec(msg.header.stamp); // msg.header.stamp.nsec;
     strncpy(export_msg.header.frame_id, msg.header.frame_id.c_str(), sizeof(export_msg.header.frame_id) - 2);
+    strncpy(export_msg.topic, msg_with_echo.topic.c_str(), sizeof(export_msg.topic) - 2);   
     export_msg.width = msg.width;
     export_msg.height = msg.height;
     export_msg.is_bigendian = msg.is_bigendian;
@@ -254,7 +255,7 @@ static SickScanRadarScan convertRadarScanMsg(const sick_scan_msg::RadarScan& src
         dst_msg.radarpreheader.iencoderspeed[n] = src_msg.radarpreheader.radarpreheaderarrayencoderblock[n].iencoderspeed;
     }
     // Copy radar target pointcloud data
-    sick_scan_xd::PointCloud2withEcho targets_with_echo(&src_msg.targets, 1, 0);
+    sick_scan_xd::PointCloud2withEcho targets_with_echo(&src_msg.targets, 1, 0, "radar");
     dst_msg.targets = convertPointCloudMsg(targets_with_echo);
     // Copy radar object data
     dst_msg.objects.size = src_msg.objects.size();
@@ -1362,6 +1363,53 @@ int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, 
         ROS_ERROR_STREAM("## ERROR SickScanApiGetStatus(): unknown exception ");
     }
     return SICK_SCAN_API_ERROR;
+}
+
+// Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
+// i.e. print messages on console above the given verbose level.
+// Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
+int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level)
+{
+    try
+    {
+        if (apiHandle == 0)
+        {
+            ROS_ERROR_STREAM("## ERROR SickScanApiSetVerboseLevel(): invalid apiHandle");
+            return SICK_SCAN_API_NOT_INITIALIZED;
+        }
+        setVerboseLevel(verbose_level);
+        return SICK_SCAN_API_SUCCESS;
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiSetVerboseLevel(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR SickScanApiSetVerboseLevel(): unknown exception ");
+    }
+    return SICK_SCAN_API_ERROR;
+}
+
+// Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
+int32_t SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle)
+{
+    int32_t verbose_level = 1;
+    try
+    {
+        if (apiHandle == 0)
+            ROS_ERROR_STREAM("## ERROR getVerboseLevel(): invalid apiHandle");
+        verbose_level = getVerboseLevel();
+    }
+    catch(const std::exception& e)
+    {
+        ROS_ERROR_STREAM("## ERROR getVerboseLevel(): exception " << e.what());
+    }
+    catch(...)
+    {
+        ROS_ERROR_STREAM("## ERROR getVerboseLevel(): unknown exception ");
+    }
+    return verbose_level;
 }
 
 // Notifies all registered log message listener, i.e. all registered listener callbacks are called for all messages of type INFO, WARN, ERROR or FATAL 

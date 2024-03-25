@@ -128,6 +128,7 @@ private:
 
   // ROS
   rosNodePtr nh_;
+  std::string cloud_topic_val = "cloud";
   rosPublisher<ros_sensor_msgs::PointCloud2> pub_;
   rosPublisher<sick_scan_msg::SickLdmrsObjectArray> object_pub_;
   // Diagnostics

@@ -355,7 +355,7 @@ namespace sick_scansegment_xd
         void convertPointsToLaserscanMsg(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count, LaserScanMsgMap& laser_scan_msg_map, const std::string& frame_id, bool is_fullframe);
 
         /** Shortcut to publish a PointCloud2Msg */
-        void publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation);
+        void publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation, const std::string& topic);
 
         /** Shortcut to publish Laserscan messages */
         void publishLaserScanMsg(rosNodePtr node, LaserscanMsgPublisher& laserscan_publisher, LaserScanMsgMap& laser_scan_msg_map, int32_t num_echos, int32_t segment_idx);
@@ -377,6 +377,8 @@ namespace sick_scansegment_xd
         float m_all_segments_azimuth_max_deg = +180;  // if received segments cover azimuth angle range from m_all_segments_azimuth_min_deg to m_all_segments_azimuth_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
         float m_all_segments_elevation_min_deg = 0;   // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
         float m_all_segments_elevation_max_deg = 0;   // if received segments cover elevation angle range from m_all_segments_elevation_min_deg to m_all_segments_elevation_max_deg.
+        int m_host_FREchoFilter;                      // configuration from launchfile: Optionally set FREchoFilter with 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
+        bool m_host_set_FREchoFilter;                 // configuration from launchfile: If true, FREchoFilter is set at startup (default: false)
         SegmentPointsCollector m_points_collector;    // collects all points of 12 segments (12 segments * 30 deg = 360 deg)
         LaserscanMsgPublisher m_publisher_laserscan_360;     // ros publisher to publish LaserScan messages of all segments (360 degree)
         LaserscanMsgPublisher m_publisher_laserscan_segment; // ros publisher to publish LaserScan messages of the current segment

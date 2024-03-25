@@ -75,13 +75,16 @@ namespace sick_scan_xd
 {
     struct PointCloud2withEcho
     {
-        PointCloud2withEcho(const ros_sensor_msgs::PointCloud2* msg = 0, int32_t _num_echos = 0, int32_t _segment_idx = 0) : num_echos(_num_echos), segment_idx(_segment_idx) 
+        PointCloud2withEcho() {}
+        PointCloud2withEcho(const ros_sensor_msgs::PointCloud2* msg, int32_t _num_echos, int32_t _segment_idx, const std::string& _topic) 
+            : num_echos(_num_echos), segment_idx(_segment_idx), topic(_topic)
         {
             pointcloud = ((msg) ? (*msg) : (ros_sensor_msgs::PointCloud2()));
         }
         ros_sensor_msgs::PointCloud2 pointcloud; // ROS PointCloud2
-        int32_t num_echos;                       // number of echos
-        int32_t segment_idx;                     // segment index (or -1 if pointcloud contains data from multiple segments)
+        int32_t num_echos = 0;                   // number of echos
+        int32_t segment_idx = 0;                 // segment index (or -1 if pointcloud contains data from multiple segments)
+        std::string topic;                       // ros topic this pointcloud is published
     };
 
     typedef void(* PointCloud2Callback)(rosNodePtr handle, const PointCloud2withEcho* msg);
@@ -314,15 +317,15 @@ namespace sick_scan_xd
         static std::mutex s_wait_for_message_handler_mutex; // mutex to protect access to s_wait_for_message_handler_list
     };  // class SickWaitForMessageHandler
 
-    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_xd::PointCloud2withEcho>      WaitForCartesianPointCloudMessageHandler;
-    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_xd::PointCloud2withEcho>      WaitForPolarPointCloudMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_xd::PointCloud2withEcho>   WaitForCartesianPointCloudMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_xd::PointCloud2withEcho>   WaitForPolarPointCloudMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, ros_sensor_msgs::Imu>                WaitForImuMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::LFErecMsg>            WaitForLFErecMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::LIDoutputstateMsg>    WaitForLIDoutputstateMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::RadarScan>            WaitForRadarScanMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::SickLdmrsObjectArray> WaitForLdmrsObjectArrayMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, ros_visualization_msgs::MarkerArray> WaitForVisualizationMarkerMessageHandler;
-    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_xd::NAV350mNPOSData>          WaitForNAVPOSDataMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_xd::NAV350mNPOSData>        WaitForNAVPOSDataMessageHandler;
 
 }   // namespace sick_scan_xd
 #endif // __SICK_GENERIC_CALLBACK_H_INCLUDED

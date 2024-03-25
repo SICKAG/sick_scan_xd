@@ -517,7 +517,6 @@ namespace sick_scan_xd
     {
         datagram_pub_ = rosAdvertise<ros_std_msgs::String>(nh, nodename + "/datagram", 1000);
     }
-    std::string cloud_topic_val = "cloud";
     rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
     rosGetParam(nh, "cloud_topic", cloud_topic_val);
 
@@ -3324,13 +3323,23 @@ namespace sick_scan_xd
             else
               scandatacfg_timingflag = 1; // default: Timing flag LMDscandatacfg on
           }
+          int rssi_flag = rssiFlag ? 1 : 0;
+          if (this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0)
+          {
+            int scandatacfg_azimuth_table = 0;
+            rosDeclareParam(nh, "scandatacfg_azimuth_table", scandatacfg_azimuth_table);
+            rosGetParam(nh, "scandatacfg_azimuth_table", scandatacfg_azimuth_table);
+            if (scandatacfg_azimuth_table > 0)
+              rssi_flag |= 0x2; // set (enable) "transmit angle flag" for MRS-1xxx
+            ROS_INFO_STREAM("MRS1xxx scandatacfg_azimuth_table=" << scandatacfg_azimuth_table << ", rssi_flag=" << rssi_flag << ", azimuth table " << ((rssi_flag & 0x02) != 0 ? "": "not ") << "activated");
+          }
 
           //normal scanconfig handling
           char requestLMDscandatacfg[MAX_STR_LEN];
           // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
           // sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 00 %d 00 0 0 0 1 %d\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
           const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG].c_str();
-            sprintf(requestLMDscandatacfg, pcCmdMask, outputChannelFlagId, rssiFlag ? 1 : 0,
+            sprintf(requestLMDscandatacfg, pcCmdMask, outputChannelFlagId, rssi_flag,
                   rssiResolutionIs16Bit ? 1 : 0,
                   EncoderSettings != -1 ? EncoderSettings : 0,
                   scandatacfg_timingflag);
@@ -4534,7 +4543,7 @@ namespace sick_scan_xd
         char *dstart, *dend;
         bool dumpDbg = false;
         bool dataToProcess = true;
-        std::vector<float> vang_vec;
+        std::vector<float> vang_vec, azimuth_vec;        
         vang_vec.clear();
 		dstart = NULL;
 		dend = NULL;
@@ -4613,7 +4622,7 @@ namespace sick_scan_xd
                 else
                 {
                   success = parseCommonBinaryResultTelegram(receiveBuffer, actual_length, elevAngleX200, elevAngleTelegramValToDeg, elevationAngleInRad, recvTimeStamp,
-                    config_.sw_pll_only_publish, config_.use_generation_timestamp, parser_, FireEncoder, EncoderMsg, numEchos, vang_vec, msg);
+                    config_.sw_pll_only_publish, config_.use_generation_timestamp, parser_, FireEncoder, EncoderMsg, numEchos, vang_vec, azimuth_vec, msg);
                   if (!success)
                     ROS_ERROR_STREAM("## ERROR SickScanCommon::loopOnce(): parseCommonBinaryResultTelegram() failed");
                 }
@@ -4716,7 +4725,6 @@ namespace sick_scan_xd
             // Copy to pointcloud
             int layer = 0;
             int baseLayer = 0;
-            bool useGivenElevationAngle = false;
 
             switch (numOfLayers)
             {
@@ -4748,10 +4756,6 @@ namespace sick_scan_xd
 #endif
 
                 elevationPreCalculated = true;
-                if (vang_vec.size() > 0)
-                {
-                  useGivenElevationAngle = true;
-                }
                 break;
               default:
                 assert(0);
@@ -5008,10 +5012,15 @@ namespace sick_scan_xd
                 float *sinAlphaTablePtr = &sinAlphaTable[0];
 
                 float *vangPtr = NULL;
+                float *azimuthPtr = NULL;
                 float *rangeTmpPtr = &rangeTmp[0];
                 if (vang_vec.size() > 0)
                 {
                   vangPtr = &vang_vec[0];
+                }
+                if (azimuth_vec.size() > 0)
+                {
+                  azimuthPtr = &azimuth_vec[0];
                 }
 
                 size_t rangeNumPointcloudCurEcho = 0;
@@ -5037,7 +5046,7 @@ namespace sick_scan_xd
                   float phi = angle; // azimuth angle
                   float alpha = 0.0;  // elevation angle
 
-                  if (useGivenElevationAngle) // FOR MRS6124
+                  if (vangPtr) // use elevation table for MRS6124
                   {
                     alpha = -vangPtr[rangeIdxScan] * deg2rad_const;
                   }
@@ -5079,6 +5088,12 @@ namespace sick_scan_xd
                     {
                       phi_used = angleCompensator->compensateAngleInRadFromRos(phi_used);
                     }
+                    if (azimuthPtr)
+                    {
+                      // ROS_DEBUG_STREAM("azimuth[" << rangeIdxScan << "] = " << std::fixed << std::setprecision(3) << (azimuthPtr[rangeIdxScan] * 180 / M_PI) << ", angle diff = " << ((azimuthPtr[rangeIdxScan] - phi_used) * 180 / M_PI));
+                      phi_used = azimuthPtr[rangeIdxScan]; // use azimuth table for MRS1xxx
+                    }
+
                     // Cartesian pointcloud
                     float phi2_used = phi_used + m_add_transform_xyz_rpy.azimuthOffset();
                     fptr[idx_x] = rangeCos * (float)cos(phi2_used) * mirror_factor;  // copy x value in pointcloud
@@ -5155,8 +5170,8 @@ namespace sick_scan_xd
                   range_filter.resizePointCloud(rangeNumPointcloudAllEchos, cloud_polar_);
                 }
 
-                sick_scan_xd::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0);
-                sick_scan_xd::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0);
+                sick_scan_xd::PointCloud2withEcho cloud_msg(&cloud_, numValidEchos, 0, cloud_topic_val);
+                sick_scan_xd::PointCloud2withEcho cloud_msg_polar(&cloud_polar_, numValidEchos, 0, cloud_topic_val);
 #ifdef ROSSIMU
                 notifyPolarPointcloudListener(nh, &cloud_msg_polar);
                 notifyCartesianPointcloudListener(nh, &cloud_msg);
@@ -5256,7 +5271,7 @@ namespace sick_scan_xd
                     assert(partialCloud.data.size() == partialCloud.width * partialCloud.point_step);
 
 
-                    sick_scan_xd::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0);
+                    sick_scan_xd::PointCloud2withEcho partial_cloud_msg(&partialCloud, numValidEchos, 0, cloud_topic_val);
                     notifyCartesianPointcloudListener(nh, &partial_cloud_msg);
                     rosPublish(cloud_pub_, partialCloud);
                     //memcpy(&(partialCloud.data[0]), &(cloud_.data[0]) + i * cloud_.point_step, cloud_.point_step * numPartialShots);

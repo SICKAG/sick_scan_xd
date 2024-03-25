@@ -54,15 +54,15 @@
 */
 #include <sick_scan/sick_generic_callback.h>
 
-static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_xd::PointCloud2withEcho>      s_cartesian_poincloud_callback_handler;
-static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_xd::PointCloud2withEcho>      s_polar_poincloud_callback_handler;
+static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_xd::PointCloud2withEcho>   s_cartesian_poincloud_callback_handler;
+static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_xd::PointCloud2withEcho>   s_polar_poincloud_callback_handler;
 static sick_scan_xd::SickCallbackHandler<rosNodePtr,ros_sensor_msgs::Imu>                s_imu_callback_handler;
 static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_msg::LIDoutputstateMsg>    s_lidoutputstate_callback_handler;
 static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_msg::LFErecMsg>            s_lferec_callback_handler;
 static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_msg::SickLdmrsObjectArray> s_ldmrsobjectarray_callback_handler;
 static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_msg::RadarScan>            s_radarscan_callback_handler;
 static sick_scan_xd::SickCallbackHandler<rosNodePtr,ros_visualization_msgs::MarkerArray> s_visualizationmarker_callback_handler;
-static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_xd::NAV350mNPOSData>          s_navposelandmark_callback_handler;
+static sick_scan_xd::SickCallbackHandler<rosNodePtr,sick_scan_xd::NAV350mNPOSData>       s_navposelandmark_callback_handler;
 
 namespace sick_scan_xd
 {

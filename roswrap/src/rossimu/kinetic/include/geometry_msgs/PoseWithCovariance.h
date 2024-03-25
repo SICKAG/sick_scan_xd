@@ -7,6 +7,7 @@
 #define GEOMETRY_MSGS_MESSAGE_POSEWITHCOVARIANCE_H
 
 
+#include <array>
 #include <string>
 #include <vector>
 #include <map>

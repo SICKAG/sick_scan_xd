@@ -75,7 +75,6 @@ SickLDMRS::SickLDMRS(rosNodePtr nh, Manager *manager, std::shared_ptr<diagnostic
   std::string nodename;
   rosDeclareParam(nh, "nodename", nodename);
   rosGetParam(nh, "nodename", nodename);
-  std::string cloud_topic_val = "cloud";
   rosDeclareParam(nh, "cloud_topic", cloud_topic_val);
   rosGetParam(nh, "cloud_topic", cloud_topic_val);
   m_add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(nh, true);
@@ -169,8 +168,8 @@ void SickLDMRS::setData(BasicData &data)
 
       ros_sensor_msgs::PointCloud2 msg, msg_polar;
       ldmrsScanToPointCloud2(scan, m_add_transform_xyz_rpy, m_range_filter, scannerInfos[0].isRearMirrorSide(), config_.frame_id, msg, msg_polar);
-      sick_scan_xd::PointCloud2withEcho sick_cloud_msg(&msg, 1, 0);
-      sick_scan_xd::PointCloud2withEcho sick_cloud_msg_polar(&msg_polar, 1, 0);
+      sick_scan_xd::PointCloud2withEcho sick_cloud_msg(&msg, 1, 0, cloud_topic_val);
+      sick_scan_xd::PointCloud2withEcho sick_cloud_msg_polar(&msg_polar, 1, 0, cloud_topic_val);
       notifyPolarPointcloudListener(nh_, &sick_cloud_msg_polar);
       notifyCartesianPointcloudListener(nh_, &sick_cloud_msg);
       if(diagnosticPub_)
