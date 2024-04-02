@@ -35,9 +35,9 @@
   "info.sick_scan_xd_imu_topics": "# Optional list of imu topics to subscribe. Messages received on these topics are verified against the reference given by reference_messages_jsonfile.",
   "sick_scan_xd_imu_topics": [],
   
-  "info.args_sick_scan_xd_launch": "# Launch parameter for sick_scan_xd",
+  "info.args_sick_scan_xd_launch": "# Launch parameter for sick_scan_xd, optional host_FREchoFilter:=1 for all echos (reference scan contains 3 echos)",
   "args_sick_scan_xd_launch": [
-    "sick_scan_xd sick_picoscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1"
+    "sick_scan_xd sick_picoscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 host_FREchoFilter:=1"
   ],
   
   "info.args_udp_scandata_sender": "# Launch parameter for udp scandata sender (multiScan or picoScan)",

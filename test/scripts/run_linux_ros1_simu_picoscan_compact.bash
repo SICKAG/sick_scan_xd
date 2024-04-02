@@ -34,7 +34,7 @@ sleep 1
 
 # Start sick_generic_caller with sick_picoscan with compact format
 echo -e "run_lidar3d.bash: sick_scan_xd sick_picoscan.launch ..."
-roslaunch sick_scan_xd sick_picoscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=2 &
+roslaunch sick_scan_xd sick_picoscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=2 host_FREchoFilter:=0 &
 sleep 3 # read -p "Press ENTER to continue..."
 
 # Play picoscan pcapng-file with picoscan compact-data

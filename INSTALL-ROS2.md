@@ -1,5 +1,20 @@
 ## Build on Linux ROS2
 
+To build resp. install sick_scan_xd on Linux with ROS-2, you can build sick_scan_xd from sources or install prebuilt binaries.
+
+## Install prebuilt binaries
+
+Run the following steps to install sick_scan_xd on Linux with ROS 2 humble:
+
+```
+sudo apt update
+sudo apt-get install ros-humble-sick-scan-xd
+```
+
+After successful installation, you can run sick_scan_xd using `ros2 launch sick_scan_xd <launchfile>.py`, e.g. `ros2 launch sick_scan_xd sick_multiscan.launch.py` for multiScan. sick_scan_xd can be removed by `sudo apt-get remove ros-humble-sick-scan-xd`.
+
+## Build from sources
+
 Run the following steps to build sick_scan_xd on Linux with ROS 2:
 
 1. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):

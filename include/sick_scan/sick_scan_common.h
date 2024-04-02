@@ -440,6 +440,7 @@ namespace sick_scan_xd
 
   private:
     SopasProtocol m_protocolId;
+    std::string cloud_topic_val = "cloud";
     // ROS
     rosPublisher<ros_sensor_msgs::LaserScan> pub_;
     rosPublisher<ros_std_msgs::String> datagram_pub_;
