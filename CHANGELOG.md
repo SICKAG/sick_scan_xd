@@ -4,8 +4,15 @@ Possible types are **Added** for new features. **Changed** for changes to the ex
 features that will be removed in future versions **Removed** for deprecated features that were removed in this release.
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
-
 ## Released ##
+
+### Release v3.3.0
+
+  - **add** Option for MRS1xxx azimuth correction table 
+  - **add** Support for picoScan100 (single echo w/o addons)
+  - **add** API logging functions and verbosity (#270)
+  - **add** API documentation (multiple lidars not supported, #281)
+  - **changed** API extended (added topic in PointCloud messages, #271)
 
 ### Release v3.2.0
 

@@ -14,6 +14,8 @@ The generic sick_scan_xd API ships with the API-header, the library (binary or s
 
 ![apiComponentsDiagram1.png](apiComponentsDiagram1.png)
 
+**Note: Running multiple lidars simultaneously in one process is not supported.** Currently the sick_scan_xd API does not support the single or multi-threaded use of 2 or more lidars in one process, since the sick_scan_xd library is not guaranteed to be thread-safe. To run multiple lidars simultaneously, we recommend using ROS or running sick_scan_xd in multiple and separate processes, so that each process serves one sensor.
+
 ## Build and test shared library
 
 The shared library, which implements the C-API, is built native on Linux or Windows (i.e. without ROS). Follow the instructions on [Build on Linux generic without ROS](../../INSTALL-GENERIC.md#build-on-linux-generic-without-ros) for Linux resp. [Build on Windows](../../INSTALL-GENERIC.md#build-on-windows) for Windows.
@@ -165,6 +167,13 @@ The sick_scan_xd API can be used on Linux or Windows in any language with suppor
    * [Minimalistic usage example in Python](#minimalistic-usage-example-in-python)
    * [Complete usage example in C++](#complete-usage-example-in-c)
    * [Complete usage example in Python](#complete-usage-example-in-python)
+
+   Note for multiScan and picoScan lidars:
+
+   * The WaitNext-functions of the API return the next received message. For multiScan and picoScan, this can be a scan segment (i.e. a part of the full scan) or a fullframe poincloud (i.e. all scan points of a 360 degree scan). Depending on the timing, you may not receive all messages, i.e. you may e.g. receive scan points of different segments. We therefore recommend to register a message callback instead of a WaitNext-function. With a registered message callback, you will get all fullframe and segment pointcloud messages.
+
+   * For multiScan and picoScan, pointcloud messages can contain a scan segment (i.e. a part of the full scan) or a fullframe poincloud  (i.e. all scan points of a 360 degree scan). The type can be determined by the topic (default: "/cloud_unstructured_segments" for segments, "/cloud_unstructured_fullframe" for fullframe pointclouds) or by segment index (-1 for fullframe, 0 up to 11 for segment pointclouds).
+
 
 3. Close lidar and API by
     * `SickScanApiDeregister<MsgType>Msg`-functions
@@ -333,6 +342,8 @@ The API provides the following functions for diagnostics:
 * SickScanApiRegisterLogMsg and SickScanApiDeregisterLogMsg: Register resp. deregister a callback to receive log messages. This callback will receive all informational or error messages printed on console. The log messages contain a log level (Info=1, Warn=2, Error=3, Fatal=4) and the log message.
 
 * SickScanApiGetStatus queries the current status. This function returns the current status code (OK=0 i.e. normal operation, WARN=1, ERROR=2, INIT=3 i.e. initialization after startup or reconnection or EXIT=4) and the descriptional status message.
+
+* SickScanApiSetVerboseLevel and SickScanApiGetVerboseLevel sets resp. returns the verbose level. The verbose level can be 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros\:\:console\:\:levels). Default verbose level is 1 (INFO), i.e. sick_scan_xd prints informational, warnings and error messages on the console. Logging callbacks registered with SickScanApiRegisterLogMsg will receive all informational, warnings and error messages independant of the verbose level.
 
 To monitor sick_scan_xd resp. the lidar, it is recommended to register a callback for diagnostic messages using SickScanApiRegisterDiagnosticMsg and to display the error message in case for status code 2 (error). See [sick_scan_xd_api_test.cpp](../../test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp) and [sick_scan_xd_api_test.py](../../test/python/sick_scan_xd_api/sick_scan_xd_api_test.py) for an example.
 

@@ -1,4 +1,4 @@
-/**
+"/**
 * \file
 * \brief Laser Scanner Main Handling
 * Copyright (C) 2013,     Osnabrueck University
@@ -92,8 +92,8 @@
 #include <signal.h>
 
 #define SICK_GENERIC_MAJOR_VER "3"
-#define SICK_GENERIC_MINOR_VER "2"
-#define SICK_GENERIC_PATCH_LEVEL "0"
+#define SICK_GENERIC_MINOR_VER "3"
+#define SICK_GENERIC_PATCH_LEVEL "1"
 
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
@@ -147,6 +147,7 @@ static GenericLaserCallable* s_generic_laser_thread = 0;
 static NodeRunState runState = scanner_init;
 SICK_DIAGNOSTIC_STATUS s_status_code = SICK_DIAGNOSTIC_STATUS::INIT;
 std::string s_status_message = "";
+int32_t s_verbose_level = 1; // verbose level: 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels), default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
 
 /*!
 \brief splitting expressions like <tag>:=<value> into <tag> and <value>
@@ -253,6 +254,20 @@ void getDiagnosticStatus(SICK_DIAGNOSTIC_STATUS& status_code, std::string& statu
 {
  status_code = s_status_code;
  status_message = s_status_message;
+}
+
+// Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
+// i.e. print messages on console above the given verbose level.
+// Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
+void setVerboseLevel(int32_t verbose_level)
+{
+  s_verbose_level = verbose_level;
+}
+
+// Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
+int32_t getVerboseLevel()
+{
+  return s_verbose_level;
 }
 
 inline bool ends_with(std::string const &value, std::string const &ending)

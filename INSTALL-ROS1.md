@@ -4,7 +4,7 @@ To build resp. install sick_scan_xd on Linux with ROS-1, you can build sick_scan
 
 ## Install prebuilt binaries
 
-Run the following steps to install sick_scan_xd on Linux with ROS 1:
+Run the following steps to install sick_scan_xd on Linux with ROS 1 noetic:
 
 ```
 sudo apt update

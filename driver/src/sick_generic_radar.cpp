@@ -1668,7 +1668,7 @@ namespace sick_scan_xd
           if (numFilteredTargets < numTargets)
             m_range_filter.resizePointCloud(numFilteredTargets, cloud_); // targets dropped by range filter, resize pointcloud
 #ifndef ROSSIMU
-            sick_scan_xd::PointCloud2withEcho sick_cloud_msg(&cloud_, 1, 0);
+            sick_scan_xd::PointCloud2withEcho sick_cloud_msg(&cloud_, 1, 0, "radar");
             switch (iLoop)
             {
               case RADAR_PROC_RAW_TARGET:
