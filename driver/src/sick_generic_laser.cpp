@@ -1,4 +1,4 @@
-/**
+"/**
 * \file
 * \brief Laser Scanner Main Handling
 * Copyright (C) 2013,     Osnabrueck University
@@ -93,7 +93,7 @@
 
 #define SICK_GENERIC_MAJOR_VER "3"
 #define SICK_GENERIC_MINOR_VER "3"
-#define SICK_GENERIC_PATCH_LEVEL "0"
+#define SICK_GENERIC_PATCH_LEVEL "1"
 
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
