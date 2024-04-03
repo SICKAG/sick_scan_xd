@@ -1,4 +1,4 @@
-"/**
+/**
 * \file
 * \brief Laser Scanner Main Handling
 * Copyright (C) 2013,     Osnabrueck University
@@ -49,7 +49,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 *
-*  Last modified: 21st Aug 2018
+*  Last modified: 3dr April 2024
 *
 *      Authors:
 *         Michael Lehning <michael.lehning@lehning.de>
