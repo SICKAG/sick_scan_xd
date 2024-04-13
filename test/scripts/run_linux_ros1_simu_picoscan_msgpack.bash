@@ -52,12 +52,12 @@ sleep 3 # read -p "Press ENTER to continue..."
 call_service_examples
 sleep 3
 
-# Play timtwo/picoscan pcapng-files with picoscan (timtwo) msgpack-data, mix 30 and 60 degree segments
+# Play picoScan pcapng-files with sgpack-data, mix 30 and 60 degree segments
 echo -e "\nPlaying pcapng-file to emulate picoscan...\n"
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230911-picoscan-msgpack.pcapng --udp_port=2115 --repeat=1
 # Old pcapng files, require old configuration (all_segments_min_deg=-134 und all_segments_max_deg=+135)
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230315-picoscan.pcapng --udp_port=2115 --repeat=1
-# echo -e "\nPlaying pcapng-files to emulate TiMTwo. Note: Start of UDP msgpacks in 20221010_timtwo.pcapng takes a while...\n"
+# echo -e "\nPlaying pcapng-files to emulate picoScan. Note: Start of UDP msgpacks in 20221010_timtwo.pcapng takes a while...\n"
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230204_timtwo_v0.18.0_msgpack_profile4.pcapng --udp_port=2115 --repeat=1
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230204_timtwo_v0.18.0_msgpack_profile6.pcapng --udp_port=2115 --repeat=1
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230204_timtwo_v0.18.0_msgpack_profile3.pcapng --udp_port=2115 --repeat=1
@@ -66,11 +66,11 @@ python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230204_timtwo_v0.18.0_msgpack_profile8.pcapng --udp_port=2115 --repeat=1
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230204_timtwo_v0.18.0_msgpack_profile5.pcapng --udp_port=2115 --repeat=1
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230204_timtwo_v0.18.0_msgpack_profile1.pcapng --udp_port=2115 --repeat=1
-# echo -e "\nPlaying pcapng-files to emulate TiMTwo. Note: Start of UDP msgpacks in 20221010_timtwo.pcapng takes a while...\n"
+# echo -e "\nPlaying pcapng-files to emulate picoScan. Note: Start of UDP msgpacks in 20221010_timtwo.pcapng takes a while...\n"
 # python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20221010_timtwo.pcapng --udp_port=2115 --repeat=1
 sleep 3
 
 # Shutdown
-echo -e "run_linux_ros1_simu_timtwo.bash finished, killing all processes ..."
+echo -e "run_linux_ros1_simu_picoScan.bash finished, killing all processes ..."
 killall_cleanup
 popd

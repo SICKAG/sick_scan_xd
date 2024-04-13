@@ -43,6 +43,6 @@ python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=
 sleep 3
 
 # Shutdown
-echo -e "run_linux_ros1_simu_timtwo.bash finished, killing all processes ..."
+echo -e "run_linux_ros1_simu_picoScan.bash finished, killing all processes ..."
 killall_cleanup
 popd

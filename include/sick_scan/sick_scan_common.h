@@ -514,6 +514,8 @@ namespace sick_scan_xd
 
     bool setNTPServerAndStart(const std::string& ipNewIPAddr, bool useBinaryCmd);
 
+    int readParseSafetyFields(bool useBinaryCmd);
+
     int readTimeOutInMs;
 
     std::mutex sopasSendMutex; // mutex to lock sendSopasAndCheckAnswer

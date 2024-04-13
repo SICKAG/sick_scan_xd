@@ -72,7 +72,7 @@ roslaunch sick_scan_xd sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_
 sleep 3
 run_laserscan_frame_transformers
 
-# Play pcapng-files to emulate MRS100 output (use --echos=1 for performance tests with 1 echo, or --echos=3 for customized pointclouds)
+# Play pcapng-files to emulate multiScan output (use --echos=1 for performance tests with 1 echo, or --echos=3 for customized pointclouds)
 echo -e "run_linux_ros1_simu_multiscan_custom_pointclouds.bash: multiscan_perftest_player.py ..."
 # python3 ./src/sick_scan_xd/test/python/multiscan_perftest_player.py --udp_port=2115 --repeat=1000 --send_rate=100 --echos=1 --verbose=0 --prompt=0 &
 python3 ./src/sick_scan_xd/test/python/multiscan_perftest_player.py --udp_port=2115 --repeat=1000 --send_rate=100 --echos=3 --verbose=0 --prompt=0 &

@@ -119,7 +119,7 @@ killall_cleanup ; run_multiscan_simu 3
 killall_cleanup ; run_multiscan_simu 4
 killall_cleanup ; run_multiscan_simu 5
 
-# Play compact pcapng-files to emulate MRS100 output
+# Play compact pcapng-files to emulate multiScan output
 rostopic echo -p /multiScan/imu &
 echo -e "\nPlaying pcapng-files to emulate multiScan, using compact format ...\n"
 # 20231009-multiscan-compact-imu-01.pcapng: compact, all layers, last echo, imu, max. 30 sec.

@@ -631,7 +631,7 @@ namespace sick_scan_xd
                               break;
 
                             case process_azimuth: // azimuth angles MRS1xxx
-                              if (numberOfItems > 0)
+                              if (numberOfItems > 0 && std::abs(scaleFactorOffset) > FLT_EPSILON)
                               {
                                 float angle_min_rad = (1.0e-4f * startAngleDiv10000) * M_PI / 180.0 + parser_->getCurrentParamPtr()->getScanAngleShift();
                                 float angle_inc_rad = (1.0e-4f * sizeOfSingleAngularStepDiv10000) * M_PI / 180.0;

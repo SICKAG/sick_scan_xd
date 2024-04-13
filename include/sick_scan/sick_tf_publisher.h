@@ -1,9 +1,9 @@
 #include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 /*
-* Copyright (C) 2017, Ing.-Buero Dr. Michael Lehning, Hildesheim
-* Copyright (C) 2017, SICK AG, Waldkirch
-* All rights reserved.
-*
+ * Copyright (C) 2024, Ing.-Buero Dr. Michael Lehning, Hildesheim
+ * Copyright (C) 2024, SICK AG, Waldkirch
+ * All rights reserved.
+ *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -49,63 +49,64 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: 24.05.2012
+ *  Created on: 15th March 2024
  *
  *      Authors:
- *         Michael Lehning <michael.lehning@lehning.de>
- *
- * Utility functions for parsing scanner specific sopas requests and responses
+ *       Michael Lehning <michael.lehning@lehning.de>
  *
  */
 
-#ifndef SICK_SCAN_PARSE_UTIL_H_
-#define SICK_SCAN_PARSE_UTIL_H_
-
-#include <string>
-#include <vector>
+#ifndef SICK_TF_PUBLISHER_H_
+#define SICK_TF_PUBLISHER_H_
 
 #include <sick_scan/sick_ros_wrapper.h>
 
 namespace sick_scan_xd
 {
-  // returns the given angle in rad normalized to angle_min ... angle_max, assuming (angle_max - angle_min) == 2 * PI
-  double normalizeAngleRad(double angle_rad, double angle_min, double angle_max);
-
-  // Converts a string to a 6D pose x,y,z,roll,pitch,yaw in [m] resp. [rad]
-  std::vector<float> parsePose(const std::string& pose_xyz_rpy_str);
-
-  class SickScanParseUtil
+  /*
+  ** @brief On ROS-1 and ROS-2, SickTransformPublisher publishes TF messsages to map a given base frame
+  **        (i.e. base coordinates system) to the lidar frame (i.e. lidar coordinates system) and vice versa.
+  **
+  **        The default base frame id is "map" (which is the default frame in rviz).
+  **        The default 6D pose is (x,y,z,roll,pitch,yaw) = (0,0,0,0,0,0) defined by
+  **        position (x,y,z) in meter and (roll,pitch,yaw) in radians.
+  **        This 6D pose (x,y,z,roll,pitch,yaw) is the transform T[base,lidar] with
+  **        parent "base" and child "lidar".
+  **
+  **        For lidars mounted on a carrier, the lidar pose T[base,lidar] can be configured in the launchfile:
+  **        <param name="tf_base_frame_id" type="string" value="map" />              <!-- Frame id of base coordinates system, e.g. "map" (default frame in rviz) -->
+  **        <param name="tf_base_lidar_xyz_rpy" type="string" value="0,0,0,0,0,0" /> <!-- T[base,lidar], 6D pose (x,y,z,roll,pitch,yaw) in meter resp. radians with parent "map" and child "cloud" -->
+  **        <param name="tf_publish_rate" type="double" value="10" />                <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+  **
+  **        The lidar frame id given by parameter "frame_id" resp. "publish_frame_id".
+  **
+  **        Note that SickTransformPublisher configures the transform using (x,y,z,roll,pitch,yaw).
+  **        In contrast, the ROS static_transform_publisher uses commandline arguments in order (x,y,z,yaw,pitch,roll).
+  **
+  */
+  class SickTransformPublisher
   {
   public:
 
-    /*
-    * Convert LMPscancfg from / to sopas requests/responses
-    */
+    SickTransformPublisher(rosNodePtr _nh = 0);
 
-    class LMPscancfgSector
-    {
-    public:
-      uint32_t angular_resolution = 0; // angular resolution in 1/10000 deg
-      int32_t start_angle = 0; // start angle in 1/10000 deg
-      int32_t stop_angle = 0; // stop angle in 1/10000 deg
-    };
+    void run();
 
-    class LMPscancfg
-    {
-    public:
-      uint32_t scan_frequency = 0; // scan frequency in 1/100 Hz
-      int16_t active_sector_cnt = 0; // number of active sectors
-      std::vector<LMPscancfgSector> sector_cfg;
-      std::string print() const;
-    };
+    void stop();
 
-    /** @brief Parse the sopas reply to "sRN LMPscancfg" and convert to LMPscancfg */
-    static bool SopasToLMPscancfg(const std::string& sopas_reply, LMPscancfg& scancfg);
+  protected:
+#if __ROS_VERSION > 0
+    void runTFpublishThreadCb();
+    rosNodePtr nh = 0;
+    double tf_publish_rate = 10.0;
+    std::string tf_lidar_frame_id = "cloud";
+    std::string tf_base_frame_id = "map";
+    std::string tf_base_lidar_xyz_rpy = "0,0,0,0,0,0";
+    std::vector<float> tf_base_lidar_pose_vec;
+    bool tf_publish_thread_running = false;
+    std::thread* tf_publish_thread = 0;
+#endif // __ROS_VERSION > 0
+  }; // class SickTransformPublisher
 
-    /** @brief Convert LMPscancfg to sopas request "sMN mLMPsetscancfg ..." */
-    static bool LMPscancfgToSopas(const LMPscancfg& scancfg, std::string& sopas_cmd);
-
-  }; // class SickScanParseUtil
 } // namespace sick_scan_xd
-
-#endif // SICK_SCAN_PARSE_UTIL_H_
+#endif // SICK_TF_PUBLISHER_H_

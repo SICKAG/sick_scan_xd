@@ -204,6 +204,9 @@ namespace sick_scan_xd
 
     bool getFREchoFilterAvailable(void);
 
+    void setScandatacfgAzimuthTableSupported(bool _scandatacfgAzimuthTableSupported);
+    bool getScandatacfgAzimuthTableSupported(void) const;
+
   private:
     std::string scannerName;
     int numberOfLayers;
@@ -229,7 +232,7 @@ namespace sick_scan_xd
     bool useWriteOutputRanges;
     bool waitForReady;
     bool frEchoFilterAvailable = false;
-
+    bool scandatacfgAzimuthTableSupported = false;
   };
 
 

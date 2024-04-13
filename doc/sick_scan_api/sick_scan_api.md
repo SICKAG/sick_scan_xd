@@ -26,7 +26,7 @@ Run the following commands to build the shared library `libsick_scan_xd_shared_l
 ```
 # Clone repositories
 git clone https://github.com/SICKAG/libsick_ldmrs.git
-git clone https://github.com/SICKAG/sick_scan_xd.git
+git clone -b master https://github.com/SICKAG/sick_scan_xd.git
 # Build libsick_ldmrs library
 mkdir -p ./build
 mkdir -p ./libsick_ldmrs/build
@@ -55,7 +55,7 @@ After successful build, the shared library `libsick_scan_xd_shared_lib.so` and a
 Run the following commands to build the shared library `sick_scan_xd_shared_lib.dll` with Visual Studio 2019 on Windows:
 ```
 # Clone repository sick_scan_xd
-git clone https://github.com/SICKAG/sick_scan_xd.git
+git clone -b master https://github.com/SICKAG/sick_scan_xd.git
 # Build libraries sick_scan_xd_shared_lib.dll
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
 set _os=x64

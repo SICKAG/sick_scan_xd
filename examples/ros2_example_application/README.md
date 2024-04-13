@@ -11,7 +11,7 @@ Run the following steps to build sick_scan_xd:
    ```
    pushd ./workspace/src
    git clone https://github.com/SICKAG/libsick_ldmrs.git
-   git clone https://github.com/SICKAG/sick_scan_xd.git
+   git clone -b master https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
 

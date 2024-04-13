@@ -3,10 +3,10 @@
 # killall and cleanup after exit
 function killall_cleanup()
 {
-  rosnode kill -a
-  killall sick_generic_caller
-  pkill -f multiscan_sopas_test_server.py
-  pkill -f multiscan_pcap_player.py
+  sleep 1 ; rosnode kill -a
+  sleep 1 ; killall sick_generic_caller
+  sleep 1 ; pkill -f multiscan_sopas_test_server.py
+  sleep 1 ; pkill -f multiscan_pcap_player.py
 }
 
 # 
@@ -72,5 +72,6 @@ sleep 3
 
 # Shutdown
 echo -e "run_linux_ros1_simu_timtwo.bash finished, killing all processes ..."
+killall_cleanup
 killall_cleanup
 popd

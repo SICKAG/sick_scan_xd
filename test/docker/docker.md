@@ -42,7 +42,7 @@ Shortcut to build and run sick_scan_xd in a docker container for ROS1 noetic on 
 # Create a workspace folder (e.g. sick_scan_ws or any other name) and clone the sick_scan_xd repository:
 mkdir -p ./sick_scan_ws/src
 cd ./sick_scan_ws/src
-git clone https://github.com/SICKAG/sick_scan_xd.git
+git clone -b master https://github.com/SICKAG/sick_scan_xd.git
 # Build and run sick_scan_xd in a linux noetic docker container:
 cd sick_scan_xd/test/docker
 sudo chmod a+x ./*.bash
@@ -88,7 +88,7 @@ Run the following steps to build and run sick_scan_xd for ROS1 noetic in a docke
    ```
    mkdir ./src
    pushd ./src
-   git clone https://github.com/SICKAG/sick_scan_xd.git
+   git clone -b master https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
    If you want to test sources from a different branch or repository, just replace the git call resp. the git url. If you want to test sources not yet released, just provide the modified sources in the src-folder.
@@ -141,7 +141,7 @@ docker build --build-arg SICK_SCAN_XD_GIT_URL=https://github.com/SICKAG/sick_sca
 
 If option `SICK_SCAN_XD_GIT_URL` is set, the docker build command in the [dockerfile](dockerfile_linux_ros1_noetic_sick_scan_xd) clones the given repository:
 ```
-RUN /bin/bash -c "if [ $SICK_SCAN_XD_GIT_URL != $NONE ] ; then ( pushd /workspace/src ; rm -rf ./sick_scan_xd ; git clone $SICK_SCAN_XD_GIT_URL ; popd ) ; fi"
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_GIT_URL != $NONE ] ; then ( pushd /workspace/src ; rm -rf ./sick_scan_xd ; git clone -b master $SICK_SCAN_XD_GIT_URL ; popd ) ; fi"
 ```
 
 After a successful build, run and test sick_scan_xd in the docker container as described above in step 4:
