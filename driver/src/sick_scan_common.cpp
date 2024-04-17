@@ -806,8 +806,8 @@ namespace sick_scan_xd
 
   }
 
-  /// Converts a given SOPAS command from ascii to binary (in case of binary communication), sends sopas (ascii or binary) and returns the response (if wait_for_reply:=true)
   /**
+   * \brief Converts a given SOPAS command from ascii to binary (in case of binary communication), sends sopas (ascii or binary) and returns the response (if wait_for_reply:=true)
    * \param [in] request the command to send.
    * \param [in] cmdLen Length of the Comandstring in bytes used for Binary Mode only
    */
@@ -5533,19 +5533,19 @@ namespace sick_scan_xd
             buffer[ii] = binary_parameter[ii];
           bufferLen = binary_parameter.size();
         }
-        // Disable scandatacfg_azimuth_table if firmware version is < 2.3
+        // Disable scandatacfg_azimuth_table if firmware version is < 2.2
         if (version_id[0] < 2)
           parser_->getCurrentParamPtr()->setScandatacfgAzimuthTableSupported(false);
-        if (version_id[0] == 2 && version_id[1] < 3)
+        if (version_id[0] == 2 && version_id[1] < 2)
           parser_->getCurrentParamPtr()->setScandatacfgAzimuthTableSupported(false);
       }
       if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0)
       {
         std::vector<int> version_id = parseFirmwareVersion("LMS1xxx", deviceIdentStr); // Get LMS1xxx version from device ident string
-        // Disable scandatacfg_azimuth_table if firmware version is < 2.3
+        // Disable scandatacfg_azimuth_table if firmware version is < 2.2
         if (version_id[0] < 2)
           parser_->getCurrentParamPtr()->setScandatacfgAzimuthTableSupported(false);
-        if (version_id[0] == 2 && version_id[1] < 3)
+        if (version_id[0] == 2 && version_id[1] < 2)
           parser_->getCurrentParamPtr()->setScandatacfgAzimuthTableSupported(false);
       }
     }

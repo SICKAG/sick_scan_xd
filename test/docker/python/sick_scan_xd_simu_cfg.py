@@ -57,7 +57,7 @@ class SickScanXdSimuConfig:
             args_udp_scandata_sender = json_config["args_udp_scandata_sender"]
             args_sopas_server = json_config["args_sopas_server"]
             self.run_simu_seconds_before_shutdown = json_config["run_simu_seconds_before_shutdown"]
-            args_rviz = json_config["args_rviz"]
+            args_rviz = json_config["args_rviz_{}_{}".format(self.os_name, self.ros_version)]
             args_shutdown_nodes = json_config["args_shutdown_nodes"]
             args_shutdown_server = json_config["args_shutdown_server"]
             # overwrite parameter with commandline options
@@ -135,7 +135,48 @@ class SickScanXdSimuConfig:
 
         elif self.ros_version == "foxy" or self.ros_version == "humble":
             if self.os_name == "linux":
-                self.cmd_sick_scan_xd.append("pwd ; ls -al ; cd ../scripts ; ./run_linux_ros2_simu_multiscan_msgpack.bash") # TODO ...
+
+                self.cmd_init.append("source /opt/ros/{}/setup.bash".format(self.ros_version))
+                self.cmd_init.append("source ./install/setup.bash")
+
+                for arg_sopas_server in args_sopas_server:
+                    self.cmd_sopas_server.append(f"python3 {arg_sopas_server}")
+                if len(self.cmd_sopas_server) < 1:
+                    print(f"SickScanXdSimuConfig: sopas server parameter not configured, sopas server not started. This is a valid option for error testcases, but check configuration file \"{self.config_file}\" if this is not intended.")
+
+                for arg_rviz in args_rviz:
+                    self.cmd_rviz.append(f"(ros2 run rviz2 rviz2 -d {arg_rviz} &)")
+                    self.cmd_rviz.append("sleep 1")
+
+                for arg_sick_scan_xd_launch in args_sick_scan_xd_launch:
+                    arg_sick_scan_xd_launch = arg_sick_scan_xd_launch.replace(".launch", ".launch.py")
+                    self.cmd_sick_scan_xd.append(f"ros2 launch {arg_sick_scan_xd_launch}")
+                if len(self.cmd_sick_scan_xd) < 1:
+                    self.error_messages.append(f"## ERROR SickScanXdSimuConfig: sick_scan_xd launch parameter not configured, check configuration file \"{self.config_file}\"")
+
+                for arg_udp_scandata_sender in args_udp_scandata_sender:
+                    self.cmd_udp_scandata_sender.append(f"python3 {arg_udp_scandata_sender}")
+
+                self.cmd_shutdown.append(f"pkill -f sick_generic_caller")
+                self.cmd_shutdown.append("sleep 3")
+                for arg_shutdown_server in args_shutdown_server:
+                    self.cmd_shutdown.append(f"pkill -f {arg_shutdown_server}")
+
+                for sick_scan_xd_pointcloud_topic in sick_scan_xd_pointcloud_topics:
+                    self.sick_scan_xd_pointcloud_topics.append(sick_scan_xd_pointcloud_topic)
+                for sick_scan_xd_laserscan_topic in sick_scan_xd_laserscan_topics:
+                    self.sick_scan_xd_laserscan_topics.append(sick_scan_xd_laserscan_topic)
+                for sick_scan_xd_imu_topic in sick_scan_xd_imu_topics:
+                    self.sick_scan_xd_imu_topics.append(sick_scan_xd_imu_topic)
+
+                # Copy config and reference files to logfolder
+                if len(reference_messages_jsonfile) > 0 and os.path.exists(reference_messages_jsonfile):
+                    shutil.copy(reference_messages_jsonfile, self.log_folder)
+                    self.reference_messages_jsonfile = os.path.basename(reference_messages_jsonfile)
+                if len(self.config_file) > 0 and os.path.exists(self.config_file):
+                    shutil.copy(self.config_file, self.log_folder)
+                    self.config_file = os.path.basename(self.config_file)
+
             elif self.os_name == "windows":
                 self.cmd_sick_scan_xd.append("echo %COMPUTERNAME% && dir /b/on") # TODO ...
       

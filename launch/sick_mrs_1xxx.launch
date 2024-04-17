@@ -15,6 +15,7 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="frame_id" default="cloud"/>
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="imu_enable" default="true"/> 
+    <arg name="imu_topic" default="imu" />
     <arg name="imu_frame_id" default="imu_link"/> 
     <arg name="nodename" default="sick_mrs_1xxx"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
@@ -56,6 +57,7 @@ default max_angle for this scanner type is +137.5 degree.
 
         <param name="imu_enable" type="bool" value="$(arg imu_enable)"/>
         <param name="imu_enable_additional_info" type="bool" value="True"/>                 
+        <param name="imu_topic" type="string" value="$(arg imu_topic)"/>
         
         
         <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->

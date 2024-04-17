@@ -283,6 +283,7 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 	{
 		initLFPlayerFilterSettings(config.host_LFPlayerFilter);
 	}
+	std::string imu_topic = config.imu_topic;
 #if defined __ROS_VERSION && __ROS_VERSION > 1 // ROS-2 publisher
     rosQoS qos = rclcpp::SystemDefaultsQoS();
     QoSConverter qos_converter;
@@ -293,12 +294,15 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
         qos = qos_converter.convert(qos_val);
 	  m_publisher_laserscan_segment = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_segment_topic, qos);
 	  ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << m_publisher_laserscan_segment->get_topic_name() << "\"");
-      m_publisher_laserscan_360 = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
-      ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << m_publisher_laserscan_360->get_topic_name() << "\"");
+    m_publisher_laserscan_360 = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
+    ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << m_publisher_laserscan_360->get_topic_name() << "\"");
 		if (config.imu_enable)
 		{
-			m_publisher_imu = create_publisher<ros_sensor_msgs::Imu>("~/imu", qos);
+			if (imu_topic[0] != '/')
+			  imu_topic = "~/" + imu_topic;
+			m_publisher_imu = create_publisher<ros_sensor_msgs::Imu>(imu_topic, qos);
 			m_publisher_imu_initialized = true;
+      ROS_INFO_STREAM("RosMsgpackPublisher: publishing Imu messages on topic \"" << m_publisher_imu->get_topic_name() << "\"");
 		}
 #elif defined __ROS_VERSION && __ROS_VERSION > 0 // ROS-1 publisher
     int qos = 16 * 12 * 3; // 16 layers, 12 segments, 3 echos
@@ -307,13 +311,16 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
     rosGetParam(m_node, "ros_qos", qos_val);
     if (qos_val >= 0)
         qos = qos_val;
-    m_publisher_laserscan_segment = m_node->advertise<ros_sensor_msgs::LaserScan>("scan_segment", qos);
+    m_publisher_laserscan_segment = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_segment_topic, qos);
+	  ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << config.publish_laserscan_segment_topic << "\"");
     m_publisher_laserscan_360 = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
+    ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << config.publish_laserscan_fullframe_topic << "\"");
 
 		if (config.imu_enable)
 		{
-			m_publisher_imu = m_node->advertise<ros_sensor_msgs::Imu>("imu", qos);
+			m_publisher_imu = m_node->advertise<ros_sensor_msgs::Imu>(config.imu_topic, qos);
 			m_publisher_imu_initialized = true;
+      ROS_INFO_STREAM("RosMsgpackPublisher: publishing Imu messages on topic \"" << config.imu_topic << "\"");
 		}
 #endif
 

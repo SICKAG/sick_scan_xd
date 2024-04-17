@@ -14,6 +14,7 @@ default max_angle for this scanner type is +137.5 degree.
     <arg name="laserscan_topic" default="scan"/>
     <arg name="frame_id" default="cloud"/>
     <arg name="imu_frame_id" default="imu_link"/>
+    <arg name="imu_topic" default="imu" />
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <!-- robot_description and robot_state_publisher is prepared but final STL-model is missing -->
@@ -40,6 +41,7 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="port" type="string" value="2112"/>
         <param name="timelimit" type="int" value="5"/>
         <param name="imu_enable" type="bool" value="True"/>
+        <param name="imu_topic" type="string" value="$(arg imu_topic)"/>
         <param name="cloud_output_mode" type="int" value="2"/>
         <param name="imu_enable_additional_info" type="bool" value="True"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>

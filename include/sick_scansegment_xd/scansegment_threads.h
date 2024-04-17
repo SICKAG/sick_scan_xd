@@ -56,18 +56,23 @@
 #ifndef __SICK_SCANSEGEMENT_THREADS_H
 #define __SICK_SCANSEGEMENT_THREADS_H
 
+namespace sick_scan_xd
+{
+  class SickScanServices;
+}
+
 #include "sick_scansegment_xd/config.h"
 
 namespace sick_scansegment_xd
 {
     /*
-	 * @brief Initializes and runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
-	 */
+	  * @brief Initializes and runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
+	  */
     int run(rosNodePtr node, const std::string& scannerName);
 
     /*
-	 * @brief class MsgPackThreads runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
-	 */
+	  * @brief class MsgPackThreads runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
+	  */
     class MsgPackThreads
     {
     public:
@@ -108,6 +113,8 @@ namespace sick_scansegment_xd
        std::thread* m_scansegment_thread;                         // background thread to convert msgpack to ScanSegmentParserOutput data
        bool m_run_scansegment_thread;                             // flag to start and stop the udp converter thread
     };
+
+    sick_scan_xd::SickScanServices* sopasService();
 
 }   // namespace sick_scansegment_xd
 #endif // __SICK_SCANSEGEMENT_THREADS_H

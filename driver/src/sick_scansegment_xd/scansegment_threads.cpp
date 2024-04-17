@@ -65,6 +65,9 @@
 
 #define DELETE_PTR(p) do{if(p){delete(p);(p)=0;}}while(false)
 
+sick_scan_xd::SickScanServices* s_sopas_service = 0;
+sick_scan_xd::SickScanServices* sick_scansegment_xd::sopasService() { return s_sopas_service; }
+
 /*
  * @brief Initializes and runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
  */
@@ -92,10 +95,13 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::start() failed");
         return sick_scan_xd::ExitError;
     }
+    // std::cout << "sick_scansegment_xd::run(" << __LINE__ << "): sick_scansegment_xd thread started" << std::endl;
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
     msgpack_threads.join();
+    // std::cout << "sick_scansegment_xd::run(" << __LINE__ << "): sick_scansegment_xd thread finished" << std::endl;
     // Close sick_scansegment_xd
     setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
-    std::cout << "sick_scansegment_xd::run() finishing" << std::endl;
+    // std::cout << "sick_scansegment_xd::run() finishing" << std::endl;
     if(!msgpack_threads.stop(false))
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::stop() failed");
@@ -181,6 +187,7 @@ static void sendStartTrigger(sick_scansegment_xd::Config& config)
  */
 bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 {
+    ROS_INFO_STREAM("sick_scansegment_xd::runThreadCb() start (" << __LINE__ << "," << (int)m_run_scansegment_thread << "," << (int)rosOk() << ")...");
     if(!m_config.logfolder.empty() && m_config.logfolder != ".")
     {
         sick_scansegment_xd::MkDir(m_config.logfolder);
@@ -350,6 +357,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 
         // Run event loop and monitor tcp-connection and udp messages
         setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
+        s_sopas_service = sopas_service;
         while(m_run_scansegment_thread && rosOk())
         {
             if (!sopas_tcp->isConnected())
@@ -366,6 +374,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
+        s_sopas_service = 0;
 
         // Close msgpack receiver, converter and exporter
         setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
@@ -408,5 +417,6 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
     }
 
+    ROS_INFO_STREAM("sick_scansegment_xd::runThreadCb() finished");
     return true;
 }

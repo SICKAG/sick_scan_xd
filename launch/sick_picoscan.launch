@@ -9,6 +9,7 @@
     <arg name="publish_frame_id" default="world" />                                 <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" = "world_1" -->
     <arg name="publish_laserscan_segment_topic" default="scan_segment" />           <!-- topic of ros Laserscan segment messages -->
     <arg name="publish_laserscan_fullframe_topic" default="scan_fullframe" />       <!-- topic of ros Laserscan fullframe messages -->
+    <arg name="imu_topic" default="imu" />                                          <!-- topic of ros IMU messages -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="scandataformat" default="2"/>                  <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
     <arg name="performanceprofilenumber" default="-1"/>       <!-- Set performance profile by "sWN PerformanceProfileNumber" if performanceprofilenumber >= 0 (for picoScan: 1-10), default: -1 -->
@@ -50,6 +51,7 @@
         <param name="imu_enable" type="bool" value="True"/>                                 <!-- Enable inertial measurement unit IMU, compact format only -->
         <param name="imu_udp_port" type="int" value="7503"/>                                <!-- udp port for multiScan imu data (if imu_enable is true) -->
         <param name="imu_latency_microsec" type="int" value="0"/>                           <!-- imu latency in microseconds -->
+        <param name="imu_topic" type="string" value="$(arg imu_topic)"/>                    <!-- topic of ros IMU messages -->
         
         <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
         <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->

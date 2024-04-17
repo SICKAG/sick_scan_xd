@@ -242,7 +242,7 @@ static void apiTestLogMsgCallback(SickScanApiHandle apiHandle, const SickScanLog
   	printf("[WARN]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d (WARNING), log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
   else if (msg->log_level >= 3) // log_level defined in ros::console::levels: Error=3, Fatal=4
   	printf("[ERROR]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d (ERROR), log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
-  else
+  else if (false) // debugging
   	printf("[Info]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d, log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
 }
 
@@ -422,19 +422,40 @@ int sick_scan_api_test_main(int argc, char** argv, const std::string& sick_scan_
 
   // Run main loop
   int user_key = 0;
-#if __ROS_VERSION == 1
-  ros::spin();
-#elif __ROS_VERSION == 0 && defined _MSC_VER
-  while (_kbhit() == 0)
+  char sopas_response_buffer[1024] = { 0 };
+  while (true)
   {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    printf("sick_scan_xd_api_test running. Press ENTER to exit or r for re-initialization\n");
-  }
-  user_key = _getch();
+#if __ROS_VERSION == 1
+    ros::spin();
+#elif __ROS_VERSION == 0 && defined _MSC_VER
+    while (_kbhit() == 0)
+    {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      printf("sick_scan_xd_api_test running. Press ENTER to exit or r for re-initialization\n");
+    }
+    user_key = _getch();
 #else
-  user_key = getchar();
-  getchar();
+    user_key = getchar();
+    getchar();
 #endif
+    printf("sick_scan_xd_api_test: user_key = '%c' (%d)\n", (char)user_key, user_key);
+    const char* sopas_request = 0;
+    if (user_key == 's' || user_key == 'S') // Send sopas command "sRN SCdevicestate", sopas response: "sRA SCdevicestate \x01"
+      sopas_request = "sRN SCdevicestate";
+    // else if (user_key == 'c' || user_key == 'C') // Send sopas command "sRN ContaminationResult" supported by MRS-1000, LMS-1000, multiScan, sopas response: "sRA ContaminationResult \x00\x00"
+    //   sopas_request = "sRN ContaminationResult";
+    if (sopas_request) // Send sopas command and continue
+    {
+      if (SickScanApiSendSOPAS(apiHandle, sopas_request, &sopas_response_buffer[0], (int32_t)sizeof(sopas_response_buffer)) != SICK_SCAN_API_SUCCESS)
+        printf("## WARNING sick_scan_xd_api_test: SickScanApiSendSOPAS(\"%s\") failed\n", sopas_request);
+      else
+        printf("sick_scan_xd_api_test: SickScanApiSendSOPAS(\"%s\") succeeded: response = \"%s\"\n\n", sopas_request, sopas_response_buffer);
+    }
+    else
+    {
+      break;
+    }
+  }
 
   // Cleanup and exit
   printf("sick_scan_xd_api_test finishing...\n");
@@ -519,8 +540,3 @@ int main(int argc, char** argv)
   printf("sick_scan_xd_api_test finished successfully\n");
   exit(EXIT_SUCCESS);
 }
-
-
-
-
-

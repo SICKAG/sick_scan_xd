@@ -2,6 +2,7 @@
 
 import json
 import numpy as np
+import threading
 from collections import namedtuple
 from sick_scan_xd_simu_report import SickScanXdMsgStatus
 
@@ -9,25 +10,50 @@ Jitter = namedtuple("Jitter", "angle_deg, angle_rad, range, velocity, accelerati
 jitter = Jitter(angle_deg = 0.1, angle_rad = np.deg2rad(0.1), range = 0.001, velocity = 0.1, acceleration = 0.1, intensity = 0.1) # tolerated jitter for comparison for pointcloud, laserscan and imu data
 
 ros1_found = False
+ros2_found = False
 try:
     import rospy
     from sensor_msgs.msg import PointCloud2, PointField, LaserScan, Imu
     ros1_found = True
 except ModuleNotFoundError as exc:
     ros1_found = False
-class Node:
-    pass
 
+try:
+    import rclpy
+    from rclpy.node import Node
+    from sensor_msgs.msg import PointCloud2, PointField, LaserScan, Imu
+    ros2_found = True
+except ModuleNotFoundError as exc:
+    ros2_found = False
 
+if not ros2_found:
+    class Node:
+        pass
 
 def ros_init(os_name = "linux", ros_version = "noetic", node_name = "sick_scan_xd_subscriber"):
     """
     ros initialization, delegates to ros initialization function depending on system and ros version
     """
     if ros1_found and ros_version == "noetic":
-        return rospy.init_node(node_name)
+        rospy.init_node(node_name)
+    elif ros2_found and (ros_version == "humble" or ros_version == "foxy"):
+        rclpy.init()
     else:
         print(f"## ERROR sick_scan_xd_subscriber.ros_init(): ros version {ros_version} not found or not supported")
+
+class NumpyJsonEncoder(json.JSONEncoder):
+    """
+    Extension of json encoder to support numpy types, thanks to https://stackoverflow.com/questions/26646362/numpy-array-is-not-json-serializable
+    and https://www.geeksforgeeks.org/fix-type-error-numpy-array-is-not-json-serializable/
+    """
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
 
 class RefPointcloudMsg:
     """
@@ -37,7 +63,6 @@ class RefPointcloudMsg:
         """
         Initializing constructor
         """
-        self.seq = msg.header.seq if msg is not None else 0
         self.frame_id = msg.header.frame_id if msg is not None else ""
         self.width = msg.width if msg is not None else 0
         self.height = msg.height if msg is not None else 0
@@ -54,7 +79,6 @@ class RefPointcloudMsg:
             fields.append({"name": field.name, "offset": field.offset, "datatype": field.datatype, "count": field.count})
         hex_data_str = "".join("{:02x}".format(x) for x in self.data)
         return {
-            "seq": self.seq,
             "frame_id": self.frame_id,
             "width": self.width,
             "height": self.height,
@@ -154,7 +178,6 @@ class RefLaserscanMsg:
         """
         Initializing constructor
         """
-        self.seq = msg.header.seq if msg is not None else 0
         self.frame_id = msg.header.frame_id if msg is not None else ""
         self.angle_min = msg.angle_min if msg is not None else 0
         self.angle_max = msg.angle_max if msg is not None else 0
@@ -170,7 +193,6 @@ class RefLaserscanMsg:
         intensities_bytes = np.float32(self.intensities).tobytes()
         intensities_hex_str = "".join("{:02x}".format(x) for x in intensities_bytes)
         return {
-            "seq": self.seq,
             "frame_id": self.frame_id,
             "angle_min": self.angle_min,
             "angle_max": self.angle_max,
@@ -206,7 +228,6 @@ class RefImuMsg:
         """
         Initializing constructor
         """
-        self.seq = msg.header.seq if msg is not None else 0
         self.frame_id = msg.header.frame_id if msg is not None else ""
         self.orientation = msg.orientation if msg is not None else []
         self.orientation_covariance = msg.orientation_covariance if msg is not None else []
@@ -219,7 +240,6 @@ class RefImuMsg:
         Converts and returns all member variables to a serializable dictionary
         """
         return {
-            "seq": self.seq,
             "frame_id": self.frame_id,
             "orientation": [ self.orientation.x, self.orientation.y, self.orientation.z, self.orientation.w ],
             "orientation_covariance": self.orientation_covariance,
@@ -242,33 +262,47 @@ class RefImuMsg:
 
 class SickScanXdSubscriber(Node):
 
-    def __init__(self, pointcloud_subscriber_topic = "", laserscan_subscriber_topic = "", imu_subscriber_topic = ""):
+    def __init__(self, os_name = "linux", ros_version = "noetic", pointcloud_subscriber_topic = "", laserscan_subscriber_topic = "", imu_subscriber_topic = ""):
+        if ros2_found and (ros_version == "humble" or ros_version == "foxy"):
+            subscriber_name = "sick_scan_xd_{}_{}_{}".format(pointcloud_subscriber_topic, laserscan_subscriber_topic, imu_subscriber_topic).replace("/","_")
+            super().__init__(subscriber_name)
         self.subscriber_topic = ""
         self.subscriber = None
         self.messages_received = []
-        if ros1_found and len(pointcloud_subscriber_topic) > 0:
-            self.subscriber_topic = pointcloud_subscriber_topic
-            self.subscriber = rospy.Subscriber(pointcloud_subscriber_topic, PointCloud2, self.pointcloud_listener_callback, queue_size=16*12*3) # max. queue size for multiScan: 16 layer, 12 segments, 3 echos
-            print(f"SickScanXdSubscriber: subscribed to PointCloud2 messages on topic \"{pointcloud_subscriber_topic}\"")
-        elif ros1_found and len(laserscan_subscriber_topic) > 0:
-            self.subscriber_topic = laserscan_subscriber_topic
-            self.subscriber = rospy.Subscriber(laserscan_subscriber_topic, LaserScan, self.laserscan_listener_callback, queue_size=16*12*3) # max. queue size for multiScan: 16 layer, 12 segments, 3 echos
-            print(f"SickScanXdSubscriber: subscribed to LaserScan messages on topic \"{laserscan_subscriber_topic}\"")
-        elif ros1_found and len(imu_subscriber_topic) > 0:
-            self.subscriber_topic = imu_subscriber_topic
-            self.subscriber = rospy.Subscriber(imu_subscriber_topic, Imu, self.imu_listener_callback, queue_size=1024)
-            print(f"SickScanXdSubscriber: subscribed to IMU messages on topic \"{imu_subscriber_topic}\"")
+        if len(pointcloud_subscriber_topic) > 0:
+            self.create_subscriber(os_name, ros_version, topic=pointcloud_subscriber_topic, msg_type=PointCloud2, fct_callback=self.pointcloud_listener_callback, msg_queue_size=16*12*3) # max. queue size for multiScan: 16 layer, 12 segments, 3 echos
+        elif len(laserscan_subscriber_topic) > 0:
+            self.create_subscriber(os_name, ros_version, topic=laserscan_subscriber_topic, msg_type=LaserScan, fct_callback=self.laserscan_listener_callback, msg_queue_size=16*12*3) # max. queue size for multiScan: 16 layer, 12 segments, 3 echos
+        elif len(imu_subscriber_topic) > 0:
+            self.create_subscriber(os_name, ros_version, topic=imu_subscriber_topic, msg_type=Imu, fct_callback=self.imu_listener_callback, msg_queue_size=16*12*3) # max. queue size for multiScan: 16 layer, 12 segments, 3 echos
+
+    def create_subscriber(self, os_name, ros_version, topic, msg_type, fct_callback, msg_queue_size):
+        self.subscriber_topic = topic
+        if ros1_found and ros_version == "noetic":
+            self.subscriber = rospy.Subscriber(self.subscriber_topic, msg_type, callback=fct_callback, queue_size=msg_queue_size)
+        elif ros2_found and (ros_version == "humble" or ros_version == "foxy"):
+            self.subscriber = self.create_subscription(msg_type, self.subscriber_topic, callback=fct_callback, qos_profile=msg_queue_size)
         else:
-            print("## ERROR SickScanXdSubscriber: ros version and/or topics not supported or invalid")
-    
+            print(f"## ERROR SickScanXdSubscriber.create_subscriber(): ros version {ros_version} not found or not supported")
+        if self.subscriber is None:
+            print(f"## ERROR SickScanXdSubscriber: failed to create subscriber for messages on topic \"{self.subscriber_topic}\"")
+        else:
+            print(f"SickScanXdSubscriber: subscribed to {msg_type} messages on topic \"{self.subscriber_topic}\"")
+
     def pointcloud_listener_callback(self, msg):
+        # print(f"SickScanXdSubscriber.pointcloud_listener_callback: PointCloud2 message = {msg}")
         self.messages_received.append(RefPointcloudMsg(msg))
+        # print(f"SickScanXdSubscriber: {len(self.messages_received)} PointCloud2 messages received")
 
     def laserscan_listener_callback(self, msg):
+        # print(f"SickScanXdSubscriber.laserscan_listener_callback: LaserScan message = {msg}")
         self.messages_received.append(RefLaserscanMsg(msg))
+        # print(f"SickScanXdSubscriber: {len(self.messages_received)} LaserScan messages received")
 
     def imu_listener_callback(self, msg):
+        # print(f"SickScanXdSubscriber.imu_listener_callback: Imu message = {msg}")
         self.messages_received.append(RefImuMsg(msg))
+        # print(f"SickScanXdSubscriber: {len(self.messages_received)} Imu messages received")
 
     def export_dictionary(self, dict):
         if len(self.messages_received) > 0:
@@ -280,19 +314,31 @@ class SickScanXdMonitor():
 
     def __init__(self, config, run_ros_init):
         self.ros_node = None
+        self.ros_spin_executor = None
+        self.ros_spin_thread = None
         self.laserscan_subscriber = []
         self.pointcloud_subscriber = []
         self.imu_subscriber = []
         self.reference_messages_jsonfile = f"{config.log_folder}/{config.reference_messages_jsonfile}"
-
         if run_ros_init:
-            self.ros_node = ros_init(os_name = config.os_name, ros_version = config.ros_version, node_name = "sick_scan_xd_simu")
+            ros_init(os_name = config.os_name, ros_version = config.ros_version, node_name = "sick_scan_xd_simu")
         for topic in config.sick_scan_xd_pointcloud_topics:
-            self.pointcloud_subscriber.append(SickScanXdSubscriber(pointcloud_subscriber_topic = topic))
+            self.pointcloud_subscriber.append(SickScanXdSubscriber(os_name = config.os_name, ros_version = config.ros_version, pointcloud_subscriber_topic = topic))
         for topic in config.sick_scan_xd_laserscan_topics:
-            self.laserscan_subscriber.append(SickScanXdSubscriber(laserscan_subscriber_topic = topic))
+            self.laserscan_subscriber.append(SickScanXdSubscriber(os_name = config.os_name, ros_version = config.ros_version, laserscan_subscriber_topic = topic))
         for topic in config.sick_scan_xd_imu_topics:
-            self.imu_subscriber.append(SickScanXdSubscriber(imu_subscriber_topic = topic))
+            self.imu_subscriber.append(SickScanXdSubscriber(os_name = config.os_name, ros_version = config.ros_version, imu_subscriber_topic = topic))
+        if run_ros_init and ros2_found and (config.ros_version == "humble" or config.ros_version == "foxy"):
+            # see https://answers.ros.org/question/377848/spinning-multiple-nodes-across-multiple-threads/
+            self.ros_spin_executor = rclpy.executors.MultiThreadedExecutor()
+            for node in self.pointcloud_subscriber:
+                self.ros_spin_executor.add_node(node)
+            for node in self.laserscan_subscriber:
+                self.ros_spin_executor.add_node(node)
+            for node in self.imu_subscriber:
+                self.ros_spin_executor.add_node(node)
+            self.ros_spin_thread = threading.Thread(target=self.ros_spin_executor.spin, daemon=True)
+            self.ros_spin_thread.start()
 
     def export_received_messages(self):
         messages = {}
@@ -314,9 +360,12 @@ class SickScanXdMonitor():
     def export_received_messages_to_jsonfile(self, jsonfile):
         num_messages, messages = self.export_received_messages()
         if num_messages > 0:
-            with open(jsonfile, "w") as file_stream:
-                json.dump(messages, file_stream, indent=2)
-                print(f"SickScanXdMonitor: {num_messages} messages exported to file \"{jsonfile}\"")
+            try:
+                with open(jsonfile, "w") as file_stream:
+                    json.dump(messages, file_stream, indent=2, cls=NumpyJsonEncoder)
+                    print(f"SickScanXdMonitor: {num_messages} messages exported to file \"{jsonfile}\"")
+            except Exception as exc:
+                print(f"## ERROR in SickScanXdMonitor.export_received_messages_to_jsonfile(\"{jsonfile}\"): exception {exc}")
         else:
             print(f"## ERROR SickScanXdMonitor.export_received_messages(): no messages received, file \"{jsonfile}\" not written")
 
@@ -332,18 +381,17 @@ class SickScanXdMonitor():
                 for topic in reference_messages[msg_type].keys():
                     for ref_msg in reference_messages[msg_type][topic]:
                         if topic not in received_messages[msg_type] or not self.find_message(ref_msg, received_messages[msg_type][topic], converter[msg_type]):
-                            ref_msg_seq = ref_msg["seq"]
                             ref_msg_frame_id = ref_msg["frame_id"]
-                            self.print_message(report, SickScanXdMsgStatus.ERROR, f"## ERROR in SickScanXdMonitor.verify_messages(): reference message not found in received messages (msg type: {msg_type}, topic: {topic}, seq: {ref_msg_seq} frame_id: {ref_msg_frame_id}), test failed")
+                            self.print_message(report, SickScanXdMsgStatus.ERROR, f"## ERROR in SickScanXdMonitor.verify_messages(): reference message not found in received messages (msg type: {msg_type}, topic: {topic}, frame_id: {ref_msg_frame_id}), test failed")
                             return False
                         num_messages_verified = num_messages_verified + 1
             self.print_message(report, SickScanXdMsgStatus.INFO, f"SickScanXdMonitor.verify_messages(): {num_messages_verified} reference messages verified.")
             # print(f"SickScanXdMonitor.verify_messages(): received_messages = {received_messages}")
             # print(f"SickScanXdMonitor.verify_messages(): reference_messages = {reference_messages}")
             # with open("verify_messages_received.json", "w") as file_stream:
-            #     json.dump(received_messages, file_stream, indent=2)
+            #     json.dump(received_messages, file_stream, indent=2, cls=NumpyJsonEncoder)
             # with open("verify_messages_reference.json", "w") as file_stream:
-            #     json.dump(reference_messages, file_stream, indent=2)
+            #     json.dump(reference_messages, file_stream, indent=2, cls=NumpyJsonEncoder)
         except Exception as exc:
             self.print_message(report, SickScanXdMsgStatus.ERROR, f"## ERROR in SickScanXdMonitor.verify_messages(): exception {exc}")
             return False
@@ -360,10 +408,9 @@ class SickScanXdMonitor():
         return False
 
 if __name__ == '__main__':
-    ros_node = ros_init()
-    sick_scan_xd_subscriber = SickScanXdSubscriber(pointcloud_subscriber_topic = "cloud_all_fields_fullframe")
+    ros_init()
+    sick_scan_xd_subscriber = SickScanXdSubscriber(os_name = "linux", ros_version = "noetic", pointcloud_subscriber_topic = "cloud_all_fields_fullframe")
     if ros1_found:
-        # rospy.spin()
         while not rospy.is_shutdown():
             rospy.sleep(0.1)
     else:
