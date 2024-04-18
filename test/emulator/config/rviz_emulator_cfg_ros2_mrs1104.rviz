@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /PointCloud21
         - /PointCloud21/Topic1
-        - /Axes1
       Splitter Ratio: 0.5
     Tree Height: 721
   - Class: rviz_common/Selection
