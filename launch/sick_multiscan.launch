@@ -9,6 +9,7 @@
     <arg name="publish_frame_id" default="world" />                                 <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" -->
     <arg name="publish_laserscan_segment_topic" default="scan_segment" />           <!-- topic of ros Laserscan segment messages -->
     <arg name="publish_laserscan_fullframe_topic" default="scan_fullframe" />       <!-- topic of ros Laserscan fullframe messages -->
+    <arg name="imu_topic" default="imu" />                                          <!-- topic of ros IMU messages -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/>               <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="laserscan_layer_filter" default="0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0" /> <!-- Configuration of laserscan messages (ROS only), default: laserscan messages for layer 6 activated (hires layer, elevation -0.07 deg) -->
@@ -47,6 +48,7 @@
         <param name="imu_enable" type="bool" value="True"/>                                 <!-- Enable inertial measurement unit IMU, compact format only -->
         <param name="imu_udp_port" type="int" value="7503"/>                                <!-- udp port for multiScan imu data (if imu_enable is true) -->
         <param name="imu_latency_microsec" type="int" value="0"/>                           <!-- imu latency in microseconds -->
+        <param name="imu_topic" type="string" value="$(arg imu_topic)"/>                    <!-- topic of ros IMU messages -->
         
         <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
         <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
@@ -234,6 +236,19 @@
 
         <!-- cloud_all_fields_fullframe: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), fullframe, all echos, all layers, range filter off -->
         <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
+
+        <!-- 
+        On ROS-1 and ROS-2, sick_scan_xd publishes TF messsages to map a given base frame (i.e. base coordinates system) to the lidar frame (i.e. lidar coordinates system) and vice versa.
+        The default base frame id is "map" (which is the default frame in rviz). 
+        The default 6D pose is (x,y,z,roll,pitch,yaw) = (0,0,0,0,0,0) defined by position (x,y,z) in meter and (roll,pitch,yaw) in radians.
+        This 6D pose (x,y,z,roll,pitch,yaw) is the transform T[base,lidar] with parent "base" and child "lidar".
+        For lidars mounted on a carrier, the lidar pose T[base,lidar] and base frame can be configured in this launchfile using the following parameter.
+        The lidar frame id given by parameter "frame_id" resp. "publish_frame_id".
+        Note that the transform is specified using (x,y,z,roll,pitch,yaw). In contrast, the ROS static_transform_publisher uses commandline arguments in order (x,y,z,yaw,pitch,roll).
+        -->
+        <param name="tf_base_frame_id" type="string" value="map" />              <!-- Frame id of base coordinates system, e.g. "map" (default frame in rviz) -->
+        <param name="tf_base_lidar_xyz_rpy" type="string" value="0,0,0,0,0,0" /> <!-- T[base,lidar], 6D pose (x,y,z,roll,pitch,yaw) in meter resp. radians with parent "map" and child "cloud" -->
+        <param name="tf_publish_rate" type="double" value="10" />                <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
 
     </node>
 

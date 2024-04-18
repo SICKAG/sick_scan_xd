@@ -9,7 +9,7 @@ function killall_cleanup()
   pkill -f multiscan_pcap_player.py
 }
 
-# Play pcapng-files to emulate MRS100 output
+# Play pcapng-files to emulate multiScan output
 function multiscan_pcap_player()
 {
   sleep 3
@@ -34,7 +34,7 @@ sleep 1
 python3 ./test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=1 &
 sleep 3
 
-# Play pcapng-files to emulate MRS100 output
+# Play pcapng-files to emulate multiScan output
 multiscan_pcap_player
 
 popd

@@ -9,8 +9,8 @@ rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 pushd ..\..\..\..
 call .\install\setup.bat
 rem start "ros2 echo cloud" ros2 topic echo /cloud
-start "rviz2 timtwo" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_picoscan_windows.rviz
-start "rviz2 timtwo 360" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_picoscan_windows_360.rviz
+start "rviz2 picoScan" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_picoscan_windows.rviz
+start "rviz2 picoScan 360" ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_picoscan_windows_360.rviz
 @timeout /t 3
 
 REM 

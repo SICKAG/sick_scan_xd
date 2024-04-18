@@ -300,6 +300,15 @@ ros2 run sick_scan_xd sick_generic_caller sick_tim_5xx.launch hostname:=192.168.
 
 - **Coordinate transform**: An optional coordinate transform can be applied to the pointcloud. See [coordinate transforms](./doc/coordinate_transforms.md) for details.
 
+### Lidar specific parameters
+
+Some lidars have specific parameters and options.
+
+- **TiM781S**: For TiM781S lidars, the initial lidar configuration can be deactivated using optional argument initialize_scanner:=0.
+  Note that this mode does not initialize the lidar. The mode assumes that the scanner is in an appropriate state corresponding to the properties configured in the launchfile. It is not recommended to use this option unless for specific tasks in a controlled environment.<br/>
+   **Do not use this mode except the lidar has been configured properly and initialized successfully and is in the same state as after initialization by the launchfile! This option is for advanced users only!**<br/>
+   Example: `roslaunch sick_scan_xd sick_tim_7xxS.launch hostname:=192.168.0.1 initialize_scanner:=0`
+
 ### ROS services
 
 On ROS-1 and ROS-2, services can be used to send COLA commands to the sensor. This can be very helpful for diagnosis, e.g. by querying the device status or its id.

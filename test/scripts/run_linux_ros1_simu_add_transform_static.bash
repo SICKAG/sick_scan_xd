@@ -20,10 +20,10 @@ function start_ldmrs_emulator()
     sleep 1
 }
 
-# Start mrs100 (multiscan136) emulator and rviz
-function start_mrs100_emulator()
+# Start multiScan emulator and rviz
+function start_multiScan_emulator()
 {
-    echo -e "\nrun_linux_ros1_simu_add_transform: starting mrs100 (multiscan136) emulation ...\n"
+    echo -e "\nrun_linux_ros1_simu_add_transform: starting multiScan emulation ...\n"
     python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_mrs100_add_transform.rviz --opengl 210 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_mrs100_add_transform_origin.rviz --opengl 210 &
@@ -66,12 +66,12 @@ function run_simu_tim7xx()
     kill_simu
 }
 
-# Run sick_generic_caller with mrs100 and additional transform
-function run_simu_mrs100()
+# Run sick_generic_caller with multiScan and additional transform
+function run_simu_multiScan()
 {
     tx=$1 ; ty=$2 ; tz=$3 ; roll=$4 ; pitch=$5 ; yaw=$6 ; duration_sec=$7
-    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan_xd sick_multiscan.launch (MRS100/Multiscan136) with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
-    start_mrs100_emulator
+    echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan_xd sick_multiscan.launch (multiScan) with additional transform ($tx, $ty, $tz, $roll, $pitch, $yaw)\n"
+    start_multiScan_emulator
     roslaunch sick_scan_xd sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=$tx,$ty,$tz,$roll,$pitch,$yaw &
     rosrun tf static_transform_publisher $tx $ty $tz $yaw $pitch $roll world origin 100 &
     python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=1
@@ -119,10 +119,10 @@ run_simu_tim7xx  0.5 -0.5 -0.5 -0.7853982 -0.7853982 -0.7853982 15 # tim7xx, x=+
 run_simu_tim7xx  0.5 -0.5 -1.0 -1.0471976  1.0471976  1.0471976 15 # tim7xx, x=+0.5, y=-0.5, z=-1.0, roll=-60, pitch=+60, yaw=+60 deg, duration_sec=15
 run_simu_tim7xx -0.5  0.5 -1.0  2.0943951 -2.0943951  2.0943951 15 # tim7xx, x=-0.5, y=+0.5, z=-1.0, roll=120, pitch=-120,yaw=120 deg, duration_sec=15
 
-# Run sick_generic_caller with mrs100 and additional transforms
-run_simu_mrs100 0 0 0 0.0000000 0.0000000 0.0000000            # mrs100, x=0, y=0, z=0, roll=0, pitch=0, yaw=0 deg
-run_simu_mrs100 0 0 0 0.0000000 0.0000000 0.7853982            # mrs100, x=0, y=0, z=0, roll=0, pitch=0, yaw=45 deg
-run_simu_mrs100 0.5 -0.5 -0.5 -0.7853982 -0.7853982 -0.7853982 # mrs100, x=+0.5, y=-0.5, z=-0.5, roll=-45, pitch=-45, yaw=-45 deg
+# Run sick_generic_caller with multiScan and additional transforms
+run_simu_multiScan 0 0 0 0.0000000 0.0000000 0.0000000            # multiScan, x=0, y=0, z=0, roll=0, pitch=0, yaw=0 deg
+run_simu_multiScan 0 0 0 0.0000000 0.0000000 0.7853982            # multiScan, x=0, y=0, z=0, roll=0, pitch=0, yaw=45 deg
+run_simu_multiScan 0.5 -0.5 -0.5 -0.7853982 -0.7853982 -0.7853982 # multiScan, x=+0.5, y=-0.5, z=-0.5, roll=-45, pitch=-45, yaw=-45 deg
 
 # Run sick_generic_caller with ldmrs and additional transforms
 run_simu_ldmrs 0 0 0 0.0000000 0.0000000 0.0000000 10            # ldmrs, x=0, y=0, z=0, roll=0, pitch=0, yaw=0 deg, duration_sec=15

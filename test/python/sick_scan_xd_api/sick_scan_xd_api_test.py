@@ -334,6 +334,7 @@ if __name__ == "__main__":
 
     # Configuration and commandline arguments
     api_test_settings = ApiTestSettings()
+    plt_enabled = False
     cli_arg_start_idx = 1
     for n, cli_arg in enumerate(sys.argv):
         if cli_arg.startswith("_polling:="):
@@ -423,9 +424,9 @@ if __name__ == "__main__":
         SickScanApiSetVerboseLevel(sick_scan_library, api_handle, api_test_settings.verbose_level)
         verbose_level = SickScanApiGetVerboseLevel(sick_scan_library, api_handle)
         if api_test_settings.verbose_level != verbose_level:
-            print(f"## ERROR sick_scan_xd_api_test: SickScanApiSetVerboseLevel(verbose_level={api_test_settings.verbose_level}) failed, running with verbose_level={verbose_level}")
+            print(f"## ERROR sick_scan_xd_api_test.py: SickScanApiSetVerboseLevel(verbose_level={api_test_settings.verbose_level}) failed, running with verbose_level={verbose_level}")
         else:
-            print(f"sick_scan_xd_api_test running with verbose_level={verbose_level}")
+            print(f"sick_scan_xd_api_test.py running with verbose_level={verbose_level}")
 
     # Run main loop
     if __ROS_VERSION == 0:
@@ -447,7 +448,10 @@ if __name__ == "__main__":
                     plt.draw()
                     plt.pause(2.0)
                 else:
-                    time.sleep(0.1)
+                    time.sleep(1.0)
+                # Query device state by SOPAS command "sRN SCdevicestate", sopas_response is e.g. "sRA SCdevicestate \x00"
+                sopas_response = SickScanApiSendSOPAS(sick_scan_library, api_handle, "sRN SCdevicestate")
+                print(f"sick_scan_xd_api_test.py: sopas_request=\"sRN SCdevicestate\", sopas_response=\"{sopas_response}\"")
             except:
                 break
     elif __ROS_VERSION == 1:

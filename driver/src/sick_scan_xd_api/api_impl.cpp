@@ -716,11 +716,21 @@ int32_t SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* lau
         }
         // Split launchfile_args by spaces
         ROS_INFO_STREAM("SickScanApiInitByLaunchfile: launchfile_args = \"" << launchfile_args << "\"");
-        std::istringstream args_stream(launchfile_args);
+        std::string args_string(launchfile_args);
         std::string arg;
         std::vector<std::string> args;
-        while (getline(args_stream, arg, ' ' ))
-            args.push_back(arg);
+        std::string endToken = ".launch";
+        std::size_t pos = args_string.find(endToken);
+        std::string filepath = args_string.substr(0, pos + endToken.length());
+        args_string.erase(0, pos + endToken.length() + 1);
+        args.push_back(filepath);
+        while ((pos = args_string.find(' ')) != std::string::npos) 
+        {
+          arg = args_string.substr(0, pos);
+          args.push_back(arg);
+          args_string.erase(0, pos + 1);
+        }
+        args.push_back(args_string);
         // Convert to argc, argv
         int argc = args.size() + 1;
         char** argv = (char**)malloc(argc * sizeof(char*));
@@ -1363,6 +1373,42 @@ int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, 
         ROS_ERROR_STREAM("## ERROR SickScanApiGetStatus(): unknown exception ");
     }
     return SICK_SCAN_API_ERROR;
+}
+
+// Sends a SOPAS command like "sRN SCdevicestate" or "sRN ContaminationResult" and returns the lidar response
+int32_t SickScanApiSendSOPAS(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size)
+{
+  try
+  {
+    if (apiHandle == 0)
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanApiSendSOPAS(): invalid apiHandle");
+      return SICK_SCAN_API_NOT_INITIALIZED;
+    }
+    std::string sopas_ascii_request = sopas_command;
+    std::string sopas_response;
+    if (!convertSendSOPASCommand(sopas_ascii_request, sopas_response, true))
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanApiSendSOPAS(): convertSendSOPASCommand(\"" << sopas_ascii_request << "\") failed");
+      return SICK_SCAN_API_ERROR;
+    }
+    if (sopas_response.length() >= response_buffer_size)
+    {
+      ROS_WARN_STREAM("## ERROR SickScanApiSendSOPAS(\"" << sopas_ascii_request << "\"): response_buffer_size " << response_buffer_size << " too small, response \"" << sopas_response << "\" requires at least " << (sopas_response.length() + 1) << " bytes, response truncated");
+    }
+    strncpy(sopas_response_buffer, sopas_response.c_str(), response_buffer_size - 1);
+    sopas_response_buffer[response_buffer_size - 1] = '\0';
+    return SICK_SCAN_API_SUCCESS;
+  }
+  catch (const std::exception& e)
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanApiSendSOPAS(): exception " << e.what());
+  }
+  catch (...)
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanApiSendSOPAS(): unknown exception ");
+  }
+  return SICK_SCAN_API_ERROR;
 }
 
 // Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),

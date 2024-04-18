@@ -451,6 +451,17 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     return this->frEchoFilterAvailable;
   }
 
+  void ScannerBasicParam::setScandatacfgAzimuthTableSupported(bool _scandatacfgAzimuthTableSupported)
+   {
+    this->scandatacfgAzimuthTableSupported = _scandatacfgAzimuthTableSupported;
+  }
+
+  bool ScannerBasicParam::getScandatacfgAzimuthTableSupported(void) const
+  {
+    return this->scandatacfgAzimuthTableSupported;
+  }
+
+
   /*!
   \brief Construction of parameter object
 
@@ -536,6 +547,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
       basicParams[i].setDeviceIsRadar(NO_RADAR); // (false); // Default
       basicParams[i].setTrackingModeSupported(false); // Default
       basicParams[i].setScannerName(allowedScannerNames[i]);  // set scanner type for this parameter object
+      basicParams[i].setScandatacfgAzimuthTableSupported(false);
 
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) ==
           0)  // MRS1000 - 4 layer, 1101 shots per scan
@@ -561,6 +573,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
         basicParams[i].setFREchoFilterAvailable(true);
+        basicParams[i].setScandatacfgAzimuthTableSupported(true);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) ==
           0)  // LMS1000 - 4 layer, 1101 shots per scan
@@ -586,6 +599,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(true);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_240_NAME) ==
           0) // TIM_5xx - 1 Layer, max. 811 shots per scan
@@ -610,6 +624,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_5XX_NAME) ==
           0) // TIM_5xx - 1 Layer, max. 811 shots per scan
@@ -634,6 +649,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_4XXX_NAME) == 0) // LMS_4xxx - 1 Layer, 600 Hz
       {
@@ -657,6 +673,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_7XX_NAME) == 0) // TIM_7xx - 1 Layer Scanner
       {
@@ -680,6 +697,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_7XXS_NAME) == 0) // TIM_7xxS - 1 layer Safety Scanner
       {
@@ -703,6 +721,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0) // LMS_5xx - 1 Layer
       {
@@ -726,6 +745,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(true); // LMS uses echo filter settings to configure number of echos: "sWN FREchoFilter N" with N=0: first echo, N=1: all echos, N=2: last echo
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LMS_1XX_NAME) == 0) // LMS_1xx - 1 Layer
       {
@@ -749,6 +769,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true); // changed from false to true, see comment in sick_lms1xx.launch
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0) //
       {
@@ -772,6 +793,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_36x1_NAME) == 0) //
       {
@@ -795,6 +817,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_MRS_6XXX_NAME) == 0) //
       {
@@ -819,6 +842,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(true);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0) // LRS_4XXX - 1 Layer
       {
@@ -842,6 +866,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // false // LRS4000 sets the scan configuration by both "sMN mCLsetscancfglist <mode>" AND "sWN LMPoutputRange" (default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry)
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(true); // (false) // LRS4XXX uses echo filter settings to configure 1 echo, use filter_echos = 0 (first echo) for LRS4xxx
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_RMS_XXXX_NAME) == 0) // Radar
       {
@@ -866,6 +891,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0) // Nav 3xx
       {
@@ -889,6 +915,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_350_NAME) == 0)
       {
@@ -912,6 +939,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_OEM_15XX_NAME) == 0) // Nav 3xx
       {
@@ -935,6 +963,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(false); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(true);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_NAV_2XX_NAME) == 0) // NAV_2xx - 1 Layer
       {
@@ -958,6 +987,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_TIM_4XX_NAME) == 0) // TiM433 and TiM443
       {
@@ -981,6 +1011,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
         basicParams[i].setUseWriteOutputRanges(true); // default: use "sWN LMPoutputRange" if scan configuration not set by ScanCfgList-entry
         basicParams[i].setWaitForReady(false);
         basicParams[i].setFREchoFilterAvailable(false);
+        basicParams[i].setScandatacfgAzimuthTableSupported(false);
       }
       if (basicParams[i].getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0 
       || basicParams[i].getScannerName().compare(SICK_SCANNER_PICOSCAN_NAME) == 0)

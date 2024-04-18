@@ -28,7 +28,7 @@ Run the following steps to build sick_scan_xd on Linux with ROS 2:
    mkdir ./src
    pushd ./src
    git clone https://github.com/SICKAG/libsick_ldmrs.git
-   git clone https://github.com/SICKAG/sick_scan_xd.git
+   git clone -b master https://github.com/SICKAG/sick_scan_xd.git
    popd
    rm -rf ./build ./build_isolated/ ./devel ./devel_isolated/ ./install ./install_isolated/ ./log/ # remove any files from a previous build
    ```
@@ -114,7 +114,7 @@ To install sick_scan_xd on Windows with ROS-2, follow the steps below:
    ```
    mkdir .\src
    pushd .\src
-   git clone https://github.com/SICKAG/sick_scan_xd.git
+   git clone -b master https://github.com/SICKAG/sick_scan_xd.git
    popd
    ```
 

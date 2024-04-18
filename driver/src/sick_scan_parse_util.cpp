@@ -96,6 +96,32 @@ while(angle_rad < angle_min)
 return angle_rad;
 }
 
+// Converts a string to a 6D pose x,y,z,roll,pitch,yaw in [m] resp. [rad]
+std::vector<float> sick_scan_xd::parsePose(const std::string& pose_xyz_rpy_str)
+{
+    std::istringstream config_stream(pose_xyz_rpy_str);
+    std::string config_arg;
+    std::vector<float> config_values;
+    while (getline(config_stream, config_arg, ','))
+    {
+        // ROS-2 interpretes parameter values configured by "ros2 param set <node> <arg> <value>" as yaml content, 
+        // but does not remove yaml escape characters required for negative numbers. Any '\\' is removed here.
+        std::string::size_type n = 0;
+        while ((n = config_arg.find('\\', n)) != std::string::npos)
+            config_arg.replace( n, 1, "");
+        try
+        {
+            float arg_value = std::stof(config_arg);
+            config_values.push_back(arg_value);
+        }
+        catch(const std::exception& e)
+        {
+            ROS_ERROR_STREAM("## ERROR sick_scan_xd::parsePose(): parse error in string \"" << pose_xyz_rpy_str << "\", arg=\"" << config_arg << "\", exception " << e.what());
+        }
+    }
+    return config_values;
+}
+
 template<typename T> static bool convertBin(const std::string& sopas_string, size_t& offset, T& value)
 {
     value = 0;

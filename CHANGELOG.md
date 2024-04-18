@@ -4,6 +4,17 @@ Possible types are **Added** for new features. **Changed** for changes to the ex
 features that will be removed in future versions **Removed** for deprecated features that were removed in this release.
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
+## Unreleased ##
+
+### 3.4.0
+  - **add** azimut angle table for MRS-1xxx and LMS-1xxx with firmware 2.2.0 oder newer
+  - **add** dockertests for MRS-1xxx, multiScan and picoScan with ROS-2
+  - **add** API-funktion SickScanApiSendSOPAS to send SOPAS commands (e.g. "sRN SCdevicestate" or "sRN ContaminationResult")
+  - **add** generation of TF messages
+  - **add** Option to deactivate initialization sequence for TiM-7xxS devices
+  - **add** Documented option "-b master"  to clone the release version
+  - **fix** #316 API re-init nach close
+
 ## Released ##
 
 ### Release v3.3.0
@@ -12,7 +23,7 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **add** Support for picoScan100 (single echo w/o addons)
   - **add** API logging functions and verbosity (#270)
   - **add** API documentation (multiple lidars not supported, #281)
-  - **changed** API extended (added topic in PointCloud messages, #271)
+  - **change** API extended (added topic in PointCloud messages, #271)
 
 ### Release v3.2.0
 
@@ -20,7 +31,7 @@ features that will be removed in future versions **Removed** for deprecated feat
   - **add** support bloom releases for ROS-2 humble
   - **add** docker tests for ROS1 noetic incl. testcases for multiScan, picoScan, MRS1xxx
   - **add** PR #255, support picoScan performance profiles
-  - **changed** configuration time flag LMDscandatacfg switched off for the TiM240
+  - **change** configuration time flag LMDscandatacfg switched off for the TiM240
   - **fix** #218 (API reinit)
   - **fix** #220 (Fullframe Laserscan messages multi- and picoScan)
   - **fix** #221 (No scandata while activated scan range filter)
@@ -46,7 +57,7 @@ For consistency, the ROS module name has been changed to "sick_scan_xd" to match
   - **add** New topics for additional data and properties
   - **add** Official ARM64 support 
   - **add** Service for requesting contamination detection information
-  - **changed** Improvements from customer tickets and documentation enhancements
+  - **change** Improvements from customer tickets and documentation enhancements
   - **fix** ROS module name consistency
            
 ### Release v2.10.3

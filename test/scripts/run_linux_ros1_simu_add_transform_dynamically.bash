@@ -18,10 +18,10 @@ function start_ldmrs_emulator()
     sleep 1
 }
 
-# Start mrs100 (multiscan136) emulator and rviz
-function start_mrs100_emulator()
+# Start multiScan emulator and rviz
+function start_multiScan_emulator()
 {
-    echo -e "\nrun_linux_ros1_simu_add_transform: starting mrs100 (multiscan136) emulation ...\n"
+    echo -e "\nrun_linux_ros1_simu_add_transform: starting multiScan emulation ...\n"
     python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_mrs100_add_transform.rviz --opengl 210 &
     sleep 1
@@ -97,10 +97,10 @@ function run_simu_tim7xx()
     kill_simu
 }
 
-# Run sick_generic_caller with mrs100 and additional transform
-function run_simu_mrs100()
+# Run sick_generic_caller with multiScan and additional transform
+function run_simu_multiScan()
 {
-    start_mrs100_emulator
+    start_multiScan_emulator
     echo -e "\nrun_linux_ros1_simu_add_transform.bash: starting sick_scan_xd sick_multiscan.launch, no transform\n"
     roslaunch sick_scan_xd sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 add_transform_xyz_rpy:=0,0,0,0,0,0 add_transform_check_dynamic_updates:=true &
     sleep 5
@@ -136,7 +136,7 @@ fi
 # Run sick_generic_caller with additional transforms
 
 run_simu_tim7xx
-run_simu_mrs100
+run_simu_multiScan
 run_simu_ldmrs
 
 echo -e "\nrun_linux_ros1_simu_add_transform.bash finished.\n"

@@ -4,12 +4,40 @@ Changelog for package sick_scan_xd
 
 Forthcoming
 -----------
+* Release 3.4.0
+  * add: azimut angle table for MRS-1xxx and LMS-1xxx with firmware 2.2.0 oder newer
+  * add: dockertests for MRS-1xxx, multiScan and picoScan with ROS-2
+  * add: API-funktion SickScanApiSendSOPAS to send SOPAS commands (e.g. "sRN SCdevicestate" or "sRN ContaminationResult")
+  * add: generation of TF messages
+  * add: Option to deactivate initialization sequence for TiM-7xxS devices
+  * add: Documented option "-b master"  to clone the release version
+  * fix: #316 API re-init nach close
+
+3.3.0 (2024-03-04)
+------------------
 * Release v3.3.0
   * add: Option for MRS1xxx azimuth correction table 
   * add: Support for picoScan100 (single echo w/o addons)
   * add: API logging functions and verbosity (#270)
   * add: API documentation (multiple lidars not supported, #281)
   * changed: API extended (added topic in PointCloud messages, #271)
+
+3.2.0 (2024-02-12)
+------------------
+* Release v3.2.0
+  * add: IMU support for multiScan and picoScan
+  * add: support bloom releases for ROS-2 humble
+  * add: docker tests for ROS1 noetic incl. testcases for multiScan, picoScan, MRS1xxx
+  * add: PR #255, support picoScan performance profiles
+  * change: configuration time flag LMDscandatacfg switched off for the TiM240
+  * fix: #218 (API reinit)
+  * fix: #220 (Fullframe Laserscan messages multi- and picoScan)
+  * fix: #221 (No scandata while activated scan range filter)
+  * fix: #222 (rviz visualization of polar pointclouds)
+  * fix: #247 (Launchfile option for laserscan topic)
+  * fix: #256 (Clean API-exit picoScan and multiScan)
+  * fix: #260 (Provide API-functions to query lidar status, error codes and error messages)
+* Contributors: Manuel Aiple
 
 3.2.0 (2024-02-12)
 ------------------
@@ -358,7 +386,6 @@ Forthcoming
 2.5.0 (2022-03-09)
 ------------------
 * Merge pull request `#25 <https://github.com/SICKAG/sick_scan_xd/issues/25>`_ from SICKAG/feature/lidar_stop_exit
-  Fix issue `#24 <https://github.com/SICKAG/sick_scan_xd/issues/24>`_ (stop scanner at exit), new ros service SickScanExit to…
 * Fix issue `#24 <https://github.com/SICKAG/sick_scan_xd/issues/24>`_ (stop scanner at exit), new ros service SickScanExit to stop scanner and exit
 * Contributors: rostest
 

@@ -12,7 +12,7 @@ function killall_cleanup()
 }
 
 # 
-# Run sick_timtwo on ROS2-Linux
+# Run sick_picoScan on ROS2-Linux
 # 
 
 pushd ../../../..
@@ -27,7 +27,7 @@ sleep 1
 rm -rf ~/.ros/log
 sleep 1
 
-# Run mrs100/timtwo emulator (sopas test server)
+# Run multiScan/picoScan emulator (sopas test server)
 python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 --FREchoFilter=1 &
 ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz2_cfg_picoscan_emu.rviz & 
 sleep 1
@@ -40,7 +40,7 @@ echo -e "run_lidar3d.bash: sick_scan_xd sick_picoscan.launch.py ..."
 ros2 launch sick_scan_xd sick_picoscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=2 &
 sleep 3 # read -p "Press ENTER to continue..."
 
-# Play timtwo pcapng-files with picoscan compact data
+# Play picoScan pcapng-files with picoscan compact data
 echo -e "\nPlaying pcapng-files to emulate picoscan with compact data format\n"
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230911-picoscan-compact.pcapng --udp_port=2115 --repeat=1000
 # Old pcapng files, require old configuration (all_segments_min_deg=-134 und all_segments_max_deg=+135)
@@ -73,6 +73,6 @@ python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=
 sleep 3
 
 # Shutdown
-echo -e "run_linux_ros2_simu_timtwo.bash finished, killing all processes ..."
+echo -e "run_linux_ros2_simu_picoScan.bash finished, killing all processes ..."
 killall_cleanup
 popd

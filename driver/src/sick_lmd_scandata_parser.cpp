@@ -425,7 +425,7 @@ namespace sick_scan_xd
                         swap_endian((unsigned char *) &numberOfItems, 2);
                         vang_vec.resize(numberOfItems);
                       }
-                      if (strstr(szChannel, "ANGL") == szChannel) // MRS1xxx transmits azimuth angles on channel "ANGL"
+                      if (strstr(szChannel, "ANGL") == szChannel) // MRS1xxx and LMS1xxx transmit azimuth angles on channel "ANGL"
                       {
                         azimuthCnt++;
                         task = process_azimuth;
@@ -630,9 +630,18 @@ namespace sick_scan_xd
                               }
                               break;
 
-                            case process_azimuth: // azimuth angles MRS1xxx
+                            case process_azimuth: // azimuth angles MRS1xxx and LMS1xxx
                               if (numberOfItems > 0)
                               {
+                                if (std::abs(scaleFactorOffset) <= FLT_EPSILON)
+                                {
+                                  // Note: If the firmware of a previous uncalibrated MRS1xxx or LMS1xxx has been upgraded to firmware version 2.3.0 (or newer) without calibrating the azimuth table,
+                                  // the scaleFactorOffset is most likely 0.0, but the azimuth correction table is activated by default.
+                                  // In this case, the following warnings is displayed according to requirements. To avoid the warning, parameter scandatacfg_azimuth_table can be set to value 0
+                                  // (i.e. azimuth correction table deactivated) in the launchfile.
+                                  ROS_WARN_STREAM("## WARNING parseCommonBinaryResultTelegram(): process_azimuth with unexpected scaleFactorOffset=" << scaleFactorOffset << ", expected value is not 0.0");
+                                  ROS_WARN_STREAM("## WARNING parseCommonBinaryResultTelegram(): set parameter scandatacfg_azimuth_table=0 in the launchfile if the lidar has no calibrated azimuth table.");
+                                }
                                 float angle_min_rad = (1.0e-4f * startAngleDiv10000) * M_PI / 180.0 + parser_->getCurrentParamPtr()->getScanAngleShift();
                                 float angle_inc_rad = (1.0e-4f * sizeOfSingleAngularStepDiv10000) * M_PI / 180.0;
                                 float angle_max_rad = angle_min_rad + (numberOfItems - 1) * angle_inc_rad;

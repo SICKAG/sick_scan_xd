@@ -89,7 +89,7 @@ sleep 1
 # Start sick_generic_caller with sick_scansegment_xd
 # Note: To verify laserscan messages, we configure laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", i.e. a laserscan message is published for each segment, each layer and each echo.
 # By default, laserscan messages are only activated for layer 5 (elevation -0.07 degree, max number of scan points)
-# All laserscan messages are converted to pointcloud by mrs100_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
+# All laserscan messages are converted to pointcloud by multiScan_laserscan_msg_to_pointcloud.py using a hardcoded elevation table.
 # Note: Option laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" should not be used for performance tests.
 echo -e "run_linux_ros1_simu_multiscan.bash: sick_scan_xd sick_multiscan.launch ..."
 roslaunch sick_scan_xd sick_multiscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" laserscan_layer_filter:="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" scandataformat:=1 &

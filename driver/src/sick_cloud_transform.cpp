@@ -56,6 +56,7 @@
  */
 #include <float.h>
 #include <sick_scan/sick_cloud_transform.h>
+#include <sick_scan/sick_scan_parse_util.h>
 
 /*
 * class SickCloudTransform applies an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
@@ -98,26 +99,7 @@ sick_scan_xd::SickCloudTransform::SickCloudTransform(rosNodePtr nh, const std::s
 bool sick_scan_xd::SickCloudTransform::init(const std::string& add_transform_xyz_rpy, bool cartesian_input_only, bool add_transform_check_dynamic_updates)
 {
     // Split string add_transform_xyz_rpy to 6D pose x,y,z,roll,pitch,yaw in [m] resp. [rad]
-    std::istringstream config_stream(add_transform_xyz_rpy);
-    std::string config_arg;
-    std::vector<float> config_values;
-    while (getline(config_stream, config_arg, ','))
-    {
-        // ROS-2 interpretes parameter values configured by "ros2 param set <node> <arg> <value>" as yaml content, 
-        // but does not remove yaml escape characters required for negative numbers. Any '\\' is removed here.
-        std::string::size_type n = 0;
-        while ((n = config_arg.find('\\', n)) != std::string::npos)
-            config_arg.replace( n, 1, "");
-        try
-        {
-            float arg_value = std::stof(config_arg);
-            config_values.push_back(arg_value);
-        }
-        catch(const std::exception& e)
-        {
-            ROS_ERROR_STREAM("## ERROR SickCloudTransform(): parse error in string \"" << add_transform_xyz_rpy << "\", arg=\"" << config_arg << "\", exception " << e.what());
-        }
-    }
+    std::vector<float> config_values = sick_scan_xd::parsePose(add_transform_xyz_rpy);
     if(config_values.size() != 6)
     {
         ROS_ERROR_STREAM("## ERROR SickCloudTransform(): Can't parse config string \"" << add_transform_xyz_rpy << "\", use 6D pose \"x,y,z,roll,pitch,yaw\" in [m] resp. [rad]");
