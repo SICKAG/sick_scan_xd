@@ -37,7 +37,7 @@ static void* GetProcAddress(HINSTANCE hLib, const char* szFunctionName)
 static HINSTANCE hinstLib = NULL;
 
 #ifdef WIN32
-typedef SickScanApiHandle(__stdcall* SickScanApiCreate_PROCTYPE)(int argc, char** argv);
+typedef SickScanApiHandle(__cdecl* SickScanApiCreate_PROCTYPE)(int argc, char** argv);
 static SickScanApiCreate_PROCTYPE ptSickScanApiCreate = 0;
 #else
 typedef SickScanApiHandle(*SickScanApiCreate_PROCTYPE)(int argc, char** argv);
