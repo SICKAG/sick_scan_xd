@@ -39,7 +39,7 @@
   
   "info.args_sick_scan_xd_launch": "# Launch parameter for sick_scan_xd",
   "args_sick_scan_xd_launch": [
-    "sick_scan_xd sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1"
+    "sick_scan_xd sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_laserscan_segment_topic:=/multiScan/scan_segment publish_laserscan_fullframe_topic:=/multiScan/scan_fullframe imu_topic:=/multiScan/imu"
   ],
   
   "info.args_udp_scandata_sender": "# Launch parameter for udp scandata sender (multiScan or picoScan)",
@@ -55,11 +55,17 @@
   "info.run_simu_seconds_before_shutdown": "# Delay before simulation shutdown: 0 for multiScan/picoScan (i.e. wait for udp scandata sender), simulation time in seconds otherwise (typically some seconds, e.g. 10)",
   "run_simu_seconds_before_shutdown": 0,
   
-  "info.args_rviz": "# Optional config files for rviz visualization",
-  "args_rviz": [
+  "info.args_rviz_linux_noetic": "# Optional config files for rviz visualization on ros1 noetic",
+  "args_rviz_linux_noetic": [
     "./src/sick_scan_xd/test/emulator/config/rviz_cfg_multiscan_emu.rviz",
     "./src/sick_scan_xd/test/emulator/config/rviz_cfg_multiscan_laserscan_360.rviz",
     "./src/sick_scan_xd/test/emulator/config/rviz_cfg_multiscan_emu_360.rviz"
+  ],
+  
+  "info.args_rviz_linux_humble": "# Optional config files for rviz visualization on ros2 humble",
+  "args_rviz_linux_humble": [
+    "./src/sick_scan_xd/test/emulator/config/rviz2_cfg_multiscan_emu.rviz",
+    "./src/sick_scan_xd/test/emulator/config/rviz2_cfg_multiscan_emu_360.rviz"
   ],
   
   "info.args_shutdown_nodes": "# List of ros nodes to shutdown at exit, should be the ros node running sick_scan_xd",

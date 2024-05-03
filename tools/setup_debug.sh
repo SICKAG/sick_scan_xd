@@ -20,7 +20,7 @@ catkin_make
 source devel/setup.bash
 cd src
 # git clone -b devel https://github.com/SICKAG/sick_scan.git
-git clone https://github.com/SICKAG/sick_scan.git
+git clone -b master https://github.com/SICKAG/sick_scan.git
 cd ..
 catkin_make
 

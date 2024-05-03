@@ -36,6 +36,7 @@ IMU support for multiScan and picoScan is enabled by default and can be configur
 ```
 <param name="imu_enable" type="bool" value="True"/>  <!-- Enable inertial measurement unit IMU, compact format only -->
 <param name="imu_udp_port" type="int" value="7503"/> <!-- udp port for multiScan imu data (if imu_enable is true) -->
+<param name="imu_topic" type="string" value="imu"/>  <!-- topic of ros IMU messages -->
 ```
 
 sick_scan_xd receives IMU data by UDP and publishes [ROS-1 sensor_msgs/Imu](https://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Imu.html) resp. [ROS-2 sensor_msgs/msg/Imu](https://docs.ros2.org/latest/api/sensor_msgs/msg/Imu.html) messages.

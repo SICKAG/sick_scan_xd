@@ -21,7 +21,7 @@ docker build --progress=plain -t sick_scan_xd/ros1_noetic -f ./src/sick_scan_xd/
 docker image ls sick_scan_xd/ros1_noetic
 # docker rm $(docker ps -a -q) # optional cleanup: remove all docker container
 
-# Run the docker-image named "sick_scan_xd/ros1_noetic" and execute a multicscan test within the docker container
+# Run the docker-image named "sick_scan_xd/ros1_noetic" and execute a multiscan test within the docker container
 # docker run option --rm automatically removes the container when it exits
 xhost +local:docker # see https://medium.com/intro-to-artificial-intelligence/rviz-on-docker-bdf4d0fca5b to run X11-gui-applications like rviz in docker
 docker_status_final=0 # success

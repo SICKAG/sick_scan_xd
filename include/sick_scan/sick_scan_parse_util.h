@@ -71,6 +71,9 @@ namespace sick_scan_xd
   // returns the given angle in rad normalized to angle_min ... angle_max, assuming (angle_max - angle_min) == 2 * PI
   double normalizeAngleRad(double angle_rad, double angle_min, double angle_max);
 
+  // Converts a string to a 6D pose x,y,z,roll,pitch,yaw in [m] resp. [rad]
+  std::vector<float> parsePose(const std::string& pose_xyz_rpy_str);
+
   class SickScanParseUtil
   {
   public:

@@ -31,5 +31,7 @@ bool parseLaunchfileSetParameter(rosNodePtr nhPriv, int argc, char **argv);
 
 bool stopScannerAndExit(bool force_immediate_shutdown = false);
 
+bool convertSendSOPASCommand(const std::string& sopas_ascii_request, std::string& sopas_response, bool wait_for_reply = true);
+
 #endif
 

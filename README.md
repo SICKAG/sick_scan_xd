@@ -24,6 +24,7 @@ This project provides a driver for the SICK LiDARs and Radar sensors mentioned [
 - [SLAM-Support](doc/slam.md)
 - [Software Overview](#software-overview)
 - [Raspberry support](doc/raspberry.md)
+- [Interlacing](doc/interlacing.md)
 - [FAQ](FAQ.md)
 - [Further support](SUPPORT.md)
 - [CREDITS](CREDITS.md)
@@ -41,9 +42,31 @@ This project provides a driver for the SICK LiDARs and Radar sensors mentioned [
 * sick_scan_xd has no dependencies to 3rd party libraries like boost or pthread.
 * sick_scan_xd offers all features on all targets if the devices support the features.
 
+## Repository organization
+
+The repository supports two main branches.
+
+The **"master"** branch is the branch that contains official releases that are tagged and versioned and also included in the ROS distribution. 
+
+If you want to work with this official branch, you must explicitly specify this branch in the 'git clone' command by adding "-b master".
+
+The "develop" branch is the default branch and contains the latest development status.
+
+Example:
+
+Checking out the latest revision (usually older than the develop version, but officially released):
+```
+git clone -b master https://github.com/SICKAG/sick_scan_xd.git
+```
+
+Checking out the latest development status:
+```
+git clone https://github.com/SICKAG/sick_scan_xd.git
+```
+
 ## Build targets
 
-sick_scan_xd can be build on Linux and Windows, with and without ROS, with and without LDMRS. The following table shows the allowed combinations and how to build.
+sick_scan_xd can be build on 64-bit Linux and Windows, with and without ROS, with and without LDMRS. The following table shows the allowed combinations and how to build.
 
 | **target** | **cmake settings** | **build script** |
 |------------|--------------------|------------------|
@@ -58,9 +81,8 @@ sick_scan_xd can be build on Linux and Windows, with and without ROS, with and w
 
 If you're using ROS, set your ROS-environment before running one of these scripts, f.e.
 * `source /opt/ros/noetic/setup.bash` for ROS-1 noetic, or
-* `source /opt/ros/melodic/setup.bash` for ROS-1 melodic, or
-* `source /opt/ros/eloquent/setup.bash` for ROS-2 eloquent, or
-* `source /opt/ros/foxy/setup.bash` for ROS-2 foxy.
+* `source /opt/ros/foxy/setup.bash` for ROS-2 foxy, or
+* `source /opt/ros/humble/setup.bash` for ROS-2 humble.
 
 See the build descriptions for more details:
 * [Build on Linux generic without ROS](INSTALL-GENERIC.md#build-on-linux-generic-without-ros)
@@ -68,6 +90,8 @@ See the build descriptions for more details:
 * [Build on Linux ROS2](INSTALL-ROS2.md#build-on-linux-ros2)
 * [Build on Windows](INSTALL-GENERIC.md#build-on-windows)
 * [Build on Windows ROS2](INSTALL-ROS2.md#build-on-windows-ros2)
+
+sick_scan_xd supports 64 bit Linux and Windows, 32 bit systems are not supported.
 
 ## Driver API
 
@@ -145,3 +169,6 @@ LD-LRS3611
 LD-OEM1500
 LD-OEM1501
 multiScan100
+multiScan
+picoScan100
+picoScan

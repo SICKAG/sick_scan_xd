@@ -164,6 +164,7 @@ sick_scansegment_xd::Config::Config()
     scandataformat = 2;                      // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2
     performanceprofilenumber = -1;           // Set performance profile by sending "sWN PerformanceProfileNumber" if performanceprofilenumber >= 0 (picoScan), default: -1
     imu_enable = true;                       // IMU enabled or disabled
+    imu_topic = "imu";                       // ROS topic for IMU messages
     imu_udp_port = 7503;                     // default udp port for multiScan imu data is 7503
     imu_latency_microsec = 0;                // imu latency in microseconds
 
@@ -236,6 +237,7 @@ void sick_scansegment_xd::Config::PrintHelp(void)
     ROS_INFO_STREAM("-scandataformat=1|2 : set ScanDataFormat, 1 for msgpack or 2 for compact scandata, default: " << scandataformat);
     ROS_INFO_STREAM("-performanceprofilenumber=[1-9] : set PerformanceProfileNumber or -1 to disable, default: " << performanceprofilenumber);
     ROS_INFO_STREAM("-imu_enable=0|1 : enable or disable IMU data, default: " << imu_enable);
+    ROS_INFO_STREAM("-imu_topic=<name> : ROS topic of IMU messages, default: " << imu_topic);
     ROS_INFO_STREAM("-imu_udp_port=<port>: udp port for multiScan imu data, default: " << imu_udp_port);
     ROS_INFO_STREAM("-imu_latency_microsec=<micro_sec>: imu latency in microseconds, default: " << imu_latency_microsec);
 }
@@ -272,6 +274,7 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "scandataformat", scandataformat);
     ROS_DECL_GET_PARAMETER(node, "performanceprofilenumber", performanceprofilenumber);    
     ROS_DECL_GET_PARAMETER(node, "imu_enable", imu_enable);
+    ROS_DECL_GET_PARAMETER(node, "imu_topic", imu_topic);
     ROS_DECL_GET_PARAMETER(node, "imu_udp_port", imu_udp_port);
     ROS_DECL_GET_PARAMETER(node, "imu_latency_microsec", imu_latency_microsec);
     ROS_DECL_GET_PARAMETER(node, "sopas_tcp_port", sopas_tcp_port);
@@ -412,6 +415,7 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "scandataformat", scandataformat);
     setOptionalArgument(cli_parameter_map, "performanceprofilenumber", performanceprofilenumber);
     setOptionalArgument(cli_parameter_map, "imu_enable", imu_enable);
+    setOptionalArgument(cli_parameter_map, "imu_topic", imu_topic);
     setOptionalArgument(cli_parameter_map, "imu_udp_port", imu_udp_port);
     setOptionalArgument(cli_parameter_map, "imu_latency_microsec", imu_latency_microsec);
     setOptionalArgument(cli_parameter_map, "sopas_tcp_port", sopas_tcp_port);
@@ -491,6 +495,7 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     ROS_INFO_STREAM("scandataformat:                   " << scandataformat);
     ROS_INFO_STREAM("performanceprofilenumber:         " << performanceprofilenumber);
     ROS_INFO_STREAM("imu_enable:                       " << imu_enable);
+    ROS_INFO_STREAM("imu_topic:                        " << imu_topic);
     ROS_INFO_STREAM("imu_udp_port:                     " << imu_udp_port);
     ROS_INFO_STREAM("imu_latency_microsec:             " << imu_latency_microsec);
     ROS_INFO_STREAM("sopas_tcp_port:                   " << sopas_tcp_port);

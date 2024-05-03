@@ -80,7 +80,7 @@ On your local Linux PC (Raspberry IP-address is 192.168.178.52 in this example):
 mkdir -p ./sick_scan_xd_raspberry_pi_pretest/src
 pushd ./sick_scan_xd_raspberry_pi_pretest/src
 git clone https://github.com/SICKAG/libsick_ldmrs.git
-git clone -b feature/raspberry_pi_pretest https://github.com/SICKAG/sick_scan_xd.git
+git clone -b master https://github.com/SICKAG/sick_scan_xd.git
 popd
 scp -rp ./sick_scan_xd_raspberry_pi_pretest 192.168.178.52:/home/rostest/sick_scan_xd_raspberry_pi_pretest
 ```

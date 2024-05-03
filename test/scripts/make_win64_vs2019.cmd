@@ -17,20 +17,6 @@ set _msvc=Visual Studio 2019
 set _cmake_build_dir=build_win64
 
 REM 
-REM Build msgpack11 on Windows
-REM 
-
-rem if not exist %_cmake_build_dir%\msgpack11 mkdir %_cmake_build_dir%\msgpack11
-rem pushd %_cmake_build_dir%\msgpack11
-rem cmake -DMSGPACK11_BUILD_TESTS=0 -G "%_cmake_string%" ../../../msgpack11
-rem if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 with cmake & @pause )
-rem cmake --build . --clean-first --config Debug
-rem if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 debug with cmake & @pause )
-rem cmake --build . --clean-first --config Release
-rem if %ERRORLEVEL% neq 0 ( @echo ERROR building %_cmake_string% msgpack11 release with cmake & @pause )
-rem popd
-
-REM 
 REM Build sick_scan_xd on Windows native (no ROS) with Visual Studio 2019 and cmake
 REM 
 

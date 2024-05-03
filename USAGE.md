@@ -274,22 +274,20 @@ The use of the parameters can be looked up in the launch files. This is also rec
 To start the scanner with a specific IP address, option `hostname:=<ip-address>` can be used.
 The hostname is the ip-address of the scanner, e.g.
 ```
-sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71                      # Linux native
+sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71                         # Linux native
 roslaunch sick_scan_xd sick_tim_5xx.launch hostname:=192.168.0.71                      # Linux ROS-1
 ros2 run sick_scan_xd sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71   # Linux ROS-2
-sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71                      # Windows native
+sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71                         # Windows native
 ros2 run sick_scan_xd sick_generic_caller sick_tim_5xx.launch hostname:=192.168.0.71   # Windows ROS-2
 ```
 
 ### Further useful parameters and features
 
-- `timelimit`
-  Timelimit in [sec] for max. wait time of incoming sensor reply
+- **Timestamps**: If parameter`sw_pll_only_publish` is true (default), an internal Software PLL is used to sync the scan generation timestamps to system timestamps. See [software_pll.md](./doc/software_pll.md) for details.
 
-- `sw_pll_only_publish`
-  If true, the internal Software PLL is fored to sync the scan generation time stamp to a system timestamp
+- **Angle compensation**: For highest angle accuracy the NAV-Lidar series supports an [angle compensation mechanism](./doc/angular_compensation.md).
 
-- Angle compensation: For highest angle accuracy the NAV-Lidar series supports an [angle compensation mechanism](./doc/angular_compensation.md).
+- **Angle correction**: MRS-1xxx lidars transmit accurate azimuth angles for each scan point. Therefore, the stride (angle increment) of the MRS-1xxx azimuth angles in polar and cartesian point clouds is not exactly constant. Since laserscan messages assume a constant angle increment, scan points in point cloud and laserscan messages have slightly different azimuth angles.
 
 - **Field monitoring**: The **LMS1xx**, **LMS5xx**, **TiM7xx** and **TiM7xxS** families have [extended settings for field monitoring](./doc/field_monitoring_extensions.md).
 
@@ -301,6 +299,15 @@ ros2 run sick_scan_xd sick_generic_caller sick_tim_5xx.launch hostname:=192.168.
    By default, radar objects are tracked.
 
 - **Coordinate transform**: An optional coordinate transform can be applied to the pointcloud. See [coordinate transforms](./doc/coordinate_transforms.md) for details.
+
+### Lidar specific parameters
+
+Some lidars have specific parameters and options.
+
+- **TiM781S**: For TiM781S lidars, the initial lidar configuration can be deactivated using optional argument initialize_scanner:=0.
+  Note that this mode does not initialize the lidar. The mode assumes that the scanner is in an appropriate state corresponding to the properties configured in the launchfile. It is not recommended to use this option unless for specific tasks in a controlled environment.<br/>
+   **Do not use this mode except the lidar has been configured properly and initialized successfully and is in the same state as after initialization by the launchfile! This option is for advanced users only!**<br/>
+   Example: `roslaunch sick_scan_xd sick_tim_7xxS.launch hostname:=192.168.0.1 initialize_scanner:=0`
 
 ### ROS services
 

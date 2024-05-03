@@ -3,10 +3,10 @@
 # killall and cleanup after exit
 function killall_cleanup()
 {
-  rosnode kill -a
-  killall sick_generic_caller
-  pkill -f multiscan_sopas_test_server.py
-  pkill -f multiscan_pcap_player.py
+  sleep 1 ; rosnode kill -a
+  sleep 1 ; killall sick_generic_caller
+  sleep 1 ; pkill -f multiscan_sopas_test_server.py
+  sleep 1 ; pkill -f multiscan_pcap_player.py
 }
 
 # 
@@ -34,7 +34,7 @@ sleep 1
 
 # Start sick_generic_caller with sick_picoscan with compact format
 echo -e "run_lidar3d.bash: sick_scan_xd sick_picoscan.launch ..."
-roslaunch sick_scan_xd sick_picoscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=2 &
+roslaunch sick_scan_xd sick_picoscan.launch hostname:="127.0.0.1" udp_receiver_ip:="127.0.0.1" scandataformat:=2 host_FREchoFilter:=0 &
 sleep 3 # read -p "Press ENTER to continue..."
 
 # Play picoscan pcapng-file with picoscan compact-data
@@ -72,5 +72,6 @@ sleep 3
 
 # Shutdown
 echo -e "run_linux_ros1_simu_timtwo.bash finished, killing all processes ..."
+killall_cleanup
 killall_cleanup
 popd

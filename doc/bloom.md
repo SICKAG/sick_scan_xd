@@ -33,7 +33,7 @@
             ```
             mkdir -p ./ws_sick_scan_xd_bloom/src
             cd ./ws_sick_scan_xd_bloom/src
-            git clone -b feature/bloom_pretest https://github.com/SICKAG/sick_scan_xd.git
+            git clone -b master https://github.com/SICKAG/sick_scan_xd.git
             cd ./sick_scan_xd/test/scripts
             ./run_linux_ros1_bloom.bash
             ```
@@ -110,7 +110,7 @@
 * Build a prerelease (dry run in a docker container):
     * Run the following commands:
         ```
-        git clone -b feature/bloom_pretest https://github.com/SICKAG/sick_scan_xd.git
+        git clone -b master https://github.com/SICKAG/sick_scan_xd.git
         cd ./sick_scan_xd/test/scripts
         sudo dos2unix ./*.bash ; sudo chmod a+x ./*.bash
         ./run_linux_ros1_bloom.bash
@@ -158,12 +158,16 @@
     * Check status: https://index.ros.org/p/sick_scan_xd/#noetic
     * Install binary release: `sudo apt update ; sudo apt-get install ros-noetic-sick-scan-xd`. Note from https://wiki.ros.org/bloom/Tutorials/FirstTimeRelease: Packages built are periodically synchronized over to the shadow-fixed and public repositories, so it might take as long as a month before your package is available on the public ROS debian repositories (i.e. available via apt-get). 
 
+* Troubleshooting, FAQ:
+   * bloom builds an old sick_scan_xd version:
+      * Check `devel_branch` in https://github.com/SICKAG/sick_scan_xd-release/blob/master/tracks.yaml. If devel_branch is an old branch, replace it with e.g. `develop` or `master`, or update the `<devel_branch>` to a new version.
+
 ## Release build for ROS-2
 
 For ROS-2 follow the instructions on https://docs.ros.org/en/humble/How-To-Guides/Releasing/Releasing-a-Package.html:
 * Checkout the sick_scan_xd version to be released and run:
     ```
-    git clone -b feature/bloom_pretest https://github.com/SICKAG/sick_scan_xd.git
+    git clone -b master https://github.com/SICKAG/sick_scan_xd.git
     cd ./sick_scan_xd
     rm ./CHANGELOG.rst
     catkin_generate_changelog --all # create CHANGELOG.rst
@@ -191,12 +195,18 @@ For ROS-2 follow the instructions on https://docs.ros.org/en/humble/How-To-Guide
     sudo rosdep init
     rosdep update
     ```
+* Troubleshooting, FAQ:
+   * bloom builds an old sick_scan_xd version:
+      * Check `devel_branch` in https://github.com/ros2-gbp/sick_scan_xd-release/blob/master/tracks.yaml. If devel_branch is an old branch, replace it with e.g. `develop` or `master`, or update the `<devel_branch>` to a new version.
     
 ## Check status
 
 * ROS-1 release repository: https://github.com/SICKAG/sick_scan_xd-release
 * ROS-2 release repository: https://github.com/ros2-gbp/sick_scan_xd-release.git
-* Jenkins: https://build.ros.org/search/?q=sick_scan_xd
+* ROS-1 jenkins build status: https://build.ros.org/job/Ndev__sick_scan_xd__ubuntu_focal_amd64/lastBuild/
+* ROS-2 jenkins build status: https://build.ros2.org/job/Hdev__sick_scan_xd__ubuntu_jammy_amd64/lastBuild/
+* ROS-1 jenkins: https://build.ros.org/search/?q=sick_scan_xd
+* ROS-2 jenkins: https://build.ros2.org/search/?q=sick_scan_xd
 * Documentation: https://index.ros.org/p/sick_scan_xd/#noetic , http://wiki.ros.org/sick_scan_xd
    
 ## Useful links and tutorials

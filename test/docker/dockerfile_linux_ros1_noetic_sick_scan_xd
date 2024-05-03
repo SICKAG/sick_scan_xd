@@ -19,7 +19,7 @@ COPY ./src/sick_scan_xd /workspace/src/sick_scan_xd
 # Example: docker build --build-arg SICK_SCAN_XD_GIT_URL=https://github.com/SICKAG/sick_scan_xd ...
 #
 ARG SICK_SCAN_XD_GIT_URL="None"
-RUN /bin/bash -c "if [ $SICK_SCAN_XD_GIT_URL != $NONE ] ; then ( pushd /workspace/src ; rm -rf ./sick_scan_xd ; git clone $SICK_SCAN_XD_GIT_URL ; popd ) ; fi"
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_GIT_URL != $NONE ] ; then ( pushd /workspace/src ; rm -rf ./sick_scan_xd ; git clone -b master $SICK_SCAN_XD_GIT_URL ; popd ) ; fi"
 
 #
 # Optionally install prebuild sick_scan_xd binaries given by build argument SICK_SCAN_XD_APT_PKG

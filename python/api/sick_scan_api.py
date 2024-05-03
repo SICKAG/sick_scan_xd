@@ -168,8 +168,9 @@ class SickScanPointCloudMsg(ctypes.Structure):
         ("data", SickScanUint8Array),                # Actual point data, size is (row_step*height)
         ("is_dense", ctypes.c_uint8),                # True if there are no invalid points
         ("num_echos", ctypes.c_int32),               # number of echos
-        ("segment_idx", ctypes.c_int32)              # segment index (or -1 if pointcloud contains data from multiple segments)
-    ]
+        ("segment_idx", ctypes.c_int32),             # segment index (or -1 if pointcloud contains data from multiple segments)
+        ("topic", ctypes.c_char * 256)               # ros topic this pointcloud is published
+   ]
 
 class SickScanVector3Msg(ctypes.Structure):
     """ 
@@ -977,6 +978,15 @@ def SickScanApiLoadLibrary(paths, lib_filname):
     # sick_scan_api.h:  int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
     sick_scan_library.SickScanApiGetStatus.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int32), ctypes.c_char_p, ctypes.c_int32]
     sick_scan_library.SickScanApiGetStatus.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiSendSOPAS(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size);
+    sick_scan_library.SickScanApiSendSOPAS.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int32]
+    sick_scan_library.SickScanApiSendSOPAS.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level);
+    sick_scan_library.SickScanApiSetVerboseLevel.argtypes = [ctypes.c_void_p, ctypes.c_int32]
+    sick_scan_library.SickScanApiSetVerboseLevel.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle);
+    sick_scan_library.SickScanApiGetVerboseLevel.argtypes = [ctypes.c_void_p]
+    sick_scan_library.SickScanApiGetVerboseLevel.restype = ctypes.c_int
     # sick_scan_api.h: int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
     sick_scan_library.SickScanApiWaitNextCartesianPointCloudMsg.argtypes = [ctypes.c_void_p, ctypes.POINTER(SickScanPointCloudMsg), ctypes.c_double]
     sick_scan_library.SickScanApiWaitNextCartesianPointCloudMsg.restype = ctypes.c_int
@@ -1220,6 +1230,29 @@ def SickScanApiGetStatus(sick_scan_library, api_handle, status_code, message_buf
     Query current status and status message
     """ 
     return sick_scan_library.SickScanApiGetStatus(api_handle, status_code, message_buffer, message_buffer_size)
+
+def SickScanApiSendSOPAS(sick_scan_library, api_handle, sopas_command, response_buffer_size = 1024):
+    """ 
+    Sends a SOPAS command like "sRN SCdevicestate" or "sRN ContaminationResult" and returns the lidar response
+    """ 
+    response_buffer_size = max(1024, response_buffer_size)
+    ctypes_response_buffer = ctypes.create_string_buffer(response_buffer_size + 1)
+    ret_val = sick_scan_library.SickScanApiSendSOPAS(api_handle, ctypes.create_string_buffer(str.encode(sopas_command)), ctypes_response_buffer, response_buffer_size)
+    return ctypes_response_buffer.value.decode()
+
+def SickScanApiSetVerboseLevel(sick_scan_library, api_handle, verbose_level):
+    """ 
+    Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
+    i.e. print messages on console above the given verbose level.
+    Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
+    """ 
+    return sick_scan_library.SickScanApiSetVerboseLevel(api_handle, verbose_level)
+
+def SickScanApiGetVerboseLevel(sick_scan_library, api_handle):
+    """ 
+    Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
+    """ 
+    return sick_scan_library.SickScanApiGetVerboseLevel(api_handle)
 
 """ 
 Polling functions

@@ -32,11 +32,11 @@ function start_ldmrs_emulator()
     sleep 1
 }
  
-# Start mrs100 (multiscan136) emulator and rviz
-function start_mrs100_emulator()
+# Start multiScan emulator and rviz
+function start_multiScan_emulator()
 {
     echo -e "\n----------------------------------------------------------"
-    echo -e "run_api_test: starting mrs100 (multiscan136) emulation ...\n"
+    echo -e "run_api_test: starting multiScan emulation ...\n"
     python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
 
     sleep 1 ; rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_api_multiscan.rviz --opengl 210 &
@@ -109,7 +109,7 @@ pushd ../../examples/scripts
 popd
 
 #
-# API test against simulated TiM7xx, MRS100, LDMRS, MRS1xxx and RMSxxxx
+# API test against simulated TiM7xx, multiScan, LDMRS, MRS1xxx and RMSxxxx
 #
 
 pushd ../../../..
@@ -141,10 +141,10 @@ python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py
 waitUntilRvizClosed 40
 kill_simu
 
-# Start mrs100 (multiscan136) emulator and run sick_scan_xd_api_test (python example)
-start_mrs100_emulator
+# Start multiScan emulator and run sick_scan_xd_api_test (python example)
+start_multiScan_emulator
 python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_frame_id:=cloud scandataformat:=1 &
-# Play pcapng-files to emulate MRS100 output
+# Play pcapng-files to emulate multiScan output
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=2
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
 waitUntilRvizClosed 1
@@ -186,10 +186,10 @@ rosrun sick_scan_xd sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/l
 waitUntilRvizClosed 40
 kill_simu
 
-# Start mrs100 (multiscan136) emulator and run sick_scan_xd_api_test (cpp example)
-start_mrs100_emulator
+# Start multiScan emulator and run sick_scan_xd_api_test (cpp example)
+start_multiScan_emulator
 rosrun sick_scan_xd sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_frame_id:=cloud" scandataformat:=1 &
-# Play pcapng-files to emulate MRS100 output
+# Play pcapng-files to emulate multiScan output
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=2
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
 waitUntilRvizClosed 1
@@ -229,10 +229,10 @@ python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py
 waitUntilRvizClosed 40
 kill_simu
 
-# Start mrs100 (multiscan136) emulator and run sick_scan_xd_api_test (python example with polling)
-start_mrs100_emulator
+# Start multiScan emulator and run sick_scan_xd_api_test (python example with polling)
+start_multiScan_emulator
 python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py _polling:=1 ./src/sick_scan_xd/launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 publish_frame_id:=cloud scandataformat:=1 &
-# Play pcapng-files to emulate MRS100 output
+# Play pcapng-files to emulate multiScan output
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=2
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
 waitUntilRvizClosed 1
@@ -273,10 +273,10 @@ rosrun sick_scan_xd sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/l
 waitUntilRvizClosed 40
 kill_simu
 
-# Start mrs100 (multiscan136) emulator and run sick_scan_xd_api_test (cpp example with polling)
-start_mrs100_emulator
+# Start multiScan emulator and run sick_scan_xd_api_test (cpp example with polling)
+start_multiScan_emulator
 rosrun sick_scan_xd sick_scan_xd_api_test _sick_scan_args:="./src/sick_scan_xd/launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=1 publish_frame_id:=cloud" _polling:=1 &
-# Play pcapng-files to emulate MRS100 output
+# Play pcapng-files to emulate multiScan output
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=2
 python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
 waitUntilRvizClosed 1

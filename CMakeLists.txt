@@ -95,9 +95,11 @@ elseif(DEFINED SICK_TARGET_ENDIANESS)
 endif()
 
 # ROS Version
-message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ROS_VERSION=${ROS_VERSION} CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
+message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ENV{ROS_DISTRO}=$ENV{ROS_DISTRO} ROS_VERSION=${ROS_VERSION} CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
 if(DEFINED CMAKE_PREFIX_PATH AND "${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/humble")
-    set(ROS_VERSION 2)
+    set(ROS_VERSION 2)  # required for ROS2 humble bloom releases with jenkins buildfarm
+elseif(NOT DEFINED ROS_VERSION AND EXISTS "/opt/ros/humble/setup.sh")
+    set(ROS_VERSION 2)  # required for ROS2 humble bloom releases with jenkins buildfarm
 endif()
 if(NOT DEFINED ROS_VERSION AND DEFINED ENV{ROS_VERSION})
     set(ROS_VERSION $ENV{ROS_VERSION})
@@ -133,7 +135,7 @@ function(check_header_exists headerfilepath headerfilename packagename)
         message(STATUS "If you encounter problems with missing ${headerfilename}, please checkout the following repositories:")
         message(STATUS "git clone https://github.com/SICKAG/libsick_ldmrs.git")
         message(STATUS "git clone https://github.com/SICKAG/msgpack11.git")
-        message(STATUS "git clone https://github.com/SICKAG/sick_scan_xd.git")
+        message(STATUS "git clone -b master https://github.com/SICKAG/sick_scan_xd.git")
         message(STATUS "and rebuild. See the build instructions in INSTALL-GENERIC.md, INSTALL-ROS1.md and INSTALL-ROS2.md for further details.")
     endif()
 endfunction()
@@ -235,7 +237,7 @@ if(ROS_VERSION EQUAL 2)
     find_package(ament_cmake REQUIRED)
     if(NOT WIN32)
         # still check if diagnostics updater is available (depends on ros distribution)
-        find_package(diagnostic_updater)
+        find_package(diagnostic_updater QUIET)
         if (${diagnostic_updater_FOUND})
             set(diagnostic_updater_pkg diagnostic_updater)
             add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
@@ -522,6 +524,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_scan_messages.cpp
         driver/src/sick_scan_parse_util.cpp
         driver/src/sick_scan_services.cpp
+        driver/src/sick_tf_publisher.cpp
         driver/src/sick_scan_xd_api/api_impl.cpp
         driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
         driver/src/sick_nav_scandata_parser.cpp
@@ -623,6 +626,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/sick_scan_messages.cpp
         driver/src/sick_scan_parse_util.cpp
         driver/src/sick_scan_services.cpp
+        driver/src/sick_tf_publisher.cpp
         driver/src/sick_scan_xd_api/api_impl.cpp
         driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
         driver/src/softwarePLL.cpp
@@ -656,7 +660,12 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         target_link_libraries(${PROJECT_NAME}_shared_lib ${SICK_LDMRS_LIBRARIES})
     endif()
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
-    target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
+    if(ROS_VERSION EQUAL 0 AND NOT WIN32)
+        target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} "pthread") # pthread required for std::thread
+        target_link_options(sick_generic_caller PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+    else()    
+        target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
+    endif()
 
 endif()
 

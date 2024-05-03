@@ -48,7 +48,7 @@ slam_echo: The name of the echo is entered here, which is filtered out of all po
 Build hector_slam and sick_scan_xd:
 ```
 cd src
-git clone https://github.com/SICKAG/sick_scan_xd.git
+git clone -b master https://github.com/SICKAG/sick_scan_xd.git
 git clone https://github.com/tu-darmstadt-ros-pkg/hector_slam.git
 cd ..
 catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 -Wno-dev

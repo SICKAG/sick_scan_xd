@@ -119,6 +119,15 @@ static SickScanApiDeregisterLogMsg_PROCTYPE ptSickScanApiDeregisterLogMsg = 0;
 typedef int32_t (*SickScanApiGetStatus_PROCTYPE)(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
 static SickScanApiGetStatus_PROCTYPE ptSickScanApiGetStatus = 0;
 
+typedef int32_t(*SickScanApiSendSOPAS_PROCTYPE)(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size);
+static SickScanApiSendSOPAS_PROCTYPE ptSickScanApiSendSOPAS = 0;
+
+typedef int32_t (*SickScanApiSetVerboseLevel_PROCTYPE)(SickScanApiHandle apiHandle, int32_t verbose_level);
+static SickScanApiSetVerboseLevel_PROCTYPE ptSickScanApiSetVerboseLevel = 0;
+
+typedef int32_t (*SickScanApiGetVerboseLevel_PROCTYPE)(SickScanApiHandle apiHandle);
+static SickScanApiGetVerboseLevel_PROCTYPE ptSickScanApiGetVerboseLevel = 0;
+
 typedef int32_t(*SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
 static SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE ptSickScanApiWaitNextCartesianPointCloudMsg = 0;
 
@@ -260,6 +269,9 @@ int32_t SickScanApiUnloadLibrary()
     ptSickScanApiRegisterLogMsg = 0;
     ptSickScanApiDeregisterLogMsg = 0;
     ptSickScanApiGetStatus = 0;
+    ptSickScanApiSendSOPAS = 0;
+    ptSickScanApiSetVerboseLevel = 0;
+    ptSickScanApiGetVerboseLevel = 0;
     ptSickScanApiWaitNextCartesianPointCloudMsg = 0;
     ptSickScanApiWaitNextPolarPointCloudMsg = 0;
     ptSickScanApiFreePointCloudMsg = 0;
@@ -549,6 +561,36 @@ int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, 
     if (ret != SICK_SCAN_API_SUCCESS)
         printf("## ERROR SickScanApiGetStatus: library call SickScanApiGetStatus() failed, error code %d\n", ret);
     return ret;
+}
+
+// Sends a SOPAS command like "sRN SCdevicestate" or "sRN ContaminationResult" and returns the lidar response
+int32_t SickScanApiSendSOPAS(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size)
+{
+  CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiSendSOPAS, "SickScanApiSendSOPAS", SickScanApiSendSOPAS_PROCTYPE);
+  int32_t ret = (ptSickScanApiSendSOPAS ? (ptSickScanApiSendSOPAS(apiHandle, sopas_command, sopas_response_buffer, response_buffer_size)) : SICK_SCAN_API_NOT_INITIALIZED);
+  if (ret != SICK_SCAN_API_SUCCESS)
+    printf("## ERROR SickScanApiSendSOPAS: library call SickScanApiSendSOPAS() failed, error code %d\n", ret);
+  return ret;
+}
+
+// Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
+// i.e. print messages on console above the given verbose level.
+// Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
+int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiSetVerboseLevel, "SickScanApiSetVerboseLevel", SickScanApiSetVerboseLevel_PROCTYPE);
+    int32_t ret = (ptSickScanApiSetVerboseLevel ? (ptSickScanApiSetVerboseLevel(apiHandle, verbose_level)) : SICK_SCAN_API_NOT_INITIALIZED);
+    if (ret != SICK_SCAN_API_SUCCESS)
+        printf("## ERROR SickScanApiSetVerboseLevel: library call SickScanApiSetVerboseLevel() failed, error code %d\n", ret);
+    return ret;
+}
+
+// Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
+int32_t SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle)
+{
+    CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiGetVerboseLevel, "SickScanApiGetVerboseLevel", SickScanApiGetVerboseLevel_PROCTYPE);
+    int32_t verbose_level = (ptSickScanApiGetVerboseLevel ? (ptSickScanApiGetVerboseLevel(apiHandle)) : SICK_SCAN_API_NOT_INITIALIZED);
+    return verbose_level;
 }
 
 /*

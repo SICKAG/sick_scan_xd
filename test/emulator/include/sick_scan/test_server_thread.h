@@ -82,8 +82,9 @@ namespace sick_scan_xd
      * @param[in] nh ros node handle
      * @param[in] ip_port_results ip port for result telegrams, default: 2201
      * @param[in] ip_port_cola ip port for command requests and responses, default: 2111
+     * @param[in] start_scandata_immediately default (false): send scandata after switch into measurement mode (true: start send scandata thread immediately)
      */
-    TestServerThread(ROS::NodePtr nh = 0, int ip_port_results = 2201, int ip_port_cola = 2111, const std::string& scanner_type = "");
+    TestServerThread(ROS::NodePtr nh = 0, int ip_port_results = 2201, int ip_port_cola = 2111, const std::string& scanner_type = "", bool start_scandata_immediately = false);
   
     /*!
      * Destructor. Stops the server thread and closes all tcp connections.
@@ -232,6 +233,7 @@ namespace sick_scan_xd
     std::string m_scandatafiles;                             ///< comma separated list of jsonfiles to emulate scandata messages, f.e. "tim781s_scandata.pcapng.json,tim781s_sopas.pcapng.json"
     std::string m_scandatatypes;                             ///< comma separated list of scandata message types, f.e. "sSN LMDscandata,sSN LMDscandatamon"
     std::string m_scanner_type;                              ///< currently supported: "sick_lms_5xx", "sick_tim_7xx"
+    bool m_start_scandata_immediately;                       ///< default (false): send scandata after switch into measurement mode (true: start send scandata thread immediately)
 
     /*
      * configuration and member data for error simulation
