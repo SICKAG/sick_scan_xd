@@ -2,7 +2,7 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
+3.4.0 (2024-05-03)
 -----------
 * Release 3.4.0
   * add: azimut angle table for MRS-1xxx and LMS-1xxx with firmware 2.2.0 oder newer
@@ -16,7 +16,7 @@ Forthcoming
 3.3.0 (2024-03-04)
 ------------------
 * Release v3.3.0
-  * add: Option for MRS1xxx azimuth correction table 
+  * add: Option for MRS1xxx azimuth correction table
   * add: Support for picoScan100 (single echo w/o addons)
   * add: API logging functions and verbosity (#270)
   * add: API documentation (multiple lidars not supported, #281)
