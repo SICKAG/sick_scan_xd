@@ -7,21 +7,21 @@ function prompt()
 }
 
 # 
-# Build sick_scan_xd for Linux-ROS1 in Docker
+# Build sick_scan_xd for Linux-ROS2 humble in Docker
 # 
 printf "\033c"
 pushd ../../../..
 
-# Default: Create a docker-image named "sick_scan_xd/ros1_noetic" from dockerfile "./sick_scan_xd/test/docker/dockerfile_linux_ros1_noetic_sick_scan_xd" with local sources in folder "./src/sick_scan_xd"
-docker build --progress=plain -t sick_scan_xd/ros1_noetic -f ./src/sick_scan_xd/test/docker/dockerfile_linux_ros1_noetic_sick_scan_xd .
-# Alternative: Create a docker-image named "sick_scan_xd/ros1_noetic" from dockerfile "./sick_scan_xd/test/docker/dockerfile_linux_ros1_noetic_sick_scan_xd" with github sources from https://github.com/SICKAG/sick_scan_xd
-# docker build --build-arg SICK_SCAN_XD_GIT_URL=https://github.com/SICKAG/sick_scan_xd --progress=plain -t sick_scan_xd/ros1_noetic -f ./src/sick_scan_xd/test/docker/dockerfile_linux_ros1_noetic_sick_scan_xd .
-# Alternative: Create a docker-image named "sick_scan_xd/ros1_noetic" from dockerfile "./sick_scan_xd/test/docker/dockerfile_linux_ros1_noetic_sick_scan_xd" with "apt-get install ros-noetic-sick-scan-xd"
-# docker build --build-arg SICK_SCAN_XD_APT_PKG=ros-noetic-sick-scan-xd --build-arg SICK_SCAN_XD_BUILD_FROM_SOURCES=0 --progress=plain -t sick_scan_xd/ros1_noetic -f ./src/sick_scan_xd/test/docker/dockerfile_linux_ros1_noetic_sick_scan_xd .
-docker image ls sick_scan_xd/ros1_noetic
+# Default: Create a docker-image named "sick_scan_xd/ros2_humble" from dockerfile "./sick_scan_xd/test/docker/dockerfile_linux_ros2_humble_sick_scan_xd" with local sources in folder "./src/sick_scan_xd"
+docker build --progress=plain -t sick_scan_xd/ros2_humble -f ./src/sick_scan_xd/test/docker/dockerfile_linux_ros2_humble_sick_scan_xd .
+# Alternative: Create a docker-image named "sick_scan_xd/ros2_humble" from dockerfile "./sick_scan_xd/test/docker/dockerfile_linux_ros2_humble_sick_scan_xd" with github sources from https://github.com/SICKAG/sick_scan_xd
+# docker build --build-arg SICK_SCAN_XD_GIT_URL=https://github.com/SICKAG/sick_scan_xd --progress=plain -t sick_scan_xd/ros2_humble -f ./src/sick_scan_xd/test/docker/dockerfile_linux_ros2_humble_sick_scan_xd .
+# Alternative: Create a docker-image named "sick_scan_xd/ros2_humble" from dockerfile "./sick_scan_xd/test/docker/dockerfile_linux_ros2_humble_sick_scan_xd" with "apt-get install ros-humble-sick-scan-xd"
+# docker build --build-arg SICK_SCAN_XD_APT_PKG=ros-humble-sick-scan-xd --build-arg SICK_SCAN_XD_BUILD_FROM_SOURCES=0 --progress=plain -t sick_scan_xd/ros2_humble -f ./src/sick_scan_xd/test/docker/dockerfile_linux_ros2_humble_sick_scan_xd .
+docker image ls sick_scan_xd/ros2_humble
 # docker rm $(docker ps -a -q) # optional cleanup: remove all docker container
 
-# Run the docker-image named "sick_scan_xd/ros1_noetic" and execute a multiscan test within the docker container
+# Run the docker-image named "sick_scan_xd/ros2_humble" and execute a multiscan test within the docker container
 # docker run option --rm automatically removes the container when it exits
 xhost +local:docker # see https://medium.com/intro-to-artificial-intelligence/rviz-on-docker-bdf4d0fca5b to run X11-gui-applications like rviz in docker
 docker_status_final=0 # success
@@ -30,7 +30,7 @@ for cfg in multiscan_compact_test01_cfg picoscan_compact_test01_cfg mrs1xxx_test
     container_name=sick_scan_xd_$cfg
     container_id=$(docker ps -aqf "name=$container_name") 
     docker rm $container_id # remove previous docker container
-    docker run -it -v /tmp/.X11-unix:/tmp/.X11-unix --env=DISPLAY -w /workspace --name $container_name sick_scan_xd/ros1_noetic python3 ./src/sick_scan_xd/test/docker/python/sick_scan_xd_simu.py --ros=noetic --cfg=./src/sick_scan_xd/test/docker/data/$cfg.json
+    docker run -it -v /tmp/.X11-unix:/tmp/.X11-unix --env=DISPLAY -w /workspace --name $container_name sick_scan_xd/ros2_humble python3 ./src/sick_scan_xd/test/docker/python/sick_scan_xd_simu.py --ros=humble --cfg=./src/sick_scan_xd/test/docker/data/$cfg.json
     docker_exit_status=$?
     echo -e "docker_exit_status for $cfg: $docker_exit_status"
     if [ $docker_exit_status -eq 0 ] ; then 

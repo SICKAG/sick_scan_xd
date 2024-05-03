@@ -50,7 +50,7 @@ sleep 1
 # Start SLAM
 # To use sick_scan_xd and ROS1 hector slam, clone sick_scan_xd and hector_slam and rebuild:
 # cd src
-# git clone https://github.com/SICKAG/sick_scan_xd.git
+# git clone -b master https://github.com/SICKAG/sick_scan_xd.git
 # git clone https://github.com/tu-darmstadt-ros-pkg/hector_slam.git
 # cd ..
 # catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_EMULATOR=1 -Wno-dev

@@ -48,6 +48,7 @@ class ColaResponseMap:
             }
         else:
             self.mapped_response = { 
+                "sRN SCdevicestate": "\x02sRA SCdevicestate 1\x03",                 # "sRN SCdevicestate" -> "sRA SCdevicestate 1"
                 "sMN IsSystemReady": "\x02sAN IsSystemReady 1\x03",                 # "sMN IsSystemReady" -> "sAN IsSystemReady 1"
                 "sMN SetAccessMode": "\x02sAN SetAccessMode 1\x03",                 # "sMN SetAccessMode 3 F4724744" -> "sAN SetAccessMode 1"
                 "sMN Run": "\x02sAN Run 1\x03",                                     # "sMN Run" -> "sAN Run 1"

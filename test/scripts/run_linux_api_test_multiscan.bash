@@ -8,12 +8,12 @@ function killall_cleanup()
   pkill -f multiscan_pcap_player.py
 }
 
-# Play pcapng-files to emulate MRS100 output
+# Play pcapng-files to emulate multiScan output
 function multiscan_pcap_player()
 {
   sleep 3
   python3 ./test/python/multiscan_perftest_player.py --udp_port=2115 --repeat=100 --send_rate=100 --verbose=0 --prompt=0
-  # echo -e "\nPlaying pcapng-files to emulate MRS100. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...\n"
+  # echo -e "\nPlaying pcapng-files to emulate multiScan. Note: Start of UDP msgpacks in 20220915_mrs100_msgpack_output.pcapng takes a while...\n"
   # python3 ./test/python/multiscan_pcap_player.py --pcap_filename=./test/emulator/scandata/20220915_mrs100_msgpack_output.pcapng --udp_port=2115
   # python3 ./test/python/multiscan_pcap_player.py --pcap_filename=./test/emulator/scandata/20210929_mrs100_token_udp.pcapng --udp_port=2115 --repeat=2
   # python3 ./test/python/multiscan_pcap_player.py --pcap_filename=./test/emulator/scandata/20210929_mrs100_cola-a-start-stop-scandata-output.pcapng --udp_port=2115
@@ -37,7 +37,7 @@ rm -f /tmp/sick_scan_api_demo.jpg
 firefox ./demo/image_viewer_api_test.html &
 sleep 1
 
-# Play pcapng-files to emulate MRS100 output
+# Play pcapng-files to emulate multiScan output
 multiscan_pcap_player &
 
 # Run sick_scan_xd api example with sick_multiscan.launch

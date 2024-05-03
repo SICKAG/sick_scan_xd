@@ -54,8 +54,11 @@
   "info.run_simu_seconds_before_shutdown": "# Delay before simulation shutdown: 0 for multiScan/picoScan (i.e. wait for udp scandata sender), simulation time in seconds otherwise (typically some seconds, e.g. 10)",
   "run_simu_seconds_before_shutdown": 10,
   
-  "info.args_rviz": "# Optional config files for rviz visualization",
-  "args_rviz": [ ],
+  "info.args_rviz_linux_noetic": "# Optional config files for rviz visualization on ros1 noetic",
+  "args_rviz_linux_noetic": [ ],
+  
+  "info.args_rviz_linux_humble": "# Optional config files for rviz visualization on ros2 humble",
+  "args_rviz_linux_humble": [ ],
   
   "info.args_shutdown_nodes": "# List of ros nodes to shutdown at exit, should be the ros node running sick_scan_xd",
   "args_shutdown_nodes": [

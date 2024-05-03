@@ -1,8 +1,8 @@
 #
-# install linux and ROS-1 noetic
+# install linux and ROS-2 humble
 #
-FROM osrf/ros:noetic-desktop-full
-RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-rviz git psmisc python3-pip
+FROM osrf/ros:humble-desktop-full
+RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-rviz2 git psmisc python3-pip
 RUN python3 -m pip install scapy pypcapfile python-pcapng
 
 #
@@ -33,11 +33,10 @@ RUN /bin/bash -c "if [ $SICK_SCAN_XD_APT_PKG != $NONE ] ; then ( rm -rf /workspa
 #
 WORKDIR /workspace
 RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (ls -al /workspace /workspace/src) ; fi"
-RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (source /opt/ros/${ROS_DISTRO}/setup.bash ; catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0 -Wno-dev) ; fi"
-RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (echo -e \"\nsick_scan_xd catkin_make_isolated finished:\" ; ls -al /workspace/devel_isolated/sick_scan_xd/lib/sick_scan_xd) ; fi"
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (source /opt/ros/${ROS_DISTRO}/setup.bash ; colcon build --packages-select sick_scan_xd --event-handlers console_direct+ ; source ./install/setup.bash) ; fi"
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (echo -e \"\ncolcon build sick_scan_xd finished:\" ; ls -al /workspace/install/sick_scan_xd/lib/sick_scan_xd) ; fi"
 
 #
 # launch sick_scan_xd with multiScan emulator
 #
-CMD /bin/bash -c "cd /workspace ; python3 ./src/sick_scan_xd/test/docker/python/sick_scan_xd_simu.py --ros=noetic"
-
+CMD /bin/bash -c "cd /workspace ; python3 ./src/sick_scan_xd/test/docker/python/sick_scan_xd_simu.py --ros=humble"

@@ -978,6 +978,9 @@ def SickScanApiLoadLibrary(paths, lib_filname):
     # sick_scan_api.h:  int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
     sick_scan_library.SickScanApiGetStatus.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int32), ctypes.c_char_p, ctypes.c_int32]
     sick_scan_library.SickScanApiGetStatus.restype = ctypes.c_int
+    # sick_scan_api.h:  int32_t SickScanApiSendSOPAS(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size);
+    sick_scan_library.SickScanApiSendSOPAS.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int32]
+    sick_scan_library.SickScanApiSendSOPAS.restype = ctypes.c_int
     # sick_scan_api.h:  int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level);
     sick_scan_library.SickScanApiSetVerboseLevel.argtypes = [ctypes.c_void_p, ctypes.c_int32]
     sick_scan_library.SickScanApiSetVerboseLevel.restype = ctypes.c_int
@@ -1227,6 +1230,15 @@ def SickScanApiGetStatus(sick_scan_library, api_handle, status_code, message_buf
     Query current status and status message
     """ 
     return sick_scan_library.SickScanApiGetStatus(api_handle, status_code, message_buffer, message_buffer_size)
+
+def SickScanApiSendSOPAS(sick_scan_library, api_handle, sopas_command, response_buffer_size = 1024):
+    """ 
+    Sends a SOPAS command like "sRN SCdevicestate" or "sRN ContaminationResult" and returns the lidar response
+    """ 
+    response_buffer_size = max(1024, response_buffer_size)
+    ctypes_response_buffer = ctypes.create_string_buffer(response_buffer_size + 1)
+    ret_val = sick_scan_library.SickScanApiSendSOPAS(api_handle, ctypes.create_string_buffer(str.encode(sopas_command)), ctypes_response_buffer, response_buffer_size)
+    return ctypes_response_buffer.value.decode()
 
 def SickScanApiSetVerboseLevel(sick_scan_library, api_handle, verbose_level):
     """ 

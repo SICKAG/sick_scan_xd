@@ -11,7 +11,7 @@ Run the following steps to build sick_scan_xd on Linux (no ROS required):
 2. Clone repositories https://github.com/SICKAG/libsick_ldmrs and https://github.com/SICKAG/sick_scan_xd:
    ```
    git clone https://github.com/SICKAG/libsick_ldmrs.git
-   git clone https://github.com/SICKAG/sick_scan_xd.git
+   git clone -b master https://github.com/SICKAG/sick_scan_xd.git
    ```
 
 3. Build libsick_ldmrs (required only once for LDMRS sensors):
@@ -77,7 +77,7 @@ To install sick_scan_xd on Windows, follow the steps below:
 
 3. Clone repository https://github.com/SICKAG/sick_scan_xd:
    ```
-   git clone https://github.com/SICKAG/sick_scan_xd.git
+   git clone -b master https://github.com/SICKAG/sick_scan_xd.git
    ```
 
 4. Build sick_generic_caller and sick_scan_xd_shared_lib.dll with cmake and Visual Studio 2019:

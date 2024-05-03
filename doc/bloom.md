@@ -33,7 +33,7 @@
             ```
             mkdir -p ./ws_sick_scan_xd_bloom/src
             cd ./ws_sick_scan_xd_bloom/src
-            git clone -b feature/bloom_pretest https://github.com/SICKAG/sick_scan_xd.git
+            git clone -b master https://github.com/SICKAG/sick_scan_xd.git
             cd ./sick_scan_xd/test/scripts
             ./run_linux_ros1_bloom.bash
             ```
@@ -110,7 +110,7 @@
 * Build a prerelease (dry run in a docker container):
     * Run the following commands:
         ```
-        git clone -b feature/bloom_pretest https://github.com/SICKAG/sick_scan_xd.git
+        git clone -b master https://github.com/SICKAG/sick_scan_xd.git
         cd ./sick_scan_xd/test/scripts
         sudo dos2unix ./*.bash ; sudo chmod a+x ./*.bash
         ./run_linux_ros1_bloom.bash
@@ -167,7 +167,7 @@
 For ROS-2 follow the instructions on https://docs.ros.org/en/humble/How-To-Guides/Releasing/Releasing-a-Package.html:
 * Checkout the sick_scan_xd version to be released and run:
     ```
-    git clone -b feature/bloom_pretest https://github.com/SICKAG/sick_scan_xd.git
+    git clone -b master https://github.com/SICKAG/sick_scan_xd.git
     cd ./sick_scan_xd
     rm ./CHANGELOG.rst
     catkin_generate_changelog --all # create CHANGELOG.rst

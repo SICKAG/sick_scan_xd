@@ -26,7 +26,7 @@ Run the following commands to build the shared library `libsick_scan_xd_shared_l
 ```
 # Clone repositories
 git clone https://github.com/SICKAG/libsick_ldmrs.git
-git clone https://github.com/SICKAG/sick_scan_xd.git
+git clone -b master https://github.com/SICKAG/sick_scan_xd.git
 # Build libsick_ldmrs library
 mkdir -p ./build
 mkdir -p ./libsick_ldmrs/build
@@ -55,7 +55,7 @@ After successful build, the shared library `libsick_scan_xd_shared_lib.so` and a
 Run the following commands to build the shared library `sick_scan_xd_shared_lib.dll` with Visual Studio 2019 on Windows:
 ```
 # Clone repository sick_scan_xd
-git clone https://github.com/SICKAG/sick_scan_xd.git
+git clone -b master https://github.com/SICKAG/sick_scan_xd.git
 # Build libraries sick_scan_xd_shared_lib.dll
 call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
 set _os=x64
@@ -342,6 +342,19 @@ The API provides the following functions for diagnostics:
 * SickScanApiRegisterLogMsg and SickScanApiDeregisterLogMsg: Register resp. deregister a callback to receive log messages. This callback will receive all informational or error messages printed on console. The log messages contain a log level (Info=1, Warn=2, Error=3, Fatal=4) and the log message.
 
 * SickScanApiGetStatus queries the current status. This function returns the current status code (OK=0 i.e. normal operation, WARN=1, ERROR=2, INIT=3 i.e. initialization after startup or reconnection or EXIT=4) and the descriptional status message.
+
+* SickScanApiSendSOPAS sends a SOPAS command (Cola-A) to the lidar and returns the response from the device.
+   * C++ example:
+      ```
+     char sopas_response_buffer[1024] = { 0 };
+     SickScanApiSendSOPAS(apiHandle, "sRN SCdevicestate", &sopas_response_buffer[0], (int32_t)sizeof(sopas_response_buffer); // returns "sRA SCdevicestate \x00" in sopas_response_buffer
+     ```
+
+   * Python example:
+      ```
+     sopas_response = SickScanApiSendSOPAS(sick_scan_library, api_handle, "sRN SCdevicestate")` # returns "sRA SCdevicestate \x00". 
+      ```
+   See the telegram listing for valid SOPAS commands.
 
 * SickScanApiSetVerboseLevel and SickScanApiGetVerboseLevel sets resp. returns the verbose level. The verbose level can be 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros\:\:console\:\:levels). Default verbose level is 1 (INFO), i.e. sick_scan_xd prints informational, warnings and error messages on the console. Logging callbacks registered with SickScanApiRegisterLogMsg will receive all informational, warnings and error messages independant of the verbose level.
 

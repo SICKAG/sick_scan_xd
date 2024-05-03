@@ -135,7 +135,7 @@ function(check_header_exists headerfilepath headerfilename packagename)
         message(STATUS "If you encounter problems with missing ${headerfilename}, please checkout the following repositories:")
         message(STATUS "git clone https://github.com/SICKAG/libsick_ldmrs.git")
         message(STATUS "git clone https://github.com/SICKAG/msgpack11.git")
-        message(STATUS "git clone https://github.com/SICKAG/sick_scan_xd.git")
+        message(STATUS "git clone -b master https://github.com/SICKAG/sick_scan_xd.git")
         message(STATUS "and rebuild. See the build instructions in INSTALL-GENERIC.md, INSTALL-ROS1.md and INSTALL-ROS2.md for further details.")
     endif()
 endfunction()
@@ -237,7 +237,7 @@ if(ROS_VERSION EQUAL 2)
     find_package(ament_cmake REQUIRED)
     if(NOT WIN32)
         # still check if diagnostics updater is available (depends on ros distribution)
-        find_package(diagnostic_updater)
+        find_package(diagnostic_updater QUIET)
         if (${diagnostic_updater_FOUND})
             set(diagnostic_updater_pkg diagnostic_updater)
             add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
@@ -524,6 +524,7 @@ if(ROS_VERSION EQUAL 1)
         driver/src/sick_scan_messages.cpp
         driver/src/sick_scan_parse_util.cpp
         driver/src/sick_scan_services.cpp
+        driver/src/sick_tf_publisher.cpp
         driver/src/sick_scan_xd_api/api_impl.cpp
         driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
         driver/src/sick_nav_scandata_parser.cpp
@@ -625,6 +626,7 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         driver/src/sick_scan_messages.cpp
         driver/src/sick_scan_parse_util.cpp
         driver/src/sick_scan_services.cpp
+        driver/src/sick_tf_publisher.cpp
         driver/src/sick_scan_xd_api/api_impl.cpp
         driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
         driver/src/softwarePLL.cpp

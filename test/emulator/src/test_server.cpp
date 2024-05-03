@@ -78,6 +78,7 @@ int main(int argc, char** argv)
   std::string scanner_type = "";
   ROS::param<int>(nh, "/sick_scan/test_server/result_telegrams_tcp_port", tcp_port_results, tcp_port_results);
   ROS::param<int>(nh, "/sick_scan/test_server/cola_telegrams_tcp_port", tcp_port_cola, tcp_port_cola);
+  bool start_scandata_immediately = false; // default (false): send scandata after switch into measurement mode (true: start send scandata thread immediately)
   for(int n = 1; n < argc; n++)
   {
     ROS_INFO_STREAM("sick_scan_emulator: " << std::string(argv[n]));
@@ -87,8 +88,10 @@ int main(int argc, char** argv)
       tcp_port_cola = atoi(argv[n] + 25);
     if (strncmp(argv[n], "scanner_type:=", 14) == 0)
       scanner_type = argv[n] + 14;
+    if (strncmp(argv[n], "start_scandata_immediately:=", 28) == 0)
+      start_scandata_immediately = atoi(argv[n] + 28) > 0;
   }
-  sick_scan_xd::TestServerThread test_server_thread(nh, tcp_port_results, tcp_port_cola, scanner_type);
+  sick_scan_xd::TestServerThread test_server_thread(nh, tcp_port_results, tcp_port_cola, scanner_type, start_scandata_immediately);
   
   // Subscribe to sim_loc_driver messages to monitor sim_loc_driver in error simulation mode
   std::string result_telegrams_topic = "/sick_scan/driver/result_telegrams";      // default topic to publish result port telegram messages (type SickLocResultPortTelegramMsg)
