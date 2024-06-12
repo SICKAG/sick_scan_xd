@@ -4024,15 +4024,19 @@ namespace sick_scan_xd
           if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_2], &sopas_response, useBinaryCmd) != 0) // set operational mode mapping
             return ExitError;
           if (get2ndSopasResponse(sopas_response, "mNEVAChangeState") != ExitSuccess)
-            return ExitError;
-          std::vector<uint8_t> addLandmarkRequestPayload = createNAV350BinaryAddLandmarkRequest(navImkLandmarks);
-          std::vector<uint8_t> addLandmarkRequest = { 0x02, 0x02, 0x02, 0x02, 0, 0, 0, 0 };
-          addLandmarkRequest.insert(addLandmarkRequest.end(), addLandmarkRequestPayload.begin(), addLandmarkRequestPayload.end());
-          setLengthAndCRCinBinarySopasRequest(&addLandmarkRequest);
-          ROS_DEBUG_STREAM("Sending landmarks, " << addLandmarkRequest.size() << " byte sopas request (" << addLandmarkRequestPayload.size()
-            << " byte payload): \"" << DataDumper::binDataToAsciiString(addLandmarkRequest.data(), addLandmarkRequest.size()) << "\"");
-          if (sendSopasAndCheckAnswer(addLandmarkRequest, &sopas_response) != 0)
-            return ExitError;
+            return ExitError;        
+          for (size_t i = 0; i < navImkLandmarks.size(); i += 50)
+          {
+            size_t limit = std::min(navImkLandmarks.size(), i + 50);
+            std::vector<uint8_t> addLandmarkRequestPayload = createNAV350BinaryAddLandmarkRequest({ navImkLandmarks.begin() + i, navImkLandmarks.begin() + limit });
+            std::vector<uint8_t> addLandmarkRequest = { 0x02, 0x02, 0x02, 0x02, 0, 0, 0, 0 };
+            addLandmarkRequest.insert(addLandmarkRequest.end(), addLandmarkRequestPayload.begin(), addLandmarkRequestPayload.end());
+            setLengthAndCRCinBinarySopasRequest(&addLandmarkRequest);
+            ROS_DEBUG_STREAM("Sending landmarks, " << addLandmarkRequest.size() << " byte sopas request (" << addLandmarkRequestPayload.size()
+              << " byte payload): \"" << DataDumper::binDataToAsciiString(addLandmarkRequest.data(), addLandmarkRequest.size()) << "\"");
+            if (sendSopasAndCheckAnswer(addLandmarkRequest, &sopas_response) != 0)
+              return ExitError;
+          }
           // Store mapping layout: "sMN mNLAYStoreLayout"
           if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_STORE_LAYOUT], &sopas_response, useBinaryCmd) != 0)
             return ExitError;
