@@ -9,7 +9,7 @@
   <author email="ros@jochen.sprickerhof.de">Jochen Sprickerhof</author>
   <author email="martin.guenther@dfki.de">Martin Günther</author>
 
-  <license>Apache License, Version 2.0, see "http://www.apache.org/licenses/LICENSE-2.0"</license>
+  <license>Apache-2.0</license>
   <url type="repository">https://github.com/SICKAG/sick_scan_xd</url>
 
   <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
