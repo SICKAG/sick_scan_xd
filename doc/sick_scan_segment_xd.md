@@ -143,7 +143,22 @@ The following key-value-pairs of a customized pointcloud are currently supported
 * Parameter "fields" defines the fields of the pointcloud for coordinateNotation == 3 (customized pointcloud fields), e.g. 
    * fields=x,y,z,i: cartesian pointcloud
    * fields=range,azimuth,elevation: polar pointcloud
-   or any other combination of x,y,z,i,range,azimuth,elevation,layer,echo,reflector
+   * or any other combination of x,y,z,i,range,azimuth,elevation,t,ts,ring,layer,echo,reflector
+   
+   These fields have the following meaning:
+   * field "x": cartesian x coordinate in meter in ROS coordinates (4 byte, float32)
+   * field "y": cartesian y coordinate in meter in ROS coordinates (4 byte, float32)
+   * field "z": cartesian z coordinate in meter in ROS coordinates (4 byte, float32)
+   * field "i": intensity  (4 byte, float32)
+   * field "range": polar coordinate range in meter (4 byte, float32)
+   * field "azimuth": polar coordinate azimuth in radians  (4 byte, float32)
+   * field "elevation": polar coordinate elevation in radians  (4 byte, float32)
+   * field "t":  time offset in nano seconds relative to the header timestamp in the point cloud (4 byte, uint32), used by rtabmap for deskewing 
+   * field "ts": time offset in seconds relative to the header timestamp (4 byte, float32)
+   * field "ring":  layer id (1 byte, int8), identical to field "layer"
+   * field "layer": layer (group) index (4 byte, int32), 0 <= layer < 16 for multiScan (16 layer), 0 for picoScan (1 layer)
+   * field "echo": echo index (4 byte, int32)
+   * field "reflector": optional reflector bit (1 byte, uint8), 0 or 1, default: 0
 
 * Parameter "echos" defines which echos are included in the pointcloud, e.g.
    * echos=0,1,2: all echos
@@ -235,10 +250,10 @@ The following pointclouds are currently predefined in launchfile [sick_multiscan
 <param name="cloud_structured_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=0,1,2,3,4,6,7,8,9,10,11,12,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_structured_segments frameid=world publish=1"/>
 
 <!-- cloud_all_fields_segments: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), segments, all echos, all layers -->
-<param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_all_fields_segments frameid=world publish=1"/>
+<param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,t,ts,ring,layer,echo,reflector echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_all_fields_segments frameid=world publish=1"/>
 
 <!-- cloud_all_fields_fullframe: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), fullframe, all echos, all layers -->
-<param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
+<param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,t,ts,ring,layer,echo,reflector echos=0,1,2 layers=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 reflectors=0,1 infringed=0,1 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
 ```
 
 Note: The sick_scan_xd API callback functions `SickScanApiRegisterCartesianPointCloudMsg` and `SickScanApiRegisterPolarPointCloudMsg` provide cartesian and polar pointclouds, i.e. pointclouds configured with `coordinateNotation=0` (cartesian) or `coordinateNotation=1` (polar). Pointclouds with `coordinateNotation=2` (cartesian + polar) or `coordinateNotation=3` (customized fields) are currently not supported by the generic API.

@@ -54,7 +54,7 @@ class ThreadWrapperBase
     void join()
 	{
 		// pthread_join(t_id, NULL);
-		if(t_id)
+		if(t_id && t_id->joinable())
 		    t_id->join();
 		pthis = NULL;
     }

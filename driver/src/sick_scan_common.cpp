@@ -3424,7 +3424,7 @@ namespace sick_scan_xd
               if(this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0
               || this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LMS_5XX_NAME) == 0)
               {
-                result &= sendSopasRunSetAccessMode(useBinaryCmd);
+                result = sendSopasRunSetAccessMode(useBinaryCmd);
               }
               lmp_scancfg.sector_cfg.push_back(lmp_scancfg_sector);
               std::string lmp_scancfg_sopas;
@@ -4025,14 +4025,18 @@ namespace sick_scan_xd
             return ExitError;
           if (get2ndSopasResponse(sopas_response, "mNEVAChangeState") != ExitSuccess)
             return ExitError;
-          std::vector<uint8_t> addLandmarkRequestPayload = createNAV350BinaryAddLandmarkRequest(navImkLandmarks);
-          std::vector<uint8_t> addLandmarkRequest = { 0x02, 0x02, 0x02, 0x02, 0, 0, 0, 0 };
-          addLandmarkRequest.insert(addLandmarkRequest.end(), addLandmarkRequestPayload.begin(), addLandmarkRequestPayload.end());
-          setLengthAndCRCinBinarySopasRequest(&addLandmarkRequest);
-          ROS_DEBUG_STREAM("Sending landmarks, " << addLandmarkRequest.size() << " byte sopas request (" << addLandmarkRequestPayload.size()
-            << " byte payload): \"" << DataDumper::binDataToAsciiString(addLandmarkRequest.data(), addLandmarkRequest.size()) << "\"");
-          if (sendSopasAndCheckAnswer(addLandmarkRequest, &sopas_response) != 0)
-            return ExitError;
+          for (size_t i = 0; i < navImkLandmarks.size(); i += 50) // Upload chunks of max. 50 landmarks to NAV350
+          {            
+            size_t limit = std::min<size_t>(navImkLandmarks.size(), i + 50);
+            std::vector<uint8_t> addLandmarkRequestPayload = createNAV350BinaryAddLandmarkRequest({ navImkLandmarks.begin() + i, navImkLandmarks.begin() + limit });
+            std::vector<uint8_t> addLandmarkRequest = { 0x02, 0x02, 0x02, 0x02, 0, 0, 0, 0 };
+            addLandmarkRequest.insert(addLandmarkRequest.end(), addLandmarkRequestPayload.begin(), addLandmarkRequestPayload.end());
+            setLengthAndCRCinBinarySopasRequest(&addLandmarkRequest);
+            ROS_DEBUG_STREAM("Sending landmarks, " << addLandmarkRequest.size() << " byte sopas request (" << addLandmarkRequestPayload.size()
+              << " byte payload): \"" << DataDumper::binDataToAsciiString(addLandmarkRequest.data(), addLandmarkRequest.size()) << "\"");
+            if (sendSopasAndCheckAnswer(addLandmarkRequest, &sopas_response) != 0)
+              return ExitError;
+          }
           // Store mapping layout: "sMN mNLAYStoreLayout"
           if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_STORE_LAYOUT], &sopas_response, useBinaryCmd) != 0)
             return ExitError;

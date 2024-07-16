@@ -120,12 +120,30 @@ static inline bool endOfBuffer(uint32_t byte_cnt, size_t bytes_to_read, uint32_t
     return ((byte_cnt) + (bytes_to_read) > (num_bytes));
 }
 
-#define CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, bytes_to_read, module_size, name) \
-if (((byte_required) = (byte_cnt) + (bytes_to_read)) > (module_size))                          \
-{                                                                                              \
-    ROS_ERROR_STREAM("## ERROR CompactDataParser::ParseModuleMetaData(): module_size="         \
-        << (module_size) << ", " << (byte_required) << " bytes required to read " << (name));  \
-    return (metadata);                                                                         \
+static void print_error(const std::string& err_msg, int line_number, double print_rate = 1)
+{
+  static std::map<int, std::chrono::system_clock::time_point> last_error_printed;
+  static std::map<int, size_t> error_cnt;
+  if (error_cnt[line_number] == 0 || std::chrono::duration<double>(std::chrono::system_clock::now() - last_error_printed[line_number]).count() > 1/print_rate)
+  {
+    if (error_cnt[line_number] <= 1)
+      ROS_ERROR_STREAM(err_msg);
+    else
+      ROS_ERROR_STREAM(err_msg << " (error repeated " << error_cnt[line_number] << " times)");
+    last_error_printed[line_number] = std::chrono::system_clock::now();
+    error_cnt[line_number] = 0;
+  }
+  error_cnt[line_number] += 1;
+}
+
+#define CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, bytes_to_read, module_size, name, line_number) \
+if (((byte_required) = (byte_cnt) + (bytes_to_read)) > (module_size))                                       \
+{                                                                                                           \
+    std::stringstream err_msg;                                                                              \
+    err_msg << "## ERROR CompactDataParser::ParseModuleMetaData(): module_size=" << (module_size) << ", "   \
+        << (byte_required) << " bytes required to read " << (name);                                         \
+    print_error(err_msg.str(), line_number);                                                                \
+    return (metadata);                                                                                      \
 }
 
 /** returns a human readable description of the imu  data */
@@ -306,41 +324,45 @@ sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParse
     // metadata.valid flag is false and becomes true after successful parsing
     module_metadata_size = 0;
     // SegmentCounter
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint64_t), module_size, "SegmentCounter");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint64_t), module_size, "SegmentCounter", __LINE__);
     metadata.SegmentCounter = readUnsigned<uint64_t>(scandata + byte_cnt, &byte_cnt);           // Incrementing segment counter
     // FrameNumber
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint64_t), module_size, "FrameNumber");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint64_t), module_size, "FrameNumber", __LINE__);
     metadata.FrameNumber = readUnsigned<uint64_t>(scandata + byte_cnt, &byte_cnt);              // Number of frames since power on
     // SenderId
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "SenderId");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "SenderId", __LINE__);
     metadata.SenderId = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);                 // The serial number of the device
     // NumberOfLinesInModule
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NumberOfLinesInModule");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NumberOfLinesInModule", __LINE__);
     metadata.NumberOfLinesInModule = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);    // Number of layers in this module
     if (metadata.NumberOfLinesInModule > 16)
-      ROS_WARN_STREAM("## ERROR CompactDataParser::ParseModuleMetaData(): unexpected NumberOfLinesInModule=" << metadata.NumberOfLinesInModule);
+    {
+        std::stringstream err_msg;
+        err_msg << "## ERROR CompactDataParser::ParseModuleMetaData(): unexpected NumberOfLinesInModule=" << metadata.NumberOfLinesInModule;
+        print_error(err_msg.str(), __LINE__);
+    }
     // NumberOfBeamsPerScan
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NumberOfBeamsPerScan");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NumberOfBeamsPerScan", __LINE__);
     metadata.NumberOfBeamsPerScan = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);     // Number of beams per layer (all layers have the same number of beams)
     // NumberOfEchosPerBeam
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NumberOfEchosPerBeam");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NumberOfEchosPerBeam", __LINE__);
     metadata.NumberOfEchosPerBeam = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);     // Number of echos per beams
     // TimeStampStart
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(uint64_t), module_size, "TimeStampStart");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(uint64_t), module_size, "TimeStampStart", __LINE__);
     metadata.TimeStampStart.reserve(metadata.NumberOfLinesInModule);
     for(uint32_t cnt = 0; cnt < metadata.NumberOfLinesInModule; cnt++)  // Array of timestamps of the first beam in a scan in microseconds, number of elements is numberOfLinesInModule
     {
         metadata.TimeStampStart.push_back(readUnsigned<uint64_t>(scandata + byte_cnt, &byte_cnt));
     }
     // TimeStampStop
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(uint64_t), module_size, "TimeStampStop");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(uint64_t), module_size, "TimeStampStop", __LINE__);
     metadata.TimeStampStop.reserve(metadata.NumberOfLinesInModule);
     for(uint32_t cnt = 0; cnt < metadata.NumberOfLinesInModule; cnt++)  // Array of timestamps of the last beam in a scan in microseconds, number of elements is numberOfLinesInModule
     {
         metadata.TimeStampStop.push_back(readUnsigned<uint64_t>(scandata + byte_cnt, &byte_cnt));
     }
     // Phi
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(float), module_size, "Phi");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(float), module_size, "Phi", __LINE__);
     metadata.Phi.reserve(metadata.NumberOfLinesInModule);
     for(uint32_t cnt = 0; cnt < metadata.NumberOfLinesInModule; cnt++)  // Array of elevation angles in radians for each layer in this module, number of elements is numberOfLinesInModule
     {
@@ -348,7 +370,7 @@ sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParse
         metadata.Phi.push_back(val);
     }
     // ThetaStart
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(float), module_size, "ThetaStart");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(float), module_size, "ThetaStart", __LINE__);
     metadata.ThetaStart.reserve(metadata.NumberOfLinesInModule);
     for(uint32_t cnt = 0; cnt < metadata.NumberOfLinesInModule; cnt++)  // Array of azimuth angles in radians for first beam of each layer in this module, number of elements is numberOfLinesInModule
     {
@@ -356,7 +378,7 @@ sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParse
         metadata.ThetaStart.push_back(val);
     }
     // ThetaStop
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(float), module_size, "ThetaStop");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(float), module_size, "ThetaStop", __LINE__);
     metadata.ThetaStop.reserve(metadata.NumberOfLinesInModule);
     for(uint32_t cnt = 0; cnt < metadata.NumberOfLinesInModule; cnt++)  // Array of azimuth angles in radians for last beam of each layer in this module, number of elements is numberOfLinesInModule
     {
@@ -370,7 +392,7 @@ sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParse
     }
     else if (telegramVersion == 4)
     {
-        CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(float), module_size, "DistanceScalingFactor");
+        CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(float), module_size, "DistanceScalingFactor", __LINE__);
         metadata.DistanceScalingFactor = readFloat32(scandata + byte_cnt, &byte_cnt);
     }
     else
@@ -379,19 +401,19 @@ sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParse
         return metadata;
     }
     // NextModuleSize
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NextModuleSize");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NextModuleSize", __LINE__);
     metadata.NextModuleSize = readUnsigned<uint32_t>(scandata + byte_cnt, &byte_cnt);           // Size of the next module (or 0 if this module is the last one)
     // Availability
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint8_t), module_size, "Availability");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint8_t), module_size, "Availability", __LINE__);
     metadata.Availability = readUnsigned<uint8_t>(scandata + byte_cnt, &byte_cnt);              // Reserved for futher use (flag indication distortion in scan data)
     // DataContentEchos
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint8_t), module_size, "DataContentEchos");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint8_t), module_size, "DataContentEchos", __LINE__);
     metadata.DataContentEchos = readUnsigned<uint8_t>(scandata + byte_cnt, &byte_cnt);          // Bitarray: (DataContentEchos & 0x01) == 0x01 if distance values available, (DataContentEchos & 0x02) == 0x02 if RSSI values available, (DataContentEchos & 0x03) == 0x03: distance and RSSI values available
     // DataContentBeams
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint8_t), module_size, "DataContentBeams");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint8_t), module_size, "DataContentBeams", __LINE__);
     metadata.DataContentBeams = readUnsigned<uint8_t>(scandata + byte_cnt, &byte_cnt);          // Bitarray: (DataContentBeams & 0x01) == 0x01 if beam properties available, (DataContentBeams & 0x02) == 0x02 if azimuth angle per beeam available, (DataContentBeams & 0x03) == 0x03: both available
     // reserved
-    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint8_t), module_size, "reserved");
+    CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint8_t), module_size, "reserved", __LINE__);
     metadata.reserved = readUnsigned<uint8_t>(scandata + byte_cnt, &byte_cnt);                  // Reserved for 32 bit alignment
     // valid flag set true after successful parsing
     metadata.valid = true;
@@ -507,6 +529,8 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
   std::vector<float> lut_layer_azimuth_start(num_layers);
   std::vector<float> lut_layer_azimuth_stop(num_layers);
   std::vector<float> lut_layer_azimuth_delta(num_layers);
+  std::vector<uint64_t> lut_layer_lidar_timestamp_microsec_start(num_layers);
+  std::vector<uint64_t> lut_layer_lidar_timestamp_microsec_stop(num_layers);
   std::vector<float> lut_sin_elevation(num_layers);
   std::vector<float> lut_cos_elevation(num_layers);
   std::vector<int> lut_groupIdx(num_layers);
@@ -530,6 +554,8 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
     lut_layer_azimuth_start[layer_idx] = meta_data.ThetaStart[layer_idx];
     lut_layer_azimuth_stop[layer_idx] = meta_data.ThetaStop[layer_idx];
     lut_layer_azimuth_delta[layer_idx] = (lut_layer_azimuth_stop[layer_idx] - lut_layer_azimuth_start[layer_idx]) / (float)(std::max(1, (int)meta_data.NumberOfBeamsPerScan - 1));
+    lut_layer_lidar_timestamp_microsec_start[layer_idx] = meta_data.TimeStampStart[layer_idx];
+    lut_layer_lidar_timestamp_microsec_stop[layer_idx] = meta_data.TimeStampStop[layer_idx];    
     lut_sin_elevation[layer_idx] = std::sin(lut_layer_elevation[layer_idx]);
     lut_cos_elevation[layer_idx] = std::cos(lut_layer_elevation[layer_idx]);
     lut_groupIdx[layer_idx] = GetLayerIDfromElevation(meta_data.Phi[layer_idx]);
@@ -544,6 +570,9 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
       float layer_azimuth_start = lut_layer_azimuth_start[layer_idx];
       float layer_azimuth_stop = lut_layer_azimuth_stop[layer_idx];
       float layer_azimuth_delta = lut_layer_azimuth_delta[layer_idx];
+      uint64_t lidar_timestamp_microsec_start = lut_layer_lidar_timestamp_microsec_start[layer_idx];
+      uint64_t lidar_timestamp_microsec_stop = lut_layer_lidar_timestamp_microsec_stop[layer_idx];
+      uint64_t lidar_timestamp_microsec = ((point_idx * (lidar_timestamp_microsec_stop - lidar_timestamp_microsec_start)) / (meta_data.NumberOfBeamsPerScan - 1)) + lidar_timestamp_microsec_start;
       float sin_elevation = lut_sin_elevation[layer_idx];
       float cos_elevation = lut_cos_elevation[layer_idx];
       int groupIdx = lut_groupIdx[layer_idx];
@@ -638,6 +667,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
         points[echo_idx].echoIdx = echo_idx;
         points[echo_idx].groupIdx = groupIdx;
         points[echo_idx].pointIdx = point_idx;
+        points[echo_idx].lidar_timestamp_microsec = lidar_timestamp_microsec;
         points[echo_idx].reflectorbit |= (beam_property & 0x01); // reflector bit is set, if a reflector is detected on any number of echos
         measurement_data.scandata[layer_idx].scanlines[echo_idx].points[point_idx] = points[echo_idx];
       }
@@ -724,7 +754,9 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
         }
         if (module_meta_data.valid != true || module_size < module_metadata_size)
         {
-            ROS_ERROR_STREAM("## ERROR CompactDataParser::ParseSegment(): " << bytes_received << " bytes received (compact), CompactDataParser::ParseModuleMetaData() failed");
+            std::stringstream err_msg;
+            err_msg << "## ERROR CompactDataParser::ParseSegment(): " << bytes_received << " bytes received (compact), CompactDataParser::ParseModuleMetaData() failed";
+            print_error(err_msg.str(), __LINE__);
             payload_length_bytes = 0;
             num_bytes_required  = module_offset +  module_size;
             return false;

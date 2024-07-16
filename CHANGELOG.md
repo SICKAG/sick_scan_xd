@@ -4,11 +4,19 @@ Possible types are **Added** for new features. **Changed** for changes to the ex
 features that will be removed in future versions **Removed** for deprecated features that were removed in this release.
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
+## Unreleased ##
+
+### 3.5.0
+  - **add** Optional switch between "system timestamps" (default) and "tick timestamps"
+  - **add** Extract sick_scan_xd version from package.xml
+  - **add** Add git info to sick_scan_xd version
+  - **fix** #316 (blocking API-close in case of wrong ip-address)
+  - **add** #321, #310 (optional cmake-flag to set a calling convention for API calls)
+
 ## Released ##
 
-### Release 3.4.0
-
-  - **add** azimut angle table for MRS-1xxx and LMS-1xxx with firmware 2.2.0 oder newer
+### Release v3.4.0
+  - **add** azimuth angle table for MRS-1xxx and LMS-1xxx with firmware 2.2.0 oder newer
   - **add** dockertests for MRS-1xxx, multiScan and picoScan with ROS-2
   - **add** API-funktion SickScanApiSendSOPAS to send SOPAS commands (e.g. "sRN SCdevicestate" or "sRN ContaminationResult")
   - **add** generation of TF messages
@@ -18,7 +26,7 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ### Release v3.3.0
 
-  - **add** Option for MRS1xxx azimuth correction table
+  - **add** Option for MRS1xxx azimuth correction table 
   - **add** Support for picoScan100 (single echo w/o addons)
   - **add** API logging functions and verbosity (#270)
   - **add** API documentation (multiple lidars not supported, #281)
@@ -43,7 +51,7 @@ features that will be removed in future versions **Removed** for deprecated feat
 
   - **add** IMU support for multiScan
   - **add** LaserScan output for picoScan
-  - **fix** API reinit
+  - **fix** API reinit 
   - **fix** multiScan data output with range filter activated
   - **fix** adapt multiScan startup and shutdown sequence
   - **fix** adaptations for MRS-1000 v2 firmware
@@ -54,11 +62,11 @@ This release has a new major version as it breaks with the previously used ROS m
 For consistency, the ROS module name has been changed to "sick_scan_xd" to match the name used everywhere else.
 
   - **add** New topics for additional data and properties
-  - **add** Official ARM64 support
+  - **add** Official ARM64 support 
   - **add** Service for requesting contamination detection information
   - **change** Improvements from customer tickets and documentation enhancements
   - **fix** ROS module name consistency
-
+           
 ### Release v2.10.3
   - **fix** avoid problems with min/max definition in the STL and preprocessor definitions
 
@@ -67,7 +75,7 @@ For consistency, the ROS module name has been changed to "sick_scan_xd" to match
 
 ### Release v2.10.1
   - **update** make Compact format the default for picoScan and multiScan
-
+  
 ### Release v2.10.0
   - **add** picoScan support
   - **add** Compact format support
@@ -93,7 +101,7 @@ For consistency, the ROS module name has been changed to "sick_scan_xd" to match
   - **Update** Win64 build instructions
   - **Update** API documentation, driver states diagrams and typos
   - **Added**  LRS-36xx configuration for upside-down mounting
-  - **Removed** Obsolete service commands and RMS3xx support
+  - **Removed** Obsolete service commands and RMS3xx support     
   - **Fix** LRS-36xx angle configuration
   - **Fix** catkin_lint warnings
   - **Fix** ROS-2 Humble build
@@ -143,7 +151,7 @@ For consistency, the ROS module name has been changed to "sick_scan_xd" to match
   - **Update** README.md restructured
   - **Update** Collected update including previous v2.8.x changes
 
-### v2.8.2 - development branch
+### v2.8.2 - development branch 
   - **Fixed** Update build instructions in README.md, visualization in python API-example with low frequency to reduce cpu usage.
 
 ### v2.8.1 - development branch
@@ -156,68 +164,68 @@ For consistency, the ROS module name has been changed to "sick_scan_xd" to match
   - **Changed** Changed to namespace roswrap in ros wrapper classes
   - **Fixed** Library linker flag #91
 
-### v2.7.5 -
+### v2.7.5 - 
   - **Fixed** MRS6124 pointcloud error #88
 
-### v2.7.4 -
+### v2.7.4 - 
   - **Fixed** ROS2 compilation error #83
 
-### v2.7.3 -
+### v2.7.3 - 
   - **Added** Supported for LFPmeanfilter and LFPmedianfilter (MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx)
   - **Added** Supported for LMDscandatascalefactor (LRS4xxx)
 
-### v2.7.0 -
+### v2.7.0 - 
   - **Added** V2.7.0: Support for multiScan136 (sick_scansegment_xd)
   - **Fixed** Timestamp LaserScan-message corrected (identical timestamps in LaserScan- and PointCloud2-messages, both by Software-PLL)
 
-### v2.6.8 -
+### v2.6.8 - 
   - **Fixed** Merge pull request #76
 
-### v2.6.7 -
+### v2.6.7 - 
   - **Update** LMS511 configuration #67
 
-### v2.6.6 -
+### v2.6.6 - 
   - **Update** NAV310 + LRS4xxx update, issues #58, #59, #60, #61
 
-### v2.6.5 -
+### v2.6.5 - 
   - **Fixed** LRS4xxx scan configuration #52
 
-### v2.6.4 -
+### v2.6.4 - 
   - **Fixed** LMS5xx echo filter settings corrected
 
-### v2.6.3 -
+### v2.6.3 - 
   - **Fixed** Timestamp Laserscan message corrected
 
-### v2.6.2 -
+### v2.6.2 - 
   - **Fixed** LDMRS spinning problem corrected
 
-### v2.6.1 -
+### v2.6.1 - 
   - **Added** V2.6.1: Support for RMS-1xxx binary protocol
 
-### v2.6.0 -
+### v2.6.0 - 
   - **Changed** V2.6.0: RMS configuration update, issue #7
 
-### v2.5.2 -
+### v2.5.2 - 
   - **Fixed**  Fix LSR-4xxx laserscan angles #28
   - **Fixed**  Fix duplicated laserscan messages #28
 
-### v2.5.1 -
+### v2.5.1 - 
   - **Fixed**  Error after SOPAS command SetAccessMode #27
 
-### v2.5.0 -
+### v2.5.0 - 
   - **Fixed** Issue #24 (stop scanner at exit)
   - **Added** new ros service SickScanExit to stop scanner and exit
 
-### v2.4.6 -
+### v2.4.6 - 
   - **Fixed** Corrected angle shift parameter for LMS-4xxx
   - **Changed** Typo corrected
 
-### v2.4.5 -
+### v2.4.5 - 
   - **Changed** bugfix #158 (driver terminates), modified SOPAS-startup sequence.
 
 ### v2.4.4 - 2022-01-25
   - **Added** Support min and max angle configuration for LRS-3601
-  - **Changed** Mirroring for NAV-3xx
+  - **Changed** Mirroring for NAV-3xx  
 
 ### v2.4.3 - 2022-01-18
   - **Changed** Rename class sick_lidar::Util to namespace sick_lidar::util

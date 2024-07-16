@@ -160,6 +160,8 @@ bool sick_scansegment_xd::UdpReceiver::Start(void)
 void sick_scansegment_xd::UdpReceiver::Stop(bool do_join)
 {
     m_run_receiver_thread = false;
+    if (m_socket_impl)
+        m_socket_impl->running() = false;
     if (do_join && m_receiver_thread && m_receiver_thread->joinable())
         m_receiver_thread->join();
 }
@@ -170,6 +172,8 @@ void sick_scansegment_xd::UdpReceiver::Stop(bool do_join)
 void sick_scansegment_xd::UdpReceiver::Close(void)
 {
     m_run_receiver_thread = false;
+    if (m_socket_impl)
+      m_socket_impl->running() = false;
     if (m_fifo_impl && m_fifo_impl_created)
     {
         m_fifo_impl->Shutdown();
@@ -219,7 +223,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
             bool do_print_crc_error = (sick_scansegment_xd::Seconds(timestamp_last_print_crc_error, chrono_system_clock::now()) > 1.0); // avoid printing crc errors with more than 1 Hz
             // std::cout << "UdpReceiver::Run(): " << bytes_received << " bytes received" << std::endl;
             ROS_DEBUG_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received (port " << m_socket_impl->port() << ", udp_receiver.cpp:" << __LINE__ << ")");
-            if(bytes_received > m_udp_msg_start_seq.size() + 8 && std::equal(udp_payload.begin(), udp_payload.begin() + m_udp_msg_start_seq.size(), m_udp_msg_start_seq.begin()))
+            if(m_run_receiver_thread && bytes_received > m_udp_msg_start_seq.size() + 8 && std::equal(udp_payload.begin(), udp_payload.begin() + m_udp_msg_start_seq.size(), m_udp_msg_start_seq.begin()))
             {
                 // Received \x02\x02\x02\x02 | 4Bytes payload length | Payload | CRC32
                 bool crc_error = false, check_crc = true;
@@ -276,6 +280,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                     ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): invalid scandataformat configuration, unsupported scandataformat=" << m_scandataformat
                         << ", check configuration and use " << SCANDATA_MSGPACK << " for msgpack or " << SCANDATA_COMPACT << " for compact data");
                     m_run_receiver_thread = false;
+                    m_socket_impl->running() = false;
                     return false;
                 }
                 if (bytes_received != bytes_to_receive)
@@ -358,6 +363,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                 udp_recv_timeout = m_udp_timeout_recv_nonblocking; // receive non-blocking with timeout
         }
         m_run_receiver_thread = false;
+        m_socket_impl->running() = false;
         return true;
     }
     catch (std::exception & e)
@@ -365,6 +371,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
         ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << e.what());
     }
     m_run_receiver_thread = false;
+    m_socket_impl->running() = false;
     return false;
 }
 

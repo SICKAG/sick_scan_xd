@@ -2,6 +2,7 @@
 #ifndef DATA_DUMPER_H
 #define DATA_DUMPER_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 

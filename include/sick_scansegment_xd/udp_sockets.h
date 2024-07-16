@@ -108,7 +108,7 @@ namespace sick_scansegment_xd
     public:
 
         /** Default constructor */
-        UdpReceiverSocketImpl() : m_udp_sender(""), m_udp_port(0), m_udp_socket(INVALID_SOCKET) 
+        UdpReceiverSocketImpl() : m_udp_sender(""), m_udp_port(0), m_udp_socket(INVALID_SOCKET), m_running(false), m_recv_blocking(false), m_recv_flags(0)
         {
         }
 
@@ -130,9 +130,15 @@ namespace sick_scansegment_xd
             }
         }
 
-        /** Opens a udp socket */
-        bool Init(const std::string& udp_sender, int udp_port)
+        /*
+        ** @brief Opens a udp socket
+        ** @param[in] udp_sender ip v4 address of sender (e.g. "192.168.0.100"), or "" for any
+        ** @param[in] udp_port port number (e.g. 2115 for multiScan)
+        ** @param[in] blocking option to recv blocking (true) or non-blocking (false, default)
+        */
+        bool Init(const std::string& udp_sender, int udp_port, bool blocking = false)
         {
+            m_running = false;
             try
             {
                 wsa_init();
@@ -166,6 +172,16 @@ namespace sick_scansegment_xd
                     m_udp_socket = INVALID_SOCKET;
                     return false;
                 }
+                // Set socket to blocking or non-blocking recv mode
+                m_recv_blocking = blocking;
+#               ifdef _MSC_VER
+                u_long recv_mode = (m_recv_blocking ? 0 : 1); // FIONBIO enables or disables the blocking mode for the socket. If iMode = 0, blocking is enabled, if iMode != 0, non-blocking mode is enabled.
+                ioctlsocket(m_udp_socket, FIONBIO, &recv_mode);
+#               else
+                if (!m_recv_blocking)
+                  m_recv_flags |= MSG_DONTWAIT;
+#               endif
+                m_running = true;
                 return true;
             }
             catch (std::exception & e)
@@ -180,9 +196,13 @@ namespace sick_scansegment_xd
         size_t Receive(std::vector<uint8_t>& msg_payload)
         {
             int64_t bytes_received = 0;
-            while(bytes_received == 0)
-                bytes_received = recv(m_udp_socket, (char*)msg_payload.data(), (int)msg_payload.size(), 0);
-            if (bytes_received < 0)
+            while (m_running && bytes_received <= 0)
+            {
+              bytes_received = recv(m_udp_socket, (char*)msg_payload.data(), (int)msg_payload.size(), m_recv_flags);
+              if (m_recv_blocking && bytes_received < 0)
+                return 0; // socket error
+            }
+            if (!m_running || bytes_received < 0)
                 return 0; // socket error
             return (size_t)bytes_received;
         }
@@ -195,9 +215,9 @@ namespace sick_scansegment_xd
             size_t bytes_received = 0;
             size_t bytes_to_receive = msg_payload.size();
             // Receive \x02\x02\x02\x02 | 4Bytes payloadlength incl. CRC | Payload | CRC32
-            while (bytes_received < bytes_to_receive && (timeout < 0 || sick_scansegment_xd::Seconds(start_timestamp, chrono_system_clock::now()) < timeout))
+            while (m_running && bytes_received < bytes_to_receive && (timeout < 0 || sick_scansegment_xd::Seconds(start_timestamp, chrono_system_clock::now()) < timeout))
             {
-                int64_t chunk_bytes_received = recv(m_udp_socket, (char*)msg_payload.data() + bytes_received, (int)msg_payload.size() - bytes_received, 0);
+                int64_t chunk_bytes_received = recv(m_udp_socket, (char*)msg_payload.data() + bytes_received, (int)msg_payload.size() - bytes_received, m_recv_flags);
                 if (chunk_bytes_received <= 0)
                 {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -226,17 +246,23 @@ namespace sick_scansegment_xd
                     bytes_received += chunk_bytes_received;
                 }
             }
-            return bytes_received;
+            return (m_running ? bytes_received : 0);
         }
 
         /** Return the udp port */
         int port(void) const { return m_udp_port; }
+
+        /** Return true, if socket is ready to receive, or false otherwise. Set false to signal stop receiving */
+        bool& running(void) { return m_running; }
 
     protected:
 
         std::string m_udp_sender; // IP of udp sender
         int m_udp_port;           // udp port
         SOCKET m_udp_socket;      // udp raw socket
+        bool m_running;           // true: ready to receive, false: not initialized / stop receiving
+        bool m_recv_blocking;     // option to recv blocking (true) or non-blocking (false)
+        int m_recv_flags;         // flag for socket recv, 0 (default) or MSG_DONTWAIT for non-blocking operation
     };
 
     /*!

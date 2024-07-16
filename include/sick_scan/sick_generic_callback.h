@@ -251,7 +251,7 @@ namespace sick_scan_xd
             std::chrono::system_clock::time_point wait_end_time = std::chrono::system_clock::now() + std::chrono::microseconds(timeout_microsec);
             std::unique_lock<std::mutex> lock(m_message_mutex);
             m_message_valid = false;
-            while(!m_message_valid)
+            while(m_running && rosOk() && !m_message_valid)
             {
                 if (m_message_cond.wait_until(lock, wait_end_time) == std::cv_status::timeout || std::chrono::system_clock::now() >= wait_end_time)
                     break;
@@ -294,7 +294,24 @@ namespace sick_scan_xd
             }
         }
 
+        static void shutdown()
+        {
+            std::unique_lock<std::mutex> lock(s_wait_for_message_handler_mutex);
+            for (typename std::list<SickWaitForMessageHandlerPtr>::iterator iter_handler = s_wait_for_message_handler_list.begin(); iter_handler != s_wait_for_message_handler_list.end(); iter_handler++)
+            {
+                if ((*iter_handler))
+                    (*iter_handler)->signal_shutdown();
+            }
+        }
+
     protected:
+
+        void signal_shutdown(void)
+        {
+          std::unique_lock<std::mutex> lock(m_message_mutex);
+          m_running = false;
+          m_message_cond.notify_all();
+        }
 
         void message_callback(HandleType node, const MsgType* msg)
         {
@@ -302,12 +319,16 @@ namespace sick_scan_xd
             {
                 ROS_INFO_STREAM("SickScanApiWaitEventHandler::message_callback(): message recceived");
                 std::unique_lock<std::mutex> lock(m_message_mutex);
-                m_message = *msg;
-                m_message_valid = true;
+                if (m_running && rosOk())
+                {
+                    m_message = *msg;
+                    m_message_valid = true;
+                }
                 m_message_cond.notify_all();
             }
         }
 
+        bool m_running = true;                    // set false to signal shutdown
         bool m_message_valid = false;             // becomes true after message has been received
         MsgType m_message;                        // the received message
         std::mutex m_message_mutex;               // mutex to protect access to m_message
@@ -325,7 +346,7 @@ namespace sick_scan_xd
     typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::RadarScan>            WaitForRadarScanMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_msg::SickLdmrsObjectArray> WaitForLdmrsObjectArrayMessageHandler;
     typedef SickWaitForMessageHandler<rosNodePtr, ros_visualization_msgs::MarkerArray> WaitForVisualizationMarkerMessageHandler;
-    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_xd::NAV350mNPOSData>        WaitForNAVPOSDataMessageHandler;
+    typedef SickWaitForMessageHandler<rosNodePtr, sick_scan_xd::NAV350mNPOSData>       WaitForNAVPOSDataMessageHandler;
 
 }   // namespace sick_scan_xd
 #endif // __SICK_GENERIC_CALLBACK_H_INCLUDED

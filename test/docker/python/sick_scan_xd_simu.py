@@ -77,11 +77,17 @@ def simu_main():
         print(f"Finished process {proc_scandata_sender}, exit_status = {status_scandata_sender}")
     if config.run_simu_seconds_before_shutdown > 0:
         time.sleep(config.run_simu_seconds_before_shutdown)
+    if config.ros_version == "none": # Shutdown and cleanup 
+        proc_shutdown = start_process(config.os_name, config.cmd_init + config.cmd_shutdown, 0, 5)
+        proc_shutdown.wait()
 
     # Verification of received pointcloud and laserscan messages
     verify_success = False
     if len(config.save_messages_jsonfile) > 0:
-        sick_scan_xd_monitor.export_received_messages_to_jsonfile(f"{config.log_folder}/{config.save_messages_jsonfile}")
+        if config.ros_version == "none":
+            sick_scan_xd_monitor.import_received_messages_from_jsonfile(f"{config.log_folder}/{config.save_messages_jsonfile}")
+        else:
+            sick_scan_xd_monitor.export_received_messages_to_jsonfile(f"{config.log_folder}/{config.save_messages_jsonfile}")
         report.append_file_links(SickScanXdMsgStatus.INFO, "sick_scan_xd_simu: received messages exported to file ", [config.save_messages_jsonfile])
     if len(config.reference_messages_jsonfile) > 0:
         report.append_file_links(SickScanXdMsgStatus.INFO, "sick_scan_xd_simu: references messages from file ", [config.reference_messages_jsonfile])
@@ -111,8 +117,9 @@ def simu_main():
         print("\n## sick_scan_xd_simu finished with ERROR, TEST FAILED\n")
 
     # Shutdown and cleanup
-    proc_shutdown = start_process(config.os_name, config.cmd_init + config.cmd_shutdown, 0, 5)
-    proc_shutdown.wait()
+    if config.ros_version != "none": # Shutdown and cleanup 
+        proc_shutdown = start_process(config.os_name, config.cmd_init + config.cmd_shutdown, 0, 5)
+        proc_shutdown.wait()
 
     # Print final report
     print(f"\nsick_scan_xd_simu finished with exit status {int(report.get_exit_status())}\n")

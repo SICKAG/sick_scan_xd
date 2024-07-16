@@ -247,7 +247,7 @@ namespace sick_scan_xd
                                ros_sensor_msgs::LaserScan &msg, int &numEchos, int &echoMask);
 
 
-    void checkScanTiming(float time_increment, float scan_time, float angle_increment, float tol);
+    bool checkScanTiming(float time_increment, float scan_time, float angle_increment, float tol);
 
     void set_range_min(float min);
 

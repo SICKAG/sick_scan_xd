@@ -240,8 +240,34 @@ bool LaunchParser::parseFile(std::string launchFileFullName, std::vector<std::st
       }
       arg_node = (TiXmlElement *)arg_node->NextSibling();  // go to next sibling
     }
+
+    // Parse optional group for param "scanner_type"
+    bool node_with_scanner_type_found = false;
+    TiXmlNode * group_node = node->FirstChild("group");
+    if (group_node)
+    {
+      group_node = group_node->FirstChild("node");
+      if (group_node)
+      {
+        std::vector<paramEntryAscii> paramOrgList = getParamList(group_node);
+        for (size_t j = 0; j < paramOrgList.size(); j++)
+        {
+          if (paramOrgList[j].getName() == "scanner_type")
+          {
+            node_with_scanner_type_found = true;
+            ROS_INFO_STREAM("LaunchParser::parseFile(" << launchFileFullName << "): group node found with param scanner_type");
+            node = group_node;
+            break;
+          }
+        }
+      }
+    }
+    if (!node_with_scanner_type_found)
+    {
+      node = node->FirstChild("node");
+    }
+
     // parse all node specific parameters
-    node = node->FirstChild("node");
     std::vector<paramEntryAscii> paramOrgList = getParamList(node);
 
     for (size_t j = 0; j < paramOrgList.size(); j++)

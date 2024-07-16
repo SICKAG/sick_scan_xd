@@ -111,7 +111,8 @@ bool sick_scan_xd::test::TestServerThread::stop(void)
   m_run_server_thread = false;
   if(m_server_thread != 0)
   {
-    m_server_thread->join();
+    if (m_server_thread->joinable())
+      m_server_thread->join();
     delete m_server_thread;
     m_server_thread = 0;
   }

@@ -69,9 +69,9 @@ namespace sick_scansegment_xd
     class PointXYZRAEI32f
     {
     public:
-        PointXYZRAEI32f() : x(0), y(0), z(0), range(0), azimuth(0), elevation(0), i(0), layer(0), echo(0), reflectorbit(0), infringed(0) {}
-        PointXYZRAEI32f(float _x, float _y, float _z, float _range, float _azimuth, float _elevation, float _i, int _layer, int _echo, uint8_t _reflector_bit) 
-            : x(_x), y(_y), z(_z), range(_range), azimuth(_azimuth), elevation(_elevation), i(_i), layer(_layer), echo(_echo), reflectorbit(_reflector_bit), infringed(0) {}
+        PointXYZRAEI32f() : x(0), y(0), z(0), range(0), azimuth(0), elevation(0), i(0), layer(0), echo(0), lidar_timestamp_microsec(0), reflectorbit(0), infringed(0) {}
+        PointXYZRAEI32f(float _x, float _y, float _z, float _range, float _azimuth, float _elevation, float _i, int _layer, int _echo, uint64_t _lidar_timestamp_microsec, uint8_t _reflector_bit) 
+            : x(_x), y(_y), z(_z), range(_range), azimuth(_azimuth), elevation(_elevation), i(_i), layer(_layer), echo(_echo), lidar_timestamp_microsec(_lidar_timestamp_microsec), reflectorbit(_reflector_bit), infringed(0) {}
         float x;         // cartesian x coordinate in meter
         float y;         // cartesian y coordinate in meter
         float z;         // cartesian z coordinate in meter
@@ -81,6 +81,7 @@ namespace sick_scansegment_xd
         float i;         // intensity
         int layer;       // group index (layer), 0 <= layer < 16 for multiScan136
         int echo;        // echo index, 0 <= echo < 3 for multiScan136
+        uint64_t lidar_timestamp_microsec; // lidar timestamp in microseconds
         uint8_t reflectorbit; // optional reflector bit, 0 or 1, default: 0
         uint8_t infringed;    // optional infringed bit, 0 or 1, default: 0
     };
@@ -226,7 +227,7 @@ namespace sick_scansegment_xd
         class SegmentPointsCollector
         {
         public:
-            SegmentPointsCollector(int telegram_idx = 0) : timestamp_sec(0), timestamp_nsec(0), telegram_cnt(telegram_idx), min_azimuth(0), max_azimuth(0), total_point_count(0), lidar_points()
+            SegmentPointsCollector(int telegram_idx = 0) : timestamp_sec(0), timestamp_nsec(0), telegram_cnt(telegram_idx), min_azimuth(0), max_azimuth(0), total_point_count(0), lidar_timestamp_start_microsec(0), lidar_timestamp_stop_microsec(0), lidar_points()
             {
                 segment_list.reserve(12);
                 telegram_list.reserve(12);
@@ -234,26 +235,36 @@ namespace sick_scansegment_xd
             }
             void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
             {
+                if (lidar_timestamp_start_microsec == 0)
+                    lidar_timestamp_start_microsec = lidar_points[0][0].lidar_timestamp_microsec;
+                if (lidar_timestamp_stop_microsec == 0)
+                    lidar_timestamp_stop_microsec = lidar_points[0][0].lidar_timestamp_microsec;
                 for (int echoIdx = 0; echoIdx < points.size() && echoIdx < lidar_points.size(); echoIdx++)
                 {
-                    lidar_points[echoIdx].insert(lidar_points[echoIdx].end(), points[echoIdx].begin(), points[echoIdx].end());
-                    for (int n = 0; n < points[echoIdx].size(); n++)
+                    size_t num_points = points[echoIdx].size();
+                    if (num_points > 0)
                     {
-                        const sick_scansegment_xd::PointXYZRAEI32f& point = points[echoIdx][n];
-                        float elevation_deg = point.elevation * 180.0f / (float)M_PI;
-                        float azimuth_fdeg = point.azimuth * 180.0f / (float)M_PI;
-                        // Note: The azimuth values of a segment crossing +/-180 degrees are still monotonous, i.e. azimuth values received from the lidar are within -PI to +3*PI.
-                        // See compact format specification: "the maximum allowed value range of [-pi, 3*pi] is fully utilized."
-                        // To check that the scan points of a fullframe pointclouds covers the complete azimuth range from -180 to +180 degree, we collect the azimuth histogram with 180 deg wrap around.
-                        if (azimuth_fdeg > 180.0f)
-                            azimuth_fdeg -= 360.0f; // i.e. -180 <= azimuth_deg <= +180
-                        int elevation_mdeg = (int)(1000.0f * elevation_deg);
-                        int azimuth_ideg = (int)(azimuth_fdeg);
-                        segment_coverage[elevation_mdeg][azimuth_ideg] += 1;
-                        if (azimuth_fdeg - azimuth_ideg > 0.5f)
-                            segment_coverage[elevation_mdeg][azimuth_ideg + 1] += 1;
-                        if (azimuth_fdeg - azimuth_ideg < -0.5f)
-                            segment_coverage[elevation_mdeg][azimuth_ideg - 1] += 1;
+                        lidar_points[echoIdx].insert(lidar_points[echoIdx].end(), points[echoIdx].begin(), points[echoIdx].end());
+                        lidar_timestamp_start_microsec = std::min<uint64_t>(lidar_points[echoIdx][0].lidar_timestamp_microsec, lidar_timestamp_start_microsec);
+                        lidar_timestamp_stop_microsec = std::max<uint64_t>(lidar_points[echoIdx][num_points].lidar_timestamp_microsec, lidar_timestamp_stop_microsec);
+                        for (int n = 0; n < num_points; n++)
+                        {
+                            const sick_scansegment_xd::PointXYZRAEI32f& point = points[echoIdx][n];
+                            float elevation_deg = point.elevation * 180.0f / (float)M_PI;
+                            float azimuth_fdeg = point.azimuth * 180.0f / (float)M_PI;
+                            // Note: The azimuth values of a segment crossing +/-180 degrees are still monotonous, i.e. azimuth values received from the lidar are within -PI to +3*PI.
+                            // See compact format specification: "the maximum allowed value range of [-pi, 3*pi] is fully utilized."
+                            // To check that the scan points of a fullframe pointclouds covers the complete azimuth range from -180 to +180 degree, we collect the azimuth histogram with 180 deg wrap around.
+                            if (azimuth_fdeg > 180.0f)
+                                azimuth_fdeg -= 360.0f; // i.e. -180 <= azimuth_deg <= +180
+                            int elevation_mdeg = (int)(1000.0f * elevation_deg);
+                            int azimuth_ideg = (int)(azimuth_fdeg);
+                            segment_coverage[elevation_mdeg][azimuth_ideg] += 1;
+                            if (azimuth_fdeg - azimuth_ideg > 0.5f)
+                                segment_coverage[elevation_mdeg][azimuth_ideg + 1] += 1;
+                            if (azimuth_fdeg - azimuth_ideg < -0.5f)
+                                segment_coverage[elevation_mdeg][azimuth_ideg - 1] += 1;
+                        }
                     }
                 }
                 segment_list.push_back(segment_idx);
@@ -326,13 +337,15 @@ namespace sick_scansegment_xd
             // Returns the number of echos
             int numEchos(void) const { return (int)lidar_points.size(); }
 
-            uint32_t timestamp_sec;   // seconds part of timestamp of the first segment
-            uint32_t timestamp_nsec;  // nanoseconds part of timestamp of the first segment
+            uint32_t timestamp_sec;   // seconds part of timestamp of the first segment (system time)
+            uint32_t timestamp_nsec;  // nanoseconds part of timestamp of the first segment (system time)
             // int32_t segment_count; // number of segments collected
             int32_t telegram_cnt;     // telegram counter (must be continuously incremented) 
             float min_azimuth;        // min azimuth of all points in radians
             float max_azimuth;        // max azimuth of all points in radians
             size_t total_point_count; // total number of points in all segments
+            uint64_t lidar_timestamp_start_microsec; // lidar start timestamp in microseconds
+            uint64_t lidar_timestamp_stop_microsec;  // lidar stop timestamp in microseconds
             std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>> lidar_points; // list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of all segments of an echo (idx echoIdx)
             std::vector<int32_t> segment_list; // list of all collected segment indices
             std::vector<int32_t> telegram_list; // list of all collected telegram counters
@@ -341,16 +354,15 @@ namespace sick_scansegment_xd
 
         /*
         * Converts the lidarpoints to a customized PointCloud2Msg containing configured fields (e.g. x, y, z, i, range, azimuth, elevation, layer, echo, reflector).
-        * @param[in] timestamp_sec seconds part of timestamp
-        * @param[in] timestamp_nsec  nanoseconds part of timestamp
-        * @param[in] last_timestamp_sec seconds part of last timestamp
-        * @param[in] last_timestamp_nsec  nanoseconds part of last timestamp
+        * @param[in] timestamp_sec seconds part of timestamp (system time)
+        * @param[in] timestamp_nsec nanoseconds part of timestamp (system time)
+        * @param[in] lidar_timestamp_start_microsec lidar start timestamp in microseconds (lidar ticks)
         * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
         * @param[in] pointcloud_cfg configuration of customized pointcloud
         * @param[out] pointcloud_msg customized pointcloud message
         */
-        void convertPointsToCustomizedFieldsCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, 
-            CustomPointCloudConfiguration& pointcloud_cfg, PointCloud2Msg& pointcloud_msg);
+        void convertPointsToCustomizedFieldsCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, uint64_t lidar_timestamp_start_microsec,
+            const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, CustomPointCloudConfiguration& pointcloud_cfg, PointCloud2Msg& pointcloud_msg);
 
         void convertPointsToLaserscanMsg(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, size_t total_point_count, LaserScanMsgMap& laser_scan_msg_map, const std::string& frame_id, bool is_fullframe);
 

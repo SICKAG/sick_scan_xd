@@ -127,31 +127,31 @@ std::list<sick_scansegment_xd::MsgPackExportListenerIF*> sick_scansegment_xd::Ms
 bool sick_scansegment_xd::MsgPackExporter::Start(void)
 {
     m_run_exporter_thread = true;
-    m_exporter_thread = new std::thread(&sick_scansegment_xd::MsgPackExporter::Run, this); // Without visualization, msgpack export runs in background thread
+    m_exporter_thread = new std::thread(&sick_scansegment_xd::MsgPackExporter::RunCb, this); // Without visualization, msgpack export runs in background thread
     return true;
 }
 
 /*
  * @brief Stops the background thread
  */
+void sick_scansegment_xd::MsgPackExporter::Stop(void)
+{
+  m_run_exporter_thread = false;
+}
+
+/*
+ * @brief Stops, joins and deletes the background thread
+ */
 void sick_scansegment_xd::MsgPackExporter::Close(void)
 {
     m_run_exporter_thread = false;
     if (m_exporter_thread)
     {
-        m_exporter_thread->join();
+        if (m_exporter_thread->joinable())
+            m_exporter_thread->join();
         delete m_exporter_thread;
         m_exporter_thread = 0;
     }
-}
-
-/*
- * @brief Runs the exporter in the current thread. Pops msgpack data packages from the input fifo and optionally export them to csv and/or plot the lidar points.
- */
-bool sick_scansegment_xd::MsgPackExporter::Run(void)
-{
-    m_run_exporter_thread = true;
-    return RunCb();
 }
 
 /*
