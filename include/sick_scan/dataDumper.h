@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 
 #define DEBUG_DUMP_ENABLED 0
 //#define DEBUG_DUMP_TO_CONSOLE_ENABLED

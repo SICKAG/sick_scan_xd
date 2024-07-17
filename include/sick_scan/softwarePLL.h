@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <ctime>
+#include <cstdint>
 
 class SoftwarePLL
 {
