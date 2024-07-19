@@ -4,12 +4,26 @@ Changelog for package sick_scan_xd
 
 Forthcoming
 -----------
-* Release 3.5.0
+
+3.5.0 (2024-xx-xx)
+------------------
+* Release v3.5.0
   * add: Optional switch between "system timestamps" (default) and "tick timestamps"
   * add: Extract sick_scan_xd version from package.xml
   * add: Add git info to sick_scan_xd version
   * fix: #316 (blocking API-close in case of wrong ip-address)
   * add: #321, #310 (optional cmake-flag to set a calling convention for API calls)
+  * add: Hector SLAM configuration and example for picoScan
+  * add: Correction angle shift settings for LRS-36x0 and OEM-15xx
+  * add: Update FAQ (Network settings etc.)
+  * add: Integration PR #347 (NAV350 landmarks)
+  * add: Support for 3D-SLAM (OctoMap, RTAB-Map, timestamps for each scanpoint for deskewing, configuration example for multiScan)
+  * add: customisations for gcc 13 (Ubuntu 24)
+  * add: Update for bloom releases ROS-2 iron and jazzy 
+  * add: Configuration multiScan interval filter via launchfile (#352) 
+  * add: SPDX licence text (PR #354)
+  * fix: Fix #355 (API launchfile parsing error)
+  * add: Example configurations for parallel operation multi and picoScan
 
 3.4.0 (2024-04-18)
 ------------------
