@@ -115,12 +115,12 @@ namespace sick_scansegment_xd
         bool Start(void);
 
         /*
-         * @brief Runs the exporter in the current thread. Pops msgpack data packages from the input fifo and optionally export them to csv and/or plot the lidar points.
-         */
-        bool Run(void);
-
-        /*
          * @brief Stops the background thread
+         */
+        void Stop(void);
+
+         /*
+         * @brief Stops, joins and deletes the background thread
          */
         void Close(void);
 

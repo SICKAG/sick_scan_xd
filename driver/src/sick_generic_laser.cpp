@@ -66,6 +66,8 @@
 #endif
 
 #include <sick_scan/sick_ros_wrapper.h>
+#include <sick_scan/sick_scan_xd_version.h>
+#include "softwarePLL.h"
 #if defined LDMRS_SUPPORT && LDMRS_SUPPORT > 0
 #include <sick_scan/ldmrs/sick_ldmrs_node.h>
 #endif
@@ -92,15 +94,23 @@
 #include <stdlib.h>
 #include <signal.h>
 
-#define SICK_GENERIC_MAJOR_VER "3"
-#define SICK_GENERIC_MINOR_VER "4"
-#define SICK_GENERIC_PATCH_LEVEL "0"
+#ifdef GITHASH
+#define GITHASH_STR (strlen(GITHASH)>2?(std::string(" githash:")+std::string(GITHASH)):(std::string("")))
+#else
+#define GITHASH_STR std::string("")
+#endif
+#ifdef GITINFO
+#define GITINFO_STR (strlen(GITINFO)>2?(std::string(" gitinfo:")+std::string(GITINFO)):(std::string("")))
+#else
+#define GITINFO_STR std::string("")
+#endif
 
 #define DELETE_PTR(p) if(p){delete(p);p=0;}
 
 static bool s_isInitialized = false;
 static sick_scan_xd::SickScanCommonTcp *s_scanner = NULL;
-static std::string versionInfo = std::string(SICK_GENERIC_MAJOR_VER) + '.' + std::string(SICK_GENERIC_MINOR_VER) + '.' + std::string(SICK_GENERIC_PATCH_LEVEL);
+
+static std::string versionInfo = std::string(SICK_SCAN_XD_VERSION) + GITHASH_STR + GITINFO_STR;
 static bool s_shutdownSignalReceived = false;
 
 void setVersionInfo(std::string _versionInfo)
@@ -110,7 +120,6 @@ void setVersionInfo(std::string _versionInfo)
 
 std::string getVersionInfo()
 {
-
   return (versionInfo);
 }
 
@@ -548,6 +557,14 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
 #endif
   }
 
+  // Optional timestamp mode:
+  // TICKS_TO_SYSTEM_TIMESTAMP = 0, // default: convert lidar ticks in microseconds to system timestamp by software-pll
+  // TICKS_TO_MICROSEC_OFFSET_TIMESTAMP = 1 // optional tick-mode: convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp;
+  int tick_to_timestamp_mode = 0;
+  rosDeclareParam(nhPriv, "tick_to_timestamp_mode", tick_to_timestamp_mode);
+  rosGetParam(nhPriv, "tick_to_timestamp_mode", tick_to_timestamp_mode);
+  SoftwarePLL::instance().setTicksToTimestampMode(tick_to_timestamp_mode);
+
   // Start TF publisher
   sick_scan_xd::SickTransformPublisher tf_publisher(nhPriv);
   tf_publisher.run();
@@ -838,7 +855,6 @@ void joinGenericLaser(void)
 {
   if (s_generic_laser_thread != 0)
   {
-
     s_generic_laser_thread->join();
     delete s_generic_laser_thread;
     s_generic_laser_thread = 0;
@@ -861,7 +877,6 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName, rosNodePtr nhP
 }
 
 // Send odometry data to NAV350
-#include "softwarePLL.h"
 #include "sick_scan_api.h"
 #include "sick_scan/sick_nav_scandata_parser.h"
 int32_t SickScanApiNavOdomVelocityImpl(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* src_msg) // odometry data in nav coordinates

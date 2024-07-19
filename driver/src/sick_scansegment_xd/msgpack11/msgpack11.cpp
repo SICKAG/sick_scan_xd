@@ -11,6 +11,7 @@
 #include <functional>
 #include <stdexcept>
 #include <type_traits>
+#include <cstdint>
 
 namespace msgpack11 {
 

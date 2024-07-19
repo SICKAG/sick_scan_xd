@@ -14,7 +14,7 @@ The generic sick_scan_xd API ships with the API-header, the library (binary or s
 
 ![apiComponentsDiagram1.png](apiComponentsDiagram1.png)
 
-**Note: Running multiple lidars simultaneously in one process is not supported.** Currently the sick_scan_xd API does not support the single or multi-threaded use of 2 or more lidars in one process, since the sick_scan_xd library is not guaranteed to be thread-safe. To run multiple lidars simultaneously, we recommend using ROS or running sick_scan_xd in multiple and separate processes, so that each process serves one sensor.
+**Note: Running multiple lidars simultaneously in a single process is not supported.** Currently the sick_scan_xd API does not support the single or multi-threaded use of 2 or more lidars in one process, since the sick_scan_xd library is not guaranteed to be thread-safe. To run multiple lidars simultaneously, we recommend using ROS or running sick_scan_xd in multiple and separate processes, so that each process serves one sensor. See [multiple_lidars.md](../multiple_lidars.md) for further information.
 
 ## Build and test shared library
 

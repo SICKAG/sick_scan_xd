@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- rtabmap launchfile for sick_multiscan -->
+    <!-- Usage: -->
+    <!-- roslaunch sick_scan_xd sick_multiscan.launch hostname:="192.168.0.1" udp_receiver_ip:="192.168.0.100" # launch sick_scan_xd multiScan -->
+    <!-- roslaunch sick_scan_xd sick_multiscan_rtabmap.launch # launch rtabmap with multiScan configuration -->
+    
+    <!-- Default topics and frame ids by sick_multiscan.launch:                     -->
+    <!-- LaserScan:   topic: "/multiScan/scan_fullframe",     default frame_id: "world_6"   -->
+    <!-- PointCloud2: topic: "/cloud_unstructured_fullframe", default frame_id: "world", or -->
+    <!-- PointCloud2: topic: "/cloud_all_fields_fullframe",   default frame_id: "world"     -->
+    <!-- IMU:         topic: "/multiScan/imu",                default frame_id: "world"     -->
+
+    <arg name="hostname"             default="192.168.0.1"/>                         <!-- IP address of multiScan sensor, default: 192.168.0.1 -->
+    <arg name="udp_receiver_ip"      default=""/>                                    <!-- UDP destination IP address, e.g. 192.168.0.100 (ip address of udp receiver, i.e. ip address of the PC running sick_scan_xd) -->
+    <arg name="point_cloud_topic"    default="/cloud_all_fields_fullframe"/>         <!-- Point cloud topic published by sick_scan_xd -->
+    <arg name="imu_topic"            default="/multiScan/imu"/>                      <!-- IMU topic published by sick_scan_xd -->
+    <arg name="udp_port" default="2115" />                                           <!-- default udp port for multiScan devices is 2115 -->
+    <arg name="imu_udp_port" default="7503"/>                                        <!-- udp port for multiScan imu data (if imu_enable is true) -->
+    <arg name="point_cloud_frame_id" default="cloud"/>                               <!-- Point cloud frame id published by sick_scan_xd -->
+    <arg name="deskewing"            default="true"/>                                <!-- Optional lidar deskewing on or off -->
+    <arg name="rtabmap_viz"          default="true"/>                                <!-- Optional rtabmap visualization on or off -->
+    <arg name="host_LFPangleRangeFilter" default="0 -180.0 +179.0 -90.0 +90.0 1" />  <!-- Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree -->
+    <arg name="host_set_LFPangleRangeFilter" default="False" />                      <!-- If true, LFPangleRangeFilter is set at startup (default: false) -->
+    <arg name="host_LFPlayerFilter" default="0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" />   <!-- Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled -->
+    <arg name="host_set_LFPlayerFilter" default="False" />                           <!-- If true, LFPlayerFilter is set at startup (default: false) -->
+    <arg name="host_LFPintervalFilter" default="0 1" />                              <!-- Optionally set LFPintervalFilter to "<enabled> <N>" with 1 for enabled and 0 for disabled and N to reduce output to every N-th scan -->
+    <arg name="host_set_LFPintervalFilter" default="False" />                        <!-- If true, LFPintervalFilter is set at startup (default: false) -->
+    <arg name="wait_for_transform" default="0.01"/>
+
+    <!-- Launch sick_scan_xd -->
+
+    <group ns="sick_scan_xd">
+      <node pkg="sick_scan_xd" type="sick_generic_caller" name="sick_multiscan" output="screen" args="$(find sick_scan_xd)/sick_multiscan.launch">
+        <param name="scanner_type" type="string" value="sick_multiscan"/>
+        <!-- network settings: -->
+        <param name="hostname" type="string" value="$(arg hostname)" />                      <!-- IP address of multiScan136 to post start and stop commands, f.e. "192.168.0.1" (default) -->
+        <param name="udp_receiver_ip" type="string" value="$(arg udp_receiver_ip)" />        <!-- UDP destination IP address (ip address of udp receiver), f.e. "192.168.0.100" -->
+        <!-- sick_multiscan basic settings: -->
+        <param name="udp_sender" type="string" value="" />                                   <!-- Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan lidar -->
+        <param name="udp_port" type="int" value="$(arg udp_port)" />                         <!-- default udp port for multiScan devices is 2115 -->
+        <param name="segment_count" type="int" value="12" />                                 <!-- number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment -->
+        <param name="publish_frame_id" type="string" value="$(arg point_cloud_frame_id)" />              <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" -->
+        <param name="publish_laserscan_segment_topic" type="string" value="/scan_segment" /> <!-- topic of ros Laserscan segment messages -->
+        <param name="publish_laserscan_fullframe_topic" type="string" value="/scan" />       <!-- topic of ros Laserscan fullframe messages -->
+        <param name="udp_input_fifolength" type="int" value="20" />                          <!-- max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
+        <param name="msgpack_output_fifolength" type="int" value="20" />                     <!-- max. msgpack output fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
+        <param name="verbose_level" type="int" value="1" />                                  <!-- verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1 -->
+        <param name="measure_timing" type="bool" value="True" />                             <!-- measure_timing == true: duration and latency of msgpack conversion and export is measured, default: true -->
+        <param name="export_csv" type="bool" value="False" />                                <!-- export msgpack data to csv file, default: false -->
+        <param name="export_udp_msg" type="bool" value="False" />                            <!-- true : export binary udpand msgpack data to file(*.udp and* .msg), default: false -->
+        <param name="logfolder" type="string" value="" />                                    <!-- output folder for logfiles, default: "" (no logging) -->
+        <param name="udp_timeout_ms" type="int" value="60000" />                             <!-- Timeout for udp messages in milliseconds, default: 60*1000 -->
+        <param name="scandataformat" type="int" value="2" />                                 <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
+        <param name="imu_enable" type="bool" value="True"/>                                  <!-- Enable inertial measurement unit IMU, compact format only -->
+        <param name="imu_udp_port" type="int" value="$(arg imu_udp_port)"/>                  <!-- udp port for multiScan imu data (if imu_enable is true) -->
+        <param name="imu_latency_microsec" type="int" value="0"/>                            <!-- imu latency in microseconds -->
+        <param name="imu_topic" type="string" value="$(arg imu_topic)"/>                     <!-- topic of ros IMU messages -->
+        <!-- SOPAS settings: -->
+        <param name="sopas_tcp_port" type="string" value="2111" />                           <!-- TCP port for SOPAS commands, default port: 2111 -->
+        <param name="start_sopas_service" type="bool" value="True" />                        <!-- True: sopas services for CoLa-commands are started (ROS only), default: true -->
+        <param name="send_sopas_start_stop_cmd" type="bool" value="True" />                  <!-- True: multiScan136 start and stop command sequence ("sWN ScanDataEnable 0/1" etc.) are sent after driver start and stop, default: true -->
+        <param name="sopas_cola_binary" type="bool" value="False" />                         <!-- False: SOPAS uses CoLa-A (ascii, default, recommended), CoLa-B (true, binary) currently experimental -->
+        <param name="sopas_timeout_ms" type="int" value="5000" />                            <!-- Timeout for SOPAS response in milliseconds, default: 5000 -->
+        <param name="client_authorization_pw" type="string" value="F4724744" />              <!-- Default password for client authorization -->
+        <!-- multiScan filter settings -->
+        <!-- Note: Setting host_LFPangleRangeFilter requires firmware version 1.2.2 or higher -->
+        <param name="host_read_filtersettings" type="bool" value="True" />                                    <!-- Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true -->
+        <param name="host_FREchoFilter" type="int" value="2" />                                               <!-- Optionally set FREchoFilter with 0 for FIRST_ECHO (default, EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1) -->
+        <param name="host_set_FREchoFilter" type="bool" value="True" />                                       <!-- If true, FREchoFilter is set at startup (default: false) -->
+        <param name="host_LFPangleRangeFilter" type="string" value="$(arg host_LFPangleRangeFilter)" />       <!-- Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree -->
+        <param name="host_set_LFPangleRangeFilter" type="bool" value="$(arg host_set_LFPangleRangeFilter)" /> <!-- If true, LFPangleRangeFilter is set at startup (default: false) -->
+        <param name="host_LFPlayerFilter" type="string" value="$(arg host_LFPlayerFilter)" />                 <!-- Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled -->
+        <param name="host_set_LFPlayerFilter" type="bool" value="$(arg host_set_LFPlayerFilter)" />           <!-- If true, LFPlayerFilter is set at startup (default: false) -->
+        <param name="host_LFPintervalFilter" type="string" value="$(arg host_LFPintervalFilter)" />           <!-- Optionally set LFPintervalFilter to "<enabled> <N>" with 1 for enabled and 0 for disabled and N to reduce output to every N-th scan -->
+        <param name="host_set_LFPintervalFilter" type="bool" value="$(arg host_set_LFPintervalFilter)" />     <!-- If true, LFPintervalFilter is set at startup (default: false) -->
+        <!-- point cloud and laserscan configuration -->
+        <param name="msgpack_validator_enabled" type="bool" value="False" />                                  <!-- true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation (default) -->
+        <param name="ros_qos" type="int" value="-1"/>                                                         <!-- Default QoS=-1, i.e. do not overwrite, use queue_size=32 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 -->
+        <param name="laserscan_layer_filter" type="string" value="0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0" />         <!-- Configuration of laserscan messages (ROS only), default: laserscan messages for layer 6 activated (hires layer, elevation -0.07 deg) -->
+        <param name="tf_publish_rate" type="double" value="0" />                                              <!-- deactivate TF messages -->
+        <!-- List of customized pointclouds: see sick_multiscan.launch for details -->
+        <param name="custom_pointclouds" type="string" value="cloud_unstructured_fullframe cloud_all_fields_fullframe"/>
+        <param name="cloud_unstructured_fullframe" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_fullframe frameid=cloud publish=1"/>
+        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,t,ts,ring,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_fullframe frameid=cloud publish=1"/>
+      </node>
+    </group>
+
+    <!-- rtabmap requires odometry messages, odom messages can optionally be generated by laser_scan_matcher and pose2d_to_odom_converter
+    <group ns="laser_scan_matcher">
+      <node pkg="tf" type="static_transform_publisher" name="laser_to_cloud_6" args="0.0 0.0 0.0 0.0 0.0 0.0 /laser /cloud_6 40" />
+      <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0.0 0.0 0.0 0.0 0.0 0.0 /base_link /laser 40" />
+      <node pkg="laser_scan_matcher" type="laser_scan_matcher_node" name="laser_scan_matcher_node" output="screen">
+        <param name="use_odom" value="false"/>
+        <param name="use_cloud_input" value="false"/>
+        <param name="fixed_frame" value="world"/>
+        <param name="publish_tf" value="false"/> 
+        <param name="publish_pose" value="true"/> 
+        <param name="publish_pose_stamped" value="false"/> 
+        <param name="max_iterations" value="10"/>
+      </node>
+      <node pkg="rviz" type="rviz" name="rviz" args="-d $(find laser_scan_matcher)/demo/demo.rviz"/>
+      <node pkg="sick_scan_xd" type="pose2d_to_odom_converter" name="pose2d_to_odom_converter" output="screen"/>
+    </group>
+    -->
+
+    <!-- Optional lidar deskewing -->
+
+    <group ns="deskewing">
+      <node if="$(arg deskewing)" pkg="nodelet" type="nodelet" name="lidar_deskewing" args="standalone rtabmap_util/lidar_deskewing" output="screen">
+        <param name="wait_for_transform" value="$(arg wait_for_transform)"/>
+        <param name="fixed_frame_id" value="$(arg point_cloud_frame_id)"/>
+        <param name="slerp" value="false"/>
+        <remap from="input_cloud" to="$(arg point_cloud_topic)"/>
+      </node>
+    </group>
+
+    <!-- Launch rtabmap -->
+
+    <group ns="rtabmap">
+      <arg     if="$(arg deskewing)" name="point_cloud_topic_desk" default="$(arg point_cloud_topic)/deskewed"/>
+      <arg unless="$(arg deskewing)" name="point_cloud_topic_desk" default="$(arg point_cloud_topic)"/>
+      <node pkg="rtabmap_odom" type="icp_odometry" name="icp_odometry" output="screen">
+        <remap from="scan_cloud" to="$(arg point_cloud_topic_desk)"/>
+        <param name="frame_id"        type="string" value="$(arg point_cloud_frame_id)"/>
+        <param name="odom_frame_id"   type="string" value="odom"/>
+        <!-- param name="expected_update_rate" type="double" value="25"/ -->
+        <remap from="imu" to="$(arg imu_topic)"/>
+        <param name="guess_frame_id"   type="string" value="$(arg point_cloud_frame_id)"/>
+        <param name="wait_imu_to_init" type="bool" value="true"/>
+        <param name="wait_for_transform_duration" value="$(arg wait_for_transform)"/>
+        <!-- ICP parameters -->
+        <param name="Icp/PointToPlane"        type="string" value="true"/>
+        <param name="Icp/Iterations"          type="string" value="10"/>
+        <param name="Icp/VoxelSize"           type="string" value="0.2"/>
+        <param name="Icp/DownsamplingStep"    type="string" value="1"/> <!-- cannot be increased with ring-like lidar -->
+        <param name="Icp/Epsilon"             type="string" value="0.001"/>
+        <param name="Icp/PointToPlaneK"       type="string" value="20"/>
+        <param name="Icp/PointToPlaneRadius"  type="string" value="0"/>
+        <param name="Icp/MaxTranslation"      type="string" value="2"/>
+        <param name="Icp/MaxCorrespondenceDistance" type="string" value="1"/>
+        <param name="Icp/PM"                  type="string" value="true"/>
+        <param name="Icp/PMOutlierRatio"      type="string" value="0.1"/>
+        <param name="Icp/CorrespondenceRatio" type="string" value="0.01"/>
+        <param name="Icp/ReciprocalCorrespondences" type="string" value="false"/>
+        <!-- Odom parameters -->
+        <param name="Odom/ScanKeyFrameThr"       type="string" value="0.8"/>
+        <param name="Odom/Strategy"              type="string" value="0"/>
+        <param name="OdomF2M/ScanSubtractRadius" type="string" value="0.2"/>
+        <param name="OdomF2M/ScanMaxSize"        type="string" value="15000"/>
+      </node>
+
+      <node pkg="rtabmap_slam" type="rtabmap" name="rtabmap" output="screen" args="-d"> <!-- parameter "-d": delete_db_on_start -->
+        <!-- For 2D SLAM: remap "scan_cloud" to="/multiScan/scan_fullframe" and use     -->
+        <!--   frame_id="world_6", subscribe_scan="true", subscribe_scan_cloud="false"  -->
+        <!--   roslaunch sick_scan_xd sick_multiscan.launch hostname:="192.168.0.1" udp_receiver_ip:="192.168.0.100" publish_laserscan_fullframe_topic:="/rtabmap/scan" -->
+        <!-- For 3D SLAM: remap "scan_cloud" to="/cloud_unstructured_fullframe" or "/cloud_all_fields_fullframe" and use     -->
+        <!--   frame_id="$(arg point_cloud_frame_id)", subscribe_scan="false", subscribe_scan_cloud="true"  -->
+        <!--   roslaunch sick_scan_xd sick_multiscan.launch hostname:="192.168.0.1" udp_receiver_ip:="192.168.0.100" -->
+        <param name="frame_id"             type="string" value="$(arg point_cloud_frame_id)"/>
+        <param name="subscribe_depth"      type="bool" value="false"/>
+        <param name="subscribe_rgb"        type="bool" value="false"/>
+        <param name="subscribe_rgbd"       type="bool" value="false"/>
+        <param name="subscribe_scan"       type="bool" value="false"/>
+        <param name="subscribe_scan_cloud" type="bool" value="true"/>
+        <param name="approx_sync"          type="bool" value="true"/>
+        <remap from="scan_cloud" to="$(arg point_cloud_topic_desk)"/>
+        <remap from="imu" to="$(arg imu_topic)"/>
+        <!-- RTAB-Map's parameters -->
+        <param name="Rtabmap/DetectionRate"          type="string" value="1"/>
+        <param name="RGBD/NeighborLinkRefining"      type="string" value="false"/>
+        <param name="RGBD/ProximityBySpace"          type="string" value="true"/>
+        <param name="RGBD/ProximityMaxGraphDepth"    type="string" value="0"/>
+        <param name="RGBD/ProximityPathMaxNeighbors" type="string" value="1"/>
+        <param name="RGBD/AngularUpdate"             type="string" value="0.05"/>
+        <param name="RGBD/LinearUpdate"              type="string" value="0.05"/>
+        <param name="Mem/NotLinkedNodesKept"         type="string" value="false"/>
+        <param name="Mem/STMSize"                    type="string" value="30"/>
+        <!-- param name="Mem/LaserScanVoxelSize"     type="string" value="0.1"/ -->
+        <!-- param name="Mem/LaserScanNormalK"       type="string" value="10"/ -->
+        <!-- param name="Mem/LaserScanRadius"        type="string" value="0"/ -->
+        <param name="Reg/Strategy"                   type="string" value="1"/>
+        <param name="Grid/CellSize"                  type="string" value="0.1"/>
+        <param name="Grid/RangeMax"                  type="string" value="20"/>
+        <param name="Grid/ClusterRadius"             type="string" value="1"/>
+        <param name="Grid/GroundIsObstacle"          type="string" value="true"/>
+        <param name="Optimizer/GravitySigma"         type="string" value="0.3"/>
+        <!-- ICP parameters -->
+        <param name="Icp/VoxelSize"                  type="string" value="0.3"/>
+        <param name="Icp/PointToPlaneK"              type="string" value="20"/>
+        <param name="Icp/PointToPlaneRadius"         type="string" value="0"/>
+        <param name="Icp/PointToPlane"               type="string" value="false"/>
+        <param name="Icp/Iterations"                 type="string" value="10"/>
+        <param name="Icp/Epsilon"                    type="string" value="0.001"/>
+        <param name="Icp/MaxTranslation"             type="string" value="3"/>
+        <param name="Icp/MaxCorrespondenceDistance"  type="string" value="1"/>
+        <param name="Icp/PM"                         type="string" value="true"/>
+        <param name="Icp/PMOutlierRatio"             type="string" value="0.7"/>
+        <param name="Icp/CorrespondenceRatio"        type="string" value="0.4"/>
+      </node>
+
+      <node if="$(arg rtabmap_viz)" name="rtabmap_viz" pkg="rtabmap_viz" type="rtabmap_viz" output="screen">
+        <param name="frame_id" type="string" value="$(arg point_cloud_frame_id)"/>
+        <param name="odom_frame_id" type="string" value="odom"/>
+        <param name="subscribe_odom_info" type="bool" value="false"/>
+        <param name="subscribe_scan_cloud" type="bool" value="true"/>
+        <param name="approx_sync" type="bool" value="false"/>
+        <remap from="scan_cloud" to="$(arg point_cloud_topic_desk)"/>
+      </node>
+  </group>
+
+</launch>

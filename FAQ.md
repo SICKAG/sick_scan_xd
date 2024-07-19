@@ -4,36 +4,7 @@
 
 :question: How can I run multiple sensors concurrently with sick_scan_xd ?
 
-:white_check_mark: To support multiple sensors, sick_scan_xd has to be started multiple times, with one sick_scan_xd-node for each sensor. By default, each sick_scan_xd-node connects to "192.168.0.1" and publishes its pointcloud on topic "cloud". Therefore both the node name, the ip-address of the sensor and the pointcloud topic have to be configured differently for each node. 
-
-Node name, ip-address and pointcloud topic can be configured in the launch-file or by commandline argument:
-
-* Topic, nodename and ip configuration in a launch-file (example for TiM7xx):
-    ```
-    <launch>
-        <arg name="nodename" default="sick_tim_7xx"/>
-        <arg name="hostname" default="192.168.0.1"/>
-        <arg name="cloud_topic" default="cloud"/>
-        <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen">
-            <param name="scanner_type" type="string" value="sick_tim_7xx"/>
-            <param name="nodename" type="string" value="$(arg nodename)"/>
-            <param name="hostname" type="string" value="$(arg hostname)"/>
-            <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
-    ```
-
-* Topic, node name and ip configuration by commandline (ROS1-example for TiM7xx):
-    ```
-    roslaunch sick_scan_xd sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1
-    roslaunch sick_scan_xd sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2
-    ```
-
-* Topic, node name and ip configuration by commandline (ROS2-example for TiM7xx):
-    ```
-    ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_1 hostname:=192.168.0.1 cloud_topic:=cloud_1
-    ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_tim_7xx.launch nodename:=sick_tim_7xx_2 hostname:=192.168.0.2 cloud_topic:=cloud_2
-    ```
-
-Scripts [run_linux_ros1_simu_tim7xx_twin.bash](./test/scripts/run_linux_ros1_simu_tim7xx_twin.bash) and [run_linux_ros2_simu_tim7xx_twin.bash](./test/scripts/run_linux_ros2_simu_tim7xx_twin.bash) show a complete example with emulation of two TiM7xx sensors and two sick_scan_xd nodes running concurrently using different nodenames and topics.
+:white_check_mark: To support multiple sensors, sick_scan_xd has to be started multiple times, with one sick_scan_xd-node for each sensor. See [multiple_lidars.md](doc/multiple_lidars.md) for details.
 
 ## Driver restarts again and again after "sFA" message
 
@@ -162,7 +133,7 @@ src/
 After doing this please rerun the command
 catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DLDMRS=0
 
-## rviz shows a grey point cloud
+## rviz or rviz2 do not work as expected
 
 :question: rviz shows a grey point cloud. The size of points can be adjusted.
 
@@ -179,6 +150,10 @@ The problem can be avoided by starting rviz with the following sequence:
 export LIBGL_ALWAYS_SOFTWARE=1
 rosrun rviz rviz
 ```
+
+:question: rviz2 on Ubuntu 24 with ROS-2 jazzy crashes immediately after start
+
+:white_check_mark: This can be a wayland vs. X11 problem. Try `export QT_QPA_PLATFORM=xcb` before starting rviz2. See https://github.com/ros-visualization/rviz/issues/1442#issuecomment-553900795 and https://blog.martin-graesslin.com/blog/2015/07/porting-qt-applications-to-wayland/ for further information.
 
 ## Angular resolution and scan frequency
 
@@ -211,47 +186,8 @@ sick_generic_caller gives you an answer like:
 "ERROR: Tcp::open: Failed to open TCP connection to 192.168.0.1, aborting."
 ```
 
-:white_check_mark: Answer:
-1. Try to ping your device:
-   ```bash
-   ping 192.168.0.1
-   ```
-2. Disconnect your scanner and retry ping
+:white_check_mark: Answer: See [network.md](doc/network.md) for network diagnosis and recommended configuration.
 
-   ```bash
-   ping 192.168.0.1
-   ```
-   The result of ping contains a pattern like
-   ```bash
-    ... Destination Host Unreachable
-   ```
-3. Reconnect your device and try to ping:
-   ```bash
-   ping 192.168.0.1
-   ```
-
-If you do not know the ip address, try to find the ip address in your subnet:
-```bash
-apt-get install fping
-```
-
-scan your network (for example, subnet 192.168.10.0/24):
-```bash
-192.168.0.1/24
-```
-search for all ip addresses from 192.168.0.0 to 192.168.0.255
-
-The result is similar to:
-```bash
-192.168.0.4 is alive
-192.168.0.22 is alive
-```
-and a lot of unreachable entries.
-In the example the ip address 192.168.0.4 is the laserscanner MRS1104 and the ip address 192.168.0.22 is the computer running linux. Check this with
-
-```bash
-ifconfig|grep 192.168.0.22
-```
 ## IP Address of Lidar
 
 :question: Question:
@@ -372,3 +308,4 @@ With a scan frequency of 50 Hz and 4 active layers, the lidar will send a new sc
 
 If you check the publishing rate of the point cloud messages of a MRS-1104, you will measure 12.4 Hz, since the scans of 4 layers are accumulated in 1 point cloud message (50 hz scan frequency divided by 4 layers = 12.5 Hz point cloud publishing frequency). The resolution of each single point cloud message is 0.125 [deg]. Only by interleaving 4 consecutive messages you get the high resolution of 0.0625 [deg].
 
+See [interlacing.md](doc/interlacing.md) for further informations.

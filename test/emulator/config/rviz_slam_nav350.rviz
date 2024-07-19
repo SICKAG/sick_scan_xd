@@ -113,7 +113,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /sick_mrs_1xxx/scan
+      Topic: /scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -242,4 +242,4 @@ Window Geometry:
     collapsed: true
   Width: 1357
   X: 393
-  Y: 117
+  Y: 80

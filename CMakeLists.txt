@@ -61,7 +61,6 @@ if (POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif()
 
-
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -94,12 +93,17 @@ elseif(DEFINED SICK_TARGET_ENDIANESS)
     add_compile_options(-DSICK_TARGET_ENDIANESS=${SICK_TARGET_ENDIANESS})
 endif()
 
+# Optional calling convention of sick_scan_xd API (using default is recommended, but can be overwritten by cmake flag if required)
+if(DEFINED SICK_SCAN_XD_API_CALLING_CONVENTION)
+    add_compile_options(-DSICK_SCAN_XD_API_CALLING_CONVENTION=${SICK_SCAN_XD_API_CALLING_CONVENTION})
+endif()
+
 # ROS Version
 message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ENV{ROS_DISTRO}=$ENV{ROS_DISTRO} ROS_VERSION=${ROS_VERSION} CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
-if(DEFINED CMAKE_PREFIX_PATH AND "${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/humble")
-    set(ROS_VERSION 2)  # required for ROS2 humble bloom releases with jenkins buildfarm
-elseif(NOT DEFINED ROS_VERSION AND EXISTS "/opt/ros/humble/setup.sh")
-    set(ROS_VERSION 2)  # required for ROS2 humble bloom releases with jenkins buildfarm
+if(DEFINED CMAKE_PREFIX_PATH AND ("${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/humble" OR "${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/iron" OR "${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/jazzy"))
+    set(ROS_VERSION 2)  # required for ROS2 humble/iron/jazzy bloom releases with jenkins buildfarm
+elseif(NOT DEFINED ROS_VERSION AND (EXISTS "/opt/ros/humble/setup.sh" OR EXISTS "/opt/ros/iron/setup.sh" OR EXISTS "/opt/ros/jazzy/setup.sh"))
+    set(ROS_VERSION 2)  # required for ROS2 humble/iron/jazzy bloom releases with jenkins buildfarm
 endif()
 if(NOT DEFINED ROS_VERSION AND DEFINED ENV{ROS_VERSION})
     set(ROS_VERSION $ENV{ROS_VERSION})
@@ -127,6 +131,48 @@ else()
     add_compile_options(-DRASPBERRY=0)
 endif()
 
+# Get sick_scan_xd git version, see http://xit0.org/2013/04/cmake-use-git-branch-and-commit-details-in-project/
+option(QUERY_GIT_INFO "Get sick_scan_xd git version" ON)
+if(${QUERY_GIT_INFO} OR QUERY_GIT_INFO EQUAL ON)
+    if (NOT DEFINED ENV{GITHASH})
+        execute_process(
+            COMMAND git rev-parse HEAD
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            OUTPUT_VARIABLE GITHASH
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+    endif()
+    if (NOT DEFINED ENV{GITINFO})
+        execute_process(
+            COMMAND git log -1 --pretty=format:%ad%x09%an%x09%s --date=iso
+            COMMAND iconv -f utf8 -t ascii//TRANSLIT
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            OUTPUT_VARIABLE GITINFO
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+    endif()
+    message(STATUS "GITHASH: ${GITHASH}")
+    message(STATUS "GITINFO: ${GITINFO}")
+    add_compile_options(-DGITHASH="\\"${GITHASH}\\"")
+    add_compile_options(-DGITINFO="\\"${GITINFO}\\"")
+endif()
+
+# Extract sick_scan_xd version from package.xml and update sick_scan_xd_version.h if required
+option(EXTRACT_PACKAGE_VERSION "Extract sick_scan_xd version from package.xml" ON)
+if(${EXTRACT_PACKAGE_VERSION} OR EXTRACT_PACKAGE_VERSION EQUAL ON)
+    if(WIN32)
+        set(PYTHON_PKG_VERSION_TOOL_CMD python python/tools/package_version_tool.py)
+    else()
+        set(PYTHON_PKG_VERSION_TOOL_CMD python3 python/tools/package_version_tool.py)
+    endif()
+    execute_process(
+        COMMAND ${PYTHON_PKG_VERSION_TOOL_CMD}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        ERROR_QUIET
+    )
+endif()
 
 # Checks and prints a message, if a header file does not exist
 function(check_header_exists headerfilepath headerfilename packagename)
@@ -153,10 +199,11 @@ endfunction()
 if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
     # emulator requires jsoncpp for pcapng and other files
     find_package(jsoncpp REQUIRED) # install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" (Linux) resp. "vcpkg install jsoncpp:x64-windows" (Windows) 
-    if(WIN32)
-      set(LIB_JSONCPP jsoncpp_lib)
-    else()
-      set(LIB_JSONCPP jsoncpp_lib)
+    set(LIB_JSONCPP jsoncpp_lib)
+else()
+    find_package(jsoncpp QUIET) # jsoncpp optional (only required for dockertests of C++ API)
+    if (${jsoncpp_FOUND})
+        set(LIB_JSONCPP jsoncpp_lib)
     endif()
 endif()
 
@@ -713,7 +760,7 @@ if(ROS_VERSION EQUAL 2)
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
-    if(WIN32 OR EXISTS "/opt/ros/eloquent" OR EXISTS "/opt/ros/foxy" OR EXISTS "/opt/ros/galactic") # rosidl_typesupport for ROS2 eloquent, foxy, galaxy
+    if(EXISTS "/opt/ros/eloquent" OR EXISTS "/opt/ros/foxy" OR EXISTS "/opt/ros/galactic") # rosidl_typesupport for ROS2 eloquent, foxy, galaxy
         rosidl_target_interfaces(${PROJECT_NAME}_lib ${PROJECT_NAME} "rosidl_typesupport_c")
         rosidl_target_interfaces(${PROJECT_NAME}_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
         rosidl_target_interfaces(${PROJECT_NAME}_shared_lib ${PROJECT_NAME} "rosidl_typesupport_c")
@@ -767,6 +814,24 @@ if(BUILD_SICK_SCAN_XD_API_TEST EQUAL 1)
             target_link_libraries(sick_scan_xd_api_test "pthread") # pthread required for std::thread
         endif()
     endif()
+    add_executable(sick_scan_xd_api_dockertest
+        driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
+        test/src/sick_scan_xd_api/sick_scan_xd_api_dockertest.cpp
+        test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c
+    )
+    target_link_libraries(sick_scan_xd_api_dockertest ${LIB_JSONCPP})
+    if(NOT WIN32)
+        target_link_libraries(sick_scan_xd_api_dockertest "dl") # link with dl for dynamic library loading
+        if(ROS_VERSION EQUAL 0)
+            target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
+            target_link_options(sick_scan_xd_api_dockertest PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+        elseif(ROS_VERSION EQUAL 1)
+            target_link_libraries(sick_scan_xd_api_dockertest ${catkin_LIBRARIES})
+            add_dependencies(sick_scan_xd_api_dockertest ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+        elseif(ROS_VERSION EQUAL 2)
+            target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
+        endif()
+    endif()
 endif()
 
 # install sick_scan_xd_shared_lib incl. API headerfiles
@@ -796,7 +861,7 @@ if(ROS_VERSION EQUAL 1)
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
     if(BUILD_SICK_SCAN_XD_API_TEST EQUAL 1)
-        install(TARGETS sick_scan_xd_api_test
+        install(TARGETS sick_scan_xd_api_test sick_scan_xd_api_dockertest
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
     endif()
 
@@ -822,7 +887,7 @@ endif()
 if(ROS_VERSION EQUAL 2)
 
     if(BUILD_SICK_SCAN_XD_API_TEST EQUAL 1)
-        install(TARGETS sick_scan_xd_api_test DESTINATION lib/${PROJECT_NAME})
+        install(TARGETS sick_scan_xd_api_test sick_scan_xd_api_dockertest DESTINATION lib/${PROJECT_NAME})
     endif()
     install(TARGETS sick_generic_caller DESTINATION lib/${PROJECT_NAME})
     install(TARGETS ${PROJECT_NAME}_lib ${PROJECT_NAME}_shared_lib DESTINATION lib)
@@ -912,4 +977,16 @@ if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
         tools/test_server/config
         tools/test_server/launch
         DESTINATION share/${PROJECT_NAME})
+endif()
+
+#
+# rtabmap support utilities
+#
+
+if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
+    if(NOT WIN32 AND ROS_VERSION EQUAL 1)
+        add_executable(pose2d_to_odom_converter test/src/pose2d_to_odom_converter.cpp)
+        target_link_libraries(pose2d_to_odom_converter ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} ${catkin_LIBRARIES})
+        install(TARGETS pose2d_to_odom_converter DESTINATION lib/${PROJECT_NAME})
+    endif()    
 endif()

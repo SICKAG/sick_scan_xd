@@ -833,15 +833,17 @@ bool sick_scan_xd::SickScanServices::queryMultiScanFiltersettings(int& host_FREc
 * @param[in] host_FREchoFilter FREchoFilter settings, default: 1, otherwise 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
 * @param[in] host_LFPangleRangeFilter LFPangleRangeFilter settings, default: "0 -180.0 +180.0 -90.0 +90.0 1", otherwise "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree
 * @param[in] host_LFPlayerFilter LFPlayerFilter settings, default: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1", otherwise  "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
+* @param[in] host_LFPintervalFilter Optionally set LFPintervalFilter to "<enabled> <N>" with 1 for enabled and 0 for disabled and N to reduce output to every N-th scan
 */
-bool sick_scan_xd::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter, const std::string& scanner_type)
+bool sick_scan_xd::SickScanServices::writeMultiScanFiltersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter, const std::string& host_LFPintervalFilter, const std::string& scanner_type)
 
 {
-  bool enableFREchoFilter = true, enableLFPangleRangeFilter = true, enableLFPlayerFilter = true;
-  if (scanner_type == SICK_SCANNER_PICOSCAN_NAME) // LFPangleRangeFilter and LFPlayerFilter not supported by picoscan150
+  bool enableFREchoFilter = true, enableLFPangleRangeFilter = true, enableLFPlayerFilter = true, enableLFPintervalFilter = true;
+  if (scanner_type == SICK_SCANNER_PICOSCAN_NAME) // LFPangleRangeFilter, LFPlayerFilter ant LFPintervalFilter not supported by picoscan150
   {
     enableLFPangleRangeFilter = false;
     enableLFPlayerFilter = false;
+    enableLFPintervalFilter = false;
   }
 
   // Write FREchoFilter
@@ -893,6 +895,17 @@ bool sick_scan_xd::SickScanServices::writeMultiScanFiltersettings(int host_FREch
   if(enableLFPlayerFilter && !host_LFPlayerFilter.empty()) // otherwise not configured or supported
   {
     std::string sopasRequest = "sWN LFPlayerFilter " + host_LFPlayerFilter, sopasExpectedResponse = "sWA LFPlayerFilter";
+    if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::writeMultiScanFiltersettings(): sendSopasCmdCheckResponse(\"" << sopasRequest << "\") failed.");
+      return false;
+    }
+  }
+
+  // Write LFPintervalFilter
+  if(enableLFPintervalFilter && !host_LFPintervalFilter.empty()) // otherwise not configured or supported
+  {
+    std::string sopasRequest = "sWN LFPintervalFilter " + host_LFPintervalFilter, sopasExpectedResponse = "sWA LFPintervalFilter";
     if (!sendSopasCmdCheckResponse(sopasRequest, sopasExpectedResponse))
     {
       ROS_ERROR_STREAM("## ERROR SickScanServices::writeMultiScanFiltersettings(): sendSopasCmdCheckResponse(\"" << sopasRequest << "\") failed.");

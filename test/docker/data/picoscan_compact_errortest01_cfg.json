@@ -38,7 +38,7 @@
   
   "info.args_sick_scan_xd_launch": "# Launch parameter for sick_scan_xd",
   "args_sick_scan_xd_launch": [
-    "sick_scan_xd sick_picoscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1"
+    "sick_picoscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1"
   ],
   
   "info.args_udp_scandata_sender": "# Launch parameter for udp scandata sender (multiScan or picoScan), here we simulate a network failure (error testcase), i.e. the lidar does not send scan data",
@@ -49,6 +49,9 @@
   
   "info.run_simu_seconds_before_shutdown": "# Delay before simulation shutdown: 0 for multiScan/picoScan (i.e. wait for udp scandata sender), simulation time in seconds otherwise (typically some seconds, e.g. 10)",
   "run_simu_seconds_before_shutdown": 10,
+  
+  "info.args_rviz_linux_none": "# rviz visualization not supported without ROS",
+  "args_rviz_linux_none": [ ],
   
   "info.args_rviz_linux_noetic": "# Optional config files for rviz visualization on ros1 noetic",
   "args_rviz_linux_noetic": [ ],

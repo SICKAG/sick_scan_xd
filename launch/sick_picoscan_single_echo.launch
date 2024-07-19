@@ -17,6 +17,7 @@
     <arg name="all_segments_max_deg" default="+138.0" />      <!-- if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan), -138...+138 for picoScan (fullscan) -->
     <arg name="host_FREchoFilter" default="0" />              <!-- Optionally set FREchoFilter with 0 for FIRST_ECHO (default, EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1) -->
     <arg name="custom_pointclouds" default="cloud_unstructured_segments cloud_unstructured_fullframe cloud_polar_unstructured_segments cloud_polar_unstructured_fullframe cloud_all_fields_fullframe"/> <!-- Default pointclouds: segmented and fullframe pointclouds, with all layers and echos in both cartesian and polar coordinates -->
+    <arg name="tf_publish_rate" default="10.0" />                     <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
     <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">    
         <param name="scanner_type" type="string" value="sick_picoscan"/>
 
@@ -110,7 +111,21 @@
         Parameter "fields" defines the fields of the pointcloud for coordinateNotation == 3 (customized pointcloud fields), e.g. 
             fields=x,y,z,i: cartesian pointcloud
             fields=range,azimuth,elevation: polar pointcloud
-            or any other combination of x,y,z,i,range,azimuth,elevation,layer,echo,reflector
+            or any other combination of x,y,z,i,range,azimuth,elevation,t,ts,ring,layer,echo,reflector
+            These fields have the following meaning:
+                field "x":         cartesian x coordinate in meter in ROS coordinates (4 byte, float32)
+                field "y":         cartesian y coordinate in meter in ROS coordinates (4 byte, float32)
+                field "z":         cartesian z coordinate in meter in ROS coordinates (4 byte, float32)
+                field "i":         intensity (4 byte, float32)
+                field "range":     polar coordinate range in meter (4 byte, float32)
+                field "azimuth":   polar coordinate azimuth in radians  (4 byte, float32)
+                field "elevation": polar coordinate elevation in radians  (4 byte, float32)
+                field "t":         time offset in nano seconds relative to the header timestamp in the point cloud (4 byte, uint32), used by rtabmap for deskewing 
+                field "ts":        time offset in seconds relative to the header timestamp (4 byte, float32)
+                field "ring":      layer id (1 byte, int8), identical to field "layer"
+                field "layer":     layer (group) index (4 byte, int32), 0 <= layer < 16 for multiScan (16 layer), 0 for picoScan (1 layer)
+                field "echo":      echo index (4 byte, int32)
+                field "reflector": optional reflector bit (1 byte, uint8), 0 or 1, default: 0
         
         Parameter "echos" defines which echos are included in the pointcloud, e.g.
             echos=0,1,2: all echos
@@ -218,10 +233,10 @@
         <param name="cloud_structured_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=1,2,3,4,5,7,8,9,10,11,12,13,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_segments frameid=world publish=1"/>
 
         <!-- cloud_all_fields_segments: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), segments, all echos, all layers, range filter off -->
-        <param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_segments frameid=world publish=1"/>
+        <param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,t,ts,ring,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_segments frameid=world publish=1"/>
 
         <!-- cloud_all_fields_fullframe: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), fullframe, all echos, all layers, range filter off -->
-        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
+        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,t,ts,ring,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
 
         <!-- 
         On ROS-1 and ROS-2, sick_scan_xd publishes TF messsages to map a given base frame (i.e. base coordinates system) to the lidar frame (i.e. lidar coordinates system) and vice versa.
@@ -234,7 +249,14 @@
         -->
         <param name="tf_base_frame_id" type="string" value="map" />              <!-- Frame id of base coordinates system, e.g. "map" (default frame in rviz) -->
         <param name="tf_base_lidar_xyz_rpy" type="string" value="0,0,0,0,0,0" /> <!-- T[base,lidar], 6D pose (x,y,z,roll,pitch,yaw) in meter resp. radians with parent "map" and child "cloud" -->
-        <param name="tf_publish_rate" type="double" value="10" />                <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+        <param name="tf_publish_rate" type="double" value="$(arg tf_publish_rate)" />                <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+
+        <!-- 
+        Optional mode to convert lidar ticks to ros- resp. system-timestamps:
+        tick_to_timestamp_mode = 0 (default): convert lidar ticks in microseconds to system timestamp by software-pll
+        tick_to_timestamp_mode = 1 (optional tick-mode): convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp;
+        -->
+        <param name="tick_to_timestamp_mode" type="int" value="0"/>
 
     </node>
 

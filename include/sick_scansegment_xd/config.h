@@ -170,7 +170,8 @@ namespace sick_scansegment_xd
         bool host_set_LFPangleRangeFilter;         // False // If true, LFPangleRangeFilter is set at startup (default: false)
         std::string host_LFPlayerFilter;           // "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" (Multiscan136 only, not for picoscan) // Optionally set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled
         bool host_set_LFPlayerFilter;              // False // If true (Multiscan136 only, always false for picoscan), LFPlayerFilter is set at startup (default: false)
-
+        std::string host_LFPintervalFilter;           // "0 0" (Multiscan136 only, not for picoscan) // OOptionally set LFPintervalFilter to "<enabled> <N>" with 1 for enabled and 0 for disabled and N to reduce output to every N-th scan
+        bool host_set_LFPintervalFilter;              // False // If true (Multiscan136 only, always false for picoscan), LFPintervalFilter is set at startup (default: false)
         // msgpack validation
         bool msgpack_validator_enabled; // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
         int msgpack_validator_verbose;  // 0: print error messages, 1: print error and informational messages, 2: print error and all messages

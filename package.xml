@@ -2,14 +2,14 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>sick_scan_xd</name>
-  <version>3.4.0</version>
+  <version>3.5.0</version>
   <description>ROS 1 and 2 driver for SICK scanner</description>
   <maintainer email="ros.test@lehning.de">rostest</maintainer>
   <author email="michael.lehning@lehning.de">Michael Lehning</author>
   <author email="ros@jochen.sprickerhof.de">Jochen Sprickerhof</author>
   <author email="martin.guenther@dfki.de">Martin Günther</author>
 
-  <license>Apache License, Version 2.0, see "http://www.apache.org/licenses/LICENSE-2.0"</license>
+  <license>Apache-2.0</license>
   <url type="repository">https://github.com/SICKAG/sick_scan_xd</url>
 
   <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>

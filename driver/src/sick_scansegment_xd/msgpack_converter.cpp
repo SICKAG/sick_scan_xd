@@ -122,7 +122,8 @@ void sick_scansegment_xd::MsgPackConverter::Close(void)
     }
     if (m_converter_thread)
     {
-        m_converter_thread->join();
+        if (m_converter_thread->joinable())
+            m_converter_thread->join();
         delete m_converter_thread;
         m_converter_thread = 0;
     }

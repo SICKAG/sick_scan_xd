@@ -130,9 +130,16 @@ tools/python_installer/python-3.9.13-amd64.exe
 *.bak
 
 test/scripts/run_win64_picoscan_emulator.cmd
+test/scripts/bloom_release.cmd
 
 test/emulator/scandata/20230719_mrs1104_infringement/
 
 doc/20230919_sick_scan_xd_timeout_settings.pptx
 
 test/docker/archive/
+
+test/docker/python/__pycache__/
+
+tools/pandoc/
+
+test/docker/images/

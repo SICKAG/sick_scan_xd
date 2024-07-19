@@ -38,6 +38,8 @@ def ros_init(os_name = "linux", ros_version = "noetic", node_name = "sick_scan_x
         rospy.init_node(node_name)
     elif ros2_found and (ros_version == "humble" or ros_version == "foxy"):
         rclpy.init()
+    elif ros_version == "none":
+        pass
     else:
         print(f"## ERROR sick_scan_xd_subscriber.ros_init(): ros version {ros_version} not found or not supported")
 
@@ -313,12 +315,14 @@ class SickScanXdSubscriber(Node):
 class SickScanXdMonitor():
 
     def __init__(self, config, run_ros_init):
+        self.ros_version = config.ros_version
         self.ros_node = None
         self.ros_spin_executor = None
         self.ros_spin_thread = None
         self.laserscan_subscriber = []
         self.pointcloud_subscriber = []
         self.imu_subscriber = []
+        self.messages_received = {}
         self.reference_messages_jsonfile = f"{config.log_folder}/{config.reference_messages_jsonfile}"
         if run_ros_init:
             ros_init(os_name = config.os_name, ros_version = config.ros_version, node_name = "sick_scan_xd_simu")
@@ -341,21 +345,20 @@ class SickScanXdMonitor():
             self.ros_spin_thread.start()
 
     def export_received_messages(self):
-        messages = {}
-        messages["RefLaserscanMsg"] = {}
-        messages["RefPointcloudMsg"] = {}
-        messages["RefImuMsg"] = {}
+        self.messages_received["RefLaserscanMsg"] = {}
+        self.messages_received["RefPointcloudMsg"] = {}
+        self.messages_received["RefImuMsg"] = {}
         num_messages = 0
         for subscriber in self.laserscan_subscriber:
-            subscriber.export_dictionary(messages["RefLaserscanMsg"])
+            subscriber.export_dictionary(self.messages_received["RefLaserscanMsg"])
             num_messages += len(subscriber.messages_received)
         for subscriber in self.pointcloud_subscriber:
-            subscriber.export_dictionary(messages["RefPointcloudMsg"])
+            subscriber.export_dictionary(self.messages_received["RefPointcloudMsg"])
             num_messages += len(subscriber.messages_received)
         for subscriber in self.imu_subscriber:
-            subscriber.export_dictionary(messages["RefImuMsg"])
+            subscriber.export_dictionary(self.messages_received["RefImuMsg"])
             num_messages += len(subscriber.messages_received)
-        return num_messages, messages
+        return num_messages, self.messages_received
 
     def export_received_messages_to_jsonfile(self, jsonfile):
         num_messages, messages = self.export_received_messages()
@@ -369,16 +372,32 @@ class SickScanXdMonitor():
         else:
             print(f"## ERROR SickScanXdMonitor.export_received_messages(): no messages received, file \"{jsonfile}\" not written")
 
+    def import_received_messages_from_jsonfile(self, jsonfile):
+        # with open(jsonfile, "r") as file_stream:
+        #     print(file_stream.read())
+        try:
+            with open(jsonfile, "r") as file_stream:
+                self.messages_received = json.load(file_stream)
+                print(f"SickScanXdMonitor: messages imported from file \"{jsonfile}\"")
+        except Exception as exc:
+            print(f"## ERROR in SickScanXdMonitor.import_received_messages_from_jsonfile(\"{jsonfile}\"): exception {exc}")
+
     def verify_messages(self, report):
         try:
-            _, received_messages = self.export_received_messages()
+            received_messages = self.messages_received
             reference_messages = {}
             with open(self.reference_messages_jsonfile, "r") as file_stream:
                 reference_messages = json.load(file_stream)
             converter = { "RefLaserscanMsg": RefLaserscanMsg(), "RefPointcloudMsg": RefPointcloudMsg(), "RefImuMsg": RefImuMsg() }
             num_messages_verified = 0
             for msg_type in reference_messages.keys():
+                if self.ros_version == "none" and msg_type == "RefLaserscanMsg":
+                    continue # laserscan messages are not exported via API, i.e. verify laserscan messages only under ROS
                 for topic in reference_messages[msg_type].keys():
+                    if self.ros_version == "none" and topic == "/cloud_all_fields_fullframe":
+                        continue # only polar and cartesian pointcloud messages are exported via API # TODO: exclude topics from config
+                    #if self.ros_version == "none" and msg_type == "RefImuMsg":
+                    #    continue # TODO !!!
                     for ref_msg in reference_messages[msg_type][topic]:
                         if topic not in received_messages[msg_type] or not self.find_message(ref_msg, received_messages[msg_type][topic], converter[msg_type]):
                             ref_msg_frame_id = ref_msg["frame_id"]

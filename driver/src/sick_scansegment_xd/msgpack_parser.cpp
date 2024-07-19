@@ -743,11 +743,13 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			float sin_elevation = std::sin(elevation);
 			std::vector<float> cos_azimuth(iPointCount);
 			std::vector<float> sin_azimuth(iPointCount);
+			std::vector<uint64_t> lut_lidar_timestamp_microsec(iPointCount);
 			for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 			{
 				float azimuth = channelTheta.data()[pointIdx] + add_transform_xyz_rpy.azimuthOffset();
 				cos_azimuth[pointIdx] = std::cos(azimuth);
 				sin_azimuth[pointIdx] = std::sin(azimuth);
+        lut_lidar_timestamp_microsec[pointIdx] = ((pointIdx * (u32TimestampStop - u32TimestampStart)) / (iPointCount - 1)) + u32TimestampStart;
         // if (pointIdx > 0)
 				//     SCANSEGMENT_XD_DEBUG_STREAM("azimuth[" << pointIdx << "] = " << (azimuth * 180 / M_PI) << " [deg], delta_azimuth = " << ((channelTheta.data[pointIdx] - channelTheta.data[pointIdx-1]) * 180 / M_PI) << " [deg]");
 			}
@@ -776,7 +778,8 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 						msgpack_validator_data.update(echoIdx, segment_idx, azimuth_norm, elevation);
 						msgpack_validator_data_collector.update(echoIdx, segment_idx, azimuth_norm, elevation);
 					}
-					scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx, reflectorbit));
+          uint64_t lidar_timestamp_microsec = lut_lidar_timestamp_microsec[pointIdx];
+					scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx, lidar_timestamp_microsec, reflectorbit));
 				}
 			}
 
@@ -912,6 +915,7 @@ bool sick_scansegment_xd::MsgPackParser::WriteCSV(const std::vector<ScanSegmentP
 					csv_ostream << ";" << std::setw(12) << std::fixed << std::setprecision(8) << point.azimuth;
 					csv_ostream << ";" << std::setw(12) << std::fixed << std::setprecision(8) << point.elevation;
 					csv_ostream << ";" << std::setw(12) << std::fixed << std::setprecision(3) << point.i;
+					csv_ostream << ";" << std::setw(24) << point.lidar_timestamp_microsec;
 					csv_ostream << std::endl;
 				}
 			}

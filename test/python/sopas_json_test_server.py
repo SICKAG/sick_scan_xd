@@ -179,6 +179,9 @@ if __name__ == "__main__":
     json_file = cli_args.json_file
     if len(cli_args.scandata_id) > 0:
         scandata_ids = [ cli_args.scandata_id ]
+        for n, scandata_id in enumerate(scandata_ids):
+            scandata_ids[n] = scandata_ids[n].replace("?", " ")
+            scandata_ids[n] = scandata_ids[n].replace("\"", "")        
     verbosity = cli_args.verbosity
     send_rate = cli_args.send_rate
     send_scandata_after = cli_args.scandata_after

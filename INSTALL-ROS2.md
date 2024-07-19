@@ -13,6 +13,8 @@ sudo apt-get install ros-humble-sick-scan-xd
 
 After successful installation, you can run sick_scan_xd using `ros2 launch sick_scan_xd <launchfile>.py`, e.g. `ros2 launch sick_scan_xd sick_multiscan.launch.py` for multiScan. sick_scan_xd can be removed by `sudo apt-get remove ros-humble-sick-scan-xd`.
 
+Note: ROS-2 humble debian packages require Ubuntu 22 or newer, see https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html for system requirements.
+
 ## Build from sources
 
 Run the following steps to build sick_scan_xd on Linux with ROS 2:

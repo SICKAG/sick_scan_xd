@@ -73,6 +73,10 @@ extern "C" {
 #define SICK_SCAN_API_DECLSPEC_EXPORT __attribute__ ((visibility ("default")))
 #endif
 
+#ifndef SICK_SCAN_XD_API_CALLING_CONVENTION
+#define SICK_SCAN_XD_API_CALLING_CONVENTION
+#endif
+
 /*
 *  Message definitions
 */
@@ -450,152 +454,152 @@ typedef struct SickScanDiagnosticMsgType // general diagnostic message
 */
 
 typedef void* SickScanApiHandle;
-typedef void(* SickScanPointCloudMsgCallback)(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg);
-typedef void(* SickScanImuMsgCallback)(SickScanApiHandle apiHandle, const SickScanImuMsg* msg);
-typedef void(* SickScanLFErecMsgCallback)(SickScanApiHandle apiHandle, const SickScanLFErecMsg* msg);
-typedef void(* SickScanLIDoutputstateMsgCallback)(SickScanApiHandle apiHandle, const SickScanLIDoutputstateMsg* msg);
-typedef void(* SickScanRadarScanCallback)(SickScanApiHandle apiHandle, const SickScanRadarScan* msg);
-typedef void(* SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
-typedef void(* SickScanVisualizationMarkerCallback)(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg);
-typedef void(* SickScanNavPoseLandmarkCallback)(SickScanApiHandle apiHandle, const SickScanNavPoseLandmarkMsg* msg);
-typedef void(* SickScanLogMsgCallback)(SickScanApiHandle apiHandle, const SickScanLogMsg* msg);
-typedef void(* SickScanDiagnosticMsgCallback)(SickScanApiHandle apiHandle, const SickScanDiagnosticMsg* msg); 
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanPointCloudMsgCallback)(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg);
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanImuMsgCallback)(SickScanApiHandle apiHandle, const SickScanImuMsg* msg);
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanLFErecMsgCallback)(SickScanApiHandle apiHandle, const SickScanLFErecMsg* msg);
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanLIDoutputstateMsgCallback)(SickScanApiHandle apiHandle, const SickScanLIDoutputstateMsg* msg);
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanRadarScanCallback)(SickScanApiHandle apiHandle, const SickScanRadarScan* msg);
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanLdmrsObjectArrayCallback)(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg);
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanVisualizationMarkerCallback)(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg);
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanNavPoseLandmarkCallback)(SickScanApiHandle apiHandle, const SickScanNavPoseLandmarkMsg* msg);
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanLogMsgCallback)(SickScanApiHandle apiHandle, const SickScanLogMsg* msg);
+typedef void(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanDiagnosticMsgCallback)(SickScanApiHandle apiHandle, const SickScanDiagnosticMsg* msg);
 
 /*
 *  Functions to initialize and close the API and a lidar
 */
 
 // Load sick_scan_xd api library (dll or so file)
-int32_t SickScanApiLoadLibrary(const char* library_filepath);
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiLoadLibrary(const char* library_filepath);
 
 // Unload sick_scan_xd api library
-int32_t SickScanApiUnloadLibrary();
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiUnloadLibrary();
 
 /*
 *  Create an instance of sick_scan_xd api.
 *  Optional commandline arguments argc, argv identical to sick_generic_caller.
 *  Call SickScanApiInitByLaunchfile or SickScanApiInitByCli to process a lidar.
 */
-SICK_SCAN_API_DECLSPEC_EXPORT SickScanApiHandle SickScanApiCreate(int argc, char** argv);
+SICK_SCAN_API_DECLSPEC_EXPORT SickScanApiHandle SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiCreate(int argc, char** argv);
 
 // Release and free all resources of a handle; the handle is invalid after SickScanApiRelease
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRelease(SickScanApiHandle apiHandle);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRelease(SickScanApiHandle apiHandle);
 
 // Initializes a lidar by launchfile and starts message receiving and processing
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* launchfile_args);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* launchfile_args);
 
 // Initializes a lidar by commandline arguments and starts message receiving and processing
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv);
 
 // Stops message receiving and processing and closes a lidar
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiClose(SickScanApiHandle apiHandle);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiClose(SickScanApiHandle apiHandle);
 
 /*
 *  Registration / deregistration of message callbacks
 */
 
 // Register / deregister a callback for cartesian PointCloud messages, pointcloud in cartesian coordinates with fields x, y, z, intensity
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
 
 // Register / deregister a callback for polar PointCloud messages, pointcloud in polar coordinates with fields range, azimuth, elevation, intensity
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
 
 // Register / deregister a callback for Imu messages
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback);
 
 // Register / deregister a callback for SickScanLFErecMsg messages
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback);
 
 // Register / deregister a callback for SickScanLIDoutputstateMsg messages
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback);
 
 // Register / deregister a callback for SickScanRadarScan messages
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback);
 
 // Register / deregister a callback for SickScanLdmrsObjectArray messages
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
 
 // Register / deregister a callback for VisualizationMarker messages
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
 
 // Register / deregister a callback for SickScanNavPoseLandmark messages
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
 
 /*
 *  Functions for diagnostic and logging
 */
 
 // Register / deregister a callback for diagnostic messages (notification in case of changed status, e.g. after errors)
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
 
 // Register / deregister a callback for log messages (all informational and error messages)
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiRegisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiDeregisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
 
 // Query current status and status message
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
 
 // Sends a SOPAS command like "sRN SCdevicestate" or "sRN ContaminationResult" and returns the lidar response
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiSendSOPAS(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiSendSOPAS(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size);
 
 // Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
 // i.e. print messages on console above the given verbose level.
 // Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level);
 
 // Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle);
 
 /*
 *  Polling functions
 */
 
 // Wait for and return the next cartesian resp. polar PointCloud message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreePointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreePointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg);
 
 // Wait for and return the next Imu message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg);
 
 // Wait for and return the next LFErec message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg, double timeout_sec);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg);
 
 // Wait for and return the next LIDoutputstate message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg, double timeout_sec);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg);
 
 // Wait for and return the next RadarScan message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg, double timeout_sec);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg);
 
 // Wait for and return the next LdmrsObjectArray message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg);
 
 // Wait for and return the next VisualizationMarker message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
 
 // Wait for and return the next SickScanNavPoseLandmark message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec);
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiFreeNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec);
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg);
 
 // Send odometry data to NAV350
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiNavOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg); // odometry data in nav coordinates
-SICK_SCAN_API_DECLSPEC_EXPORT int32_t SickScanApiOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg); // odometry data in system coordinates
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiNavOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg); // odometry data in nav coordinates
+SICK_SCAN_API_DECLSPEC_EXPORT int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg); // odometry data in system coordinates
 
 /*
 *  Error codes, return values of SickScanApi-functions

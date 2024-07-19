@@ -165,23 +165,6 @@ void sick_scansegment_xd::MsgPackThreads::join(void)
     }
 }
 
-/* Send "start" trigger via UDP
-static void sendStartTrigger(sick_scansegment_xd::Config& config)
-{
-  if (config.send_udp_start)
-  {
-    sick_scansegment_xd::UdpSenderSocketImpl udp_sender(config.hostname, config.port);
-    std::vector<uint8_t> send_udp_start_bytes(config.send_udp_start_string.begin(), config.send_udp_start_string.end());
-    if (!udp_sender.IsOpen())
-      ROS_ERROR_STREAM ("## ERROR sick_scansegment_xd: could not open udp socket " << config.hostname << ":" << config.port);
-    else if (!udp_sender.Send(send_udp_start_bytes))
-      ROS_ERROR_STREAM ("## ERROR sick_scansegment_xd: could not send start string \"" << config.send_udp_start_string << "\" using udp socket " << config.hostname << ":" << config.port);
-    else
-      ROS_INFO_STREAM ("sick_scansegment_xd: start string sent on udp socket " << config.hostname << ":" << config.port);
-  }
-}
-*/
-
 /*
  * @brief Thread callback, initializes and runs msgpack receiver, converter and publisher.
  */
@@ -198,12 +181,9 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
     {
         ROS_INFO_STREAM("sick_scansegment_xd initializing...");
 
-        // Send "start" trigger via UDP
-        // sendStartTrigger(m_config);
-
         // Initialize udp receiver for scan data
         sick_scansegment_xd::UdpReceiver* udp_receiver = 0;
-        while(udp_receiver == 0)
+        while(m_run_scansegment_thread && rosOk() && udp_receiver == 0)
         {
             udp_receiver = new sick_scansegment_xd::UdpReceiver();
             if(udp_receiver->Init(m_config.udp_sender, m_config.udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat, 0))
@@ -221,7 +201,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 
         // Initialize udp receiver for imu data
         sick_scansegment_xd::UdpReceiver* udp_receiver_imu = 0;
-        while(m_config.imu_enable && m_config.scandataformat == SCANDATA_COMPACT && udp_receiver_imu == 0)
+        while(m_run_scansegment_thread && rosOk() && m_config.imu_enable && m_config.scandataformat == SCANDATA_COMPACT && udp_receiver_imu == 0)
         {
             udp_receiver_imu = new sick_scansegment_xd::UdpReceiver();
             if(udp_receiver_imu->Init(m_config.udp_sender, m_config.imu_udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat, udp_receiver->Fifo())) // udp receiver for scan and imu data share the same fifo
@@ -268,9 +248,6 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: MsgPackConverter::Start(), UdpReceiver::Start() or MsgPackExporter::Start() failed, not receiving udp packages from " << m_config.udp_sender << ":" << m_config.udp_port);
         }
 
-        // Send "start" via UDP
-        // sendStartTrigger(m_config);
-
         // Start SOPAS services (ROS-1 or ROS-2 only)
         sick_scan_xd::SickScanCommonTcp* sopas_tcp = 0;
         sick_scan_xd::SickScanServices* sopas_service = 0;
@@ -307,6 +284,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
                     sopas_service->writeMultiScanFiltersettings((m_config.host_set_FREchoFilter ? m_config.host_FREchoFilter : -1), 
                         (m_config.host_set_LFPangleRangeFilter ? m_config.host_LFPangleRangeFilter : ""), 
                         (m_config.host_set_LFPlayerFilter ? m_config.host_LFPlayerFilter : ""),
+                        (m_config.host_set_LFPintervalFilter ? m_config.host_LFPintervalFilter : ""),
                         m_config.scanner_type);
                 }
                 // Send SOPAS commands to read filter settings
@@ -378,8 +356,9 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 
         // Close msgpack receiver, converter and exporter
         setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
-        ROS_INFO_STREAM("sick_scansegment_xd finishing.");
+        ROS_INFO_STREAM("sick_scansegment_xd finishing (" << __LINE__ << ")");
         msgpack_exporter.RemoveExportListener(ros_msgpack_publisher->ExportListener());
+        msgpack_exporter.Stop();
         if (udp_receiver_imu)
         {
             udp_receiver_imu->Close();
@@ -387,7 +366,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
         udp_receiver->Stop();
         udp_receiver->Fifo()->Shutdown();
-        ROS_INFO_STREAM("sick_scansegment_xd finishing.");
+        ROS_INFO_STREAM("sick_scansegment_xd finishing (" << __LINE__ << ")");
 
         // Send stop command (sopas and/or rest-api)
         if(sopas_tcp && sopas_service && m_config.send_sopas_start_stop_cmd && sopas_tcp->isConnected())
@@ -398,7 +377,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             std::cout << "sick_scansegment_xd exit: stop commands sent." << std::endl;
         }
         // Stop SOPAS services
-        std::cout << "sick_scansegment_xd exit: stopping services and communication..." << std::endl;
+        std::cout << "sick_scansegment_xd exit: stopping services and communication (" << __LINE__ << ")" << std::endl;
         try
         {
             // Shutdown, cleanup and exit
@@ -409,7 +388,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             msgpack_converter.Close();
             udp_receiver->Close();
             DELETE_PTR(udp_receiver);
-            std::cout << "sick_scansegment_xd exit: services and communication stopped." << std::endl;
+            std::cout << "sick_scansegment_xd exit: services and communication stopped (" << __LINE__ << ")" << std::endl;
         }
         catch(const std::exception& e)
         {
@@ -417,6 +396,6 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
     }
 
-    ROS_INFO_STREAM("sick_scansegment_xd::runThreadCb() finished");
+    ROS_INFO_STREAM("sick_scansegment_xd::runThreadCb() finished (" << __LINE__ << ")");
     return true;
 }

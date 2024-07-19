@@ -76,6 +76,7 @@
 #include <vector>
 #include <chrono>
 #include <cstdarg>
+#include <cstdint>
 
 #if !defined __ROS_VERSION
 #define __ROS_VERSION 0 // default: native Linux or Windows
@@ -127,6 +128,7 @@ bool shutdownSignalReceived();
 
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/LaserScan.h>

@@ -13,6 +13,7 @@
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="nav_do_initial_mapping" default="false"/>              <!-- Run mapping during initialization. Requires at least 3 visible reflectors, vehicle not moving. If nav_do_initial_mapping is false (default), ensure NAV350 mapping is configured e.g. by SOPAS ET. -->
     <arg name="nav_set_landmark_layout_by_imk_file" default=""/>      <!-- Read and set NAV350 landmark layout from a text file (.imk-file). Do not apply if nav_set_landmark_layout_file is empty (default), otherwise the landmark layout is overwritten by a imk-file created+saved using SOPAS ET -->
+    <arg name="tf_publish_rate" default="10.0" />                     <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
     <node name="sick_nav_350" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_nav_350"/>
 
@@ -67,9 +68,16 @@
         The lidar frame id given by parameter "frame_id" resp. "publish_frame_id".
         Note that the transform is specified using (x,y,z,roll,pitch,yaw). In contrast, the ROS static_transform_publisher uses commandline arguments in order (x,y,z,yaw,pitch,roll).
         -->
-        <param name="tf_base_frame_id" type="string" value="map" />              <!-- Frame id of base coordinates system, e.g. "map" (default frame in rviz) -->
-        <param name="tf_base_lidar_xyz_rpy" type="string" value="0,0,0,0,0,0" /> <!-- T[base,lidar], 6D pose (x,y,z,roll,pitch,yaw) in meter resp. radians with parent "map" and child "cloud" -->
-        <param name="tf_publish_rate" type="double" value="10" />                <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+        <param name="tf_base_frame_id" type="string" value="map" />                    <!-- Frame id of base coordinates system, e.g. "map" (default frame in rviz) -->
+        <param name="tf_base_lidar_xyz_rpy" type="string" value="0,0,0,0,0,0" />       <!-- T[base,lidar], 6D pose (x,y,z,roll,pitch,yaw) in meter resp. radians with parent "map" and child "cloud" -->
+        <param name="tf_publish_rate" type="double" value="$(arg tf_publish_rate)" />  <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+
+        <!-- 
+        Optional mode to convert lidar ticks to ros- resp. system-timestamps:
+        tick_to_timestamp_mode = 0 (default): convert lidar ticks in microseconds to system timestamp by software-pll
+        tick_to_timestamp_mode = 1 (optional tick-mode): convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp;
+        -->
+        <param name="tick_to_timestamp_mode" type="int" value="0"/>
 
     </node>
 

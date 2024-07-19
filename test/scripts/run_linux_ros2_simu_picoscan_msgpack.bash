@@ -17,8 +17,11 @@ function killall_cleanup()
 
 pushd ../../../..
 printf "\033c"
-if [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash ; fi
-if [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash     ; fi
+if   [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/humble/setup.bash   ] ; then source /opt/ros/humble/setup.bash
+elif [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash
+elif [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash
+fi
 source ./install/setup.bash
 killall_cleanup
 sleep 1

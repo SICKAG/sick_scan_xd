@@ -125,6 +125,14 @@ int SoftwarePLL::findDiffInFifo(double diff, double tol)
 */
 bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtick)
 {
+  if (offsetTimestampFirstLidarTick == 0)
+  {
+    // Store first timestamp and ticks for optional TICKS_TO_MICROSEC_OFFSET_TIMESTAMP
+    offsetTimestampFirstSystemSec = sec;
+    offsetTimestampFirstSystemMicroSec = nanoSec / 1000;
+    offsetTimestampFirstLidarTick = curtick;
+  }
+
   if (curtick != this->lastcurtick)
   {
     this->lastcurtick = curtick;
@@ -188,12 +196,20 @@ bool SoftwarePLL::getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint32
   {
     return (false);
   }
-
-  double relTimeStamp = extraPolateRelativeTimeStamp(curtick); // evtl. hier wg. Ueberlauf noch einmal pruefen
-  double corrTime = relTimeStamp + this->FirstTimeStamp();
+  double corrTime = 0;
+  if (ticksToTimestampMode == TICKS_TO_MICROSEC_OFFSET_TIMESTAMP) // optional tick-mode: convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp
+  {
+    corrTime = 1.0e-6 * (curtick - offsetTimestampFirstLidarTick) + (offsetTimestampFirstSystemSec + 1.0e-6 * offsetTimestampFirstSystemMicroSec);
+  }
+  else // default: convert lidar ticks in microseconds to system timestamp by software-pll
+  {
+    double relTimeStamp = extraPolateRelativeTimeStamp(curtick); // evtl. hier wg. Ueberlauf noch einmal pruefen
+    corrTime = relTimeStamp + this->FirstTimeStamp();
+  }
   sec = (uint32_t) corrTime;
   double frac = corrTime - sec;
   nanoSec = (uint32_t) (1E9 * frac);
+  // std::cout << "SoftwarePLL::getCorrectedTimeStamp(): timestamp_mode=" << (int)ticksToTimestampMode << ", curticks = " << curtick << " [microsec], system time = " << std::fixed << std::setprecision(9) << (sec + 1.0e-9 * nanoSec) << " [sec]" << std::endl;
   return (true);
 }
 
@@ -204,15 +220,24 @@ bool SoftwarePLL::convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32
   {
     return (false);
   }
-  double systemTimestamp = (double)systemtime_sec + 1.0e-9 * (double)systemtime_nanosec; // systemTimestamp := corrTime in getCorrectedTimeStamp
-  // getCorrectedTimeStamp(): corrTime = relTimeStamp + this->FirstTimeStamp()
-  // => inverse: relSystemTimestamp = systemTimestamp - this->FirstTimeStamp()
-  double relSystemTimestamp = systemTimestamp - this->FirstTimeStamp();
-  // getCorrectedTimeStamp(): relSystemTimestamp = (tick - (uint32_t) (0xFFFFFFFF & FirstTick())) * this->InterpolationSlope() 
-  //=> inverse: tick = (relSystemTimestamp / this->InterpolationSlope()) + (uint32_t) (0xFFFFFFFF & FirstTick())
-  double relTicks = relSystemTimestamp / this->InterpolationSlope();
-  uint32_t tick_offset = (uint32_t)(0xFFFFFFFF & FirstTick());
-  tick = (uint32_t)std::round(relTicks + tick_offset);
+  if (ticksToTimestampMode == TICKS_TO_MICROSEC_OFFSET_TIMESTAMP) // optional tick-mode: convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp
+  {
+    double relSystemTimestamp = (systemtime_sec + 1.0e-9 * systemtime_nanosec) - (offsetTimestampFirstSystemSec + 1.0e-6 * offsetTimestampFirstSystemMicroSec);
+    double relTicks = 1.0e6 * relSystemTimestamp;
+    tick = (uint32_t)std::round(relTicks + offsetTimestampFirstLidarTick);
+  }
+  else // default: convert lidar ticks in microseconds to system timestamp by software-pll
+  {
+    double systemTimestamp = (double)systemtime_sec + 1.0e-9 * (double)systemtime_nanosec; // systemTimestamp := corrTime in getCorrectedTimeStamp
+    // getCorrectedTimeStamp(): corrTime = relTimeStamp + this->FirstTimeStamp()
+    // => inverse: relSystemTimestamp = systemTimestamp - this->FirstTimeStamp()
+    double relSystemTimestamp = systemTimestamp - this->FirstTimeStamp();
+    // getCorrectedTimeStamp(): relSystemTimestamp = (tick - (uint32_t) (0xFFFFFFFF & FirstTick())) * this->InterpolationSlope() 
+    //=> inverse: tick = (relSystemTimestamp / this->InterpolationSlope()) + (uint32_t) (0xFFFFFFFF & FirstTick())
+    double relTicks = relSystemTimestamp / this->InterpolationSlope();
+    uint32_t tick_offset = (uint32_t)(0xFFFFFFFF & FirstTick());
+    tick = (uint32_t)std::round(relTicks + tick_offset);
+  }
   return (true);
 }
 

@@ -522,18 +522,36 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishLaserScanMsg(rosNodePtr no
 #endif
 }
 
+class CustomizedPointXYZRAEI32f : public sick_scansegment_xd::PointXYZRAEI32f
+{
+public:
+  CustomizedPointXYZRAEI32f() : sick_scansegment_xd::PointXYZRAEI32f() {}
+  CustomizedPointXYZRAEI32f(uint32_t timestamp_sec, uint32_t timestamp_nsec, uint64_t lidar_timestamp_start_microsec, const sick_scansegment_xd::PointXYZRAEI32f& point) : sick_scansegment_xd::PointXYZRAEI32f(point) 
+	{
+		if (point.lidar_timestamp_microsec > lidar_timestamp_start_microsec) 
+		{
+		  time_offset_nanosec = (uint32_t)(1000 * (point.lidar_timestamp_microsec - lidar_timestamp_start_microsec));
+			time_offset_sec = (float)(1.0e-6 * (point.lidar_timestamp_microsec - lidar_timestamp_start_microsec));
+		}
+		ring = point.layer;
+	}
+	// Additional fields for customized point clouds:
+  uint32_t time_offset_nanosec = 0; // field "t": 4 byte time offset of a scan point in nano seconds relative to the timestamp in the point cloud header, used by rtabmap for deskewing
+	float time_offset_sec = 0; // time offset in seconds (otherwise identical to field "t")
+	int8_t ring = 0; // field "ring": 1 byte layer id, identical to field "layer"
+};
+
 /*
 * Converts the lidarpoints to a customized PointCloud2Msg containing configured fields (e.g. x, y, z, i, range, azimuth, elevation, layer, echo, reflector).
-* @param[in] timestamp_sec seconds part of timestamp
-* @param[in] timestamp_nsec  nanoseconds part of timestamp
-* @param[in] last_timestamp_sec seconds part of last timestamp
-* @param[in] last_timestamp_nsec  nanoseconds part of last timestamp
+* @param[in] timestamp_sec seconds part of timestamp (system time)
+* @param[in] timestamp_nsec nanoseconds part of timestamp (system time)
+* @param[in] lidar_timestamp_start_microsec lidar start timestamp in microseconds (lidar ticks)
 * @param[in] lidar_points list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of one echo
 * @param[in] pointcloud_cfg configuration of customized pointcloud
 * @param[out] pointcloud_msg customized pointcloud message
 */
-void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points,
-  CustomPointCloudConfiguration& pointcloud_cfg, PointCloud2Msg& pointcloud_msg)
+void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCloud(uint32_t timestamp_sec, uint32_t timestamp_nsec, uint64_t lidar_timestamp_start_microsec,
+  const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& lidar_points, CustomPointCloudConfiguration& pointcloud_cfg, PointCloud2Msg& pointcloud_msg)
 {
   // set pointcloud header
   pointcloud_msg.header.stamp.sec = timestamp_sec;
@@ -544,7 +562,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
 #endif
   pointcloud_msg.header.frame_id = pointcloud_cfg.frameid();
   // set pointcloud field properties
-	sick_scansegment_xd::PointXYZRAEI32f dummy_lidar_point;
+	CustomizedPointXYZRAEI32f dummy_lidar_point;
   std::vector<PointCloudFieldProperty> field_properties;
 	field_properties.reserve(12);
 	if (pointcloud_cfg.fieldEnabled("x"))
@@ -561,6 +579,12 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
 	  field_properties.push_back(PointCloudFieldProperty("azimuth", PointField::FLOAT32, sizeof(float), (uint8_t*)&dummy_lidar_point.azimuth - (uint8_t*)&dummy_lidar_point));
 	if (pointcloud_cfg.fieldEnabled("elevation"))
 	  field_properties.push_back(PointCloudFieldProperty("elevation", PointField::FLOAT32, sizeof(float), (uint8_t*)&dummy_lidar_point.elevation - (uint8_t*)&dummy_lidar_point));
+	if (pointcloud_cfg.fieldEnabled("t"))
+	  field_properties.push_back(PointCloudFieldProperty("t", PointField::UINT32, sizeof(uint32_t), (uint8_t*)&dummy_lidar_point.time_offset_nanosec - (uint8_t*)&dummy_lidar_point));
+	if (pointcloud_cfg.fieldEnabled("ts"))
+	  field_properties.push_back(PointCloudFieldProperty("ts", PointField::FLOAT32, sizeof(float), (uint8_t*)&dummy_lidar_point.time_offset_sec - (uint8_t*)&dummy_lidar_point));
+	if (pointcloud_cfg.fieldEnabled("ring"))
+	  field_properties.push_back(PointCloudFieldProperty("ring", PointField::INT8, sizeof(int8_t), (uint8_t*)&dummy_lidar_point.ring - (uint8_t*)&dummy_lidar_point));
 	if (pointcloud_cfg.fieldEnabled("layer"))
 	  field_properties.push_back(PointCloudFieldProperty("layer", PointField::INT8, sizeof(int8_t), (uint8_t*)&dummy_lidar_point.layer - (uint8_t*)&dummy_lidar_point));
 	if (pointcloud_cfg.fieldEnabled("echo"))
@@ -598,11 +622,11 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
   {
     for (int point_idx = 0; point_cnt < max_number_of_points && point_idx < lidar_points[echo_idx].size(); point_idx++)
     {
-			sick_scansegment_xd::PointXYZRAEI32f cur_lidar_point = lidar_points[echo_idx][point_idx];
+			CustomizedPointXYZRAEI32f cur_lidar_point(timestamp_sec, timestamp_nsec, lidar_timestamp_start_microsec, lidar_points[echo_idx][point_idx]);
 			if (pointcloud_cfg.pointEnabled(cur_lidar_point))
 			{
 				size_t pointcloud_offset = point_cnt * pointcloud_msg.point_step; // offset in bytes in pointcloud_msg.data (destination)
-				const uint8_t* src_lidar_point = (const uint8_t*)(&cur_lidar_point); // pointer to source lidar point (type sick_scansegment_xd::PointXYZRAEI32f)
+				const uint8_t* src_lidar_point = (const uint8_t*)(&cur_lidar_point); // pointer to source lidar point (type CustomizedPointXYZRAEI32f)
 				for(int field_idx = 0; field_idx < field_properties.size(); field_idx++)
 				{
 					size_t field_offset = field_properties[field_idx].fieldoffset;
@@ -875,37 +899,37 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	// Publish optional IMU data
 	if (msgpack_data.scandata.empty() && msgpack_data.imudata.valid)
 	{
+		ROS_DEBUG_STREAM("Publishing IMU data: { " << msgpack_data.imudata.to_string() << " }");
+		// Convert to ros_sensor_msgs::Imu
+		ros_sensor_msgs::Imu imu_msg;
+		imu_msg.header.stamp.sec = msgpack_data.timestamp_sec;
+#if defined __ROS_VERSION && __ROS_VERSION > 1
+		imu_msg.header.stamp.nanosec = msgpack_data.timestamp_nsec;
+#else
+		imu_msg.header.stamp.nsec = msgpack_data.timestamp_nsec;
+#endif
+		imu_msg.header.frame_id = m_frame_id;
+		imu_msg.orientation.w = msgpack_data.imudata.orientation_w;
+		imu_msg.orientation.x = msgpack_data.imudata.orientation_x;
+		imu_msg.orientation.y = msgpack_data.imudata.orientation_y;
+		imu_msg.orientation.z = msgpack_data.imudata.orientation_z;
+		imu_msg.angular_velocity.x = msgpack_data.imudata.angular_velocity_x;
+		imu_msg.angular_velocity.y = msgpack_data.imudata.angular_velocity_y;
+		imu_msg.angular_velocity.z = msgpack_data.imudata.angular_velocity_z;
+		imu_msg.linear_acceleration.x = msgpack_data.imudata.acceleration_x;
+		imu_msg.linear_acceleration.y = msgpack_data.imudata.acceleration_y;
+		imu_msg.linear_acceleration.z = msgpack_data.imudata.acceleration_z;
+		// ros imu message definition: A covariance matrix of all zeros will be interpreted as "covariance unknown"
+		for(int n = 0; n < 9; n++)
+		{
+			imu_msg.orientation_covariance[n] = 0;
+			imu_msg.angular_velocity_covariance[n] = 0;
+			imu_msg.linear_acceleration_covariance[n] = 0;
+		}
+		// Publish imu message
+		sick_scan_xd::notifyImuListener(m_node, &imu_msg);
 		if (m_publisher_imu_initialized)
 		{
-		  ROS_DEBUG_STREAM("Publishing IMU data: { " << msgpack_data.imudata.to_string() << " }");
-			// Convert to ros_sensor_msgs::Imu
-			ros_sensor_msgs::Imu imu_msg;
-			imu_msg.header.stamp.sec = msgpack_data.timestamp_sec;
-#if defined __ROS_VERSION && __ROS_VERSION > 1
-      imu_msg.header.stamp.nanosec = msgpack_data.timestamp_nsec;
-#else
-			imu_msg.header.stamp.nsec = msgpack_data.timestamp_nsec;
-#endif
-			imu_msg.header.frame_id = m_frame_id;
-			imu_msg.orientation.w = msgpack_data.imudata.orientation_w;
-			imu_msg.orientation.x = msgpack_data.imudata.orientation_x;
-			imu_msg.orientation.y = msgpack_data.imudata.orientation_y;
-			imu_msg.orientation.z = msgpack_data.imudata.orientation_z;
-			imu_msg.angular_velocity.x = msgpack_data.imudata.angular_velocity_x;
-			imu_msg.angular_velocity.y = msgpack_data.imudata.angular_velocity_y;
-			imu_msg.angular_velocity.z = msgpack_data.imudata.angular_velocity_z;
-			imu_msg.linear_acceleration.x = msgpack_data.imudata.acceleration_x;
-			imu_msg.linear_acceleration.y = msgpack_data.imudata.acceleration_y;
-			imu_msg.linear_acceleration.z = msgpack_data.imudata.acceleration_z;
-			// ros imu message definition: A covariance matrix of all zeros will be interpreted as "covariance unknown"
-			for(int n = 0; n < 9; n++)
-			{
-				imu_msg.orientation_covariance[n] = 0;
-				imu_msg.angular_velocity_covariance[n] = 0;
-				imu_msg.linear_acceleration_covariance[n] = 0;
-			}
-			// Publish imu message
-			sick_scan_xd::notifyImuListener(m_node, &imu_msg);
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 	   m_publisher_imu->publish(imu_msg);
 #else
@@ -935,6 +959,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	{
 		lidar_points[echoIdx].reserve(point_count_per_echo);
 	}
+	uint64_t lidar_timestamp_start_microsec = std::numeric_limits<uint64_t>::max();
 	for (int groupIdx = 0; groupIdx < msgpack_data.scandata.size(); groupIdx++)
 	{
 		for (int echoIdx = 0; echoIdx < msgpack_data.scandata[groupIdx].scanlines.size(); echoIdx++)
@@ -944,9 +969,10 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			{
 				const sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
 				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZRAEI32f(point.x, point.y, point.z, point.range,
-				   point.azimuth, point.elevation, point.i, point.groupIdx, point.echoIdx, point.reflectorbit));
+				   point.azimuth, point.elevation, point.i, point.groupIdx, point.echoIdx, point.lidar_timestamp_microsec, point.reflectorbit));
 				lidar_points_min_azimuth = std::min(lidar_points_min_azimuth, point.azimuth);
 				lidar_points_max_azimuth = std::max(lidar_points_max_azimuth, point.azimuth);
+    		lidar_timestamp_start_microsec = std::min(lidar_timestamp_start_microsec, point.lidar_timestamp_microsec);
 			}
 		}
 	}
@@ -990,7 +1016,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 					if (custom_pointcloud_cfg.publish() && custom_pointcloud_cfg.fullframe())
 					{
 						PointCloud2Msg pointcloud_msg_custom_fields;
-						convertPointsToCustomizedFieldsCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
+						convertPointsToCustomizedFieldsCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec,  m_points_collector.lidar_timestamp_start_microsec,
+						  m_points_collector.lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
 						publishPointCloud2Msg(m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields, std::max(1, (int)echo_count), -1, custom_pointcloud_cfg.coordinateNotation(), custom_pointcloud_cfg.topic());
 						// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): published " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
 					}
@@ -1066,7 +1093,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		if (custom_pointcloud_cfg.publish() && !custom_pointcloud_cfg.fullframe())
 		{
 			PointCloud2Msg pointcloud_msg_custom_fields;
-			convertPointsToCustomizedFieldsCloud(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
+			convertPointsToCustomizedFieldsCloud(msgpack_data.timestamp_sec, msgpack_data.timestamp_nsec, lidar_timestamp_start_microsec, lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
 			publishPointCloud2Msg(m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields, std::max(1, (int)echo_count), segment_idx, custom_pointcloud_cfg.coordinateNotation(), custom_pointcloud_cfg.topic());
 			ROS_DEBUG_STREAM("publishPointCloud2Msg: " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
 		}

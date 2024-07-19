@@ -37,158 +37,158 @@ static void* GetProcAddress(HINSTANCE hLib, const char* szFunctionName)
 static HINSTANCE hinstLib = NULL;
 
 #ifdef WIN32
-typedef SickScanApiHandle(__stdcall* SickScanApiCreate_PROCTYPE)(int argc, char** argv);
+typedef SickScanApiHandle(SICK_SCAN_XD_API_CALLING_CONVENTION * SickScanApiCreate_PROCTYPE)(int argc, char** argv);
 static SickScanApiCreate_PROCTYPE ptSickScanApiCreate = 0;
 #else
-typedef SickScanApiHandle(*SickScanApiCreate_PROCTYPE)(int argc, char** argv);
+typedef SickScanApiHandle(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiCreate_PROCTYPE)(int argc, char** argv);
 static SickScanApiCreate_PROCTYPE ptSickScanApiCreate = 0;
 #endif
 
-typedef int32_t(*SickScanApiRelease_PROCTYPE)(SickScanApiHandle apiHandle);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRelease_PROCTYPE)(SickScanApiHandle apiHandle);
 static SickScanApiRelease_PROCTYPE ptSickScanApiRelease = 0;
 
-typedef int32_t(*SickScanApiInitByLaunchfile_PROCTYPE)(SickScanApiHandle apiHandle, const char* launchfile);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiInitByLaunchfile_PROCTYPE)(SickScanApiHandle apiHandle, const char* launchfile);
 static SickScanApiInitByLaunchfile_PROCTYPE ptSickScanApiInitByLaunchfile = 0;
 
-typedef int32_t(*SickScanApiInitByCli_PROCTYPE)(SickScanApiHandle apiHandle, int argc, char** argv);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiInitByCli_PROCTYPE)(SickScanApiHandle apiHandle, int argc, char** argv);
 static SickScanApiInitByCli_PROCTYPE ptSickScanApiInitByCli = 0;
 
-typedef int32_t(*SickScanApiClose_PROCTYPE)(SickScanApiHandle apiHandle);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiClose_PROCTYPE)(SickScanApiHandle apiHandle);
 static SickScanApiClose_PROCTYPE ptSickScanApiClose = 0;
 
-typedef int32_t(*SickScanApiRegisterCartesianPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterCartesianPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
 static SickScanApiRegisterCartesianPointCloudMsg_PROCTYPE ptSickScanApiRegisterCartesianPointCloudMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterCartesianPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterCartesianPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
 static SickScanApiDeregisterCartesianPointCloudMsg_PROCTYPE ptSickScanApiDeregisterCartesianPointCloudMsg = 0;
 
-typedef int32_t(*SickScanApiRegisterPolarPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterPolarPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
 static SickScanApiRegisterPolarPointCloudMsg_PROCTYPE ptSickScanApiRegisterPolarPointCloudMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterPolarPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterPolarPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback);
 static SickScanApiDeregisterPolarPointCloudMsg_PROCTYPE ptSickScanApiDeregisterPolarPointCloudMsg = 0;
 
-typedef int32_t(*SickScanApiRegisterImuMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterImuMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback);
 static SickScanApiRegisterImuMsg_PROCTYPE ptSickScanApiRegisterImuMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterImuMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterImuMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback);
 static SickScanApiDeregisterImuMsg_PROCTYPE ptSickScanApiDeregisterImuMsg = 0;
 
-typedef int32_t(*SickScanApiRegisterLFErecMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterLFErecMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback);
 static SickScanApiRegisterLFErecMsg_PROCTYPE ptSickScanApiRegisterLFErecMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterLFErecMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterLFErecMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback);
 static SickScanApiDeregisterLFErecMsg_PROCTYPE ptSickScanApiDeregisterLFErecMsg = 0;
 
-typedef int32_t(*SickScanApiRegisterLIDoutputstateMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterLIDoutputstateMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback);
 static SickScanApiRegisterLIDoutputstateMsg_PROCTYPE ptSickScanApiRegisterLIDoutputstateMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterLIDoutputstateMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterLIDoutputstateMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback);
 static SickScanApiDeregisterLIDoutputstateMsg_PROCTYPE ptSickScanApiDeregisterLIDoutputstateMsg = 0;
 
-typedef int32_t(*SickScanApiRegisterRadarScanMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterRadarScanMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback);
 static SickScanApiRegisterRadarScanMsg_PROCTYPE ptSickScanApiRegisterRadarScanMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterRadarScanMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterRadarScanMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback);
 static SickScanApiDeregisterRadarScanMsg_PROCTYPE ptSickScanApiDeregisterRadarScanMsg = 0;
 
-typedef int32_t(*SickScanApiRegisterLdmrsObjectArrayMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterLdmrsObjectArrayMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
 static SickScanApiRegisterLdmrsObjectArrayMsg_PROCTYPE ptSickScanApiRegisterLdmrsObjectArrayMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterLdmrsObjectArrayMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterLdmrsObjectArrayMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback);
 static SickScanApiDeregisterLdmrsObjectArrayMsg_PROCTYPE ptSickScanApiDeregisterLdmrsObjectArrayMsg = 0;
 
-typedef int32_t(*SickScanApiRegisterVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
 static SickScanApiRegisterVisualizationMarkerMsg_PROCTYPE ptSickScanApiRegisterVisualizationMarkerMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback);
 static SickScanApiDeregisterVisualizationMarkerMsg_PROCTYPE ptSickScanApiDeregisterVisualizationMarkerMsg = 0;
 
-typedef int32_t(*SickScanApiRegisterDiagnosticMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterDiagnosticMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
 static SickScanApiRegisterDiagnosticMsg_PROCTYPE ptSickScanApiRegisterDiagnosticMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterDiagnosticMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterDiagnosticMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback);
 static SickScanApiDeregisterDiagnosticMsg_PROCTYPE ptSickScanApiDeregisterDiagnosticMsg = 0;
 
-typedef int32_t(*SickScanApiRegisterLogMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterLogMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
 static SickScanApiRegisterLogMsg_PROCTYPE ptSickScanApiRegisterLogMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterLogMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterLogMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback);
 static SickScanApiDeregisterLogMsg_PROCTYPE ptSickScanApiDeregisterLogMsg = 0;
 
-typedef int32_t (*SickScanApiGetStatus_PROCTYPE)(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
+typedef int32_t (SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiGetStatus_PROCTYPE)(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size);
 static SickScanApiGetStatus_PROCTYPE ptSickScanApiGetStatus = 0;
 
-typedef int32_t(*SickScanApiSendSOPAS_PROCTYPE)(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiSendSOPAS_PROCTYPE)(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size);
 static SickScanApiSendSOPAS_PROCTYPE ptSickScanApiSendSOPAS = 0;
 
-typedef int32_t (*SickScanApiSetVerboseLevel_PROCTYPE)(SickScanApiHandle apiHandle, int32_t verbose_level);
+typedef int32_t (SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiSetVerboseLevel_PROCTYPE)(SickScanApiHandle apiHandle, int32_t verbose_level);
 static SickScanApiSetVerboseLevel_PROCTYPE ptSickScanApiSetVerboseLevel = 0;
 
-typedef int32_t (*SickScanApiGetVerboseLevel_PROCTYPE)(SickScanApiHandle apiHandle);
+typedef int32_t (SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiGetVerboseLevel_PROCTYPE)(SickScanApiHandle apiHandle);
 static SickScanApiGetVerboseLevel_PROCTYPE ptSickScanApiGetVerboseLevel = 0;
 
-typedef int32_t(*SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
 static SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE ptSickScanApiWaitNextCartesianPointCloudMsg = 0;
 
-typedef int32_t(*SickScanApiWaitNextPolarPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiWaitNextPolarPointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec);
 static SickScanApiWaitNextPolarPointCloudMsg_PROCTYPE ptSickScanApiWaitNextPolarPointCloudMsg = 0;
 
-typedef int32_t(*SickScanApiFreePointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiFreePointCloudMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg);
 static SickScanApiFreePointCloudMsg_PROCTYPE ptSickScanApiFreePointCloudMsg = 0;
 
-typedef int32_t(*SickScanApiWaitNextImuMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiWaitNextImuMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec);
 static SickScanApiWaitNextImuMsg_PROCTYPE ptSickScanApiWaitNextImuMsg = 0;
 
-typedef int32_t(*SickScanApiFreeImuMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanImuMsg* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiFreeImuMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanImuMsg* msg);
 static SickScanApiFreeImuMsg_PROCTYPE ptSickScanApiFreeImuMsg = 0;
 
-typedef int32_t(*SickScanApiWaitNextLFErecMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg, double timeout_sec);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiWaitNextLFErecMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg, double timeout_sec);
 static SickScanApiWaitNextLFErecMsg_PROCTYPE ptSickScanApiWaitNextLFErecMsg = 0;
 
-typedef int32_t(*SickScanApiFreeLFErecMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiFreeLFErecMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg);
 static SickScanApiFreeLFErecMsg_PROCTYPE ptSickScanApiFreeLFErecMsg = 0;
 
-typedef int32_t(*SickScanApiWaitNextLIDoutputstateMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg, double timeout_sec);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiWaitNextLIDoutputstateMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg, double timeout_sec);
 static SickScanApiWaitNextLIDoutputstateMsg_PROCTYPE ptSickScanApiWaitNextLIDoutputstateMsg = 0;
 
-typedef int32_t(*SickScanApiFreeLIDoutputstateMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiFreeLIDoutputstateMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg);
 static SickScanApiFreeLIDoutputstateMsg_PROCTYPE ptSickScanApiFreeLIDoutputstateMsg = 0;
 
-typedef int32_t(*SickScanApiWaitNextRadarScanMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanRadarScan* msg, double timeout_sec);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiWaitNextRadarScanMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanRadarScan* msg, double timeout_sec);
 static SickScanApiWaitNextRadarScanMsg_PROCTYPE ptSickScanApiWaitNextRadarScanMsg = 0;
 
-typedef int32_t(*SickScanApiFreeRadarScanMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanRadarScan* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiFreeRadarScanMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanRadarScan* msg);
 static SickScanApiFreeRadarScanMsg_PROCTYPE ptSickScanApiFreeRadarScanMsg = 0;
 
-typedef int32_t(*SickScanApiWaitNextLdmrsObjectArrayMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiWaitNextLdmrsObjectArrayMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec);
 static SickScanApiWaitNextLdmrsObjectArrayMsg_PROCTYPE ptSickScanApiWaitNextLdmrsObjectArrayMsg = 0;
 
-typedef int32_t(*SickScanApiFreeLdmrsObjectArrayMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiFreeLdmrsObjectArrayMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg);
 static SickScanApiFreeLdmrsObjectArrayMsg_PROCTYPE ptSickScanApiFreeLdmrsObjectArrayMsg = 0;
 
-typedef int32_t(*SickScanApiWaitNextVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiWaitNextVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec);
 static SickScanApiWaitNextVisualizationMarkerMsg_PROCTYPE ptSickScanApiWaitNextVisualizationMarkerMsg = 0;
 
-typedef int32_t(*SickScanApiFreeVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiFreeVisualizationMarkerMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg);
 static SickScanApiFreeVisualizationMarkerMsg_PROCTYPE ptSickScanApiFreeVisualizationMarkersg = 0;
 
-typedef int32_t(*SickScanApiRegisterNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiRegisterNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
 static SickScanApiRegisterNavPoseLandmarkMsg_PROCTYPE ptSickScanApiRegisterNavPoseLandmarkMsg = 0;
 
-typedef int32_t(*SickScanApiDeregisterNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiDeregisterNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback);
 static SickScanApiDeregisterNavPoseLandmarkMsg_PROCTYPE ptSickScanApiDeregisterNavPoseLandmarkMsg = 0;
 
-typedef int32_t(*SickScanApiWaitNextNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiWaitNextNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec);
 static SickScanApiWaitNextNavPoseLandmarkMsg_PROCTYPE ptSickScanApiWaitNextNavPoseLandmarkMsg = 0;
 
-typedef int32_t(*SickScanApiFreeNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiFreeNavPoseLandmarkMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg);
 static SickScanApiFreeNavPoseLandmarkMsg_PROCTYPE ptSickScanApiFreeNavPoseLandmarkMsg = 0;
 
-typedef int32_t(*SickScanApiNavOdomVelocityMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiNavOdomVelocityMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg);
 static SickScanApiNavOdomVelocityMsg_PROCTYPE ptSickScanApiNavOdomVelocityMsg = 0;
 
-typedef int32_t(*SickScanApiOdomVelocityMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg);
+typedef int32_t(SICK_SCAN_XD_API_CALLING_CONVENTION *SickScanApiOdomVelocityMsg_PROCTYPE)(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg);
 static SickScanApiOdomVelocityMsg_PROCTYPE ptSickScanApiOdomVelocityMsg = 0;
 
 /*
@@ -215,7 +215,7 @@ do                                                                              
 }   while(0)
 
 // Load sick_scan_xd api library (dll or so file)
-int32_t SickScanApiLoadLibrary(const char* library_filepath)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiLoadLibrary(const char* library_filepath)
 {
     int32_t ret = SICK_SCAN_API_SUCCESS;
     if (hinstLib == NULL)
@@ -224,14 +224,14 @@ int32_t SickScanApiLoadLibrary(const char* library_filepath)
     }
     if (hinstLib == NULL)
     {
-        printf("## ERROR SickScanApiLoadLibrary: LoadLibrary(%s) failed\n", library_filepath);
+        printf("## WARNING SickScanApiLoadLibrary: LoadLibrary(\"%s\") failed\n", library_filepath);
         ret = SICK_SCAN_API_NOT_LOADED;
     }
     return ret;
 }
 
 // Unload sick_scan_xd api library
-int32_t SickScanApiUnloadLibrary()
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiUnloadLibrary()
 {
     int32_t ret = SICK_SCAN_API_SUCCESS;
     if (hinstLib != 0)
@@ -301,7 +301,7 @@ int32_t SickScanApiUnloadLibrary()
 *  Optional commandline arguments argc, argv identical to sick_generic_caller.
 *  Call SickScanApiInitByLaunchfile or SickScanApiInitByCli to process a lidar.
 */
-SickScanApiHandle SickScanApiCreate(int argc, char** argv)
+SickScanApiHandle SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiCreate(int argc, char** argv)
 {
     if (hinstLib == 0)
     {
@@ -326,7 +326,7 @@ SickScanApiHandle SickScanApiCreate(int argc, char** argv)
 }
 
 // Release and free all resources of a handle; the handle is invalid after SickScanApiRelease
-int32_t SickScanApiRelease(SickScanApiHandle apiHandle)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRelease(SickScanApiHandle apiHandle)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRelease, "SickScanApiRelease", SickScanApiRelease_PROCTYPE);
     int32_t ret = (ptSickScanApiRelease ? (ptSickScanApiRelease(apiHandle)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -336,7 +336,7 @@ int32_t SickScanApiRelease(SickScanApiHandle apiHandle)
 }
 
 // Initializes a lidar by launchfile and starts message receiving and processing
-int32_t SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* launchfile_args)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* launchfile_args)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiInitByLaunchfile, "SickScanApiInitByLaunchfile", SickScanApiInitByLaunchfile_PROCTYPE);
     int32_t ret = (ptSickScanApiInitByLaunchfile ? (ptSickScanApiInitByLaunchfile(apiHandle, launchfile_args)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -346,7 +346,7 @@ int32_t SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* lau
 }
 
 // Initializes a lidar by commandline arguments and starts message receiving and processing
-int32_t SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiInitByCli, "SickScanApiInitByCli", SickScanApiInitByCli_PROCTYPE);
     int32_t ret = (ptSickScanApiInitByCli ? (ptSickScanApiInitByCli(apiHandle, argc, argv)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -356,7 +356,7 @@ int32_t SickScanApiInitByCli(SickScanApiHandle apiHandle, int argc, char** argv)
 }
 
 // Stops message receiving and processing and closes a lidar
-int32_t SickScanApiClose(SickScanApiHandle apiHandle)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiClose(SickScanApiHandle apiHandle)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiClose, "SickScanApiClose", SickScanApiClose_PROCTYPE);
     int32_t ret = (ptSickScanApiClose ? (ptSickScanApiClose(apiHandle)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -370,7 +370,7 @@ int32_t SickScanApiClose(SickScanApiHandle apiHandle)
 */
 
 // Register / deregister a callback for cartesian PointCloud messages, pointcloud in cartesian coordinates with fields x, y, z, intensity
-int32_t SickScanApiRegisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterCartesianPointCloudMsg, "SickScanApiRegisterCartesianPointCloudMsg", SickScanApiRegisterCartesianPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterCartesianPointCloudMsg ? (ptSickScanApiRegisterCartesianPointCloudMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -378,7 +378,7 @@ int32_t SickScanApiRegisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, S
         printf("## ERROR SickScanApiRegisterCartesianPointCloudMsg: library call SickScanApiRegisterCartesianPointCloudMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterCartesianPointCloudMsg, "SickScanApiDeregisterCartesianPointCloudMsg", SickScanApiDeregisterCartesianPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterCartesianPointCloudMsg ? (ptSickScanApiDeregisterCartesianPointCloudMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -388,7 +388,7 @@ int32_t SickScanApiDeregisterCartesianPointCloudMsg(SickScanApiHandle apiHandle,
 }
 
 // Register / deregister a callback for polar PointCloud messages, pointcloud in polar coordinates with fields range, azimuth, elevation, intensity
-int32_t SickScanApiRegisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterPolarPointCloudMsg, "SickScanApiRegisterPolarPointCloudMsg", SickScanApiRegisterPolarPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterPolarPointCloudMsg ? (ptSickScanApiRegisterPolarPointCloudMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -396,7 +396,7 @@ int32_t SickScanApiRegisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickS
         printf("## ERROR SickScanApiRegisterPolarPointCloudMsg: library call SickScanApiRegisterPolarPointCloudMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterPolarPointCloudMsg, "SickScanApiDeregisterPolarPointCloudMsg", SickScanApiDeregisterPolarPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterPolarPointCloudMsg ? (ptSickScanApiDeregisterPolarPointCloudMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -406,7 +406,7 @@ int32_t SickScanApiDeregisterPolarPointCloudMsg(SickScanApiHandle apiHandle, Sic
 }
 
 // Register / deregister a callback for Imu messages
-int32_t SickScanApiRegisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterImuMsg, "SickScanApiRegisterImuMsg", SickScanApiRegisterImuMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterImuMsg ? (ptSickScanApiRegisterImuMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -414,7 +414,7 @@ int32_t SickScanApiRegisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCal
         printf("## ERROR SickScanApiRegisterImuMsg: library call SickScanApiRegisterImuMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterImuMsg, "SickScanApiDeregisterImuMsg", SickScanApiDeregisterImuMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterImuMsg ? (ptSickScanApiDeregisterImuMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -424,7 +424,7 @@ int32_t SickScanApiDeregisterImuMsg(SickScanApiHandle apiHandle, SickScanImuMsgC
 }
 
 // Register / deregister a callback for SickScanLFErecMsg messages
-int32_t SickScanApiRegisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLFErecMsg, "SickScanApiRegisterLFErecMsg", SickScanApiRegisterLFErecMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterLFErecMsg ? (ptSickScanApiRegisterLFErecMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -432,7 +432,7 @@ int32_t SickScanApiRegisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErec
         printf("## ERROR SickScanApiRegisterLFErecMsg: library call SickScanApiRegisterLFErecMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLFErecMsg, "SickScanApiDeregisterLFErecMsg", SickScanApiDeregisterLFErecMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterLFErecMsg ? (ptSickScanApiDeregisterLFErecMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -442,7 +442,7 @@ int32_t SickScanApiDeregisterLFErecMsg(SickScanApiHandle apiHandle, SickScanLFEr
 }
 
 // Register / deregister a callback for SickScanLIDoutputstateMsg messages
-int32_t SickScanApiRegisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLIDoutputstateMsg, "SickScanApiRegisterLIDoutputstateMsg", SickScanApiRegisterLIDoutputstateMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterLIDoutputstateMsg ? (ptSickScanApiRegisterLIDoutputstateMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -450,7 +450,7 @@ int32_t SickScanApiRegisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickSc
         printf("## ERROR SickScanApiRegisterLIDoutputstateMsg: library call SickScanApiRegisterLIDoutputstateMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLIDoutputstateMsg, "SickScanApiDeregisterLIDoutputstateMsg", SickScanApiDeregisterLIDoutputstateMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterLIDoutputstateMsg ? (ptSickScanApiDeregisterLIDoutputstateMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -460,7 +460,7 @@ int32_t SickScanApiDeregisterLIDoutputstateMsg(SickScanApiHandle apiHandle, Sick
 }
 
 // Register / deregister a callback for SickScanRadarScan messages
-int32_t SickScanApiRegisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterRadarScanMsg, "SickScanApiRegisterRadarScanMsg", SickScanApiRegisterRadarScanMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterRadarScanMsg ? (ptSickScanApiRegisterRadarScanMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -468,7 +468,7 @@ int32_t SickScanApiRegisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRad
         printf("## ERROR SickScanApiRegisterRadarScanMsg: library call SickScanApiRegisterRadarScanMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScanCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterRadarScanMsg, "SickScanApiDeregisterRadarScanMsg", SickScanApiDeregisterRadarScanMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterRadarScanMsg ? (ptSickScanApiDeregisterRadarScanMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -478,7 +478,7 @@ int32_t SickScanApiDeregisterRadarScanMsg(SickScanApiHandle apiHandle, SickScanR
 }
 
 // Register / deregister a callback for SickScanLdmrsObjectArray messages
-int32_t SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLdmrsObjectArrayMsg, "SickScanApiRegisterLdmrsObjectArrayMsg", SickScanApiRegisterLdmrsObjectArrayMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterLdmrsObjectArrayMsg ? (ptSickScanApiRegisterLdmrsObjectArrayMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -486,7 +486,7 @@ int32_t SickScanApiRegisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Sick
         printf("## ERROR SickScanApiRegisterLdmrsObjectArrayMsg: library call SickScanApiRegisterLdmrsObjectArrayMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArrayCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLdmrsObjectArrayMsg, "SickScanApiDeregisterLdmrsObjectArrayMsg", SickScanApiDeregisterLdmrsObjectArrayMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterLdmrsObjectArrayMsg ? (ptSickScanApiDeregisterLdmrsObjectArrayMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -496,7 +496,7 @@ int32_t SickScanApiDeregisterLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Si
 }
 
 // Register / deregister a callback for VisualizationMarker messages
-int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterVisualizationMarkerMsg, "SickScanApiRegisterVisualizationMarkerMsg", SickScanApiRegisterVisualizationMarkerMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterVisualizationMarkerMsg ? (ptSickScanApiRegisterVisualizationMarkerMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -504,7 +504,7 @@ int32_t SickScanApiRegisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, S
         printf("## ERROR SickScanApiRegisterVisualizationMarkerMsg: library call SickScanApiRegisterVisualizationMarkerMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterVisualizationMarkerMsg, "SickScanApiDeregisterVisualizationMarkerMsg", SickScanApiDeregisterVisualizationMarkerMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterVisualizationMarkerMsg ? (ptSickScanApiDeregisterVisualizationMarkerMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -518,7 +518,7 @@ int32_t SickScanApiDeregisterVisualizationMarkerMsg(SickScanApiHandle apiHandle,
 */
 
 // Register / deregister a callback for diagnostic messages (notification in case of changed status, e.g. after errors)
-int32_t SickScanApiRegisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterDiagnosticMsg, "SickScanApiRegisterDiagnosticMsg", SickScanApiRegisterDiagnosticMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterDiagnosticMsg ? (ptSickScanApiRegisterDiagnosticMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -526,7 +526,7 @@ int32_t SickScanApiRegisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDi
         printf("## ERROR SickScanApiRegisterDiagnosticMsg: library call SickScanApiRegisterDiagnosticMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScanDiagnosticMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterDiagnosticMsg, "SickScanApiDeregisterDiagnosticMsg", SickScanApiDeregisterDiagnosticMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterDiagnosticMsg ? (ptSickScanApiDeregisterDiagnosticMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -536,7 +536,7 @@ int32_t SickScanApiDeregisterDiagnosticMsg(SickScanApiHandle apiHandle, SickScan
 }
 
 // Register / deregister a callback for log messages (all informational and error messages)
-int32_t SickScanApiRegisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterLogMsg, "SickScanApiRegisterLogMsg", SickScanApiRegisterLogMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterLogMsg ? (ptSickScanApiRegisterLogMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -544,7 +544,7 @@ int32_t SickScanApiRegisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCal
         printf("## ERROR SickScanApiRegisterLogMsg: library call SickScanApiRegisterLogMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterLogMsg, "SickScanApiDeregisterLogMsg", SickScanApiDeregisterLogMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterLogMsg ? (ptSickScanApiDeregisterLogMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -554,7 +554,7 @@ int32_t SickScanApiDeregisterLogMsg(SickScanApiHandle apiHandle, SickScanLogMsgC
 }
 
 // Query current status and status message
-int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, char* message_buffer, int32_t message_buffer_size)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiGetStatus, "SickScanApiGetStatus", SickScanApiGetStatus_PROCTYPE);
     int32_t ret = (ptSickScanApiGetStatus ? (ptSickScanApiGetStatus(apiHandle, status_code, message_buffer, message_buffer_size)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -564,7 +564,7 @@ int32_t SickScanApiGetStatus(SickScanApiHandle apiHandle, int32_t* status_code, 
 }
 
 // Sends a SOPAS command like "sRN SCdevicestate" or "sRN ContaminationResult" and returns the lidar response
-int32_t SickScanApiSendSOPAS(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiSendSOPAS(SickScanApiHandle apiHandle, const char* sopas_command, char* sopas_response_buffer, int32_t response_buffer_size)
 {
   CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiSendSOPAS, "SickScanApiSendSOPAS", SickScanApiSendSOPAS_PROCTYPE);
   int32_t ret = (ptSickScanApiSendSOPAS ? (ptSickScanApiSendSOPAS(apiHandle, sopas_command, sopas_response_buffer, response_buffer_size)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -576,7 +576,7 @@ int32_t SickScanApiSendSOPAS(SickScanApiHandle apiHandle, const char* sopas_comm
 // Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
 // i.e. print messages on console above the given verbose level.
 // Default verbose level is 1 (INFO), i.e. print informational, warnings and error messages.
-int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_level)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiSetVerboseLevel, "SickScanApiSetVerboseLevel", SickScanApiSetVerboseLevel_PROCTYPE);
     int32_t ret = (ptSickScanApiSetVerboseLevel ? (ptSickScanApiSetVerboseLevel(apiHandle, verbose_level)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -586,7 +586,7 @@ int32_t SickScanApiSetVerboseLevel(SickScanApiHandle apiHandle, int32_t verbose_
 }
 
 // Returns the current verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET. Default verbose level is 1 (INFO)
-int32_t SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiGetVerboseLevel, "SickScanApiGetVerboseLevel", SickScanApiGetVerboseLevel_PROCTYPE);
     int32_t verbose_level = (ptSickScanApiGetVerboseLevel ? (ptSickScanApiGetVerboseLevel(apiHandle)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -598,7 +598,7 @@ int32_t SickScanApiGetVerboseLevel(SickScanApiHandle apiHandle)
 */
 
 // Wait for and return the next cartesian resp. polar PointCloud messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextCartesianPointCloudMsg, "SickScanApiWaitNextCartesianPointCloudMsg", SickScanApiWaitNextCartesianPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextCartesianPointCloudMsg ? (ptSickScanApiWaitNextCartesianPointCloudMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -606,7 +606,7 @@ int32_t SickScanApiWaitNextCartesianPointCloudMsg(SickScanApiHandle apiHandle, S
         printf("## ERROR SickScanApiWaitNextCartesianPointCloudMsg: library call SickScanApiWaitNextCartesianPointCloudMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg, double timeout_sec)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextPolarPointCloudMsg, "SickScanApiWaitNextPolarPointCloudMsg", SickScanApiWaitNextPolarPointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextPolarPointCloudMsg ? (ptSickScanApiWaitNextPolarPointCloudMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -614,7 +614,7 @@ int32_t SickScanApiWaitNextPolarPointCloudMsg(SickScanApiHandle apiHandle, SickS
         printf("## ERROR SickScanApiWaitNextPolarPointCloudMsg: library call SickScanApiWaitNextPolarPointCloudMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiFreePointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreePointCloudMsg(SickScanApiHandle apiHandle, SickScanPointCloudMsg* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreePointCloudMsg, "SickScanApiFreePointCloudMsg", SickScanApiFreePointCloudMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreePointCloudMsg ? (ptSickScanApiFreePointCloudMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -624,7 +624,7 @@ int32_t SickScanApiFreePointCloudMsg(SickScanApiHandle apiHandle, SickScanPointC
 }
 
 // Wait for and return the next Imu messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg, double timeout_sec)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextImuMsg, "SickScanApiWaitNextImuMsg", SickScanApiWaitNextImuMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextImuMsg ? (ptSickScanApiWaitNextImuMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -632,7 +632,7 @@ int32_t SickScanApiWaitNextImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* m
         printf("## ERROR SickScanApiWaitNextImuMsg: library call SickScanApiWaitNextImuMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiFreeImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeImuMsg, "SickScanApiFreeImuMsg", SickScanApiFreeImuMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeImuMsg ? (ptSickScanApiFreeImuMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -642,7 +642,7 @@ int32_t SickScanApiFreeImuMsg(SickScanApiHandle apiHandle, SickScanImuMsg* msg)
 }
 
 // Wait for and return the next LFErec messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-int32_t SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg, double timeout_sec)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg, double timeout_sec)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextLFErecMsg, "SickScanApiWaitNextLFErecMsg", SickScanApiWaitNextLFErecMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextLFErecMsg ? (ptSickScanApiWaitNextLFErecMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -650,7 +650,7 @@ int32_t SickScanApiWaitNextLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErec
         printf("## ERROR SickScanApiWaitNextLFErecMsg: library call SickScanApiWaitNextLFErecMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiFreeLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeLFErecMsg, "SickScanApiFreeLFErecMsg", SickScanApiFreeLFErecMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeLFErecMsg ? (ptSickScanApiFreeLFErecMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -660,7 +660,7 @@ int32_t SickScanApiFreeLFErecMsg(SickScanApiHandle apiHandle, SickScanLFErecMsg*
 }
 
 // Wait for and return the next LIDoutputstate messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-int32_t SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg, double timeout_sec)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg, double timeout_sec)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextLIDoutputstateMsg, "SickScanApiWaitNextLIDoutputstateMsg", SickScanApiWaitNextLIDoutputstateMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextLIDoutputstateMsg ? (ptSickScanApiWaitNextLIDoutputstateMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -668,7 +668,7 @@ int32_t SickScanApiWaitNextLIDoutputstateMsg(SickScanApiHandle apiHandle, SickSc
         printf("## ERROR SickScanApiWaitNextLIDoutputstateMsg: library call SickScanApiWaitNextLIDoutputstateMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiFreeLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLIDoutputstateMsg* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeLIDoutputstateMsg, "SickScanApiFreeLIDoutputstateMsg", SickScanApiFreeLIDoutputstateMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeLIDoutputstateMsg ? (ptSickScanApiFreeLIDoutputstateMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -678,7 +678,7 @@ int32_t SickScanApiFreeLIDoutputstateMsg(SickScanApiHandle apiHandle, SickScanLI
 }
 
 // Wait for and return the next RadarScan messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-int32_t SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg, double timeout_sec)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg, double timeout_sec)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextRadarScanMsg, "SickScanApiWaitNextRadarScanMsg", SickScanApiWaitNextRadarScanMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextRadarScanMsg ? (ptSickScanApiWaitNextRadarScanMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -686,7 +686,7 @@ int32_t SickScanApiWaitNextRadarScanMsg(SickScanApiHandle apiHandle, SickScanRad
         printf("## ERROR SickScanApiWaitNextRadarScanMsg: library call SickScanApiWaitNextRadarScanMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarScan* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeRadarScanMsg, "SickScanApiFreeRadarScanMsg", SickScanApiFreeRadarScanMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeRadarScanMsg ? (ptSickScanApiFreeRadarScanMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -696,7 +696,7 @@ int32_t SickScanApiFreeRadarScanMsg(SickScanApiHandle apiHandle, SickScanRadarSc
 }
 
 // Wait for and return the next LdmrsObjectArray messages. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg, double timeout_sec)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextLdmrsObjectArrayMsg, "SickScanApiWaitNextLdmrsObjectArrayMsg", SickScanApiWaitNextLdmrsObjectArrayMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextLdmrsObjectArrayMsg ? (ptSickScanApiWaitNextLdmrsObjectArrayMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -704,7 +704,7 @@ int32_t SickScanApiWaitNextLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, Sick
         printf("## ERROR SickScanApiWaitNextLdmrsObjectArrayMsg: library call SickScanApiWaitNextLdmrsObjectArrayMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScanLdmrsObjectArray* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeLdmrsObjectArrayMsg, "SickScanApiFreeLdmrsObjectArrayMsg", SickScanApiFreeLdmrsObjectArrayMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeLdmrsObjectArrayMsg ? (ptSickScanApiFreeLdmrsObjectArrayMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -714,7 +714,7 @@ int32_t SickScanApiFreeLdmrsObjectArrayMsg(SickScanApiHandle apiHandle, SickScan
 }
 
 // Wait for and return the next VisualizationMarker message. Note: SickScanApiWait...Msg() allocates a message. Use function SickScanApiFree...Msg() to deallocate it after use.
-int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg, double timeout_sec)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextVisualizationMarkerMsg, "SickScanApiWaitNextVisualizationMarkerMsg", SickScanApiWaitNextVisualizationMarkerMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextVisualizationMarkerMsg ? (ptSickScanApiWaitNextVisualizationMarkerMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -722,7 +722,7 @@ int32_t SickScanApiWaitNextVisualizationMarkerMsg(SickScanApiHandle apiHandle, S
         printf("## ERROR SickScanApiWaitNextVisualizationMarkerMsg: library call SickScanApiWaitNextVisualizationMarkerMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickScanVisualizationMarkerMsg* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeVisualizationMarkersg, "SickScanApiFreeVisualizationMarkerMsg", SickScanApiFreeVisualizationMarkerMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeVisualizationMarkersg ? (ptSickScanApiFreeVisualizationMarkersg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -735,7 +735,7 @@ int32_t SickScanApiFreeVisualizationMarkerMsg(SickScanApiHandle apiHandle, SickS
 *  NAV350 support
 */
 
-int32_t SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiRegisterNavPoseLandmarkMsg, "SickScanApiRegisterNavPoseLandmarkMsg", SickScanApiRegisterNavPoseLandmarkMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiRegisterNavPoseLandmarkMsg ? (ptSickScanApiRegisterNavPoseLandmarkMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -743,7 +743,7 @@ int32_t SickScanApiRegisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickS
         printf("## ERROR SickScanApiRegisterNavPoseLandmarkMsg: library call SickScanApiRegisterNavPoseLandmarkMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkCallback callback)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiDeregisterNavPoseLandmarkMsg, "SickScanApiDeregisterNavPoseLandmarkMsg", SickScanApiDeregisterNavPoseLandmarkMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiDeregisterNavPoseLandmarkMsg ? (ptSickScanApiDeregisterNavPoseLandmarkMsg(apiHandle, callback)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -751,7 +751,7 @@ int32_t SickScanApiDeregisterNavPoseLandmarkMsg(SickScanApiHandle apiHandle, Sic
         printf("## ERROR SickScanApiDeregisterNavPoseLandmarkMsg: library call SickScanApiDeregisterNavPoseLandmarkMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg, double timeout_sec)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiWaitNextNavPoseLandmarkMsg, "SickScanApiWaitNextNavPoseLandmarkMsg", SickScanApiWaitNextNavPoseLandmarkMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiWaitNextNavPoseLandmarkMsg ? (ptSickScanApiWaitNextNavPoseLandmarkMsg(apiHandle, msg, timeout_sec)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -759,7 +759,7 @@ int32_t SickScanApiWaitNextNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickS
         printf("## ERROR SickScanApiWaitNextNavPoseLandmarkMsg: library call SickScanApiWaitNextNavPoseLandmarkMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiFreeNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiFreeNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanNavPoseLandmarkMsg* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiFreeNavPoseLandmarkMsg, "SickScanApiFreeNavPoseLandmarkMsg", SickScanApiFreeNavPoseLandmarkMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiFreeNavPoseLandmarkMsg ? (ptSickScanApiFreeNavPoseLandmarkMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -767,7 +767,7 @@ int32_t SickScanApiFreeNavPoseLandmarkMsg(SickScanApiHandle apiHandle, SickScanN
         printf("## ERROR SickScanApiFreeNavPoseLandmarkMsg: library call SickScanApiFreeNavPoseLandmarkMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiNavOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiNavOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanNavOdomVelocityMsg* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiNavOdomVelocityMsg, "SickScanApiNavOdomVelocityMsg", SickScanApiNavOdomVelocityMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiNavOdomVelocityMsg ? (ptSickScanApiNavOdomVelocityMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);
@@ -775,7 +775,7 @@ int32_t SickScanApiNavOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanNavOd
         printf("## ERROR SickScanApiNavOdomVelocityMsg: library call SickScanApiNavOdomVelocityMsg() failed, error code %d\n", ret);
     return ret;
 }
-int32_t SickScanApiOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg)
+int32_t SICK_SCAN_XD_API_CALLING_CONVENTION SickScanApiOdomVelocityMsg(SickScanApiHandle apiHandle, SickScanOdomVelocityMsg* msg)
 {
     CACHE_FUNCTION_PTR(apiHandle, ptSickScanApiOdomVelocityMsg, "SickScanApiOdomVelocityMsg", SickScanApiOdomVelocityMsg_PROCTYPE);
     int32_t ret = (ptSickScanApiOdomVelocityMsg ? (ptSickScanApiOdomVelocityMsg(apiHandle, msg)) : SICK_SCAN_API_NOT_INITIALIZED);

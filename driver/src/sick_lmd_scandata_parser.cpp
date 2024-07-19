@@ -108,17 +108,21 @@ namespace sick_scan_xd
       */
     bool check_near_plus_minus_pi(float *angle_val)
     {
-       bool angle_slightly_modified = false;
-       float pi_multiplier = *angle_val/M_PI;
-       // float check_deviation_to_abs_one = fabs(pi_multiplier) - 1.0;
-       // check for a small deviation
-       // if (check_deviation_to_abs_one < 10.0 * FLT_EPSILON )
-       if (pi_multiplier > 1.0 - 10.0 * FLT_EPSILON || pi_multiplier < -1.0 + 10.0 * FLT_EPSILON)
-       {
+      bool angle_slightly_modified = false;
+      float pi_multiplier = *angle_val/M_PI;
+      // float check_deviation_to_abs_one = fabs(pi_multiplier) - 1.0;
+      // check for a small deviation
+      // if (check_deviation_to_abs_one < 10.0 * FLT_EPSILON )
+      if (pi_multiplier > 1.1 || pi_multiplier < -1.1)
+      {
+        ROS_WARN_STREAM("check_near_plus_minus_pi: min or max angle = " << *angle_val * 180 / M_PI << " degree, expected angle within -180 to +180 degree, check scan angle shift settings.");
+      }
+      else if (pi_multiplier > 1.0 - 10.0 * FLT_EPSILON || pi_multiplier < -1.0 + 10.0 * FLT_EPSILON)
+      {
         float factor =  (*angle_val < 0.0) ? (-1.0) : (1.0);
         *angle_val = factor * (1.0 - FLT_EPSILON) * M_PI;
         angle_slightly_modified = true;  
-       }
+      }
       else
       {
         angle_slightly_modified =false;
@@ -466,13 +470,13 @@ namespace sick_scan_xd
                         swap_endian((unsigned char *) &sizeOfSingleAngularStepDiv10000, 2);
                         swap_endian((unsigned char *) &numberOfItems, 2);
 
-                        /* if (lms1000_debug) // LMS-1000 diagnosis
+                        if(false) // if (lms1000_debug) // LMS-1000 diagnosis
                         {
-                          ROS_INFO_STREAM("LMDscandata: lidar_scan_time=" << SystemCountScan << " microsec, lidar_transmit_time=" << SystemCountTransmit << " microsec, "
+                          ROS_DEBUG_STREAM("LMDscandata: lidar_scan_time=" << SystemCountScan << " microsec, lidar_transmit_time=" << SystemCountTransmit << " microsec, "
                             << "scan_frequency=" << (0.01 * scanFrequencyX100) << " Hz, measurement_frequency=" << measurementFrequencyDiv100 << " Hz,"
                             << "start_angle=" << (0.0001 * startAngleDiv10000) << " [deg], angular_step="<< (0.0001 * sizeOfSingleAngularStepDiv10000) << " [deg]");
-                          lms1000_debug = false;
-                        } */
+                          // lms1000_debug = false;
+                        } //
 
                         if (processData)
                         {
@@ -514,7 +518,9 @@ namespace sick_scan_xd
                                   msg.time_increment = fabs(parser_->getCurrentParamPtr()->getNumberOfLayers() * msg.scan_time * msg.angle_increment / (2.0 * M_PI));
                               }
 
-                              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0)
+                              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0 
+                               || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0
+                               || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_OEM_15XX_NAME) == 0)
                               {
                                 msg.angle_min = (float)(-M_PI);
                                 msg.angle_max = (float)(+M_PI);
@@ -530,11 +536,6 @@ namespace sick_scan_xd
                               }
                               else if (parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. for SICK_SCANNER_LRS_36x0_NAME and SICK_SCANNER_NAV_31X_NAME
                               {
-                                /* TODO: Check this ...
-                                msg.angle_min -= (float)(M_PI / 2);
-                                msg.angle_max -= (float)(M_PI / 2);
-                                */
-
                                 msg.angle_min *= -1.0;
                                 msg.angle_increment *= -1.0;
                                 msg.angle_max *= -1.0;

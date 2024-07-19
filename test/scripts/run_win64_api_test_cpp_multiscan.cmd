@@ -24,7 +24,7 @@ REM
 REM Run sick_scan_xd_api_test (cpp)
 REM 
 
-start "sick_scan_xd_api_test" cmd /k .\build_win64\Debug\sick_scan_xd_api_test.exe ./launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1 scandataformat:=1
+start "sick_scan_xd_api_test" cmd /k .\build_win64\Debug\sick_scan_xd_api_test.exe ./launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:=127.0.0.1
 @timeout /t 3
 
 REM 

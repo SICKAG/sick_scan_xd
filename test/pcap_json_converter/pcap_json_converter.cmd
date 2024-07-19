@@ -13,6 +13,8 @@ echo PYTHON_DIR=%PYTHON_DIR%
 python --version
 @echo.
 
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240527-LRS36x0.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240527-OEM15xx.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240307-MRS1xxx-default-settings-rssiflag3-angres0.2500-scanfreq50.0.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240307-MRS1xxx-default-settings-rssiflag3-angres0.1250-scanfreq25.0.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240307-MRS1xxx-default-settings-rssiflag3-angres0.0625-scanfreq12.5.pcapng

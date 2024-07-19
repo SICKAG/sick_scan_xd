@@ -188,7 +188,8 @@ void sick_scan_xd::PointCloudMonitor::stopPointCloudMonitoring(void)
   m_monitoring_thread_running = false;
   if(m_monitoring_thread)
   {
-    m_monitoring_thread->join();
+    if (m_monitoring_thread->joinable())
+       m_monitoring_thread->join();
     delete(m_monitoring_thread);
     m_monitoring_thread = 0;
   }

@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <ctime>
+#include <cstdint>
 
 class SoftwarePLL
 {
@@ -42,7 +43,13 @@ public:
   static void testbed();
 
   bool IsInitialized() const
-  { return isInitialized; }
+  { 
+    if (ticksToTimestampMode == TICKS_TO_MICROSEC_OFFSET_TIMESTAMP)
+    {
+      return (offsetTimestampFirstLidarTick > 0);
+    }
+    return isInitialized; 
+  }
 
   void IsInitialized(bool val)
   { isInitialized = val; }
@@ -86,6 +93,11 @@ public:
   size_t packets_received = 0;   // just for printing statusmessages when dropping packets
   double max_abs_delta_time = 0; // just for printing statusmessages when dropping packets
 
+  void setTicksToTimestampMode(int val)
+  {
+    ticksToTimestampMode = (TICKS_TO_TIMESTAMP_MODE)val;
+  }
+
 private:
   int numberValInFifo;
   static const double MaxAllowedTimeDeviation;
@@ -105,6 +117,16 @@ private:
   uint32_t mostRecentNanoSec;
   double mostRecentTimeStamp;
   double interpolationSlope;
+
+  enum TICKS_TO_TIMESTAMP_MODE
+  {
+    TICKS_TO_SYSTEM_TIMESTAMP = 0, // default: convert lidar ticks in microseconds to system timestamp by software-pll
+    TICKS_TO_MICROSEC_OFFSET_TIMESTAMP = 1 // optional tick-mode: convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp
+  };
+  TICKS_TO_TIMESTAMP_MODE ticksToTimestampMode = TICKS_TO_SYSTEM_TIMESTAMP;
+  uint32_t offsetTimestampFirstSystemSec = 0;
+  uint32_t offsetTimestampFirstSystemMicroSec = 0;
+  uint32_t offsetTimestampFirstLidarTick = 0;
 
   bool nearSameTimeStamp(double relTimeStamp1, double relTimeStamp2, double& delta_time_abs);
 
