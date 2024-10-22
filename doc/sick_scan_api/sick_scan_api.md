@@ -327,7 +327,7 @@ The API provides the following functions for diagnostics:
 * SickScanApiRegisterDiagnosticMsg and SickScanApiDeregisterDiagnosticMsg: Register resp. deregister a callback to receive diagnostic messages. Diagnostic messages contain a status code and status message. The status code is one of the following numbers:
    * OK=0 (normal operation)
    * WARN=1 (warning)
-   * ERROR=2 (error, should not occure)
+   * ERROR=2 (error, should not occur)
    * INIT=3 (initialization after startup or reconnection)
    * EXIT=4 (sick_scan_xd exiting)
    
