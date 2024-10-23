@@ -2,7 +2,7 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
+3.6.0 (2024-10-23)
 -----------
 * Release v3.6.0
   * add: Launchfiles and configuration for picoScan120
@@ -24,7 +24,7 @@ Forthcoming
   * fix: CMake-flag for target sick_scan_xd_api_dockertest #404
   * change: Merge PR #405 (typo) and PR #406 (sick_scan_xd_api_test)
 
-3.5.0 (2024-xx-xx)
+3.5.0 (2024-07-19)
 ------------------
 * Release v3.5.0
   * add: Optional switch between "system timestamps" (default) and "tick timestamps"
@@ -38,8 +38,8 @@ Forthcoming
   * add: Integration PR #347 (NAV350 landmarks)
   * add: Support for 3D-SLAM (OctoMap, RTAB-Map, timestamps for each scanpoint for deskewing, configuration example for multiScan)
   * add: customisations for gcc 13 (Ubuntu 24)
-  * add: Update for bloom releases ROS-2 iron and jazzy 
-  * add: Configuration multiScan interval filter via launchfile (#352) 
+  * add: Update for bloom releases ROS-2 iron and jazzy
+  * add: Configuration multiScan interval filter via launchfile (#352)
   * add: SPDX licence text (PR #354)
   * fix: Fix #355 (API launchfile parsing error)
   * add: Example configurations for parallel operation multi and picoScan
@@ -58,7 +58,7 @@ Forthcoming
 3.3.0 (2024-03-04)
 ------------------
 * Release v3.3.0
-  * add: Option for MRS1xxx azimuth correction table 
+  * add: Option for MRS1xxx azimuth correction table
   * add: Support for picoScan100 (single echo w/o addons)
   * add: API logging functions and verbosity (#270)
   * add: API documentation (multiple lidars not supported, #281)
