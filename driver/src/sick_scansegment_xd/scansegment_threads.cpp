@@ -325,17 +325,30 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             if (sopas_tcp->isConnected())
             {
                 sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
-                sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable, m_config.imu_udp_port, m_config.performanceprofilenumber);
+                if (!sopas_service->sendMultiScanStartCmd(m_config.udp_receiver_ip, m_config.udp_port, m_config.scanner_type, m_config.scandataformat, m_config.imu_enable, m_config.imu_udp_port, 
+                    m_config.performanceprofilenumber, m_config.check_udp_receiver_ip, m_config.check_udp_receiver_port))
+                {
+                    ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: failed to send startup sequence, receiving scan data may fail.");
+                }
             }
             else
             {
-                ROS_WARN_STREAM("## ERROR sick_scansegment_xd: no sopas tcp connection, multiScan136 start commands not sent.");
+                ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: no sopas tcp connection, startup sequence not sent, receiving scan data may fail.");
             }
         }
 
         // Run event loop and monitor tcp-connection and udp messages
         setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
         s_sopas_service = sopas_service;
+        // Wait for first udp message with initial timeout after start in milliseconds, default: 60*1000
+        fifo_timestamp fifo_timestamp_start = fifo_clock::now();
+        while(m_run_scansegment_thread && rosOk() && sopas_tcp->isConnected() 
+            && udp_receiver->Fifo()->TotalMessagesPushed() <= 1 
+            && udp_receiver->Fifo()->Seconds(fifo_timestamp_start, fifo_clock::now()) <= 1.0e-3 * m_config.udp_timeout_ms_initial)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }    
+        // Monitor udp packets with timeout for udp messages in milliseconds, default: 10*1000
         while(m_run_scansegment_thread && rosOk())
         {
             if (!sopas_tcp->isConnected())
@@ -343,12 +356,22 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: sopas tcp connection lost, stop and reconnect...");
                 break;
             }
-            if (udp_receiver->Fifo()->TotalMessagesPushed() > 10 && udp_receiver->Fifo()->SecondsSinceLastPush() > 1.0e-3 * m_config.udp_timeout_ms)
+            if (udp_receiver->Fifo()->TotalMessagesPushed() <= 1 || udp_receiver->Fifo()->SecondsSinceLastPush() > 1.0e-3 * m_config.udp_timeout_ms)
             {
-                ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: " << (udp_receiver->Fifo()->TotalMessagesPushed()) << " udp messages received, last message " << (udp_receiver->Fifo()->SecondsSinceLastPush()) << " seconds ago.");
+                ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: " << (udp_receiver->Fifo()->TotalMessagesPushed()) << " udp messages received");
+                if (udp_receiver->Fifo()->TotalMessagesPushed() > 0)
+                {
+                    ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: last message received " << (udp_receiver->Fifo()->SecondsSinceLastPush()) << " seconds ago.");
+                }
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: udp receive timeout, stop and reconnect...");
                 break;
             }
+            // Unit test for restart after timeout error - do not activate except for error and timeout simulation
+            // if (udp_receiver->Fifo()->TotalMessagesPushed() > 1000)
+            // {
+            //     ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: " << (udp_receiver->Fifo()->TotalMessagesPushed()) << " udp messages received, simulating timeout error, aborting to restart");
+            //     break;
+            // }
             setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }

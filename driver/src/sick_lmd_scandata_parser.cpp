@@ -207,17 +207,6 @@ namespace sick_scan_xd
                   //DataDumper::instance().pushData((double)SystemCountScan, "LASERTRANSMITDELAY", debug_duration.toSec());
 #endif
 
-                  /*
-                  uint16_t u16_active_fieldset = 0;
-                  memcpy(&u16_active_fieldset, receiveBuffer + 46, 2); // byte 46 + 47: input status (0 0), active fieldset
-                  swap_endian((unsigned char *) &u16_active_fieldset, 2);
-                  SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
-                  if(fieldMon)
-                  {
-                    fieldMon->setActiveFieldset(u16_active_fieldset & 0xFF);
-                    ROS_INFO_STREAM("Binary scandata: active_fieldset = " << fieldMon->getActiveFieldset());
-                  }
-                  */
                   // byte 48 + 49: output status (0 0)
                   // byte 50 + 51: reserved
 
@@ -249,6 +238,7 @@ namespace sick_scan_xd
 
                   memcpy(&numOfEncoders, receiveBuffer + 60, 2);
                   swap_endian((unsigned char *) &numOfEncoders, 2);
+                  // ROS_DEBUG_STREAM("numOfEncoders = " << numOfEncoders);
                   int encoderDataOffset = 6 * numOfEncoders;
                   int32_t EncoderPosTicks[4] = {0};
                   int16_t EncoderSpeed[4] = {0};

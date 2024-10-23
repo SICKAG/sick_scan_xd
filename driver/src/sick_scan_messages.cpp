@@ -61,27 +61,25 @@
 #include <iomanip>
 #include "sick_scan/sick_scan_messages.h"
 
-typedef uint8_t* byte_ptr;
-template<typename T> static bool readBinaryBuffer(byte_ptr& buffer, int & bufferlen, T& value)
-{
-    if(sizeof(value) > bufferlen)
-    {
-        ROS_ERROR_STREAM("## ERROR SickScanMessages::readBinaryBuffer(): bufferlen=" << bufferlen << " byte, " << sizeof(value) << " byte required.");
-        return false;
-    }
-    memcpy(&value, buffer, sizeof(value));
-    swap_endian((unsigned char *) &value, sizeof(value));
-    buffer += sizeof(value);
-    bufferlen -= (int)sizeof(value);
-    return true;
-}
-
 sick_scan_xd::SickScanMessages::SickScanMessages(rosNodePtr nh)
 {
 }
 
 sick_scan_xd::SickScanMessages::~SickScanMessages()
 {
+}
+
+static char* readNextAsciiHexValue(char* msg_ptr, uint32_t* value)
+{
+    if (msg_ptr)
+    {
+        if(1 != sscanf(msg_ptr, "%x", value))
+            return 0; // read error
+        msg_ptr = strchr(msg_ptr, ' ');
+        while (msg_ptr && isspace(*msg_ptr))
+            msg_ptr++;
+    }
+    return msg_ptr;
 }
 
 /*
@@ -103,13 +101,13 @@ sick_scan_xd::SickScanMessages::~SickScanMessages()
  */
 bool sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeStamp, uint8_t* receiveBuffer, int receiveLength, bool useBinaryProtocol, const std::string& frame_id, sick_scan_msg::LIDoutputstateMsg& output_msg)
 {
-    if(useBinaryProtocol)
+    if(useBinaryProtocol) // Cola-A support in release 3.6
     {
         // parse and convert LIDoutputstate message
         int dbg_telegram_length = receiveLength;
         std::string dbg_telegram_hex_copy = DataDumper::binDataToAsciiString(receiveBuffer, receiveLength);
-        int msg_start_idx = 27;  // 4 byte STX + 4 byte payload_length + 19 byte "sSN LIDoutputstate " = 27 byte
-        int msg_parameter_length = receiveLength - msg_start_idx - 1; // start bytes + 1 byte CRC
+        int msg_start_idx = 27;
+        int msg_parameter_length = receiveLength - msg_start_idx - 1; // Cola-B: payload + 1 byte CRC // Cola-A: payload +  1 byte ETX
         if(msg_parameter_length < 8) // at least 6 byte (version+system) + 2 byte (timestamp status)
         {
             ROS_ERROR_STREAM("## ERROR SickScanMessages::parseLIDoutputstateMsg(): received " << receiveLength << " byte, expected at least 8 byte (" << __FILE__ << ":" << __LINE__ << ")");
@@ -143,7 +141,7 @@ bool sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeS
                 << DataDumper::binDataToAsciiString(receiveBuffer, receiveLength));
             return false;
         }
-        // Read 2 byte version + 2 byte system status
+        // Read 2 byte version + 4 byte system counter
         receiveBuffer += msg_start_idx;
         receiveLength -= msg_start_idx;
         if( !readBinaryBuffer(receiveBuffer, receiveLength, output_msg.version_number)
@@ -218,9 +216,67 @@ bool sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeS
 
         return true;
     }
-    else
+    else // i.e. RMS-2xxx
     {
-        ROS_ERROR_STREAM("## ERROR SickScanMessages::parseLIDoutputstateMsg not implemented for Cola-A messages(" << __FILE__ << ":" << __LINE__ << ")");        
+        // ROS_ERROR_STREAM("## ERROR SickScanMessages::parseLIDoutputstateMsg not implemented for Cola-A messages(" << __FILE__ << ":" << __LINE__ << ")");        
+        int msg_offset = 20;  // Cola-A: 1 byte STX + 19 byte "sSN LIDoutputstate " = 20 byte
+        char* msg_ptr = (char*)(msg_offset < receiveLength ? (receiveBuffer + msg_offset) : 0);
+        // Parse version_number and system_counter
+        uint32_t version_number = 0, system_counter = 0;
+        msg_ptr = readNextAsciiHexValue(msg_ptr, &version_number);
+        msg_ptr = readNextAsciiHexValue(msg_ptr, &system_counter);
+        output_msg.version_number = (uint16_t)(version_number & 0xFFFF);
+        output_msg.system_counter = system_counter;
+        for(int state_cnt = 0; state_cnt < 7 && msg_ptr != 0; state_cnt++) // Read state and count of Out1 to Out7
+        {
+            uint32_t output_state = 2, output_count = 0; // output_state 2: not used
+            msg_ptr = readNextAsciiHexValue(msg_ptr, &output_state);
+            msg_ptr = readNextAsciiHexValue(msg_ptr, &output_count);
+            if (msg_ptr && (output_state == 0 || output_state == 1)) // 0: not active, 1: active, 2: not used
+            {
+                output_msg.output_state.push_back((uint8_t)(output_state & 0xFF));
+                output_msg.output_count.push_back(output_count);
+            }
+        }
+        for(int state_cnt = 0; state_cnt < 8; state_cnt++) // Read state and count of Ext.Out1 to Ext.Out8 (not supported?)
+        {
+        }
+        // Read optional date and time
+        uint32_t time_state = 0, year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, microsecond = 0;
+        msg_ptr = readNextAsciiHexValue(msg_ptr, &time_state);
+        if (msg_ptr && time_state > 0)
+        {
+            msg_ptr = readNextAsciiHexValue(msg_ptr, &year);
+            msg_ptr = readNextAsciiHexValue(msg_ptr, &month);
+            msg_ptr = readNextAsciiHexValue(msg_ptr, &day);
+            msg_ptr = readNextAsciiHexValue(msg_ptr, &hour);
+            msg_ptr = readNextAsciiHexValue(msg_ptr, &minute);
+            msg_ptr = readNextAsciiHexValue(msg_ptr, &second);
+            msg_ptr = readNextAsciiHexValue(msg_ptr, &microsecond);
+        }
+        output_msg.time_state = (uint16_t)time_state;
+        output_msg.year = (uint16_t)year;
+        output_msg.month = (uint8_t)month;
+        output_msg.day = (uint8_t)day;
+        output_msg.hour = (uint8_t)hour;
+        output_msg.minute = (uint8_t)minute;
+        output_msg.second = (uint8_t)second;
+        output_msg.microsecond = (uint32_t)microsecond;
+        output_msg.header.stamp = timeStamp;
+        ROS_HEADER_SEQ(output_msg.header, 0);
+        output_msg.header.frame_id = frame_id;
+        // Debug messages
+        std::stringstream state_str;
+        for(int state_cnt = 0; state_cnt < output_msg.output_count.size(); state_cnt++)
+            state_str << "state[" << state_cnt << "]: " << (uint32_t)output_msg.output_state[state_cnt] << ", count=" << (uint32_t)output_msg.output_count[state_cnt] << "\n";
+        ROS_DEBUG_STREAM("SickScanMessages::parseLIDoutputstateMsg():\n"
+            << receiveLength << " byte telegram: "  << std::string((char*)receiveBuffer + 1, receiveLength - 2) << "\n"
+            << "version_number: " << (uint32_t)output_msg.version_number << ", system_counter: " << (uint32_t)output_msg.system_counter << "\n"
+            << state_str.str()
+            << "time state: " << (uint32_t)output_msg.time_state
+            << ", date: " << std::setfill('0') << std::setw(4) << (uint32_t)output_msg.year << "-" << std::setfill('0') << std::setw(2) << (uint32_t)output_msg.month << "-" << std::setfill('0') << std::setw(2) << (uint32_t)output_msg.day
+            << ", time: " << std::setfill('0') << std::setw(2) << (uint32_t)output_msg.hour << ":" << std::setfill('0') << std::setw(2) << (uint32_t)output_msg.minute << ":" << std::setfill('0') << std::setw(2) << (uint32_t)output_msg.second << "." << std::setfill('0') << std::setw(6) << (uint32_t)output_msg.microsecond);
+        return true;
     }
     return false;
 }

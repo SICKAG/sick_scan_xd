@@ -115,6 +115,8 @@
 
 #define RETURN_ERROR_ON_RESPONSE_TIMEOUT(result,reply) if(((result)!=ExitSuccess)&&((reply).empty()))return(ExitError)
 
+static const int MAX_STR_LEN = 1024;
+
 /*!
 \brief Universal swapping function
 \param ptr: Pointer to datablock
@@ -625,14 +627,22 @@ namespace sick_scan_xd
 
     cloud_marker_ = 0;
     publish_lferec_ = false;
+    publish_lidinputstate_ = false;
     publish_lidoutputstate_ = false;
     if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
     {
       lferec_pub_ = rosAdvertise<sick_scan_msg::LFErecMsg>(nh, nodename + "/lferec", 100);
+      lidinputstate_pub_ = rosAdvertise<sick_scan_msg::LIDinputstateMsg>(nh, nodename + "/lidinputstate", 100);
       lidoutputstate_pub_ = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(nh, nodename + "/lidoutputstate", 100);
       publish_lferec_ = true;
+      publish_lidinputstate_ = true;
       publish_lidoutputstate_ = true;
       cloud_marker_ = new sick_scan_xd::SickScanMarker(nh, nodename + "/marker", config_.frame_id); // "cloud");
+    }
+    else if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_RMS_XXXX_NAME) == 0) // RMS2xxx provides LIDoutputstate telegrams
+    {
+      lidoutputstate_pub_ = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(nh, nodename + "/lidoutputstate", 100);
+      publish_lidoutputstate_ = true;
     }
 
     // Pointcloud2 publisher
@@ -645,10 +655,16 @@ namespace sick_scan_xd
       imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, nodename + "/imu", 100);
 
       Encoder_pub = rosAdvertise<sick_scan_msg::Encoder>(nh, nodename + "/encoder", 100);
-    }
 
-    // scan publisher
-    pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, laserscan_topic, 1000);
+      // scan publisher
+      pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, laserscan_topic, 1000);
+    }
+    else
+    {
+#if defined USE_DIAGNOSTIC_UPDATER
+      diagnostics_ = 0;
+#endif      
+    }
 
 #if defined USE_DIAGNOSTIC_UPDATER
     if(diagnostics_)
@@ -913,7 +929,7 @@ namespace sick_scan_xd
   \param requestStr command string (either as ASCII or BINARY)
   \return expected answer string
    */
-  std::vector<std::string> SickScanCommon::generateExpectedAnswerString(const std::vector<unsigned char> requestStr)
+  std::vector<std::string> SickScanCommon::generateExpectedAnswerString(const std::vector<unsigned char>& requestStr)
   {
     std::string expectedAnswer = "";
     //int i = 0;
@@ -1026,6 +1042,22 @@ namespace sick_scan_xd
     return (expectedAnswers);
   }
 
+  /*! Returns a list of unexpected lidar responses like "" for request ""
+    *
+    * @param requestStr sent request string
+    * @return Expected answer
+    */
+  std::vector<std::string> SickScanCommon::generateUnexpectedAnswerString(const std::string& requestStr)
+  {
+    std::vector<std::string> unexpected_responses;
+    if (requestStr.find("SetAccessMode") != std::string::npos)
+    {
+      unexpected_responses.push_back(std::string("sAN SetAccessMode 0"));         // SetAccessMode failed (Cola-A)
+      unexpected_responses.push_back(std::string("sAN SetAccessMode \x00", 19));  // SetAccessMode failed (Cola-B)
+    }
+    return unexpected_responses;
+  }
+
   /*!
   \brief send command and check answer
   \param requestStr: Sopas-Command
@@ -1105,9 +1137,23 @@ namespace sick_scan_xd
       for(int retry_answer_cnt = 0; result != 0; retry_answer_cnt++)
       {
         std::string answerStr = replyToString(*reply);
+        std::string replyStrOrg = std::string((const char*)reply->data(), reply->size());
         std::stringstream expectedAnswers;
         std::vector<std::string> searchPattern = generateExpectedAnswerString(requestStr);
+        std::vector<std::string> searchPatternNeg = generateUnexpectedAnswerString(reqStr);
 
+        for(int n = 0; n < searchPatternNeg.size(); n++)
+        {
+          ROS_DEBUG_STREAM("Compare lidar response \"" << DataDumper::binDataToAsciiString((const uint8_t*)replyStrOrg.data(), replyStrOrg.size())  << "\" to unexpected pattern \"" 
+            << DataDumper::binDataToAsciiString((const uint8_t*)searchPatternNeg[n].data(), searchPatternNeg[n].size()) << "\" ...");
+          if (replyStrOrg.find(searchPatternNeg[n]) != std::string::npos)
+          {
+            ROS_ERROR_STREAM("Unexpected response \"" << DataDumper::binDataToAsciiString((const uint8_t*)replyStrOrg.data(), replyStrOrg.size()) << "\" received from lidar, \"" 
+              << DataDumper::binDataToAsciiString((const uint8_t*)searchPatternNeg[n].data(), searchPatternNeg[n].size()) 
+              << "\" not expected, SOPAS command failed.");
+            break;
+          }
+        }
         for(int n = 0; result != 0 && n < searchPattern.size(); n++)
         {
           if (answerStr.find(searchPattern[n]) != std::string::npos)
@@ -1137,7 +1183,11 @@ namespace sick_scan_xd
               diagnostics_->broadcast(getDiagnosticErrorCode(), tmpMsg);
   #endif
             result = -1;
-
+            if (strncmp(answerStr.c_str(), "sFA", 3) == 0) // Error code received from lidar -> abort waiting for an expected answer
+            {
+              ROS_WARN_STREAM("Sopas error code " << answerStr.substr(4) << " received from lidar");
+              break;
+            }
             // Problably we received some scan data message. Ignore and try again...
             std::vector<std::string> response_keywords = { sick_scan_xd::SickScanMessages::getSopasCmdKeyword((uint8_t*)requestStr.data(), requestStr.size()) };
             if(retry_answer_cnt < 100 && (rosNanosecTimestampNow() - retry_start_timestamp_nsec) / 1000000 < m_read_timeout_millisec_default)
@@ -1531,6 +1581,19 @@ namespace sick_scan_xd
     sopasCmdVec[CMD_SET_NTP_INTERFACE_ETH] = "\x02sWN TSCTCInterface 0\x03";
 
     /*
+     * Overwrite CMD_SET_ACCESS_MODE_3 by customized hash value
+     */
+    std::string client_authorization_pw = "F4724744";
+    rosDeclareParam(nh, "client_authorization_pw", client_authorization_pw);
+    rosGetParam(nh, "client_authorization_pw", client_authorization_pw);
+    if (!client_authorization_pw.empty() && client_authorization_pw != "F4724744")
+    {
+      std::string s_access_mode_3 = std::string("\x02sMN SetAccessMode 3 ") + client_authorization_pw + std::string("\x03\0");
+      sopasCmdVec[CMD_SET_ACCESS_MODE_3] = s_access_mode_3;
+      sopasCmdVec[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER] = s_access_mode_3;
+    }
+
+    /*
      * Radar specific commands
      */
     sopasCmdVec[CMD_SET_TRANSMIT_RAWTARGETS_ON] = "\x02sWN TransmitTargets 1\x03";  // transmit raw target for radar
@@ -1642,22 +1705,23 @@ namespace sick_scan_xd
     sopasCmdMaskVec[CMD_APPLICATION_MODE] = "\x02sWN SetActiveApplications 1 %s %d\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES] = "\x02sWN LMPoutputRange 1 %X %X %X\x03";
     sopasCmdMaskVec[CMD_SET_OUTPUT_RANGES_NAV3] = "\x02sWN LMPoutputRange 1 %X %X %X %X %X %X %X %X %X %X %X %X\x03";
-    sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 0 0 %02d 0 0 0 %d 1\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
+    sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %d 0 %d %d 0 %d 0 0 0 0 %d 1\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag // "\x02sWN LMDscandatacfg %02d 00 %d %d 0 0 %02d 0 0 0 %d 1\x03"
     /*
-   configuration
- * in ASCII
- * sWN LMDscandatacfg  %02d 00 %d   %d  0    %02d    0  0    0  1  1
- *                      |      |    |   |     |      |  |    |  |  | +----------> Output rate       -> All scans: 1--> every 1 scan
- *                      |      |    |   |     |      |  |    |  +----------------> Time             ->True (unused in Data Processing, TiM240:false)
- *                      |      |    |   |     |      |  |    +-------------------> Comment          ->False
- *                      |      |    |   |     |      |  +------------------------> Device Name      ->False
- *                      |      |    |   |     |      +---------------------------> Position         ->False
- *                      |      |    |   |     +----------------------------------> Encoder          ->Param set by Mask
- *                      |      |    |   +----------------------------------------> Unit of Remission->Always 0
- *                      |      |    +--------------------------------------------> RSSi Resolution  ->0 8Bit 1 16 Bit
- *                      |      +-------------------------------------------------> Remission data   ->Param set by Mask 0 False 1 True
- *                      +--------------------------------------------------------> Data channel     ->Param set by Mask
-*/
+    * configuration in ASCII
+    * sWN LMDscandatacfg  %d 0 %d   %d   0  %d  0  0  0  0 %d  1
+    *                      |    |    |   |   |  |  |  |  |  |  |
+    *                      |    |    |   |   |  |  |  |  |  |  +----------> Output rate      -> All scans: 1--> every 1 scan
+    *                      |    |    |   |   |  |  |  |  |  +-------------> Time             -> True (unused in Data Processing, TiM240:false)
+    *                      |    |    |   |   |  |  |  |  +----------------> Comment          -> False
+    *                      |    |    |   |   |  |  |  +-------------------> Device Name      -> False
+    *                      |    |    |   |   |  |  +----------------------> Position         -> False
+    *                      |    |    |   |   |  +-------------------------> Encoder MSB       -> Always 0
+    *                      |    |    |   |   +----------------------------> Encoder LSB       -> Param set by Mask (0 = no encoder, 1 = activate encoder), default: 0
+    *                      |    |    |   +--------------------------------> Unit of Remission -> Always 0
+    *                      |    |    +------------------------------------> RSSi Resolution   -> 0 8Bit 1 16 Bit
+    *                      |    +-----------------------------------------> Remission data    -> Param set by Mask 0 False 1 True
+    *                      +----------------------------------------------> Data channel      -> Param set by Mask
+    */
     sopasCmdMaskVec[CMD_GET_PARTIAL_SCANDATA_CFG] = "\x02sRA LMPscancfg %02d 00 %d %d 0 0 %02d 0 0 0 1 1\x03";
     sopasCmdMaskVec[CMD_GET_SAFTY_FIELD_CFG] = "\x02sRN field%03d\x03";
     sopasCmdMaskVec[CMD_SET_ECHO_FILTER] = "\x02sWN FREchoFilter %d\x03";
@@ -1761,7 +1825,6 @@ namespace sick_scan_xd
     // ML: Add here more useful cmd and mask entries
 
     // After definition of command, we specify the command sequence for scanner initalisation
-
     if (parser_->getCurrentParamPtr()->getUseSafetyPasWD())
     {
       sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER);
@@ -1983,7 +2046,6 @@ namespace sick_scan_xd
   int SickScanCommon::init_scanner(rosNodePtr nh)
   {
 
-    const int MAX_STR_LEN = 1024;
 
     int maxNumberOfEchos = 1;
 
@@ -3305,11 +3367,11 @@ namespace sick_scan_xd
           //normal scanconfig handling
           char requestLMDscandatacfg[MAX_STR_LEN];
           // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
-          // sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %02d 00 %d %d 00 %d 00 0 0 0 1 %d\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
+          // sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG] = "\x02sWN LMDscandatacfg %d 0 %d %d 0 %d 0 0 0 0 %d 1\x03"; // outputChannelFlagId, rssiFlag, rssiResolutionIs16Bit, EncoderSettings, timingflag
           const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_PARTIAL_SCANDATA_CFG].c_str();
             sprintf(requestLMDscandatacfg, pcCmdMask, outputChannelFlagId, rssi_flag,
                   rssiResolutionIs16Bit ? 1 : 0,
-                  EncoderSettings != -1 ? EncoderSettings : 0,
+                  EncoderSettings > 0 ? 1 : 0,
                   scandatacfg_timingflag);
           if (useBinaryCmd)
           {
@@ -3613,6 +3675,7 @@ namespace sick_scan_xd
     }
     else if (this->parser_->getCurrentParamPtr()->getDeviceIsRadar())
     {
+      bool activate_lidoutputstate = false;
       bool transmitRawTargets = true;
       bool transmitObjects = true;
       int trackingMode = 0;
@@ -3629,6 +3692,10 @@ namespace sick_scan_xd
       rosDeclareParam(nh, "tracking_mode", trackingMode);
       rosGetParam(nh, "tracking_mode", trackingMode);
 
+      rosDeclareParam(nh, "activate_lidoutputstate", activate_lidoutputstate);
+      rosGetParam(nh, "activate_lidoutputstate", activate_lidoutputstate);
+
+      ROS_INFO_STREAM("LIDoutputstate messages are switched [" << (activate_lidoutputstate ? "ON" : "OFF") << "]");
       ROS_INFO_STREAM("Raw target transmission is switched [" << (transmitRawTargets ? "ON" : "OFF") << "]");
       ROS_INFO_STREAM("Object transmission is switched [" << (transmitObjects ? "ON" : "OFF") << "]");
       ROS_INFO_STREAM("Tracking mode [" << trackingMode << "] [" << ((trackingMode >= 0 && trackingMode < numTrackingModes) ? trackingModeDescription[trackingMode] : "unknown") << "]");
@@ -3637,6 +3704,12 @@ namespace sick_scan_xd
       startProtocolSequence.push_back(CMD_DEVICE_TYPE);
       startProtocolSequence.push_back(CMD_SERIAL_NUMBER);
       startProtocolSequence.push_back(CMD_ORDER_NUMBER);
+
+      // Optionally activate LIDoutputstate messages
+      if (activate_lidoutputstate)
+      {
+        startProtocolSequence.push_back(CMD_SET_LID_OUTPUTSTATE_ACTIVE);
+      }
 
       /*
        * With "sWN TCTrackingMode 0" BASIC-Tracking activated
@@ -4387,11 +4460,33 @@ namespace sick_scan_xd
       if (true == this->parser_->getCurrentParamPtr()->getDeviceIsRadar())
       {
         SickScanRadarSingleton *radar = SickScanRadarSingleton::getInstance(nh);
-        radar->setNameOfRadar(this->parser_->getCurrentParamPtr()->getScannerName(), this->parser_->getCurrentParamPtr()->getDeviceRadarType());
+        std::string scanner_name = this->parser_->getCurrentParamPtr()->getScannerName();
+        radar->setNameOfRadar(scanner_name, this->parser_->getCurrentParamPtr()->getDeviceRadarType());
         int errorCode = ExitSuccess;
-        // parse radar telegram and send pointcloud2-debug messages
-        errorCode = radar->parseDatagram(recvTimeStamp, (unsigned char *) receiveBuffer, actual_length,
-                                         useBinaryProtocol);
+        if ( (useBinaryProtocol && memcmp(&receiveBuffer[8], "sSN LIDoutputstate", strlen("sSN LIDoutputstate")) == 0)
+          || (!useBinaryProtocol && memcmp(&receiveBuffer[1], "sSN LIDoutputstate", strlen("sSN LIDoutputstate")) == 0))
+        {
+          // parse optional LIDoutputstate telegram
+          sick_scan_msg::LIDoutputstateMsg outputstate_msg;
+          if (sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, scanner_name, outputstate_msg))
+          {
+            // Publish LIDoutputstate message
+            notifyLIDoutputstateListener(nh, &outputstate_msg);
+            if(publish_lidoutputstate_)
+            {
+              rosPublish(lidoutputstate_pub_, outputstate_msg);
+            }
+          }
+          else
+          {
+            ROS_WARN_STREAM("## ERROR SickScanCommon: parseLIDoutputstateMsg failed, received " << actual_length << " byte LIDoutputstate " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length));
+          }
+        }
+        else
+        {
+          // parse radar telegram and send pointcloud2-debug messages
+          errorCode = radar->parseDatagram(recvTimeStamp, (unsigned char *) receiveBuffer, actual_length, useBinaryProtocol);
+        }
         return errorCode; // return success to continue looping
       }
 
@@ -4446,11 +4541,19 @@ namespace sick_scan_xd
         SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
         if(fieldMon && useBinaryProtocol && actual_length > 32)
         {
-          // int fieldset = (receiveBuffer[32] & 0xFF);
-          // fieldMon->setActiveFieldset(fieldset);
-          fieldMon->parseBinaryLIDinputstateMsg(receiveBuffer, actual_length);
+          sick_scan_msg::LIDinputstateMsg inputstate_msg;
+          fieldMon->parseBinaryLIDinputstateMsg(receiveBuffer, actual_length, inputstate_msg);
+          // notifyLIDinputstateListener(nh, &inputstate_msg); // TODO: notify LIDinputstateMsg listener (API)
+          if(publish_lidinputstate_)
+          {
+              rosPublish(lidinputstate_pub_, inputstate_msg);
+          }
+          if(cloud_marker_)
+          {
+            cloud_marker_->updateMarker(inputstate_msg, this->parser_->getCurrentParamPtr()->getUseEvalFields());
+          }
           ROS_DEBUG_STREAM("SickScanCommon: received " << actual_length << " byte LIDinputstate " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length)
-            << ", active fieldset = " << fieldMon->getActiveFieldset());
+            << ", active fieldset = " << fieldMon->getActiveFieldset() << ", " << fieldMon->LIDinputstateMsgToString(inputstate_msg));
         }
         return errorCode; // return success to continue looping
       }
@@ -5412,6 +5515,7 @@ namespace sick_scan_xd
     std::string KeyWord25 = "sWN NLMDLandmarkDataFormat";
     std::string KeyWord26 = "sWN NAVScanDataFormat";
     std::string KeyWord27 = "sMN mNLAYEraseLayout";
+    std::string KeyWord28 = "sWN ActiveFieldSet"; // "\x02sWN ActiveFieldSet %02d\x03"
 
     //BBB
 
@@ -5465,7 +5569,7 @@ namespace sick_scan_xd
       int scanDataStatus = 0;
       int keyWord3Len = keyWord3.length();
       int dummyArr[12] = {0};
-      //sWN LMDscandatacfg %02d 00 %d %d 0 0 %02d 0 0 0 1 1\x03"
+      // sWN LMDscandatacfg %d 0 %d %d 0 %d 0 0 0 0 %d 1
       int sscanfresult = sscanf(requestAscii + keyWord3Len + 1, " %d %d %d %d %d %d %d %d %d %d %d %d",
                                 &dummyArr[0], // Data Channel Idx LSB
                                 &dummyArr[1], // Data Channel Idx MSB
@@ -5872,6 +5976,14 @@ namespace sick_scan_xd
       buffer[0] = (unsigned char) (0xFF & (args[0]));
       bufferLen = 1;
     }
+    if (cmdAscii.find(KeyWord28) != std::string::npos && strlen(requestAscii) > KeyWord28.length() + 1) // "sWN ActiveFieldSet %02d"
+    {
+      int args[1] = { 0 };
+      sscanf(requestAscii + KeyWord28.length() + 1, " %d", &(args[0]));
+      buffer[0] = (unsigned char) (0xFF & (args[0] >> 8));
+      buffer[1] = (unsigned char) (0xFF & (args[0] >> 0));
+      bufferLen = 2;
+    }
 
     // copy base command string to buffer
     bool switchDoBinaryData = false;
@@ -6159,7 +6271,31 @@ namespace sick_scan_xd
   {
       //SAFTY FIELD PARSING
       int result = ExitSuccess;
-      const int MAX_STR_LEN = 1024;
+      if (this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC)
+      {
+        SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
+        int field_set_selection_method = -1; // set FieldSetSelectionMethod at startup: -1 = do not set (default), 0 = active field selection by digital inputs, 1 = active field selection by telegram (see operation manual for details about FieldSetSelectionMethod telegram)
+        int active_field_set = -1; // set ActiveFieldSet at startup: -1 = do not set (default), index of active field otherwise (see operation manual for details about ActiveFieldSet telegram)
+        rosDeclareParam(m_nh, "field_set_selection_method", field_set_selection_method);
+        rosGetParam(m_nh, "field_set_selection_method", field_set_selection_method);
+        rosDeclareParam(m_nh, "active_field_set", active_field_set);
+        rosGetParam(m_nh, "active_field_set", active_field_set);
+        std::vector<unsigned char> sopasReply;
+        if (field_set_selection_method >= 0) // Write and re-read FieldSetSelectionMethod
+        {
+          result = writeFieldSetSelectionMethod(field_set_selection_method, sopasReply, useBinaryCmd);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReply);
+          result = readFieldSetSelectionMethod(field_set_selection_method, sopasReply, useBinaryCmd);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReply);
+        }
+        if (active_field_set >= 0) // Write and re-read ActiveFieldSet
+        {
+          result = writeActiveFieldSet(active_field_set, sopasReply, useBinaryCmd);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReply);
+          result = readActiveFieldSet(active_field_set, sopasReply, useBinaryCmd);
+          RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReply);
+        }
+      }
       if (this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
       {
         ROS_INFO("Reading safety fields");
@@ -6187,31 +6323,9 @@ namespace sick_scan_xd
         }
         if(cloud_marker_)
         {
-          int fieldset = 0;
-          // pn.getParam("fieldset", fieldset);
-          std::string LIDinputstateRequest = "\x02sRN LIDinputstate\x03";
-          std::vector<unsigned char> LIDinputstateResponse;
-          if (useBinaryCmd)
-          {
-            std::vector<unsigned char> reqBinary;
-            this->convertAscii2BinaryCmd(LIDinputstateRequest.c_str(), &reqBinary);
-            result = sendSopasAndCheckAnswer(reqBinary, &LIDinputstateResponse);
-            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, LIDinputstateResponse); // No response, non-recoverable connection error (return error and do not try other commands)
-            if(result == 0)
-            {
-              //fieldset = (LIDinputstateResponse[32] & 0xFF);
-              //fieldMon->setActiveFieldset(fieldset);
-              fieldMon->parseBinaryLIDinputstateMsg(LIDinputstateResponse.data(), LIDinputstateResponse.size());
-              ROS_INFO_STREAM("Safety fieldset response to \"sRN LIDinputstate\": " << DataDumper::binDataToAsciiString(LIDinputstateResponse.data(), LIDinputstateResponse.size())
-                << ", active fieldset = " << fieldMon->getActiveFieldset());
-            }
-          }
-          else
-          {
-            result = sendSopasAndCheckAnswer(LIDinputstateRequest.c_str(), &LIDinputstateResponse);
-            RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, LIDinputstateResponse); // No response, non-recoverable connection error (return error and do not try other commands)
-          }
-
+          if (readLIDinputstate(fieldMon, useBinaryCmd) != ExitSuccess)
+             return ExitError;
+          int fieldset = fieldMon->getActiveFieldset();
           std::string scanner_name = parser_->getCurrentParamPtr()->getScannerName();
           EVAL_FIELD_SUPPORT eval_field_logic = this->parser_->getCurrentParamPtr()->getUseEvalFields();
           cloud_marker_->updateMarker(fieldMon->getMonFields(), fieldset, eval_field_logic);
@@ -6241,6 +6355,139 @@ namespace sick_scan_xd
       return result;
   } // SickScanCommon::readParseSafetyFields()
 
+  int SickScanCommon::readLIDinputstate(SickScanFieldMonSingleton *fieldMon, bool useBinaryCmd)
+  {
+    int result = ExitError;
+    std::string LIDinputstateRequest = "\x02sRN LIDinputstate\x03";
+    std::vector<unsigned char> LIDinputstateResponse;
+    if (useBinaryCmd)
+    {
+      std::vector<unsigned char> reqBinary;
+      this->convertAscii2BinaryCmd(LIDinputstateRequest.c_str(), &reqBinary);
+      result = sendSopasAndCheckAnswer(reqBinary, &LIDinputstateResponse, -1);
+      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, LIDinputstateResponse); // No response, non-recoverable connection error (return error and do not try other commands)
+      if(result == 0)
+      {
+        sick_scan_msg::LIDinputstateMsg inputstate_msg;
+        fieldMon->parseBinaryLIDinputstateMsg(LIDinputstateResponse.data(), LIDinputstateResponse.size(), inputstate_msg);
+        ROS_INFO_STREAM("Safety fieldset response to \"sRN LIDinputstate\": " << DataDumper::binDataToAsciiString(LIDinputstateResponse.data(), LIDinputstateResponse.size())
+          << ", active fieldset = " << fieldMon->getActiveFieldset() << ", " << fieldMon->LIDinputstateMsgToString(inputstate_msg));
+      }
+    }
+    else
+    {
+      result = sendSopasAndCheckAnswer(LIDinputstateRequest.c_str(), &LIDinputstateResponse, -1);
+      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, LIDinputstateResponse); // No response, non-recoverable connection error (return error and do not try other commands)
+    }
+    return 0;
+  }
+
+  // Write FieldSetSelectionMethod
+  int SickScanCommon::writeFieldSetSelectionMethod(int field_set_selection_method, std::vector<unsigned char>& sopasReply, bool useBinaryCmd)
+  {
+    int result = ExitSuccess;
+    if (field_set_selection_method >= 0 && this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC)
+    {
+      char reqAscii[MAX_STR_LEN];
+      std::vector<unsigned char> reqBinary;
+      sprintf(reqAscii, "\x02sWN FieldSetSelectionMethod %d\x03", field_set_selection_method);
+      if (useBinaryCmd)
+      {
+        this->convertAscii2BinaryCmd(reqAscii, &reqBinary);
+        result = sendSopasAndCheckAnswer(reqBinary, &sopasReply, -1);
+      }
+      else
+      {
+        result = sendSopasAndCheckAnswer(reqAscii, &sopasReply, -1);
+      }
+      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReply);
+    }
+    return result;
+  }
+
+  // Read FieldSetSelectionMethod
+  int SickScanCommon::readFieldSetSelectionMethod(int& field_set_selection_method, std::vector<unsigned char>& sopasReply, bool useBinaryCmd)
+  {
+    int result = ExitSuccess;
+    if (this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC)
+    {
+      char reqAscii[MAX_STR_LEN];
+      std::vector<unsigned char> reqBinary;
+      sprintf(reqAscii, "\x02sRN FieldSetSelectionMethod\x03");
+      if (useBinaryCmd)
+      {
+        this->convertAscii2BinaryCmd(reqAscii, &reqBinary);
+        result = sendSopasAndCheckAnswer(reqBinary, &sopasReply, -1);
+      }
+      else
+      {
+        result = sendSopasAndCheckAnswer(reqAscii, &sopasReply, -1);
+      }
+      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReply);
+      SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
+      uint8_t sopas_field_set_selection_method = (uint8_t)field_set_selection_method;
+      fieldMon->parseFieldSetSelectionMethodResponse(sopasReply.data(), sopasReply.size(), &sopas_field_set_selection_method);
+      field_set_selection_method = sopas_field_set_selection_method;
+      fieldMon->setFieldSelectionMethod(field_set_selection_method);
+      ROS_INFO_STREAM("Response to \"sRN FieldSetSelectionMethod\": \"" << DataDumper::binDataToAsciiString(sopasReply.data(), sopasReply.size()) << "\", FieldSetSelectionMethod = " << field_set_selection_method);
+    }
+    return result;
+  }
+
+  // Write ActiveFieldSet
+  int SickScanCommon::writeActiveFieldSet(int active_field_set, std::vector<unsigned char>& sopasReply, bool useBinaryCmd)
+  {
+    int result = ExitSuccess;
+    if (active_field_set >= 0 && this->parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC)
+    {
+      char reqAscii[MAX_STR_LEN];
+      std::vector<unsigned char> reqBinary;
+      sprintf(reqAscii, "\x02sWN ActiveFieldSet %02d\x03", active_field_set);
+      if (useBinaryCmd)
+      {
+        this->convertAscii2BinaryCmd(reqAscii, &reqBinary);
+        result = sendSopasAndCheckAnswer(reqBinary, &sopasReply, -1);
+      }
+      else
+      {
+        result = sendSopasAndCheckAnswer(reqAscii, &sopasReply, -1);
+      }
+      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReply);
+    }
+    return result;
+  }
+
+  // Read ActiveFieldSet
+  int SickScanCommon::readActiveFieldSet(int& active_field_set, std::vector<unsigned char>& sopasReply, bool useBinaryCmd)
+  {
+    int result = ExitSuccess;
+    int eval_field_logic = this->parser_->getCurrentParamPtr()->getUseEvalFields();
+    if (eval_field_logic == USE_EVAL_FIELD_TIM7XX_LOGIC)
+    {
+      char reqAscii[MAX_STR_LEN];
+      std::vector<unsigned char> reqBinary;
+      sprintf(reqAscii, "\x02sRN ActiveFieldSet\x03");
+      if (useBinaryCmd)
+      {
+        this->convertAscii2BinaryCmd(reqAscii, &reqBinary);
+        result = sendSopasAndCheckAnswer(reqBinary, &sopasReply, -1);
+      }
+      else
+      {
+        result = sendSopasAndCheckAnswer(reqAscii, &sopasReply, -1);
+      }
+      RETURN_ERROR_ON_RESPONSE_TIMEOUT(result, sopasReply);
+      SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
+      uint16_t sopas_active_field_set = (uint16_t)active_field_set;
+      fieldMon->parseActiveFieldSetResponse(sopasReply.data(), sopasReply.size(), &sopas_active_field_set);
+      active_field_set = sopas_active_field_set;
+      fieldMon->setActiveFieldset(active_field_set);
+      if(cloud_marker_)
+        cloud_marker_->updateMarker(fieldMon->getMonFields(), active_field_set, eval_field_logic);
+      ROS_INFO_STREAM("Response to \"sRN ActiveFieldSet\": " << DataDumper::binDataToAsciiString(sopasReply.data(), sopasReply.size()) << "\", ActiveFieldSet = " << active_field_set);
+    }
+    return result;
+  }
 
 } /* namespace sick_scan_xd */
 

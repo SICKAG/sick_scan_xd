@@ -235,18 +235,19 @@ namespace sick_scansegment_xd
             }
             void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
             {
-                if (lidar_timestamp_start_microsec == 0)
-                    lidar_timestamp_start_microsec = lidar_points[0][0].lidar_timestamp_microsec;
-                if (lidar_timestamp_stop_microsec == 0)
-                    lidar_timestamp_stop_microsec = lidar_points[0][0].lidar_timestamp_microsec;
                 for (int echoIdx = 0; echoIdx < points.size() && echoIdx < lidar_points.size(); echoIdx++)
                 {
                     size_t num_points = points[echoIdx].size();
                     if (num_points > 0)
                     {
                         lidar_points[echoIdx].insert(lidar_points[echoIdx].end(), points[echoIdx].begin(), points[echoIdx].end());
-                        lidar_timestamp_start_microsec = std::min<uint64_t>(lidar_points[echoIdx][0].lidar_timestamp_microsec, lidar_timestamp_start_microsec);
-                        lidar_timestamp_stop_microsec = std::max<uint64_t>(lidar_points[echoIdx][num_points].lidar_timestamp_microsec, lidar_timestamp_stop_microsec);
+                        assert(lidar_points.size() > echoIdx && lidar_points[echoIdx].size() > 0);
+                        if (lidar_timestamp_start_microsec == 0) // first time initialization of lidar start timestamp
+                            lidar_timestamp_start_microsec = lidar_points[0].front().lidar_timestamp_microsec;
+                        if (lidar_timestamp_stop_microsec == 0) // first time initialization of lidar stop timestamp
+                            lidar_timestamp_stop_microsec = lidar_points[0].front().lidar_timestamp_microsec;
+                        lidar_timestamp_start_microsec = std::min<uint64_t>(lidar_points[echoIdx].front().lidar_timestamp_microsec, lidar_timestamp_start_microsec); // update lidar start timestamp
+                        lidar_timestamp_stop_microsec = std::max<uint64_t>(lidar_points[echoIdx].back().lidar_timestamp_microsec, lidar_timestamp_stop_microsec); // update lidar stop timestamp
                         for (int n = 0; n < num_points; n++)
                         {
                             const sick_scansegment_xd::PointXYZRAEI32f& point = points[echoIdx][n];

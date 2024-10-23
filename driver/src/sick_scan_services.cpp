@@ -63,6 +63,7 @@
 
 #include "sick_scan/sick_scan_services.h"
 #include "sick_scan/sick_generic_laser.h"
+#include "sick_scansegment_xd/udp_poster.h"
 
 #define SCANSEGMENT_XD_SOPAS_ARGS_BIG_ENDIAN (true) // Arguments of SOPAS commands are big endian encoded
 
@@ -106,6 +107,8 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
 #define serviceCbSCsoftresetROS sick_scan_xd::SickScanServices::serviceCbSCsoftresetROS2
 #define serviceCbSickScanExitROS sick_scan_xd::SickScanServices::serviceCbSickScanExitROS2
 #define serviceCbGetContaminationResultROS sick_scan_xd::SickScanServices::serviceCbGetContaminationResultROS2
+#define serviceCbFieldSetReadROS sick_scan_xd::SickScanServices::serviceCbFieldSetReadROS2
+#define serviceCbFieldSetWriteROS sick_scan_xd::SickScanServices::serviceCbFieldSetWriteROS2
 #else
 #define serviceCbColaMsgROS sick_scan_xd::SickScanServices::serviceCbColaMsg
 #define serviceCbECRChangeArrROS sick_scan_xd::SickScanServices::serviceCbECRChangeArr
@@ -115,6 +118,8 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
 #define serviceCbSCsoftresetROS sick_scan_xd::SickScanServices::serviceCbSCsoftreset
 #define serviceCbSickScanExitROS sick_scan_xd::SickScanServices::serviceCbSickScanExit
 #define serviceCbGetContaminationResultROS sick_scan_xd::SickScanServices::serviceCbGetContaminationResult
+#define serviceCbFieldSetReadROS sick_scan_xd::SickScanServices::serviceCbFieldSetRead
+#define serviceCbFieldSetWriteROS sick_scan_xd::SickScanServices::serviceCbFieldSetWrite
 #endif
 #if __ROS_VERSION == 1
 #define printServiceCreated(a,b) ROS_INFO_STREAM("SickScanServices: service \"" << a.getService() << "\" created (\"" << b.getService() << "\")");
@@ -171,6 +176,20 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
           m_srv_server_SickScanExit = rosServiceServer<sick_scan_srv::SickScanExitSrv>(srv_server_SickScanExit);
           printServiceCreated(srv_server_SickScanExit, m_srv_server_SickScanExit);
         }
+#if __ROS_VERSION > 0
+        if(lidar_param->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC)
+        {
+          auto srv_server_FieldSetRead = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::FieldSetReadSrv, "FieldSetRead", &serviceCbFieldSetReadROS, this);
+          m_srv_server_FieldSetRead = rosServiceServer<sick_scan_srv::FieldSetReadSrv>(srv_server_FieldSetRead);
+          printServiceCreated(srv_server_FieldSetRead, m_srv_server_FieldSetRead);
+        }
+        if(lidar_param->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC)
+        {
+          auto srv_server_FieldSetWrite = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::FieldSetWriteSrv, "FieldSetWrite", &serviceCbFieldSetWriteROS, this);
+          m_srv_server_FieldSetWrite = rosServiceServer<sick_scan_srv::FieldSetWriteSrv>(srv_server_FieldSetWrite);
+          printServiceCreated(srv_server_FieldSetWrite, m_srv_server_FieldSetWrite);
+        }
+#endif
     }
 }
 
@@ -411,17 +430,31 @@ bool sick_scan_xd::SickScanServices::sendSopasCmdCheckResponse(const std::string
 }
 
 #if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
+static void printPicoScanImuDisabledWarning()
+{
+    ROS_WARN_STREAM("############################");
+    ROS_WARN_STREAM("##                        ##");
+    ROS_WARN_STREAM("##  IMU will be disabled  ##");
+    ROS_WARN_STREAM("##                        ##");
+    ROS_WARN_STREAM("############################");
+    ROS_WARN_STREAM("## If you are using a picoScan150 w/o addons, disable the IMU by setting option \"imu_enable\" to \"False\" in your launchfile, or use sick_picoscan_single_echo.launch to avoid this error");
+    ROS_WARN_STREAM("## If you are using a picoScan with IMU, check IMU settings with SOPAS Air");
+}
+
 /*!
 * Sends the multiScan start commands "sWN ScanDataFormat", "sWN ScanDataPreformatting", "sWN ScanDataEthSettings", "sWN ScanDataEnable 1", "sMN LMCstartmeas", "sMN Run"
 * @param[in] hostname IP address of multiScan136, default 192.168.0.1
 * @param[in] port IP port of multiScan136, default 2115
 * @param[in] scanner_type type of scanner, currently supported are multiScan136 and picoScan150
 * @param[in] scandataformat ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 
-* @param[in] imu_enable: Imu data transfer enabled
+* @param[in+out] imu_enable: Imu data transfer enabled
 * @param[in] imu_udp_port: UDP port of imu data (if imu_enable is true)
+* @param[in] check_udp_receiver_ip: check udp_receiver_ip by sending and receiving a udp test message
+* @param[in] check_udp_receiver_port: udp port to check udp_receiver_ip
 */
-bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat, bool imu_enable, int imu_udp_port, int performanceprofilenumber)
+bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& hostname, int port, const std::string& scanner_type, int scandataformat, bool& imu_enable, int imu_udp_port, int performanceprofilenumber, bool check_udp_receiver_ip, int check_udp_receiver_port)
 {
+  // Check udp receiver ip address: hostname is expected to be a IPv4 address
   std::stringstream ip_stream(hostname);
   std::string ip_token;
   std::vector<std::string> ip_tokens;
@@ -431,11 +464,31 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
   }
   if (ip_tokens.size() != 4)
   {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd() failed: can't split ip address \"" << hostname << "\" into 4 tokens, check ip address");
-    ROS_ERROR_STREAM("## ERROR parsing ip address, check configuration of parameter \"hostname\" (launch file or commandline).");
-    ROS_ERROR_STREAM("## In case of multiscan/sick_scansegment_xd lidars, check parameter \"udp_receiver_ip\", too.");
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd() failed: can't split ip address \"" << hostname << "\" into 4 tokens, check ip address.");
+    ROS_ERROR_STREAM("## ERROR parsing ip address, check configuration of parameter udp_receiver_ip=\"" << hostname << "\" (launch file or commandline option).");
+    ROS_ERROR_STREAM("## Parameter \"udp_receiver_ip\" should be the IPv4 address like 192.168.0.x of the system running sick_scan_xd.");
     return false;
   }
+  // Check udp receiver ip address by sending and receiving a UDP test message
+  std::string check_udp_receiver_msg = "sick_scan_xd udp test message verifying udp_receiver_ip";
+  if (check_udp_receiver_ip && !check_udp_receiver_msg.empty())
+  {
+    sick_scansegment_xd::UdpPoster udp_loopback_poster(hostname, check_udp_receiver_port);
+    std::string check_udp_receiver_response;
+    if (!udp_loopback_poster.Post(check_udp_receiver_msg, check_udp_receiver_response) || check_udp_receiver_msg != check_udp_receiver_response)
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd() failed to send and receive a UDP test messsage to " << hostname << ":" << check_udp_receiver_port);
+      ROS_ERROR_STREAM("## Check configuration of parameter udp_receiver_ip=\"" << hostname << "\" (launch file or commandline option).");
+      ROS_ERROR_STREAM("## Parameter \"udp_receiver_ip\" should be the IPv4 address like 192.168.0.x of the system running sick_scan_xd.");
+      return false;
+    }
+    else
+    {
+      ROS_DEBUG_STREAM("SickScanServices::sendMultiScanStartCmd(): UDP test message \"" << check_udp_receiver_response << "\" successfully received.");
+      ROS_INFO_STREAM("SickScanServices::sendMultiScanStartCmd(): UDP test message successfully send to " << hostname << ":" << check_udp_receiver_port << ", parameter udp_receiver_ip=\"" << hostname << "\" is valid.");
+    }
+  }
+  // Send sopas start sequence (ScanDataFormat, ScanDataEthSettings, ImuDataEthSettings, ScanDataEnable, ImuDataEnable)
   std::stringstream eth_settings_cmd, imu_eth_settings_cmd, scandataformat_cmd, performanceprofilenumber_cmd;
   scandataformat_cmd << "sWN ScanDataFormat " << scandataformat;
   if (performanceprofilenumber >= 0)
@@ -485,7 +538,18 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
   }
   if (imu_enable && !sendSopasCmdCheckResponse(imu_eth_settings_cmd.str(), "sWA ImuDataEthSettings")) // imu data eth settings
   {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"" << imu_eth_settings_cmd.str() << "\") failed.");
+    if (scanner_type == SICK_SCANNER_PICOSCAN_NAME)
+    {
+      // picoScan150 ships in 2 variants, with and without IMU resp. IMU licence (picoScan150 w/o addons).
+      // For picoScan150 w/o addons we disable the IMU, if SOPAS commands "ImuDataEthSettings" or "ImuDataEnable" failed.
+      ROS_WARN_STREAM("## WARNING SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"" << imu_eth_settings_cmd.str() << "\") failed.");
+      printPicoScanImuDisabledWarning();
+      imu_enable = false;
+    }
+    else
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"" << imu_eth_settings_cmd.str() << "\") failed.");
+    }
   }
   if (!sendRun())
   {
@@ -502,7 +566,18 @@ bool sick_scan_xd::SickScanServices::sendMultiScanStartCmd(const std::string& ho
   }
   if (imu_enable && !sendSopasCmdCheckResponse("sWN ImuDataEnable 1", "sWA ImuDataEnable")) // enable imu data transfer
   {
-    ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ImuDataEnable 1\") failed.");
+    if (scanner_type == SICK_SCANNER_PICOSCAN_NAME)
+    {
+      // picoScan150 ships in 2 variants, with and without IMU resp. IMU licence (picoScan150 w/o addons).
+      // For picoScan150 w/o addons we disable the IMU, if SOPAS commands "ImuDataEthSettings" or "ImuDataEnable" failed.
+      ROS_WARN_STREAM("## WARNING SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ImuDataEnable 1\") failed.");
+      printPicoScanImuDisabledWarning();
+      imu_enable = false;
+    }
+    else
+    {
+      ROS_ERROR_STREAM("## ERROR SickScanServices::sendMultiScanStartCmd(): sendSopasCmdCheckResponse(\"sWN ImuDataEnable 1\") failed.");
+    }
   }
   if (!sendRun())
   {
@@ -680,7 +755,7 @@ bool sick_scan_xd::SickScanServices::queryMultiScanFiltersettings(int& host_FREc
   bool enableFREchoFilter = true, enableLFPangleRangeFilter = true, enableLFPlayerFilter = true;
   if (scanner_type == SICK_SCANNER_PICOSCAN_NAME) // LFPangleRangeFilter and LFPlayerFilter not supported by picoscan150
   {
-    enableLFPangleRangeFilter = false;
+    // enableLFPangleRangeFilter = false;
     enableLFPlayerFilter = false;
   }
   std::vector<std::string> sopasCommands;
@@ -841,9 +916,9 @@ bool sick_scan_xd::SickScanServices::writeMultiScanFiltersettings(int host_FREch
   bool enableFREchoFilter = true, enableLFPangleRangeFilter = true, enableLFPlayerFilter = true, enableLFPintervalFilter = true;
   if (scanner_type == SICK_SCANNER_PICOSCAN_NAME) // LFPangleRangeFilter, LFPlayerFilter ant LFPintervalFilter not supported by picoscan150
   {
-    enableLFPangleRangeFilter = false;
+    // enableLFPangleRangeFilter = false;
     enableLFPlayerFilter = false;
-    enableLFPintervalFilter = false;
+    // enableLFPintervalFilter = false;
   }
 
   // Write FREchoFilter
@@ -1055,3 +1130,42 @@ bool sick_scan_xd::SickScanServices::serviceCbSickScanExit(sick_scan_srv::SickSc
   service_response.success = stopScannerAndExit(false);
   return true;
 }
+
+#if __ROS_VERSION > 0
+bool sick_scan_xd::SickScanServices::serviceCbFieldSetRead(sick_scan_srv::FieldSetReadSrv::Request &service_request, sick_scan_srv::FieldSetReadSrv::Response &service_response)
+{
+  SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
+  int field_set_selection_method = fieldMon->getFieldSelectionMethod();
+  int active_field_set = fieldMon->getActiveFieldset();
+  std::vector<unsigned char> sopasReply;
+  int result1 = m_common_tcp->readFieldSetSelectionMethod(field_set_selection_method, sopasReply);
+  int result2 = m_common_tcp->readActiveFieldSet(active_field_set, sopasReply);
+  service_response.success = (result1 == ExitSuccess && result2 == ExitSuccess);
+  service_response.field_set_selection_method = field_set_selection_method;
+  service_response.active_field_set = active_field_set;
+  return true;
+}
+
+bool sick_scan_xd::SickScanServices::serviceCbFieldSetWrite(sick_scan_srv::FieldSetWriteSrv::Request &service_request, sick_scan_srv::FieldSetWriteSrv::Response &service_response)
+{
+  int field_set_selection_method = service_request.field_set_selection_method_in;
+  int active_field_set = service_request.active_field_set_in;
+  std::vector<unsigned char> sopasReply;
+  int result1 = ExitSuccess, result2 = ExitSuccess;
+  if (field_set_selection_method >= 0)
+  {
+    result1 = m_common_tcp->writeFieldSetSelectionMethod(field_set_selection_method, sopasReply);
+  }
+  if (active_field_set >= 0)
+  {
+    result2 = m_common_tcp->writeActiveFieldSet(active_field_set, sopasReply);
+  }
+  int result3 = m_common_tcp->readFieldSetSelectionMethod(field_set_selection_method, sopasReply);
+  int result4 = m_common_tcp->readActiveFieldSet(active_field_set, sopasReply);
+  service_response.success = (result1 == ExitSuccess && result2 == ExitSuccess && result3 == ExitSuccess && result4 == ExitSuccess);
+  service_response.field_set_selection_method = field_set_selection_method;
+  service_response.active_field_set = active_field_set;
+  service_response.success = true;
+  return true;
+}
+#endif

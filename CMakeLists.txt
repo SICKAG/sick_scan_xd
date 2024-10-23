@@ -51,7 +51,19 @@ option(BUILD_DEBUG_TARGET "Build debug target (ON) or release (OFF)" ON) # OFF (
 # endif()
 
 if(NOT WIN32)
-    add_compile_options(-O3)
+    if(O EQUAL 0)
+        add_compile_options(-g -O0)
+        message(STATUS "Building sick_scan_xd with -g -O0")
+    elseif(O EQUAL 1)
+        add_compile_options(-g -O1)
+        message(STATUS "Building sick_scan_xd with -O1")
+    elseif(O EQUAL 2)
+        add_compile_options(-g -O2)
+        message(STATUS "Building sick_scan_xd with -O2")
+    else()
+        add_compile_options(-O3)
+        message(STATUS "Building sick_scan_xd with -O3")
+    endif()
 endif()
 # Added CMP0022 and CMP0048 to avoid cmake warnings
 if (POLICY CMP0022)
@@ -238,6 +250,7 @@ if(ROS_VERSION EQUAL 1)
         Encoder.msg
         LFErecFieldMsg.msg
         LFErecMsg.msg
+        LIDinputstateMsg.msg
         LIDoutputstateMsg.msg
         RadarObject.msg
         RadarPreHeader.msg
@@ -265,6 +278,8 @@ if(ROS_VERSION EQUAL 1)
         FILES
         ColaMsgSrv.srv
         ECRChangeArrSrv.srv
+        FieldSetReadSrv.srv
+        FieldSetWriteSrv.srv
         GetContaminationResultSrv.srv
         LIDoutputstateSrv.srv
         SCdevicestateSrv.srv
@@ -370,6 +385,7 @@ if(ROS_VERSION EQUAL 2)
         "msg/ImuExtended.msg"
         "msg/LFErecFieldMsg.msg"
         "msg/LFErecMsg.msg"
+        "msg/LIDinputstateMsg.msg"
         "msg/LIDoutputstateMsg.msg"
         "msg/NAVLandmarkData.msg"
         "msg/NAVOdomVelocity.msg"
@@ -388,6 +404,8 @@ if(ROS_VERSION EQUAL 2)
         # service files
         "srv/ColaMsgSrv.srv"
         "srv/ECRChangeArrSrv.srv"
+        "srv/FieldSetReadSrv.srv"
+        "srv/FieldSetWriteSrv.srv"        
         "srv/GetContaminationResultSrv.srv"
         "srv/LIDoutputstateSrv.srv"
         "srv/SCdevicestateSrv.srv"
@@ -813,23 +831,25 @@ if(BUILD_SICK_SCAN_XD_API_TEST EQUAL 1)
         elseif(ROS_VERSION EQUAL 2)
             target_link_libraries(sick_scan_xd_api_test "pthread") # pthread required for std::thread
         endif()
-    endif()
-    add_executable(sick_scan_xd_api_dockertest
-        driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
-        test/src/sick_scan_xd_api/sick_scan_xd_api_dockertest.cpp
-        test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c
-    )
-    target_link_libraries(sick_scan_xd_api_dockertest ${LIB_JSONCPP})
-    if(NOT WIN32)
-        target_link_libraries(sick_scan_xd_api_dockertest "dl") # link with dl for dynamic library loading
-        if(ROS_VERSION EQUAL 0)
-            target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
-            target_link_options(sick_scan_xd_api_dockertest PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
-        elseif(ROS_VERSION EQUAL 1)
-            target_link_libraries(sick_scan_xd_api_dockertest ${catkin_LIBRARIES})
-            add_dependencies(sick_scan_xd_api_dockertest ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-        elseif(ROS_VERSION EQUAL 2)
-            target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
+    endif()    
+    if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON OR CMAKE_ENABLE_DOCKERTESTS EQUAL 1) # i.e. development or dockertests
+        add_executable(sick_scan_xd_api_dockertest
+            driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
+            test/src/sick_scan_xd_api/sick_scan_xd_api_dockertest.cpp
+            test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c
+        )
+        target_link_libraries(sick_scan_xd_api_dockertest ${LIB_JSONCPP})
+        if(NOT WIN32)
+            target_link_libraries(sick_scan_xd_api_dockertest "dl") # link with dl for dynamic library loading
+            if(ROS_VERSION EQUAL 0)
+                target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
+                target_link_options(sick_scan_xd_api_dockertest PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+            elseif(ROS_VERSION EQUAL 1)
+                target_link_libraries(sick_scan_xd_api_dockertest ${catkin_LIBRARIES})
+                add_dependencies(sick_scan_xd_api_dockertest ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+            elseif(ROS_VERSION EQUAL 2)
+                target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
+            endif()
         endif()
     endif()
 endif()

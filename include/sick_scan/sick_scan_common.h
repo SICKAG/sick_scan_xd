@@ -236,12 +236,20 @@ namespace sick_scan_xd
     virtual ~SickScanCommon();
 
     int setParticleFilter(bool _active, int _particleThreshold);//actualy only 500 mm is working.
+
     /*! Changes the Identifier of a commandstr. to its expected answer counterpart
      *
      * @param requestStr sent request string
      * @return Expected answer
      */
-    std::vector<std::string> generateExpectedAnswerString(const std::vector<unsigned char> requestStr);
+    std::vector<std::string> generateExpectedAnswerString(const std::vector<unsigned char>& requestStr);
+
+    /*! Returns a list of unexpected lidar responses like "" for request ""
+     *
+     * @param requestStr sent request string
+     * @return Expected answer
+     */
+    std::vector<std::string> generateUnexpectedAnswerString(const std::string& requestStr);
 
     /**
      * \brief Converts a given SOPAS command from ascii to binary (in case of binary communication), sends sopas (ascii or binary) and returns the response (if wait_for_reply:=true)
@@ -356,6 +364,18 @@ namespace sick_scan_xd
 
     uint64_t getNanosecTimestampLastTcpMessageReceived(void) { return m_nw.getNanosecTimestampLastTcpMessageReceived(); } // Returns a timestamp in nanoseconds of the last received tcp message (or 0 if no message received)
 
+    // Write FieldSetSelectionMethod
+    int writeFieldSetSelectionMethod(int field_set_selection_method, std::vector<unsigned char>& sopasReply, bool useBinaryCmd = true);
+
+    // Read FieldSetSelectionMethod
+    int readFieldSetSelectionMethod(int& field_set_selection_method, std::vector<unsigned char>& sopasReply, bool useBinaryCmd = true);
+
+    // Write ActiveFieldSet
+    int writeActiveFieldSet(int active_field_set, std::vector<unsigned char>& sopasReply, bool useBinaryCmd = true);
+
+    // Read ActiveFieldSet
+    int readActiveFieldSet(int& active_field_set, std::vector<unsigned char>& sopasReply, bool useBinaryCmd = true);
+
     // move back to private
     /* FÜR MRS10000 brauchen wir einen Publish und eine NAchricht */
     // Should we publish laser or point cloud?
@@ -434,6 +454,8 @@ namespace sick_scan_xd
 
     bool switchColaProtocol(bool useBinaryCmd);
 
+    int readLIDinputstate(SickScanFieldMonSingleton *fieldMon, bool useBinaryCmd);
+
 #ifdef USE_DIAGNOSTIC_UPDATER
     std::shared_ptr<diagnostic_updater::Updater> diagnostics_;
 #endif
@@ -448,7 +470,9 @@ namespace sick_scan_xd
 
     rosPublisher<sick_scan_msg::LFErecMsg> lferec_pub_;
     bool publish_lferec_;
+    rosPublisher<sick_scan_msg::LIDinputstateMsg> lidinputstate_pub_;
     rosPublisher<sick_scan_msg::LIDoutputstateMsg> lidoutputstate_pub_;
+    bool publish_lidinputstate_;
     bool publish_lidoutputstate_;
     SickScanMarker* cloud_marker_;
 

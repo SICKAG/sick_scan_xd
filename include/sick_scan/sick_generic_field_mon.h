@@ -159,7 +159,8 @@ namespace sick_scan_xd
     SickScanFieldMonSingleton();
 
     std::vector<SickScanMonField>monFields;
-    int active_mon_fieldset;
+    int active_mon_fieldset = 0;
+    int mon_field_selection_method = 0; // FieldSetSelectionMethod: 0 = digital inputs (default), 1 = telegram "sWN ActiveFieldSet"
 
   public:
     /* Static access method. */
@@ -170,12 +171,20 @@ namespace sick_scan_xd
     void setActiveFieldset(int active_fieldset) { active_mon_fieldset = active_fieldset; }
     int getActiveFieldset(void) { return active_mon_fieldset; }
 
+    void setFieldSelectionMethod(int field_selection_method) { mon_field_selection_method = field_selection_method; } // FieldSetSelectionMethod: 0 = digital inputs (default), 1 = telegram "sWN ActiveFieldSet"
+    int getFieldSelectionMethod(void) { return mon_field_selection_method; }
+
     int parseAsciiLIDinputstateMsg(unsigned char* datagram, int datagram_length);
-    int parseBinaryLIDinputstateMsg(unsigned char* datagram, int datagram_length);
+    int parseBinaryLIDinputstateMsg(unsigned char* datagram, int datagram_length, sick_scan_msg::LIDinputstateMsg& inputstate_msg);
+
+    void parseActiveFieldSetResponse(unsigned char* datagram, int datagram_length, uint16_t* active_field_set);
+    void parseFieldSetSelectionMethodResponse(unsigned char* datagram, int datagram_length, uint8_t* field_set_selection_method);
 
     int parseBinaryDatagram(std::vector<unsigned char> datagramm, float rectFieldAngleRefPointOffsetRad);
 
     int parseAsciiDatagram(std::vector<unsigned char> datagramm, float rectFieldAngleRefPointOffsetRad);
+  
+    std::string LIDinputstateMsgToString(const sick_scan_msg::LIDinputstateMsg& inputstate_msg);
   };
 
 

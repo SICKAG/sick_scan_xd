@@ -69,7 +69,7 @@ template< class T > class sp_reference_wrapper
 { 
 public:
 
-    explicit sp_reference_wrapper( T & t): t_(__builtin_addressof(t)) // t_( boost::addressof( t ) )
+    explicit sp_reference_wrapper( T & t): t_(std::addressof(t)) // t_( boost::addressof( t ) )
     {
     }
 

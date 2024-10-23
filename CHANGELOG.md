@@ -6,6 +6,26 @@ features that will be removed in future versions **Removed** for deprecated feat
 
 ## Unreleased ##
 
+### Release v3.6.0
+  - **add** Launchfiles and configuration for picoScan120
+  - **add** Optional AngleRangeFilter and IntervalFilter for picoScan
+  - **fix** Obsolete topic "/sick_multiscan/scan" removed
+  - **add** IMU automatically deactivated after receiving an error code for IMU activation from picoScan w/o addons
+  - **fix** Customization of hash values for authorization #366
+  - **fix** Replaced builtin_addressof expressions #370
+  - **add** Different UDP timeouts for state initial and running, improved UDP timeout handling
+  - **fix** Picoscan range_min value in laserScan message #382
+  - **add** Support for RMS2xxx LIDoutputstate telegrams
+  - **fix** sick_generic_caller debug assertion #385
+  - **add** Check of udp receiver ip at startup
+  - **add** cmake-option to overwrite optimization level
+  - **change** Documentation restructured
+  - **add** Improved field evaluation TiM7xx, Tim7xxS (publish LIDinputstate messages, configuration and services for options FieldSetSelectionMethod and ActiveFieldSet)
+  - **add** PicoScan parameter add_transform_xyz_rpy #399
+  - **fix** LMS4000 encoder settings #403
+  - **fix** CMake-flag for target sick_scan_xd_api_dockertest #404
+  - **change** Merge PR #405 (typo) and PR #406 (sick_scan_xd_api_test)
+
 ## Released ##
 
 ### Release v3.5.0

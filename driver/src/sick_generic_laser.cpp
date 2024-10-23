@@ -475,7 +475,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
 
   std::string cloud_topic = "cloud";
   rosDeclareParam(nhPriv, "hostname", "192.168.0.4");
-  rosDeclareParam(nhPriv, "imu_enable", true);
+  rosDeclareParam(nhPriv, "imu_enable", false);
   rosDeclareParam(nhPriv, "imu_topic", "imu");
   rosDeclareParam(nhPriv, "cloud_topic", cloud_topic);
   if (doInternalDebug)
@@ -485,7 +485,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
     rossimu_settings(*nhPriv);  // just for tiny simulations under Visual C++
 #else
       rosSetParam(nhPriv, "hostname", "192.168.0.4");
-      rosSetParam(nhPriv, "imu_enable", true);
+      rosSetParam(nhPriv, "imu_enable", false);
       rosSetParam(nhPriv, "imu_topic", "imu");
       rosSetParam(nhPriv, "cloud_topic", "cloud");
 #endif
@@ -560,6 +560,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   // Optional timestamp mode:
   // TICKS_TO_SYSTEM_TIMESTAMP = 0, // default: convert lidar ticks in microseconds to system timestamp by software-pll
   // TICKS_TO_MICROSEC_OFFSET_TIMESTAMP = 1 // optional tick-mode: convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp;
+  // TICKS_TO_LIDAR_TIMESTAMP = 2 // optional tick-mode: convert lidar ticks in microseconds to lidar timestamp by sec = tick/1000000, nsec = 1000 * (tick % 1000000)
   int tick_to_timestamp_mode = 0;
   rosDeclareParam(nhPriv, "tick_to_timestamp_mode", tick_to_timestamp_mode);
   rosGetParam(nhPriv, "tick_to_timestamp_mode", tick_to_timestamp_mode);

@@ -128,6 +128,9 @@ namespace sick_scansegment_xd
         std::string udp_sender;                     // = ""; // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a Multiscan136 lidar or Multiscan136 emulator
         int udp_port;                               // = 2115; // default udp port for multiScan136 resp. multiScan136 emulator is 2115
 
+        bool check_udp_receiver_ip = false;         // check udp_receiver_ip by sending and receiving a udp test message
+        int check_udp_receiver_port = 2116;         // udp port to check udp_receiver_ip
+
         double all_segments_min_deg = -180;         // -180 // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
         double all_segments_max_deg = +180;         // +180 // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan)
 
@@ -146,7 +149,8 @@ namespace sick_scansegment_xd
         // int port;                                   // IP port of multiScan136 to post start and stop commands
         // bool send_udp_start;                        // Send udp start string to multiScan136, default: False (obsolete)
         // std::string send_udp_start_string;          // udp string to start multiScan136, default: "magicalActivate"
-        int udp_timeout_ms;                         // Timeout for udp messages in milliseconds, default: 60*1000
+        int udp_timeout_ms;                         // Timeout for udp messages in milliseconds, default: 10*1000
+        int udp_timeout_ms_initial;                 // Initial timeout for udp messages after start in milliseconds, default: 60*1000
         int scandataformat;                         // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
         int performanceprofilenumber;               // Set performance profile by sending "sWN PerformanceProfileNumber" if performanceprofilenumber >= 0 (picoScan), default: -1
         bool imu_enable;                            // IMU enabled or disabled

@@ -40,6 +40,8 @@
         <!-- sick_multiscan basic settings: -->
         <param name="udp_sender" type="string" value="" />                                   <!-- Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan lidar -->
         <param name="udp_port" type="int" value="$(arg udp_port)" />                         <!-- default udp port for multiScan devices is 2115 -->
+        <param name="check_udp_receiver_ip" type="bool" value="True" />                      <!-- check udp_receiver_ip by sending and receiving a udp test message -->
+        <param name="check_udp_receiver_port" type="int" value="2116" />                     <!-- udp port to check udp_receiver_ip -->
         <param name="segment_count" type="int" value="12" />                                 <!-- number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment -->
         <param name="publish_frame_id" type="string" value="$(arg point_cloud_frame_id)" />              <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" -->
         <param name="publish_laserscan_segment_topic" type="string" value="/scan_segment" /> <!-- topic of ros Laserscan segment messages -->
@@ -51,7 +53,8 @@
         <param name="export_csv" type="bool" value="False" />                                <!-- export msgpack data to csv file, default: false -->
         <param name="export_udp_msg" type="bool" value="False" />                            <!-- true : export binary udpand msgpack data to file(*.udp and* .msg), default: false -->
         <param name="logfolder" type="string" value="" />                                    <!-- output folder for logfiles, default: "" (no logging) -->
-        <param name="udp_timeout_ms" type="int" value="60000" />                             <!-- Timeout for udp messages in milliseconds, default: 60*1000 -->
+        <param name="udp_timeout_ms" type="int" value="10000" />                            <!-- Timeout for udp messages in milliseconds, default: 10*1000 -->
+        <param name="udp_timeout_ms_initial" type="int" value="60000" />                    <!-- Initial timeout for udp messages after start in milliseconds, default: 60*1000 -->
         <param name="scandataformat" type="int" value="2" />                                 <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
         <param name="imu_enable" type="bool" value="True"/>                                  <!-- Enable inertial measurement unit IMU, compact format only -->
         <param name="imu_udp_port" type="int" value="$(arg imu_udp_port)"/>                  <!-- udp port for multiScan imu data (if imu_enable is true) -->
@@ -83,7 +86,7 @@
         <!-- List of customized pointclouds: see sick_multiscan.launch for details -->
         <param name="custom_pointclouds" type="string" value="cloud_unstructured_fullframe cloud_all_fields_fullframe"/>
         <param name="cloud_unstructured_fullframe" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_fullframe frameid=cloud publish=1"/>
-        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,t,ts,ring,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_fullframe frameid=cloud publish=1"/>
+        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,t,ts,lidar_sec,lidar_nsec,ring,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_fullframe frameid=cloud publish=1"/>
       </node>
     </group>
 

@@ -1,0 +1,26 @@
+# Definition of ROS service FieldSetRead for TiM7xx and TiM7xxS devices:
+# Read FieldSetSelectionMethod and ActiveFieldSet
+#
+# Example call (ROS1):
+# rosservice call /sick_tim_7xx/FieldSetRead "{}"
+#
+# Example call (ROS2):
+# ros2 service call /FieldSetRead sick_scan_xd/srv/FieldSetReadSrv "{}"
+#
+# field_set_selection_method < 0: do not set (default), field_set_selection_method = 0: active field selection by digital inputs, field_set_selection_method = 1: active field selection by telegram (see operation manual for details about FieldSetSelectionMethod telegram)
+# active_field_set < 0: do not set (default), active_field_set > 0: index of active field otherwise (see operation manual for details about ActiveFieldSet telegram)
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+int32 field_set_selection_method # value of field_set_selection_method after read from lidar
+int32 active_field_set           # value of active_field_set after read from lidar
+bool success # true: success response received from lidar, false: service failed (timeout or error status from controller)

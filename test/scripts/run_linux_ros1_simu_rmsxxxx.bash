@@ -18,9 +18,10 @@ function kill_simu()
 {
     echo -e "Finishing rms emulation, shutdown ros nodes\n"
     pkill -f sopas_json_test_server.py
-    rosnode kill -a ; sleep 1
-    killall sick_generic_caller ; sleep 1
-    killall sick_scan_emulator ; sleep 1
+    # rosnode kill -a ; sleep 3
+    killall rviz
+    killall sick_generic_caller ; sleep 3
+    killall -9 sick_generic_caller
 }
 
 printf "\033c"
@@ -32,24 +33,35 @@ if [ -f ./devel_isolated/setup.bash     ] ; then source ./devel_isolated/setup.b
 echo -e "run_simu_rmsxxxx.bash: starting RMSxxxx emulation\n"
 
 # Start roscore if not yet running
-roscore_running=`(ps -elf | grep roscore | grep -v grep | wc -l)`
-if [ $roscore_running -lt 1 ] ; then 
-  roscore &
-  sleep 3
-fi
+# roscore_running=`(ps -elf | grep roscore | grep -v grep | wc -l)`
+# if [ $roscore_running -lt 1 ] ; then 
+#   roscore &
+#   sleep 3
+# fi
 
-# Run rms1xxx emulator, rviz and launch sick_scan_xd sick_rms_xxxx.launch (ascii)
-python3 ./src/sick_scan_xd/test/python/sopas_json_test_server.py --tcp_port=2112 --json_file=./src/sick_scan_xd/test/emulator/scandata/20220316-rms1000-ascii.pcapng.json --scandata_id="sSN LMDradardata" --send_rate=10 --verbosity=1 &
-rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_rms1xxx.rviz --opengl 210 &
-roslaunch sick_scan_xd sick_rms_xxxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
-waitUntilRvizClosed 15
-kill_simu
+# Run rms2xxx emulator, rviz and launch sick_scan_xd sick_rms_xxxx.launch (ascii) with LMDscandata and LIDoutputstate telegrams
+# Settings for 20221018_rms_1xxx_ascii_rms2_objects.pcapng.json: --scandata_id="sSN LMDradardata", activate_lidoutputstate:=false
+# 20240909-rms2xxx-field-evaluation.pcapng.json: --scandata_id="sSN LMDradardata,sSN LIDoutputstate"
+# 20240909-rms2xxx-field-evaluation-with-rotating-fan.pcapng.json
 
-# Run rms2xxx emulator, rviz and launch sick_scan_xd sick_rms_xxxx.launch (ascii)
-python3 ./src/sick_scan_xd/test/python/sopas_json_test_server.py --tcp_port=2112 --json_file=./src/sick_scan_xd/test/emulator/scandata/20221018_rms_1xxx_ascii_rms2_objects.pcapng.json --scandata_id="sSN LMDradardata" --send_rate=10 --verbosity=1 &
+python3 ./src/sick_scan_xd/test/python/sopas_json_test_server.py --tcp_port=2112 --json_file=./src/sick_scan_xd/test/emulator/scandata/20240909-rms2xxx-field-evaluation.pcapng.json --scandata_id="sSN LMDradardata,sSN LIDoutputstate" --send_rate=10 --verbosity=1 &
 rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_rms2xxx.rviz --opengl 210 &
 roslaunch sick_scan_xd sick_rms_xxxx.launch hostname:=127.0.0.1 sw_pll_only_publish:=False &
-waitUntilRvizClosed 15
+waitUntilRvizClosed 60
 kill_simu
+
+# Run rms1xxx emulator, rviz and launch sick_scan_xd sick_rms_xxxx.launch (ascii)
+# python3 ./src/sick_scan_xd/test/python/sopas_json_test_server.py --tcp_port=2112 --json_file=./src/sick_scan_xd/test/emulator/scandata/20220316-rms1000-ascii.pcapng.json --scandata_id="sSN LMDradardata" --send_rate=10 --verbosity=1 &
+# rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_rms1xxx.rviz --opengl 210 &
+# roslaunch sick_scan_xd sick_rms_xxxx.launch hostname:=127.0.0.1 activate_lidoutputstate:=false sw_pll_only_publish:=False &
+# waitUntilRvizClosed 60
+# kill_simu
+
+# Run rms2xxx emulator, rviz and launch sick_scan_xd sick_rms_xxxx.launch (ascii)
+# python3 ./src/sick_scan_xd/test/python/sopas_json_test_server.py --tcp_port=2112 --json_file=./src/sick_scan_xd/test/emulator/scandata/20221018_rms_1xxx_ascii_rms2_objects.pcapng.json --scandata_id="sSN LMDradardata" --send_rate=10 --verbosity=1 &
+# rosrun rviz rviz -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_rms2xxx.rviz --opengl 210 &
+# roslaunch sick_scan_xd sick_rms_xxxx.launch hostname:=127.0.0.1 activate_lidoutputstate:=false sw_pll_only_publish:=False &
+# waitUntilRvizClosed 60
+# kill_simu
 
 popd

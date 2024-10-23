@@ -59,6 +59,7 @@
 
 #include <sick_scan/sick_scan_common.h>
 #include <sick_scan/sick_generic_field_mon.h>
+#include "sick_scan/sick_scan_messages.h"
 
 namespace sick_scan_xd
 {
@@ -164,8 +165,6 @@ namespace sick_scan_xd
   SickScanFieldMonSingleton::SickScanFieldMonSingleton()
   {
     this->monFields.resize(48);
-    // just for debugging, but very helpful for the start
-    this->active_mon_fieldset = 0;
   }
 
    /*!
@@ -185,24 +184,115 @@ namespace sick_scan_xd
   \param datagramm: Pointer to datagram data
   \param datagram_length: Number of bytes in datagram
   */
-  int SickScanFieldMonSingleton::parseBinaryLIDinputstateMsg(unsigned char* datagramm, int datagram_length)
+  int SickScanFieldMonSingleton::parseBinaryLIDinputstateMsg(unsigned char* datagramm, int datagram_length, sick_scan_msg::LIDinputstateMsg& inputstate_msg)
   {
     int exitCode=ExitSuccess;
     if(datagram_length > 36)
     {
+      // Read N output states
+      int number_of_input_states = 4; // LMS5xx, TiM7xx and TiM7xxS have 4 digital inputs (M12 connector)
+      inputstate_msg.header.stamp = rosTimeNow();
+      inputstate_msg.input_state.clear();
+      inputstate_msg.input_state.reserve(number_of_input_states);
       int fieldset = 0;
       for(int offset = 35; offset >= 32; offset--) // datagramm[32]=INT1, datagramm[33]=INT2, datagramm[34]=INT3, datagramm[35]=INT4 
       {
         fieldset = (fieldset << 1);
-        fieldset |= ((datagramm[offset] != 0) ? 1 : 0);
+        fieldset |= ((datagramm[offset] == 1) ? 1 : 0);
+        inputstate_msg.input_state.push_back(datagramm[offset]);
       }
-      setActiveFieldset(fieldset);
+      fieldset += 1; // FieldSet in range 1 to 16, i.e. 0x00000000 is fieldset 1, 0x00000001 is fieldset 2, ..., 0x01000000 is fieldset 9, ..., 0x01010101 is fieldset 16
+      if (getFieldSelectionMethod() == 1) // ActiveFieldset from telegram
+      {
+        fieldset = getActiveFieldset();
+      }
+      else // default: ActiveFieldset from LIDinputstate
+      {
+        setActiveFieldset(fieldset);
+      }
+      inputstate_msg.active_fieldset = fieldset;
+      // Read 2 byte version + 4 byte system counter
+      int msg_start_idx = 26; // start after 4 byte STX + payload length + "... LIDinputstate "
+      datagramm += msg_start_idx;
+      datagram_length -= msg_start_idx;
+      if( !readBinaryBuffer(datagramm, datagram_length, inputstate_msg.version_number)
+        || !readBinaryBuffer(datagramm, datagram_length, inputstate_msg.system_counter))
+      {
+          ROS_ERROR_STREAM("## ERROR parseBinaryLIDinputstateMsg(): error parsing version_number and system_counter (" << __FILE__ << ":" << __LINE__ << ")");
+          return ExitError;
+      }
+      // Read timestamp state
+      datagramm += 4;
+      datagram_length -= 4;
+      if( !readBinaryBuffer(datagramm, datagram_length, inputstate_msg.time_state))
+      {
+          ROS_ERROR_STREAM("## ERROR parseBinaryLIDinputstateMsg(): error parsing time_state (" << __FILE__ << ":" << __LINE__ << ")");
+          return ExitError;
+      }
+      // Read optional timestamp
+      if(inputstate_msg.time_state > 0)
+      {
+        if(!readBinaryBuffer(datagramm, datagram_length, inputstate_msg.year)
+        || !readBinaryBuffer(datagramm, datagram_length, inputstate_msg.month)
+        || !readBinaryBuffer(datagramm, datagram_length, inputstate_msg.day)
+        || !readBinaryBuffer(datagramm, datagram_length, inputstate_msg.hour)
+        || !readBinaryBuffer(datagramm, datagram_length, inputstate_msg.minute)
+        || !readBinaryBuffer(datagramm, datagram_length, inputstate_msg.second)
+        || !readBinaryBuffer(datagramm, datagram_length, inputstate_msg.microsecond))
+        {
+            ROS_ERROR_STREAM("## ERROR parseBinaryLIDinputstateMsg(): error parsing timestamp (" << __FILE__ << ":" << __LINE__ << ")");
+            return ExitError;
+        }
+      }
     }
     else
     {
       exitCode = ExitError;
     }
     return exitCode;
+  }
+
+  /*!
+  \brief Parse binary ActiveFieldSet response "sRA ActiveFieldSet"
+  \param datagramm: Pointer to datagram data
+  \param datagram_length: Number of bytes in datagram
+  */
+  void SickScanFieldMonSingleton::parseActiveFieldSetResponse(unsigned char* datagram, int datagram_length, uint16_t* active_field_set)
+  {
+    // Example: \x02\x02\x02\x02\x00\x00\x00\x15sRA ActiveFieldSet \x00\x01
+    int arg_start_idx = 27; // start after 4 byte STX + 4 byte payload length + 19 byte "sRA ActiveFieldSet "
+    datagram += arg_start_idx;
+    datagram_length -= arg_start_idx;
+    readBinaryBuffer(datagram, datagram_length, *active_field_set);
+  }
+
+  /*!
+  \brief Parse binary FieldSetSelectionMethod response "sRA FieldSetSelectionMethod"
+  \param datagramm: Pointer to datagram data
+  \param datagram_length: Number of bytes in datagram
+  */
+  void SickScanFieldMonSingleton::parseFieldSetSelectionMethodResponse(unsigned char* datagram, int datagram_length, uint8_t* field_set_selection_method)
+  {
+    int arg_start_idx = 36; // start after 4 byte STX + 4 byte payload length + 28 byte "sRA FieldSetSelectionMethod "
+    datagram += arg_start_idx;
+    datagram_length -= arg_start_idx;
+    readBinaryBuffer(datagram, datagram_length, *field_set_selection_method);
+  }
+
+  /*!
+  \brief Converts a LIDinputstateMsg to a readable string
+  */
+  std::string SickScanFieldMonSingleton::LIDinputstateMsgToString(const sick_scan_msg::LIDinputstateMsg& inputstate_msg)
+  {
+    std::stringstream state_str;
+    state_str << "LIDinputstateMsg = { " << "version_number: " << (uint32_t)inputstate_msg.version_number << ", system_counter: " << (uint32_t)inputstate_msg.system_counter << ", states: (";
+    for(int state_cnt = 0; state_cnt < inputstate_msg.input_state.size(); state_cnt++)
+        state_str << (state_cnt > 0 ? ", " :"") << (uint32_t)inputstate_msg.input_state[state_cnt];
+    state_str << "), active_fieldset: " << inputstate_msg.active_fieldset << ", time state: " << (uint32_t)inputstate_msg.time_state
+      << ", date: " << std::setfill('0') << std::setw(4) << (uint32_t)inputstate_msg.year << "-" << std::setfill('0') << std::setw(2) << (uint32_t)inputstate_msg.month << "-" << std::setfill('0') << std::setw(2) << (uint32_t)inputstate_msg.day
+      << ", time: " << std::setfill('0') << std::setw(2) << (uint32_t)inputstate_msg.hour << ":" << std::setfill('0') << std::setw(2) << (uint32_t)inputstate_msg.minute << ":" << std::setfill('0') << std::setw(2) << (uint32_t)inputstate_msg.second
+      << "." << std::setfill('0') << std::setw(6) << (uint32_t)inputstate_msg.microsecond << " }";
+    return state_str.str();
   }
 
   /*!
