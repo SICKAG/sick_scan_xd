@@ -79,6 +79,8 @@ namespace sick_scan_xd
 
     void updateMarker(const std::vector<SickScanMonField>& fields, int fieldset, int eval_field_logic);
 
+    void updateMarker(sick_scan_msg::LIDinputstateMsg& msg, int eval_field_logic);
+
     void updateMarker(sick_scan_msg::LIDoutputstateMsg& msg, int eval_field_logic);
 
     void updateMarker(sick_scan_msg::LFErecMsg& msg, int eval_field_logic);

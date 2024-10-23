@@ -2,10 +2,29 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
+3.6.0 (2024-10-23)
 -----------
+* Release v3.6.0
+  * add: Launchfiles and configuration for picoScan120
+  * add: Optional AngleRangeFilter and IntervalFilter for picoScan
+  * fix: Obsolete topic "/sick_multiscan/scan" removed
+  * add: IMU automatically deactivated after receiving an error code for IMU activation from picoScan w/o addons
+  * fix: Customization of hash values for authorization #366
+  * fix: Replaced builtin_addressof expressions #370
+  * add: Different UDP timeouts for state initial and running, improved UDP timeout handling
+  * fix: Picoscan range_min value in laserScan message #382
+  * add: Support for RMS2xxx LIDoutputstate telegrams
+  * fix: sick_generic_caller debug assertion #385
+  * add: Check of udp receiver ip at startup
+  * add: cmake-option to overwrite optimization level
+  * change: Documentation restructured
+  * add: Improved field evaluation TiM7xx, Tim7xxS (publish LIDinputstate messages, configuration and services for options FieldSetSelectionMethod and ActiveFieldSet)
+  * fix: PicoScan parameter add_transform_xyz_rpy #399
+  * fix: LMS4000 encoder settings #403
+  * fix: CMake-flag for target sick_scan_xd_api_dockertest #404
+  * change: Merge PR #405 (typo) and PR #406 (sick_scan_xd_api_test)
 
-3.5.0 (2024-xx-xx)
+3.5.0 (2024-07-19)
 ------------------
 * Release v3.5.0
   * add: Optional switch between "system timestamps" (default) and "tick timestamps"
@@ -19,8 +38,8 @@ Forthcoming
   * add: Integration PR #347 (NAV350 landmarks)
   * add: Support for 3D-SLAM (OctoMap, RTAB-Map, timestamps for each scanpoint for deskewing, configuration example for multiScan)
   * add: customisations for gcc 13 (Ubuntu 24)
-  * add: Update for bloom releases ROS-2 iron and jazzy 
-  * add: Configuration multiScan interval filter via launchfile (#352) 
+  * add: Update for bloom releases ROS-2 iron and jazzy
+  * add: Configuration multiScan interval filter via launchfile (#352)
   * add: SPDX licence text (PR #354)
   * fix: Fix #355 (API launchfile parsing error)
   * add: Example configurations for parallel operation multi and picoScan
@@ -39,7 +58,7 @@ Forthcoming
 3.3.0 (2024-03-04)
 ------------------
 * Release v3.3.0
-  * add: Option for MRS1xxx azimuth correction table 
+  * add: Option for MRS1xxx azimuth correction table
   * add: Support for picoScan100 (single echo w/o addons)
   * add: API logging functions and verbosity (#270)
   * add: API documentation (multiple lidars not supported, #281)

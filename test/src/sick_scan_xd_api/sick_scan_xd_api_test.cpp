@@ -221,7 +221,7 @@ static void apiTestDiagnosticMsgCallback(SickScanApiHandle apiHandle, const Sick
 {
   if (msg->status_code == 1) // status_code defined in SICK_DIAGNOSTIC_STATUS: WARN=1
 	  printf("[WARN]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d (WARNING), status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
-  else if (msg->status_code == 1) // status_code defined in SICK_DIAGNOSTIC_STATUS: ERROR=2
+  else if (msg->status_code == 2) // status_code defined in SICK_DIAGNOSTIC_STATUS: ERROR=2
 	  printf("[ERROR]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d (ERROR), status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
   else
 	  printf("[Info]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d, status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);

@@ -160,10 +160,11 @@ sick_scansegment_xd::Config::Config()
     // port = 2115;                           // UDP port of multiScan136 to post start and stop commands
     // send_udp_start = false;                // Send udp start string to multiScan136, default: True
     // send_udp_start_string = "magicalActivate"; // udp string to start multiScan136, default: "magicalActivate"
-    udp_timeout_ms = 60000;                  // Timeout for udp messages in milliseconds, default: 60*1000
+    udp_timeout_ms = 10000;                  // Timeout for udp messages in milliseconds, default: 10*1000
+    udp_timeout_ms_initial = 60000;          // Initial timeout for udp messages after start in milliseconds, default: 60*1000
     scandataformat = 2;                      // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2
     performanceprofilenumber = -1;           // Set performance profile by sending "sWN PerformanceProfileNumber" if performanceprofilenumber >= 0 (picoScan), default: -1
-    imu_enable = true;                       // IMU enabled or disabled
+    imu_enable = false;                       // IMU enabled or disabled
     imu_topic = "imu";                       // ROS topic for IMU messages
     imu_udp_port = 7503;                     // default udp port for multiScan imu data is 7503
     imu_latency_microsec = 0;                // imu latency in microseconds
@@ -256,6 +257,8 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "hostname", hostname);
     ROS_DECL_GET_PARAMETER(node, "udp_sender", udp_sender);
     ROS_DECL_GET_PARAMETER(node, "udp_port", udp_port);
+    ROS_DECL_GET_PARAMETER(node, "check_udp_receiver_ip", check_udp_receiver_ip);
+    ROS_DECL_GET_PARAMETER(node, "check_udp_receiver_port", check_udp_receiver_port);
     ROS_DECL_GET_PARAMETER(node, "all_segments_min_deg", all_segments_min_deg);
     ROS_DECL_GET_PARAMETER(node, "all_segments_max_deg", all_segments_max_deg);
     ROS_DECL_GET_PARAMETER(node, "publish_frame_id", publish_frame_id);
@@ -273,6 +276,7 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     // ROS_DECL_GET_PARAMETER(node, "send_udp_start", send_udp_start);
     // ROS_DECL_GET_PARAMETER(node, "send_udp_start_string", send_udp_start_string);
     ROS_DECL_GET_PARAMETER(node, "udp_timeout_ms", udp_timeout_ms);
+    ROS_DECL_GET_PARAMETER(node, "udp_timeout_ms_initial", udp_timeout_ms_initial);
     ROS_DECL_GET_PARAMETER(node, "scandataformat", scandataformat);
     ROS_DECL_GET_PARAMETER(node, "performanceprofilenumber", performanceprofilenumber);    
     ROS_DECL_GET_PARAMETER(node, "imu_enable", imu_enable);
@@ -291,19 +295,17 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "host_set_FREchoFilter", host_set_FREchoFilter);
     ROS_DECL_GET_PARAMETER(node, "host_LFPangleRangeFilter", host_LFPangleRangeFilter);
     ROS_DECL_GET_PARAMETER(node, "host_set_LFPangleRangeFilter", host_set_LFPangleRangeFilter);
+    ROS_DECL_GET_PARAMETER(node, "host_LFPintervalFilter", host_LFPintervalFilter);
+    ROS_DECL_GET_PARAMETER(node, "host_set_LFPintervalFilter", host_set_LFPintervalFilter);
     if (scanner_type != SICK_SCANNER_PICOSCAN_NAME)
     {
         ROS_DECL_GET_PARAMETER(node, "host_LFPlayerFilter", host_LFPlayerFilter);
         ROS_DECL_GET_PARAMETER(node, "host_set_LFPlayerFilter", host_set_LFPlayerFilter);
-        ROS_DECL_GET_PARAMETER(node, "host_LFPintervalFilter", host_LFPintervalFilter);
-        ROS_DECL_GET_PARAMETER(node, "host_set_LFPintervalFilter", host_set_LFPintervalFilter);
     }
     else
     {
         host_LFPlayerFilter = "";
         host_set_LFPlayerFilter = false;
-        host_LFPintervalFilter = "";
-        host_set_LFPintervalFilter = false;
     }
     // msgpack validation settings
     std::string str_msgpack_validator_required_echos = "0";
@@ -336,7 +338,7 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "add_transform_xyz_rpy", str_add_transform_xyz_rpy);
     bool add_transform_check_dynamic_updates = false;
     ROS_DECL_GET_PARAMETER(node, "add_transform_check_dynamic_updates", add_transform_check_dynamic_updates);
-    add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(node, str_add_transform_xyz_rpy, false, add_transform_check_dynamic_updates);
+    add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(node, str_add_transform_xyz_rpy, true, add_transform_check_dynamic_updates);
 
     // Configuration of laserscan messages (ROS only), activate/deactivate laserscan messages for each layer
     std::string str_laserscan_layer_filter = "0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0";
@@ -400,6 +402,8 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     // Overwrite with commandline arguments
     setOptionalArgument(cli_parameter_map, "udp_sender", udp_sender);
     setOptionalArgument(cli_parameter_map, "udp_port", udp_port);
+    setOptionalArgument(cli_parameter_map, "check_udp_receiver_ip", check_udp_receiver_ip);
+    setOptionalArgument(cli_parameter_map, "check_udp_receiver_port", check_udp_receiver_port);
     setOptionalArgument(cli_parameter_map, "all_segments_min_deg", all_segments_min_deg);
     setOptionalArgument(cli_parameter_map, "all_segments_max_deg", all_segments_max_deg);
     setOptionalArgument(cli_parameter_map, "publish_frame_id", publish_frame_id);
@@ -417,6 +421,7 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     // setOptionalArgument(cli_parameter_map, "send_udp_start", send_udp_start);;
     // setOptionalArgument(cli_parameter_map, "send_udp_start_string", send_udp_start_string);
     setOptionalArgument(cli_parameter_map, "udp_timeout_ms", udp_timeout_ms);
+    setOptionalArgument(cli_parameter_map, "udp_timeout_ms_initial", udp_timeout_ms_initial);
     setOptionalArgument(cli_parameter_map, "scandataformat", scandataformat);
     setOptionalArgument(cli_parameter_map, "performanceprofilenumber", performanceprofilenumber);
     setOptionalArgument(cli_parameter_map, "imu_enable", imu_enable);
@@ -481,6 +486,8 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     ROS_INFO_STREAM("scanner_type:                     " << scanner_type);
     ROS_INFO_STREAM("udp_sender:                       " << udp_sender);
     ROS_INFO_STREAM("udp_port:                         " << udp_port);
+    ROS_INFO_STREAM("check_udp_receiver_ip:            " << check_udp_receiver_ip);
+    ROS_INFO_STREAM("check_udp_receiver_port:          " << check_udp_receiver_port);
     ROS_INFO_STREAM("all_segments_min_deg:             " << all_segments_min_deg);
     ROS_INFO_STREAM("all_segments_max_deg:             " << all_segments_max_deg);
     ROS_INFO_STREAM("publish_frame_id:                 " << publish_frame_id);
@@ -499,6 +506,7 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     //ROS_INFO_STREAM("send_udp_start:                   " << send_udp_start);
     //ROS_INFO_STREAM("send_udp_start_string:            " << send_udp_start_string);
     ROS_INFO_STREAM("udp_timeout_ms:                   " << udp_timeout_ms);
+    ROS_INFO_STREAM("udp_timeout_ms_initial:           " << udp_timeout_ms_initial);
     ROS_INFO_STREAM("scandataformat:                   " << scandataformat);
     ROS_INFO_STREAM("performanceprofilenumber:         " << performanceprofilenumber);
     ROS_INFO_STREAM("imu_enable:                       " << imu_enable);

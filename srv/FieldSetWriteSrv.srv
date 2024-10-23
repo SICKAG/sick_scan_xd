@@ -1,0 +1,30 @@
+# Definition of ROS service FieldSetWrite for TiM7xx and TiM7xxS devices:
+# Write FieldSetSelectionMethod and ActiveFieldSet
+#
+# Example call (ROS1):
+# rosservice call /sick_tim_7xx/FieldSetWrite "{field_set_selection_method_in: -1, active_field_set_in: 1}"
+#
+# Example call (ROS2):
+# ros2 service call /FieldSetWrite sick_scan_xd/srv/FieldSetWriteSrv "{field_set_selection_method_in: -1, active_field_set_in: 1}"
+#
+# Parameter field_set_selection_method < 0: do not set (default), field_set_selection_method = 0: active field selection by digital inputs, field_set_selection_method = 1: active field selection by telegram (see operation manual for details about FieldSetSelectionMethod telegram)
+# Note that FieldSetSelectionMethod (parameter field_set_selection_method) requires a higher authorization level and should be configured in the launch file. It is recommended to set field_set_selection_method_in: -1 when using ros service FieldSetWrite.
+# Parameter active_field_set < 0: do not set (default), active_field_set > 0: index of active field otherwise (see operation manual for details about ActiveFieldSet telegram)
+# 
+
+# 
+# Request (input)
+# 
+
+int32 field_set_selection_method_in # value of field_set_selection_method to write to lidar
+int32 active_field_set_in           # value of active_field_set to write to lidar
+
+---
+
+# 
+# Response (output)
+# 
+
+int32 field_set_selection_method # value of field_set_selection_method after write to and re-read from lidar
+int32 active_field_set           # value of active_field_set after write to and re-read from lidar
+bool success # true: success response received from lidar, false: service failed (timeout or error status from controller)

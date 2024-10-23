@@ -67,7 +67,7 @@ std::istream &operator>>(std::istream &str, CSVRow &data)
 }
 
 
-bool SoftwarePLL::pushIntoFifo(double curTimeStamp, uint32_t curtick)
+bool SoftwarePLL::pushIntoFifo(double curTimeStamp, uint64_t curtick)
 // update tick fifo and update clock (timestamp) fifo
 {
   for (int i = 0; i < fifoSize - 1; i++)
@@ -88,10 +88,9 @@ bool SoftwarePLL::pushIntoFifo(double curTimeStamp, uint32_t curtick)
   return (true);
 }
 
-double SoftwarePLL::extraPolateRelativeTimeStamp(uint32_t tick)
+double SoftwarePLL::extraPolateRelativeTimeStamp(uint64_t tick)
 {
-  int32_t tempTick = 0;
-  tempTick = tick - (uint32_t) (0xFFFFFFFF & FirstTick());
+  uint64_t tempTick = tick - FirstTick();
   double timeDiff = tempTick * this->InterpolationSlope();
   return (timeDiff);
 
@@ -123,7 +122,7 @@ int SoftwarePLL::findDiffInFifo(double diff, double tol)
 \param curtick micro Seconds since scanner start from SOPAS Datagram
 \return PLL is in valid state (true)
 */
-bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtick)
+bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint64_t curtick)
 {
   if (offsetTimestampFirstLidarTick == 0)
   {
@@ -189,9 +188,20 @@ bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtick)
 
 }
 
-//TODO Kommentare
-bool SoftwarePLL::getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint32_t curtick)
+bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtick)
 {
+  return updatePLL(sec, nanoSec, (uint64_t)curtick);
+}
+
+//TODO Kommentare
+bool SoftwarePLL::getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint64_t curtick)
+{
+  if (ticksToTimestampMode == TICKS_TO_LIDAR_TIMESTAMP) // optional tick-mode: convert lidar ticks in microseconds directly into a lidar timestamp by sec = tick/1000000, nsec = 1000 * (tick % 1000000)
+  {
+    sec = (uint32_t)(curtick / 1000000);
+    nanoSec = (uint32_t)(1000 * (curtick % 1000000));
+    return true;
+  }
   if (IsInitialized() == false)
   {
     return (false);
@@ -213,9 +223,19 @@ bool SoftwarePLL::getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint32
   return (true);
 }
 
-// converts a system timestamp to lidar ticks, computes the inverse to getCorrectedTimeStamp().
-bool SoftwarePLL::convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32_t systemtime_nanosec, uint32_t& tick)
+bool SoftwarePLL::getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint32_t curtick)
 {
+  return getCorrectedTimeStamp(sec, nanoSec, (uint64_t)curtick);
+}
+
+// converts a system timestamp to lidar ticks, computes the inverse to getCorrectedTimeStamp().
+bool SoftwarePLL::convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32_t systemtime_nanosec, uint64_t& tick)
+{
+  if (ticksToTimestampMode == TICKS_TO_LIDAR_TIMESTAMP) // optional tick-mode: convert lidar ticks in microseconds directly into a lidar timestamp
+  {
+    tick = 1000000 * (uint64_t)systemtime_sec + (uint64_t)systemtime_nanosec / 1000; // tick in micro seconds
+    return true;
+  }
   if (IsInitialized() == false)
   {
     return (false);
@@ -224,7 +244,7 @@ bool SoftwarePLL::convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32
   {
     double relSystemTimestamp = (systemtime_sec + 1.0e-9 * systemtime_nanosec) - (offsetTimestampFirstSystemSec + 1.0e-6 * offsetTimestampFirstSystemMicroSec);
     double relTicks = 1.0e6 * relSystemTimestamp;
-    tick = (uint32_t)std::round(relTicks + offsetTimestampFirstLidarTick);
+    tick = (uint64_t)std::round(relTicks + offsetTimestampFirstLidarTick);
   }
   else // default: convert lidar ticks in microseconds to system timestamp by software-pll
   {
@@ -236,9 +256,17 @@ bool SoftwarePLL::convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32
     //=> inverse: tick = (relSystemTimestamp / this->InterpolationSlope()) + (uint32_t) (0xFFFFFFFF & FirstTick())
     double relTicks = relSystemTimestamp / this->InterpolationSlope();
     uint32_t tick_offset = (uint32_t)(0xFFFFFFFF & FirstTick());
-    tick = (uint32_t)std::round(relTicks + tick_offset);
+    tick = (uint64_t)std::round(relTicks + tick_offset);
   }
   return (true);
+}
+
+bool SoftwarePLL::convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32_t systemtime_nanosec, uint32_t& tick)
+{
+  uint64_t lidar_ticks = 0;
+  bool success = convSystemtimeToLidarTimestamp(systemtime_sec, systemtime_nanosec, lidar_ticks);
+  tick = (uint32_t)lidar_ticks;
+  return success;
 }
 
 bool SoftwarePLL::nearSameTimeStamp(double relTimeStamp1, double relTimeStamp2, double& delta_time_abs)

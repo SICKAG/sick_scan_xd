@@ -1380,18 +1380,6 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     // 9: Time since startup (eg. 13C8E59)
     // 10: Time of transmission (eg. 13C9CBE)
     // 11 + 12: Input status (0 0), active fieldset
-    /*
-    unsigned short u16_active_fieldset = 0;
-    if(sscanf(fields[12], "%hx", &u16_active_fieldset) == 1)
-    {
-        SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
-        if(fieldMon)
-        {
-          fieldMon->setActiveFieldset(u16_active_fieldset & 0xFF);
-          ROS_INFO("Scandata: active_fieldset = %d", fieldMon->getActiveFieldset());
-        }
-    }
-    */
     // 13 + 14: Output status (8 0)
     // 15: Reserved Byte A (0)
 

@@ -1,0 +1,219 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Launch sick_picoscan120 -->
+    <!-- env name="ROSCONSOLE_CONFIG_FILE" value="/tmp/rosconsole_loglevel_warn.conf" / -->
+    <arg name="hostname" default="192.168.0.1"/>  <!-- Default IP address of picoScan120 -->
+    <arg name="udp_receiver_ip" default=""/>      <!-- UDP destination IP address (ip address of udp receiver) -->
+    <arg name="nodename" default="sick_picoscan"/>
+    <arg name="publish_frame_id" default="world" />                                 <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" = "world_1" -->
+    <arg name="publish_laserscan_segment_topic" default="scan_segment" />           <!-- topic of ros Laserscan segment messages -->
+    <arg name="publish_laserscan_fullframe_topic" default="scan_fullframe" />       <!-- topic of ros Laserscan fullframe messages -->
+    <arg name="udp_port" default="2115" />                                          <!-- default udp port for picoScan devices is 2115 -->
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
+    <arg name="scandataformat" default="2"/>                  <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
+    <arg name="all_segments_min_deg" default="-138.0" />      <!-- angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published,  -->
+    <arg name="all_segments_max_deg" default="+138.0" />      <!-- if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -138...+138 for picoScan (fullscan) -->
+    <arg name="custom_pointclouds" default="cloud_unstructured_segments cloud_unstructured_fullframe cloud_polar_unstructured_segments cloud_polar_unstructured_fullframe cloud_all_fields_fullframe"/> <!-- Default pointclouds: segmented and fullframe pointclouds in both cartesian and polar coordinates -->
+    <arg name="tf_publish_rate" default="10.0" />                     <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+    <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
+        <param name="scanner_type" type="string" value="sick_picoscan"/>
+
+        <!-- network settings: -->
+        <param name="hostname" type="string" value="$(arg hostname)" />                     <!-- IP address of picoScan120 to post start and stop commands, f.e. "192.168.0.1" (default) -->
+        <param name="udp_receiver_ip" type="string" value="$(arg udp_receiver_ip)" />       <!-- UDP destination IP address (ip address of udp receiver), f.e. "192.168.0.140" -->
+
+        <!-- sick_scansegment_xd basic settings: -->
+        <param name="udp_sender" type="string" value="" />                                  <!-- Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a picoscan lidar or picoscan emulator -->
+        <param name="udp_port" type="int" value="$(arg udp_port)" />                        <!-- default udp port for picoScan devices is 2115 -->
+        <param name="check_udp_receiver_ip" type="bool" value="True" />                     <!-- check udp_receiver_ip by sending and receiving a udp test message -->
+        <param name="check_udp_receiver_port" type="int" value="2116" />                    <!-- udp port to check udp_receiver_ip -->
+        <param name="all_segments_min_deg" type="double" value="$(arg all_segments_min_deg)" />              <!-- angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published,  -->
+        <param name="all_segments_max_deg" type="double" value="$(arg all_segments_max_deg)" />              <!-- if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -138...+138 for picoScan120 (fullscan) -->
+        <param name="publish_frame_id" type="string" value="$(arg publish_frame_id)" />     <!-- frame id of ros PointCloud2 messages, default: "world_<layer-id>" = "world_1" -->
+        <param name="publish_laserscan_segment_topic" type="string" value="$(arg publish_laserscan_segment_topic)" />           <!-- topic of ros Laserscan segment messages -->
+        <param name="publish_laserscan_fullframe_topic" type="string" value="$(arg publish_laserscan_fullframe_topic)" />       <!-- topic of ros Laserscan fullframe messages -->
+        <param name="udp_input_fifolength" type="int" value="20" />                         <!-- max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
+        <param name="msgpack_output_fifolength" type="int" value="20" />                    <!-- max. msgpack output fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
+        <param name="verbose_level" type="int" value="1" />                                 <!-- verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1 -->
+        <param name="measure_timing" type="bool" value="True" />                            <!-- measure_timing == true: duration and latency of msgpack conversion and export is measured, default: true -->
+        <param name="export_csv" type="bool" value="False" />                               <!-- export msgpack data to csv file, default: false -->
+        <param name="export_udp_msg" type="bool" value="False" />                           <!-- true : export binary udp and msgpack data to file(*.udp and* .msg), default: false -->
+        <param name="logfolder" type="string" value="" />                                   <!-- output folder for logfiles, default: "" (no logging) -->
+        <param name="send_udp_start" type="bool" value="False" />                           <!-- Send udp start string to picoScan120 -->
+        <param name="send_udp_start_string" type="string" value="magicalActivate" />        <!-- udp string to start picoScan120 -->
+        <param name="udp_timeout_ms" type="int" value="10000" />                            <!-- Timeout for udp messages in milliseconds, default: 10*1000 -->
+        <param name="udp_timeout_ms_initial" type="int" value="60000" />                    <!-- Initial timeout for udp messages after start in milliseconds, default: 60*1000 -->
+        <param name="scandataformat" type="int" value="$(arg scandataformat)" />            <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1 -->
+
+        <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
+        <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
+        <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: -->
+        <!-- add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud -->
+        <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
+        <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects, LaserScan or other messages -->
+        <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" />
+
+        <!-- SOPAS settings: -->
+        <param name="sopas_tcp_port" type="string" value="2111" />                          <!-- TCP port for SOPAS commands, default port: 2111 -->
+        <param name="start_sopas_service" type="bool" value="True" />                       <!-- True: sopas services for CoLa-commands are started (ROS only), default: true -->
+        <param name="send_sopas_start_stop_cmd" type="bool" value="True" />                 <!-- True: picoScan120 start and stop command sequence ("sWN ScanDataEnable 0/1" etc.) are sent after driver start and stop, default: true -->
+        <param name="sopas_cola_binary" type="bool" value="False" />                        <!-- False: SOPAS uses CoLa-A (ascii, default, recommended), CoLa-B (true, binary) currently experimental -->
+        <param name="sopas_timeout_ms" type="int" value="5000" />                           <!-- Timeout for SOPAS response in milliseconds, default: 5000 -->
+        <param name="client_authorization_pw" type="string" value="F4724744" />             <!-- Default password for client authorization -->
+
+        <!-- Msgpack validation -->
+        <param name="msgpack_validator_enabled" type="bool" value="False" />                                  <!-- true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation (default) -->
+        <param name="msgpack_validator_verbose" type="int" value="1" />                                       <!-- 0: print error messages, 1: print error and informational messages, 2: print error and all messages -->
+        <param name="msgpack_validator_discard_msgpacks_out_of_bounds" type="bool" value="True" />            <!-- true: msgpacks are discarded if scan data out of bounds detected, false: error message if a msgpack is not validated -->
+        <param name="msgpack_validator_check_missing_scandata_interval" type="int" value="9" />               <!-- check msgpack for missing scandata after collecting N msgpacks, default: N = 9 segments. Increase this value to tolerate udp packet drops. Use 9 to check each full scan. -->
+        <param name="msgpack_validator_required_echos" type="string" value="0" />                             <!-- default: "0" for one echo -->
+        <param name="msgpack_validator_azimuth_start" type="double" value="-138.0" />                         <!-- picoScan120: fullscan, -138 to +138 deg -->
+        <param name="msgpack_validator_azimuth_end" type="double" value="+138.0" />                           <!-- picoScan120: fullscan, -138 to +138 deg -->
+        <param name="msgpack_validator_elevation_start" type="double" value="0.0" />                          <!-- picoScan120: 1 layer -->
+        <param name="msgpack_validator_elevation_end" type="double" value="0.0" />                            <!-- picoScan120: 1 layer -->
+        <param name="msgpack_validator_valid_segments" type="string" value="0 1 2 3 4 5 6 7 8" />             <!-- indices of valid segmentes, default for full scan: 9 segments -->
+        <param name="msgpack_validator_layer_filter" type="string" value="1" />                               <!-- picoScan120: 1 layer -->
+
+        <!-- Configuration of laserscan messages (ROS only): -->
+        <!-- Parameter "laserscan_layer_filter" sets a mask to create laserscan messages for configured layer (0: no laserscan message, 1: create laserscan messages for this layer) -->
+        <!-- Use "1" to activate resp. "0" to deactivate laserscan messages (picoScan has just 1 layer) -->
+        <param name="laserscan_layer_filter" type="string" value="1" />
+
+        <!-- Configuration of customized pointclouds:
+
+        Parameter "custom_pointclouds" lists all customized pointclouds to be published. Each pointcloud is given by its name and configured by the following parameters:
+        "<name_of_custom_pointcloud>" type="string" value="list of key-value-pairs"
+
+        The list of key-value-pairs defines the pointcloud properties. List of supported key-value-pairs for customized pointclouds:
+
+        Parameter "coordinateNotation" is an enum to configure pointcloud coordinates:
+            coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i), identical to customized with fields=x,y,z,i
+            coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i), identical to customized with fields=azimuth,elevation,range,i
+            coordinateNotation=2: both cartesian and polar (pointcloud has fields x,y,z,azimuth,elevation,r,i), identical to customized with fields=x,y,z,azimuth,elevation,range,i
+            coordinateNotation=3: customized pointcloud fields, i.e. the pointcloud has fields configured by parameter "fields"
+
+        Parameter "updateMethod" is an enum to configure fullframe pointclouds versus segmented pointcloud:
+            updateMethod=0: fullframe pointcloud (default)
+            updateMethod=1: segmented pointcloud
+
+        Parameter "fields" defines the fields of the pointcloud for coordinateNotation == 3 (customized pointcloud fields), e.g.
+            fields=x,y,z,i: cartesian pointcloud
+            fields=range,azimuth,elevation: polar pointcloud
+            or any other combination of x,y,z,i,range,azimuth,elevation,t,ts,lidar_sec,lidar_nsec,ring,layer,echo,reflector
+            These fields have the following meaning:
+                field "x":         cartesian x coordinate in meter in ROS coordinates (4 byte, float32)
+                field "y":         cartesian y coordinate in meter in ROS coordinates (4 byte, float32)
+                field "z":         cartesian z coordinate in meter in ROS coordinates (4 byte, float32)
+                field "i":         intensity (4 byte, float32)
+                field "range":     polar coordinate range in meter (4 byte, float32)
+                field "azimuth":   polar coordinate azimuth in radians  (4 byte, float32)
+                field "elevation": polar coordinate elevation in radians  (4 byte, float32)
+                field "t":         time offset in nano seconds relative to the header timestamp in the point cloud (4 byte, uint32), used by rtabmap for deskewing
+                field "ts":        time offset in seconds relative to the header timestamp (4 byte, float32)
+                field "lidar_sec":  4 byte seconds part of the lidar timestamp in microseconds (lidar time), lidar_sec = (uint32_t)(lidar_timestamp_microsec / 1000000)
+                field "lidar_nsec": 4 byte nano seconds part of the lidar timestamp in microseconds (lidar time), lidar_nsec = (uint32_t)(1000 * (lidar_timestamp_microsec % 1000000))
+                field "ring":      layer id (1 byte, int8), identical to field "layer"
+                field "layer":     layer (group) index (4 byte, int32), 0 for picoScan (1 layer)
+                field "echo":      echo index (4 byte, int32)
+                field "reflector": optional reflector bit (1 byte, uint8), 0 or 1, default: 0
+
+        Parameter "echos" defines which echos are included in the pointcloud, e.g.
+            echos=0
+        Note: The picoScan120 has one echo. echos=0 refers to the first echo.
+
+        Parameter "layers" defines which layers are included in the pointcloud, e.g
+            layers=1, for all layers
+        Note: The picoScan120 has one horizontal layer.
+
+        Parameter "reflectors" filters the points by the reflector bit, i.e.
+            reflectors=0,1 for points with reflector bit set or not set
+            reflectors=0 for points with reflector bit not set
+            reflectors=1 for points with reflector bit set
+
+        Optional parameter "rangeFilter" configures how invalid measurements are filtered in the customized pointcloud.
+            rangeFilter=<range_min>,<range_max>,<filter_flag>
+        The range (distance) of invalid scan points is 0 and can be filtered, i.e. removed from the pointcloud or set to 0, FLT_MAX or NAN.
+        If the range (distance) of a scan point is less than <range_min> or greater than <range_max>, this point is filtered depending on <filter_flag>:
+            <filter_flag> = 0: RANGE_FILTER_DEACTIVATED,  do not apply range filter (default)
+            <filter_flag> = 1: RANGE_FILTER_DROP,         drop point, if range is not within [range_min, range_max]
+            <filter_flag> = 2: RANGE_FILTER_TO_ZERO,      set range to 0, if range is not within [range_min, range_max]
+            <filter_flag> = 3: RANGE_FILTER_TO_RANGE_MAX, set range to range_max, if range is not within [range_min, range_max]
+            <filter_flag> = 4: RANGE_FILTER_TO_FLT_MAX,   set range to FLT_MAX, if range is not within [range_min, range_max]
+            <filter_flag> = 5: RANGE_FILTER_TO_NAN        set range to NAN, if range is not within [range_min, range_max]
+        Note: Using range_filter_handling 4 or 5 requires handling of FLT_MAX and NAN values in an application.
+        The working range of a picoScan is specified by 0.05 m up to 120 m. Example to drop invalid measurements:
+            rangeFilter=0.05,120,1
+        Note: "structured" pointclouds contain all scan points (valid and invalid), i.e. these pointclouds are not filtered. Each scan point has a fixed offset in a structured pointcloud.
+        "unstructured" pointclouds contain all valid measurements, i.e. these pointclouds are filtered and contain valid scan points only. Azimuth and elevation of the n-th scan point is not constant.
+
+        Parameter "topic" defines the ros topic, e.g. topic=/cloud_fullframe for cartesian fullframe pointclouds
+
+        Parameter "frameid" defines the ros frame of the pointcloud, e.g. frameid=world, frameid=map or frameid=base_link
+
+        Parameter "publish" activates or deactivates the pointcloud, e.g. publish=1 to generate and publish, or publish=0 to deactivate that pointcloud
+        -->
+
+        <!-- List of customized pointclouds: -->
+        <param name="custom_pointclouds" type="string" value="$(arg custom_pointclouds)"/> <!-- Default pointclouds: segmented pointcloud and fullframe pointcloud in cartesian coordinates -->
+
+        <!-- A list predefined pointclouds is configured below. Use all of them or just a subset, according to your needs. Further customized pointclouds can be added in the following configuration -->
+        <!-- param name="custom_pointclouds" type="string" value="cloud_unstructured_segments cloud_polar_unstructured_segments cloud_unstructured_fullframe cloud_unstructured_reflector cloud_unstructured_reflector_segments cloud_structured_hires0 cloud_structured_hires0_segments cloud_structured_hires1 cloud_structured_hires1_segments cloud_structured cloud_structured_segments cloud_all_fields_segments cloud_all_fields_fullframe"/ -->
+
+        <!-- cloud_unstructured_segments: cartesian coordinates, segmented, range filter on, max. 300 points -->
+        <param name="cloud_unstructured_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0 layers=1, reflectors=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_segments frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_fullframe: cartesian coordinates, fullframe, range filter on, max. 2761 points -->
+        <param name="cloud_unstructured_fullframe" type="string" value="coordinateNotation=0 updateMethod=0 echos=0 layers=1, reflectors=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_fullframe frameid=world publish=1"/>
+
+        <!-- cloud_polar_unstructured_segments: polar coordinates, segmented, range filter on, max. 300 points -->
+        <param name="cloud_polar_unstructured_segments" type="string" value="coordinateNotation=1 updateMethod=1 echos=0 layers=1, reflectors=0,1 rangeFilter=0.05,999,1 topic=/cloud_polar_unstructured_segments frameid=world publish=1"/>
+
+        <!-- cloud_polar_unstructured_fullframe: polar coordinates, fullframe, range filter on, max. 2761 Points -->
+        <param name="cloud_polar_unstructured_fullframe" type="string" value="coordinateNotation=1 updateMethod=0 echos=0 layers=1, reflectors=0,1 rangeFilter=0.05,999,1 topic=/cloud_polar_unstructured_fullframe frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_reflector: cartesian coordinates, fullframe, range filter on -->
+        <param name="cloud_unstructured_reflector" type="string" value="coordinateNotation=0 updateMethod=0 echos=0 layers=1, reflectors=1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_reflector frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_reflector_segments: cartesian coordinates, segmented, range filter on -->
+        <param name="cloud_unstructured_reflector_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0 layers=1, reflectors=1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_reflector_segments frameid=world publish=1"/>
+
+        <!-- cloud_structured: cartesian and polar coordinates, fullframe, range filter off, fields=x,y,z,i,range,azimuth,elevation, max. 2761 points per cloud -->
+        <param name="cloud_structured" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0 layers=1, reflectors=0,1 rangeFilter=0,999,0 topic=/cloud_structured frameid=world publish=1"/>
+
+        <!-- cloud_structured_segments: cartesian and polar coordinates, segments, range filter off, fields=x,y,z,i,range,azimuth,elevation, max. 300 points per cloud -->
+        <param name="cloud_structured_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0 layers=1, reflectors=0,1 rangeFilter=0,999,0 topic=/cloud_structured_segments frameid=world publish=1"/>
+
+        <!-- cloud_all_fields_segments: all fields (x,y,z,i,range,azimuth,elevation,t,ts,lidar_sec,lidar_nsec,ring,layer,echo,reflector), segments, range filter off -->
+        <param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,t,ts,lidar_sec,lidar_nsec,ring,layer,echo,reflector echos=0 layers=1, reflectors=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_segments frameid=world publish=1"/>
+
+        <!-- cloud_all_fields_fullframe: all fields (x,y,z,i,range,azimuth,elevation,t,ts,lidar_sec,lidar_nsec,ring,layer,echo,reflector), fullframe, range filter off -->
+        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,t,ts,lidar_sec,lidar_nsec,ring,layer,echo,reflector echos=0 layers=1, reflectors=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
+
+        <!--
+        On ROS-1 and ROS-2, sick_scan_xd publishes TF messsages to map a given base frame (i.e. base coordinates system) to the lidar frame (i.e. lidar coordinates system) and vice versa.
+        The default base frame id is "map" (which is the default frame in rviz).
+        The default 6D pose is (x,y,z,roll,pitch,yaw) = (0,0,0,0,0,0) defined by position (x,y,z) in meter and (roll,pitch,yaw) in radians.
+        This 6D pose (x,y,z,roll,pitch,yaw) is the transform T[base,lidar] with parent "base" and child "lidar".
+        For lidars mounted on a carrier, the lidar pose T[base,lidar] and base frame can be configured in this launchfile using the following parameter.
+        The lidar frame id given by parameter "frame_id" resp. "publish_frame_id".
+        Note that the transform is specified using (x,y,z,roll,pitch,yaw). In contrast, the ROS static_transform_publisher uses commandline arguments in order (x,y,z,yaw,pitch,roll).
+        -->
+        <param name="tf_base_frame_id" type="string" value="map" />              <!-- Frame id of base coordinates system, e.g. "map" (default frame in rviz) -->
+        <param name="tf_base_lidar_xyz_rpy" type="string" value="0,0,0,0,0,0" /> <!-- T[base,lidar], 6D pose (x,y,z,roll,pitch,yaw) in meter resp. radians with parent "map" and child "cloud" -->
+        <param name="tf_publish_rate" type="double" value="$(arg tf_publish_rate)" />                <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+
+        <!--
+        Optional mode to convert lidar ticks to ros- resp. system-timestamps:
+        tick_to_timestamp_mode = 0 (default): convert lidar ticks in microseconds to system timestamp by software-pll
+        tick_to_timestamp_mode = 1 (optional tick-mode): convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp
+        tick_to_timestamp_mode = 2 (optional tick-mode): convert lidar ticks in microseconds directly into a lidar timestamp by sec = tick/1000000, nsec = 1000*(tick%1000000)
+        Note: Using tick_to_timestamp_mode = 2, the timestamps in ROS message headers will be in lidar time, not in system time. Lidar and system time can be very different.
+        Using tick_to_timestamp_mode = 2 might cause unexpected results or error messages. We recommend using tick_to_timestamp_mode = 2 for special test cases only.
+        -->
+        <param name="tick_to_timestamp_mode" type="int" value="0"/>
+
+    </node>
+
+</launch>
+

@@ -70,6 +70,9 @@ class ColaResponseMap:
                 "sEN InertialMeasurementUnit": "\x02sEA InertialMeasurementUnit\x03",                                  # "sEN InertialMeasurementUnit" -> "sEA InertialMeasurementUnit"
                 "sWN ImuDataEnable": "\x02sWA ImuDataEnable 1\x03",                                                    # "sWN ImuDataEnable" -> "sWA ImuDataEnable"
                 "sWN ImuDataEthSettings": "\x02sWA ImuDataEthSettings\x03",                                            # "sWN ImuDataEthSettings" -> "sWA ImuDataEthSettings"
+                # Simulate picoScan150 w/o addons (no IMU available): "sWN ImuDataEthSettings" -> "sFA 3" (unknown sopas index, no IMU or IMU license error)
+                # "sWN ImuDataEnable": "\x02sFA 3\x03",            # "sWN ImuDataEnable" -> "sFA 3"
+                # "sWN ImuDataEthSettings": "\x02sFA 3\x03",       # "sWN ImuDataEthSettings" -> "sFA 3"
             }
 
     # Search for a mapped response given a cola request and returns key and response as strings

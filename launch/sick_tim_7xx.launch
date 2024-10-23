@@ -30,6 +30,7 @@
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="tf_publish_rate" default="10.0" />                     <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
     <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
+        <!-- launch-prefix="gdb -ex run - -args" -->
         <param name="scanner_type" type="string" value="sick_tim_7xx"/>
         <param name="nodename" type="string" value="$(arg nodename)"/>
         <param name="min_ang" type="double" value="-2.35619449"/>  <!-- -135 deg -->
@@ -64,6 +65,8 @@
         <param name="activate_lferec" type="bool" value="True"/> <!-- activate field monitoring by lferec messages -->
         <param name="activate_lidoutputstate" type="bool" value="True"/> <!-- activate field monitoring by lidoutputstate messages -->
         <param name="activate_lidinputstate" type="bool" value="True"/> <!-- activate field monitoring by lidinputstate messages -->
+        <param name="active_field_set" type="int" value="-1"/> <!-- set ActiveFieldSet at startup: -1 = do not set (default), index of active field otherwise (see operation manual for details about ActiveFieldSet telegram) -->
+        <param name="field_set_selection_method" type="int" value="-1"/> <!-- set FieldSetSelectionMethod at startup: -1 = do not set (default), 0 = active field selection by digital inputs, 1 = active field selection by telegram (see operation manual for details about FieldSetSelectionMethod telegram) -->
         <param name="min_intensity" type="double" value="0.0"/> <!-- Set range of LaserScan messages to infinity, if intensity < min_intensity (default: 0) -->
         <param name="scandatacfg_timingflag" type="int" value="-1"/> <!-- Set timing flag LMDscandatacfg (LMS-1XX, LMS-1XXX, LMS-4XXX, LMS-5XX, MRS-1XXX, MRS-6XXX, NAV-2XX, TIM-240, TIM-4XX, TIM-5XX, TIM-7XX, TIM-7XXS): -1: use default (off for TiM-240, otherwise on), 0: do not send time information, 1: send time information -->
 
@@ -107,7 +110,10 @@
         <!-- 
         Optional mode to convert lidar ticks to ros- resp. system-timestamps:
         tick_to_timestamp_mode = 0 (default): convert lidar ticks in microseconds to system timestamp by software-pll
-        tick_to_timestamp_mode = 1 (optional tick-mode): convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp;
+        tick_to_timestamp_mode = 1 (optional tick-mode): convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp
+        tick_to_timestamp_mode = 2 (optional tick-mode): convert lidar ticks in microseconds directly into a lidar timestamp by sec = tick/1000000, nsec = 1000*(tick%1000000)
+        Note: Using tick_to_timestamp_mode = 2, the timestamps in ROS message headers will be in lidar time, not in system time. Lidar and system time can be very different.
+        Using tick_to_timestamp_mode = 2 might cause unexpected results or error messages. We recommend using tick_to_timestamp_mode = 2 for special test cases only.
         -->
         <param name="tick_to_timestamp_mode" type="int" value="0"/>
 

@@ -922,6 +922,7 @@ namespace sick_scan_xd
       }
 
       bool entriesNumOk = true;
+      bool allow_missing_keywords = false;
       int entriesNum = 0;
       if (keyWordPos[0] == -1)
       {
@@ -936,27 +937,32 @@ namespace sick_scan_xd
           if (keyWordPos[i] == -1)
           {
             entriesNumOk = false;
-            ROS_WARN_STREAM("Missing keyword " << keyWordList[i] << " but first keyword found.\n");
+            ROS_WARN_STREAM("parseRadarDatagram(): " << (i + 1) << ". keyword " << keyWordList[i] << " missing, but first keyword " << keyWordList[0] << " found, value set to 0.0");
             entriesNumOk = false;
+            allow_missing_keywords = true; // P3DY1 and V3DY1 set to 0 if missing
           }
           else
           {
             int entriesNumTmp = (int)radarFieldToInt32(fields[keyWordPos[i] + 3], useBinaryProtocol); // getHexValue(fields[keyWordPos[i] + 3].data);
             if (entriesNumTmp != entriesNum)
             {
-                ROS_WARN_STREAM("Number of items for keyword " << keyWordList[i] << " differs from number of items for " << keyWordList[0] << "\n.");
+              ROS_WARN_STREAM("parseRadarDatagram(): Number of items for keyword " << keyWordList[i] << " differs from number of items for " << keyWordList[0]);
               entriesNumOk = false;
             }
           }
         }
       }
 
-      if (true == entriesNumOk)
+      if (true == entriesNumOk || true == allow_missing_keywords)
       {
 
 
         for (int i = 0; i < numKeyWords; i++)
         {
+          if (true == allow_missing_keywords && keyWordPos[i] == -1)
+          {
+            continue; // keyword is missing
+          }
           int scaleLineIdx = keyWordPos[i] + 1;
           int scaleOffsetLineIdx = keyWordPos[i] + 2;
           // std::string token = radarFieldToString(fields[scaleLineIdx], useBinaryProtocol); // fields[scaleLineIdx].data;
@@ -992,6 +998,10 @@ namespace sick_scan_xd
               int mode = 0;
               for (int j = 0; j < numKeyWords; j++)
               {
+                if (true == allow_missing_keywords && keyWordPos[j] == -1)
+                {
+                  continue; // keyword is missing
+                }
                 int dataRowIdx = keyWordPos[j] + 4 + i;
                 std::string token = keyWordList[j];
                 if (token.compare(DIST1_KEYWORD) == 0)
@@ -1039,6 +1049,10 @@ namespace sick_scan_xd
 
               for (int j = 0; j < numKeyWords; j++)
               {
+                if (true == allow_missing_keywords && keyWordPos[j] == -1)
+                {
+                  continue; // keyword is missing
+                }
                 int dataRowIdx = keyWordPos[j] + 4 + i;
                 std::string token = keyWordList[j];
                 int intVal = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getShortValue(fields[dataRowIdx].data);

@@ -69,6 +69,21 @@
 namespace sick_scan_xd
 {
 
+  typedef uint8_t* uint8_ptr;
+  template<typename T> inline bool readBinaryBuffer(uint8_ptr& buffer, int & bufferlen, T& value)
+  {
+      if((int)sizeof(value) > bufferlen)
+      {
+          ROS_ERROR_STREAM("## ERROR SickScanMessages::readBinaryBuffer(): bufferlen=" << bufferlen << " byte, " << sizeof(value) << " byte required.");
+          return false;
+      }
+      memcpy(&value, buffer, sizeof(value));
+      swap_endian((unsigned char *) &value, sizeof(value));
+      buffer += sizeof(value);
+      bufferlen -= (int)sizeof(value);
+      return true;
+  }
+
   class SickScanMessages
   {
   public:

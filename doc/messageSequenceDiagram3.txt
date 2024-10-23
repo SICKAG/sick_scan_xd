@@ -1,0 +1,50 @@
+@startuml
+
+"picoScan" -> "udp receiver thread": UDP packet
+"picoScan" -> "udp receiver thread": UDP packet
+"picoScan" -> "udp receiver thread": UDP packet
+
+"udp receiver thread" -> "input FIFO": push telegram
+"input FIFO" -> "process thread": pop telegram
+
+"picoScan" -> "udp receiver thread": UDP packet
+"picoScan" -> "udp receiver thread": UDP packet
+"picoScan" -> "udp receiver thread": UDP packet
+
+"process thread" -> "export FIFO": push segment point cloud
+"process thread" -> "SegmentCollector": push segment point cloud
+"SegmentCollector" -> "SegmentCollector": Segments = [ 0 ]
+"export FIFO" -> "ROS-/API-Export": segment 0 point cloud
+"ROS-/API-Export" -> "Application": segment 0 point cloud
+
+"udp receiver thread" -> "input FIFO": push telegram
+"input FIFO" -> "process thread": pop telegram
+
+"process thread" -> "export FIFO": push segment point cloud
+"process thread" -> "SegmentCollector": push segment point cloud
+"SegmentCollector" -> "SegmentCollector": Segments = [ 0, 1 ]
+"export FIFO" -> "ROS-/API-Export": segment 1 point cloud
+"ROS-/API-Export" -> "Application": segment 1 point cloud
+
+...
+
+"picoScan" -> "udp receiver thread": UDP packet
+"picoScan" -> "udp receiver thread": UDP packet
+"picoScan" -> "udp receiver thread": UDP packet
+
+"udp receiver thread" -> "input FIFO": push telegram
+"input FIFO" -> "process thread": pop telegram
+
+"process thread" -> "export FIFO": push segment point cloud
+"process thread" -> "SegmentCollector": push segment point cloud
+"SegmentCollector" -> "SegmentCollector": Segments = [ 0, 1, ... 8 ]
+"SegmentCollector" -> "export FIFO": full frame point cloud
+"SegmentCollector" -> "SegmentCollector": Segments = []
+"export FIFO" -> "ROS-/API-Export": segment 8 point cloud
+"ROS-/API-Export" -> "Application": segment 8 point cloud
+"export FIFO" -> "ROS-/API-Export": full frame point cloud
+"ROS-/API-Export" -> "Application": full frame point cloud
+
+...
+
+@enduml

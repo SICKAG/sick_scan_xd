@@ -13,6 +13,12 @@ echo PYTHON_DIR=%PYTHON_DIR%
 python --version
 @echo.
 
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20241022_lms4000_encoder.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20241021_lms4000_encoder.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20241010-tim781-lidinputstate-toggle-1-9.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20241008_tim781_lidinputstate_telegram.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240909-rms2xxx-field-evaluation.pcapng
+python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240909-rms2xxx-field-evaluation-with-rotating-fan.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240527-LRS36x0.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240527-OEM15xx.pcapng
 python pcap_json_converter.py --pcap_filename=../emulator/scandata/20240307-MRS1xxx-default-settings-rssiflag3-angres0.2500-scanfreq50.0.pcapng

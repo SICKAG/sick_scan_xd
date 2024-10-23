@@ -133,6 +133,19 @@ void sick_scan_xd::SickScanMarker::updateMarker(const std::vector<SickScanMonFie
     publishMarker();
 }
 
+void sick_scan_xd::SickScanMarker::updateMarker(sick_scan_msg::LIDinputstateMsg& msg, int _eval_field_logic)
+{
+    sick_scan_xd::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan_xd::EVAL_FIELD_SUPPORT)_eval_field_logic;
+    SickScanFieldMonSingleton *fieldMon = SickScanFieldMonSingleton::getInstance();
+    if(fieldMon && eval_field_logic == USE_EVAL_FIELD_TIM7XX_LOGIC)
+    {
+        ROS_DEBUG_STREAM("SickScanMarker: active_fieldset = " << fieldMon->getActiveFieldset());
+        m_scan_mon_fieldset = fieldMon->getActiveFieldset();
+        m_scan_fieldset_legend = createMonFieldsetLegend(m_scan_mon_fieldset);
+        publishMarker();
+    }
+}
+
 void sick_scan_xd::SickScanMarker::updateMarker(sick_scan_msg::LIDoutputstateMsg& msg, int _eval_field_logic)
 {
     sick_scan_xd::EVAL_FIELD_SUPPORT eval_field_logic = (sick_scan_xd::EVAL_FIELD_SUPPORT)_eval_field_logic;
@@ -486,7 +499,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan_xd::SickScanMarker::create
         if (loop_cnt == 0)
             marker_text << "Fieldset :";
         else
-            marker_text << std::to_string(fieldset + 1);
+            marker_text << std::to_string(fieldset);
         marker_point.text = marker_text.str();
         marker_array.push_back(marker_point);
     }

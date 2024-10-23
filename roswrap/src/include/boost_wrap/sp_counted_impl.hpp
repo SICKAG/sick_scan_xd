@@ -173,7 +173,7 @@ public:
 
     virtual void * get_local_deleter( sp_typeinfo const & ti )
     {
-        return ti == BOOST_SP_TYPEID(D)? boost::detail::get_local_deleter( __builtin_addressof( del ) ): 0;
+        return ti == BOOST_SP_TYPEID(D)? boost::detail::get_local_deleter( std::addressof( del ) ): 0;
     }
 
     virtual void * get_untyped_deleter()
@@ -266,7 +266,7 @@ public:
 
     virtual void * get_local_deleter( sp_typeinfo const & ti )
     {
-        return ti == BOOST_SP_TYPEID(D)? boost::detail::get_local_deleter( __builtin_addressof( d_ ) ): 0;
+        return ti == BOOST_SP_TYPEID(D)? boost::detail::get_local_deleter( std::addressof( d_ ) ): 0;
     }
 
     virtual void * get_untyped_deleter()

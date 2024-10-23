@@ -151,12 +151,13 @@ namespace sick_scansegment_xd
                     return false;
                 }
                 // #if defined WIN32 || defined _MSC_VER
-                // char broadcast_opt = 1, reuse_addr_opt = 1;
+                // char broadcast_opt = 1, reuse_addr_opt = 1, reuse_port_opt = 1;
                 // #else
-                // int broadcast_opt = 1, reuse_addr_opt = 1;
+                // int broadcast_opt = 1, reuse_addr_opt = 1, reuse_port_opt = 1;
                 // #endif
                 // setsockopt(m_udp_socket, SOL_SOCKET, SO_BROADCAST, &broadcast_opt, sizeof(broadcast_opt));
                 // setsockopt(m_udp_socket, SOL_SOCKET, SO_REUSEADDR, &reuse_addr_opt, sizeof(reuse_addr_opt));
+                // setsockopt(m_udp_socket, SOL_SOCKET, SO_REUSEPORT, &reuse_port_opt, sizeof(reuse_port_opt));
                 struct sockaddr_in sim_servaddr = { 0 };
                 if(m_udp_sender.empty())
                     sim_servaddr.sin_addr.s_addr = htonl(INADDR_ANY);

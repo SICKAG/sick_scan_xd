@@ -30,12 +30,14 @@ public:
   ~SoftwarePLL()
   {}
 
-  bool pushIntoFifo(double curTimeStamp, uint32_t curtick);// update tick fifo and update clock (timestamp) fifo;
-  double extraPolateRelativeTimeStamp(uint32_t tick);
+  bool pushIntoFifo(double curTimeStamp, uint64_t curtick);// update tick fifo and update clock (timestamp) fifo;
+  double extraPolateRelativeTimeStamp(uint64_t tick);
 
   bool getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint32_t tick);
+  bool getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint64_t tick);
 
   bool convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32_t systemtime_nanosec, uint32_t& tick);
+  bool convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32_t systemtime_nanosec, uint64_t& tick);
 
   bool getDemoFileData(std::string fileName, std::vector<uint32_t> &tickVec, std::vector<uint32_t> &secVec,
                        std::vector<uint32_t> &nanoSecVec);
@@ -48,7 +50,14 @@ public:
     {
       return (offsetTimestampFirstLidarTick > 0);
     }
-    return isInitialized; 
+    else if (ticksToTimestampMode == TICKS_TO_LIDAR_TIMESTAMP)
+    {
+      return true; // no initialization required
+    }
+    else
+    {
+      return isInitialized; 
+    }
   }
 
   void IsInitialized(bool val)
@@ -85,6 +94,7 @@ public:
   { extrapolationDivergenceCounter = val; }
 
   bool updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtick);
+  bool updatePLL(uint32_t sec, uint32_t nanoSec, uint64_t curtick);
 
   int findDiffInFifo(double diff, double tol);
 
@@ -102,17 +112,17 @@ private:
   int numberValInFifo;
   static const double MaxAllowedTimeDeviation;
   static const uint32_t MaxExtrapolationCounter;
-  uint32_t tickFifo[fifoSize]; //  = { 0 };
+  uint64_t tickFifo[fifoSize]; //  = { 0 };
   double clockFifo[fifoSize];
   double lastValidTimeStamp;
-  uint32_t lastValidTick; // = 0;
+  // uint64_t lastValidTick; // = 0;
   bool isInitialized; // = false;
   double dTAvgFeedback; // = 0.0;
   double dClockDiffFeedBack; //  = 0.0;
   double firstTimeStamp;
   double allowedTimeDeviation;
   uint64_t firstTick;
-  uint32_t lastcurtick = 0;
+  uint64_t lastcurtick = 0;
   uint32_t mostRecentSec;
   uint32_t mostRecentNanoSec;
   double mostRecentTimeStamp;
@@ -121,12 +131,15 @@ private:
   enum TICKS_TO_TIMESTAMP_MODE
   {
     TICKS_TO_SYSTEM_TIMESTAMP = 0, // default: convert lidar ticks in microseconds to system timestamp by software-pll
-    TICKS_TO_MICROSEC_OFFSET_TIMESTAMP = 1 // optional tick-mode: convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp
+    TICKS_TO_MICROSEC_OFFSET_TIMESTAMP = 1, // optional tick-mode: convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp
+    TICKS_TO_LIDAR_TIMESTAMP = 2 // optional tick-mode: convert lidar ticks in microseconds directly into a lidar timestamp by sec = tick/1000000, nsec = 1000*(tick%1000000)
+    // Note: Using tick_to_timestamp_mode = 2, the timestamps in ROS message headers will be in lidar time, not in system time. Lidar and system time can be very different.
+    // Using tick_to_timestamp_mode = 2 might cause unexpected results or error messages. We recommend using tick_to_timestamp_mode = 2 for special test cases only.
   };
   TICKS_TO_TIMESTAMP_MODE ticksToTimestampMode = TICKS_TO_SYSTEM_TIMESTAMP;
   uint32_t offsetTimestampFirstSystemSec = 0;
   uint32_t offsetTimestampFirstSystemMicroSec = 0;
-  uint32_t offsetTimestampFirstLidarTick = 0;
+  uint64_t offsetTimestampFirstLidarTick = 0;
 
   bool nearSameTimeStamp(double relTimeStamp1, double relTimeStamp2, double& delta_time_abs);
 

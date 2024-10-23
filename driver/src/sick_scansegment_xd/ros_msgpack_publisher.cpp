@@ -532,13 +532,18 @@ public:
 		{
 		  time_offset_nanosec = (uint32_t)(1000 * (point.lidar_timestamp_microsec - lidar_timestamp_start_microsec));
 			time_offset_sec = (float)(1.0e-6 * (point.lidar_timestamp_microsec - lidar_timestamp_start_microsec));
+			lidar_sec = (uint32_t)(point.lidar_timestamp_microsec / 1000000);
+			lidar_nsec = (uint32_t)(1000 * (point.lidar_timestamp_microsec % 1000000));
+			// assert((uint64_t)lidar_sec * 1000000 + (uint64_t)lidar_nsec / 1000 == point.lidar_timestamp_microsec);
 		}
 		ring = point.layer;
 	}
 	// Additional fields for customized point clouds:
   uint32_t time_offset_nanosec = 0; // field "t": 4 byte time offset of a scan point in nano seconds relative to the timestamp in the point cloud header, used by rtabmap for deskewing
-	float time_offset_sec = 0; // time offset in seconds (otherwise identical to field "t")
-	int8_t ring = 0; // field "ring": 1 byte layer id, identical to field "layer"
+	float time_offset_sec = 0; // field "ts": time offset in seconds (otherwise identical to field "t")
+  uint32_t lidar_sec = 0;    // field "lidar_sec": 4 byte seconds part of the lidar timestamp in microseconds (lidar time), lidar_sec = (uint32_t)(lidar_timestamp_microsec / 1000000)
+  uint32_t lidar_nsec = 0;   // field "lidar_nsec": 4 byte nano seconds part of the lidar timestamp in microseconds (lidar time), lidar_nsec = (uint32_t)(1000 * (lidar_timestamp_microsec % 1000000))
+	int8_t ring = 0;           // field "ring": 1 byte layer id, identical to field "layer"
 };
 
 /*
@@ -583,6 +588,10 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
 	  field_properties.push_back(PointCloudFieldProperty("t", PointField::UINT32, sizeof(uint32_t), (uint8_t*)&dummy_lidar_point.time_offset_nanosec - (uint8_t*)&dummy_lidar_point));
 	if (pointcloud_cfg.fieldEnabled("ts"))
 	  field_properties.push_back(PointCloudFieldProperty("ts", PointField::FLOAT32, sizeof(float), (uint8_t*)&dummy_lidar_point.time_offset_sec - (uint8_t*)&dummy_lidar_point));
+	if (pointcloud_cfg.fieldEnabled("lidar_sec"))
+	  field_properties.push_back(PointCloudFieldProperty("lidar_sec", PointField::UINT32, sizeof(uint32_t), (uint8_t*)&dummy_lidar_point.lidar_sec - (uint8_t*)&dummy_lidar_point));
+	if (pointcloud_cfg.fieldEnabled("lidar_nsec"))
+	  field_properties.push_back(PointCloudFieldProperty("lidar_nsec", PointField::UINT32, sizeof(uint32_t), (uint8_t*)&dummy_lidar_point.lidar_nsec - (uint8_t*)&dummy_lidar_point));
 	if (pointcloud_cfg.fieldEnabled("ring"))
 	  field_properties.push_back(PointCloudFieldProperty("ring", PointField::INT8, sizeof(int8_t), (uint8_t*)&dummy_lidar_point.ring - (uint8_t*)&dummy_lidar_point));
 	if (pointcloud_cfg.fieldEnabled("layer"))
@@ -843,7 +852,9 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 				laser_scan_msg.angle_increment = angle_diff / (float)(laser_scan_msg.ranges.size() - 1);
 				laser_scan_msg.range_min -= 1.0e-03f;
 				laser_scan_msg.range_max += 1.0e-03f;
-				laser_scan_msg.range_min = std::max(0.0f, laser_scan_msg.range_min);
+				laser_scan_msg.range_min = std::max(0.05f, laser_scan_msg.range_min); // min range of multiScan and picoScan: 0.05 [m]
+				
+
 				laser_scan_msg.header.stamp.sec = timestamp_sec;
 #if defined __ROS_VERSION && __ROS_VERSION > 1
 				laser_scan_msg.header.stamp.nanosec = timestamp_nsec;

@@ -1231,6 +1231,7 @@ def SickScanApiGetStatus(sick_scan_library, api_handle, status_code, message_buf
     """ 
     return sick_scan_library.SickScanApiGetStatus(api_handle, status_code, message_buffer, message_buffer_size)
 
+# sopas_string_buffer = {}
 def SickScanApiSendSOPAS(sick_scan_library, api_handle, sopas_command, response_buffer_size = 1024):
     """ 
     Sends a SOPAS command like "sRN SCdevicestate" or "sRN ContaminationResult" and returns the lidar response
@@ -1238,6 +1239,10 @@ def SickScanApiSendSOPAS(sick_scan_library, api_handle, sopas_command, response_
     response_buffer_size = max(1024, response_buffer_size)
     ctypes_response_buffer = ctypes.create_string_buffer(response_buffer_size + 1)
     ret_val = sick_scan_library.SickScanApiSendSOPAS(api_handle, ctypes.create_string_buffer(str.encode(sopas_command)), ctypes_response_buffer, response_buffer_size)
+    # global sopas_string_buffer
+    # if sopas_command not in sopas_string_buffer:
+    #     sopas_string_buffer[sopas_command] = ctypes.create_string_buffer(str.encode(sopas_command))
+    # ret_val = sick_scan_library.SickScanApiSendSOPAS(api_handle, sopas_string_buffer[sopas_command], ctypes_response_buffer, response_buffer_size)
     return ctypes_response_buffer.value.decode()
 
 def SickScanApiSetVerboseLevel(sick_scan_library, api_handle, verbose_level):
