@@ -814,22 +814,24 @@ if(BUILD_SICK_SCAN_XD_API_TEST EQUAL 1)
             target_link_libraries(sick_scan_xd_api_test "pthread") # pthread required for std::thread
         endif()
     endif()
-    add_executable(sick_scan_xd_api_dockertest
-        driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
-        test/src/sick_scan_xd_api/sick_scan_xd_api_dockertest.cpp
-        test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c
-    )
-    target_link_libraries(sick_scan_xd_api_dockertest ${LIB_JSONCPP})
-    if(NOT WIN32)
-        target_link_libraries(sick_scan_xd_api_dockertest "dl") # link with dl for dynamic library loading
-        if(ROS_VERSION EQUAL 0)
-            target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
-            target_link_options(sick_scan_xd_api_dockertest PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
-        elseif(ROS_VERSION EQUAL 1)
-            target_link_libraries(sick_scan_xd_api_dockertest ${catkin_LIBRARIES})
-            add_dependencies(sick_scan_xd_api_dockertest ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
-        elseif(ROS_VERSION EQUAL 2)
-            target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
+    if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON OR CMAKE_ENABLE_DOCKERTESTS EQUAL 1) # i.e. development or dockertests
+        add_executable(sick_scan_xd_api_dockertest
+            driver/src/sick_scan_xd_api/sick_scan_api_converter.cpp
+            test/src/sick_scan_xd_api/sick_scan_xd_api_dockertest.cpp
+            test/src/sick_scan_xd_api/sick_scan_xd_api_wrapper.c
+        )
+        target_link_libraries(sick_scan_xd_api_dockertest ${LIB_JSONCPP})
+        if(NOT WIN32)
+            target_link_libraries(sick_scan_xd_api_dockertest "dl") # link with dl for dynamic library loading
+            if(ROS_VERSION EQUAL 0)
+                target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
+                target_link_options(sick_scan_xd_api_dockertest PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
+            elseif(ROS_VERSION EQUAL 1)
+                target_link_libraries(sick_scan_xd_api_dockertest ${catkin_LIBRARIES})
+                add_dependencies(sick_scan_xd_api_dockertest ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+            elseif(ROS_VERSION EQUAL 2)
+                target_link_libraries(sick_scan_xd_api_dockertest "pthread") # pthread required for std::thread
+            endif()
         endif()
     endif()
 endif()
