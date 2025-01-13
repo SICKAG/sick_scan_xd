@@ -4359,18 +4359,6 @@ namespace sick_scan_xd
   */
   int SickScanCommon::loopOnce(rosNodePtr nh)
   {
-    //static int cnt = 0;
-#ifdef USE_DIAGNOSTIC_UPDATER
-    if(diagnostics_)
-    {
-#if __ROS_VERSION == 2 // ROS 2
-      diagnostics_->force_update();
-#else
-      diagnostics_->update();
-#endif
-    }
-#endif
-
     unsigned char receiveBuffer[65536];
     int actual_length = 0;
     static unsigned int iteration_count = 0;
