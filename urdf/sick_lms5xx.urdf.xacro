@@ -15,7 +15,7 @@
     <link name="${name}_mount_link">
       <visual>
         <geometry>
-          <mesh filename="package://sick_scan/meshes/LMS5xx_small.dae" />
+          <mesh filename="package://sick_scan_xd/meshes/LMS5xx_small.dae" />
         </geometry>
         <material name="blue" >
           <color rgba="0 0 1 1" />
@@ -23,7 +23,7 @@
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://sick_scan/meshes/LMS5xx_collision.stl" />
+          <mesh filename="package://sick_scan_xd/meshes/LMS5xx_collision.stl" />
         </geometry>
       </collision>
       <inertial>
