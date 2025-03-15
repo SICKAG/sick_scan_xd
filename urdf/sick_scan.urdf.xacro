@@ -118,6 +118,7 @@
         <sensor type="gpu_lidar" name="${name}">
           <pose>0 0 0 0 0 0</pose>
           <topic>${ros_topic}</topic>
+          <frame_id>${name}</frame_id>
           <update_rate>${update_rate}</update_rate>
           <ray>
             <scan>
