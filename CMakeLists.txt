@@ -911,7 +911,7 @@ if(ROS_VERSION EQUAL 2)
     endif()
     install(TARGETS sick_generic_caller DESTINATION lib/${PROJECT_NAME})
     install(TARGETS ${PROJECT_NAME}_lib ${PROJECT_NAME}_shared_lib DESTINATION lib)
-    install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
+    install(DIRECTORY launch urdf meshes DESTINATION share/${PROJECT_NAME})
         
     ament_package()        
 endif()
