@@ -5,13 +5,14 @@
     <arg name="hostname" default="192.168.0.1"/>
     <arg name="cloud_topic" default="cloud"/>
     <arg name="laserscan_topic" default="scan"/>
-    <arg name="frame_id" default="cloud"/>
+    <arg name="frame_id" default="cloud"/> <!-- Frame ID of the lidar. For a stationary sensor, use a frame ID like "cloud". If the sensor is mounted on a robot, use the sensor's frame ID, e.g., "sick_link". -->
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="nodename" default="sick_lms_1xx"/>
-    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/> <!-- 6D pose to define the sensor position in the world frame, default: "0,0,0,0,0,0" (i.e. no transform).-->
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="encoder_mode" default="-1"/> <!-- Encoder settings (default: -1, i.e. not set): 0: Off, 1: Single increment, 2: Direction recognition phase, 3: Direction recognition level, 4: Fixed increment speed/ticks (LMS4000 only) -->
     <arg name="tf_publish_rate" default="10.0" />                     <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+    <arg name="tf_base_frame_id" default="map" /> <!-- Frame id of the base coordinate system, e.g., "map". If the sensor is mounted on a robot, use the robot's base_link to avoid conflicts with other packages, such as SLAM. -->
     <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="intensity" type="bool" value="False"/>
         <param name="intensity_resolution_16bit" type="bool" value="false"/>
@@ -94,7 +95,7 @@
         The lidar frame id given by parameter "frame_id" resp. "publish_frame_id".
         Note that the transform is specified using (x,y,z,roll,pitch,yaw). In contrast, the ROS static_transform_publisher uses commandline arguments in order (x,y,z,yaw,pitch,roll).
         -->
-        <param name="tf_base_frame_id" type="string" value="map" />              <!-- Frame id of base coordinates system, e.g. "map" (default frame in rviz) -->
+        <param name="tf_base_frame_id" type="string" value="$(arg tf_base_frame_id)" />              <!-- Frame id of base coordinates system, e.g. "map" (default frame in rviz) -->
         <param name="tf_base_lidar_xyz_rpy" type="string" value="0,0,0,0,0,0" /> <!-- T[base,lidar], 6D pose (x,y,z,roll,pitch,yaw) in meter resp. radians with parent "map" and child "cloud" -->
         <param name="tf_publish_rate" type="double" value="$(arg tf_publish_rate)" />                <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
 
