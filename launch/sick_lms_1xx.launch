@@ -8,7 +8,7 @@
     <arg name="frame_id" default="cloud"/> <!-- Frame ID of the lidar. For a stationary sensor, use a frame ID like "cloud". If the sensor is mounted on a robot, use the sensor's frame ID, e.g., "sick_link". -->
     <arg name="sw_pll_only_publish" default="true"/>
     <arg name="nodename" default="sick_lms_1xx"/>
-    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/> <!-- 6D pose to define the sensor position in the world frame, default: "0,0,0,0,0,0" (i.e. no transform).-->
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/> <!-- 6D pose to define the sensor position in the base frame, default: "0,0,0,0,0,0" (i.e. no transform).-->
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="encoder_mode" default="-1"/> <!-- Encoder settings (default: -1, i.e. not set): 0: Off, 1: Single increment, 2: Direction recognition phase, 3: Direction recognition level, 4: Fixed increment speed/ticks (LMS4000 only) -->
     <arg name="tf_publish_rate" default="10.0" />                     <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
