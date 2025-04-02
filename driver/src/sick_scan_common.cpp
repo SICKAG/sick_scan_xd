@@ -4363,9 +4363,7 @@ namespace sick_scan_xd
 #ifdef USE_DIAGNOSTIC_UPDATER
     if(diagnostics_)
     {
-#if __ROS_VERSION == 2 // ROS 2
-      diagnostics_->force_update();
-#else
+#if __ROS_VERSION == 1 // ROS 1
       diagnostics_->update();
 #endif
     }
