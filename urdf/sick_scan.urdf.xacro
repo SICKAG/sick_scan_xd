@@ -9,7 +9,7 @@
       length="0.06" width="0.06" height="0.079" mass="0.150" z_offset="0.05595"
       min_angle="${min_angle}" max_angle="${max_angle}"
       min_range="0.05" max_range="4.0" gaussian_noise="${gaussian_noise}" samples="${samples}"
-      mesh="package://sick_scan/meshes/sick_tim_5xx.stl" />
+      mesh="package://sick_scan_xd/meshes/sick_tim_5xx.stl" />
   </xacro:macro>
 
   <xacro:macro name="sick_tim_56x" params="name ros_topic min_angle:=-2.357 max_angle:=2.357 gaussian_noise:=0.01 samples:=811">
@@ -17,7 +17,7 @@
       length="0.06" width="0.06" height="0.079" mass="0.150" z_offset="0.05595"
       min_angle="${min_angle}" max_angle="${max_angle}"
       min_range="0.05" max_range="10.0" gaussian_noise="${gaussian_noise}" samples="${samples}"
-      mesh="package://sick_scan/meshes/sick_tim_5xx.stl" />
+      mesh="package://sick_scan_xd/meshes/sick_tim_5xx.stl" />
   </xacro:macro>
 
   <xacro:macro name="sick_tim_57x" params="name ros_topic min_angle:=-2.357 max_angle:=2.357 gaussian_noise:=0.01 samples:=811">
@@ -25,7 +25,7 @@
       length="0.06" width="0.06" height="0.079" mass="0.150" z_offset="0.05595"
       min_angle="${min_angle}" max_angle="${max_angle}"
       min_range="0.05" max_range="25.0" gaussian_noise="${gaussian_noise}" samples="${samples}"
-      mesh="package://sick_scan/meshes/sick_tim_5xx.stl" />
+      mesh="package://sick_scan_xd/meshes/sick_tim_5xx.stl" />
   </xacro:macro>
 
   <xacro:macro name="sick_tim_1xxx" params="name ros_topic min_angle:=-2.357 max_angle:=2.357 gaussian_noise:=0.015 samples:=271">
@@ -33,7 +33,7 @@
       length="0.06" width="0.06" height="0.079" mass="0.150" z_offset="0.05595"
       min_angle="${min_angle}" max_angle="${max_angle}"
       min_range="0.05" max_range="4.0" gaussian_noise="${gaussian_noise}" samples="${samples}"
-      mesh="package://sick_scan/meshes/sick_tim_1xxx.stl" />
+      mesh="package://sick_scan_xd/meshes/sick_tim_1xxx.stl" />
   </xacro:macro>
 
   <xacro:macro name="sick_tim" params="name ros_topic length width height mass z_offset min_angle max_angle min_range max_range gaussian_noise samples mesh">
@@ -82,36 +82,74 @@
   <xacro:macro name="sick_tim_laser_gazebo_v0" params="name link ros_topic update_rate min_angle max_angle min_range max_range gaussian_noise samples">
     <gazebo reference="${link}">
       <material value="Gazebo/Blue" />
-      <sensor type="ray" name="${name}">
-        <always_on>true</always_on>
-        <update_rate>${update_rate}</update_rate>
-        <pose>0 0 0 0 0 0</pose>
-        <visualize>false</visualize>
-        <ray>
-          <scan>
-            <horizontal>
-              <samples>${samples}</samples>
-              <resolution>1</resolution>
-              <min_angle>${min_angle}</min_angle>
-              <max_angle>${max_angle}</max_angle>
-            </horizontal>
-          </scan>
-          <range>
-            <min>${min_range}</min>
-            <max>${max_range}</max>
-            <resolution>0.01</resolution>
-          </range>
-          <noise>
-            <type>gaussian</type>
-            <mean>0.0</mean>
-            <stddev>${gaussian_noise}</stddev>
-          </noise>
-        </ray>
-        <plugin name="gazebo_ros_${name}_controller" filename="libgazebo_ros_laser.so">
-          <topicName>${ros_topic}</topicName>
-          <frameName>${link}</frameName>
-        </plugin>
-      </sensor>
+      <xacro:if value="${$(env ROS_VERSION) == 1}">
+        <sensor type="ray" name="${name}">
+          <always_on>true</always_on>
+          <update_rate>${update_rate}</update_rate>
+          <pose>0 0 0 0 0 0</pose>
+          <visualize>false</visualize>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>${samples}</samples>
+                <resolution>1</resolution>
+                <min_angle>${min_angle}</min_angle>
+                <max_angle>${max_angle}</max_angle>
+              </horizontal>
+            </scan>
+            <range>
+              <min>${min_range}</min>
+              <max>${max_range}</max>
+              <resolution>0.01</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>${gaussian_noise}</stddev>
+            </noise>
+          </ray>
+          <plugin name="gazebo_ros_${name}_controller" filename="libgazebo_ros_laser.so">
+            <topicName>${ros_topic}</topicName>
+            <frameName>${link}</frameName>
+          </plugin>
+        </sensor>
+      </xacro:if>
+      <xacro:if value="${$(env ROS_VERSION) == 2}">
+        <sensor type="gpu_lidar" name="${name}">
+          <pose>0 0 0 0 0 0</pose>
+          <topic>${ros_topic}</topic>
+          <frame_id>${name}</frame_id>
+          <update_rate>${update_rate}</update_rate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>${samples}</samples>
+                <resolution>1</resolution>
+                <min_angle>${min_angle}</min_angle>
+                <max_angle>${max_angle}</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>1</samples>
+                <resolution>0.01</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>0</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>${min_range}</min>
+              <max>${max_range}</max>
+              <resolution>0.01</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>${gaussian_noise}</stddev>
+            </noise>
+          </ray>
+          <always_on>1</always_on>
+          <visualize>false</visualize>
+        </sensor>
+      </xacro:if>
     </gazebo>
   </xacro:macro>
 </robot>
