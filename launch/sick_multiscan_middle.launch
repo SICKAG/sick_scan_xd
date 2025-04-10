@@ -1,0 +1,241 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Launch multiScan -->
+    <!-- env name="ROSCONSOLE_CONFIG_FILE" value="/tmp/rosconsole_loglevel_warn.conf" / -->
+    <arg name="hostname" default="192.168.0.1"/>                                    <!-- IP address of sensor -->
+    <arg name="udp_receiver_ip" default=""/>                                        <!-- UDP destination IP address (ip address of udp receiver) -->
+    <arg name="nodename" default="multiScan"/>
+    <arg name="publish_frame_id" default="world" />                                 <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" -->
+    <arg name="publish_laserscan_segment_topic" default="scan_segment" />           <!-- topic of ros Laserscan segment messages -->
+    <arg name="publish_laserscan_fullframe_topic" default="scan_fullframe" />       <!-- topic of ros Laserscan fullframe messages -->
+    <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
+    <arg name="add_transform_check_dynamic_updates" default="false"/>               <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
+    <arg name="laserscan_layer_filter" default="0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0" /> <!-- Configuration of laserscan messages (ROS only), default: laserscan messages for layer 6 activated (hires layer, elevation -0.07 deg) -->
+    <arg name="scandataformat" default="2"/>                                        <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
+    <arg name="host_LFPangleRangeFilter" default="0 -180.0 +179.0 -90.0 +90.0 1" /> <!-- Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree -->
+    <arg name="host_set_LFPangleRangeFilter" default="False" />                     <!-- If true, LFPangleRangeFilter is set at startup (default: false) -->
+    <arg name="host_LFPlayerFilter" default="0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" />  <!-- Optionaly set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled -->
+    <arg name="host_set_LFPlayerFilter" default="False" />                          <!-- If true, LFPlayerFilter is set at startup (default: false) -->
+    <arg name="custom_pointclouds" default="cloud_unstructured_segments cloud_unstructured_fullframe cloud_polar_unstructured_segments cloud_polar_unstructured_fullframe cloud_all_fields_fullframe"/> <!-- Default pointclouds: segmented and fullframe pointclouds, with all layers and echos in both cartesian and polar coordinates -->
+    <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">    
+        <param name="scanner_type" type="string" value="sick_multiscan"/>
+
+        <!-- network settings: -->
+        <param name="hostname" type="string" value="$(arg hostname)" />                     <!-- IP address of multiScan136 to post start and stop commands, f.e. "192.168.0.1" (default) -->
+        <param name="udp_receiver_ip" type="string" value="$(arg udp_receiver_ip)" />       <!-- UDP destination IP address (ip address of udp receiver), f.e. "192.168.0.140" -->
+
+        <!-- sick_multiscan basic settings: -->
+        <param name="udp_sender" type="string" value="" />                                  <!-- Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan lidar or multiScan136 emulator -->
+        <param name="udp_port" type="int" value="2115" />                                   <!-- default udp port for multiScan136 resp. multiScan136 emulator is 2115 -->
+        <param name="segment_count" type="int" value="12" />                                <!-- number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment -->
+        <param name="publish_frame_id" type="string" value="$(arg publish_frame_id)" />     <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" -->
+        <param name="publish_laserscan_segment_topic" type="string" value="$(arg publish_laserscan_segment_topic)" />           <!-- topic of ros Laserscan segment messages -->
+        <param name="publish_laserscan_fullframe_topic" type="string" value="$(arg publish_laserscan_fullframe_topic)" />       <!-- topic of ros Laserscan fullframe messages -->
+        <param name="udp_input_fifolength" type="int" value="20" />                         <!-- max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
+        <param name="msgpack_output_fifolength" type="int" value="20" />                    <!-- max. msgpack output fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->
+        <param name="verbose_level" type="int" value="1" />                                 <!-- verbose_level <= 0: quiet mode, verbose_level == 1: print statistics, verbose_level == 2: print details incl. msgpack data, default: 1 -->
+        <param name="measure_timing" type="bool" value="True" />                            <!-- measure_timing == true: duration and latency of msgpack conversion and export is measured, default: true -->
+        <param name="export_csv" type="bool" value="False" />                               <!-- export msgpack data to csv file, default: false -->
+        <param name="export_udp_msg" type="bool" value="False" />                           <!-- true : export binary udpand msgpack data to file(*.udp and* .msg), default: false -->
+        <param name="logfolder" type="string" value="" />                                   <!-- output folder for logfiles, default: "" (no logging) -->
+        <!-- param name="send_udp_start" type="bool" value="False" / -->                    <!-- Send udp start string to multiScan136 (obsolete, will be removed in future release) -->
+        <!-- param name="send_udp_start_string" type="string" value="magicalActivate" / --> <!-- udp string to start multiScan136 (obsolete, will be removed in future release) -->
+        <!-- param name="send_udp_start_port" type="int" value="2115" / -->                 <!-- IP port of multiScan136 to post start and stop commands (obsolete, will be removed in future release) -->
+        <param name="udp_timeout_ms" type="int" value="60000" />                            <!-- Timeout for udp messages in milliseconds, default: 60*1000 -->
+        <param name="scandataformat" type="int" value="$(arg scandataformat)" />            <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1 -->
+        <param name="imu_enable" type="bool" value="True"/>                                 <!-- Enable inertial measurement unit IMU, compact format only -->
+        <param name="imu_udp_port" type="int" value="7503"/>                                <!-- udp port for multiScan imu data (if imu_enable is true) -->
+        <param name="imu_latency_microsec" type="int" value="0"/>                           <!-- imu latency in microseconds -->
+        
+        <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
+        <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
+        <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: --> 
+        <!-- add_transform_xyz_rpy := T[world,cloud] with parent "world" and child "cloud", i.e. P_world = T[world,cloud] * P_cloud -->
+        <!-- The additional transform applies to cartesian lidar pointclouds and visualization marker (fields) -->
+        <!-- It is NOT applied to polar pointclouds, radarscans, ldmrs objects or other messages -->
+        <param name="add_transform_xyz_rpy" type="string" value="$(arg add_transform_xyz_rpy)" /> 
+        <param name="add_transform_check_dynamic_updates" type="bool" value="$(arg add_transform_check_dynamic_updates)" />
+
+        <!-- SOPAS settings: -->
+        <param name="sopas_tcp_port" type="string" value="2111" />                          <!-- TCP port for SOPAS commands, default port: 2111 -->
+        <param name="start_sopas_service" type="bool" value="True" />                       <!-- True: sopas services for CoLa-commands are started (ROS only), default: true -->
+        <param name="send_sopas_start_stop_cmd" type="bool" value="True" />                 <!-- True: multiScan136 start and stop command sequence ("sWN ScanDataEnable 0/1" etc.) are sent after driver start and stop, default: true -->
+        <param name="sopas_cola_binary" type="bool" value="False" />                        <!-- False: SOPAS uses CoLa-A (ascii, default, recommended), CoLa-B (true, binary) currently experimental -->
+        <param name="sopas_timeout_ms" type="int" value="5000" />                           <!-- Timeout for SOPAS response in milliseconds, default: 5000 -->
+        <param name="client_authorization_pw" type="string" value="F4724744" />             <!-- Default password for client authorization -->
+        
+        <!-- multiScan filter settings -->
+        <!-- Note: Setting host_LFPangleRangeFilter requires firmware version 1.2.2 or higher -->
+        <param name="host_read_filtersettings" type="bool" value="True" />                                    <!-- Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true -->
+        <param name="host_FREchoFilter" type="int" value="2" />                                               <!-- Optionally set FREchoFilter with 0 for FIRST_ECHO (default, EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1) -->
+        <param name="host_set_FREchoFilter" type="bool" value="True" />                                       <!-- If true, FREchoFilter is set at startup (default: false) -->
+        <param name="host_LFPangleRangeFilter" type="string" value="$(arg host_LFPangleRangeFilter)" />       <!-- Optionally set LFPangleRangeFilter to "<enabled> <azimuth_start> <azimuth_stop> <elevation_start> <elevation_stop> <beam_increment>" with azimuth and elevation given in degree -->
+        <param name="host_set_LFPangleRangeFilter" type="bool" value="$(arg host_set_LFPangleRangeFilter)" /> <!-- If true, LFPangleRangeFilter is set at startup (default: false) -->
+        <param name="host_LFPlayerFilter" type="string" value="$(arg host_LFPlayerFilter)" />                 <!-- Optionaly set LFPlayerFilter to "<enabled> <layer0-enabled> <layer1-enabled> <layer2-enabled> ... <layer15-enabled>" with 1 for enabled and 0 for disabled -->
+        <param name="host_set_LFPlayerFilter" type="bool" value="$(arg host_set_LFPlayerFilter)" />           <!-- If true, LFPlayerFilter is set at startup (default: false) -->
+        
+        <!-- Msgpack validation -->
+        <param name="msgpack_validator_enabled" type="bool" value="False" />                                  <!-- true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation (default) -->
+        <param name="msgpack_validator_verbose" type="int" value="1" />                                       <!-- 0: print error messages, 1: print error and informational messages, 2: print error and all messages -->
+        <param name="msgpack_validator_discard_msgpacks_out_of_bounds" type="bool" value="True" />            <!-- true: msgpacks are discarded if scan data out of bounds detected, false: error message if a msgpack is not validated -->
+        <param name="msgpack_validator_check_missing_scandata_interval" type="int" value="12" />              <!-- check msgpack for missing scandata after collecting N msgpacks, default: N = 12 segments. Increase this value to tolerate udp packet drops. Use 12 to check each full scan. -->
+        <param name="msgpack_validator_required_echos" type="string" value="0" />                             <!-- default: echo count = 1 -->
+        <param name="msgpack_validator_azimuth_start" type="double" value="-180.0" />                         <!-- default for full scan: -180 degree -->
+        <param name="msgpack_validator_azimuth_end" type="double" value="+180.0" />                           <!-- default for full scan: +180 degree -->
+        <param name="msgpack_validator_elevation_start" type="double" value="-90.0" />                        <!-- default for full scan: -90 degree -->
+        <param name="msgpack_validator_elevation_end" type="double" value="+90.0" />                          <!-- default for full scan: +-90 degree -->
+        <param name="msgpack_validator_valid_segments" type="string" value="0 1 2 3 4 5 6 7 8 9 10 11" />     <!-- indices of valid segmentes, default for full scan: 12 segments -->
+        <param name="msgpack_validator_layer_filter" type="string" value="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" /> <!-- default for full scan: 16 layer active, i.e. "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" -->
+
+        <!-- Configuration of ROS quality of service: -->
+        <!-- On ROS-1, parameter "ros_qos" sets the queue_size of ros publisher -->
+        <!-- On ROS-2, parameter "ros_qos" sets the QoS of ros publisher to one of the following predefined values: -->
+        <!-- 0: rclcpp::SystemDefaultsQoS(), 1: rclcpp::ParameterEventsQoS(), 2: rclcpp::ServicesQoS(), 3: rclcpp::ParametersQoS(), 4: rclcpp::SensorDataQoS() -->
+        <!-- See e.g. https://docs.ros2.org/dashing/api/rclcpp/classrclcpp_1_1QoS.html#ad7e932d8e2f636c80eff674546ec3963 for further details about ROS2 QoS -->
+        <!-- Default value is -1, i.e. queue_size=32 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 is used.-->
+        <param name="ros_qos" type="int" value="-1"/>  <!-- Default QoS=-1, i.e. do not overwrite, use queue_size=32 on ROS-1 resp. qos=rclcpp::SystemDefaultsQoS() on ROS-2 -->
+
+        <!-- Configuration of laserscan messages (ROS only): -->
+        <!-- Parameter "laserscan_layer_filter" sets a mask to create laserscan messages for configured layer (0: no laserscan message, 1: create laserscan messages for this layer) -->
+        <!-- Use "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" to activate resp. "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1" to activate laserscan messages for all 16 layers of the Multiscan136 -->
+        <!-- Default is "0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0", i.e. laserscan messages for layer 5, (elevation -0.07 degree, max number of scan points) -->
+        <param name="laserscan_layer_filter" type="string" value="$(arg laserscan_layer_filter)" />
+
+        <!-- Configuration of customized pointclouds:
+
+        Parameter "custom_pointclouds" lists all customized pointclouds to be published. Each pointcloud is given by its name and configured by the following parameters:
+        "<name_of_custom_pointcloud>" type="string" value="list of key-value-pairs"
+        
+        The list of key-value-pairs defines the pointcloud properties. List of supported key-value-pairs for customized pointclouds:
+        
+        Parameter "coordinateNotation" is an enum to configure pointcloud coordinates:
+            coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i), identical to customized with fields=x,y,z,i
+            coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i), identical to customized with fields=azimuth,elevation,range,i
+            coordinateNotation=2: both cartesian and polar (pointcloud has fields x,y,z,azimuth,elevation,r,i), identical to customized with fields=x,y,z,azimuth,elevation,range,i
+            coordinateNotation=3: customized pointcloud fields, i.e. the pointcloud has fields configured by parameter "fields"
+
+        Parameter "updateMethod" is an enum to configure fullframe pointclouds versus segmented pointcloud:
+            updateMethod=0: fullframe pointcloud (default)
+            updateMethod=1: segmented pointcloud
+
+        Parameter "fields" defines the fields of the pointcloud for coordinateNotation == 3 (customized pointcloud fields), e.g. 
+            fields=x,y,z,i: cartesian pointcloud
+            fields=range,azimuth,elevation: polar pointcloud
+            or any other combination of x,y,z,i,range,azimuth,elevation,layer,echo,reflector
+        
+        Parameter "echos" defines which echos are included in the pointcloud, e.g.
+            echos=0,1,2: all echos
+            echos=2: last echo
+            or any other combination of 0,1,2
+
+        Parameter "layers" defines which layers are included in the pointcloud, e.g
+            layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 for all layers
+            layers=6 for the 0 degree layer
+            or any other combination of 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+        Note: layer ids enumerate from 1 up to 16.
+
+        Parameter "reflectors" filters the points by the reflector bit, i.e.
+            reflectors=0,1 for points with reflector bit set or not set
+            reflectors=0 for points with reflector bit not set
+            reflectors=1 for points with reflector bit set
+
+        Parameter "infringed" defines filters the points by infringement, i.e.
+            infringed=0,1 for points with infringement bit set or not set
+            infringed=0 for points with infringement bit not set
+            infringed=1 for points with infringement bit set
+        Parameter "infringed" is currently not supported (reserved for future use)
+
+        Optional parameter "rangeFilter" configures how invalid measurements are filtered in the customized pointcloud.
+            rangeFilter=<range_min>,<range_max>,<filter_flag>
+        The range (distance) of invalid scan points is 0 and can be filtered, i.e. removed from the pointcloud or set to 0, FLT_MAX or NAN.
+        If the range (distance) of a scan point is less than <range_min> or greater than <range_max>, this point is filtered depending on <filter_flag>:
+            <filter_flag> = 0: RANGE_FILTER_DEACTIVATED,  do not apply range filter (default)
+            <filter_flag> = 1: RANGE_FILTER_DROP,         drop point, if range is not within [range_min, range_max]
+            <filter_flag> = 2: RANGE_FILTER_TO_ZERO,      set range to 0, if range is not within [range_min, range_max]
+            <filter_flag> = 3: RANGE_FILTER_TO_RANGE_MAX, set range to range_max, if range is not within [range_min, range_max]
+            <filter_flag> = 4: RANGE_FILTER_TO_FLT_MAX,   set range to FLT_MAX, if range is not within [range_min, range_max]
+            <filter_flag> = 5: RANGE_FILTER_TO_NAN        set range to NAN, if range is not within [range_min, range_max]
+        Note: Using range_filter_handling 4 or 5 requires handling of FLT_MAX and NAN values in an application.
+        The working range of a multiScan is specified by 0.05 m up to 60 m. Example to drop invalid measurements:
+            rangeFilter=0.05,60,1
+        Note: "structured" pointclouds contain all scan points (valid and invalid), i.e. these pointclouds are not filtered. Each scan point has a fixed offset in a structured pointcloud.
+        "unstructured" pointclouds contain all valid measurements, i.e. these pointclouds are filtered and contain valid scan points only. Azimuth and elevation of the n-th scan point is not constant.
+
+        Parameter "topic" defines the ros topic, e.g. topic=/cloud_fullframe for cartesian fullframe pointclouds
+
+        Parameter "frameid" defines the ros frame of the pointcloud, e.g. frameid=world, frameid=map or frameid=base_link
+
+        Parameter "publish" activates or deactivates the pointcloud, e.g. publish=1 to generate and publish, or publish=0 to deactivate that pointcloud
+        -->
+
+        <!-- List of customized pointclouds: -->
+        <param name="custom_pointclouds" type="string" value="$(arg custom_pointclouds)"/> <!-- Default pointclouds: segmented pointcloud and fullframe pointcloud with all layers and echos in cartesian coordinates -->
+        
+        <!-- A list predefined pointclouds is configured below. Use all of them or just a subset, according to your needs. Further customized pointclouds can be added in the following configuration -->
+        <!-- param name="custom_pointclouds" type="string" value="cloud_unstructured_segments cloud_polar_unstructured_segments cloud_unstructured_fullframe cloud_unstructured_echo1 cloud_unstructured_echo1_segments cloud_unstructured_echo2 cloud_unstructured_echo2_segments cloud_unstructured_echo3 cloud_unstructured_echo3_segments cloud_unstructured_reflector cloud_unstructured_reflector_segments cloud_structured_hires0 cloud_structured_hires0_segments cloud_structured_hires1 cloud_structured_hires1_segments cloud_structured cloud_structured_segments cloud_all_fields_segments cloud_all_fields_fullframe"/ -->
+
+        <!-- cloud_unstructured_segments: cartesian coordinates, segmented, all echos, all layers, range filter on, max. 2700 points, mean ca. 1000 points per cloud -->
+        <param name="cloud_unstructured_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_segments frameid=world publish=1"/>
+        
+        <!-- cloud_unstructured_fullframe: cartesian coordinates, fullframe, all echos, all layers, range filter on, max. 32400 points, mean ca. 10000 points per cloud -->
+        <param name="cloud_unstructured_fullframe" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_fullframe frameid=world publish=1"/>
+
+        <!-- cloud_polar_unstructured_segments: polar coordinates, segmented, all echos, all layers, range filter on, max. 2700 points, mean ca. 1000 points per cloud -->
+        <param name="cloud_polar_unstructured_segments" type="string" value="coordinateNotation=1 updateMethod=1 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_polar_unstructured_segments frameid=world publish=1"/>
+
+        <!-- cloud_polar_unstructured_fullframe: polar coordinates, fullframe, all echos, all layers, range filter on -->
+        <param name="cloud_polar_unstructured_fullframe" type="string" value="coordinateNotation=1 updateMethod=0 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_polar_unstructured_fullframe frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo1: cartesian coordinates, fullframe, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo1" type="string" value="coordinateNotation=0 updateMethod=0 echos=0 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo1 frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo1_segments: cartesian coordinates, segmented, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo1_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo1_segments frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo2: cartesian coordinates, fullframe, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo2" type="string" value="coordinateNotation=0 updateMethod=0 echos=1 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo2 frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo2_segments: cartesian coordinates, segmented, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo2_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=1 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo2_segments frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo3: cartesian coordinates, fullframe, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo3" type="string" value="coordinateNotation=0 updateMethod=0 echos=2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo3 frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_echo3_segments: cartesian coordinates, segmented, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_echo3_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_echo3_segments frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_reflector: cartesian coordinates, fullframe, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_reflector" type="string" value="coordinateNotation=0 updateMethod=0 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_reflector frameid=world publish=1"/>
+
+        <!-- cloud_unstructured_reflector_segments: cartesian coordinates, segmented, first echo, all layers, range filter on -->
+        <param name="cloud_unstructured_reflector_segments" type="string" value="coordinateNotation=0 updateMethod=1 echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=1 infringed=0,1 rangeFilter=0.05,999,1 topic=/cloud_unstructured_reflector_segments frameid=world publish=1"/>
+
+        <!-- cloud_structured_hires0: cartesian and polar coordinates, fullframe, all echos, range filter off, high resolution layer 6, fields=x,y,z,i,range,azimuth,elevation, number of points: 2880 x NumEchos x NumSegments -->
+        <param name="cloud_structured_hires0" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=6 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_hires0 frameid=world publish=1"/>
+
+        <!-- cloud_structured_hires0_segments: cartesian and polar coordinates, segments, all echos, range filter off, high resolution layer 6, fields=x,y,z,i,range,azimuth,elevation -->
+        <param name="cloud_structured_hires0_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=6 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_hires0_segments frameid=world publish=1"/>
+
+        <!-- cloud_structured_hires1: cartesian and polar coordinates, fullframe, all echos, range filter off, high resolution layer 14, fields=x,y,z,i,range,azimuth,elevation, number of points: 2880 x NumEchos x NumSegments -->
+        <param name="cloud_structured_hires1" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=14 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_hires1 frameid=world publish=1"/>
+
+        <!-- cloud_structured_hires1_segments: cartesian and polar coordinates, segments, all echos, range filter off, high resolution layer 14, fields=x,y,z,i,range,azimuth,elevation -->
+        <param name="cloud_structured_hires1_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=14 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_hires1_segments frameid=world publish=1"/>
+
+        <!-- cloud_structured: cartesian and polar coordinates, fullframe, all echos, range filter off, low resolution layers 1,2,3,4,5,7,8,9,10,11,12,13,15,16, fields=x,y,z,i,range,azimuth,elevation, 12*360*14*3=181440 points per cloud -->
+        <param name="cloud_structured" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=1,2,3,4,5,7,8,9,10,11,12,13,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured frameid=world publish=1"/>
+
+        <!-- cloud_structured_segments: cartesian and polar coordinates, segments, all echos, range filter off, low resolution layers 1,2,3,4,5,7,8,9,10,11,12,13,15,16, fields=x,y,z,i,range,azimuth,elevation, 360*14*3=15120 points per cloud -->
+        <param name="cloud_structured_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=1,2,3,4,5,7,8,9,10,11,12,13,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_segments frameid=world publish=1"/>
+
+        <!-- cloud_all_fields_segments: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), segments, all echos, all layers, range filter off -->
+        <param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_segments frameid=world publish=1"/>
+
+        <!-- cloud_all_fields_fullframe: all fields (x,y,z,i,range,azimuth,elevation,layer,echo,reflector), fullframe, all echos, all layers, range filter off -->
+        <param name="cloud_all_fields_fullframe" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_fullframe frameid=world publish=1"/>
+
+    </node>
+
+</launch>
+
