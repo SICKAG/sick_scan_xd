@@ -49,7 +49,7 @@ REM
 @echo.
 @echo Playing pcapng-files to emulate multiScan
 @echo.
-python ../test/python/multiscan_pcap_player.py --pcap_filename=../test/emulator/scandata/20230607-multiscan-compact-v4-5layer.pcapng --udp_port=2115
+python ../test/python/multiscan_pcap_player.py --pcap_filename=../test/emulator/scandata/20230607-multiscan-compact-v4-5layer.pcapng --udp_port=2115 --send_rate=10
 @timeout /t 3
 
 popd

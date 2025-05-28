@@ -1,0 +1,16 @@
+.git
+*.pyc
+*.pyo
+*.pyd
+**/__pycache__/
+**/build/
+**/build_x64/
+**/build_win64/
+**/build_linux/
+**/docker_images/
+**/docker_logfiles/
+**/sick_scan_xd/doc/
+**/sick_scan_xd/test/docker/archive/
+**/sick_scan_xd/test/docker/images/
+**/sick_scan_xd/test/emulator/scandata/
+**/sick_scan_xd/tools/

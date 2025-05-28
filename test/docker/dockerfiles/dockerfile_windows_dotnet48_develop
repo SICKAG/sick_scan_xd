@@ -1,0 +1,52 @@
+# Dockerfile for Windows docker images with .NET 4.8, nuget, buildtools (Visual Studio 2019 and 2022), chocolatey, cmake and python
+
+FROM windows_dotnet48_buildtools
+
+# Restore the default Windows shell for correct batch processing.
+SHELL ["cmd", "/S", "/C"]
+
+# Install chocolatey package manager
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
+# RUN SETX PATH "%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
+# Install Visual Studio 2019 Build Tools
+RUN choco feature enable -n allowGlobalConfirmation
+RUN choco install visualstudio2019buildtools --package-parameters "--allWorkloads --includeRecommended --includeOptional"
+
+# Install vcpkg
+ADD https://github.com/microsoft/vcpkg/archive/refs/heads/master.zip C:\\TEMP\\vcpkg-master.zip
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Expand-Archive -Path C:\\TEMP\\vcpkg-master.zip -DestinationPath C:\\"
+RUN pushd C:\\vcpkg-master & call bootstrap-vcpkg.bat & vcpkg integrate install & popd
+RUN SETX PATH "%PATH%;C:\vcpkg-master"
+
+# Install git
+RUN choco install git.install
+
+# Install cmake
+ADD https://github.com/Kitware/CMake/releases/download/v3.29.2/cmake-3.29.2-windows-x86_64.msi C:\\TEMP\\cmake-3.29.2-windows-x86_64.msi
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process msiexec.exe -ArgumentList '/i', C:\\TEMP\\cmake-3.29.2-windows-x86_64.msi, '/quiet', '/norestart' -NoNewWindow -Wait"
+RUN SETX PATH "%PATH%;%ProgramFiles%\CMake\bin\cmake"
+
+# Install python
+ADD https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe C:\\TEMP\\python-3.12.3-amd64.exe
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process C:\\TEMP\\python-3.12.3-amd64.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -NoNewWindow -Wait"
+
+# Install python modules
+RUN python -m pip install argparse datetime numpy pathlib pypcapfile python-pcapng scapy
+
+# Install pwsh.exe (i.e. PowerShell-7.4.2)
+ADD https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/PowerShell-7.4.2-win-x64.msi C:\\TEMP\\PowerShell-7.4.2-win-x64.msi
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process msiexec.exe -ArgumentList '/i', C:\\TEMP\\PowerShell-7.4.2-win-x64.msi, '/quiet', '/norestart' -NoNewWindow -Wait"
+RUN SET "PATH=%PATH%;%ProgramFiles%\PowerShell\7"
+
+# Install pandoc to convert md to html
+ADD https://github.com/jgm/pandoc/releases/download/3.1.13/pandoc-3.1.13-windows-x86_64.msi C:\\TEMP\\pandoc-3.1.13-windows-x86_64.msi
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process msiexec.exe -ArgumentList '/i', C:\\TEMP\\pandoc-3.1.13-windows-x86_64.msi, '/quiet', '/norestart' -NoNewWindow -Wait"
+
+# Set PATH to Visual Studio 2019 or Visual Studio 2022
+RUN SETX PATH "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\BuildTools\Common7\Tools;%PATH%"
+# RUN SETX PATH "%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools;%PATH%"
+
+# Define the entry point for the docker container.
+# This entry point starts the developer command prompt and leaves it running.
+ENTRYPOINT ["cmd.exe", "/k", "VsDevCmd.bat"]

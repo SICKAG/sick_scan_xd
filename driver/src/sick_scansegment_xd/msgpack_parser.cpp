@@ -602,7 +602,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			// result.timestamp = std::to_string(timestamp_data.int64_value());
 			SoftwarePLL& software_pll = SoftwarePLL::instance();
 			uint32_t curtick = timestamp_data.int32_value();
-			software_pll.updatePLL(systemtime_sec, systemtime_nsec, curtick);
+			software_pll.updatePLL(systemtime_sec, systemtime_nsec, curtick, curtick);
 			if (software_pll.IsInitialized())
 			{
 				uint32_t pll_sec = 0, pll_nsec = 0;
@@ -684,7 +684,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				rssiValuesDataMsg[n] = MsgPackElement(rssiValuesMsg->second.array_items()[n].object_items());
       
 			// Get optional property values
-      std::vector<std::vector<uint8_t>> propertyValues; // uint8_t property = propertyValues[echoIdx][pointIdx]
+			std::vector<std::vector<uint8_t>> propertyValues; // uint8_t property = propertyValues[echoIdx][pointIdx]
 			if (propertiesMsg != dataMsg->second.object_items().end()) // property values available
 			{
 				propertyValues = std::vector<std::vector<uint8_t>>(propertiesMsg->second.array_items().size());
@@ -719,11 +719,16 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			assert(channelPhi.data().size() == 1 && channelTheta.data().size() > 0 && distValues.size() == iEchoCount && rssiValues.size() == iEchoCount);
 
       // Check optional propertyValues: if available, we expect as many properties as we have points
-			for (int n = 0; n < propertyValues.size(); n++) 
+			int numProperties = propertyValues.size();
+			for (int n = 0; n < numProperties; n++)
 			{
-			  // ROS_DEBUG_STREAM("MsgPackParser::Parse(): " << (distValues[n].data().size()) << " dist values, " << (rssiValues[n].data().size()) << " rssi values, " << (propertyValues[n].size()) << " property values (" << (n+1) << ". echo)");
-        if (propertyValues[n].size() != distValues[n].data().size())
-					ROS_WARN_STREAM("## ERROR MsgPackParser::Parse(): invalid property values");
+				// ROS_DEBUG_STREAM("MsgPackParser::Parse(): " << (distValues[n].data().size()) << " dist values, " << (rssiValues[n].data().size()) << " rssi values, " << (propertyValues[n].size()) << " property values (" << (n+1) << ". echo)");
+				if (propertyValues[n].size() != distValues[n].data().size())
+				{
+					ROS_WARN_STREAM("## ERROR MsgPackParser::Parse(): invalid property values for echo " << n
+						<< ", property size = " << propertyValues[n].size()
+						<< ", dist size = " << distValues[n].data().size());
+				}
 			}
 
 			// Convert to cartesian coordinates
@@ -749,27 +754,32 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				float azimuth = channelTheta.data()[pointIdx] + add_transform_xyz_rpy.azimuthOffset();
 				cos_azimuth[pointIdx] = std::cos(azimuth);
 				sin_azimuth[pointIdx] = std::sin(azimuth);
-        lut_lidar_timestamp_microsec[pointIdx] = ((pointIdx * (u32TimestampStop - u32TimestampStart)) / (iPointCount - 1)) + u32TimestampStart;
-        // if (pointIdx > 0)
+				lut_lidar_timestamp_microsec[pointIdx] = ((pointIdx * (u32TimestampStop - u32TimestampStart)) / (iPointCount - 1)) + u32TimestampStart;
+				// if (pointIdx > 0)
 				//     SCANSEGMENT_XD_DEBUG_STREAM("azimuth[" << pointIdx << "] = " << (azimuth * 180 / M_PI) << " [deg], delta_azimuth = " << ((channelTheta.data[pointIdx] - channelTheta.data[pointIdx-1]) * 180 / M_PI) << " [deg]");
-			}
+			}                 
 			for (int echoIdx = 0; echoIdx < iEchoCount; echoIdx++)
 			{
 				assert(iPointCount == channelTheta.data().size() && iPointCount == distValues[echoIdx].data().size() && iPointCount == rssiValues[echoIdx].data().size());
 				groupData.push_back(sick_scansegment_xd::ScanSegmentParserOutput::Scanline());
 				sick_scansegment_xd::ScanSegmentParserOutput::Scanline& scanline = groupData.back();
 				scanline.points.reserve(iPointCount);
+				int numPropertiesForThisEcho = propertyValues[echoIdx].size();  // number of properties for this echo index
 				for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 				{
-					uint8_t reflectorbit = 0;
-					for (int n = 0; n < propertyValues.size(); n++)
-					  if (pointIdx < propertyValues[n].size())
-					    reflectorbit |= ((propertyValues[n][pointIdx]) & 0x01); // reflector bit is set, if a reflector is detected on any number of echos
+     			    
+
 					float dist = 0.001f * distValues[echoIdx].data()[pointIdx]; // convert distance to meter
 					float intensity = rssiValues[echoIdx].data()[pointIdx];
 					float x = dist * cos_azimuth[pointIdx] * cos_elevation;
 					float y = dist * sin_azimuth[pointIdx] * cos_elevation;
 					float z = dist * sin_elevation;
+
+					uint8_t reflectorbit = 0;
+					if (pointIdx < numPropertiesForThisEcho)  // grab reflector bit from properties for this echo and point
+					{
+					    reflectorbit |= ((propertyValues[echoIdx][pointIdx]) & 0x01); // reflector bit is set, if a reflector is detected on any number of echos
+					}
 					add_transform_xyz_rpy.applyTransform(x, y, z);
 					float azimuth = channelTheta.data()[pointIdx];
 					float azimuth_norm = normalizeAngle(azimuth);
@@ -778,7 +788,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 						msgpack_validator_data.update(echoIdx, segment_idx, azimuth_norm, elevation);
 						msgpack_validator_data_collector.update(echoIdx, segment_idx, azimuth_norm, elevation);
 					}
-          uint64_t lidar_timestamp_microsec = lut_lidar_timestamp_microsec[pointIdx];
+					uint64_t lidar_timestamp_microsec = lut_lidar_timestamp_microsec[pointIdx];
 					scanline.points.push_back(sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint(x, y, z, intensity, dist, azimuth, elevation, groupIdx, echoIdx, pointIdx, lidar_timestamp_microsec, reflectorbit));
 				}
 			}

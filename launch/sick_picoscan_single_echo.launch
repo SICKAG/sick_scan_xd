@@ -73,7 +73,8 @@
         <param name="send_sopas_start_stop_cmd" type="bool" value="True" />                 <!-- True: picoScan150 start and stop command sequence ("sWN ScanDataEnable 0/1" etc.) are sent after driver start and stop, default: true -->
         <param name="sopas_cola_binary" type="bool" value="False" />                        <!-- False: SOPAS uses CoLa-A (ascii, default, recommended), CoLa-B (true, binary) currently experimental -->
         <param name="sopas_timeout_ms" type="int" value="5000" />                           <!-- Timeout for SOPAS response in milliseconds, default: 5000 -->
-        <param name="client_authorization_pw" type="string" value="F4724744" />             <!-- Default password for client authorization -->
+        <param name="user_level" type="int" value="4" />                                    <!-- Default user level for authorization (3: client, 4: service) -->
+        <param name="user_level_password" type="string" value="81BE23AA" />                 <!-- Default user level password (for "client" (level 3): F4724744, for "service" (level 4): 81BE23AA) -->
         
         <!-- picoScan150 filter settings -->
         <param name="host_read_filtersettings" type="bool" value="True" />                                    <!-- Read picoScan150 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true -->

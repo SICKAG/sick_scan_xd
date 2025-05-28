@@ -76,7 +76,8 @@
         <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
         <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
         <!-- Note: read_timeout_millisec_kill_node less or equal 0 deactivates pointcloud monitoring (not recommended) -->
-        <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
+        <param name="user_level" type="int" value="3" />                          <!-- Default user level for authorization (3: client, 4: service) -->
+        <param name="user_level_password" type="string" value="F4724744" />       <!-- Default user level password (for "client" (level 3): F4724744, for "service" (level 4): 81BE23AA) -->
 
         <!-- Supported by sick_generic_caller version 2.7.3 and above: -->
         <param name="lfp_meanfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->

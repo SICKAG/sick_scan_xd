@@ -224,7 +224,8 @@ def pySickScanDiagnosticMsgCallback(api_handle, diagnostic_msg):
 # Callback for SickScanLogMsg messages
 def pySickScanLogMsgCallback(api_handle, log_msg):
     log_msg = log_msg.contents # dereference msg pointer
-    print("pySickScanLogMsgCallback: api_handle={}, log_level={}, log_message={}".format(api_handle, log_msg.log_level, log_msg.log_message))
+    if log_msg.log_level >= 1: # log_level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels)
+        print("pySickScanLogMsgCallback: api_handle={}, log_level={}, log_message={}".format(api_handle, log_msg.log_level, log_msg.log_message))
 
 #
 # Python examples for SickScanApiWaitNext-functions ("message polling")

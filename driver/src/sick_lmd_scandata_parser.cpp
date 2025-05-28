@@ -148,6 +148,7 @@ namespace sick_scan_xd
                   uint32_t SystemCountScan = 0;
                   static uint32_t lastSystemCountScan = 0;// this variable is used to ensure that only the first time stamp of an multi layer scann is used for PLL updating
                   uint32_t SystemCountTransmit = 0;
+                  static uint32_t lastSystemCountTransmit = 0;
 
                   memcpy(&elevAngleX200, receiveBuffer + 50, 2);
                   swap_endian((unsigned char *) &elevAngleX200, 2);
@@ -170,22 +171,29 @@ namespace sick_scan_xd
                     double system_count_transmit_sec = SystemCountTransmit * 1e-6;
                     ROS_INFO_STREAM("LMDscandata: SystemCountScan = " << system_count_scan_sec << " sec, SystemCountTransmit = " << system_count_transmit_sec << " sec, delta = " << 1.0e3*(system_count_transmit_sec - system_count_scan_sec) << " millisec.");
                   }*/
-
-                  double timestampfloat = sec(recvTimeStamp) + nsec(recvTimeStamp) * 1e-9;
-                  bool bRet;
-                  if (SystemCountScan !=
-                      lastSystemCountScan)//MRS 6000 sends 6 packets with same  SystemCountScan we should only update the pll once with this time stamp since the SystemCountTransmit are different and this will only increase jitter of the pll
+                  /* if(SystemCountScan < lastSystemCountScan)
                   {
-                    bRet = SoftwarePLL::instance().updatePLL(sec(recvTimeStamp), nsec(recvTimeStamp),
-                                                             SystemCountTransmit);
-                    lastSystemCountScan = SystemCountScan;
+                    ROS_WARN_STREAM("parseCommonBinaryResultTelegram(): SystemCountScan=" << SystemCountScan << " < lastSystemCountScan=" << lastSystemCountScan << ", SystemCountScan jump back");
                   }
-                  // ROS_DEBUG_STREAM("recvTimeStamp before software-pll correction: " << recvTimeStamp);
-                  rosTime tmp_time = recvTimeStamp;
-                  uint32_t recvTimeStampSec = (uint32_t)sec(recvTimeStamp), recvTimeStampNsec = (uint32_t)nsec(recvTimeStamp);
+                  if(SystemCountTransmit < lastSystemCountTransmit)
+                  {
+                    ROS_WARN_STREAM("parseCommonBinaryResultTelegram(): SystemCountTransmit=" << SystemCountTransmit << " < lastSystemCountTransmit=" << lastSystemCountTransmit << ", SystemCountTransmit jump back");
+                  } */
                   uint32_t lidar_ticks = SystemCountScan;
                   if(use_generation_timestamp == 0)
                     lidar_ticks = SystemCountTransmit;
+                  double timestampfloat = sec(recvTimeStamp) + nsec(recvTimeStamp) * 1e-9;
+                  bool bRet;
+                  if (SystemCountScan !=
+                      lastSystemCountScan)// MRS 6000 sends 6 packets with same  SystemCountScan we should only update the pll once with this time stamp since the SystemCountTransmit are different and this will only increase jitter of the pll
+                  {
+                    bRet = SoftwarePLL::instance().updatePLL(sec(recvTimeStamp), nsec(recvTimeStamp), SystemCountTransmit, lidar_ticks);
+                    lastSystemCountScan = SystemCountScan;
+                  }
+                  lastSystemCountTransmit = SystemCountTransmit;
+                  // ROS_DEBUG_STREAM("recvTimeStamp before software-pll correction: " << recvTimeStamp);
+                  rosTime tmp_time = recvTimeStamp;
+                  uint32_t recvTimeStampSec = (uint32_t)sec(recvTimeStamp), recvTimeStampNsec = (uint32_t)nsec(recvTimeStamp);
                   bRet = SoftwarePLL::instance().getCorrectedTimeStamp(recvTimeStampSec, recvTimeStampNsec, lidar_ticks);
 
                   recvTimeStamp = rosTime(recvTimeStampSec, recvTimeStampNsec);

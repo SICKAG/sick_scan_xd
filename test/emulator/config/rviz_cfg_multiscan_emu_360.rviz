@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /PointCloud21
-        - /PointCloud22
       Splitter Ratio: 0.5
     Tree Height: 374
   - Class: rviz/Selection
@@ -26,7 +25,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: PointCloud2
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -128,38 +127,6 @@ Visualization Manager:
           Value: true
         world:
           Value: true
-        world_1:
-          Value: true
-        world_10:
-          Value: true
-        world_11:
-          Value: true
-        world_12:
-          Value: true
-        world_13:
-          Value: true
-        world_14:
-          Value: true
-        world_15:
-          Value: true
-        world_16:
-          Value: true
-        world_2:
-          Value: true
-        world_3:
-          Value: true
-        world_4:
-          Value: true
-        world_5:
-          Value: true
-        world_6:
-          Value: true
-        world_7:
-          Value: true
-        world_8:
-          Value: true
-        world_9:
-          Value: true
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
@@ -169,37 +136,6 @@ Visualization Manager:
       Tree:
         map:
           world:
-            {}
-        world_6:
-          world_1:
-            {}
-          world_10:
-            {}
-          world_11:
-            {}
-          world_12:
-            {}
-          world_13:
-            {}
-          world_14:
-            {}
-          world_15:
-            {}
-          world_16:
-            {}
-          world_2:
-            {}
-          world_3:
-            {}
-          world_4:
-            {}
-          world_5:
-            {}
-          world_7:
-            {}
-          world_8:
-            {}
-          world_9:
             {}
       Update Interval: 0
       Value: true

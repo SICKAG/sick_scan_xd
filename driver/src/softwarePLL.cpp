@@ -17,6 +17,10 @@ File: softwarePLL.cpp
 #include <string>
 
 
+#if defined __ROS_VERSION && __ROS_VERSION > 0 // Check extrapolated timestamps against ros time
+#include <sick_scan/sick_ros_wrapper.h>
+#endif
+
 const double SoftwarePLL::MaxAllowedTimeDeviation = 0.1;
 const uint32_t SoftwarePLL::MaxExtrapolationCounter = 20;
 
@@ -67,30 +71,33 @@ std::istream &operator>>(std::istream &str, CSVRow &data)
 }
 
 
-bool SoftwarePLL::pushIntoFifo(double curTimeStamp, uint64_t curtick)
+bool SoftwarePLL::pushIntoFifo(double curTimeStamp, uint64_t curtickTransmit, uint64_t curtickScan)
 // update tick fifo and update clock (timestamp) fifo
 {
   for (int i = 0; i < fifoSize - 1; i++)
   {
-    tickFifo[i] = tickFifo[i + 1];
+    tickFifoTransmit[i] = tickFifoTransmit[i + 1];
+    tickFifoScan[i] = tickFifoScan[i + 1];
     clockFifo[i] = clockFifo[i + 1];
   }
-  tickFifo[fifoSize - 1] = curtick; // push most recent tick and timestamp into fifo
+  tickFifoTransmit[fifoSize - 1] = curtickTransmit; // push most recent tick and timestamp into fifo
+  tickFifoScan[fifoSize - 1] = curtickScan;
   clockFifo[fifoSize - 1] = curTimeStamp;
 
   if (numberValInFifo < fifoSize)
   {
     numberValInFifo++; // remember the number of valid number in fifo
   }
-  FirstTick(tickFifo[0]);
+  FirstTickTransmit(tickFifoTransmit[0]);
+  FirstTickScan(tickFifoScan[0]);
   FirstTimeStamp(clockFifo[0]);
 
   return (true);
 }
 
-double SoftwarePLL::extraPolateRelativeTimeStamp(uint64_t tick)
+double SoftwarePLL::extraPolateRelativeTimeStamp(uint64_t cur_tick, uint64_t first_tick)
 {
-  uint64_t tempTick = tick - FirstTick();
+  int64_t tempTick = ((cur_tick >= first_tick) ? (int64_t)(cur_tick - first_tick) : -((int64_t)(first_tick - cur_tick)));
   double timeDiff = tempTick * this->InterpolationSlope();
   return (timeDiff);
 
@@ -119,28 +126,29 @@ int SoftwarePLL::findDiffInFifo(double diff, double tol)
 
 \param sec: System Timetamp from received network packed
 \param nsec: System Timestamp from received network packed
-\param curtick micro Seconds since scanner start from SOPAS Datagram
+\param curtickTransmit transmit timestamp in microseconds since scanner start from SOPAS Datagram
+\param curtickScan scan timestamp (generation timestamp by default, transmit timestamp if generation timestamp not supported) in microseconds since scanner start from SOPAS Datagram
 \return PLL is in valid state (true)
 */
-bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint64_t curtick)
+bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint64_t curtickTransmit, uint64_t curtickScan)
 {
   if (offsetTimestampFirstLidarTick == 0)
   {
     // Store first timestamp and ticks for optional TICKS_TO_MICROSEC_OFFSET_TIMESTAMP
     offsetTimestampFirstSystemSec = sec;
     offsetTimestampFirstSystemMicroSec = nanoSec / 1000;
-    offsetTimestampFirstLidarTick = curtick;
+    offsetTimestampFirstLidarTick = curtickTransmit;
   }
 
-  if (curtick != this->lastcurtick)
+  if (curtickTransmit != this->lastcurtick)
   {
-    this->lastcurtick = curtick;
+    this->lastcurtick = curtickTransmit;
     double start = sec + nanoSec * 1E-9;
     bool bRet = true;
 
     if (false == IsInitialized())
     {
-      pushIntoFifo(start, curtick);
+      pushIntoFifo(start, curtickTransmit, curtickScan);
       bool bCheck = this->updateInterpolationSlope();
       if (bCheck)
       {
@@ -153,7 +161,7 @@ bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint64_t curtick)
       return (false);
     }
 
-    double relTimeStamp = extraPolateRelativeTimeStamp(curtick); // evtl. hier wg. Ueberlauf noch einmal pruefen
+    double relTimeStamp = extraPolateRelativeTimeStamp(curtickTransmit, FirstTickTransmit());
     double cmpTimeStamp = start - this->FirstTimeStamp();
 
     bool timeStampVerified = false;
@@ -161,7 +169,7 @@ bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint64_t curtick)
     if (nearSameTimeStamp(relTimeStamp, cmpTimeStamp, delta_time_abs) == true)// if timestamp matches prediction update FIFO
     {
       timeStampVerified = true;
-      pushIntoFifo(start, curtick);
+      pushIntoFifo(start, curtickTransmit, curtickScan);
       updateInterpolationSlope();
       ExtrapolationDivergenceCounter(0);
     }
@@ -182,44 +190,88 @@ bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint64_t curtick)
   }
   else
   {
-    return (false);
-    //this curtick has been updated allready
+    return (false); // update already done
   }
-
 }
 
-bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtick)
+bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtickTransmit, uint32_t curtickScan)
 {
-  return updatePLL(sec, nanoSec, (uint64_t)curtick);
+  return updatePLL(sec, nanoSec, (uint64_t)curtickTransmit, (uint64_t)curtickScan);
 }
 
 //TODO Kommentare
-bool SoftwarePLL::getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint64_t curtick)
+bool SoftwarePLL::getCorrectedTimeStamp(uint32_t &u32Sec, uint32_t &u32NanoSec, uint64_t u64Curtick)
 {
   if (ticksToTimestampMode == TICKS_TO_LIDAR_TIMESTAMP) // optional tick-mode: convert lidar ticks in microseconds directly into a lidar timestamp by sec = tick/1000000, nsec = 1000 * (tick % 1000000)
   {
-    sec = (uint32_t)(curtick / 1000000);
-    nanoSec = (uint32_t)(1000 * (curtick % 1000000));
+    u32Sec = (uint32_t)(u64Curtick / 1000000);
+    u32NanoSec = (uint32_t)(1000 * (u64Curtick % 1000000));
     return true;
   }
   if (IsInitialized() == false)
   {
     return (false);
   }
-  double corrTime = 0;
-  if (ticksToTimestampMode == TICKS_TO_MICROSEC_OFFSET_TIMESTAMP) // optional tick-mode: convert lidar ticks in microseconds to timestamp by 1.0e-6*(curtick-firstTick)+firstSystemTimestamp
+  double corrTime = 0, relTimeStamp = 0;
+  if (ticksToTimestampMode == TICKS_TO_MICROSEC_OFFSET_TIMESTAMP) // optional tick-mode: convert lidar ticks in microseconds to timestamp by 1.0e-6*(u64Curtick-firstTick)+firstSystemTimestamp
   {
-    corrTime = 1.0e-6 * (curtick - offsetTimestampFirstLidarTick) + (offsetTimestampFirstSystemSec + 1.0e-6 * offsetTimestampFirstSystemMicroSec);
+    corrTime = 1.0e-6 * (u64Curtick - offsetTimestampFirstLidarTick) + (offsetTimestampFirstSystemSec + 1.0e-6 * offsetTimestampFirstSystemMicroSec);
   }
   else // default: convert lidar ticks in microseconds to system timestamp by software-pll
   {
-    double relTimeStamp = extraPolateRelativeTimeStamp(curtick); // evtl. hier wg. Ueberlauf noch einmal pruefen
+    relTimeStamp = extraPolateRelativeTimeStamp(u64Curtick, FirstTickScan());
     corrTime = relTimeStamp + this->FirstTimeStamp();
   }
-  sec = (uint32_t) corrTime;
-  double frac = corrTime - sec;
-  nanoSec = (uint32_t) (1E9 * frac);
-  // std::cout << "SoftwarePLL::getCorrectedTimeStamp(): timestamp_mode=" << (int)ticksToTimestampMode << ", curticks = " << curtick << " [microsec], system time = " << std::fixed << std::setprecision(9) << (sec + 1.0e-9 * nanoSec) << " [sec]" << std::endl;
+  corrTime = std::max<double>(0, corrTime);
+  u32Sec = (uint32_t) corrTime;
+  double frac = corrTime - u32Sec;
+  u32NanoSec = (uint32_t) (1E9 * frac);
+  // Check extrapolated timestamps against ros time
+  // std::cout << "SoftwarePLL::getCorrectedTimeStamp(): timestamp_mode=" << (int)ticksToTimestampMode << ", curticks = " << u64Curtick << " [microsec], system time = " << std::fixed << std::setprecision(9) << (u32Sec + 1.0e-9 * u32NanoSec) << " [sec]" << std::endl;
+#if defined __ROS_VERSION && __ROS_VERSION > 0
+  bool timestamp_ok = true;
+  rosTime timestamp_now = rosTimeNow();
+  int64_t i64_curtick_minus_first = ((u64Curtick >= this->FirstTickScan()) ? ((int64_t)(u64Curtick - this->FirstTickScan())) : (-1 * (int64_t)(this->FirstTickScan() - u64Curtick)));
+  if (i64_curtick_minus_first < 0)
+  {
+    timestamp_ok = false;
+    ROS_WARN_STREAM("## WARNING SoftwarePLL::getCorrectedTimeStamp(u32Sec=" << u32Sec << ", u32NanoSec=" << u32NanoSec << ", u64Tick=" << u64Curtick << "): FirstTickScan=" << this->FirstTickScan() 
+      << ", Curtick-FirstTickScan=" << i64_curtick_minus_first << ", InterpolationSlope=" << this->InterpolationSlope() 
+      << ", (Curtick-FirstTickScan)*InterpolationSlope=" << ((u64Curtick-this->FirstTickScan())*this->InterpolationSlope()) << ", relTimeStamp1=" << relTimeStamp << ", relTimeStamp2=" << (i64_curtick_minus_first * this->InterpolationSlope())
+      << ", invalid lidar ticks, extrapolated timestamp not ok.");
+  }
+  if (timestamp_ok)
+  {
+    try
+    {
+      rosTime timestamp_ros = rosTime(u32Sec, u32NanoSec);
+      rosDuration time_delta = timestamp_ros - timestamp_now;
+  #if __ROS_VERSION == 1
+      double sec_delta = time_delta.toSec();
+  #else
+      double sec_delta = time_delta.seconds();
+  #endif
+      if (std::abs(sec_delta) > 2)
+      {
+        timestamp_ok = false;
+        ROS_WARN_STREAM("## WARNING SoftwarePLL::getCorrectedTimeStamp(u64Tick=" << u64Curtick << "): extrapolated timestamp = " << std::fixed << std::setprecision(9) << (u32Sec + 1.0e-9 * u32NanoSec) 
+          << " [sec], ros timestamp now = " << std::fixed << std::setprecision(9) << (sec(timestamp_now) + 1.0e-9 * nsec(timestamp_now)) << " [sec], delta time = " << sec_delta << " [sec], extrapolated timestamp not ok.");
+      }
+    }
+    catch(const std::exception& exc)
+    {
+      timestamp_ok = false;
+      ROS_WARN_STREAM("## WARNING SoftwarePLL::getCorrectedTimeStamp(u32Sec=" << u32Sec << ", u32NanoSec=" << u32NanoSec << ", u64Tick=" << u64Curtick << "): exception \"" << exc.what() << "\", extrapolated timestamp not ok.");
+    }
+  }
+  if (!timestamp_ok)
+  {
+    u32Sec = sec(timestamp_now);
+    u32NanoSec = nsec(timestamp_now);
+    ROS_WARN_STREAM("## WARNING SoftwarePLL::getCorrectedTimeStamp() failed, returning current system time " << std::fixed << std::setprecision(9) << (u32Sec + 1.0e-9 * u32NanoSec) << " [sec]");
+    ROS_WARN_STREAM("## u64Curtick=" << u64Curtick << ", FirstTickScan()=" << this->FirstTickScan() << ", Curtick-FirstTickScan=" << i64_curtick_minus_first << ", FirstTimeStamp()=" << this->FirstTimeStamp() << ", InterpolationSlope()=" << this->InterpolationSlope() << ", corrTime=" << corrTime);
+  }
+#endif  
   return (true);
 }
 
@@ -252,10 +304,10 @@ bool SoftwarePLL::convSystemtimeToLidarTimestamp(uint32_t systemtime_sec, uint32
     // getCorrectedTimeStamp(): corrTime = relTimeStamp + this->FirstTimeStamp()
     // => inverse: relSystemTimestamp = systemTimestamp - this->FirstTimeStamp()
     double relSystemTimestamp = systemTimestamp - this->FirstTimeStamp();
-    // getCorrectedTimeStamp(): relSystemTimestamp = (tick - (uint32_t) (0xFFFFFFFF & FirstTick())) * this->InterpolationSlope() 
-    //=> inverse: tick = (relSystemTimestamp / this->InterpolationSlope()) + (uint32_t) (0xFFFFFFFF & FirstTick())
+    // getCorrectedTimeStamp(): relSystemTimestamp = (tick - (uint32_t) (0xFFFFFFFF & FirstTickScan())) * this->InterpolationSlope() 
+    //=> inverse: tick = (relSystemTimestamp / this->InterpolationSlope()) + (uint32_t) (0xFFFFFFFF & FirstTickScan())
     double relTicks = relSystemTimestamp / this->InterpolationSlope();
-    uint32_t tick_offset = (uint32_t)(0xFFFFFFFF & FirstTick());
+    uint32_t tick_offset = (uint32_t)(0xFFFFFFFF & FirstTickScan());
     tick = (uint64_t)std::round(relTicks + tick_offset);
   }
   return (true);
@@ -297,7 +349,8 @@ bool SoftwarePLL::updateInterpolationSlope() // fifo already updated
   clockFifoUnwrap[0] = 0.00;
   tickFifoUnwrap[0] = 0;
   FirstTimeStamp(this->clockFifo[0]);
-  FirstTick(this->tickFifo[0]);
+  FirstTickTransmit(this->tickFifoTransmit[0]);
+  FirstTickScan(this->tickFifoScan[0]);
 
   uint64_t tickDivisor = 0x100000000;
 
@@ -305,11 +358,11 @@ bool SoftwarePLL::updateInterpolationSlope() // fifo already updated
   for (int i = 1;
        i < fifoSize; i++)  // typical 643 for 20ms -> round about 32150 --> near to 32768 standard clock in many watches
   {
-    if (tickFifo[i] < tickFifo[i - 1]) // Overflow
+    if (tickFifoTransmit[i] < tickFifoTransmit[i - 1]) // Overflow
     {
       tickOffset += tickDivisor;
     }
-    tickFifoUnwrap[i] = tickOffset + tickFifo[i] - FirstTick();
+    tickFifoUnwrap[i] = tickOffset + tickFifoTransmit[i] - FirstTickTransmit();
     clockFifoUnwrap[i] = (this->clockFifo[i] - FirstTimeStamp());
   }
 

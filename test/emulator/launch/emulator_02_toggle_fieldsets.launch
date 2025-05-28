@@ -2,7 +2,7 @@
 <launch>
 
   <!-- Launch sick_scan_emulator -->
-  <arg name="scandatafiles" default="$(find sick_scan_xd)/scandata/fieldset_trial_0001.pcapng.json"/>
+  <arg name="scandatafiles" default="$(find sick_scan_xd)/test/emulator/scandata/fieldset_trial_0001.pcapng.json"/>
   <arg name="scandatatypes" default="sSN LMDscandata ,sSN LIDinputstate ,sSN LIDoutputstate ,sSN LFErec "/>
   <arg name="start_scandata_immediately" default="false"/>
   <rosparam command="load" file="$(find sick_scan_xd)/yaml/emulator.yaml" />

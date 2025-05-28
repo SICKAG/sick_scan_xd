@@ -57,8 +57,8 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="scandatacfg_azimuth_table" type="int" value="1"/> <!-- Optional azimuth table (MRS-1xxx): if activated (i.e. 1 and firmware >= 2.3), azimuth angles are transmitted for each scan point, otherwise (i.e. 0) constant azimuth steps are used to calculate the cartesian pointclouds -->
 
         <param name="imu_enable" type="bool" value="$(arg imu_enable)"/>
-        <param name="imu_enable_additional_info" type="bool" value="True"/>                 
         <param name="imu_topic" type="string" value="$(arg imu_topic)"/>
+        <param name="imu_frame_id" type="string" value="$(arg imu_frame_id)"/>
         
         
         <!-- Optional range filter configuration: If the range of a scan point is less than range_min or greater than range_max, the point can be filtered. -->
@@ -99,7 +99,8 @@ default max_angle for this scanner type is +137.5 degree.
         <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
         <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
         <!-- Note: read_timeout_millisec_kill_node less or equal 0 deactivates pointcloud monitoring (not recommended) -->
-        <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
+        <param name="user_level" type="int" value="3" />                          <!-- Default user level for authorization (3: client, 4: service) -->
+        <param name="user_level_password" type="string" value="F4724744" />       <!-- Default user level password (for "client" (level 3): F4724744, for "service" (level 4): 81BE23AA) -->
         
         <!-- Supported by sick_generic_caller version 2.7.3 and above: -->
         <param name="lfp_meanfilter" type="int" value="-1" /> <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->

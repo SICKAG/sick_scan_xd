@@ -1,0 +1,6 @@
+#
+# install linux and ROS-2 humble
+#
+FROM osrf/ros:humble-desktop-full
+RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-rviz2 git psmisc python3-pip
+RUN python3 -m pip install scapy pypcapfile python-pcapng

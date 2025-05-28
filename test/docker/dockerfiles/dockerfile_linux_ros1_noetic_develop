@@ -1,0 +1,7 @@
+#
+# install linux and ROS-1 noetic
+#
+FROM osrf/ros:noetic-desktop-full
+RUN apt-get update && apt-get install -y ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-rviz git psmisc python3-pip
+RUN python3 -m pip install scapy pypcapfile python-pcapng
+

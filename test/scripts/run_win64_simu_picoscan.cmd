@@ -29,9 +29,9 @@ REM
 @echo.
 @echo Playing pcapng-files to emulate picoscan. Note: Start of UDP msgpacks in 20221010_timtwo.pcapng takes a while...
 @echo.
-python ../test/python/multiscan_pcap_player.py --pcap_filename=../test/emulator/scandata/20230911-picoscan-compact.pcapng --udp_port=2115 --repeat=5
-rem python ../test/python/multiscan_pcap_player.py --pcap_filename=../test/emulator/scandata/20230315-picoscan.pcapng --udp_port=2115
-rem python ../test/python/multiscan_pcap_player.py --pcap_filename=../test/emulator/scandata/20221010_timtwo.pcapng --udp_port=2115
+python ../test/python/multiscan_pcap_player.py --pcap_filename=../test/emulator/scandata/20230911-picoscan-compact.pcapng --udp_port=2115 --repeat=5 --send_rate=10
+rem python ../test/python/multiscan_pcap_player.py --pcap_filename=../test/emulator/scandata/20230315-picoscan.pcapng --udp_port=2115 --send_rate=10
+rem python ../test/python/multiscan_pcap_player.py --pcap_filename=../test/emulator/scandata/20221010_timtwo.pcapng --udp_port=2115 --send_rate=10
 
 popd
 @pause

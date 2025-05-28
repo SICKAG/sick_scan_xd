@@ -168,6 +168,17 @@ bool Tcp::open(std::string ipAddress, UINT16 port, bool enableVerboseDebugOutput
 		return false;
 	}
 
+	// Setting a timeout on the TCP connection (fix issue #424 picoScan recovery)
+	struct timeval timeout;
+	timeout.tv_sec = 2; // Set timeout seconds
+	timeout.tv_usec = 0; // Set timeout microseconds
+	if (setsockopt(m_connectionSocket, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout, sizeof(timeout)) < 0) 
+	{
+		ROS_ERROR("Tcp::open: setsockopt failed to set timeout, aborting.");
+		close();
+		return false;
+	}
+
 	// Socket ist da. Nun die Verbindung oeffnen.
 	ROS_INFO_STREAM("sick_scan_xd: Tcp::open: connecting to " << ipAddress << ":"  << port << " ...");
 	printInfoMessage("Tcp::open: Connecting. Target address is " + ipAddress + ":" + toString(port) + ".", m_beVerbose);

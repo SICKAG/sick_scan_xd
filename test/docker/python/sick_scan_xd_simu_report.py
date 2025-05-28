@@ -2,15 +2,24 @@ import json
 import os
 from enum import IntEnum
 
-def filter_logfile(logfile, keywords):
+def line_contains_keyword(line, keywords):
+    for keyword in keywords:
+        if line.find(keyword) >= 0:
+            return True
+    return False
+
+def filter_logfile(logfile, keywords_pos, keywords_neg):
     filtered_lines = []
-    with open(logfile, "r") as file_stream:
-        lines = file_stream.readlines()
-        for line in lines:
-            for keyword in keywords:
-                if line.find(keyword) >= 0:
-                    filtered_lines.append(line)
-                    break
+    try:
+        if os.path.isfile(logfile):
+            with open(logfile, "r") as file_stream:
+                lines = file_stream.readlines()
+                for line in lines:
+                    if line_contains_keyword(line, keywords_pos) and not line_contains_keyword(line, keywords_neg):
+                        filtered_lines.append(line)
+                        break
+    except Exception as exc:
+        print(f"## ERROR sick_scan_xd_simu: logfile {logfile} not readable, exception {exc}\n")
     return filtered_lines
 
 class SickScanXdStatus(IntEnum):

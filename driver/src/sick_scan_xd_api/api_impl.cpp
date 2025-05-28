@@ -115,7 +115,7 @@ static void freePointCloudMsg(SickScanPointCloudMsg& export_msg)
     memset(&export_msg, 0, sizeof(export_msg));
 }
 
-static SickScanImuMsg convertImuMsg(const ros_sensor_msgs::Imu& src_msg)
+static SickScanImuMsg convertImuMsg(const ros_sensor_msgs::Imu& src_msg, const std::string& topic = sick_scan_xd::getImuTopic())
 {
     SickScanImuMsg dst_msg;
     memset(&dst_msg, 0, sizeof(dst_msg));
@@ -124,6 +124,7 @@ static SickScanImuMsg convertImuMsg(const ros_sensor_msgs::Imu& src_msg)
     dst_msg.header.timestamp_sec = sec(src_msg.header.stamp);
     dst_msg.header.timestamp_nsec = nsec(src_msg.header.stamp);
     strncpy(dst_msg.header.frame_id, src_msg.header.frame_id.c_str(), sizeof(dst_msg.header.frame_id) - 2);
+    strncpy(dst_msg.topic, topic.c_str(), sizeof(dst_msg.topic) - 2);   
     // Copy imu data
     dst_msg.orientation.x = src_msg.orientation.x;
     dst_msg.orientation.y = src_msg.orientation.y;
@@ -149,7 +150,7 @@ static void freeImuMsg(SickScanImuMsg& msg)
     memset(&msg, 0, sizeof(msg));
 }
 
-static SickScanLFErecMsg convertLFErecMsg(const sick_scan_msg::LFErecMsg& src_msg)
+static SickScanLFErecMsg convertLFErecMsg(const sick_scan_msg::LFErecMsg& src_msg, const std::string& topic = sick_scan_xd::getLFErecTopic())
 {
     SickScanLFErecMsg dst_msg;
     memset(&dst_msg, 0, sizeof(dst_msg));
@@ -158,6 +159,7 @@ static SickScanLFErecMsg convertLFErecMsg(const sick_scan_msg::LFErecMsg& src_ms
     dst_msg.header.timestamp_sec = sec(src_msg.header.stamp);
     dst_msg.header.timestamp_nsec = nsec(src_msg.header.stamp);
     strncpy(dst_msg.header.frame_id, src_msg.header.frame_id.c_str(), sizeof(dst_msg.header.frame_id) - 2);
+    strncpy(dst_msg.topic, topic.c_str(), sizeof(dst_msg.topic) - 2);   
     // Copy LFErec data
     int max_fields_number = (int)(sizeof(dst_msg.fields) / sizeof(dst_msg.fields[0]));
     dst_msg.fields_number = ((src_msg.fields_number < max_fields_number) ? src_msg.fields_number : max_fields_number);
@@ -188,7 +190,7 @@ static void freeLFErecMsg(SickScanLFErecMsg& msg)
     memset(&msg, 0, sizeof(msg));
 }
 
-static SickScanLIDoutputstateMsg convertLIDoutputstateMsg(const sick_scan_msg::LIDoutputstateMsg& src_msg)
+static SickScanLIDoutputstateMsg convertLIDoutputstateMsg(const sick_scan_msg::LIDoutputstateMsg& src_msg, const std::string& topic = sick_scan_xd::getLIDoutputstateTopic())
 {
     SickScanLIDoutputstateMsg dst_msg;
     memset(&dst_msg, 0, sizeof(dst_msg));
@@ -197,6 +199,7 @@ static SickScanLIDoutputstateMsg convertLIDoutputstateMsg(const sick_scan_msg::L
     dst_msg.header.timestamp_sec = sec(src_msg.header.stamp);
     dst_msg.header.timestamp_nsec = nsec(src_msg.header.stamp);
     strncpy(dst_msg.header.frame_id, src_msg.header.frame_id.c_str(), sizeof(dst_msg.header.frame_id) - 2);
+    strncpy(dst_msg.topic, topic.c_str(), sizeof(dst_msg.topic) - 2);   
     // Copy LIDoutputstate data
     dst_msg.version_number = src_msg.version_number;
     dst_msg.system_counter = src_msg.system_counter;
@@ -222,7 +225,7 @@ static void freeLIDoutputstateMsg(SickScanLIDoutputstateMsg& msg)
     memset(&msg, 0, sizeof(msg));
 }
 
-static SickScanRadarScan convertRadarScanMsg(const sick_scan_msg::RadarScan& src_msg)
+static SickScanRadarScan convertRadarScanMsg(const sick_scan_msg::RadarScan& src_msg, const std::string& topic = sick_scan_xd::getRadarScanTopic())
 {
     SickScanRadarScan dst_msg;
     memset(&dst_msg, 0, sizeof(dst_msg));
@@ -231,6 +234,7 @@ static SickScanRadarScan convertRadarScanMsg(const sick_scan_msg::RadarScan& src
     dst_msg.header.timestamp_sec = sec(src_msg.header.stamp);
     dst_msg.header.timestamp_nsec = nsec(src_msg.header.stamp);
     strncpy(dst_msg.header.frame_id, src_msg.header.frame_id.c_str(), sizeof(dst_msg.header.frame_id) - 2);
+    strncpy(dst_msg.topic, topic.c_str(), sizeof(dst_msg.topic) - 2);   
     // Copy radarpreheader data
     dst_msg.radarpreheader.uiversionno = src_msg.radarpreheader.uiversionno;
     dst_msg.radarpreheader.uiident = src_msg.radarpreheader.radarpreheaderdeviceblock.uiident;
@@ -415,10 +419,11 @@ static void freeLdmrsObjectArrayMsg(SickScanLdmrsObjectArray& msg)
     memset(&msg, 0, sizeof(msg));
 }
 
-static SickScanVisualizationMarkerMsg convertVisualizationMarkerMsg(const ros_visualization_msgs::MarkerArray& src_msg)
+static SickScanVisualizationMarkerMsg convertVisualizationMarkerMsg(const ros_visualization_msgs::MarkerArray& src_msg, const std::string& topic = sick_scan_xd::getVisualizationMarkerTopic())
 {
     SickScanVisualizationMarkerMsg dst_msg;
     memset(&dst_msg, 0, sizeof(dst_msg));
+    strncpy(dst_msg.topic, topic.c_str(), sizeof(dst_msg.topic) - 2);   
     if (src_msg.markers.size() > 0)
     {
         // Copy markers

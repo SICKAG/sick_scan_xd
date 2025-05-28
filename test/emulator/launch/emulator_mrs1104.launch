@@ -2,7 +2,7 @@
 <launch>
 
   <!-- Launch sick_scan_emulator -->
-  <arg name="scandatafiles" default="$(find sick_scan_xd)/scandata/20210722_143600_ros2_mrs1104_sick_scan_xd.pcapng.json"/>
+  <arg name="scandatafiles" default="$(find sick_scan_xd)/test/emulator/scandata/20210722_143600_ros2_mrs1104_sick_scan_xd.pcapng.json"/>
   <arg name="scandatatypes" default="sSN LMDscandata ,sSN LIDinputstate ,sSN LIDoutputstate ,sSN LFErec "/>
   <rosparam command="load" file="$(find sick_scan_xd)/yaml/emulator.yaml" />
   <node name="sick_scan_emulator" pkg="sick_scan_xd" type="sick_scan_emulator" output="screen">
