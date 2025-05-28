@@ -108,7 +108,7 @@ namespace sick_scan_xd
     rosNodePtr m_nh;
     std::string m_frame_id;
     rosPublisher<ros_visualization_msgs::MarkerArray> m_marker_publisher;
-    int m_scan_mon_fieldset;
+    int m_scan_mon_fieldset; // active fieldset assuming m_scan_mon_fieldset >= 1 (default: 1)
     std::vector<sick_scan_xd::SickScanMonField> m_scan_mon_fields;
     std::vector<ros_visualization_msgs::Marker> m_scan_mon_field_marker;
     std::vector<ros_visualization_msgs::Marker> m_scan_mon_field_legend;

@@ -249,7 +249,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                         if (num_bytes_required  > 1024*1024)
                         {
                             parse_success = false;
-                            ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << bytes_received << " bytes received (compact), " << (num_bytes_required  + sizeof(uint32_t)) << " bytes or more required, probably incorrect payload");
+                            ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): " << bytes_received << " bytes received (compact), " << (num_bytes_required  + sizeof(uint32_t)) << " bytes or more required, probably incorrect payload");
                             // parse again with debug output after error
                             sick_scansegment_xd::CompactDataParser::ParseSegment(udp_payload.data(), bytes_received, 0, payload_length_bytes, num_bytes_required , 0.0f, 1);
                             break;
@@ -268,7 +268,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                     }
                     if (!parse_success)
                     {
-                        ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): CompactDataParser::ParseSegment failed");
+                        ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): CompactDataParser::ParseSegment failed");
                         continue;
                     }
                     bytes_to_receive = (uint32_t)(payload_length_bytes + sizeof(uint32_t)); // payload + (4 byte CRC)
@@ -287,7 +287,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                 {
                     if (bytes_received < bytes_to_receive)
                     {
-                        ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): " << bytes_received << " bytes received, " << bytes_to_receive << " bytes expected, payload_length=" << payload_length_bytes << " bytes");
+                        ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): " << bytes_received << " bytes received, " << bytes_to_receive << " bytes expected, payload_length=" << payload_length_bytes << " bytes");
                         timestamp_last_print = chrono_system_clock::now();
                     }
                     else if(m_verbose)
@@ -307,11 +307,11 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                     crc_error = true;
                     if (do_print_crc_error)
                     {
-                        ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): CRC 0x" << std::setfill('0') << std::setw(2) << std::hex << u32PayloadCRC
+                        ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): CRC 0x" << std::setfill('0') << std::setw(2) << std::hex << u32PayloadCRC
                             << " received from " << std::dec << (bytes_valid - sizeof(uint32_t)) << " udp bytes different to CRC 0x"
                             << std::setfill('0') << std::setw(2) << std::hex << u32MsgPackCRC << " computed from "
                             << std::dec << (msgpack_payload.size()) << " byte payload, message dropped");
-                        ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): decoded payload size: " << payload_length_bytes << " bytes, bytes_to_receive (expected udp message length): "
+                        ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): decoded payload size: " << payload_length_bytes << " bytes, bytes_to_receive (expected udp message length): "
                             << bytes_to_receive << " byte, bytes_valid (received udp message length): " << bytes_valid << " byte");
                         timestamp_last_print_crc_error = chrono_system_clock::now();
                     }
@@ -319,7 +319,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                 }
                 if (payload_length_bytes != msgpack_payload.size() && do_print)
                 {
-                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): payload_length_bytes=" << payload_length_bytes << " different to decoded payload size " << msgpack_payload.size());
+                    ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): payload_length_bytes=" << payload_length_bytes << " different to decoded payload size " << msgpack_payload.size());
                     timestamp_last_print = chrono_system_clock::now();
                 }
                 // Push msgpack_payload to input fifo
@@ -349,7 +349,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
             {
                 if (do_print)
                 {
-                    ROS_ERROR_STREAM("## ERROR UdpReceiver::Run(): Received " << bytes_received << " unexpected bytes");
+                    ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): Received " << bytes_received << " unexpected bytes");
                     if(m_verbose)
                         ROS_ERROR_STREAM(ToHexString(udp_payload, bytes_received));
                     timestamp_last_print = chrono_system_clock::now();

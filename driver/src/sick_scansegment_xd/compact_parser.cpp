@@ -1,8 +1,8 @@
 /*
  * @brief compact_parser parses and convertes scandata in compact format
  *
- * Copyright (C) 2020,2021 Ing.-Buero Dr. Michael Lehning, Hildesheim
- * Copyright (C) 2020,2021 SICK AG, Waldkirch
+ * Copyright (C) 2020,2021,2022,2023,2024,2025 Ing.-Buero Dr. Michael Lehning, Hildesheim
+ * Copyright (C) 2020,2021,2022,2023,2024,2025 SICK AG, Waldkirch
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@
  *      Authors:
  *         Michael Lehning <michael.lehning@lehning.de>
  *
- *  Copyright 2020 SICK AG
- *  Copyright 2020 Ing.-Buero Dr. Michael Lehning
+ *  Copyright 2025 SICK AG
+ *  Copyright 2025 Ing.-Buero Dr. Michael Lehning
  *
  */
 #include "sick_scan/softwarePLL.h"
@@ -120,16 +120,16 @@ static inline bool endOfBuffer(uint32_t byte_cnt, size_t bytes_to_read, uint32_t
     return ((byte_cnt) + (bytes_to_read) > (num_bytes));
 }
 
-static void print_error(const std::string& err_msg, int line_number, double print_rate = 1)
+static void print_warning(const std::string& err_msg, int line_number, double print_rate = 1)
 {
   static std::map<int, std::chrono::system_clock::time_point> last_error_printed;
   static std::map<int, size_t> error_cnt;
   if (error_cnt[line_number] == 0 || std::chrono::duration<double>(std::chrono::system_clock::now() - last_error_printed[line_number]).count() > 1/print_rate)
   {
     if (error_cnt[line_number] <= 1)
-      ROS_ERROR_STREAM(err_msg);
+      ROS_WARN_STREAM(err_msg);
     else
-      ROS_ERROR_STREAM(err_msg << " (error repeated " << error_cnt[line_number] << " times)");
+      ROS_WARN_STREAM(err_msg << " (warning repeated " << error_cnt[line_number] << " times)");
     last_error_printed[line_number] = std::chrono::system_clock::now();
     error_cnt[line_number] = 0;
   }
@@ -140,9 +140,9 @@ static void print_error(const std::string& err_msg, int line_number, double prin
 if (((byte_required) = (byte_cnt) + (bytes_to_read)) > (module_size))                                       \
 {                                                                                                           \
     std::stringstream err_msg;                                                                              \
-    err_msg << "## ERROR CompactDataParser::ParseModuleMetaData(): module_size=" << (module_size) << ", "   \
+    err_msg << "## WARNING CompactDataParser::ParseModuleMetaData(): module_size=" << (module_size) << ", "   \
         << (byte_required) << " bytes required to read " << (name);                                         \
-    print_error(err_msg.str(), line_number);                                                                \
+    print_warning(err_msg.str(), line_number);                                                                \
     return (metadata);                                                                                      \
 }
 
@@ -338,8 +338,8 @@ sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParse
     if (metadata.NumberOfLinesInModule > 16)
     {
         std::stringstream err_msg;
-        err_msg << "## ERROR CompactDataParser::ParseModuleMetaData(): unexpected NumberOfLinesInModule=" << metadata.NumberOfLinesInModule;
-        print_error(err_msg.str(), __LINE__);
+        err_msg << "## WARNING CompactDataParser::ParseModuleMetaData(): unexpected NumberOfLinesInModule=" << metadata.NumberOfLinesInModule;
+        print_warning(err_msg.str(), __LINE__);
     }
     // NumberOfBeamsPerScan
     CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, sizeof(uint32_t), module_size, "NumberOfBeamsPerScan", __LINE__);
@@ -657,19 +657,43 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
       //     s << points[echo_idx].range << "," << points[echo_idx].i << ",";
       // s << (int)beam_property << "," << azimuth << ")";
       // ROS_DEBUG_STREAM("" << s.str());
-      for (uint32_t echo_idx = 0; echo_idx < num_echos; echo_idx++)
+      // Flag to ensure the reflector bit is only set once (on the last valid echo)
+      bool reflectorBitSet = false;
+
+      // Check if this beam is marked as a reflector (bit 0 set)
+      bool isReflector = (beam_property & 0x01);
+
+      // Iterate over all echoes in reverse (from last to first)
+      for (int32_t echo_idx = static_cast<int32_t>(num_echos) - 1; echo_idx >= 0; --echo_idx)
       {
-        points[echo_idx].azimuth = azimuth;
-        points[echo_idx].elevation = layer_elevation;
-        points[echo_idx].x = points[echo_idx].range * cos_azimuth * cos_elevation;
-        points[echo_idx].y = points[echo_idx].range * sin_azimuth * cos_elevation;
-        points[echo_idx].z = points[echo_idx].range * sin_elevation;
-        points[echo_idx].echoIdx = echo_idx;
-        points[echo_idx].groupIdx = groupIdx;
-        points[echo_idx].pointIdx = point_idx;
-        points[echo_idx].lidar_timestamp_microsec = lidar_timestamp_microsec;
-        points[echo_idx].reflectorbit |= (beam_property & 0x01); // reflector bit is set, if a reflector is detected on any number of echos
-        measurement_data.scandata[layer_idx].scanlines[echo_idx].points[point_idx] = points[echo_idx];
+        ScanSegmentParserOutput::LidarPoint& pt = points[echo_idx];
+
+        // Assign basic point metadata
+        pt.azimuth = azimuth;
+        pt.elevation = layer_elevation;
+        double range = pt.range;
+
+        // Convert polar coordinates to Cartesian
+        pt.x = range * cos_azimuth * cos_elevation;
+        pt.y = range * sin_azimuth * cos_elevation;
+        pt.z = range * sin_elevation;
+
+        // Assign additional metadata
+        pt.echoIdx = echo_idx;
+        pt.groupIdx = groupIdx;
+        pt.pointIdx = point_idx;
+        pt.lidar_timestamp_microsec = lidar_timestamp_microsec;
+
+        // If this is the first valid echo from the end and a reflector is present,
+        // set the reflector bit
+        if (!reflectorBitSet && isReflector && range > 1e-6)
+        {
+          pt.reflectorbit |= 0x01;
+          reflectorBitSet = true;
+        }
+
+        // Store the processed point in the scan structure
+        measurement_data.scandata[layer_idx].scanlines[echo_idx].points[point_idx] = pt;
       }
     }
   }
@@ -755,8 +779,8 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
         if (module_meta_data.valid != true || module_size < module_metadata_size)
         {
             std::stringstream err_msg;
-            err_msg << "## ERROR CompactDataParser::ParseSegment(): " << bytes_received << " bytes received (compact), CompactDataParser::ParseModuleMetaData() failed";
-            print_error(err_msg.str(), __LINE__);
+            err_msg << "## WARNING CompactDataParser::ParseSegment(): " << bytes_received << " bytes received (compact), CompactDataParser::ParseModuleMetaData() failed";
+            print_warning(err_msg.str(), __LINE__);
             payload_length_bytes = 0;
             num_bytes_required  = module_offset +  module_size;
             return false;
@@ -890,6 +914,8 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
         for (int measurement_idx = 0; measurement_idx < moduleMeasurement.scandata.size(); measurement_idx++)
         {
             ScanSegmentParserOutput::Scangroup& scandata = moduleMeasurement.scandata[measurement_idx];
+            if (scandata.timestampStart_sec == 0)
+                ROS_WARN_STREAM("## WARNING CompactDataParser::Parse(): scandata.timestampStart_sec=" << scandata.timestampStart_sec << ", compact_parser.cpp:" << __LINE__);
             // Apply optional range filter and optional transform
             for(int line_idx = 0; line_idx < scandata.scanlines.size(); line_idx++)
             {
@@ -917,13 +943,10 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
                     while(result.scandata.size() <= groupIdx)
                     {
                       result.scandata.push_back(ScanSegmentParserOutput::Scangroup());
-                    }
-                    if (result.scandata[groupIdx].scanlines.empty())
-                    {
-                        result.scandata[groupIdx].timestampStart_sec = scandata.timestampStart_sec;
-                        result.scandata[groupIdx].timestampStart_nsec = scandata.timestampStart_nsec;
-                        result.scandata[groupIdx].timestampStop_sec = scandata.timestampStop_sec;
-                        result.scandata[groupIdx].timestampStop_nsec = scandata.timestampStop_nsec;
+                      result.scandata.back().timestampStart_sec = scandata.timestampStart_sec;
+                      result.scandata.back().timestampStart_nsec = scandata.timestampStart_nsec;
+                      result.scandata.back().timestampStop_sec = scandata.timestampStop_sec;
+                      result.scandata.back().timestampStop_nsec = scandata.timestampStop_nsec;
                     }
                     while(result.scandata[groupIdx].scanlines.size() <= echoIdx)
                     {
@@ -962,11 +985,22 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
     result.timestamp_nsec= 1000 * (sensor_timeStamp % 1000000);
     if (use_software_pll)
     {
+        if (sensor_timeStamp == 0 && !result.scandata.empty())
+        {
+            sensor_timeStamp = (uint64_t)result.scandata[0].timestampStart_sec * 1000000UL + (uint64_t)result.scandata[0].timestampStart_nsec / 1000; // i.e. start of scan in microseconds
+            ROS_WARN_STREAM("## WARNING CompactDataParser::Parse(): segmentHeader.timeStampTransmit=" << segmentHeader.timeStampTransmit 
+                << ", result.scandata[0].timestampStart_sec=" << result.scandata[0].timestampStart_sec << ", result.scandata[0].timestampStart_nsec=" << result.scandata[0].timestampStart_nsec 
+                << ", sensor_timeStamp=" << sensor_timeStamp << ", compact_parser.cpp:" << __LINE__);
+        }
+        else if(sensor_timeStamp == 0)
+        {
+            ROS_WARN_STREAM("## WARNING CompactDataParser::Parse(): segmentHeader.timeStampTransmit=" << segmentHeader.timeStampTransmit << ", sensor_timeStamp=" << sensor_timeStamp << ", compact_parser.cpp:" << __LINE__);
+        }
         SoftwarePLL& software_pll = SoftwarePLL::instance();
         int64_t systemtime_nanoseconds = system_timestamp.time_since_epoch().count();
         uint32_t systemtime_sec = (uint32_t)(systemtime_nanoseconds / 1000000000);  // seconds part of system timestamp
         uint32_t systemtime_nsec = (uint32_t)(systemtime_nanoseconds % 1000000000); // nanoseconds part of system timestamp
-        software_pll.updatePLL(systemtime_sec, systemtime_nsec, sensor_timeStamp);
+        software_pll.updatePLL(systemtime_sec, systemtime_nsec, segmentHeader.timeStampTransmit, sensor_timeStamp);
         if (software_pll.IsInitialized())
         {
             uint32_t pll_sec = 0, pll_nsec = 0;

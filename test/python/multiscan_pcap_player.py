@@ -18,12 +18,16 @@ import socket
 import sys
 import time
 
-from pcapng import FileScanner
-from pcapng.blocks import EnhancedPacket #, InterfaceDescription, SectionHeader
-
-import scapy.all
-import scapy.packet
-from scapy.layers.l2 import Ether
+pcapng_supported = False
+try:
+    from pcapng import FileScanner
+    from pcapng.blocks import EnhancedPacket #, InterfaceDescription, SectionHeader
+    import scapy.all
+    import scapy.packet
+    from scapy.layers.l2 import Ether
+    pcapng_supported = True
+except ModuleNotFoundError:
+    print("import pcapng or scapy failed, pcapng-files not supported")
 
 # Force a delay by active polling. Brute-force alternative if timing in time.sleep is not accurate enough
 def forced_delay(seconds):
@@ -72,6 +76,9 @@ class PcapDecodedBlock:
 def readPcapngFile(pcap_filename, pcap_filter, verbose):
     pcap_decoded_blocks = []
     payload_length_accumulated_since_stx = 0
+    if not pcapng_supported:
+        print("## ERROR readPcapngFile(): import pcapng or scapy failed, pcapng-file {} is not supported".format(pcap_filename))
+        return pcap_decoded_blocks
     with open(pcap_filename, 'rb') as pcap_file:
         pcap_scanner = FileScanner(pcap_file)
         for block_cnt, block in enumerate(pcap_scanner):
@@ -126,6 +133,12 @@ def readJsonFile(json_filename, verbose):
                 pcap_block = PcapDecodedBlock()
                 pcap_block.timestamp = json_block[0]
                 pcap_block.payload = bytes.fromhex(json_block[1])
+                pcap_blocks.append(pcap_block)
+            elif len(json_block) == 3:
+                pcap_block = PcapDecodedBlock()
+                pcap_block.timestamp = json_block[0]
+                pcap_block.dst_port = json_block[1]
+                pcap_block.payload = bytes.fromhex(json_block[2])
                 pcap_blocks.append(pcap_block)
     return pcap_blocks
 
@@ -230,7 +243,7 @@ if __name__ == "__main__":
             udp_sender_socket.sendto(block_payload, (udp_dst_ip, dst_udp_port))
             if save_udp_jsonfile:
                 payload_hex_str = "".join("{:02x}".format(payload_byte) for payload_byte in block_payload)
-                save_udp_json_blocks.append((block_timestamp, payload_hex_str))
+                save_udp_json_blocks.append((block_timestamp, dst_udp_port, payload_hex_str))
             if udp_prompt > 0:
                 print("pcap message {}: {} byte sent".format(block_cnt, len(block_payload), udp_dst_ip, dst_udp_port))
                 # payload_hex_str = "".join("\\x{:02x}".format(payload_byte) for payload_byte in block_payload)

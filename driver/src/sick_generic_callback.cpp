@@ -126,6 +126,16 @@ namespace sick_scan_xd
         return s_imu_callback_handler.isListenerRegistered(handle, listener);
 	}
 
+    const std::string& getImuTopic()
+    {
+        return s_imu_callback_handler.getTopic();
+    }
+    
+    void setImuTopic(const std::string& topic)
+    {
+        s_imu_callback_handler.setTopic(topic);
+    }
+
     void addLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener)
     {
         s_lidoutputstate_callback_handler.addListener(handle, listener);
@@ -146,6 +156,16 @@ namespace sick_scan_xd
         return s_lidoutputstate_callback_handler.isListenerRegistered(handle, listener);
 	}
 
+    const std::string& getLIDoutputstateTopic()
+    {
+        return s_lidoutputstate_callback_handler.getTopic();
+    }
+    
+    void setLIDoutputstateTopic(const std::string& topic)
+    {
+        s_lidoutputstate_callback_handler.setTopic(topic);
+    }
+
     void addLFErecListener(rosNodePtr handle, LFErecCallback listener)
     {
         s_lferec_callback_handler.addListener(handle, listener);
@@ -165,6 +185,16 @@ namespace sick_scan_xd
     {
         return s_lferec_callback_handler.isListenerRegistered(handle, listener);
 	}
+
+    const std::string& getLFErecTopic()
+    {
+        return s_lferec_callback_handler.getTopic();
+    }
+    
+    void setLFErecTopic(const std::string& topic)
+    {
+        s_lferec_callback_handler.setTopic(topic);
+    }
 
     void addLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener)
     {
@@ -206,6 +236,16 @@ namespace sick_scan_xd
         return s_radarscan_callback_handler.isListenerRegistered(handle, listener);
 	}
 
+    const std::string& getRadarScanTopic()
+    {
+        return s_radarscan_callback_handler.getTopic();
+    }
+    
+    void setRadarScanTopic(const std::string& topic)
+    {
+        s_radarscan_callback_handler.setTopic(topic);
+    }
+
     void addVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener)
     {
         s_visualizationmarker_callback_handler.addListener(handle, listener);
@@ -225,6 +265,16 @@ namespace sick_scan_xd
     {
         return s_visualizationmarker_callback_handler.isListenerRegistered(handle, listener);
 	}
+
+    const std::string& getVisualizationMarkerTopic()
+    {
+        return s_visualizationmarker_callback_handler.getTopic();
+    }
+
+    void setVisualizationMarkerTopic(const std::string& topic)
+    {
+        s_visualizationmarker_callback_handler.setTopic(topic);
+    }
 
     void addNavPoseLandmarkListener(rosNodePtr handle, NAV350mNPOSDataCallback listener)
     {

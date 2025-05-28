@@ -3,8 +3,8 @@
 * \brief Laser Scanner communication main routine
 *
 * Copyright (C) 2013, Osnabrueck University
-* Copyright (C) 2017-2022, Ing.-Buero Dr. Michael Lehning, Hildesheim
-* Copyright (C) 2017-2022, SICK AG, Waldkirch
+* Copyright (C) 2017-2025, Ing.-Buero Dr. Michael Lehning, Hildesheim
+* Copyright (C) 2017-2025, SICK AG, Waldkirch
 *
 * All rights reserved.
 *
@@ -53,7 +53,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 *
-*  Last modified: 28th May 2018
+*  Last modified: 4th April 2025
 *
 *      Authors:
 *         Michael Lehning <michael.lehning@lehning.de>
@@ -116,6 +116,10 @@
 #define RETURN_ERROR_ON_RESPONSE_TIMEOUT(result,reply) if(((result)!=ExitSuccess)&&((reply).empty()))return(ExitError)
 
 static const int MAX_STR_LEN = 1024;
+
+#ifdef USE_DIAGNOSTIC_UPDATER
+static std::shared_ptr<diagnostic_updater::Updater> s_diagnostics_ = 0; // initialized once at start (avoid re-initialization due to ParameterAlreadyDeclaredException)
+#endif
 
 /*!
 \brief Universal swapping function
@@ -462,15 +466,18 @@ namespace sick_scan_xd
   SickScanCommon::SickScanCommon(rosNodePtr nh, SickGenericParser *parser)
   // FIXME All Tims have 15Hz
   {
-    diagnosticPub_ = 0;
     parser_ = parser;
     m_nh =nh;
 
 #ifdef USE_DIAGNOSTIC_UPDATER
 #if __ROS_VERSION == 1
-    diagnostics_ = std::make_shared<diagnostic_updater::Updater>(*nh);
+    if(s_diagnostics_ == 0)
+      s_diagnostics_ = std::make_shared<diagnostic_updater::Updater>(*nh);
+    diagnostics_ = s_diagnostics_;
 #elif __ROS_VERSION == 2
-    diagnostics_ = std::make_shared<diagnostic_updater::Updater>(nh);
+    if(s_diagnostics_ == 0)
+      s_diagnostics_ = std::make_shared<diagnostic_updater::Updater>(nh);
+    diagnostics_ = s_diagnostics_;
 #else
     diagnostics_ = 0;
 #endif
@@ -631,9 +638,14 @@ namespace sick_scan_xd
     publish_lidoutputstate_ = false;
     if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC || parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_LMS5XX_LOGIC)
     {
-      lferec_pub_ = rosAdvertise<sick_scan_msg::LFErecMsg>(nh, nodename + "/lferec", 100);
+#if __ROS_VERSION == 2
+      lferec_pub_ = rosAdvertise<sick_scan_msg::LFErecMsg>(nh, nodename + "/lferec", 100, rclcpp::SystemDefaultsQoS(), true);
+#else      
+      lferec_pub_ = rosAdvertise<sick_scan_msg::LFErecMsg>(nh, nodename + "/lferec", 100, 10, true);
+#endif
       lidinputstate_pub_ = rosAdvertise<sick_scan_msg::LIDinputstateMsg>(nh, nodename + "/lidinputstate", 100);
       lidoutputstate_pub_ = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(nh, nodename + "/lidoutputstate", 100);
+      sick_scan_xd::setLIDoutputstateTopic(nodename + "/lidoutputstate");
       publish_lferec_ = true;
       publish_lidinputstate_ = true;
       publish_lidoutputstate_ = true;
@@ -649,10 +661,14 @@ namespace sick_scan_xd
     if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) != 0
      && parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_PICOSCAN_NAME) != 0)
     {
-      ROS_INFO_STREAM("Publishing lidar pointcloud2 to " << cloud_topic_val);
       cloud_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, cloud_topic_val, 100);
+      ROS_INFO_STREAM("Publishing lidar pointcloud2 to " << cloud_topic_val);
 
-      imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, nodename + "/imu", 100);
+      std::string imu_topic = nodename + "/imu";
+      rosDeclareParam(nh, "imu_topic", imu_topic);
+      rosGetParam(nh, "imu_topic", imu_topic);
+      imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, imu_topic, 100);
+      ROS_INFO_STREAM("Publishing imu data to " << imu_topic);
 
       Encoder_pub = rosAdvertise<sick_scan_msg::Encoder>(nh, nodename + "/encoder", 100);
 
@@ -682,17 +698,23 @@ namespace sick_scan_xd
       }
       double max_timestamp_delay = 1.3 * num_active_layers / expectedFrequency_ - config_.time_offset;
 #if __ROS_VERSION == 1
-      diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<ros_sensor_msgs::LaserScan>(pub_, *diagnostics_,
-        // frequency should be target +- 10%.
-        diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10),
-        // timestamp delta can be from 0.0 to 1.3x what it ideally is.
-        diagnostic_updater::TimeStampStatusParam(-1, max_timestamp_delay));
-      ROS_ASSERT(diagnosticPub_ != NULL);
+      if(!diagnosticPub_ && diagnostics_)
+      {
+            diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<ros_sensor_msgs::LaserScan>(pub_, *diagnostics_,
+              // frequency should be target +- 10%.
+              diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10),
+              // timestamp delta can be from 0.0 to 1.3x what it ideally is.
+              diagnostic_updater::TimeStampStatusParam(-1, max_timestamp_delay));
+            ROS_ASSERT(diagnosticPub_ != NULL);
+      }
 #elif __ROS_VERSION == 2
-      diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>>(pub_, *diagnostics_,
-        diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10), // frequency should be target +- 10%
-        diagnostic_updater::TimeStampStatusParam(-1, max_timestamp_delay));
-      assert(diagnosticPub_ != NULL);
+      if(!diagnosticPub_ && diagnostics_)
+      {
+            diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>>(pub_, *diagnostics_,
+              diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10), // frequency should be target +- 10%
+              diagnostic_updater::TimeStampStatusParam(-1, max_timestamp_delay));
+            assert(diagnosticPub_ != NULL);
+      }
 #endif
     }
 #else
@@ -714,7 +736,7 @@ namespace sick_scan_xd
    */
   std::string SickScanCommon::cmdSetAccessMode3(void)
   {
-    std::string set_access_mode_3 = sopasCmdVec[CMD_SET_ACCESS_MODE_3]; // "sMN SetAccessMode 3 F4724744"
+    std::string set_access_mode_3 = sopasCmdVec[CMD_SET_ACCESS_MODE_X]; // "sMN SetAccessMode 3 F4724744"
     if (parser_->getCurrentParamPtr()->getUseSafetyPasWD()) // TIM_7xxS - 1 layer Safety Scanner
       set_access_mode_3 = sopasCmdVec[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER]; // "\x02sMN SetAccessMode 3 6FD62C05\x03\0"
     return set_access_mode_3;
@@ -919,7 +941,8 @@ namespace sick_scan_xd
   SickScanCommon::~SickScanCommon()
   {
     delete cloud_marker_;
-    delete diagnosticPub_;
+    // delete diagnosticPub_; // do not delete to avoid ParameterAlreadyDeclaredException on reinitialisation
+    // diagnosticPub_ = 0;
     printf("SickScanCommon closed.\n");
   }
 
@@ -1162,6 +1185,11 @@ namespace sick_scan_xd
           }
           expectedAnswers << (n > 0 ? "," : "") << "\"" << searchPattern[n] << "\"" ;
         }
+        bool useBinaryProtocol = (*((const uint32_t*)reply->data()) == 0x02020202);
+        if(result == 0 && evaluateLFErecMessage(reply->data(), reply->size(), useBinaryProtocol, rosTimeNow()))
+        {
+          ROS_DEBUG_STREAM("SOPAS LFErec response evaluated: \"" << DataDumper::binDataToAsciiString(reply->data(), reply->size()));
+        }
         if(result != 0)
         {
           if (cmdId == CMD_START_IMU_DATA)
@@ -1264,6 +1292,28 @@ namespace sick_scan_xd
     return ExitSuccess;
   }
 
+  /**
+   * @brief Determines if User Level 4 service access is required based on the lidar type.
+   *
+   * This method retrieves the lidar type from the internal parser and checks
+   * whether it belongs to a group of advanced scanner models that require elevated
+   * user access rights (User Level 4) for specific service operations.
+   *
+   * Currently, User Level 4 is required for the following lidar models:
+   * - multiScan
+   * - picoScan
+   * - LRS4xxx
+   *
+   * @return true  If the lidar type requires User Level 4 service access.
+   * @return false Otherwise, default access level (e.g., client level) is sufficient.
+   */
+  bool SickScanCommon::useUserLevelService(const std::string& lidarName)
+  {
+    return (lidarName == SICK_SCANNER_SCANSEGMENT_XD_NAME ||
+            lidarName == SICK_SCANNER_PICOSCAN_NAME ||
+            lidarName == SICK_SCANNER_LRS_4XXX_NAME);
+  }
+
   bool SickScanCommon::switchColaProtocol(bool useBinaryCmd)
   {
     std::vector<unsigned char> sopas_response;
@@ -1346,7 +1396,7 @@ namespace sick_scan_xd
       reqBinary.clear();
       std::string sUserLvlCmd = cmdSetAccessMode3(); // "sMN SetAccessMode 3 F4724744"
       this->convertAscii2BinaryCmd(sUserLvlCmd.c_str(), &reqBinary);
-      result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ACCESS_MODE_3]));
+      result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ACCESS_MODE_X]));
       reqBinary.clear();
     }
     else
@@ -1570,7 +1620,7 @@ namespace sick_scan_xd
     sopasCmdVec[CMD_POWER_ON_COUNT] = "\x02sRN ODpwrc\x03\0";
     sopasCmdVec[CMD_LOCATION_NAME] = "\x02sRN LocationName\x03\0";
     sopasCmdVec[CMD_ACTIVATE_STANDBY] = "\x02sMN LMCstandby\x03";
-    sopasCmdVec[CMD_SET_ACCESS_MODE_3] = "\x02sMN SetAccessMode 3 F4724744\x03\0";
+    sopasCmdVec[CMD_SET_ACCESS_MODE_X] = "\x02sMN SetAccessMode 3 F4724744\x03\0";
     sopasCmdVec[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER] = "\x02sMN SetAccessMode 3 6FD62C05\x03\0";
     sopasCmdVec[CMD_GET_OUTPUT_RANGES] = "\x02sRN LMPoutputRange\x03";
     sopasCmdVec[CMD_RUN] = "\x02sMN Run\x03\0";
@@ -1579,18 +1629,37 @@ namespace sick_scan_xd
     sopasCmdVec[CMD_START_RADARDATA] = "\x02sEN LMDradardata 1\x03";
     sopasCmdVec[CMD_ACTIVATE_NTP_CLIENT] = "\x02sWN TSCRole 1\x03";
     sopasCmdVec[CMD_SET_NTP_INTERFACE_ETH] = "\x02sWN TSCTCInterface 0\x03";
-
-    /*
-     * Overwrite CMD_SET_ACCESS_MODE_3 by customized hash value
-     */
-    std::string client_authorization_pw = "F4724744";
-    rosDeclareParam(nh, "client_authorization_pw", client_authorization_pw);
-    rosGetParam(nh, "client_authorization_pw", client_authorization_pw);
-    if (!client_authorization_pw.empty() && client_authorization_pw != "F4724744")
     {
-      std::string s_access_mode_3 = std::string("\x02sMN SetAccessMode 3 ") + client_authorization_pw + std::string("\x03\0");
-      sopasCmdVec[CMD_SET_ACCESS_MODE_3] = s_access_mode_3;
-      sopasCmdVec[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER] = s_access_mode_3;
+
+        /*
+         * Overwrite CMD_SET_ACCESS_MODE_3 by customized hash value
+         */
+        std::string m_user_level_password = "F4724744";  // Default password, can be overridden via ROS param
+        int m_user_level = 3;                            // Default user level, can be overridden via ROS param
+        if (this->useUserLevelService(this->parser_->getScannerType()))
+        {
+            m_user_level_password = "81BE23AA";
+            m_user_level = 4;
+        }
+
+        // Declare and get parameters from ROS
+        rosDeclareParam(nh, "user_level_password", m_user_level_password);
+        rosGetParam(nh, "user_level_password", m_user_level_password);
+
+        rosDeclareParam(nh, "user_level", m_user_level);
+        rosGetParam(nh, "user_level", m_user_level);
+
+        if (!m_user_level_password.empty())
+        {
+            // Build SOPAS command to set access mode
+            std::string strAuthAccessMode = "\x02" +
+                std::string("sMN SetAccessMode ") +
+                std::to_string(m_user_level) + " " +
+                m_user_level_password +
+                "\x03\0";
+            sopasCmdVec[CMD_SET_ACCESS_MODE_X] = strAuthAccessMode;
+            sopasCmdVec[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER] = strAuthAccessMode;
+        }
     }
 
     /*
@@ -1658,7 +1727,8 @@ namespace sick_scan_xd
     //                                                                   0320 01 09C4 0 0036EE80 09C4 0 0 09C4 0 0 09C4 0 0
     sopasCmdVec[CMD_GET_SCANDATACONFIGNAV] = "\x02sRN LMPscancfg\x03";
     sopasCmdVec[CMD_SEN_SCANDATACONFIGNAV] = "\x02sEN LMPscancfg 1\x03";
-    sopasCmdVec[CMD_SET_LFEREC_ACTIVE] = "\x02sEN LFErec 1\x03";              // TiM781S: activate LFErec messages, send "sEN LFErec 1"
+    sopasCmdVec[CMD_GET_LFEREC] = "\x02sRN LFErec\x03";           // TiM781, TiM781S: query LFErec messages, send "sRN LFErec"
+    sopasCmdVec[CMD_SET_LFEREC_ACTIVE] = "\x02sEN LFErec 1\x03";  // TiM781S: activate LFErec messages, send "sEN LFErec 1"
     sopasCmdVec[CMD_SET_LID_OUTPUTSTATE_ACTIVE] = "\x02sEN LIDoutputstate 1\x03"; // TiM781S: activate LIDoutputstate messages, send "sEN LIDoutputstate 1"
     sopasCmdVec[CMD_SET_LID_INPUTSTATE_ACTIVE] = "\x02sEN LIDinputstate 1\x03"; // TiM781S: activate LIDinputstate messages, send "sEN LIDinputstate 1"
 
@@ -1767,7 +1837,7 @@ namespace sick_scan_xd
     sopasCmdErrMsg[CMD_SCAN_LAYER_FILTER] = "Error setting ScanLayerFilter";
     sopasCmdErrMsg[CMD_APPLICATION_MODE] = "Error setting Meanfilter";
     sopasCmdErrMsg[CMD_READ_ACTIVE_APPLICATIONS] = "Error reading active applications by \"sRA SetActiveApplications\"";
-    sopasCmdErrMsg[CMD_SET_ACCESS_MODE_3] = "Error Access Mode Client";
+    sopasCmdErrMsg[CMD_SET_ACCESS_MODE_X] = "Error Access Mode Client";
     sopasCmdErrMsg[CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER] = "Error Access Mode Client";
     sopasCmdErrMsg[CMD_SET_OUTPUT_RANGES] = "Error setting angular ranges";
     sopasCmdErrMsg[CMD_GET_OUTPUT_RANGES] = "Error reading angle range";
@@ -1789,6 +1859,7 @@ namespace sick_scan_xd
     sopasCmdErrMsg[CMD_SET_SCANDATACONFIGNAV] = "Error setting scandata config";
     sopasCmdErrMsg[CMD_GET_SCANDATACONFIGNAV] = "Error getting scandata config";
     sopasCmdErrMsg[CMD_SEN_SCANDATACONFIGNAV] = "Error setting sEN LMPscancfg";
+    sopasCmdErrMsg[CMD_GET_LFEREC] = "Error getting LFErec message";
     sopasCmdErrMsg[CMD_SET_LFEREC_ACTIVE] = "Error activating LFErec messages";
     sopasCmdErrMsg[CMD_SET_LID_OUTPUTSTATE_ACTIVE] = "Error activating LIDoutputstate messages";
     sopasCmdErrMsg[CMD_SET_LID_INPUTSTATE_ACTIVE] = "Error activating LIDinputstate messages";
@@ -1831,7 +1902,7 @@ namespace sick_scan_xd
     }
     else
     {
-      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3);
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_X);
     }
 
     if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) != 0) // "sWN EIHstCola" currently not supported by LRS-4xxx
@@ -1949,11 +2020,11 @@ namespace sick_scan_xd
       sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
       sopasCmdChain.push_back(CMD_SET_SCAN_CFG_LIST); // "sMN mCLsetscancfglist 1", set scan config from list for NAX310  LD-OEM15xx LD-LRS36xx
       sopasCmdChain.push_back(CMD_RUN); // Apply changes, note by manual: "the new values will be activated only after log out (from the user level), when re-entering the Run mode"
-      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_X); // re-enter authorized client level
       sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
       sopasCmdChain.push_back(CMD_SET_SCANDATACONFIGNAV); // Set configured start/stop angle using "sMN mLMPsetscancfg"
       sopasCmdChain.push_back(CMD_RUN); // Apply changes, note by manual: "the new values will be activated only after log out (from the user level), when re-entering the Run mode"
-      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_X); // re-enter authorized client level
       sopasCmdChain.push_back(CMD_GET_SCANDATACONFIGNAV); // Read LMPscancfg by "sRN LMPscancfg"
     }
     /*
@@ -2016,7 +2087,7 @@ namespace sick_scan_xd
         sopasCmdVec[CMD_SET_SCAN_LAYER_FILTER] = "\x02sWN ScanLayerFilter " + scan_layer_filter + "\x03";
         sopasCmdChain.push_back(CMD_SET_SCAN_LAYER_FILTER); // set scan layer activation
         sopasCmdChain.push_back(CMD_RUN); // Apply changes
-        sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // re-enter authorized client level
+        sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_X); // re-enter authorized client level
       }
     }
 
@@ -2072,7 +2143,7 @@ namespace sick_scan_xd
     {
       ipNewIPAddr = sNewIPAddr;
       sopasCmdChain.clear();
-      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3); // "sMN SetAccessMode 3 F4724744"
+      sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_X); 
       if (this->parser_->getCurrentParamPtr()->getUseSafetyPasWD()) // TIM_7xxS - 1 layer Safety Scanner
         sopasCmdChain.push_back(CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER); // "\x02sMN SetAccessMode 3 6FD62C05\x03\0"
     }
@@ -3782,6 +3853,11 @@ namespace sick_scan_xd
           startProtocolSequence.push_back(CMD_SET_LID_INPUTSTATE_ACTIVE); // TiM781S: activate LIDinputstate messages, send "sEN LIDinputstate 1"
           ROS_INFO_STREAM(parser_->getCurrentParamPtr()->getScannerName() << ": activating field monitoring by lidinputstate messages");
         }
+        if (parser_->getCurrentParamPtr()->getUseEvalFields() == USE_EVAL_FIELD_TIM7XX_LOGIC && true == activate_lferec)
+        {
+          startProtocolSequence.push_back(CMD_GET_LFEREC);      // TiM781, TiM781S: query LFErec messages, send "sRN LFErec"
+          ROS_INFO_STREAM(parser_->getCurrentParamPtr()->getScannerName() << ": activating field monitoring by lferec messages");
+        }
       }
 
       // initializing sequence for laserscanner
@@ -3805,7 +3881,8 @@ namespace sick_scan_xd
         startProtocolSequence.push_back(CMD_START_SCANDATA);
       }
 
-      if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 4) // MRS1104: start IMU-Transfer
+      if (this->parser_->getCurrentParamPtr()->getNumberOfLayers() == 4 ||
+        this->parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0) // LRS4xxx or MRS1104: start IMU-Transfer
       {
         bool imu_enable = false;
         rosDeclareParam(nh, "imu_enable", imu_enable);
@@ -3995,7 +4072,7 @@ namespace sick_scan_xd
         ROS_ERROR_STREAM("## ERROR NAV350: parseNAV350BinaryUnittest() failed.");
       std::vector<unsigned char> sopas_response;
       // NAV-350 initialization sequence
-      if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_ACCESS_MODE_3], &sopas_response, useBinaryCmd) != 0) // re-enter authorized client level
+      if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_ACCESS_MODE_X], &sopas_response, useBinaryCmd) != 0) // re-enter authorized client level
         return ExitError;
       if (sendSopasAorBgetAnswer(sopasCmdVec[CMD_SET_NAV_OPERATIONAL_MODE_1], &sopas_response, useBinaryCmd) != 0) // "sMN mNEVAChangeState 1", 1 = standby
         return ExitError;
@@ -4361,14 +4438,10 @@ namespace sick_scan_xd
   {
     //static int cnt = 0;
 #ifdef USE_DIAGNOSTIC_UPDATER
-    if(diagnostics_)
-    {
-#if __ROS_VERSION == 2 // ROS 2
-      diagnostics_->force_update();
-#else
+#if __ROS_VERSION != 2
       diagnostics_->update();
 #endif
-    }
+
 #endif
 
     unsigned char receiveBuffer[65536];
@@ -4557,32 +4630,9 @@ namespace sick_scan_xd
         }
         return errorCode; // return success to continue looping
       }
-      else if(memcmp(&receiveBuffer[8], "sSN LFErec", strlen("sSN LFErec")) == 0)
+      else if (evaluateLFErecMessage(&receiveBuffer[0], actual_length, useBinaryProtocol, recvTimeStamp))
       {
-        int errorCode = ExitSuccess;
-        ROS_DEBUG_STREAM("SickScanCommon: received " << actual_length << " byte LFErec " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length));
-        // Parse and convert LFErec message
-        sick_scan_msg::LFErecMsg lferec_msg;
-        std::string scanner_name = parser_->getCurrentParamPtr()->getScannerName();
-        EVAL_FIELD_SUPPORT eval_field_logic = parser_->getCurrentParamPtr()->getUseEvalFields(); // == USE_EVAL_FIELD_LMS5XX_LOGIC
-        if (sick_scan_xd::SickScanMessages::parseLFErecMsg(recvTimeStamp, receiveBuffer, actual_length, useBinaryProtocol, eval_field_logic, scanner_name, lferec_msg))
-        {
-          // Publish LFErec message
-          notifyLFErecListener(nh, &lferec_msg);
-          if(publish_lferec_)
-          {
-            rosPublish(lferec_pub_, lferec_msg);
-          }
-          if(cloud_marker_)
-          {
-            cloud_marker_->updateMarker(lferec_msg, eval_field_logic);
-          }
-        }
-        else
-        {
-          ROS_WARN_STREAM("## ERROR SickScanCommon: parseLFErecMsg failed, received " << actual_length << " byte LFErec " << DataDumper::binDataToAsciiString(&receiveBuffer[0], actual_length));
-        }
-        return errorCode; // return success to continue looping
+        return ExitSuccess; // LFErec message evaluated, return success to continue looping
       }
       else if(memcmp(&receiveBuffer[8], "sSN LMDscandatamon", strlen("sSN LMDscandatamon")) == 0)
       {
@@ -4963,7 +5013,6 @@ namespace sick_scan_xd
                   }
 
                 }
-#ifndef _MSC_VER
                 if (parser_->getCurrentParamPtr()->getEncoderMode() >= 0 && FireEncoder == true)//
                 {
                   rosPublish(Encoder_pub, EncoderMsg);
@@ -4972,7 +5021,7 @@ namespace sick_scan_xd
                 {
                   sendMsg = false; // too many layers for publish as scan message. Only pointcloud messages will be pub.
                 }
-                if (sendMsg & outputChannelFlagId)  // publish only configured channels - workaround for cfg-bug MRS1104
+                if (sendMsg && (outputChannelFlagId != 0))  // publish only configured channels - workaround for cfg-bug MRS1104
                 {
 
                   // rosPublish(pub_, msg);
@@ -4988,9 +5037,6 @@ namespace sick_scan_xd
 #endif
 
                 }
-#else
-                ROS_DEBUG_STREAM("MSG received...");
-#endif
               }
             }
             else // i.e. (numEchos <= 0)
@@ -6129,7 +6175,7 @@ namespace sick_scan_xd
       reqBinary.clear();
       std::string UserLvlCmd = cmdSetAccessMode3();
       this->convertAscii2BinaryCmd(UserLvlCmd.c_str(), &reqBinary);
-      result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ACCESS_MODE_3]));
+      result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_SET_ACCESS_MODE_X]));
       reqBinary.clear();
       this->convertAscii2BinaryCmd(sopasCmdVec[CMD_REBOOT].c_str(), &reqBinary);
       result &= (0 == sendSopasAndCheckAnswer(reqBinary, &sopasReplyBinVec[CMD_REBOOT]));
@@ -6354,6 +6400,37 @@ namespace sick_scan_xd
       }
       return result;
   } // SickScanCommon::readParseSafetyFields()
+
+  bool SickScanCommon::evaluateLFErecMessage(uint8_t* receiveBuffer, int receiveBufferLength, bool useBinaryProtocol, const rosTime& recvTimeStamp)
+  {
+    if(memcmp(&receiveBuffer[8], "sSN LFErec", strlen("sSN LFErec")) == 0 || memcmp(&receiveBuffer[8], "sRA LFErec", strlen("sRA LFErec")) == 0) // currently only Cola binary supported, todo: support Cola Ascii if required for some reason
+    {
+      ROS_DEBUG_STREAM("SickScanCommon: received " << receiveBufferLength << " byte LFErec message \"" << DataDumper::binDataToAsciiString(&receiveBuffer[0], receiveBufferLength) << "\"");
+      // Parse and convert LFErec message
+      sick_scan_msg::LFErecMsg lferec_msg;
+      std::string scanner_name = parser_->getCurrentParamPtr()->getScannerName();
+      EVAL_FIELD_SUPPORT eval_field_logic = parser_->getCurrentParamPtr()->getUseEvalFields(); // == USE_EVAL_FIELD_LMS5XX_LOGIC
+      if (sick_scan_xd::SickScanMessages::parseLFErecMsg(recvTimeStamp, receiveBuffer, receiveBufferLength, useBinaryProtocol, eval_field_logic, scanner_name, lferec_msg))
+      {
+        // Publish LFErec message
+        notifyLFErecListener(m_nh, &lferec_msg);
+        if(publish_lferec_)
+        {
+          rosPublish(lferec_pub_, lferec_msg);
+        }
+        if(cloud_marker_)
+        {
+          cloud_marker_->updateMarker(lferec_msg, eval_field_logic);
+        }
+      }
+      else
+      {
+        ROS_WARN_STREAM("## ERROR SickScanCommon: parseLFErecMsg failed, received " << receiveBufferLength << " byte LFErec " << DataDumper::binDataToAsciiString(&receiveBuffer[0], receiveBufferLength));
+      }
+      return true; // LFErec message received
+    }
+    return false; // not a LFErec message
+  }
 
   int SickScanCommon::readLIDinputstate(SickScanFieldMonSingleton *fieldMon, bool useBinaryCmd)
   {

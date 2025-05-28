@@ -102,12 +102,14 @@ static ros_std_msgs::ColorRGBA gray(void) // invalid fields (default)
 }
 
 sick_scan_xd::SickScanMarker::SickScanMarker(rosNodePtr nh, const std::string & marker_topic, const std::string & marker_frame_id)
-: m_nh(nh), m_scan_mon_fieldset(0), m_marker_output_legend_offset_x(-0.5)
+: m_nh(nh), m_scan_mon_fieldset(1), m_marker_output_legend_offset_x(-0.5)
 {
     if(nh)
     {
         m_frame_id = marker_frame_id.empty() ? "/cloud" : marker_frame_id;
-        m_marker_publisher = rosAdvertise<ros_visualization_msgs::MarkerArray>(nh, marker_topic.empty() ? "sick_scan/marker" : marker_topic, 1);
+        std::string vis_marker_topic = marker_topic.empty() ? "sick_scan/marker" : marker_topic;
+        m_marker_publisher = rosAdvertise<ros_visualization_msgs::MarkerArray>(nh, vis_marker_topic, 1);
+        sick_scan_xd::setVisualizationMarkerTopic(vis_marker_topic);
         m_add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(nh, true);
     }
 }
@@ -201,7 +203,8 @@ void sick_scan_xd::SickScanMarker::updateMarker(sick_scan_msg::LFErecMsg& msg, i
     for(int field_idx = 0; field_idx < msg.fields.size(); field_idx++)
     {
         // LFErec: field_index runs from 1 to 3, field_info: field_index_scan_mon runs from 0 to 47 (field_index of m_scan_mon_fields)
-        field_info[field_idx].field_index_scan_mon = (int)(msg.fields[field_idx].field_index - 1 + msg.fields.size() * m_scan_mon_fieldset);
+        assert(m_scan_mon_fieldset >= 1); // active fieldset assuming m_scan_mon_fieldset >= 1 (default: 1)
+        field_info[field_idx].field_index_scan_mon = (int)(msg.fields[field_idx].field_index - 1 + msg.fields.size() * (m_scan_mon_fieldset - 1));
         field_info[field_idx].field_result = msg.fields[field_idx].field_result_mrs;
         if(field_info[field_idx].field_result == 1) // 1 = free/clear = green
         {
@@ -288,6 +291,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan_xd::SickScanMarker::create
     for(int field_info_idx = 0; field_info_idx < field_info.size(); field_info_idx++)
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
+        assert(field_idx >= 0 && field_idx < m_scan_mon_fields.size());
         const sick_scan_xd::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
         SickScanMonFieldType field_typ = mon_field.fieldType();
         if(field_typ == MON_FIELD_DYNAMIC) // dynamic fields have two rectangle (first rectangle for v = max, second rectangle for v = 0)
@@ -326,6 +330,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan_xd::SickScanMarker::create
     for(int field_info_idx = 0, triangle_idx = 0; field_info_idx < field_info.size() && triangle_idx < nr_triangles; field_info_idx++)
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
+        assert(field_idx >= 0 && field_idx < m_scan_mon_fields.size());
         ros_std_msgs::ColorRGBA field_color = field_info[field_info_idx].field_color;
         const sick_scan_xd::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
         int point_count = mon_field.getPointCount();
@@ -368,6 +373,7 @@ std::vector<ros_visualization_msgs::Marker> sick_scan_xd::SickScanMarker::create
     for(int field_info_idx = 0; field_info_idx < field_info.size(); field_info_idx++)
     {
         int field_idx = field_info[field_info_idx].field_index_scan_mon;
+        assert(field_idx >= 0 && field_idx < m_scan_mon_fields.size());
         const sick_scan_xd::SickScanMonField& mon_field = m_scan_mon_fields[field_idx];
         if(mon_field.getPointCount() >= 3)
         {
@@ -437,7 +443,6 @@ std::vector<ros_visualization_msgs::Marker> sick_scan_xd::SickScanMarker::create
     {
         for(int field_info_idx = 0, triangle_idx = 0; field_info_idx < field_info.size(); field_info_idx++)
         {
-            int field_idx = field_info[field_info_idx].field_index_scan_mon;
             ros_visualization_msgs::Marker marker_point;
             marker_point.header.stamp = rosTimeNow();
             marker_point.header.frame_id = m_frame_id;

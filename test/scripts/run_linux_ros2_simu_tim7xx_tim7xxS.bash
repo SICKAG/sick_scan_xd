@@ -19,10 +19,10 @@ function run_simu()
 {
     emulator_launch_cfg=$1
     sick_scan_launch_file=$2
+    sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2.rviz &
     sleep  1 ; ros2 run sick_scan_xd sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/$emulator_launch_cfg  scanner_type:=sick_tim_7xx&
     # sleep  1 ; ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/$sick_scan_launch_file hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False & 
     sleep  1 ; ros2 run sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/$sick_scan_launch_file hostname:=127.0.0.1 port:=2111 &
-    sleep  1 ; ros2 run rviz2 rviz2 -d ./src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2.rviz &
     sleep 30 ; simu_killall
 }
 

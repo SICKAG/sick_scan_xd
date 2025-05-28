@@ -133,7 +133,8 @@ class SopasTestServer:
                     print("SopasTestServer: request={}, response={}".format(received_telegram, response_payload))
                 self.sendTelegram(response_payload)
             else:
-                print("## ERROR SopasTestServer: request={} not found in json file".format(received_telegram))
+                request_hex_str = ":".join("{:02x}".format(x) for x in received_telegram)
+                print("## ERROR SopasTestServer: request={} not found in json file, request_hex={}".format(received_telegram, request_hex_str))
                 #response_payload = received_telegram
                 #if response_payload[8:11] == b"sWN":
                 #    response_payload[8:11] = b"sWA"
@@ -162,6 +163,7 @@ if __name__ == "__main__":
     tcp_port = 2111 # tcp port to listen for tcp connections
     scandata_ids = [ "sSN LMDradardata", "sSN LMDscandata", "sSN InertialMeasurementUnit" ]
     json_file = "../emulator/scandata/20221018_rms_1xxx_ascii_rawtarget_object.pcapng.json"  # input jsonfile with sopas requests, responses and telegrams
+    repeat = 0 # number of repetions (default: 0 for endless loop)
     verbosity = 2  # print all telegrams
     send_rate = 10 # send 10 scandata telegrams per second
     send_scandata_after = 5 # start to send scandata 5 seconds after server start 
@@ -172,6 +174,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--json_file", help="input jsonfile with sopas requests, responses and telegrams", default=json_file, type=str)
     arg_parser.add_argument("--scandata_id", help="sopas id of scandata telegrams, e.g. \"sSN LMDradardata\"", default="", type=str)
     arg_parser.add_argument("--send_rate", help="send rate in telegrams per second", default=send_rate, type=float)
+    arg_parser.add_argument("--repeat", help="number of repetions (or 0 for endless loop)", default=repeat, type=int)
     arg_parser.add_argument("--verbosity", help="verbosity (0, 1 or 2)", default=verbosity, type=int)
     arg_parser.add_argument("--scandata_after", help="start to send scandata after some seconds", default=send_scandata_after, type=float)
     cli_args = arg_parser.parse_args()
@@ -189,6 +192,8 @@ if __name__ == "__main__":
     verbosity = cli_args.verbosity
     send_rate = cli_args.send_rate
     send_scandata_after = cli_args.scandata_after
+    if repeat <= 0: # run in endless loop
+        repeat = 0x7FFFFFFF
     
     # Parse json file
     print("sopas_json_test_server: parsing json file \"{}\":".format(json_file))
@@ -220,7 +225,7 @@ if __name__ == "__main__":
     print("sopas_json_test_server: start sending telegrams {} ...".format(" , ".join(scandata_ids)))
     for n in range(len(scandata_ids)):
         scandata_ids[n] = bytearray(scandata_ids[n].encode())
-    while True:
+    for repeat_cnt in range(repeat):
         for payload in json_tcp_payloads:
             for scandata_id in scandata_ids:
                 if payload.find(scandata_id,0) >= 0:

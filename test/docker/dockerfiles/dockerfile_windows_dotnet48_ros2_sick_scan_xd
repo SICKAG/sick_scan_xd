@@ -1,0 +1,32 @@
+# Dockerfile for Windows docker images with .NET 4.8, nuget, buildtools (Visual Studio 2019 and 2022), chocolatey, cmake, python, ROS-2 (foxy/humble) and sick_scan_xd
+
+# FROM windows_dotnet48_ros2_develop
+# FROM windows_dotnet48_ros2_foxy
+FROM windows_dotnet48_ros2_humble
+
+# Restore the default Windows shell for correct batch processing.
+SHELL ["cmd", "/S", "/C"]
+
+# Default: copy local sick_scan_xd sources into the docker image
+ENV NONE="None"
+ARG SICK_SCAN_XD_BUILD_FROM_SOURCES=1
+RUN if exist C:\\workspace ( rmdir /s/q C:\\workspace ) & mkdir C:\\workspace\\src\\sick_scan_xd
+COPY ./src/sick_scan_xd /workspace/src/sick_scan_xd
+
+# Optionally clone sick_scan_xd from a git url given by build argument SICK_SCAN_XD_GIT_URL
+# Example: docker build --build-arg SICK_SCAN_XD_GIT_URL=https://github.com/SICKAG/sick_scan_xd ...
+ARG SICK_SCAN_XD_GIT_URL="None"
+RUN if not %SICK_SCAN_XD_GIT_URL%==%NONE% ( pushd C:\\workspace\\src & rmdir /s/q sick_scan_xd & git clone -b master %SICK_SCAN_XD_GIT_URL% & popd )
+
+# Build sick_scan_xd
+WORKDIR /workspace
+RUN call C:\\workspace\\src\\sick_scan_xd\\test\\docker\\utils\\build_sick_scan_xd_win64_ros2.cmd
+
+# Define the entry point for the docker container.
+# This entry point starts the developer command prompt and leaves it running.
+# ENTRYPOINT ["cmd.exe", "/k", "call C:\\TEMP\\setenv_ros2_humble.cmd"]
+
+# Launch sick_scan_xd tests
+# "cmd /k" leaves the command prompt open, "cmd /c" closes and exits after running all sick_scan_xd tests.
+ENTRYPOINT ["cmd.exe", "/k", "C:\\workspace\\src\\sick_scan_xd\\test\\docker\\run_simu_windows_ros2.cmd"]
+# ENTRYPOINT ["cmd.exe", "/c", "C:\\workspace\\src\\sick_scan_xd\\test\\docker\\run_simu_windows_ros2.cmd"]

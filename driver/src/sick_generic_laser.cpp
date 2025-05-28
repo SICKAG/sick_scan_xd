@@ -474,7 +474,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   }
 
   std::string cloud_topic = "cloud";
-  rosDeclareParam(nhPriv, "hostname", "192.168.0.4");
+  rosDeclareParam(nhPriv, "hostname", "192.168.0.1");
   rosDeclareParam(nhPriv, "imu_enable", false);
   rosDeclareParam(nhPriv, "imu_topic", "imu");
   rosDeclareParam(nhPriv, "cloud_topic", cloud_topic);
@@ -484,7 +484,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
       nhPriv->setParam("name", scannerName);
     rossimu_settings(*nhPriv);  // just for tiny simulations under Visual C++
 #else
-      rosSetParam(nhPriv, "hostname", "192.168.0.4");
+      rosSetParam(nhPriv, "hostname", "192.168.0.1");
       rosSetParam(nhPriv, "imu_enable", false);
       rosSetParam(nhPriv, "imu_topic", "imu");
       rosSetParam(nhPriv, "cloud_topic", "cloud");

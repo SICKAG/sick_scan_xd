@@ -10,8 +10,11 @@
     <arg name="nodename" default="sick_lrs_4xxx"/>
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
-    <arg name="encoder_mode" default="-1"/> <!-- Encoder settings (default: -1, i.e. not set): 0: Off, 1: Single increment, 2: Direction recognition phase, 3: Direction recognition level, 4: Fixed increment speed/ticks (LMS4000 only) -->
-    <arg name="tf_publish_rate" default="10.0" />                     <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+    <arg name="encoder_mode" default="-1"/>        <!-- Encoder settings (default: -1, i.e. not set): 0: Off, 1: Single increment, 2: Direction recognition phase, 3: Direction recognition level, 4: Fixed increment speed/ticks (LMS4000 only) -->
+    <arg name="tf_publish_rate" default="10.0" />  <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
+    <arg name="imu_enable" default="true"/>        <!-- IMU messages are enabled by default for LRS-4xxx devices -->
+    <arg name="imu_topic" default="imu" />         <!-- ros topic to publish IMU data -->
+    <arg name="imu_frame_id" default="imu_link"/>  <!-- frame id for published IMU data -->
     <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <param name="scanner_type" type="string" value="sick_lrs_4xxx"/>
         <param name="hostname" type="string" value="$(arg hostname)"/>
@@ -60,6 +63,11 @@
         65   25Hz & 0.240 deg 0x   25 Hz   25 Hz 0.240 deg 0.240 deg 360 deg
          -->
 
+        <!-- IMU messages are enabled by default for LRS-4xxx devices -->
+        <param name="imu_enable" type="bool" value="$(arg imu_enable)"/>
+        <param name="imu_topic" type="string" value="$(arg imu_topic)"/>
+        <param name="imu_frame_id" type="string" value="$(arg imu_frame_id)"/>
+
         <!-- Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform) -->
         <!-- Note: add_transform_xyz_rpy is specified by 6D pose x, y, z, roll, pitch, yaw in [m] resp. [rad] -->
         <!-- It transforms a 3D point in cloud coordinates to 3D point in user defined world coordinates: --> 
@@ -75,7 +83,8 @@
         <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
         <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
         <!-- Note: read_timeout_millisec_kill_node less or equal 0 deactivates pointcloud monitoring (not recommended) -->
-        <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
+        <param name="user_level" type="int" value="4" />                                    <!-- Default user level for authorization (3: client, 4: service) -->
+        <param name="user_level_password" type="string" value="81BE23AA" />                 <!-- Default user level password (for "client" (level 3): F4724744, for "service" (level 4): 81BE23AA) -->
 
         <!-- Supported by sick_generic_caller version 2.7.3 and above: -->
         <param name="lfp_meanfilter" type="int" value="-1" />              <!-- MRS1xxx, LMS1xxx, LMS4xxx, LRS4xxx: lfp_meanfilter<0: do not apply, lfp_meanfilter==0: deactivate LFPmeanfilter, lfp_meanfilter>0: activate LFPmeanfilter with lfp_meanfilter = number of scans -->

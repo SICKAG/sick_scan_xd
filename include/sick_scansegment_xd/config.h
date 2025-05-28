@@ -164,7 +164,8 @@ namespace sick_scansegment_xd
         bool send_sopas_start_stop_cmd;             // True: multiScan136 start and stop command sequece ("sWN ScanDataEnable 0/1" etc.) are sent after driver start and stop, default: true
         bool sopas_cola_binary;                     // False: SOPAS uses CoLa-A (ascii, default, recommended), CoLa-B (true, binary) currently experimental
         int sopas_timeout_ms;                       // Timeout for SOPAS response in milliseconds, default: 5000
-        std::string client_authorization_pw = "F4724744"; // Default password for client authorization
+        int user_level = 3;                         // Default User Level (for picoScan, multiScan: 4)
+        std::string user_level_password = "F4724744";  // Default password for client authorization
 
         // MSR100 filter settings
         bool host_read_filtersettings;             // True  // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true

@@ -737,7 +737,7 @@ namespace sick_scan_xd
       if (nav_timestampStart > 0)
       {
         uint32_t recvTimeStampSec = (uint32_t)sec(recvTimeStamp), recvTimeStampNsec = (uint32_t)nsec(recvTimeStamp);
-        bool softwarePLLready = SoftwarePLL::instance().updatePLL(recvTimeStampSec, recvTimeStampNsec, nav_timestampStart);
+        bool softwarePLLready = SoftwarePLL::instance().updatePLL(recvTimeStampSec, recvTimeStampNsec, nav_timestampStart, nav_timestampStart);
         if (softwarePLLready)
         {
           SoftwarePLL::instance().getCorrectedTimeStamp(recvTimeStampSec, recvTimeStampNsec, nav_timestampStart);

@@ -2,7 +2,7 @@
 <launch>
 
   <!-- Launch sick_scan_emulator -->
-  <!-- arg name="scandatafiles" default="$(find sick_scan_xd)/scandata/20220505_lms511_wireshark_issue49.pcapng.json"/ -->
+  <!-- arg name="scandatafiles" default="$(find sick_scan_xd)/test/emulator/scandata/20220505_lms511_wireshark_issue49.pcapng.json"/ -->
   <arg name="scandatafiles" default="$(find sick_scan_xd)/test/emulator/scandata/20210301_lms511.pcapng_full.json,$(find sick_scan_xd)/test/emulator/scandata/20210302_lms511.pcapng_full.json"/>
   <arg name="scandatatypes" default="sSN LMDscandata ,sSN LIDinputstate ,sSN LIDoutputstate ,sSN LFErec "/>
   <rosparam command="load" file="$(find sick_scan_xd)/yaml/emulator.yaml" />

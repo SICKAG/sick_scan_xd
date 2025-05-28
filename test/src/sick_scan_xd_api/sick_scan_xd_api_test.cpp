@@ -26,214 +26,309 @@ ros::Publisher ros_api_visualizationmarker_publisher;
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+
+const float IMAGE_SCALE = 250.0f;
+const float IMAGE_OFFSET = 2.0f;
+const int IMAGE_WIDTH = 1000;
+const int IMAGE_HEIGHT = 1000;
+
 #include "toojpeg.h"
-static FILE *foutJpg = 0;
+static FILE* foutJpg = 0;
 #endif
 
 #if __ROS_VERSION != 1
 // jpeg callback, just writes one byte
 void jpegOutputCallback(unsigned char oneByte)
 {
-    assert(foutJpg != 0);
-    fwrite(&oneByte, 1, 1, foutJpg);
+  assert(foutJpg != 0);
+  fwrite(&oneByte, 1, 1, foutJpg);
 }
+
+/**
+ * @brief Clamps a value between a minimum and a maximum limit.
+ *
+ * Returns the input value if it is within the [min_val, max_val] range.
+ * Otherwise, returns the nearest boundary value.
+ *
+ * @tparam T  Type of the input value (must support comparison operators).
+ * @param val       The value to be clamped.
+ * @param min_val   The minimum permissible value.
+ * @param max_val   The maximum permissible value.
+ * @return          The clamped value within [min_val, max_val].
+ *
+ * @note If min_val > max_val, behavior is undefined.
+ */
+template <typename T>
+T clamp(T val, T min_val, T max_val) {
+  return std::max(min_val, std::min(val, max_val));
+}
+
+/**
+ * @brief Converts an intensity value into a pseudo-color RGB value using a jet colormap approximation.
+ *
+ * This function maps a given intensity value (typically in the range [0, 65535]) to an RGB color using
+ * a color ramp similar to the MATLAB/Jet colormap. The output color starts from blue for low intensities
+ * and transitions through green to red for high intensities.
+ *
+ * @param[in] intensity  The intensity value to be mapped to a color (expected range: 0.0 to 65535.0).
+ * @param[out] r         Reference to the red channel (0–255) to be set by the function.
+ * @param[out] g         Reference to the green channel (0–255) to be set by the function.
+ * @param[out] b         Reference to the blue channel (0–255) to be set by the function.
+ *
+ * @note This function clamps the normalized intensity to [0.0, 1.0] before processing.
+ *       The resulting color is a visualization aid, not physically meaningful.
+ */
+static void intensity_to_rgb(float intensity, uint8_t& r, uint8_t& g, uint8_t& b)
+{
+  // Normalize intensity (0 to 65535) ? (0 to 1)
+  float normalized = intensity / 65535.0f;
+
+  if (normalized < 0.0f) normalized = 0.0f;
+  if (normalized > 1.0f) normalized = 1.0f;
+
+  // Map to a rainbow (jet) colormap approximation
+  float fourValue = 4.0f * normalized;
+
+  float rf = fourValue - 1.5f;
+  float gf = fourValue - 0.5f;
+  float bf = fourValue + 0.5f;
+
+  // Compute Red component
+  if (rf <= 0.0f) r = 0;
+  else if (rf >= 1.0f) r = 255;
+  else r = static_cast<uint8_t>(255.0f * rf);
+
+  // Compute Green component
+  if (gf <= 0.0f) g = 0;
+  else if (gf >= 1.0f) g = 255;
+  else g = static_cast<uint8_t>(255.0f * gf);
+
+  // Compute Blue component
+  if (bf <= 0.0f) b = 0;
+  else if (bf >= 1.0f) b = 255;
+  else b = static_cast<uint8_t>(255.0f * bf);
+
+  // Reverse segments for descending slopes:
+  if (fourValue > 2.5f)
+    r = static_cast<uint8_t>(255 - r);
+  if (fourValue > 1.5f && fourValue <= 3.5f)
+    g = static_cast<uint8_t>(255 - g);
+  if (fourValue > 0.5f && fourValue <= 2.5f)
+    b = static_cast<uint8_t>(255 - b);
+}
+
+
 // Simple plot function for pointcloud data, just demonstrates how to use a SickScanPointCloudMsg
 static void plotPointcloudToJpeg(const std::string& jpegfilepath, const SickScanPointCloudMsg& msg)
 {
-    // Get offsets for x, y, z, intensity values
-    SickScanPointFieldMsg* msg_fields_buffer = (SickScanPointFieldMsg*)msg.fields.buffer;
-    int field_offset_x = -1, field_offset_y = -1, field_offset_z = -1, field_offset_intensity = -1;
-    for(int n = 0; n < msg.fields.size; n++)
+  constexpr int img_width = IMAGE_WIDTH, img_height = IMAGE_HEIGHT;
+  // Get offsets for x, y, z, intensity values
+  SickScanPointFieldMsg* msg_fields_buffer = (SickScanPointFieldMsg*)msg.fields.buffer;
+  int field_offset_x = -1, field_offset_y = -1, field_offset_z = -1, field_offset_intensity = -1;
+  for (int n = 0; n < msg.fields.size; n++)
+  {
+    if (strcmp(msg_fields_buffer[n].name, "x") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+      field_offset_x = msg_fields_buffer[n].offset;
+    else if (strcmp(msg_fields_buffer[n].name, "y") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+      field_offset_y = msg_fields_buffer[n].offset;
+    else if (strcmp(msg_fields_buffer[n].name, "z") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
+      field_offset_z = msg_fields_buffer[n].offset;
+    else if ((strcmp(msg_fields_buffer[n].name, "intensity") == 0 ||
+      strcmp(msg_fields_buffer[n].name, "i") == 0) &&
+      msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
     {
-        if (strcmp(msg_fields_buffer[n].name, "x") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
-            field_offset_x = msg_fields_buffer[n].offset;
-        else if (strcmp(msg_fields_buffer[n].name, "y") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
-            field_offset_y = msg_fields_buffer[n].offset;
-        else if (strcmp(msg_fields_buffer[n].name, "z") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
-            field_offset_z = msg_fields_buffer[n].offset;
-        else if (strcmp(msg_fields_buffer[n].name, "intensity") == 0 && msg_fields_buffer[n].datatype == SICK_SCAN_POINTFIELD_DATATYPE_FLOAT32)
-            field_offset_intensity = msg_fields_buffer[n].offset;
+      field_offset_intensity = msg_fields_buffer[n].offset;
     }
-	assert(field_offset_x >= 0 && field_offset_y >= 0 && field_offset_z >= 0);
-	// Create an image with 250 pixel/meter, max. +/-2 meter
-	int img_width = 250 * 4, img_height = 250 * 4;
-	uint8_t* img_pixel = (uint8_t*)calloc(3 * img_width * img_height, sizeof(uint8_t)); // allocate 3 byte RGB array
-	// Plot all points in pointcloud
-    for (int row_idx = 0; row_idx < (int)msg.height; row_idx++)
+  }
+  assert(field_offset_x >= 0 && field_offset_y >= 0 && field_offset_z >= 0);
+  // Create an image with 250 pixel/meter, max. +/-2 meter
+
+  uint8_t* img_pixel = (uint8_t*)calloc(3 * img_width * img_height, sizeof(uint8_t)); // allocate 3 byte RGB array
+  // Plot all points in pointcloud
+  for (uint32_t row_idx = 0; row_idx < msg.height; ++row_idx)
+  {
+    const uint8_t* row_ptr = msg.data.buffer + row_idx * msg.row_step;
+    for (uint32_t col_idx = 0; col_idx < msg.width; ++col_idx)
     {
-        for (int col_idx = 0; col_idx < (int)msg.width; col_idx++)
-        {
-            // Get cartesian point coordinates
-            int polar_point_offset = row_idx * msg.row_step + col_idx * msg.point_step;
-            float point_x = *((float*)(msg.data.buffer + polar_point_offset + field_offset_x));
-            float point_y = *((float*)(msg.data.buffer + polar_point_offset + field_offset_y));
-            float point_z = *((float*)(msg.data.buffer + polar_point_offset + field_offset_z));
-            float point_intensity = 0;
-            if (field_offset_intensity >= 0)
-                point_intensity = *((float*)(msg.data.buffer + polar_point_offset + field_offset_intensity));
-			// Convert point coordinates in meter to image coordinates in pixel
-			int img_x = (int)(250.0f * (-point_y + 2.0f)); // img_x := -pointcloud.y
-			int img_y = (int)(250.0f * (-point_x + 2.0f)); // img_y := -pointcloud.x
-			if (img_x >= 0 && img_x < img_width && img_y >= 0 && img_y < img_height) // point within the image area
-			{
-				img_pixel[3 * img_y * img_width + 3 * img_x + 0] = 255; // R
-				img_pixel[3 * img_y * img_width + 3 * img_x + 1] = 255; // G
-				img_pixel[3 * img_y * img_width + 3 * img_x + 2] = 255; // B
-			}
-		}
-	}
-	// Write image to jpeg-file
-	std::string jpeg_filename = jpegfilepath;
+      const uint8_t* point_ptr = row_ptr + col_idx * msg.point_step;
+
+      const float point_x = *reinterpret_cast<const float*>(point_ptr + field_offset_x);
+      const float point_y = *reinterpret_cast<const float*>(point_ptr + field_offset_y);
+      // const float point_z = *reinterpret_cast<const float*>(point_ptr + field_offset_z); // unused
+
+      float point_intensity = 0.0f;
+      if (field_offset_intensity >= 0)
+      {
+        point_intensity = *reinterpret_cast<const float*>(point_ptr + field_offset_intensity);
+      }
+
+      const int img_x = static_cast<int>(IMAGE_SCALE * (-point_y + 2.0f));
+      const int img_y = static_cast<int>(IMAGE_SCALE * (-point_x + 2.0f));
+
+      if (img_x >= 0 && img_x < img_width && img_y >= 0 && img_y < img_height)
+      {
+        uint8_t r, g, b;
+        intensity_to_rgb(point_intensity, r, g, b);
+
+        const int img_index = 3 * (img_y * img_width + img_x);
+        img_pixel[img_index + 0] = r;
+        img_pixel[img_index + 1] = g;
+        img_pixel[img_index + 2] = b;
+      }
+    }
+  }
+  // Write image to jpeg-file
+  std::string jpeg_filename = jpegfilepath;
 #ifdef _MSC_VER
-    std::replace(jpeg_filename.begin(), jpeg_filename.end(), '/', '\\');
+  std::replace(jpeg_filename.begin(), jpeg_filename.end(), '/', '\\');
 #else
-    std::replace(jpeg_filename.begin(), jpeg_filename.end(), '\\', '/');
+  std::replace(jpeg_filename.begin(), jpeg_filename.end(), '\\', '/');
 #endif
-    std::string jpeg_filename_tmp = jpeg_filename + "_tmp";
-    foutJpg = fopen(jpeg_filename_tmp.c_str(), "wb");
-	if (foutJpg)
-	{
-        TooJpeg::writeJpeg(jpegOutputCallback, img_pixel, img_width, img_height, true, 99);
-		fclose(foutJpg);
+  std::string jpeg_filename_tmp = jpeg_filename + "_tmp";
+  foutJpg = fopen(jpeg_filename_tmp.c_str(), "wb");
+  if (foutJpg)
+  {
+    TooJpeg::writeJpeg(jpegOutputCallback, img_pixel, img_width, img_height, true, 99);
+    fclose(foutJpg);
 #ifdef _MSC_VER
-		_unlink(jpegfilepath.c_str());
-		rename(jpeg_filename_tmp.c_str(), jpegfilepath.c_str());
+    _unlink(jpegfilepath.c_str());
+    rename(jpeg_filename_tmp.c_str(), jpegfilepath.c_str());
 #else
-		rename(jpeg_filename_tmp.c_str(), jpegfilepath.c_str());
+    rename(jpeg_filename_tmp.c_str(), jpegfilepath.c_str());
 #endif
-	}
-    free(img_pixel);
+  }
+  free(img_pixel);
 }
 #endif
 
 // Exit with error message
 static void exitOnError(const char* msg, int32_t error_code)
 {
-	printf("## ERROR sick_scan_xd_api_test: %s, error code %d\n", msg, error_code);
-	exit(EXIT_FAILURE);
+  printf("## ERROR sick_scan_xd_api_test: %s, error code %d\n", msg, error_code);
+  exit(EXIT_FAILURE);
 }
 
 // Example callback for cartesian pointcloud messages, converts and publishes a SickScanPointCloudMsg to sensor_msgs::PointCloud2 on ROS-1
 static void apiTestCartesianPointCloudMsgCallback(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg)
 {
-	printf("[Info]: apiTestCartesianPointCloudMsgCallback(apiHandle:%p): %dx%d pointcloud callback...\n", apiHandle, msg->width, msg->height);
+  printf("[Info]: apiTestCartesianPointCloudMsgCallback(apiHandle:%p): %dx%d pointcloud callback...\n", apiHandle, msg->width, msg->height);
 #if __ROS_VERSION == 1
-    sensor_msgs::PointCloud2 pointcloud = SickScanApiConverter::convertPointCloudMsg(*msg);
-	ros_api_cloud_publisher.publish(pointcloud);
-	ROS_INFO_STREAM("apiTestCartesianPointCloudMsgCallback(apiHandle:" << apiHandle << "): published " << pointcloud.width << "x" << pointcloud.height << " pointcloud on topic \"" << ros_api_cloud_topic << "\"");
-    DUMP_API_POINTCLOUD_MESSAGE("test", pointcloud);
+  sensor_msgs::PointCloud2 pointcloud = SickScanApiConverter::convertPointCloudMsg(*msg);
+  ros_api_cloud_publisher.publish(pointcloud);
+  ROS_INFO_STREAM("apiTestCartesianPointCloudMsgCallback(apiHandle:" << apiHandle << "): published " << pointcloud.width << "x" << pointcloud.height << " pointcloud on topic \"" << ros_api_cloud_topic << "\"");
+  DUMP_API_POINTCLOUD_MESSAGE("test", pointcloud);
 #else
-    plotPointcloudToJpeg("/tmp/sick_scan_api_demo.jpg", *msg);
+  plotPointcloudToJpeg("/tmp/sick_scan_api_demo.jpg", *msg);
 #endif
 }
 
 // Example callback for polar pointcloud messages, converts and publishes a SickScanPointCloudMsg to sensor_msgs::PointCloud2 on ROS-1
 static void apiTestPolarPointCloudMsgCallback(SickScanApiHandle apiHandle, const SickScanPointCloudMsg* msg)
 {
-	printf("[Info]: apiTestPolarPointCloudMsgCallback(apiHandle:%p): %dx%d pointcloud callback...\n", apiHandle, msg->width, msg->height);
+  printf("[Info]: apiTestPolarPointCloudMsgCallback(apiHandle:%p): %dx%d pointcloud callback...\n", apiHandle, msg->width, msg->height);
 #if __ROS_VERSION == 1
-    sensor_msgs::PointCloud2 pointcloud = SickScanApiConverter::convertPolarPointCloudMsg(*msg);
-	ros_api_cloud_polar_publisher.publish(pointcloud);
-	ROS_INFO_STREAM("apiTestPolarPointCloudMsgCallback(apiHandle:" << apiHandle << "): published " << pointcloud.width << "x" << pointcloud.height << " pointcloud on topic \"" << ros_api_cloud_polar_topic << "\"");
+  sensor_msgs::PointCloud2 pointcloud = SickScanApiConverter::convertPolarPointCloudMsg(*msg);
+  ros_api_cloud_polar_publisher.publish(pointcloud);
+  ROS_INFO_STREAM("apiTestPolarPointCloudMsgCallback(apiHandle:" << apiHandle << "): published " << pointcloud.width << "x" << pointcloud.height << " pointcloud on topic \"" << ros_api_cloud_polar_topic << "\"");
 #endif
 }
 
 // Example callback for imu messages
 static void apiTestImuMsgCallback(SickScanApiHandle apiHandle, const SickScanImuMsg* msg)
 {
-	printf("[Info]: apiTestImuMsgCallback(apiHandle:%p): Imu message, orientation=(%.6f,%.6f,%.6f,%.6f), angular_velocity=(%.6f,%.6f,%.6f), linear_acceleration=(%.6f,%.6f,%.6f)\n",
-	    apiHandle, msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w,
-        msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.y,
-        msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
+  printf("[Info]: apiTestImuMsgCallback(apiHandle:%p): Imu message, orientation=(%.6f,%.6f,%.6f,%.6f), angular_velocity=(%.6f,%.6f,%.6f), linear_acceleration=(%.6f,%.6f,%.6f)\n",
+    apiHandle, msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w,
+    msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.y,
+    msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
 #if __ROS_VERSION == 1
-    sensor_msgs::Imu ros_msg = SickScanApiConverter::convertImuMsg(*msg);
-    DUMP_API_IMU_MESSAGE("test", ros_msg);
+  sensor_msgs::Imu ros_msg = SickScanApiConverter::convertImuMsg(*msg);
+  DUMP_API_IMU_MESSAGE("test", ros_msg);
 #endif
 }
 
 // Example callback for lferec messages
 static void apiTestLFErecMsgCallback(SickScanApiHandle apiHandle, const SickScanLFErecMsg* msg)
 {
-	printf("[Info]: apiTestLFErecMsgCallback(apiHandle:%p): LFErec message, %d fields\n", apiHandle, (int)msg->fields_number);
+  printf("[Info]: apiTestLFErecMsgCallback(apiHandle:%p): LFErec message, %d fields\n", apiHandle, (int)msg->fields_number);
 #if __ROS_VERSION == 1
-    sick_scan_xd::LFErecMsg ros_msg = SickScanApiConverter::convertLFErecMsg(*msg);
-    DUMP_API_LFEREC_MESSAGE("test", ros_msg);
+  sick_scan_xd::LFErecMsg ros_msg = SickScanApiConverter::convertLFErecMsg(*msg);
+  DUMP_API_LFEREC_MESSAGE("test", ros_msg);
 #endif
 }
 
 // Example callback for LIDoutputstate messages
 static void apiTestLIDoutputstateMsgCallback(SickScanApiHandle apiHandle, const SickScanLIDoutputstateMsg* msg)
 {
-	printf("[Info]: apiTestLIDoutputstateMsgCallback(apiHandle:%p): LIDoutputstate message, state=(%d,%d,%d,%d,%d,%d,%d,%d), count=(%d,%d,%d,%d,%d,%d,%d,%d)\n", apiHandle,
-	    (int)msg->output_state[0], (int)msg->output_state[1], (int)msg->output_state[2], (int)msg->output_state[3], (int)msg->output_state[4], (int)msg->output_state[5], (int)msg->output_state[6], (int)msg->output_state[7],
-	    (int)msg->output_state[0], (int)msg->output_count[1], (int)msg->output_count[2], (int)msg->output_count[3], (int)msg->output_count[4], (int)msg->output_count[5], (int)msg->output_count[6], (int)msg->output_count[7]);
+  printf("[Info]: apiTestLIDoutputstateMsgCallback(apiHandle:%p): LIDoutputstate message, state=(%d,%d,%d,%d,%d,%d,%d,%d), count=(%d,%d,%d,%d,%d,%d,%d,%d)\n", apiHandle,
+    (int)msg->output_state[0], (int)msg->output_state[1], (int)msg->output_state[2], (int)msg->output_state[3], (int)msg->output_state[4], (int)msg->output_state[5], (int)msg->output_state[6], (int)msg->output_state[7],
+    (int)msg->output_state[0], (int)msg->output_count[1], (int)msg->output_count[2], (int)msg->output_count[3], (int)msg->output_count[4], (int)msg->output_count[5], (int)msg->output_count[6], (int)msg->output_count[7]);
 #if __ROS_VERSION == 1
-    sick_scan_xd::LIDoutputstateMsg ros_msg = SickScanApiConverter::convertLIDoutputstateMsg(*msg);
-    DUMP_API_LIDOUTPUTSTATE_MESSAGE("test", ros_msg);
+  sick_scan_xd::LIDoutputstateMsg ros_msg = SickScanApiConverter::convertLIDoutputstateMsg(*msg);
+  DUMP_API_LIDOUTPUTSTATE_MESSAGE("test", ros_msg);
 #endif
 }
 
 // Example callback for RadarScan messages
 static void apiTestRadarScanMsgCallback(SickScanApiHandle apiHandle, const SickScanRadarScan* msg)
 {
-	printf("[Info]: apiTestRadarScanMsgCallback(apiHandle:%p): RadarScan message, %d targets, %d objects\n", apiHandle, (int)(msg->targets.width * msg->targets.height), (int)msg->objects.size);
+  printf("[Info]: apiTestRadarScanMsgCallback(apiHandle:%p): RadarScan message, %d targets, %d objects\n", apiHandle, (int)(msg->targets.width * msg->targets.height), (int)msg->objects.size);
 #if __ROS_VERSION == 1
-    sick_scan_xd::RadarScan ros_msg = SickScanApiConverter::convertRadarScanMsg(*msg);
-	if (ros_msg.targets.width * ros_msg.targets.height > 0)
-	    ros_api_cloud_publisher.publish(ros_msg.targets);
-    sensor_msgs::PointCloud2 ros_pointcloud = SickScanApiConverter::convertRadarObjectsToPointCloud(msg->header, &ros_msg.objects[0], ros_msg.objects.size());
-	if (ros_pointcloud.width * ros_pointcloud.height > 0)
-	    ros_api_cloud_polar_publisher.publish(ros_pointcloud);
-    DUMP_API_RADARSCAN_MESSAGE("test", ros_msg);
+  sick_scan_xd::RadarScan ros_msg = SickScanApiConverter::convertRadarScanMsg(*msg);
+  if (ros_msg.targets.width * ros_msg.targets.height > 0)
+    ros_api_cloud_publisher.publish(ros_msg.targets);
+  sensor_msgs::PointCloud2 ros_pointcloud = SickScanApiConverter::convertRadarObjectsToPointCloud(msg->header, &ros_msg.objects[0], ros_msg.objects.size());
+  if (ros_pointcloud.width * ros_pointcloud.height > 0)
+    ros_api_cloud_polar_publisher.publish(ros_pointcloud);
+  DUMP_API_RADARSCAN_MESSAGE("test", ros_msg);
 #endif
 }
 
 // Example callback for LdmrsObjectArray messages
 static void apiTestLdmrsObjectArrayCallback(SickScanApiHandle apiHandle, const SickScanLdmrsObjectArray* msg)
 {
-	printf("[Info]: apiTestLdmrsObjectArrayCallback(apiHandle:%p): LdmrsObjectArray message, %d objects\n", apiHandle, (int)msg->objects.size);
+  printf("[Info]: apiTestLdmrsObjectArrayCallback(apiHandle:%p): LdmrsObjectArray message, %d objects\n", apiHandle, (int)msg->objects.size);
 #if __ROS_VERSION == 1
-    sick_scan_xd::SickLdmrsObjectArray ros_msg = SickScanApiConverter::convertLdmrsObjectArray(*msg);
-    DUMP_API_LDMRSOBJECTARRAY_MESSAGE("test", ros_msg);
+  sick_scan_xd::SickLdmrsObjectArray ros_msg = SickScanApiConverter::convertLdmrsObjectArray(*msg);
+  DUMP_API_LDMRSOBJECTARRAY_MESSAGE("test", ros_msg);
 #endif
 }
 
 // Example callback for VisualizationMarker messages
 static void apiTestVisualizationMarkerMsgCallback(SickScanApiHandle apiHandle, const SickScanVisualizationMarkerMsg* msg)
 {
-	printf("[Info]: apiTestVisualizationMarkerMsgCallback(apiHandle:%p): VisualizationMarker message, %d objects\n", apiHandle, (int)msg->markers.size);
+  printf("[Info]: apiTestVisualizationMarkerMsgCallback(apiHandle:%p): VisualizationMarker message, %d objects\n", apiHandle, (int)msg->markers.size);
 #if __ROS_VERSION == 1
-    visualization_msgs::MarkerArray ros_msg = SickScanApiConverter::convertVisualizationMarkerMsg(*msg);
-    DUMP_API_VISUALIZATIONMARKER_MESSAGE("test", ros_msg);
-	if (ros_msg.markers.size() > 0)
-	    ros_api_visualizationmarker_publisher.publish(ros_msg);
+  visualization_msgs::MarkerArray ros_msg = SickScanApiConverter::convertVisualizationMarkerMsg(*msg);
+  DUMP_API_VISUALIZATIONMARKER_MESSAGE("test", ros_msg);
+  if (ros_msg.markers.size() > 0)
+    ros_api_visualizationmarker_publisher.publish(ros_msg);
 #endif
 }
 
 // Example callback for NAV350 Pose- and Landmark messages
 static void apiTestNavPoseLandmarkMsgCallback(SickScanApiHandle apiHandle, const SickScanNavPoseLandmarkMsg* msg)
 {
-	printf("[Info]: apiTestNavPoseLandmarkMsgCallback(apiHandle:%p): pose_x=%f, pose_y=%f, yaw=%f, %d reflectors\n", apiHandle, msg->pose_x, msg->pose_y, msg->pose_yaw, (int)msg->reflectors.size);
+  printf("[Info]: apiTestNavPoseLandmarkMsgCallback(apiHandle:%p): pose_x=%f, pose_y=%f, yaw=%f, %d reflectors\n", apiHandle, msg->pose_x, msg->pose_y, msg->pose_yaw, (int)msg->reflectors.size);
 }
 
 // Example callback for diagnostic messages
 static void apiTestDiagnosticMsgCallback(SickScanApiHandle apiHandle, const SickScanDiagnosticMsg* msg)
 {
   if (msg->status_code == 1) // status_code defined in SICK_DIAGNOSTIC_STATUS: WARN=1
-	  printf("[WARN]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d (WARNING), status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
+    printf("[WARN]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d (WARNING), status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
   else if (msg->status_code == 2) // status_code defined in SICK_DIAGNOSTIC_STATUS: ERROR=2
-	  printf("[ERROR]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d (ERROR), status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
+    printf("[ERROR]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d (ERROR), status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
   else
-	  printf("[Info]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d, status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
+    printf("[Info]: apiTestDiagnosticMsgCallback(apiHandle:%p): status_code = %d, status_message = \"%s\"\n", apiHandle, msg->status_code, msg->status_message);
   int32_t status_code = -1;
   char message_buffer[1024] = "";
   if (SickScanApiGetStatus(apiHandle, &status_code, message_buffer, (int32_t)sizeof(message_buffer)) == SICK_SCAN_API_SUCCESS)
   {
-	  printf("[Info]: SickScanApiGetStatus(apiHandle:%p): status_code = %d, message = \"%s\"\n", apiHandle, status_code, message_buffer);
+    printf("[Info]: SickScanApiGetStatus(apiHandle:%p): status_code = %d, message = \"%s\"\n", apiHandle, status_code, message_buffer);
   }
   else
   {
-	  printf("[ERROR]: SickScanApiGetStatus(apiHandle:%p) failed\n", apiHandle);
+    printf("[ERROR]: SickScanApiGetStatus(apiHandle:%p) failed\n", apiHandle);
   }
 }
 
@@ -241,11 +336,11 @@ static void apiTestDiagnosticMsgCallback(SickScanApiHandle apiHandle, const Sick
 static void apiTestLogMsgCallback(SickScanApiHandle apiHandle, const SickScanLogMsg* msg)
 {
   if (msg->log_level == 2) // log_level defined in ros::console::levels: Warn=2
-  	printf("[WARN]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d (WARNING), log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
+    printf("[WARN]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d (WARNING), log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
   else if (msg->log_level >= 3) // log_level defined in ros::console::levels: Error=3, Fatal=4
-  	printf("[ERROR]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d (ERROR), log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
+    printf("[ERROR]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d (ERROR), log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
   else if (false) // debugging
-  	printf("[Info]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d, log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
+    printf("[Info]: apiTestLogMsgCallback(apiHandle:%p): log_level = %d, log_message = %s\n", apiHandle, msg->log_level, msg->log_message);
 }
 
 // Receive lidar message by SickScanApiWaitNext-functions ("message polling")
@@ -253,103 +348,103 @@ static void runSickScanApiTestWaitNext(SickScanApiHandle* apiHandle, bool* run_f
 {
   double wait_next_message_timeout = 0.1; // wait max. 0.1 seconds for the next message (otherwise SickScanApiWaitNext-function return with timeout)
   SickScanPointCloudMsg pointcloud_msg;
-	SickScanImuMsg imu_msg;
-	SickScanLFErecMsg lferec_msg;
+  SickScanImuMsg imu_msg;
+  SickScanLFErecMsg lferec_msg;
   SickScanLIDoutputstateMsg lidoutputstate_msg;
   SickScanRadarScan radarscan_msg;
   SickScanLdmrsObjectArray ldmrsobjectarray_msg;
-	SickScanVisualizationMarkerMsg visualizationmarker_msg;
-	SickScanNavPoseLandmarkMsg navposelandmark_msg;
-	SickScanOdomVelocityMsg odom_msg;
-	odom_msg.vel_x = +1.0f;
-	odom_msg.vel_y = -1.0f;
-	odom_msg.omega = 0.5f;
-	odom_msg.timestamp_sec = 12345;
-	odom_msg.timestamp_nsec = 6789;
-	SickScanNavOdomVelocityMsg navodom_msg;
-	navodom_msg.vel_x = +1.0f;
-	navodom_msg.vel_y = -1.0f;
-	navodom_msg.omega = 0.5f;
-	navodom_msg.timestamp = 123456789;
-	navodom_msg.coordbase = 0;
-	while(run_flag && *run_flag)
-	{
-		// Get/poll the next cartesian PointCloud message
-		int32_t ret = SickScanApiWaitNextCartesianPointCloudMsg(*apiHandle, &pointcloud_msg, wait_next_message_timeout);
-		if (ret == SICK_SCAN_API_SUCCESS)
-            apiTestCartesianPointCloudMsgCallback(*apiHandle, &pointcloud_msg);
-		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
-			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextCartesianPointCloudMsg failed\n");
-		SickScanApiFreePointCloudMsg(*apiHandle, &pointcloud_msg);
+  SickScanVisualizationMarkerMsg visualizationmarker_msg;
+  SickScanNavPoseLandmarkMsg navposelandmark_msg;
+  SickScanOdomVelocityMsg odom_msg;
+  odom_msg.vel_x = +1.0f;
+  odom_msg.vel_y = -1.0f;
+  odom_msg.omega = 0.5f;
+  odom_msg.timestamp_sec = 12345;
+  odom_msg.timestamp_nsec = 6789;
+  SickScanNavOdomVelocityMsg navodom_msg;
+  navodom_msg.vel_x = +1.0f;
+  navodom_msg.vel_y = -1.0f;
+  navodom_msg.omega = 0.5f;
+  navodom_msg.timestamp = 123456789;
+  navodom_msg.coordbase = 0;
+  while (run_flag && *run_flag)
+  {
+    // Get/poll the next cartesian PointCloud message
+    int32_t ret = SickScanApiWaitNextCartesianPointCloudMsg(*apiHandle, &pointcloud_msg, wait_next_message_timeout);
+    if (ret == SICK_SCAN_API_SUCCESS)
+      apiTestCartesianPointCloudMsgCallback(*apiHandle, &pointcloud_msg);
+    else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+      printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextCartesianPointCloudMsg failed\n");
+    SickScanApiFreePointCloudMsg(*apiHandle, &pointcloud_msg);
 
-		// Get/poll the next polar PointCloud message
-		ret = SickScanApiWaitNextPolarPointCloudMsg(*apiHandle, &pointcloud_msg, wait_next_message_timeout);
-		if (ret == SICK_SCAN_API_SUCCESS)
-            apiTestPolarPointCloudMsgCallback(*apiHandle, &pointcloud_msg);
-		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
-			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextPolarPointCloudMsg failed\n");
-		SickScanApiFreePointCloudMsg(*apiHandle, &pointcloud_msg);
+    // Get/poll the next polar PointCloud message
+    ret = SickScanApiWaitNextPolarPointCloudMsg(*apiHandle, &pointcloud_msg, wait_next_message_timeout);
+    if (ret == SICK_SCAN_API_SUCCESS)
+      apiTestPolarPointCloudMsgCallback(*apiHandle, &pointcloud_msg);
+    else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+      printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextPolarPointCloudMsg failed\n");
+    SickScanApiFreePointCloudMsg(*apiHandle, &pointcloud_msg);
 
-		// Get/poll the next Imu message
-		ret = SickScanApiWaitNextImuMsg(*apiHandle, &imu_msg, wait_next_message_timeout);
-		if (ret == SICK_SCAN_API_SUCCESS)
-            apiTestImuMsgCallback(*apiHandle, &imu_msg);
-		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
-			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextImuMsg failed\n");
-		SickScanApiFreeImuMsg(*apiHandle, &imu_msg);
+    // Get/poll the next Imu message
+    ret = SickScanApiWaitNextImuMsg(*apiHandle, &imu_msg, wait_next_message_timeout);
+    if (ret == SICK_SCAN_API_SUCCESS)
+      apiTestImuMsgCallback(*apiHandle, &imu_msg);
+    else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+      printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextImuMsg failed\n");
+    SickScanApiFreeImuMsg(*apiHandle, &imu_msg);
 
-		// Get/poll the next LFErec message
-		ret = SickScanApiWaitNextLFErecMsg(*apiHandle, &lferec_msg, wait_next_message_timeout);
-		if (ret == SICK_SCAN_API_SUCCESS)
-            apiTestLFErecMsgCallback(*apiHandle, &lferec_msg);
-		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
-			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextLFErecMsg failed\n");
-		SickScanApiFreeLFErecMsg(*apiHandle, &lferec_msg);
+    // Get/poll the next LFErec message
+    ret = SickScanApiWaitNextLFErecMsg(*apiHandle, &lferec_msg, wait_next_message_timeout);
+    if (ret == SICK_SCAN_API_SUCCESS)
+      apiTestLFErecMsgCallback(*apiHandle, &lferec_msg);
+    else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+      printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextLFErecMsg failed\n");
+    SickScanApiFreeLFErecMsg(*apiHandle, &lferec_msg);
 
-		// Get/poll the next LIDoutputstate message
-		ret = SickScanApiWaitNextLIDoutputstateMsg(*apiHandle, &lidoutputstate_msg, wait_next_message_timeout);
-		if (ret == SICK_SCAN_API_SUCCESS)
-            apiTestLIDoutputstateMsgCallback(*apiHandle, &lidoutputstate_msg);
-		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
-			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextLIDoutputstateMsg failed\n");
-		SickScanApiFreeLIDoutputstateMsg(*apiHandle, &lidoutputstate_msg);
+    // Get/poll the next LIDoutputstate message
+    ret = SickScanApiWaitNextLIDoutputstateMsg(*apiHandle, &lidoutputstate_msg, wait_next_message_timeout);
+    if (ret == SICK_SCAN_API_SUCCESS)
+      apiTestLIDoutputstateMsgCallback(*apiHandle, &lidoutputstate_msg);
+    else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+      printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextLIDoutputstateMsg failed\n");
+    SickScanApiFreeLIDoutputstateMsg(*apiHandle, &lidoutputstate_msg);
 
-		// Get/poll the next RadarScan message
-		ret = SickScanApiWaitNextRadarScanMsg(*apiHandle, &radarscan_msg, wait_next_message_timeout);
-		if (ret == SICK_SCAN_API_SUCCESS)
-            apiTestRadarScanMsgCallback(*apiHandle, &radarscan_msg);
-		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
-			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextRadarScanMsg failed\n");
-		SickScanApiFreeRadarScanMsg(*apiHandle, &radarscan_msg);
+    // Get/poll the next RadarScan message
+    ret = SickScanApiWaitNextRadarScanMsg(*apiHandle, &radarscan_msg, wait_next_message_timeout);
+    if (ret == SICK_SCAN_API_SUCCESS)
+      apiTestRadarScanMsgCallback(*apiHandle, &radarscan_msg);
+    else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+      printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextRadarScanMsg failed\n");
+    SickScanApiFreeRadarScanMsg(*apiHandle, &radarscan_msg);
 
-		// Get/poll the next LdmrsObjectArray message
-		ret = SickScanApiWaitNextLdmrsObjectArrayMsg(*apiHandle, &ldmrsobjectarray_msg, wait_next_message_timeout);
-		if (ret == SICK_SCAN_API_SUCCESS)
-            apiTestLdmrsObjectArrayCallback(*apiHandle, &ldmrsobjectarray_msg);
-		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
-			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextLdmrsObjectArrayMsg failed\n");
-		SickScanApiFreeLdmrsObjectArrayMsg(*apiHandle, &ldmrsobjectarray_msg);
+    // Get/poll the next LdmrsObjectArray message
+    ret = SickScanApiWaitNextLdmrsObjectArrayMsg(*apiHandle, &ldmrsobjectarray_msg, wait_next_message_timeout);
+    if (ret == SICK_SCAN_API_SUCCESS)
+      apiTestLdmrsObjectArrayCallback(*apiHandle, &ldmrsobjectarray_msg);
+    else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+      printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextLdmrsObjectArrayMsg failed\n");
+    SickScanApiFreeLdmrsObjectArrayMsg(*apiHandle, &ldmrsobjectarray_msg);
 
-		// Get/poll the next VisualizationMarker message
-		ret = SickScanApiWaitNextVisualizationMarkerMsg(*apiHandle, &visualizationmarker_msg, wait_next_message_timeout);
-		if (ret == SICK_SCAN_API_SUCCESS)
-            apiTestVisualizationMarkerMsgCallback(*apiHandle, &visualizationmarker_msg);
-		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
-			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextVisualizationMarkerMsg failed\n");
-		SickScanApiFreeVisualizationMarkerMsg(*apiHandle, &visualizationmarker_msg);
+    // Get/poll the next VisualizationMarker message
+    ret = SickScanApiWaitNextVisualizationMarkerMsg(*apiHandle, &visualizationmarker_msg, wait_next_message_timeout);
+    if (ret == SICK_SCAN_API_SUCCESS)
+      apiTestVisualizationMarkerMsgCallback(*apiHandle, &visualizationmarker_msg);
+    else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+      printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextVisualizationMarkerMsg failed\n");
+    SickScanApiFreeVisualizationMarkerMsg(*apiHandle, &visualizationmarker_msg);
 
-		// Get/poll the next NAV350 Pose- and Landmark message
-		ret = SickScanApiWaitNextNavPoseLandmarkMsg(*apiHandle, &navposelandmark_msg, wait_next_message_timeout);
-		if (ret == SICK_SCAN_API_SUCCESS)
-            apiTestNavPoseLandmarkMsgCallback(*apiHandle, &navposelandmark_msg);
-		else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
-			printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextNavPoseLandmarkMsg failed\n");
-		SickScanApiFreeNavPoseLandmarkMsg(*apiHandle, &navposelandmark_msg);
+    // Get/poll the next NAV350 Pose- and Landmark message
+    ret = SickScanApiWaitNextNavPoseLandmarkMsg(*apiHandle, &navposelandmark_msg, wait_next_message_timeout);
+    if (ret == SICK_SCAN_API_SUCCESS)
+      apiTestNavPoseLandmarkMsgCallback(*apiHandle, &navposelandmark_msg);
+    else if (ret != SICK_SCAN_API_SUCCESS && ret != SICK_SCAN_API_TIMEOUT)
+      printf("## ERROR sick_scan_xd_api_test: SickScanApiWaitNextNavPoseLandmarkMsg failed\n");
+    SickScanApiFreeNavPoseLandmarkMsg(*apiHandle, &navposelandmark_msg);
 
-		// Send NAV350 odom message example
-		// ret = SickScanApiNavOdomVelocityMsg(*apiHandle, &navodom_msg);
-		// ret = SickScanApiOdomVelocityMsg(*apiHandle, &odom_msg);
-	}
+    // Send NAV350 odom message example
+    // ret = SickScanApiNavOdomVelocityMsg(*apiHandle, &navodom_msg);
+    // ret = SickScanApiOdomVelocityMsg(*apiHandle, &odom_msg);
+  }
 }
 
 // sick_scan_api_test main: Initialize, receive and process lidar messages via sick_scan_xd API.
@@ -529,7 +624,7 @@ int main(int argc, char** argv)
   std::vector<std::string> search_library_path = { "", "build/", "build_linux/", "src/build/", "src/build_linux/", "src/sick_scan_xd/build/", "src/sick_scan_xd/build_linux/", "./", "../" };
 #endif
   ret = SICK_SCAN_API_NOT_LOADED;
-  for(int search_library_cnt = 0; search_library_cnt < search_library_path.size(); search_library_cnt++)
+  for (int search_library_cnt = 0; search_library_cnt < search_library_path.size(); search_library_cnt++)
   {
     std::string libfilepath = search_library_path[search_library_cnt] + sick_scan_api_lib;
     if ((ret = SickScanApiLoadLibrary(libfilepath.c_str())) == SICK_SCAN_API_SUCCESS)

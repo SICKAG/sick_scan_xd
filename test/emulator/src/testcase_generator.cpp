@@ -325,8 +325,9 @@ sick_scan_xd::SickLocColaTelegramMsg sick_scan_xd::TestcaseGenerator::createCola
       {"field045", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand("sRA"), "field045", {"3f8000000000000000000d05fff92230022e00010000000000000000000100084669656c643034360000"})},
       {"field046", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand("sRA"), "field046", {"3f8000000000000000000d05fff92230022f00010000000000000000000100084669656c643034370000"})},
       {"field047", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand("sRA"), "field047", {"3f8000000000000000000d05fff92230023000010000000000000000000100084669656c643034380000"})},
-      {"FirmwareVersion", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand("sRA"), "FirmwareVersion", {"000556332e3133"})},
       // todo: fieldset from config ...
+      {"LFErec", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand("sRA"), "LFErec", {"0003000101000000003f8000000000000000000d05fff9223000000000000000000107b2010103041d00076e58000102000000003f8000000000000000000d05fff9223001000000000000000107b2010103041d00076e58000103000000003f8000000000000000000d05fff9223001000000000000000107b2010103041d00076e58"})},
+      {"FirmwareVersion", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand("sRA"), "FirmwareVersion", {"000556332e3133"})},
       {"LIDinputstate", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand("sRA"), "LIDinputstate", {"000000000000000000000000"})}, // activate fieldset 0
       //{"LIDinputstate", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand("sRA"), "LIDinputstate", {"000000000000010000000000"})}, // activate fieldset 1
       {"LMPoutputRange", sick_scan_xd::ColaParser::createColaTelegram(sick_scan_xd::ColaParser::convertSopasCommand("sRA"), "LMPoutputRange", {"000100000d05fff9223000225510"})},

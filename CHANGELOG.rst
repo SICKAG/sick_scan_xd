@@ -2,8 +2,27 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-3.6.0 (2024-10-23)
+Forthcoming
 -----------
+
+3.7.0 (2025-05-28)
+------------------
+* Release v3.7.0
+  * fix: TiM7xx fieldset settings and services, #394, #408
+  * update: README.md and cmake requirements
+  * change: Publish lferec messages latched, #420
+  * fix: TCP connection timeout, #424
+  * add: Support for LRS-4xxx IMU and contamination data, #418
+  * update: Improved TiM-7xx field evaluation status after start, #420
+  * update: Dockertests for ROS-1, ROS-2 and API
+  * fix: Timestamp handling (corrected system time estimation from transmit vs. generation timestamps), #428
+  * fix: Disable UDP-Parsing during reinitialisation
+  * fix: ParameterAlreadyDeclaredException on reinitialisation
+  * add: LaserScan messages encode reflector detection through high intensity values
+  * update: user level and user password can be freely specified in the launch file. For picoScan, multiScan and LRS4xxx, the default user level is 4.
+
+3.6.0 (2024-10-23)
+------------------
 * Release v3.6.0
   * add: Launchfiles and configuration for picoScan120
   * add: Optional AngleRangeFilter and IntervalFilter for picoScan
@@ -19,7 +38,7 @@ Changelog for package sick_scan_xd
   * add: cmake-option to overwrite optimization level
   * change: Documentation restructured
   * add: Improved field evaluation TiM7xx, Tim7xxS (publish LIDinputstate messages, configuration and services for options FieldSetSelectionMethod and ActiveFieldSet)
-  * fix: PicoScan parameter add_transform_xyz_rpy #399
+  * add: PicoScan parameter add_transform_xyz_rpy #399
   * fix: LMS4000 encoder settings #403
   * fix: CMake-flag for target sick_scan_xd_api_dockertest #404
   * change: Merge PR #405 (typo) and PR #406 (sick_scan_xd_api_test)

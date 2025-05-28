@@ -1,0 +1,22 @@
+# Dockerfile for Windows docker images with .NET 4.8, nuget, buildtools (Visual Studio 2019 and 2022), chocolatey, cmake, python and ROS-2 humble
+
+FROM windows_dotnet48_develop
+
+# Restore the default Windows shell for correct batch processing.
+SHELL ["cmd", "/S", "/C"]
+
+# Install ROS-2
+RUN choco upgrade all -y
+RUN choco source add -n=ros-win -s="https://aka.ms/ros/public" --priority=1
+RUN choco upgrade ros-humble-desktop -y --execution-timeout=0 --pre
+RUN if not exist c:\opt\ros\humble\x64\python_d.exe ( copy /b/y c:\opt\ros\humble\x64\python.exe c:\opt\ros\humble\x64\python_d.exe )
+
+# Shortcut to set environment for Visual Studio 2019 and ROS-2
+RUN echo call VsDevCmd.bat > C:\TEMP\setenv_ros2_humble.cmd
+RUN echo call c:\opt\ros\humble\x64\setup.bat >> C:\TEMP\setenv_ros2_humble.cmd
+RUN echo echo ROS_VERSION=%ROS_VERSION% >> C:\TEMP\setenv_ros2_humble.cmd
+RUN echo echo ROS_DISTRO=%ROS_DISTRO% >> C:\TEMP\setenv_ros2_humble.cmd
+
+# Define the entry point for the docker container.
+# This entry point starts the developer command prompt and leaves it running.
+ENTRYPOINT ["cmd.exe", "/k", "C:\\TEMP\\setenv_ros2_humble.cmd"]

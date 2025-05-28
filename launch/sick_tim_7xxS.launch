@@ -86,7 +86,8 @@
         <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
         <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
         <!-- Note: read_timeout_millisec_kill_node less or equal 0 deactivates pointcloud monitoring (not recommended) -->
-        <param name="client_authorization_pw" type="string" value="6FD62C05"/>    <!-- TiM7xxS default password for client authorization -->
+        <param name="user_level" type="int" value="3" />                          <!-- Default user level for authorization (3: client, 4: service) -->
+        <param name="user_level_password" type="string" value="6FD62C05" />       <!-- Special client password for TiM7xxS: 6FD62C05  -->
 
         <!-- Configuration of ROS quality of service: -->
         <!-- On ROS-1, parameter "ros_qos" sets the queue_size of ros publisher -->

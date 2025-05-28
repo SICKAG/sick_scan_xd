@@ -1,11 +1,6 @@
 #include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 #ifndef SICK_GENERIC_LASER_H
 #define SICK_GENERIC_LASER_H
-/*
- *
- */
-#ifndef _MSC_VER
-#endif
 
 #include <sick_scan/sick_scan_common_tcp.h>
 
