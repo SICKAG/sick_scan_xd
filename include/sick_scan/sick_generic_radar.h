@@ -188,6 +188,11 @@ namespace sick_scan_xd
     rosPublisher<ros_sensor_msgs::PointCloud2> cloud_radar_track_pub_;
     rosPublisher<sick_scan_msg::RadarScan> radarScan_pub_;
 
+    std::string topic_cloud_radar_rawtarget;
+    std::string topic_cloud_radar_track;
+    std::string topic_radar;
+
+
     sick_scan_xd::SickCloudTransform m_add_transform_xyz_rpy; // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
     sick_scan_xd::SickRangeFilter m_range_filter;
 

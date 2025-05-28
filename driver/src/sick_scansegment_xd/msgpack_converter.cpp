@@ -85,7 +85,7 @@ sick_scansegment_xd::MsgPackConverter::MsgPackConverter() : m_verbose(false), m_
  * @param[in] verbose true: enable debug output, false: quiet mode (default)
  */
 sick_scansegment_xd::MsgPackConverter::MsgPackConverter(const ScanSegmentParserConfig& parser_config, const sick_scan_xd::SickCloudTransform& add_transform_xyz_rpy, sick_scansegment_xd::PayloadFifo* input_fifo, int scandataformat, int msgpack_output_fifolength, bool verbose)
-    : m_parser_config(parser_config), m_verbose(verbose), m_input_fifo(input_fifo), m_scandataformat(scandataformat), m_converter_thread(0), m_run_converter_thread(false), m_msgpack_validator_enabled(false), m_discard_msgpacks_not_validated(false)
+    : m_parser_config(parser_config), m_verbose(verbose), m_active(false), m_input_fifo(input_fifo), m_scandataformat(scandataformat), m_converter_thread(0), m_run_converter_thread(false), m_msgpack_validator_enabled(false), m_discard_msgpacks_not_validated(false)
 {
     m_output_fifo = new sick_scansegment_xd::Fifo<ScanSegmentParserOutput>(msgpack_output_fifolength);
     m_add_transform_xyz_rpy = add_transform_xyz_rpy;
@@ -172,6 +172,10 @@ bool sick_scansegment_xd::MsgPackConverter::Run(void)
             {
                 try
                 {
+                    if (!m_active)
+                    {
+                        continue; // still in sopas initialization sequence
+                    }
                     sick_scansegment_xd::ScanSegmentParserOutput msgpack_output;
                     bool parse_success = false;
                     if (m_scandataformat == SCANDATA_MSGPACK)

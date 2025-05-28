@@ -64,6 +64,7 @@
 #include "sick_scan/sick_scan_services.h"
 #include "sick_scan/sick_generic_laser.h"
 #include "sick_scansegment_xd/udp_poster.h"
+#include "sick_scan_common.h"
 
 #define SCANSEGMENT_XD_SOPAS_ARGS_BIG_ENDIAN (true) // Arguments of SOPAS commands are big endian encoded
 
@@ -72,7 +73,7 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
 {
     bool srvSupportColaMsg = true, srvSupportECRChangeArr = true, srvSupportLIDoutputstate = true, srvSupportSCdevicestate = true;
     bool srvSupportSCreboot = true, srvSupportSCsoftreset = true, srvSupportSickScanExit = true;
-    bool srvSupportGetContaminationResult = false;
+    bool srvSupportGetContaminationData = false, srvSupportGetContaminationResult = false;
     if(lidar_param)
     {
       m_cola_binary = lidar_param->getUseBinaryProtocol();
@@ -85,18 +86,40 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
       }
       if(lidar_param->getScannerName().compare(SICK_SCANNER_MRS_1XXX_NAME) == 0
       || lidar_param->getScannerName().compare(SICK_SCANNER_LMS_1XXX_NAME) == 0
+      || lidar_param->getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0
       || lidar_param->getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) == 0)
       {
-        srvSupportGetContaminationResult = true; // "sRN ContaminationResult" supported by MRS-1000, LMS-1000, multiScan
+        srvSupportGetContaminationResult = true; // "sRN ContaminationResult" supported by MRS-1000, LMS-1000, LRS-4000, multiScan
+      }
+      if(lidar_param->getScannerName().compare(SICK_SCANNER_LRS_4XXX_NAME) == 0)
+      {
+        srvSupportGetContaminationData = true; // "sRN ContaminationData" supported by LRS-4000
       }
     }
     if(nh)
     {
-      m_client_authorization_pw = "F4724744";
-      if (lidar_param->getUseSafetyPasWD()) // TIM_7xxS - 1 layer Safety Scanner
-        m_client_authorization_pw = "6FD62C05";
-      rosDeclareParam(nh, "client_authorization_pw", m_client_authorization_pw);
-      rosGetParam(nh, "client_authorization_pw", m_client_authorization_pw);
+        m_user_level = SickScanCommon::CLIENT_USER_LEVEL;
+        m_user_level_password = SickScanCommon::CLIENT_USER_PASSWORD_HASH;
+
+        if (lidar_param->getUseSafetyPasWD()) // TIM_7xxS - 1 layer Safety Lidars
+            m_user_level_password = SickScanCommon::CLIENT_USER_PASSWORD_SAFETY_HASH; // use a specific password for safety lidars
+
+
+
+        // For segment based lidars and LRS_4xxx use user_level 4 (service) and the default
+        // service password hash
+
+        if (SickScanCommon::useUserLevelService(lidar_param->getScannerName()))
+        {
+          m_user_level = SickScanCommon::SERVICE_USER_LEVEL; // user level "service"
+          m_user_level_password = SickScanCommon::SERVICE_USER_PASSWORD_HASH; // Default password hash for service
+        }
+
+
+        rosDeclareParam(nh, "user_level", m_user_level);
+        rosGetParam(nh, "user_level", m_user_level);
+        rosDeclareParam(nh, "user_level_password", m_user_level_password);
+        rosGetParam(nh, "user_level_password", m_user_level_password);
 
 #if __ROS_VERSION == 2
 #define serviceCbColaMsgROS sick_scan_xd::SickScanServices::serviceCbColaMsgROS2
@@ -106,6 +129,7 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
 #define serviceCbSCrebootROS sick_scan_xd::SickScanServices::serviceCbSCrebootROS2
 #define serviceCbSCsoftresetROS sick_scan_xd::SickScanServices::serviceCbSCsoftresetROS2
 #define serviceCbSickScanExitROS sick_scan_xd::SickScanServices::serviceCbSickScanExitROS2
+#define serviceCbGetContaminationDataROS sick_scan_xd::SickScanServices::serviceCbGetContaminationDataROS2
 #define serviceCbGetContaminationResultROS sick_scan_xd::SickScanServices::serviceCbGetContaminationResultROS2
 #define serviceCbFieldSetReadROS sick_scan_xd::SickScanServices::serviceCbFieldSetReadROS2
 #define serviceCbFieldSetWriteROS sick_scan_xd::SickScanServices::serviceCbFieldSetWriteROS2
@@ -117,6 +141,7 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
 #define serviceCbSCrebootROS sick_scan_xd::SickScanServices::serviceCbSCreboot
 #define serviceCbSCsoftresetROS sick_scan_xd::SickScanServices::serviceCbSCsoftreset
 #define serviceCbSickScanExitROS sick_scan_xd::SickScanServices::serviceCbSickScanExit
+#define serviceCbGetContaminationDataROS sick_scan_xd::SickScanServices::serviceCbGetContaminationData
 #define serviceCbGetContaminationResultROS sick_scan_xd::SickScanServices::serviceCbGetContaminationResult
 #define serviceCbFieldSetReadROS sick_scan_xd::SickScanServices::serviceCbFieldSetRead
 #define serviceCbFieldSetWriteROS sick_scan_xd::SickScanServices::serviceCbFieldSetWrite
@@ -145,6 +170,12 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
           auto srv_server_GetContaminationResult = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::GetContaminationResultSrv, "GetContaminationResult", &serviceCbGetContaminationResultROS, this);
           m_srv_server_GetContaminationResult = rosServiceServer<sick_scan_srv::GetContaminationResultSrv>(srv_server_GetContaminationResult);
           printServiceCreated(srv_server_GetContaminationResult, m_srv_server_GetContaminationResult);
+        }
+        if(srvSupportGetContaminationData)
+        {
+          auto srv_server_GetContaminationData = ROS_CREATE_SRV_SERVER(nh, sick_scan_srv::GetContaminationDataSrv, "GetContaminationData", &serviceCbGetContaminationDataROS, this);
+          m_srv_server_GetContaminationData = rosServiceServer<sick_scan_srv::GetContaminationDataSrv>(srv_server_GetContaminationData);
+          printServiceCreated(srv_server_GetContaminationData, m_srv_server_GetContaminationData);
         }
         if(srvSupportLIDoutputstate)
         {
@@ -292,6 +323,52 @@ bool sick_scan_xd::SickScanServices::serviceCbECRChangeArr(sick_scan_srv::ECRCha
 }
 
 /*!
+  * Callback for service messages (GetContaminationData, Read contamination indication data, LRS-4xxx only).
+  * Sends a cola telegram "sRN ContaminationData" and receives the response from the lidar device.
+  * @param[in] service_request ros service request to lidar
+  * @param[out] service_response service response from lidar
+  * @return true on success, false in case of errors.
+  */
+bool sick_scan_xd::SickScanServices::serviceCbGetContaminationData(sick_scan_srv::GetContaminationDataSrv::Request &service_request, sick_scan_srv::GetContaminationDataSrv::Response &service_response)
+{
+  std::string sopasCmd = std::string("sRN ContaminationData");
+  std::vector<unsigned char> sopasReplyBin;
+  std::string sopasReplyString;
+
+  service_response.success = false;
+  service_response.data.clear();
+  if(!sendSopasAndCheckAnswer(sopasCmd, sopasReplyBin, sopasReplyString))
+  {
+    ROS_ERROR_STREAM("## ERROR SickScanServices::sendSopasAndCheckAnswer failed on sending command\"" << sopasCmd << "\"");
+    return false;
+  }
+  service_response.success = true;
+
+  std::string response_str((char*)sopasReplyBin.data(), sopasReplyBin.size());
+  std::size_t state_pos = response_str.find("ContaminationData");
+  int result_idx = 18;
+  int num_channels = 12; // One entry (byte) for each of 12 channels. Order of 12 channels: (1/2/3/4/5/6/7/8/9/10/11/12). Status 0 = CM NONE, 1 = CM WARN, 2 = CM ERROR.
+  if (state_pos != std::string::npos && state_pos + result_idx < sopasReplyBin.size())
+  {
+    for(int channel_cnt = 0; channel_cnt < num_channels && state_pos + result_idx < sopasReplyBin.size(); channel_cnt++)
+    {
+      uint8_t result_byte = sopasReplyBin[state_pos + result_idx];
+      result_byte = ((result_byte >= '0') ? (result_byte - '0') : (result_byte)); // convert to bin in case of ascii
+      service_response.data.push_back(result_byte);
+      result_idx++;
+      if (result_idx < sopasReplyBin.size() && sopasReplyBin[state_pos + result_idx] == ' ') // jump over ascii separator
+        result_idx++;
+    }
+  }
+  ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\""
+    << " (response.success=" << (int)(service_response.success) << ", response.data=" << DataDumper::binDataToAsciiString(service_response.data.data(), service_response.data.size()) << ")");
+
+  return true;
+}
+
+
+/*!
 * Callbacks for service messages.
 * @param[in] service_request ros service request to lidar
 * @param[out] service_response service response from lidar
@@ -371,7 +448,8 @@ bool sick_scan_xd::SickScanServices::serviceCbLIDoutputstate(sick_scan_srv::LIDo
  */
 bool sick_scan_xd::SickScanServices::sendAuthorization()
 {
-  std::string sopasCmd = std::string("sMN SetAccessMode 3 ") + m_client_authorization_pw;
+  // create a string like "sMN SetAccessMode 3 F4724744"
+  std::string sopasCmd = "sMN SetAccessMode " + std::to_string(m_user_level) + " " + m_user_level_password;
   std::vector<unsigned char> sopasReplyBin;
   std::string sopasReplyString;
 
@@ -1151,10 +1229,19 @@ bool sick_scan_xd::SickScanServices::serviceCbFieldSetWrite(sick_scan_srv::Field
   int field_set_selection_method = service_request.field_set_selection_method_in;
   int active_field_set = service_request.active_field_set_in;
   std::vector<unsigned char> sopasReply;
+  std::string sopasReplyString;
   int result1 = ExitSuccess, result2 = ExitSuccess;
   if (field_set_selection_method >= 0)
   {
+    if(!sendAuthorization())
+      result1 = ExitError;
+    if(!sendSopasAndCheckAnswer("sMN LMCstopmeas", sopasReply, sopasReplyString))
+      result1 = ExitError;
     result1 = m_common_tcp->writeFieldSetSelectionMethod(field_set_selection_method, sopasReply);
+    if(!sendSopasAndCheckAnswer("sMN LMCstartmeas", sopasReply, sopasReplyString))
+      result1 = ExitError;
+    if(!sendSopasAndCheckAnswer("sMN Run", sopasReply, sopasReplyString))
+      result1 = ExitError;
   }
   if (active_field_set >= 0)
   {

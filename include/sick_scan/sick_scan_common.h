@@ -102,6 +102,12 @@ namespace sick_scan_xd
   class SickScanCommon
   {
   public:
+    static constexpr int CLIENT_USER_LEVEL = 3;
+    static constexpr const char* CLIENT_USER_PASSWORD_HASH = "F4724744";
+    static constexpr const char* CLIENT_USER_PASSWORD_SAFETY_HASH = "6FD62C05"; // For TIM_7xxS safety use
+    static constexpr int SERVICE_USER_LEVEL = 4;
+    static constexpr const char* SERVICE_USER_PASSWORD_HASH = "81BE23AA";
+
     enum SOPAS_CMD
     {
       CMD_DEVICE_IDENT_LEGACY,
@@ -124,7 +130,7 @@ namespace sick_scan_xd
       CMD_APPLICATION_MODE_FIELD_OFF,
       CMD_APPLICATION_MODE_RANGING_ON,
       CMD_READ_ACTIVE_APPLICATIONS, // "sRN SetActiveApplications"
-      CMD_SET_ACCESS_MODE_3,
+      CMD_SET_ACCESS_MODE_X,
       CMD_SET_ACCESS_MODE_3_SAFETY_SCANNER,
       CMD_SET_OUTPUT_RANGES,
       CMD_SET_OUTPUT_RANGES_NAV3,
@@ -185,6 +191,7 @@ namespace sick_scan_xd
       CMD_SET_TO_COLA_B_PROTOCOL,  //
       CMD_GET_SAFTY_FIELD_CFG,// gets the safty fields cfg olny tim 7xxs supported at the moment
 
+      CMD_GET_LFEREC,              // query LFErec messages, send "sRN LFErec"
       CMD_SET_LFEREC_ACTIVE,       // activate LFErec messages, send "sEN LFErec 1"
       CMD_SET_LID_OUTPUTSTATE_ACTIVE,  // activate LIDoutputstate messages, send "sEN LIDoutputstate 1"
       CMD_SET_LID_INPUTSTATE_ACTIVE,  // activate LIDinputstate messages, send "sEN LIDinputstate 1"
@@ -265,6 +272,8 @@ namespace sick_scan_xd
     int sendSopasAorBgetAnswer(const std::string& request, std::vector<unsigned char> *reply, bool useBinaryCmd);
 
     int get2ndSopasResponse(std::vector<uint8_t>& sopas_response, const std::string& sopas_keyword);
+
+    static bool useUserLevelService(const std::string& lidarName); // check, whether we sould use authorized client (level 3) or service (level 4) a
 
     ExitCode checkColaTypeAndSwitchToConfigured(bool useBinaryCmd);
 
@@ -454,10 +463,12 @@ namespace sick_scan_xd
 
     bool switchColaProtocol(bool useBinaryCmd);
 
+    bool evaluateLFErecMessage(uint8_t* receiveBuffer, int receiveBufferLength, bool useBinaryProtocol, const rosTime& recvTimeStamp);
+
     int readLIDinputstate(SickScanFieldMonSingleton *fieldMon, bool useBinaryCmd);
 
 #ifdef USE_DIAGNOSTIC_UPDATER
-    std::shared_ptr<diagnostic_updater::Updater> diagnostics_;
+    std::shared_ptr<diagnostic_updater::Updater> diagnostics_ = 0; // initialized once at start (avoid re-initialization due to ParameterAlreadyDeclaredException)
 #endif
 
   private:
@@ -501,14 +512,14 @@ namespace sick_scan_xd
     // Diagnostics
 #if defined USE_DIAGNOSTIC_UPDATER
 #if __ROS_VERSION == 1
-    diagnostic_updater::DiagnosedPublisher<ros_sensor_msgs::LaserScan> *diagnosticPub_;
+    diagnostic_updater::DiagnosedPublisher<ros_sensor_msgs::LaserScan> *diagnosticPub_ = 0;
 #elif __ROS_VERSION == 2
-    DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>> *diagnosticPub_;
+    DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>> *diagnosticPub_ = 0;
 #else
-    uint8_t* diagnosticPub_; // always 0
+    uint8_t* diagnosticPub_ = 0; // always 0
 #endif
 #else
-    uint8_t* diagnosticPub_; // always 0
+    uint8_t* diagnosticPub_ = 0; // always 0
 #endif
     double expectedFrequency_;
     std::string deviceIdentStr; // devide id from sopas response to "sRN DeviceIdent"

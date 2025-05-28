@@ -131,6 +131,15 @@ namespace sick_scansegment_xd
          */
         sick_scansegment_xd::Fifo<ScanSegmentParserOutput>* Fifo(void) { return m_output_fifo; }
 
+        /*
+        * Activates resp. deactivates telegram parsing
+        */
+        virtual void SetActive(bool active)
+        {
+            m_active = active;
+        }
+
+
    protected:
 
        /*
@@ -141,22 +150,23 @@ namespace sick_scansegment_xd
        /*
         * Configuration and parameter
         */
-       bool m_verbose;                                          // true: enable debug output, false: quiet mode (default)
+       bool m_verbose = false;                                  // true: enable debug output, false: quiet mode (default)
        ScanSegmentParserConfig m_parser_config;                 // configuration and settings for multiScan and picoScan parser
+       bool m_active = false;                                   // start inactive and run telegram parsing AFTER initialization completed
        
         /*
          * Member data to run the converter
          */
-       PayloadFifo* m_input_fifo;                               // input fifo for msgpack data
-       int m_scandataformat;                                    // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
-       sick_scansegment_xd::Fifo<ScanSegmentParserOutput>* m_output_fifo;  // output fifo for ScanSegmentParserOutput data converted from  msgpack data
-       std::thread* m_converter_thread;                         // background thread to convert msgpack to ScanSegmentParserOutput data
-       bool m_run_converter_thread;                             // flag to start and stop the udp converter thread
-       bool m_msgpack_validator_enabled;                        // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
-       sick_scansegment_xd::MsgPackValidator m_msgpack_validator;      // msgpack validation, see MsgPackValidator for details
-       bool m_discard_msgpacks_not_validated;                   // true: msgpacks are discarded if scan data out of bounds detected, false: error message if a msgpack is not validated
-       int m_msgpack_validator_check_missing_scandata_interval; // check msgpack for missing scandata after collecting N msgpacks, default: N = 12 segments. Increase this value to tolerate udp packet drops. Use 12 to check each full scan.
-       sick_scan_xd::SickCloudTransform m_add_transform_xyz_rpy;   // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
+       PayloadFifo* m_input_fifo = 0;                               // input fifo for msgpack data
+       int m_scandataformat = 2;                                    // ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 1
+       sick_scansegment_xd::Fifo<ScanSegmentParserOutput>* m_output_fifo = 0;  // output fifo for ScanSegmentParserOutput data converted from  msgpack data
+       std::thread* m_converter_thread = 0;                         // background thread to convert msgpack to ScanSegmentParserOutput data
+       bool m_run_converter_thread = false;                         // flag to start and stop the udp converter thread
+       bool m_msgpack_validator_enabled = false;                    // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
+       sick_scansegment_xd::MsgPackValidator m_msgpack_validator;   // msgpack validation, see MsgPackValidator for details
+       bool m_discard_msgpacks_not_validated;                       // true: msgpacks are discarded if scan data out of bounds detected, false: error message if a msgpack is not validated
+       int m_msgpack_validator_check_missing_scandata_interval;     // check msgpack for missing scandata after collecting N msgpacks, default: N = 12 segments. Increase this value to tolerate udp packet drops. Use 12 to check each full scan.
+       sick_scan_xd::SickCloudTransform m_add_transform_xyz_rpy;    // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 	};  // class MsgPackConverter
 
 }   // namespace sick_scansegment_xd

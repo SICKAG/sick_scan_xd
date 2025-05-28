@@ -2,7 +2,7 @@
 <launch>
 
   <!-- Launch sick_scan_emulator -->
-  <arg name="scandatafiles" default="$(find sick_scan_xd)/scandata/20230510_tim240.pcapng.json"/>
+  <arg name="scandatafiles" default="$(find sick_scan_xd)/test/emulator/scandata/20230510_tim240.pcapng.json"/>
   <arg name="scandatatypes" default="sSN LMDscandata "/>
   <rosparam command="load" file="$(find sick_scan_xd)/yaml/emulator_port2111.yaml" />
   <node name="sick_scan_emulator" pkg="sick_scan_xd" type="sick_scan_emulator" output="screen">

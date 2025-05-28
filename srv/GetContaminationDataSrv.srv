@@ -1,0 +1,18 @@
+# Definition of ROS service GetContaminationData for LRS-4xxx devices
+# Read contamination indication data (LRS-4xxx only)
+# Example call (ROS1):
+# rosservice call /sick_lrs_4xxx/GetContaminationData "{}"
+# 
+
+# 
+# Request (input)
+# 
+
+---
+
+# 
+# Response (output)
+# 
+
+uint8[] data # Status of contamination in order of the different channels. One entry (byte) for each of 12 channels. Order of 12 channels: (1/2/3/4/5/6/7/8/9/10/11/12). Status 0 = CM NONE, 1 = CM WARN, 2 = CM ERROR.
+bool success # true: success response received from lidar, false: service failed (timeout or error status from controller)

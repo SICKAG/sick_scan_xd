@@ -13,6 +13,9 @@
     <arg name="activate_lidoutputstate" default="true"/> <!-- activate lidoutputstate messages (field monitoring) -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/> <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
+    <arg name="topic_cloud_radar_rawtarget" default="/cloud_radar_rawtarget"/>  <!-- ros topics of radar rawtarget messages -->
+    <arg name="topic_cloud_radar_track" default="/cloud_radar_track"/>          <!-- ros topics of radar track messages -->
+    <arg name="topic_radar" default="/radar"/>                                  <!-- ros topics of radar object messages -->
     <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
         <!-- default values: -->
         <param name="scanner_type" type="string" value="sick_rms_xxxx"/>
@@ -50,6 +53,11 @@
         <!-- Note: parameter tracking_mode is not supported by RMS-1xxx devices and is ignored for RMS-1xxx sensors -->
         <param name="tracking_mode" type="int" value="0"/>
 
+        <!-- ros topics of radar scan messages -->
+        <param name="topic_cloud_radar_rawtarget" type="string" value="$(arg topic_cloud_radar_rawtarget)"/>
+        <param name="topic_cloud_radar_track" type="string" value="$(arg topic_cloud_radar_track)"/>
+        <param name="topic_radar" type="string" value="$(arg topic_radar)"/>
+
         <!-- raw_targets: switch transfer of radar raw targets on or off  -->
         <!-- Raw targets are input for the internal tracking algorithm    -->
         <!-- and can be used to develop your own radar tracking algorithm -->
@@ -73,7 +81,8 @@
         <param name="read_timeout_millisec_startup" type="int" value="120000"/>   <!-- 120 sec read timeout during startup (sensor may be starting up, which can take up to 120 sec.), default: 120000 milliseconds -->
         <param name="read_timeout_millisec_kill_node" type="int" value="150000"/> <!-- 150 sec pointcloud timeout, ros node will be killed if no point cloud published within the last 150 sec., default: 150000 milliseconds -->
         <!-- Note: read_timeout_millisec_kill_node less or equal 0 deactivates pointcloud monitoring (not recommended) -->
-        <param name="client_authorization_pw" type="string" value="F4724744"/>    <!-- Default password for client authorization -->
+        <param name="user_level" type="int" value="3" />                          <!-- Default user level for authorization (3: client, 4: service) -->
+        <param name="user_level_password" type="string" value="F4724744" />       <!-- Default user level password (for "client" (level 3): F4724744, for "service" (level 4): 81BE23AA) -->
 
         <!-- Configuration of ROS quality of service: -->
         <!-- On ROS-1, parameter "ros_qos" sets the queue_size of ros publisher -->

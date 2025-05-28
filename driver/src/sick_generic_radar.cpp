@@ -102,10 +102,21 @@ namespace sick_scan_xd
     rosGetParam(nh, "nodename", nodename);
 
     // publish radar targets and objects
-    cloud_radar_rawtarget_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, nodename + "/cloud_radar_rawtarget", 100);
-    cloud_radar_track_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, nodename + "/cloud_radar_track", 100);
+    topic_cloud_radar_rawtarget = nodename + "/cloud_radar_rawtarget";
+    topic_cloud_radar_track = nodename + "/cloud_radar_track";
+    topic_radar = nodename + "/radar";
+    rosDeclareParam(nh, "topic_cloud_radar_rawtarget", topic_cloud_radar_rawtarget);
+    rosGetParam(nh, "topic_cloud_radar_rawtarget", topic_cloud_radar_rawtarget);
+    rosDeclareParam(nh, "topic_cloud_radar_track", topic_cloud_radar_track);
+    rosGetParam(nh, "topic_cloud_radar_track", topic_cloud_radar_track);
+    rosDeclareParam(nh, "topic_radar", topic_radar);
+    rosGetParam(nh, "topic_radar", nodename);
 
-    radarScan_pub_ = rosAdvertise<sick_scan_msg::RadarScan>(nh, nodename + "/radar", 100);
+    cloud_radar_rawtarget_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, topic_cloud_radar_rawtarget, 10);
+    cloud_radar_track_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, topic_cloud_radar_track, 10);
+
+    radarScan_pub_ = rosAdvertise<sick_scan_msg::RadarScan>(nh, topic_radar, 10);
+    sick_scan_xd::setRadarScanTopic(topic_radar);
     
     m_add_transform_xyz_rpy = sick_scan_xd::SickCloudTransform(nh, true); // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
 
@@ -936,8 +947,12 @@ namespace sick_scan_xd
         {
           if (keyWordPos[i] == -1)
           {
-            entriesNumOk = false;
-            ROS_WARN_STREAM("parseRadarDatagram(): " << (i + 1) << ". keyword " << keyWordList[i] << " missing, but first keyword " << keyWordList[0] << " found, value set to 0.0");
+            static int num_warnings = 0;
+            if (num_warnings < numKeyWords || (num_warnings % 100) == 0) 
+            {
+              ROS_WARN_STREAM("parseRadarDatagram(): " << (i + 1) << ". keyword " << keyWordList[i] << " missing, but first keyword " << keyWordList[0] << " found, value set to 0.0 (warning repeated " << num_warnings << " times)");
+            }
+            num_warnings++;
             entriesNumOk = false;
             allow_missing_keywords = true; // P3DY1 and V3DY1 set to 0 if missing
           }
@@ -1509,6 +1524,9 @@ namespace sick_scan_xd
 
     ros_sensor_msgs::PointCloud2 cloud_;
     sick_scan_msg::RadarScan radarMsg_;
+    radarMsg_.header.stamp = timeStamp;
+    radarMsg_.header.frame_id = "radar";
+    ROS_HEADER_SEQ(radarMsg_.header, 0);
 
     std::vector<SickScanRadarObject> objectList;
     std::vector<SickScanRadarRawTarget> rawTargetList;
@@ -1681,20 +1699,22 @@ namespace sick_scan_xd
           }
           if (numFilteredTargets < numTargets)
             m_range_filter.resizePointCloud(numFilteredTargets, cloud_); // targets dropped by range filter, resize pointcloud
+          sick_scan_xd::PointCloud2withEcho sick_cloud_msg(&cloud_, 1, 0, "radar");
+          switch (iLoop)
+          {
+            case RADAR_PROC_RAW_TARGET:
+              notifyCartesianPointcloudListener(node, &sick_cloud_msg);
 #ifndef ROSSIMU
-            sick_scan_xd::PointCloud2withEcho sick_cloud_msg(&cloud_, 1, 0, "radar");
-            switch (iLoop)
-            {
-              case RADAR_PROC_RAW_TARGET:
-                  notifyCartesianPointcloudListener(node, &sick_cloud_msg);
-                  rosPublish(cloud_radar_rawtarget_pub_, cloud_);
-                break;
-              case RADAR_PROC_TRACK:
-                  notifyCartesianPointcloudListener(node, &sick_cloud_msg);
-                  rosPublish(cloud_radar_track_pub_, cloud_);
-                break;
-            }
+              rosPublish(cloud_radar_rawtarget_pub_, cloud_);
 #endif
+              break;
+            case RADAR_PROC_TRACK:
+              notifyCartesianPointcloudListener(node, &sick_cloud_msg);
+#ifndef ROSSIMU
+              rosPublish(cloud_radar_track_pub_, cloud_);
+#endif
+              break;
+          }
 
         }
       }

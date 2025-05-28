@@ -1,0 +1,41 @@
+#
+# install linux and ROS-1 noetic
+#
+FROM linux_ros1_noetic_develop
+
+#
+# Default: copy local sick_scan_xd sources into the docker image
+#
+ENV NONE="None"
+ARG SICK_SCAN_XD_BUILD_FROM_SOURCES=1
+RUN /bin/bash -c "if [ -d /workspace ] ; then rm -rf /workspace ; fi"
+RUN /bin/bash -c "mkdir -p /workspace/src/sick_scan_xd"
+COPY ./src/sick_scan_xd /workspace/src/sick_scan_xd
+
+#
+# Optionally clone sick_scan_xd from a git url given by build argument SICK_SCAN_XD_GIT_URL
+# Example: docker build --build-arg SICK_SCAN_XD_GIT_URL=https://github.com/SICKAG/sick_scan_xd ...
+#
+ARG SICK_SCAN_XD_GIT_URL="None"
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_GIT_URL != $NONE ] ; then ( pushd /workspace/src ; rm -rf ./sick_scan_xd ; git clone -b master $SICK_SCAN_XD_GIT_URL ; popd ) ; fi"
+
+#
+# Optionally install prebuild sick_scan_xd binaries given by build argument SICK_SCAN_XD_APT_PKG
+# Example: docker build --build-arg SICK_SCAN_XD_APT_PKG=ros-noetic-sick-scan-xd ...
+#
+ARG SICK_SCAN_XD_APT_PKG="None"
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_APT_PKG != $NONE ] ; then ( rm -rf /workspace/src ; apt-get install -y $SICK_SCAN_XD_APT_PKG ) ; fi"
+
+#
+# build sick_scan_xd in docker container
+#
+WORKDIR /workspace
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (ls -al /workspace /workspace/src) ; fi"
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (source /opt/ros/${ROS_DISTRO}/setup.bash ; catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -DCMAKE_ENABLE_DOCKERTESTS=1 -DLDMRS=0 -Wno-dev) ; fi"
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (echo -e \"\nsick_scan_xd catkin_make_isolated finished:\" ; ls -al /workspace/devel_isolated/sick_scan_xd/lib/sick_scan_xd) ; fi"
+
+#
+# launch sick_scan_xd with multiScan emulator
+#
+CMD /bin/bash -c "cd /workspace ; python3 ./src/sick_scan_xd/test/docker/python/sick_scan_xd_simu.py --ros=noetic"
+

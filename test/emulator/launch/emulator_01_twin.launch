@@ -2,7 +2,7 @@
 <launch>
 
   <!-- Launch sick_scan_emulator -->
-  <arg name="scandatafiles" default="$(find sick_scan_xd)/scandata/sopas_et_field_test_1_2_both_010.pcapng_full.json,$(find sick_scan_xd)/scandata/20210113_tim871s_elephant_full.pcapng.json"/>
+  <arg name="scandatafiles" default="$(find sick_scan_xd)/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng_full.json,$(find sick_scan_xd)/test/emulator/scandata/20210113_tim871s_elephant_full.pcapng.json"/>
   <arg name="scandatatypes" default="sSN LMDscandata ,sSN LIDinputstate ,sSN LIDoutputstate ,sSN LFErec "/>
   <arg name="start_scandata_immediately" default="false"/>
   <rosparam command="load" file="$(find sick_scan_xd)/yaml/emulator_twin.yaml" />

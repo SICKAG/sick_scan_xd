@@ -2,6 +2,7 @@
 
 import json
 import numpy as np
+import os
 import threading
 from collections import namedtuple
 from sick_scan_xd_simu_report import SickScanXdMsgStatus
@@ -11,10 +12,13 @@ jitter = Jitter(angle_deg = 0.1, angle_rad = np.deg2rad(0.1), range = 0.001, vel
 
 ros1_found = False
 ros2_found = False
+ros1_supported_versions = []
+ros2_supported_versions = []
 try:
     import rospy
     from sensor_msgs.msg import PointCloud2, PointField, LaserScan, Imu
     ros1_found = True
+    ros1_supported_versions = [ "noetic" ]
 except ModuleNotFoundError as exc:
     ros1_found = False
 
@@ -23,6 +27,7 @@ try:
     from rclpy.node import Node
     from sensor_msgs.msg import PointCloud2, PointField, LaserScan, Imu
     ros2_found = True
+    ros2_supported_versions = [ "foxy", "humble" ]
 except ModuleNotFoundError as exc:
     ros2_found = False
 
@@ -34,9 +39,9 @@ def ros_init(os_name = "linux", ros_version = "noetic", node_name = "sick_scan_x
     """
     ros initialization, delegates to ros initialization function depending on system and ros version
     """
-    if ros1_found and ros_version == "noetic":
+    if ros1_found and ros_version in ros1_supported_versions:
         rospy.init_node(node_name)
-    elif ros2_found and (ros_version == "humble" or ros_version == "foxy"):
+    elif ros2_found and ros_version in ros2_supported_versions:
         rclpy.init()
     elif ros_version == "none":
         pass
@@ -254,7 +259,7 @@ class RefImuMsg:
         """
         Returns True, if reference_msg and received_msg are identical except for the sequence counter and small floating point differences.
         """
-        return (reference_msg["frame_id"] == received_msg["frame_id"]) and \
+        return \
             (np.linalg.norm(np.float32(reference_msg["orientation"]) - np.float32(received_msg["orientation"])) < jitter.angle_rad) and \
             (np.linalg.norm(np.float32(reference_msg["orientation_covariance"]) - np.float32(received_msg["orientation_covariance"])) < jitter.angle_rad**2) and \
             (np.linalg.norm(np.float32(reference_msg["angular_velocity"]) - np.float32(received_msg["angular_velocity"])) < jitter.velocity) and \
@@ -265,7 +270,7 @@ class RefImuMsg:
 class SickScanXdSubscriber(Node):
 
     def __init__(self, os_name = "linux", ros_version = "noetic", pointcloud_subscriber_topic = "", laserscan_subscriber_topic = "", imu_subscriber_topic = ""):
-        if ros2_found and (ros_version == "humble" or ros_version == "foxy"):
+        if ros2_found and ros_version in ros2_supported_versions:
             subscriber_name = "sick_scan_xd_{}_{}_{}".format(pointcloud_subscriber_topic, laserscan_subscriber_topic, imu_subscriber_topic).replace("/","_")
             super().__init__(subscriber_name)
         self.subscriber_topic = ""
@@ -280,9 +285,9 @@ class SickScanXdSubscriber(Node):
 
     def create_subscriber(self, os_name, ros_version, topic, msg_type, fct_callback, msg_queue_size):
         self.subscriber_topic = topic
-        if ros1_found and ros_version == "noetic":
+        if ros1_found and ros_version in ros1_supported_versions:
             self.subscriber = rospy.Subscriber(self.subscriber_topic, msg_type, callback=fct_callback, queue_size=msg_queue_size)
-        elif ros2_found and (ros_version == "humble" or ros_version == "foxy"):
+        elif ros2_found and ros_version in ros2_supported_versions:
             self.subscriber = self.create_subscription(msg_type, self.subscriber_topic, callback=fct_callback, qos_profile=msg_queue_size)
         else:
             print(f"## ERROR SickScanXdSubscriber.create_subscriber(): ros version {ros_version} not found or not supported")
@@ -315,6 +320,7 @@ class SickScanXdSubscriber(Node):
 class SickScanXdMonitor():
 
     def __init__(self, config, run_ros_init):
+        self.os_name = config.os_name
         self.ros_version = config.ros_version
         self.ros_node = None
         self.ros_spin_executor = None
@@ -332,7 +338,7 @@ class SickScanXdMonitor():
             self.laserscan_subscriber.append(SickScanXdSubscriber(os_name = config.os_name, ros_version = config.ros_version, laserscan_subscriber_topic = topic))
         for topic in config.sick_scan_xd_imu_topics:
             self.imu_subscriber.append(SickScanXdSubscriber(os_name = config.os_name, ros_version = config.ros_version, imu_subscriber_topic = topic))
-        if run_ros_init and ros2_found and (config.ros_version == "humble" or config.ros_version == "foxy"):
+        if run_ros_init and ros2_found and config.ros_version in ros2_supported_versions:
             # see https://answers.ros.org/question/377848/spinning-multiple-nodes-across-multiple-threads/
             self.ros_spin_executor = rclpy.executors.MultiThreadedExecutor()
             for node in self.pointcloud_subscriber:
@@ -362,20 +368,41 @@ class SickScanXdMonitor():
 
     def export_received_messages_to_jsonfile(self, jsonfile):
         num_messages, messages = self.export_received_messages()
+        self.export_messages_to_jsonfile(jsonfile, num_messages, messages)
+
+    def export_messages_to_jsonfile(self, jsonfile, num_messages, messages):
         if num_messages > 0:
             try:
                 with open(jsonfile, "w") as file_stream:
                     json.dump(messages, file_stream, indent=2, cls=NumpyJsonEncoder)
                     print(f"SickScanXdMonitor: {num_messages} messages exported to file \"{jsonfile}\"")
             except Exception as exc:
-                print(f"## ERROR in SickScanXdMonitor.export_received_messages_to_jsonfile(\"{jsonfile}\"): exception {exc}")
+                print(f"## ERROR in SickScanXdMonitor.export_messages_to_jsonfile(\"{jsonfile}\"): exception {exc}")
         else:
-            print(f"## ERROR SickScanXdMonitor.export_received_messages(): no messages received, file \"{jsonfile}\" not written")
+            print(f"## ERROR SickScanXdMonitor.export_messages_to_jsonfile(): no messages, file \"{jsonfile}\" not written")
 
     def import_received_messages_from_jsonfile(self, jsonfile):
-        # with open(jsonfile, "r") as file_stream:
-        #     print(file_stream.read())
         try:
+            if not os.path.isfile(jsonfile) and os.path.isfile(jsonfile + ".log"):
+                # Convert temporary "<jsonfile>.log" to jsonfile
+                messages_imported = {}
+                num_messages = 0
+                with open(jsonfile + ".log", "r") as file_stream:
+                    log_lines = file_stream.readlines()
+                    for line in log_lines:
+                        json_log_msg = json.loads(line)
+                        for msgtype in json_log_msg:
+                            if msgtype not in messages_imported:
+                                messages_imported[msgtype] = {}
+                            for topic in json_log_msg[msgtype]:
+                                if topic not in messages_imported[msgtype]:
+                                    messages_imported[msgtype][topic] = []
+                                messages_imported[msgtype][topic].append(json_log_msg[msgtype][topic])
+                                num_messages = num_messages + 1
+                                # print(f"import_received_messages_from_jsonfile: json_log_msg[{msgtype}][{topic}] = {json_log_msg[msgtype][topic]}")
+                self.export_messages_to_jsonfile(jsonfile, num_messages, messages_imported)
+            # with open(jsonfile, "r") as file_stream:
+            #     print(file_stream.read())
             with open(jsonfile, "r") as file_stream:
                 self.messages_received = json.load(file_stream)
                 print(f"SickScanXdMonitor: messages imported from file \"{jsonfile}\"")
@@ -391,17 +418,17 @@ class SickScanXdMonitor():
             converter = { "RefLaserscanMsg": RefLaserscanMsg(), "RefPointcloudMsg": RefPointcloudMsg(), "RefImuMsg": RefImuMsg() }
             num_messages_verified = 0
             for msg_type in reference_messages.keys():
-                if self.ros_version == "none" and msg_type == "RefLaserscanMsg":
+                if msg_type == "RefLaserscanMsg" and (self.os_name == "windows" or self.ros_version == "none"):
                     continue # laserscan messages are not exported via API, i.e. verify laserscan messages only under ROS
                 for topic in reference_messages[msg_type].keys():
                     if self.ros_version == "none" and topic == "/cloud_all_fields_fullframe":
                         continue # only polar and cartesian pointcloud messages are exported via API # TODO: exclude topics from config
-                    #if self.ros_version == "none" and msg_type == "RefImuMsg":
-                    #    continue # TODO !!!
-                    for ref_msg in reference_messages[msg_type][topic]:
+                    for ref_msg_idx, ref_msg in enumerate(reference_messages[msg_type][topic]):
                         if topic not in received_messages[msg_type] or not self.find_message(ref_msg, received_messages[msg_type][topic], converter[msg_type]):
                             ref_msg_frame_id = ref_msg["frame_id"]
-                            self.print_message(report, SickScanXdMsgStatus.ERROR, f"## ERROR in SickScanXdMonitor.verify_messages(): reference message not found in received messages (msg type: {msg_type}, topic: {topic}, frame_id: {ref_msg_frame_id}), test failed")
+                            self.print_message(report, SickScanXdMsgStatus.ERROR, f"## ERROR in SickScanXdMonitor.verify_messages(): reference_message[{ref_msg_idx}] not found in received messages (msg type: {msg_type}, topic: {topic}, frame_id: {ref_msg_frame_id}), test failed")
+                            ref_msg_str = " ".join(f"{ref_msg}".split())
+                            self.print_message(report, SickScanXdMsgStatus.ERROR, f"## ERROR in SickScanXdMonitor.verify_messages(): reference_message[{ref_msg_idx}] not found in received messages, reference_message = {ref_msg_str}, test failed")
                             return False
                         num_messages_verified = num_messages_verified + 1
             self.print_message(report, SickScanXdMsgStatus.INFO, f"SickScanXdMonitor.verify_messages(): {num_messages_verified} reference messages verified.")

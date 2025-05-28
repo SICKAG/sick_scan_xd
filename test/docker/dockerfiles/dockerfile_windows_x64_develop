@@ -1,0 +1,74 @@
+# Dockerfile for Windows docker images with buildtools, vcpkg, cmake and python.
+
+FROM windows_x64_buildtools
+
+# Restore the default Windows shell for correct batch processing.
+SHELL ["cmd", "/S", "/C"]
+
+# Install winget fails:
+# Windows cannot install package Microsoft.VCLibs.140.00.UWPDesktop_14.0.33321.0_x64__8wekyb3d8bbwe
+# because this package is not compatible with the device.
+# The package can only be installed on the following device families: Windows.Universal
+# RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile C:\\TEMP\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+# RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -OutFile C:\\TEMP\\Microsoft.VCLibs.x64.14.00.Desktop.appx"
+# RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx -OutFile C:\\TEMP\\Microsoft.UI.Xaml.2.8.x64.appx"
+# RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Add-AppxPackage C:\\TEMP\\Microsoft.VCLibs.x64.14.00.Desktop.appx"
+# RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Add-AppxPackage C:\\TEMP\\Microsoft.UI.Xaml.2.8.x64.appx"
+# RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Add-AppxPackage C:\\TEMP\\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+
+# Install .Net Framework 4.8 required for chocolatey package manager (does not work)
+# "RUN C:\\TEMP\\ndp48-x86-x64-allos-enu.exe /install" hangs up after several hours
+# "RUN C:\\TEMP\\ndp48-x86-x64-allos-enu.exe /passive /AcceptEULA /norestart" fails: "The command 'cmd /S /C C:\\TEMP\\ndp48-x86-x64-allos-enu.exe /passive /AcceptEULA /norestart' returned a non-zero code: 2148081668"
+# "RUN C:\\TEMP\\ndp48-devpack-enu.exe /passive /AcceptEULA /norestart" fails: The command 'cmd /S /C C:\\TEMP\\ndp48-devpack-enu.exe /passive /AcceptEULA /norestart' returned a non-zero code: 3221225477
+# ADD http://go.microsoft.com/fwlink/?linkid=2088631 C:\\TEMP\\ndp48-x86-x64-allos-enu.exe
+# ADD https://download.visualstudio.microsoft.com/download/pr/7afca223-55d2-470a-8edc-6a1739ae3252/c8c829444416e811be84c5765ede6148/ndp48-devpack-enu.exe C:\\TEMP\\ndp48-devpack-enu.exe
+# RUN C:\\TEMP\\ndp48-x86-x64-allos-enu.exe /install
+# RUN C:\\TEMP\\ndp48-x86-x64-allos-enu.exe /passive /AcceptEULA /norestart
+# RUN C:\\TEMP\\ndp48-devpack-enu.exe /passive /AcceptEULA /norestart
+
+# Install chocolatey package manager (does not work without .NET 4.8)
+# RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
+# && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
+# Install vcpkg
+ADD https://github.com/microsoft/vcpkg/archive/refs/heads/master.zip C:\\TEMP\\vcpkg-master.zip
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Expand-Archive -Path C:\\TEMP\\vcpkg-master.zip -DestinationPath C:\\"
+RUN pushd C:\\vcpkg-master & call bootstrap-vcpkg.bat & vcpkg integrate install & popd
+RUN SETX PATH "%PATH%;C:\vcpkg-master;C:\vcpkg-master\downloads\tools\git-2.7.4-windows\bin"
+
+# Install git (did not work, installation hangs up, use C:\vcpkg-master\downloads\tools\git-2.7.4-windows\bin\git.exe)
+# ADD https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/Git-2.44.0-64-bit.exe C:\\TEMP\\Git-2.44.0-64-bit.exe
+# RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process C:\\TEMP\\Git-2.44.0-64-bit.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -NoNewWindow -Wait"
+# Install portable git (did not work, installation hangs up)
+# ADD https://github.com/git-for-windows/git/releases/download/v2.43.0.windows.1/PortableGit-2.43.0-64-bit.7z.exe C:\\TEMP\\PortableGit-2.43.0-64-bit.7z.exe
+# RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process C:\\TEMP\\PortableGit-2.43.0-64-bit.7z.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -NoNewWindow -Wait"
+
+# Install jsoncpp
+# Note: Installing jsoncpp by "vcpkg install jsoncpp:x64-windows" in a windows x64 docker images caused exceptions and/or memory issues, possibly due to different build settings.
+# Json sources in folder "sick_scan_xd/test/docker/jsoncpp" are taken from https://github.com/open-source-parsers/jsoncpp for windows docker tests.
+# See https://github.com/open-source-parsers/jsoncpp for details and license.
+# RUN pushd C:\\vcpkg-master & vcpkg install jsoncpp:x64-windows & popd
+
+# Install cmake
+ADD https://github.com/Kitware/CMake/releases/download/v3.29.2/cmake-3.29.2-windows-x86_64.msi C:\\TEMP\\cmake-3.29.2-windows-x86_64.msi
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process msiexec.exe -ArgumentList '/i', C:\\TEMP\\cmake-3.29.2-windows-x86_64.msi, '/quiet', '/norestart' -NoNewWindow -Wait"
+
+# Install python
+ADD https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe C:\\TEMP\\python-3.12.3-amd64.exe
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process C:\\TEMP\\python-3.12.3-amd64.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -NoNewWindow -Wait"
+
+# Install python modules
+RUN python -m pip install argparse datetime numpy pathlib pypcapfile python-pcapng scapy
+
+# Install pwsh.exe (i.e. PowerShell-7.4.2)
+ADD https://github.com/PowerShell/PowerShell/releases/download/v7.4.2/PowerShell-7.4.2-win-x64.msi C:\\TEMP\\PowerShell-7.4.2-win-x64.msi
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process msiexec.exe -ArgumentList '/i', C:\\TEMP\\PowerShell-7.4.2-win-x64.msi, '/quiet', '/norestart' -NoNewWindow -Wait"
+RUN SET "PATH=%PATH%;%ProgramFiles%\PowerShell\7"
+
+# Install pandoc to convert md to html
+ADD https://github.com/jgm/pandoc/releases/download/3.1.13/pandoc-3.1.13-windows-x86_64.msi C:\\TEMP\\pandoc-3.1.13-windows-x86_64.msi
+RUN @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "Start-Process msiexec.exe -ArgumentList '/i', C:\\TEMP\\pandoc-3.1.13-windows-x86_64.msi, '/quiet', '/norestart' -NoNewWindow -Wait"
+
+# Define the entry point for the docker container.
+# This entry point starts the developer command prompt and leaves it running.
+ENTRYPOINT ["cmd.exe", "/k", "C:\\BuildTools\\Common7\\Tools\\VsDevCmd.bat"]

@@ -1,0 +1,21 @@
+# Dockerfile for Windows docker images with .NET 4.8, nuget and buildtools (Visual Studio 2022).
+
+FROM mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2019
+
+# Restore the default Windows shell for correct batch processing.
+SHELL ["cmd", "/S", "/C"]
+
+# Download and install Build Tools excluding workloads and components with known issues.
+# ERRORLEVEL 3010 means a restart is required
+ADD https://aka.ms/vs/16/release/vs_buildtools.exe C:\\TEMP\\vs_buildtools.exe
+RUN C:\\TEMP\\vs_buildtools.exe --quiet --wait --norestart --nocache \
+    --installPath C:\\BuildTools \
+    --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional \
+    --add Microsoft.VisualStudio.Component.Windows10SDK.18362 \
+    --add Microsoft.VisualStudio.Workload.ManagedDesktopBuildTools \
+    || IF "%ERRORLEVEL%"=="3010" EXIT 0
+RUN SETX PATH "%PATH%;%ProgramFiles(x86)%\Microsoft Visual Studio\2022\BuildTools\Common7\Tools"
+
+# Define the entry point for the docker container.
+# This entry point starts the developer command prompt and leaves it running.
+ENTRYPOINT ["cmd.exe", "/k", "VsDevCmd.bat"]

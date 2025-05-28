@@ -1,4 +1,9 @@
 #!/bin/bash
+
+sudo chmod a+x ./*.bash
+sudo chmod a+x ../docker/*.bash
+sudo dos2unix ./*.bash
+sudo dos2unix ../docker/*.bash
 printf "\033c"
 
 #

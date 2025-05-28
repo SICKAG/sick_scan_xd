@@ -168,8 +168,8 @@ namespace sick_scan_xd
 
     const std::vector<SickScanMonField>& getMonFields(void) const { return monFields; }
 
-    void setActiveFieldset(int active_fieldset) { active_mon_fieldset = active_fieldset; }
-    int getActiveFieldset(void) { return active_mon_fieldset; }
+    void setActiveFieldset(int active_fieldset) { active_mon_fieldset = active_fieldset; } // asssumes 1 <= active_fieldset <= max active fieldsets
+    int getActiveFieldset(void) { return active_mon_fieldset; }                            // asssumes 1 <= active_fieldset <= max active fieldsets
 
     void setFieldSelectionMethod(int field_selection_method) { mon_field_selection_method = field_selection_method; } // FieldSetSelectionMethod: 0 = digital inputs (default), 1 = telegram "sWN ActiveFieldSet"
     int getFieldSelectionMethod(void) { return mon_field_selection_method; }

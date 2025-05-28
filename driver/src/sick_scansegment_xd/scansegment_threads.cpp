@@ -317,8 +317,6 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             m_config.msgpack_validator_verbose);
         msgpack_converter.SetValidator(msgpack_validator, m_config.msgpack_validator_enabled, m_config.msgpack_validator_discard_msgpacks_out_of_bounds, m_config.msgpack_validator_check_missing_scandata_interval);
 
-        ros_msgpack_publisher->SetActive(true);
-
         // Send SOPAS start command
         if(sopas_tcp && sopas_service && m_config.send_sopas_start_stop_cmd)
         {
@@ -336,6 +334,10 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: no sopas tcp connection, startup sequence not sent, receiving scan data may fail.");
             }
         }
+
+        // Activate message parsing and publishing AFTER initialization completed
+        msgpack_converter.SetActive(true);
+        ros_msgpack_publisher->SetActive(true);
 
         // Run event loop and monitor tcp-connection and udp messages
         setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");

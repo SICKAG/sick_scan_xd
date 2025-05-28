@@ -1,0 +1,6 @@
+#
+# install linux without ROS
+#
+FROM ubuntu:22.04
+RUN apt-get update && apt-get -y install cmake git libjsoncpp-dev psmisc python3-pip
+RUN python3 -m pip install argparse datetime numpy pathlib pypcapfile python-pcapng scapy

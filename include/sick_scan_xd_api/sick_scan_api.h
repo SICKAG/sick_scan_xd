@@ -185,6 +185,7 @@ typedef struct SickScanImuMsgType // equivalent to ros sensor_msgs::Imu
   double angular_velocity_covariance[9];       // Row major about x, y, z axes
   SickScanVector3Msg linear_acceleration;
   double linear_acceleration_covariance[9];    // Row major x, y z
+  char topic[256];                             // ros topic this messages is published
 } SickScanImuMsg;
 
 typedef struct SickScanLFErecFieldMsgType // equivalent to LFErecFieldMsg.msg
@@ -212,6 +213,7 @@ typedef struct SickScanLFErecMsgType // equivalent to LFErecMsg.msg
   SickScanHeader header;             // message timestamp
   uint16_t fields_number;            // number of valid fields
   SickScanLFErecFieldMsg fields[3];  // max. 3 valid fields
+  char topic[256];                   // ros topic this messages is published
 } SickScanLFErecMsg;
 
 typedef struct SickScanLIDoutputstateMsgType // equivalent to LIDoutputstateMsg.msg
@@ -229,6 +231,7 @@ typedef struct SickScanLIDoutputstateMsgType // equivalent to LIDoutputstateMsg.
   uint8_t minute;               // 0 ... 59
   uint8_t second;               // 0 ... 59
   uint32_t microsecond;         // 0 ... 999999
+  char topic[256];              // ros topic this messages is published
 } SickScanLIDoutputstateMsg;
 
 typedef struct SickScanRadarPreHeaderType // equivalent to RadarPreHeader.msg
@@ -295,6 +298,7 @@ typedef struct SickScanRadarScanType // equivalent to RadarScan.msg
   SickScanRadarPreHeader radarpreheader; // RadarPreHeader.msg
   SickScanPointCloudMsg targets;         // sensor_msgs/PointCloud2
   SickScanRadarObjectArray objects;      // Array of RadarObject.msg
+  char topic[256]; // ros topic this messages is published
 } SickScanRadarScan;
 
 typedef SickScanRadarObject SickScanLdmrsObject; // equivalent to SickLdmrsObject.msg
@@ -358,6 +362,7 @@ typedef struct SickScanVisualizationMarkerBufferType // Array of SickScanVisuali
 typedef struct SickScanVisualizationMarkerMsgType // equivalent to visualization_msgs::MarkerArray
 {
   SickScanVisualizationMarkerBuffer markers;      // Array of SickScanVisualizationMarkers
+  char topic[256];                                // ros topic this messages is published
 } SickScanVisualizationMarkerMsg;
 
 typedef struct SickScanNavReflectorType       // NAV-350 reflector

@@ -285,44 +285,45 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 	}
 	std::string imu_topic = config.imu_topic;
 #if defined __ROS_VERSION && __ROS_VERSION > 1 // ROS-2 publisher
-    rosQoS qos = rclcpp::SystemDefaultsQoS();
-    QoSConverter qos_converter;
-    int qos_val = -1;
-    rosDeclareParam(m_node, "ros_qos", qos_val);
-    rosGetParam(m_node, "ros_qos", qos_val);
-    if (qos_val >= 0)
-        qos = qos_converter.convert(qos_val);
-	  m_publisher_laserscan_segment = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_segment_topic, qos);
-	  ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << m_publisher_laserscan_segment->get_topic_name() << "\"");
-    m_publisher_laserscan_360 = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
-    ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << m_publisher_laserscan_360->get_topic_name() << "\"");
-		if (config.imu_enable)
-		{
-			if (imu_topic[0] != '/')
-			  imu_topic = "~/" + imu_topic;
-			m_publisher_imu = create_publisher<ros_sensor_msgs::Imu>(imu_topic, qos);
-			m_publisher_imu_initialized = true;
-      ROS_INFO_STREAM("RosMsgpackPublisher: publishing Imu messages on topic \"" << m_publisher_imu->get_topic_name() << "\"");
-		}
+	rosQoS qos = rclcpp::SystemDefaultsQoS();
+	QoSConverter qos_converter;
+	int qos_val = -1;
+	rosDeclareParam(m_node, "ros_qos", qos_val);
+	rosGetParam(m_node, "ros_qos", qos_val);
+	if (qos_val >= 0)
+			qos = qos_converter.convert(qos_val);
+	m_publisher_laserscan_segment = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_segment_topic, qos);
+	ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << m_publisher_laserscan_segment->get_topic_name() << "\"");
+	m_publisher_laserscan_360 = create_publisher<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
+	ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << m_publisher_laserscan_360->get_topic_name() << "\"");
+	if (config.imu_enable)
+	{
+		if (imu_topic[0] != '/')
+			imu_topic = "~/" + imu_topic;
+		m_publisher_imu = create_publisher<ros_sensor_msgs::Imu>(imu_topic, qos);
+		m_publisher_imu_initialized = true;
+		ROS_INFO_STREAM("RosMsgpackPublisher: publishing Imu messages on topic \"" << m_publisher_imu->get_topic_name() << "\"");
+	}
 #elif defined __ROS_VERSION && __ROS_VERSION > 0 // ROS-1 publisher
-    int qos = 16 * 12 * 3; // 16 layers, 12 segments, 3 echos
-		int qos_val = -1;
-    rosDeclareParam(m_node, "ros_qos", qos_val);
-    rosGetParam(m_node, "ros_qos", qos_val);
-    if (qos_val >= 0)
-        qos = qos_val;
-    m_publisher_laserscan_segment = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_segment_topic, qos);
-	  ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << config.publish_laserscan_segment_topic << "\"");
-    m_publisher_laserscan_360 = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
-    ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << config.publish_laserscan_fullframe_topic << "\"");
+	int qos = 16 * 12 * 3; // 16 layers, 12 segments, 3 echos
+	int qos_val = -1;
+	rosDeclareParam(m_node, "ros_qos", qos_val);
+	rosGetParam(m_node, "ros_qos", qos_val);
+	if (qos_val >= 0)
+			qos = qos_val;
+	m_publisher_laserscan_segment = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_segment_topic, qos);
+	ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan segment messages on topic \"" << config.publish_laserscan_segment_topic << "\"");
+	m_publisher_laserscan_360 = m_node->advertise<ros_sensor_msgs::LaserScan>(config.publish_laserscan_fullframe_topic, qos);
+	ROS_INFO_STREAM("RosMsgpackPublisher: publishing LaserScan fullframe messages on topic \"" << config.publish_laserscan_fullframe_topic << "\"");
 
-		if (config.imu_enable)
-		{
-			m_publisher_imu = m_node->advertise<ros_sensor_msgs::Imu>(config.imu_topic, qos);
-			m_publisher_imu_initialized = true;
-      ROS_INFO_STREAM("RosMsgpackPublisher: publishing Imu messages on topic \"" << config.imu_topic << "\"");
-		}
+	if (config.imu_enable)
+	{
+		m_publisher_imu = m_node->advertise<ros_sensor_msgs::Imu>(imu_topic, qos);
+		m_publisher_imu_initialized = true;
+		ROS_INFO_STREAM("RosMsgpackPublisher: publishing Imu messages on topic \"" << config.imu_topic << "\"");
+	}
 #endif
+  sick_scan_xd::setImuTopic(imu_topic);
 
   /* Configuration of customized pointclouds:
 
@@ -627,16 +628,16 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
   pointcloud_msg.data.resize(pointcloud_msg.row_step * pointcloud_msg.height, 0);
   // fill pointcloud data
 	int point_cnt = 0;
-  for (int echo_idx = 0; echo_idx < lidar_points.size(); echo_idx++)
-  {
-    for (int point_idx = 0; point_cnt < max_number_of_points && point_idx < lidar_points[echo_idx].size(); point_idx++)
-    {
+	for (int echo_idx = 0; echo_idx < lidar_points.size(); echo_idx++)
+	{
+		for (int point_idx = 0; point_cnt < max_number_of_points && point_idx < lidar_points[echo_idx].size(); point_idx++)
+		{
 			CustomizedPointXYZRAEI32f cur_lidar_point(timestamp_sec, timestamp_nsec, lidar_timestamp_start_microsec, lidar_points[echo_idx][point_idx]);
 			if (pointcloud_cfg.pointEnabled(cur_lidar_point))
 			{
 				size_t pointcloud_offset = point_cnt * pointcloud_msg.point_step; // offset in bytes in pointcloud_msg.data (destination)
 				const uint8_t* src_lidar_point = (const uint8_t*)(&cur_lidar_point); // pointer to source lidar point (type CustomizedPointXYZRAEI32f)
-				for(int field_idx = 0; field_idx < field_properties.size(); field_idx++)
+				for (int field_idx = 0; field_idx < field_properties.size(); field_idx++)
 				{
 					size_t field_offset = field_properties[field_idx].fieldoffset;
 					for (int n = 0; n < field_properties[field_idx].datasize; n++, pointcloud_offset++, field_offset++)
@@ -646,8 +647,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
 				}
 				point_cnt++;
 			}
-    }
-  }
+		}
+	}
 	// resize pointcloud to actual number of points
   pointcloud_msg.width = point_cnt;
   pointcloud_msg.row_step = pointcloud_msg.point_step * point_cnt;
@@ -680,8 +681,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 	};
 	typedef std::vector<LaserScanMsgPoint> LaserScanMsgPoints; // list of laserscan points in one segment
 	typedef std::vector<LaserScanMsgPoints> LaserScanMsgSegments; // list of laserscan segments
-  typedef std::map<int,std::map<int,LaserScanMsgSegments>> LaserScanMsgEchoLayerSegments; // LaserScanMsgMap[echo][layer][segment] := laserscan points in one segment
-  typedef std::map<int,std::map<int,LaserScanMsgPoints>> LaserScanMsgEchoLayerSortedPoints; // LaserScanMsgEchoLayerSortedPoints[echo][layer] := sorted list of concatenated laserscan points
+	typedef std::map<int,std::map<int,LaserScanMsgSegments>> LaserScanMsgEchoLayerSegments; // LaserScanMsgMap[echo][layer][segment] := laserscan points in one segment
+	typedef std::map<int,std::map<int,LaserScanMsgPoints>> LaserScanMsgEchoLayerSortedPoints; // LaserScanMsgEchoLayerSortedPoints[echo][layer] := sorted list of concatenated laserscan points
 	struct SortSegmentsAscendingAzimuth
 	{
 			bool operator()(const LaserScanMsgPoints& segment1, const LaserScanMsgPoints& segment2) { return !segment1.empty() && !segment2.empty() && segment1[0].azimuth < segment2[0].azimuth; }
@@ -708,23 +709,37 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 		}
 	};
 
-  LaserScanMsgEchoLayerSegments points_echo_layer_segment_map;
-  for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
-  {
+	// Determine the maximum number of points among all echoes (multi-return scans)
+	size_t maxNumberOfPoints = 0;
+	for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
+	{
+		// Update maxNumberOfPoints if the current echo contains more points
+		maxNumberOfPoints = lidar_points[echoIdx].size() > maxNumberOfPoints
+			? lidar_points[echoIdx].size()
+			: maxNumberOfPoints;
+	}
+
+	LaserScanMsgEchoLayerSegments points_echo_layer_segment_map; 
+	for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
+	{
 		int last_layer = INT_MAX;
 		float last_azimuth = FLT_MAX;
-		// if (is_fullframe)
-    //   ROS_INFO_STREAM("convertPointsToLaserscanMsg(" << (is_fullframe ? "fullframe": "segment") << "): echo" << echoIdx << ", unsorted azimuth=[" << ScanPointPrinter::printAzimuthTable(lidar_points[echoIdx]) << "]");
-    for (int pointIdx = 0; pointIdx < lidar_points[echoIdx].size(); pointIdx++)
-    {
-			const sick_scansegment_xd::PointXYZRAEI32f& lidar_point = lidar_points[echoIdx][pointIdx];
+		for (int pointIdx = 0; pointIdx < lidar_points[echoIdx].size(); pointIdx++)
+		{
+			sick_scansegment_xd::PointXYZRAEI32f lidar_point = lidar_points[echoIdx][pointIdx];
+			// truncate to 65533.0 for non reflectors
+			lidar_point.i = (lidar_point.i > 65533.0) ? 65533.0 : lidar_point.i;
+			if (lidar_point.reflectorbit > 0) {
+				lidar_point.i = 65534.0;
+			}
+
 			bool layer_enabled = (m_laserscan_layer_filter.empty() ? 1 : (m_laserscan_layer_filter[lidar_point.layer]));
 			if (layer_enabled)
 			{
 				LaserScanMsgSegments& point_segment = points_echo_layer_segment_map[lidar_point.echo][lidar_point.layer];
 				if (point_segment.empty() || last_layer != lidar_point.layer || std::abs(last_azimuth - lidar_point.azimuth) > (2.0*M_PI/180.0)) // start of a new segment
 					point_segment.push_back(LaserScanMsgPoints());
-        point_segment.back().push_back(LaserScanMsgPoint(lidar_point)); // append lidar point to last segment
+				point_segment.back().push_back(LaserScanMsgPoint(lidar_point)); // append lidar point to last segment
 				last_layer = lidar_point.layer;
 				last_azimuth = lidar_point.azimuth;
 			}
@@ -774,7 +789,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 		    // if (is_fullframe)
     		//   ROS_INFO_STREAM("convertPointsToLaserscanMsg(" << (is_fullframe ? "fullframe": "segment") << "): echo" << echo << ", layer" << layer << ", segment" << segment_cnt << ", sorted azimuth=[" << ScanPointPrinter::printAzimuthTable(segment_points) << "]");
 			}
-		  // Verify all points within the current segment have ascending or descending order (debug and verification only)
+			// Verify all points within the current segment have ascending or descending order (debug and verification only)
 			// for(int segment_cnt = 0; segment_cnt < iter_layer->second.size(); segment_cnt++)
 			// {
 			//   const LaserScanMsgPoints& segment_points = segments[segment_cnt];
@@ -804,10 +819,10 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 				for(int point_cnt = 0; point_cnt < sorted_points.size(); point_cnt++)
 				{
 					laser_scan_msg.ranges.push_back(sorted_points[point_cnt].range);
-				  laser_scan_msg.intensities.push_back(sorted_points[point_cnt].i);
+					laser_scan_msg.intensities.push_back(sorted_points[point_cnt].i);
 					laser_scan_msg.range_min = std::min(sorted_points[point_cnt].range, laser_scan_msg.range_min);
 					laser_scan_msg.range_max = std::max(sorted_points[point_cnt].range, laser_scan_msg.range_max);
-		      // Verify all azimuth values monotonously ordered (debug and verification only)
+					// Verify all azimuth values monotonously ordered (debug and verification only)
 					// if (point_cnt > 0)
 					// {
 					// 	float delta_azimuth = sorted_points[point_cnt].azimuth - sorted_points[point_cnt - 1].azimuth;

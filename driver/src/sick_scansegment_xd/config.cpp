@@ -175,7 +175,9 @@ sick_scansegment_xd::Config::Config()
     send_sopas_start_stop_cmd = true;        // True: multiScan136 start and stop command sequence ("sWN ScanDataEnable 0/1" etc.) are sent after driver start and stop, default: true
     sopas_cola_binary = false;               // False: SOPAS uses CoLa-A (ascii, default, recommended), CoLa-B (true, binary) currently experimental
     sopas_timeout_ms = 5000;                 // Timeout for SOPAS response in milliseconds, default: 5000
-    client_authorization_pw = "F4724744";    // Default password for client authorization
+    user_level = 3;                          // Default user level for client authorization (3 -> "authorized client", 4 -> "service")
+    user_level_password = "F4724744";        // Default password for client authorization 
+    
 
     // MSR100 default filter settings
     host_read_filtersettings = true;                            // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true
@@ -288,7 +290,8 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "send_sopas_start_stop_cmd", send_sopas_start_stop_cmd);
     ROS_DECL_GET_PARAMETER(node, "sopas_cola_binary", sopas_cola_binary);
     ROS_DECL_GET_PARAMETER(node, "sopas_timeout_ms", sopas_timeout_ms);
-    ROS_DECL_GET_PARAMETER(node, "client_authorization_pw", client_authorization_pw);
+    ROS_DECL_GET_PARAMETER(node, "user_level", user_level);
+    ROS_DECL_GET_PARAMETER(node, "user_level_password", user_level_password);
     // MSR100 filter settings
     ROS_DECL_GET_PARAMETER(node, "host_read_filtersettings", host_read_filtersettings);
     ROS_DECL_GET_PARAMETER(node, "host_FREchoFilter", host_FREchoFilter);
@@ -433,7 +436,8 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "send_sopas_start_stop_cmd", send_sopas_start_stop_cmd);
     setOptionalArgument(cli_parameter_map, "sopas_cola_binary", sopas_cola_binary);
     setOptionalArgument(cli_parameter_map, "sopas_timeout_ms", sopas_timeout_ms);
-    setOptionalArgument(cli_parameter_map, "client_authorization_pw", client_authorization_pw);
+    setOptionalArgument(cli_parameter_map, "user_level", user_level);
+    setOptionalArgument(cli_parameter_map, "user_level_password", user_level_password);
     setOptionalArgument(cli_parameter_map, "host_read_filtersettings", host_read_filtersettings);
     setOptionalArgument(cli_parameter_map, "host_FREchoFilter", host_FREchoFilter);
     setOptionalArgument(cli_parameter_map, "host_set_FREchoFilter", host_set_FREchoFilter);

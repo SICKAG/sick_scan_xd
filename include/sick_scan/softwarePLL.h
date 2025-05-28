@@ -30,8 +30,8 @@ public:
   ~SoftwarePLL()
   {}
 
-  bool pushIntoFifo(double curTimeStamp, uint64_t curtick);// update tick fifo and update clock (timestamp) fifo;
-  double extraPolateRelativeTimeStamp(uint64_t tick);
+  bool pushIntoFifo(double curTimeStamp, uint64_t curtickTransmit, uint64_t curtickScan); // update tick fifo and update clock (timestamp) fifo;
+  double extraPolateRelativeTimeStamp(uint64_t cur_tick, uint64_t first_tick);
 
   bool getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint32_t tick);
   bool getCorrectedTimeStamp(uint32_t &sec, uint32_t &nanoSec, uint64_t tick);
@@ -63,11 +63,17 @@ public:
   void IsInitialized(bool val)
   { isInitialized = val; }
 
-  uint64_t FirstTick() const
-  { return firstTick; }
+  uint64_t FirstTickTransmit() const
+  { return firstTickTransmit; }
 
-  void FirstTick(uint64_t val)
-  { firstTick = val; }
+  void FirstTickTransmit(uint64_t val)
+  { firstTickTransmit = val; }
+
+  uint64_t FirstTickScan() const
+  { return firstTickScan; }
+
+  void FirstTickScan(uint64_t val)
+  { firstTickScan = val; }
 
   double FirstTimeStamp() const
   { return firstTimeStamp; }
@@ -93,8 +99,8 @@ public:
   void ExtrapolationDivergenceCounter(uint32_t val)
   { extrapolationDivergenceCounter = val; }
 
-  bool updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtick);
-  bool updatePLL(uint32_t sec, uint32_t nanoSec, uint64_t curtick);
+  bool updatePLL(uint32_t sec, uint32_t nanoSec, uint32_t curtickTransmit, uint32_t curtickScan);
+  bool updatePLL(uint32_t sec, uint32_t nanoSec, uint64_t curtickTransmit, uint64_t curtickScan);
 
   int findDiffInFifo(double diff, double tol);
 
@@ -112,16 +118,18 @@ private:
   int numberValInFifo;
   static const double MaxAllowedTimeDeviation;
   static const uint32_t MaxExtrapolationCounter;
-  uint64_t tickFifo[fifoSize]; //  = { 0 };
+  uint64_t tickFifoTransmit[fifoSize]; //  = { 0 }; // fifo of transmit timestamps in ticks
+  uint64_t tickFifoScan[fifoSize]; //  = { 0 }; // fifo of scan timestamps in ticks
   double clockFifo[fifoSize];
-  double lastValidTimeStamp;
+  double lastValidTimeStamp = 0;
   // uint64_t lastValidTick; // = 0;
-  bool isInitialized; // = false;
-  double dTAvgFeedback; // = 0.0;
-  double dClockDiffFeedBack; //  = 0.0;
-  double firstTimeStamp;
-  double allowedTimeDeviation;
-  uint64_t firstTick;
+  bool isInitialized = false;
+  double dTAvgFeedback = 0;
+  double dClockDiffFeedBack = 0;
+  double firstTimeStamp = 0;
+  double allowedTimeDeviation = 0;
+  uint64_t firstTickTransmit = 0;
+  uint64_t firstTickScan = 0;
   uint64_t lastcurtick = 0;
   uint32_t mostRecentSec;
   uint32_t mostRecentNanoSec;

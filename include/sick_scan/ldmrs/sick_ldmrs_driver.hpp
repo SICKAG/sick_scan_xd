@@ -116,7 +116,7 @@ public:
   void pubObjects(datatypes::ObjectList &objects);
 
 protected:
-  std::shared_ptr<diagnostic_updater::Updater> diagnostics_;
+  std::shared_ptr<diagnostic_updater::Updater> diagnostics_ = 0;
   void setData(BasicData& data);  // Callback for new data from the manager (scans etc.)
   void validate_flexres_resolution(int &res);
   void validate_flexres_start_angle(double &angle1, double &angle2);
@@ -132,7 +132,7 @@ private:
   rosPublisher<ros_sensor_msgs::PointCloud2> pub_;
   rosPublisher<sick_scan_msg::SickLdmrsObjectArray> object_pub_;
   // Diagnostics
-  DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::PointCloud2>>* diagnosticPub_;
+  DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::PointCloud2>>* diagnosticPub_ = 0;
   // Dynamic Reconfigure
   SickLDMRSDriverConfig config_;
 #if defined USE_DYNAMIC_RECONFIGURE && __ROS_VERSION == 1

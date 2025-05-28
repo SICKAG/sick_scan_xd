@@ -110,16 +110,22 @@ namespace sick_scan_xd
     void notifyImuListener(rosNodePtr handle, const ros_sensor_msgs::Imu* msg);
     void removeImuListener(rosNodePtr handle, ImuCallback listener);
     bool isImuListenerRegistered(rosNodePtr handle, ImuCallback listener);
+    const std::string& getImuTopic();
+    void setImuTopic(const std::string& topic);
 
     void addLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener);
     void notifyLIDoutputstateListener(rosNodePtr handle, const sick_scan_msg::LIDoutputstateMsg* msg);
     void removeLIDoutputstateListener(rosNodePtr handle, LIDoutputstateCallback listener);
     bool isLIDoutputstateListenerRegistered(rosNodePtr handle, LIDoutputstateCallback listener);
+    const std::string& getLIDoutputstateTopic();
+    void setLIDoutputstateTopic(const std::string& topic);
 
     void addLFErecListener(rosNodePtr handle, LFErecCallback listener);
     void notifyLFErecListener(rosNodePtr handle, const sick_scan_msg::LFErecMsg* msg);
     void removeLFErecListener(rosNodePtr handle, LFErecCallback listener);
     bool isLFErecListenerRegistered(rosNodePtr handle, LFErecCallback listener);
+    const std::string& getLFErecTopic();
+    void setLFErecTopic(const std::string& topic);
     
     void addLdmrsObjectArrayListener(rosNodePtr handle, SickLdmrsObjectArrayCallback listener);
     void notifyLdmrsObjectArrayListener(rosNodePtr handle, const sick_scan_msg::SickLdmrsObjectArray* msg);
@@ -130,11 +136,15 @@ namespace sick_scan_xd
     void notifyRadarScanListener(rosNodePtr handle, const sick_scan_msg::RadarScan* msg);
     void removeRadarScanListener(rosNodePtr handle, RadarScanCallback listener);
     bool isRadarScanListenerRegistered(rosNodePtr handle, RadarScanCallback listener);
+    const std::string& getRadarScanTopic();
+    void setRadarScanTopic(const std::string& topic);
 
     void addVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener);
     void notifyVisualizationMarkerListener(rosNodePtr handle, const ros_visualization_msgs::MarkerArray* msg);
     void removeVisualizationMarkerListener(rosNodePtr handle, VisualizationMarkerCallback listener);
     bool isVisualizationMarkerListenerRegistered(rosNodePtr handle, VisualizationMarkerCallback listener);
+    const std::string& getVisualizationMarkerTopic();
+    void setVisualizationMarkerTopic(const std::string& topic);
 
     void addNavPoseLandmarkListener(rosNodePtr handle, NAV350mNPOSDataCallback listener);
     void notifyNavPoseLandmarkListener(rosNodePtr handle, NAV350mNPOSData* navdata);
@@ -217,6 +227,16 @@ namespace sick_scan_xd
             return false;
         }
 
+        const std::string& getTopic()
+        {
+            return m_topic;
+        }
+        
+        void setTopic(const std::string& topic)
+        {
+            m_topic = topic;
+        }
+
         void clear()
         {
             std::unique_lock<std::mutex> lock(m_listeners_mutex);
@@ -233,6 +253,7 @@ namespace sick_scan_xd
 
         std::map<HandleType, std::list<callbackFunctionPtr>> m_listeners; // list of listeners
         std::mutex m_listeners_mutex; // mutex to protect access to m_listeners
+        std::string m_topic; // ros topic the message is published
 
     };  // class SickCallbackHandler
 
