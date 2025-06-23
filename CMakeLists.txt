@@ -112,11 +112,33 @@ endif()
 
 # ROS Version
 message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ENV{ROS_DISTRO}=$ENV{ROS_DISTRO} ROS_VERSION=${ROS_VERSION} CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
-if(DEFINED CMAKE_PREFIX_PATH AND ("${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/humble" OR "${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/iron" OR "${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/jazzy"))
-    set(ROS_VERSION 2)  # required for ROS2 humble/iron/jazzy bloom releases with jenkins buildfarm
-elseif(NOT DEFINED ROS_VERSION AND (EXISTS "/opt/ros/humble/setup.sh" OR EXISTS "/opt/ros/iron/setup.sh" OR EXISTS "/opt/ros/jazzy/setup.sh"))
-    set(ROS_VERSION 2)  # required for ROS2 humble/iron/jazzy bloom releases with jenkins buildfarm
+#
+# Ensure, that for ROS2 the ROS_VERSION is set to 2.
+#
+set(ROS2_DISTROS humble iron jazzy kilted)
+
+# Check if CMAKE_PREFIX_PATH matches any known ROS2 path
+if(DEFINED CMAKE_PREFIX_PATH)
+    foreach(distro IN LISTS ROS2_DISTROS)
+        if("${CMAKE_PREFIX_PATH}" STREQUAL "/opt/ros/${distro}")
+            set(ROS_VERSION 2)  # ROS 2 detected via CMAKE_PREFIX_PATH
+            break()
+        endif()
+    endforeach()
 endif()
+
+# If ROS_VERSION is not yet set, check for existing setup.sh files
+if(NOT DEFINED ROS_VERSION)
+    foreach(distro IN LISTS ROS2_DISTROS)
+        if(EXISTS "/opt/ros/${distro}/setup.sh")
+            set(ROS_VERSION 2)  # ROS 2 detected via existing setup.sh
+            break()
+        endif()
+    endforeach()
+endif()
+#
+#
+#
 if(NOT DEFINED ROS_VERSION AND DEFINED ENV{ROS_VERSION})
     set(ROS_VERSION $ENV{ROS_VERSION})
 endif()
