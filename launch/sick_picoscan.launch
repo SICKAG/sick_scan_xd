@@ -9,6 +9,7 @@
     <arg name="publish_frame_id" default="world" />                                 <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" = "world_1" -->
     <arg name="publish_laserscan_segment_topic" default="scan_segment" />           <!-- topic of ros Laserscan segment messages -->
     <arg name="publish_laserscan_fullframe_topic" default="scan_fullframe" />       <!-- topic of ros Laserscan fullframe messages -->
+    <arg name="publish_imu_frame_id" default="sick_imu" />                          <!-- frame id of ros IMU messages, default: "sick_imu" -->
     <arg name="imu_topic" default="imu" />                                          <!-- topic of ros IMU messages -->
     <arg name="udp_port" default="2115" />                                          <!-- default udp port for picoScan devices is 2115 -->
     <arg name="imu_udp_port" default="7503"/>                                       <!-- udp port for picoScan imu data (if imu_enable is true) -->
@@ -39,6 +40,7 @@
         <param name="all_segments_min_deg" type="double" value="$(arg all_segments_min_deg)" />              <!-- angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published,  -->
         <param name="all_segments_max_deg" type="double" value="$(arg all_segments_max_deg)" />              <!-- if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for multiScan136 (360 deg fullscan), -138...+138 for picoScan (fullscan) -->
         <param name="publish_frame_id" type="string" value="$(arg publish_frame_id)" />     <!-- frame id of ros PointCloud2 messages, default: "world_<layer-id>" = "world_1" -->
+        <param name="publish_imu_frame_id" type="string" value="$(arg publish_imu_frame_id)" />     <!-- frame id of ros IMU messages, default: "sick_imu" -->
         <param name="publish_laserscan_segment_topic" type="string" value="$(arg publish_laserscan_segment_topic)" />           <!-- topic of ros Laserscan segment messages -->
         <param name="publish_laserscan_fullframe_topic" type="string" value="$(arg publish_laserscan_fullframe_topic)" />       <!-- topic of ros Laserscan fullframe messages -->
         <param name="udp_input_fifolength" type="int" value="20" />                         <!-- max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->

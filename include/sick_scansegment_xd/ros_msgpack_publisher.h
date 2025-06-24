@@ -386,6 +386,7 @@ namespace sick_scansegment_xd
         bool m_active; // activate publishing
         rosNodePtr m_node; // ros node handle
         std::string m_frame_id;       // frame id of ros Laserscan messages, default: "world"
+        std::string m_imu_frame_id;   // frame_if of ros IMU messages, default: "sick_imu"
         float m_all_segments_azimuth_min_deg = -180;  // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 
         float m_all_segments_azimuth_max_deg = +180;  // if received segments cover azimuth angle range from m_all_segments_azimuth_min_deg to m_all_segments_azimuth_max_deg. -180...+180 for multiScan136 (360 deg fullscan)
         float m_all_segments_elevation_min_deg = 0;   // angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published, 

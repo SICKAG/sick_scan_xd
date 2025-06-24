@@ -135,6 +135,7 @@ namespace sick_scansegment_xd
         double all_segments_max_deg = +180;         // +180 // if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -180...+180 for MultiScan136 (360 deg fullscan)
 
         std::string publish_frame_id;               // = "world"; // frame id of ros Laserscan messages, default: "world"
+        std::string publish_imu_frame_id;           // = "sick_imu"; // frame id of ros IMU messages, default: "sick_imu"
         std::string publish_laserscan_segment_topic;   // topic of ros Laserscan segment messages
         std::string publish_laserscan_fullframe_topic; //topic of ros Laserscan fullframe messages
         int udp_input_fifolength;                   // = 20; // max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
