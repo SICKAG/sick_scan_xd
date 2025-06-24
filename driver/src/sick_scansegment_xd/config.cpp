@@ -146,6 +146,7 @@ sick_scansegment_xd::Config::Config()
     udp_sender = "";                    // Use "" (default) to receive msgpacks from any udp sender, use "127.0.0.1" to restrict to localhost (loopback device), or use the ip-address of a multiScan136 lidar or multiScan136 emulator
     udp_port = 2115;                    // default udp port for multiScan136 resp. multiScan136 emulator is 2115
     publish_frame_id = "world";            // frame id of ros Laserscan messages, default: "world_<layer-id>"
+    publish_imu_frame_id = "sick_imu";     // frame id of ros IMU messages, default: "sick_imu"
     publish_laserscan_segment_topic = "scan_segment";     // topic of ros Laserscan segment messages
     publish_laserscan_fullframe_topic = "scan_fullframe"; //topic of ros Laserscan fullframe messages
     udp_input_fifolength = 20;             // max. udp input fifo length (-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length
@@ -264,6 +265,7 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "all_segments_min_deg", all_segments_min_deg);
     ROS_DECL_GET_PARAMETER(node, "all_segments_max_deg", all_segments_max_deg);
     ROS_DECL_GET_PARAMETER(node, "publish_frame_id", publish_frame_id);
+    ROS_DECL_GET_PARAMETER(node, "publish_imu_frame_id", publish_imu_frame_id);
     ROS_DECL_GET_PARAMETER(node, "publish_laserscan_segment_topic", publish_laserscan_segment_topic);
     ROS_DECL_GET_PARAMETER(node, "publish_laserscan_fullframe_topic", publish_laserscan_fullframe_topic);
     ROS_DECL_GET_PARAMETER(node, "udp_input_fifolength", udp_input_fifolength);
@@ -410,6 +412,7 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "all_segments_min_deg", all_segments_min_deg);
     setOptionalArgument(cli_parameter_map, "all_segments_max_deg", all_segments_max_deg);
     setOptionalArgument(cli_parameter_map, "publish_frame_id", publish_frame_id);
+    setOptionalArgument(cli_parameter_map, "publish_imu_frame_id", publish_imu_frame_id);
     setOptionalArgument(cli_parameter_map, "publish_laserscan_segment_topic", publish_laserscan_segment_topic);
     setOptionalArgument(cli_parameter_map, "publish_laserscan_fullframe_topic", publish_laserscan_fullframe_topic);
     setOptionalArgument(cli_parameter_map, "udp_input_fifolength", udp_input_fifolength);
@@ -495,6 +498,7 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     ROS_INFO_STREAM("all_segments_min_deg:             " << all_segments_min_deg);
     ROS_INFO_STREAM("all_segments_max_deg:             " << all_segments_max_deg);
     ROS_INFO_STREAM("publish_frame_id:                 " << publish_frame_id);
+    ROS_INFO_STREAM("publish_imu_frame_id:             " << publish_imu_frame_id);
     ROS_INFO_STREAM("publish_laserscan_segment_topic:  " << publish_laserscan_segment_topic);
     ROS_INFO_STREAM("publish_laserscan_fullframe_topic:" << publish_laserscan_fullframe_topic);
     ROS_INFO_STREAM("udp_input_fifolength:             " << udp_input_fifolength);

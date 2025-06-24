@@ -267,7 +267,8 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 #endif
 {
 	m_active = false;
-  m_frame_id = config.publish_frame_id;
+  m_frame_id = config.publish_frame_id; 
+	m_imu_frame_id = config.publish_imu_frame_id;
 	m_node = config.node;
 	m_laserscan_layer_filter = config.laserscan_layer_filter;
 	// m_segment_count = config.segment_count;
@@ -934,7 +935,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 #else
 		imu_msg.header.stamp.nsec = msgpack_data.timestamp_nsec;
 #endif
-		imu_msg.header.frame_id = m_frame_id;
+		imu_msg.header.frame_id = m_imu_frame_id;
 		imu_msg.orientation.w = msgpack_data.imudata.orientation_w;
 		imu_msg.orientation.x = msgpack_data.imudata.orientation_x;
 		imu_msg.orientation.y = msgpack_data.imudata.orientation_y;
