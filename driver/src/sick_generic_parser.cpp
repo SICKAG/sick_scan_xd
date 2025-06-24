@@ -70,8 +70,9 @@
 #define _USE_MATH_DEFINES
 
 #include <math.h>
-#include <sick_scan/sick_scan_common.h>
-#include <sick_scan/sick_ros_wrapper.h>
+#include "sick_scan/sick_scan_common.h"
+#include "sick_scan/sick_ros_wrapper.h"
+#include "sick_scan/sick_lmd_scandata_parser.h"
 
 namespace sick_scan_xd
 {
@@ -1416,20 +1417,24 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     // 23: Starting angle (FFF92230)
     int starting_angle = -1;
     sscanf(fields[23], "%x", &starting_angle);
-    msg.angle_min = (float)((starting_angle / 10000.0) / 180.0 * M_PI - M_PI / 2);
-    // ROS_DEBUG("starting_angle: %d, angle_min: %f", starting_angle, msg.angle_min);
+   
 
     // 24: Angular step width (2710)
     unsigned short angular_step_width = -1;
     sscanf(fields[24], "%hx", &angular_step_width);
-    msg.angle_increment = (angular_step_width / 10000.0) / 180.0 * M_PI;
-    msg.angle_max = (float)(msg.angle_min + (number_of_data - 1) * msg.angle_increment);
 
+    double startAngleInDeg = (starting_angle / 10000.0);
+    double sizeOfSingleAngularStepInDeg = (angular_step_width / 10000.0);
+
+    SickGenericParser tmpParser(basicParams[scannerIdx].getScannerName());
+    sick_scan_xd::configureAngleParameters(msg,
+      startAngleInDeg,
+      sizeOfSingleAngularStepInDeg,
+      number_of_data,
+      &tmpParser);
     // 25: Number of data (<= 10F)
     // This is already determined above in number_of_data
-    int index_min = 0;
-
-#if 1  // neuer Ansatz
+    int indexMin = 0;
     int distNum = 0;
     int rssiNum = 0;
 
@@ -1447,7 +1452,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
       }
     }
     numEchos = distNum;
-#endif
+
     // 26 + n: RSSI data included
     // IF RSSI not included:
     //   26 + n + 1 .. 26 + n + 3 = unknown (but seems to be [0, 1, B] always)
@@ -1468,7 +1473,7 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
     // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
 #ifndef _MSC_VER  // TIMING in Simulation not correct
     double duration_sec = number_of_data * msg.time_increment
-        + index_min * msg.time_increment // shift forward to time of first published scan point
+        + indexMin * msg.time_increment // shift forward to time of first published scan point
         + config.time_offset; // add time offset (to account for USB latency etc.)
     msg.header.stamp = start_time - rosDurationFromSec(duration_sec); // rosDuration().fromSec(number_of_data * msg.time_increment);
 
