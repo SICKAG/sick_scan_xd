@@ -473,14 +473,46 @@ std::string sick_scansegment_xd::RosMsgpackPublisher::printCoverageTable(const s
 /** Shortcut to publish a PointCloud2Msg */
 void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation, const std::string& topic)
 {
-  if (coordinate_notation == 0) // coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i) => notify cartesian pointcloud listener
+
+  bool isCartesian = (coordinate_notation == 0);
+  if (!isCartesian) {
+  	  bool containsX = false;
+  	  bool containsY = false;
+  	  bool containsZ = false;
+  	  bool containsI = false;
+	  // investiage whether pointcloud_msg contains fields x,y,z,i
+  	  for (const auto& field : pointcloud_msg.fields) {
+		  if (field.name == "x") containsX = true;
+		  if (field.name == "y") containsY = true;
+		  if (field.name == "z") containsZ = true;
+		  if (field.name == "i") containsI = true;
+	  }
+  	isCartesian = containsX && containsY && containsZ && containsI;
+  }
+  if (isCartesian)
 	{
 		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx, topic);
 		notifyCartesianPointcloudListener(node, &cloud_msg_with_echo);
 	}
 #if defined RASPBERRY && RASPBERRY > 0 // polar pointcloud deactivated on Raspberry for performance reasons
 #else
-  if (coordinate_notation == 1) // coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i) => notify polar pointcloud listener
+  bool isPolar = (coordinate_notation == 1);
+  if (!isPolar) {
+	  bool containsAzimuth = false;
+	  bool containsElevation = false;
+	  bool containsR = false;
+      bool containsI = false;
+	  // investiage whether pointcloud_msg contains fields azimuth,elevation,r,i
+  	  for (const auto& field : pointcloud_msg.fields) {
+		  if (field.name == "azimuth") containsAzimuth = true;
+		  if (field.name == "elevation") containsElevation = true;
+  	  	  if (field.name == "i") containsI = true;
+		  if (field.name == "range") containsR = true;
+	  }
+  	  isPolar = containsAzimuth && containsElevation && containsR && containsI;
+  }
+
+  if (isPolar) // coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i) => notify polar pointcloud listener
 	{
 		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx, topic);
 		notifyPolarPointcloudListener(node, &cloud_msg_with_echo);
