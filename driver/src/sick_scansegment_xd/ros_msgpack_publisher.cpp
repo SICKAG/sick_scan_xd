@@ -470,24 +470,24 @@ std::string sick_scansegment_xd::RosMsgpackPublisher::printCoverageTable(const s
   return s.str();
 }
 
+bool sick_scansegment_xd::RosMsgpackPublisher::hasPointcloudRequiredFields(const PointCloud2Msg& pointcloud_msg, const std::unordered_set<std::string>& required_fields) const {
+	const size_t numRequiredFields = required_fields.size();
+	int found = 0;
+	for (const auto& field : pointcloud_msg.fields) {
+		if (required_fields.find(field.name) != required_fields.end()) {
+			found++;
+		}
+	}
+	return (found == numRequiredFields);
+}
+
 /** Shortcut to publish a PointCloud2Msg */
 void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation, const std::string& topic)
 {
 
   bool isCartesian = (coordinate_notation == 0);
   if (!isCartesian) {
-  	  bool containsX = false;
-  	  bool containsY = false;
-  	  bool containsZ = false;
-  	  bool containsI = false;
-	  // investiage whether pointcloud_msg contains fields x,y,z,i
-  	  for (const auto& field : pointcloud_msg.fields) {
-		  if (field.name == "x") containsX = true;
-		  if (field.name == "y") containsY = true;
-		  if (field.name == "z") containsZ = true;
-		  if (field.name == "i") containsI = true;
-	  }
-  	isCartesian = containsX && containsY && containsZ && containsI;
+  	 isCartesian = hasPointcloudRequiredFields(pointcloud_msg, MinimalCartesianPointCloudFields);
   }
   if (isCartesian)
 	{
@@ -498,18 +498,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr 
 #else
   bool isPolar = (coordinate_notation == 1);
   if (!isPolar) {
-	  bool containsAzimuth = false;
-	  bool containsElevation = false;
-	  bool containsR = false;
-      bool containsI = false;
-	  // investiage whether pointcloud_msg contains fields azimuth,elevation,r,i
-  	  for (const auto& field : pointcloud_msg.fields) {
-		  if (field.name == "azimuth") containsAzimuth = true;
-		  if (field.name == "elevation") containsElevation = true;
-  	  	  if (field.name == "i") containsI = true;
-		  if (field.name == "range") containsR = true;
-	  }
-  	  isPolar = containsAzimuth && containsElevation && containsR && containsI;
+	 isPolar = hasPointcloudRequiredFields(pointcloud_msg, MinimalPolarPointCloudFields);
   }
 
   if (isPolar) // coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i) => notify polar pointcloud listener
