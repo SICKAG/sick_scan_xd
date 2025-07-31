@@ -157,7 +157,7 @@ Summary of bloom release build:
             ./run_linux_ros1_bloom.bash
             ```
         * Fix any errors during the prerelease build and check in
-        * Repeat `./run_linux_ros1_bloom.bash` until the the prerelease build finishes without errors
+        * Repeat `./run_linux_ros1_bloom.bash` until the prerelease build finishes without errors
     * Alternative version:
         * Open http://prerelease.ros.org/noetic in the browser
         * Add a custom repository: `sick_scan_xd` , `https://github.com/SICKAG/sick_scan_xd` , `master` (or `feature/bloom_pretest` or any other branch to test)
@@ -206,7 +206,7 @@ Summary of bloom release build:
 
 4. For ROS 2 humble: Follow instructions on https://docs.ros.org/en/humble/How-To-Guides/Releasing/Releasing-a-Package.html
 
-**_NOTE:_** Bloom releases for ROS 2 foxy are not longer supported (Pull request failed, "This pull request changes files for a ROS distribution that is no longer supported (End Of Life)")
+**_NOTE:_** Bloom releases for ROS 2 foxy are no longer supported (Pull request failed, "This pull request changes files for a ROS distribution that is no longer supported (End Of Life)")
 
 * Submit package sick_scan_xd for indexing (ROS 2 humble)
   * Reset fork `https://github.com/<username>/rosdistro.git` to origin/master or delete the fork and create a new one -> `https://github.com/<username>/rosdistro.git`
@@ -240,7 +240,7 @@ Summary of bloom release build:
         ./run_linux_ros1_bloom.bash
         ```
     * Fix any errors during the prerelease build and check in
-    * Repeat `./run_linux_ros1_bloom.bash` until the the prerelease build finishes without errors
+    * Repeat `./run_linux_ros1_bloom.bash` until the prerelease build finishes without errors
 
 * Build a binary release: follow https://wiki.ros.org/bloom/Tutorials/FirstTimeRelease
     * Update version number in package.xml, minor version number should be incremented at least
@@ -761,7 +761,7 @@ After successful build and run, the message **SUCCESS: sick_scan_xd docker test 
 
 The docker container currently supports sick_scan_xd testing with ROS 1 noetic on Linux with a multiScan100, picoScan100 and MRS1000 emulators. Python script [sick_scan_xd_simu.py](python/sick_scan_xd_simu.py) runs the following steps to verify sick_scan_xd:
 
-* starts a tiny SOPAS test server to emulate SOPAS responses of a multiScan100, picoScan100 or MRS-1xxx,
+* starts a tiny SOPAS test server to emulate SOPAS responses of a multiScan100, picoScan100 or MRS1000,
 * launches sick_scan_xd,
 * starts rviz to display pointclouds and laserscan messages,
 * replays UDP packets with scan data, which previously have been recorded and converted to json-file,
@@ -884,7 +884,7 @@ Run the following steps to prepare scan data for sick_scan_xd testing:
    ```
    python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230911-picoscan-compact.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim --max_seconds=1 --save_udp_jsonfile=./src/sick_scan_xd/test/docker/data/picoscan_compact_test01_udp_scandata.json
    ```
-3. For lidars using SOPAS LMDscandata over TCP (e.g. MRS-1xxx): Convert the the pcapng-file to json file with [pcap_json_converter.py](test/docker/pcap_json_converter/pcap_json_converter.py).
+3. For lidars using SOPAS LMDscandata over TCP (e.g. MRS1000): Convert the pcapng-file to json file with [pcap_json_converter.py](test/docker/pcap_json_converter/pcap_json_converter.py).
    Example for MRS1000:
    ```
    python3 ./src/sick_scan_xd/test/pcap_json_converter/pcap_json_converter.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20211201_MRS_1xxx_IMU_with_movement.pcapng
