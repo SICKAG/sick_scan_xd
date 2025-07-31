@@ -158,6 +158,7 @@ Main features and characteristics:
   * [How can I convert a pcapng-file with scan data to a msgpack- or json-file?](#how-can-i-convert-a-pcapng-file-with-scan-data-to-a-msgpack--or-json-file)
 * [Troubleshooting and technical support](#troubleshooting-and-technical-support)
 * [Creators and contribution](#creators-and-contribution)
+* [License](#license)
 * [Keywords](#keywords)
 
 </details>
@@ -206,7 +207,7 @@ The driver supports Ethernet-IPv4-based communication with all of the following 
 > * ROS services are  not available for LD-MRS.
 > * LD-MRS is not supported on Windows.
 > * Publishing point cloud data requires ROS 1 or ROS 2. On native Linux and native Windows, point cloud data are exported via API.
-> * The driver is not tested on MAC.
+> * The driver is not tested on macOS.
 
 ## Getting started
 
@@ -266,7 +267,7 @@ Run the following steps for a quick start:
 
 ### Starting with a new SICK device
 
-The SICK device is delivered with a standard IP address `192.168.0.1`. Devices like picoScan100, multiScan100, LRS4000 and RMS1/2000 can easily accessed via web broswer: [192.168.0.1](http://192.168.0.1/#/). Please make sure, the used ethernet interface is part of the same subnet. The ethernet setting can be change on this page [http://192.168.0.1/#/configuration/ethernet](http://192.168.0.1/#/configuration/ethernet)
+The SICK device is delivered with a standard IP address `192.168.0.1`. Devices like picoScan100, multiScan100, LRS4000 and RMS1/2000 can be accessed through a web browser: [192.168.0.1](http://192.168.0.1/#/). Make sure the Ethernet interface is part of the same subnet. The Ethernet setting can be changed on this page [http://192.168.0.1/#/configuration/ethernet](http://192.168.0.1/#/configuration/ethernet).
 
 For other devices, please use [SICK SOPAS ET](https://www.sick.com/de/de/sopas-engineering-tool-2018/p/p367244) for Windows. When the tool is started, a search is performed which lists all Ethernet based SICK devices available in the network.
 
@@ -276,7 +277,7 @@ Double-click to select the device for the project.
 
 ![SOPAS select](doc/ipconfig/scanner_added.PNG "SOPAS select")
 
-Double click on the icon to open the configuration menu of the device. Select the network configuration menu and set the parameters by clicking on the save icon (red arrow).
+Double-click the icon to open the configuration menu of the device. Select the network configuration menu and set the parameters by clicking the save icon (red arrow).
 
 ![SOPAS save network](doc/ipconfig/set_config.PNG "SOPAS save network")
 
@@ -298,18 +299,18 @@ The IP address of the device can be changed with a customized launch file. The f
 roslaunch sick_scan_xd sick_new_ip.launch hostname:=192.168.0.1 new_IP:=192.168.0.100
 ```
 
-The launch file restarts the lidar after the address change and stops the sick_scan_xd node. After a few seconds of booting time the device is reachable under the new IP address. The Python script is experimental. It is known that some ethernet adapter are not fully supported. As a fallback solution you can always use the SOPAS ET software under Windows.
+The launch file restarts the lidar after the address change and stops the sick_scan_xd node. After a few seconds of boot time the device is reachable at the new IP address. The Python script is experimental. It is known that some Ethernet adapters are not fully supported. As a fallback you can always use the SOPAS ET software under Windows.
 
 ### Test connection (Linux)
 
-To test the settings under the Linux target system you can use netcat to check if a TCP connection to the device can be established `nc -z -v -w5 $SCANNERIPADDRESS 2112` the connection can be successfully established
+To test the settings on Linux you can use netcat to check whether a TCP connection to the device can be established: `nc -z -v -w5 $SCANNERIPADDRESS 2112`. The connection should be successfully established.
 
 ```sh
 @ubuntu:~S nc -z -v -w5 192.168.0.71 2112
 Connection to 192.168.0.71 2112 port [tcp/*] succeeded!
 ```
 
-unlike a ping, the connection attempt to the host PC is not successful
+Unlike a ping, the connection attempt to the host PC will fail.
 
 ```sh
 @ubuntu: ~$ nc -z-v -w5 192.168.0.110 2112
@@ -718,7 +719,7 @@ To install sick_scan_xd on Windows, follow the steps below:
    set _cmake_string=Visual Studio 17 2022
    set _msvc=Visual Studio 2022
    set _cmake_build_dir=build
-   REM Create the build directory if it doesnt exist
+   REM Create the build directory if it doesn't exist
    %_cmake_build_dir% mkdir %_cmake_build_dir%
    REM Navigate to the build directory
    pushd %_cmake_build_dir%
@@ -920,6 +921,13 @@ Use the following commands to run the sick_scan_xd driver for a specific device 
   * Linux ROS 2:    `ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
   * Windows native: `sick_generic_caller sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
   * Windows ROS 2:  `ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * `hostname` is the IP address of the lidar, `udp_receiver_ip` is the IP address of the receiver (i.e. the IP of the computer running sick_generic_caller).
+* For picoScan120:
+  * Linux native:   `sick_generic_caller sick_picoscan_120.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * Linux ROS 1:    `roslaunch sick_scan_xd sick_picoscan_120.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * Linux ROS 2:    `ros2 launch sick_scan_xd sick_picoscan_120.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * Windows native: `sick_generic_caller sick_picoscan_120.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * Windows ROS 2:  `ros2 launch sick_scan_xd sick_picoscan_120.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
   * `hostname` is the IP address of the lidar, `udp_receiver_ip` is the IP address of the receiver (i.e. the IP of the computer running sick_generic_caller).
 * For picoScan150:
   * Linux native:   `sick_generic_caller sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
@@ -2467,7 +2475,7 @@ Performance problems can have very different reasons. Notes to help with the eli
     python3 multiscan_perftest_player.py --dst_ip=192.168.1.27 --udp_port=2115 --repeat=1000 --send_rate=0 --force_delay=3.0e-3 --verbose=0 --prompt=0
     ```
 
-    Replace the example IP adresse `192.168.1.27` by the IP adresse of your Raspberry Pi. The result should look like the following screenshot:
+    Replace the example IP address `192.168.1.27` with the IP address of your Raspberry Pi. The result should look like the following screenshot:
 
     ![screenshot raspberry performance test](doc/screenshots/raspberry-perftest-02.png)
 
@@ -4607,6 +4615,10 @@ In case of application support please use [https://support.sick.com](https://sup
 ## Creators and contribution
 
 [Michael Lehning](http://www.lehning.de) on behalf of [SICK AG](https://www.sick.com/). This [documentation](/CONTRIBUTING.md) is intended to provide background information on the maintenance and extension of the repository.
+
+## License
+
+This project is licensed under the [Apache License 2.0](/LICENSE).
 
 ## Keywords
 
