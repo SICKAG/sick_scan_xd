@@ -60,7 +60,7 @@
 #include "sick_scan/sick_ros_wrapper.h"
 #include "sick_scansegment_xd/config.h"
 #include "sick_scansegment_xd/msgpack_exporter.h"
-
+#include <unordered_set>
 namespace sick_scansegment_xd
 {
     /*
@@ -97,6 +97,15 @@ namespace sick_scansegment_xd
         size_t fieldoffset = 0;  // offset in bytes in structure PointXYZRAEI32f
     };
 
+    /** @brief Set of field names for Cartesian pointclouds, i.e. pointclouds with fields x, y, z */
+    const std::unordered_set<std::string> MinimalCartesianPointCloudFields = {
+        "x", "y", "z"
+    };
+
+    /** @brief Set of field names for Polar pointclouds, i.e. pointclouds with fields azimuth, elevation, range */
+    const std::unordered_set<std::string> MinimalPolarPointCloudFields = {
+        "azimuth", "elevation", "range"
+    };
 
     /** @brief Configuration of customized pointclouds */
     class CustomPointCloudConfiguration
@@ -382,6 +391,9 @@ namespace sick_scansegment_xd
 
         /** Prints (elevation,azimuth) values of the coverage table of collected lidar points */
         std::string printCoverageTable(const std::map<int, std::map<int, int>>& elevation_azimuth_histograms);
+
+        /** Checks if a PointCloud2Msg has all required fields */
+        bool hasPointcloudRequiredFields(const PointCloud2Msg& pointcloud_msg, const std::unordered_set<std::string>& required_fields) const;
 
         bool m_active; // activate publishing
         rosNodePtr m_node; // ros node handle

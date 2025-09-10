@@ -1,5 +1,5 @@
 ####################################################
-# CMakeLists.txt for project sick_scan
+# CMakeLists.txt for project sick_scan_xd
 ####################################################
 cmake_minimum_required(VERSION 3.13)
 
@@ -33,7 +33,7 @@ else()
     set(BUILD_WITH_SCANSEGMENT_XD_SUPPORT ON CACHE BOOL "Build ${PROJECT_NAME} with SCANSEGMENT_XD support (ON) or without SCANSEGMENT_XD support (OFF)" FORCE)
 endif()
 
-# Linker option visibilty
+# Linker option visibility
 option(BUILD_LIB_HIDE_FUNCTIONS "Build ${PROJECT_NAME} library with function hiding except for SickScanApi-functions (ON) or without function hiding (OFF)" ON)
 if(VISIBILITY EQUAL 0)
     set(BUILD_LIB_HIDE_FUNCTIONS ON CACHE BOOL "Build ${PROJECT_NAME} library with function hiding except for SickScanApi-functions (ON) or without function hiding (OFF)" FORCE)
@@ -46,7 +46,7 @@ option(BUILD_DEBUG_TARGET "Build debug target (ON) or release (OFF)" ON) # OFF (
 
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic")
-# if(NOT WIN32) # Note: compiler option -Wshadow generates lots of warnings in ros header files. Therefore it's deactivated by default, but can be usefull for development and testing.
+# if(NOT WIN32) # Note: compiler option -Wshadow generates lots of warnings in ros header files. Therefore it's deactivated by default, but can be useful for development and testing.
 #     add_compile_options(-Wall -Wshadow -Wno-reorder -Wno-sign-compare -Wno-unused-local-typedefs -Wno-unused-parameter -Wno-unused-function -Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable)
 # endif()
 
@@ -333,6 +333,7 @@ if(ROS_VERSION EQUAL 2)
     find_package(nav_msgs REQUIRED)
     find_package(rclcpp REQUIRED)
     find_package(rosidl_default_generators REQUIRED)
+    ament_export_dependencies(rosidl_default_runtime)
     find_package(sensor_msgs REQUIRED)
     find_package(std_msgs REQUIRED)
     find_package(tf2 REQUIRED)
@@ -458,7 +459,7 @@ elseif(${BUILD_WITH_LDMRS_SUPPORT} OR BUILD_WITH_LDMRS_SUPPORT EQUAL ON)
         message(STATUS "SICK_LDMRS_LIBRARIES: ${SICK_LDMRS_LIBRARIES}")
         check_header_exists(${LDMRS_INCLUDES}/sick_ldmrs/manager.hpp sick_ldmrs/manager.hpp sick_ldmrs)
     else()
-        message(STATUS "package SickLDMR not found, ldmrs support disabled")
+        message(STATUS "package SickLDMRS not found, ldmrs support disabled")
         add_compile_options(-DLDMRS_SUPPORT=0)
     endif()
 else()
@@ -475,7 +476,7 @@ if(${BUILD_WITH_SCANSEGMENT_XD_SUPPORT} OR BUILD_WITH_SCANSEGMENT_XD_SUPPORT EQU
 else()
     message(STATUS "Building ${PROJECT_NAME} without SCANSEGMENT_XD support")
 endif()
- 
+
 if((${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) AND ROS_VERSION EQUAL 1)
     # emulator messages
     add_message_files(
@@ -653,9 +654,9 @@ if(ROS_VERSION EQUAL 1)
     target_link_libraries(${PROJECT_NAME}_shared_lib ${catkin_LIBRARIES})
 
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
-    
-    target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
-    
+
+    target_link_libraries(sick_generic_caller PUBLIC ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
+
     #
     #  radar_object_marker (receives radar msg. and publishes marker array for rviz or similar
     #
@@ -750,56 +751,51 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
     endif()
     add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
     if(ROS_VERSION EQUAL 0 AND NOT WIN32)
-        target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} "pthread") # pthread required for std::thread
+        target_link_libraries(sick_generic_caller PUBLIC ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} "pthread") # pthread required for std::thread
         target_link_options(sick_generic_caller PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
     else()    
-        target_link_libraries(sick_generic_caller ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
+        target_link_libraries(sick_generic_caller PUBLIC ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES})
     endif()
 
 endif()
 
 if(ROS_VERSION EQUAL 2)
+    target_link_libraries(${PROJECT_NAME}_lib PUBLIC
+      ${diagnostic_msgs_TARGETS}
+      ${geometry_msgs_TARGETS}
+      ${nav_msgs_TARGETS}
+      ${sensor_msgs_TARGETS}
+      ${std_msgs_TARGETS}
+      ${visualization_msgs_TARGETS}
+      rclcpp::rclcpp
 
-    ament_target_dependencies(
-        ${PROJECT_NAME}_lib
-        "rclcpp"
-        "sensor_msgs"
-        "std_msgs"
-        "geometry_msgs"
-        "diagnostic_msgs" 
-        "nav_msgs"
-        "visualization_msgs"
-        "tf2_ros"
-        "${diagnostic_updater_pkg}"
-        ${LDMRS_TARGET_DEPENDENCIES}
+      tf2_ros::tf2_ros
+      ${LDMRS_TARGET_DEPENDENCIES}
     )
 
-    ament_target_dependencies(
-        ${PROJECT_NAME}_shared_lib
-        "rclcpp"
-        "sensor_msgs"
-        "std_msgs"
-        "geometry_msgs"
-        "diagnostic_msgs" 
-        "nav_msgs"
-        "visualization_msgs"
-        "tf2_ros"
-        "${diagnostic_updater_pkg}"
-        ${LDMRS_TARGET_DEPENDENCIES}
+   target_link_libraries(${PROJECT_NAME}_shared_lib PUBLIC
+      ${diagnostic_msgs_TARGETS}
+      ${geometry_msgs_TARGETS}
+      ${nav_msgs_TARGETS}
+      ${sensor_msgs_TARGETS}
+      ${std_msgs_TARGETS}
+      ${visualization_msgs_TARGETS}
+      rclcpp::rclcpp
+
+      tf2_ros::tf2_ros
+      ${LDMRS_TARGET_DEPENDENCIES}
     )
 
-    ament_target_dependencies(
-        sick_generic_caller
-        "rclcpp"
-        "sensor_msgs"
-        "std_msgs"
-        "geometry_msgs"
-        "diagnostic_msgs"
-        "nav_msgs"
-        "visualization_msgs"
-        "tf2_ros"
-        "${diagnostic_updater_pkg}"
-        ${LDMRS_TARGET_DEPENDENCIES}
+    target_link_libraries(sick_generic_caller PUBLIC
+      ${diagnostic_msgs_TARGETS}
+      ${geometry_msgs_TARGETS}
+      ${nav_msgs_TARGETS}
+      ${sensor_msgs_TARGETS}
+      ${std_msgs_TARGETS}
+      ${visualization_msgs_TARGETS}
+      rclcpp::rclcpp
+      tf2_ros::tf2_ros
+      ${LDMRS_TARGET_DEPENDENCIES}
     )
 
     if(EXISTS "/opt/ros/eloquent" OR EXISTS "/opt/ros/foxy" OR EXISTS "/opt/ros/galactic") # rosidl_typesupport for ROS2 eloquent, foxy, galaxy
@@ -812,12 +808,12 @@ if(ROS_VERSION EQUAL 2)
     else() # rosidl_typesupport for ROS2 humble or later
         rosidl_get_typesupport_target(c_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_c")
         rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
-        target_link_libraries(${PROJECT_NAME}_lib "${c_typesupport_target}")
-        target_link_libraries(${PROJECT_NAME}_lib "${cpp_typesupport_target}")
-        target_link_libraries(${PROJECT_NAME}_shared_lib "${p_typesupport_target}")
-        target_link_libraries(${PROJECT_NAME}_shared_lib "${cpp_typesupport_target}")
-        target_link_libraries(sick_generic_caller "${c_typesupport_target}")
-        target_link_libraries(sick_generic_caller "${cpp_typesupport_target}")
+        target_link_libraries(${PROJECT_NAME}_lib PUBLIC "${c_typesupport_target}")
+        target_link_libraries(${PROJECT_NAME}_lib PUBLIC "${cpp_typesupport_target}")
+        target_link_libraries(${PROJECT_NAME}_shared_lib PUBLIC "${c_typesupport_target}")
+        target_link_libraries(${PROJECT_NAME}_shared_lib PUBLIC "${cpp_typesupport_target}")
+        target_link_libraries(sick_generic_caller PUBLIC "${c_typesupport_target}")
+        target_link_libraries(sick_generic_caller PUBLIC "${cpp_typesupport_target}")
     endif()
 
 endif()
@@ -825,7 +821,7 @@ endif()
 # Build test and usage example for sick_scan_xd_api
 # For ROS-1 and ROS-2:
 # - sick_scan_xd_api_test with is deactivated by default
-#   to avoid phtread dependencies for bloom releases
+#   to avoid pthread dependencies for bloom releases
 # - sick_scan_xd_api_test for development and test only
 # Native Windows and Linux (ROS_VERSION==0): 
 # - build sick_scan_xd_api_test (development, test and usage example)
@@ -949,7 +945,7 @@ if(ROS_VERSION EQUAL 2)
     install(TARGETS sick_generic_caller DESTINATION lib/${PROJECT_NAME})
     install(TARGETS ${PROJECT_NAME}_lib ${PROJECT_NAME}_shared_lib DESTINATION lib)
     install(DIRECTORY launch urdf meshes DESTINATION share/${PROJECT_NAME})
-        
+
     ament_package()        
 endif()
 
@@ -985,7 +981,7 @@ if((${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON) AND (NOT WIN32 OR ROS_VERSIO
         ${SICK_LDMRS_LIBRARIES}
         ${LIB_JSONCPP})
     target_include_directories(sick_scan_emulator PUBLIC test test/emulator/include)
-    if(NOT WIN32 AND NOT ROS_VERSION EQUAL 1)
+    if(NOT WIN32 AND NOT (ROS_VERSION EQUAL 1))
         target_link_libraries(sick_scan_emulator "pthread") # pthread required for std::thread
     endif()    
     if(ROS_VERSION EQUAL 1)
@@ -1019,13 +1015,13 @@ if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
         tools/test_server/src/test_server_cola_msg.cpp
         tools/test_server/src/test_server_ldmrs_msg.cpp
         tools/test_server/src/test_server_thread.cpp)
-    target_link_libraries(test_server ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} ${LIB_JSONCPP})
+    target_link_libraries(test_server PUBLIC ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} ${LIB_JSONCPP})
     target_include_directories(test_server PUBLIC test test/emulator/include)
-    if(NOT WIN32 AND NOT ROS_VERSION EQUAL 1)
-        target_link_libraries(test_server "pthread") # pthread required for std::thread
+    if(NOT WIN32 AND NOT (ROS_VERSION EQUAL 1))
+        target_link_libraries(test_server PUBLIC "pthread") # pthread required for std::thread
     endif()    
     if(ROS_VERSION EQUAL 2)
-        ament_target_dependencies(test_server "rclcpp" )
+        target_link_libraries(test_server PUBLIC rclcpp::rclcpp)
     endif()
     install(TARGETS 
         test_server

@@ -77,7 +77,7 @@ namespace sick_scan_xd
     /** Increments the number of packets received in the SoftwarePLL */
     void incSoftwarePLLPacketReceived();
 
-    void configureAngleParameters(sensor_msgs::LaserScan& msg,
+    void configureAngleParameters(ros_sensor_msgs::LaserScan& msg,
       double startAngle,
       double sizeOfSingleAngularStep,
       int numberOfItems,

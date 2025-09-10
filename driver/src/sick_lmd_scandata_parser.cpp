@@ -143,7 +143,7 @@ namespace sick_scan_xd
    * @param[in]  numberOfItems              The number of scan points (data items) in the scan.
    * @param[in]  parser                     Pointer to the parser providing scanner-specific parameters.
    */
-    void configureAngleParameters(sensor_msgs::LaserScan& msg,
+    void configureAngleParameters(ros_sensor_msgs::LaserScan& msg,
       double startAngle,
       double sizeOfSingleAngularStep,
       int numberOfItems,
