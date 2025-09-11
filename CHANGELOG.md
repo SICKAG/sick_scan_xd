@@ -5,6 +5,13 @@ features that will be removed in future versions **Removed** for deprecated feat
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
 ## Unreleased
+  - **fix** Relaxed required field test
+  - **update** Fix code block indentation in README
+  - **update** README: add layer suffixes explanation and general improvements
+  - **add** Extra frameid for IMU message
+  - **fix** ASCII parsing for TiM240
+  - **add** ROS2 kilted support
+  - **update** Optimized CMakeLists.txt (ROS2 distros as list)
 
 ## Released
 
