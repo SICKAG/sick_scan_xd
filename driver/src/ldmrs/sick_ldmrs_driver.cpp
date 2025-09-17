@@ -37,7 +37,13 @@
 
 #include <iostream>
 #include <memory>
+
+#if __has_include(<tf2/LinearMath/Quaternion.hpp>)
+#include <tf2/LinearMath/Quaternion.hpp>
+#else
 #include <tf2/LinearMath/Quaternion.h>
+#endif
+
 
 #include "sick_scan/ldmrs/sick_ldmrs_driver.hpp"
 #include <sick_scan/sick_generic_callback.h>
