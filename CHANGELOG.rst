@@ -2,6 +2,15 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+* Unreleased
+  * fix: Relaxed required field test
+  * update: Fix code block indentation in README
+  * update: README — add layer suffixes explanation and general improvements
+  * add: Extra frameid for IMU message, #471
+  * fix: ASCII parsing for TiM240, #478
+  * add: ROS2 kilted support
+  * update: Optimized CMakeLists.txt (ROS2 distros as list)
+
 Forthcoming
 -----------
 
