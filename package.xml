@@ -24,6 +24,7 @@
   <depend condition="$ROS_VERSION == 1">roslib</depend>
   <depend condition="$ROS_VERSION == 1">tf</depend>
 
+  <depend condition="$ROS_VERSION != 1">rclcpp</depend>
   <depend>diagnostic_msgs</depend>
   <depend>diagnostic_updater</depend>
   <depend>geometry_msgs</depend>

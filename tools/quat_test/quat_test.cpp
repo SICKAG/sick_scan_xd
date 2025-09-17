@@ -3,7 +3,11 @@
 //
 
 #include <stdio.h>
+#if __has_include(<tf2/LinearMath/Quaternion.hpp>)
+#include <tf2/LinearMath/Quaternion.hpp>
+#else
 #include <tf2/LinearMath/Quaternion.h>
+#endif
 #include <tf2/LinearMath/Matrix3x3.h>
 
 #define _USE_MATH_DEFINES

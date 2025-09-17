@@ -11,7 +11,7 @@ build_win64/
 build_linux/
 
 \.vs/
-
+\.vscode/
 src/sick_scan_common\.cpp~RF1a1a7142\.TMP
 
 launch/sick_mrs_6xxx_test\.launch

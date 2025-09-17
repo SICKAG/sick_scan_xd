@@ -9,7 +9,11 @@
 #include <dynamic_reconfigure/server.h>
 #include <sick_scan/tf_dynConfig.h>
 
+#if __has_include(<tf2/LinearMath/Quaternion.hpp>)
+#include <tf2/LinearMath/Quaternion.hpp>
+#else
 #include <tf2/LinearMath/Quaternion.h>
+#endif
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_eigen/tf2_eigen.h>
 
