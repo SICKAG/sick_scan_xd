@@ -267,7 +267,8 @@ sick_scansegment_xd::RosMsgpackPublisher::RosMsgpackPublisher(const std::string&
 #endif
 {
 	m_active = false;
-  m_frame_id = config.publish_frame_id;
+  m_frame_id = config.publish_frame_id; 
+	m_imu_frame_id = config.publish_imu_frame_id;
 	m_node = config.node;
 	m_laserscan_layer_filter = config.laserscan_layer_filter;
 	// m_segment_count = config.segment_count;
@@ -470,17 +471,38 @@ std::string sick_scansegment_xd::RosMsgpackPublisher::printCoverageTable(const s
   return s.str();
 }
 
+bool sick_scansegment_xd::RosMsgpackPublisher::hasPointcloudRequiredFields(const PointCloud2Msg& pointcloud_msg, const std::unordered_set<std::string>& required_fields) const {
+	const size_t numRequiredFields = required_fields.size();
+	int found = 0;
+	for (const auto& field : pointcloud_msg.fields) {
+		if (required_fields.find(field.name) != required_fields.end()) {
+			found++;
+		}
+	}
+	return (found == numRequiredFields);
+}
+
 /** Shortcut to publish a PointCloud2Msg */
 void sick_scansegment_xd::RosMsgpackPublisher::publishPointCloud2Msg(rosNodePtr node, PointCloud2MsgPublisher& publisher, PointCloud2Msg& pointcloud_msg, int32_t num_echos, int32_t segment_idx, int coordinate_notation, const std::string& topic)
 {
-  if (coordinate_notation == 0) // coordinateNotation=0: cartesian (default, pointcloud has fields x,y,z,i) => notify cartesian pointcloud listener
+
+  bool isCartesian = (coordinate_notation == 0);
+  if (!isCartesian) {
+  	 isCartesian = hasPointcloudRequiredFields(pointcloud_msg, MinimalCartesianPointCloudFields);
+  }
+  if (isCartesian)
 	{
 		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx, topic);
 		notifyCartesianPointcloudListener(node, &cloud_msg_with_echo);
 	}
 #if defined RASPBERRY && RASPBERRY > 0 // polar pointcloud deactivated on Raspberry for performance reasons
 #else
-  if (coordinate_notation == 1) // coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i) => notify polar pointcloud listener
+  bool isPolar = (coordinate_notation == 1);
+  if (!isPolar) {
+	 isPolar = hasPointcloudRequiredFields(pointcloud_msg, MinimalPolarPointCloudFields);
+  }
+
+  if (isPolar) // coordinateNotation=1: polar (pointcloud has fields azimuth,elevation,r,i) => notify polar pointcloud listener
 	{
 		sick_scan_xd::PointCloud2withEcho cloud_msg_with_echo(&pointcloud_msg, num_echos, segment_idx, topic);
 		notifyPolarPointcloudListener(node, &cloud_msg_with_echo);
@@ -934,7 +956,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 #else
 		imu_msg.header.stamp.nsec = msgpack_data.timestamp_nsec;
 #endif
-		imu_msg.header.frame_id = m_frame_id;
+		imu_msg.header.frame_id = m_imu_frame_id;
 		imu_msg.orientation.w = msgpack_data.imudata.orientation_w;
 		imu_msg.orientation.x = msgpack_data.imudata.orientation_x;
 		imu_msg.orientation.y = msgpack_data.imudata.orientation_y;

@@ -266,7 +266,11 @@ public:
 #include <std_msgs/msg/color_rgba.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
+#if __has_include(<tf2/LinearMath/Quaternion.hpp>)
+#include <tf2/LinearMath/Quaternion.hpp>
+#else
 #include <tf2/LinearMath/Quaternion.h>
+#endif
 #include <tf2_ros/transform_broadcaster.h>
 
 typedef rclcpp::Node::SharedPtr rosNodePtr;
@@ -473,6 +477,7 @@ public:
 */
 #if __ROS_VERSION == 2 // ROS 2
 #ifdef ROS_DIAGNOSTICS_UPDATER_AVAILABLE
+#include <rclcpp/rclcpp.hpp>
 #include <diagnostic_updater/diagnostic_updater.hpp> // part of diagnostic_msgs of ROS2, not available on ROS2-Windows until foxy patch 4
 #include <diagnostic_updater/publisher.hpp>
 #include <rcl_interfaces/msg/set_parameters_result.hpp>

@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>sick_scan_xd</name>
-  <version>3.7.0</version>
+  <version>3.8.0</version>
   <description>ROS 1 and 2 driver for SICK scanner</description>
   <maintainer email="ros.test@lehning.de">rostest</maintainer>
   <author email="michael.lehning@lehning.de">Michael Lehning</author>
@@ -24,6 +24,7 @@
   <depend condition="$ROS_VERSION == 1">roslib</depend>
   <depend condition="$ROS_VERSION == 1">tf</depend>
 
+  <depend condition="$ROS_VERSION != 1">rclcpp</depend>
   <depend>diagnostic_msgs</depend>
   <depend>diagnostic_updater</depend>
   <depend>geometry_msgs</depend>

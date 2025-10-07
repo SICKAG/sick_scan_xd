@@ -9,6 +9,7 @@
     <arg name="publish_frame_id" default="world" />                                 <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" -->
     <arg name="publish_laserscan_segment_topic" default="scan_segment" />           <!-- topic of ros Laserscan segment messages -->
     <arg name="publish_laserscan_fullframe_topic" default="scan_fullframe" />       <!-- topic of ros Laserscan fullframe messages -->
+    <arg name="publish_imu_frame_id" default="sick_imu" />                          <!-- frame id of ros IMU messages, default: "sick_imu" -->
     <arg name="imu_topic" default="imu" />                                          <!-- topic of ros IMU messages -->
     <arg name="udp_port" default="2115" />                                          <!-- default udp port for multiScan devices is 2115 -->
     <arg name="imu_udp_port" default="7503"/>                                       <!-- udp port for multiScan imu data (if imu_enable is true) -->
@@ -38,6 +39,7 @@
         <param name="check_udp_receiver_port" type="int" value="2116" />                    <!-- udp port to check udp_receiver_ip -->
         <param name="segment_count" type="int" value="12" />                                <!-- number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment -->
         <param name="publish_frame_id" type="string" value="$(arg publish_frame_id)" />     <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" -->
+        <param name="publish_imu_frame_id" type="string" value="$(arg publish_imu_frame_id)" />     <!-- frame id of ros IMU messages, default: "sick_imu" -->
         <param name="publish_laserscan_segment_topic" type="string" value="$(arg publish_laserscan_segment_topic)" />           <!-- topic of ros Laserscan segment messages -->
         <param name="publish_laserscan_fullframe_topic" type="string" value="$(arg publish_laserscan_fullframe_topic)" />       <!-- topic of ros Laserscan fullframe messages -->
         <param name="udp_input_fifolength" type="int" value="20" />                         <!-- max. udp input fifo length(-1: unlimited, default: 20 for buffering 1 second at 20 Hz), elements will be removed from front if number of elements exceeds the fifo_length -->

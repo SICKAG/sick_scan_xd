@@ -130,6 +130,84 @@ namespace sick_scan_xd
       return(angle_slightly_modified);
     }
 
+  /**
+   * @brief Configures the angle parameters of a LaserScan message based on scanner metadata.
+   *
+   * This function calculates and sets the `angle_min`, `angle_max`, and `angle_increment` values
+   * of a `sensor_msgs::LaserScan` message. It also handles scanner-specific adjustments such as
+   * angle mirroring, special cases for known scanner models, and the time increment for scan points.
+   *
+   * @param[out] msg                        The LaserScan message to populate with angle parameters.
+   * @param[in]  startAngle                 The start angle of the scan in degrees.
+   * @param[in]  sizeOfSingleAngularStep    The angular resolution (step size) in degress.
+   * @param[in]  numberOfItems              The number of scan points (data items) in the scan.
+   * @param[in]  parser                     Pointer to the parser providing scanner-specific parameters.
+   */
+    void configureAngleParameters(ros_sensor_msgs::LaserScan& msg,
+      double startAngle,
+      double sizeOfSingleAngularStep,
+      int numberOfItems,
+      SickGenericParser* parser)
+    {
+      auto params = parser->getCurrentParamPtr();
+
+      // Basic angle setup
+      msg.angle_min = startAngle / 180.0 * M_PI + params->getScanAngleShift();
+      msg.angle_increment = sizeOfSingleAngularStep / 180.0 * M_PI;
+      msg.angle_max = msg.angle_min + (numberOfItems - 1) * msg.angle_increment;
+
+      // Handle special time increment case (e.g., NAV-350)
+      if (msg.time_increment == 0)
+      {
+        msg.time_increment = fabs(params->getNumberOfLayers() * msg.scan_time * msg.angle_increment / (2.0 * M_PI));
+      }
+
+      const std::string& scannerName = params->getScannerName();
+
+      // Adjust angles for specific scanner models
+      if (scannerName == SICK_SCANNER_NAV_31X_NAME ||
+        scannerName == SICK_SCANNER_LRS_36x0_NAME ||
+        scannerName == SICK_SCANNER_OEM_15XX_NAME)
+      {
+        msg.angle_min = static_cast<float>(-M_PI);
+        msg.angle_max = static_cast<float>(+M_PI);
+        msg.angle_increment *= -1.0;
+
+        if (msg.angle_increment < 0.0)
+        {
+          // Ensure logical angle order when increment is negative
+          msg.angle_min = static_cast<float>(+M_PI);
+          msg.angle_max = static_cast<float>(-M_PI);
+        }
+      }
+      else if (params->getScanMirroredAndShifted())
+      {
+        // Mirror the scan angles if required
+        msg.angle_min *= -1.0;
+        msg.angle_increment *= -1.0;
+        msg.angle_max *= -1.0;
+      }
+
+      ROS_DEBUG_STREAM("process_dist: msg.angle_min=" << (msg.angle_min * 180.0 / M_PI)
+        << ", msg.angle_max=" << (msg.angle_max * 180.0 / M_PI)
+        << ", msg.angle_increment=" << (msg.angle_increment * 180.0 / M_PI));
+      // << ", scaleFactor=" << scaleFactor
+      // << ", scaleFactorOffset=" << scaleFactorOffset);
+
+      // Wrap-around avoidance
+      bool wrapAvoid = false;
+      if (check_near_plus_minus_pi(&(msg.angle_min)) ||
+        check_near_plus_minus_pi(&(msg.angle_max)))
+      {
+        wrapAvoid = true;
+      }
+
+      if (wrapAvoid)
+      {
+        msg.angle_increment = (msg.angle_max - msg.angle_min) / (numberOfItems - 1);
+      }
+    }
+
 
     /** Parse common result telegrams, i.e. parse telegrams of type LMDscandata received from the lidar */
     bool parseCommonBinaryResultTelegram(const uint8_t* receiveBuffer, int receiveBufferLength, short& elevAngleX200, double elevAngleTelegramValToDeg, double& elevationAngleInRad, rosTime& recvTimeStamp,
@@ -505,40 +583,9 @@ namespace sick_scan_xd
                             {
                               startAngle = startAngleDiv10000 / 10000.00;
                               sizeOfSingleAngularStep = sizeOfSingleAngularStepDiv10000 / 10000.0;
-                              sizeOfSingleAngularStep *= (M_PI / 180.0);
+                              
 
-                              msg.angle_min = startAngle / 180.0 * M_PI + parser_->getCurrentParamPtr()->getScanAngleShift(); // msg.angle_min = startAngle / 180.0 * M_PI - M_PI / 2;
-                              msg.angle_increment = sizeOfSingleAngularStep;
-                              msg.angle_max = msg.angle_min + (numberOfItems - 1) * msg.angle_increment;
-
-                              if(msg.time_increment == 0) // NAV-350
-                              {
-                                  msg.time_increment = fabs(parser_->getCurrentParamPtr()->getNumberOfLayers() * msg.scan_time * msg.angle_increment / (2.0 * M_PI));
-                              }
-
-                              if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_NAV_31X_NAME) == 0 
-                               || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_LRS_36x0_NAME) == 0
-                               || parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_OEM_15XX_NAME) == 0)
-                              {
-                                msg.angle_min = (float)(-M_PI);
-                                msg.angle_max = (float)(+M_PI);
-                                msg.angle_increment *= -1.0;
-                                if (msg.angle_increment < 0.0)
-                                {
-                                  // angle_min corresponds to start angle
-                                  // i.e. if angle_increment is negative, 
-                                  // the angle_min is greater than angle_max
-                                  msg.angle_min = (float)(+M_PI);
-                                  msg.angle_max = (float)(-M_PI);
-                                }
-                              }
-                              else if (parser_->getCurrentParamPtr()->getScanMirroredAndShifted()) // i.e. for SICK_SCANNER_LRS_36x0_NAME and SICK_SCANNER_NAV_31X_NAME
-                              {
-                                msg.angle_min *= -1.0;
-                                msg.angle_increment *= -1.0;
-                                msg.angle_max *= -1.0;
-
-                              }
+                              configureAngleParameters(msg, startAngle, sizeOfSingleAngularStep, numberOfItems, parser_);
                               ROS_DEBUG_STREAM("process_dist: msg.angle_min=" << (msg.angle_min*180/M_PI) << ", msg.angle_max=" << (msg.angle_max*180/M_PI) << ", msg.angle_increment=" << (msg.angle_increment*180/M_PI) << ", scaleFactor=" << scaleFactor << ", scaleFactorOffset=" << scaleFactorOffset);
 
                               // Avoid 2*PI wrap around, if (msg.angle_max - msg.angle_min - 2*PI) is slightly above 0.0 due to floating point arithmetics
@@ -583,15 +630,11 @@ namespace sick_scan_xd
                                   }
                                 }
 #endif
-                                //XXX
                               }
-
                             }
-                              break;
+                            break;
                             case process_rssi:
                             {
-                              // Das muss vom Protokoll abgeleitet werden. !!!
-
                               float *intensityPtr = NULL;
 
                               if (numberOfItems > 0)

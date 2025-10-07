@@ -4,198 +4,203 @@ Possible types are **Added** for new features. **Changed** for changes to the ex
 features that will be removed in future versions **Removed** for deprecated features that were removed in this release.
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
-## Unreleased
-
-## Released
+## Release v3.8.0
+  - **Added** Extra frameid for IMU message
+  - **Added** ROS2 kilted support
+  - **Changed** Fix code block indentation in README
+  - **Changed** README: add layer suffixes explanation and general improvements
+  - **Changed** Optimized CMakeLists.txt (ROS2 distros as list)
+  - **Fixed** Relaxed required field test
+  - **Fixed** ASCII parsing for TiM240
 
 ### Release v3.7.0
-  - **fix** TiM7xx fieldset settings and services, #394, #408
-  - **update** README.md and cmake requirements
+  - **Fixed** TiM7xx fieldset settings and services, #394, #408
+  - **Changed** README.md and cmake requirements
   - **change** Publish lferec messages latched, #420
-  - **fix** TCP connection timeout, #424
-  - **add** Support for LRS-4xxx IMU and contamination data, #418
-  - **update** Improved TiM-7xx field evaluation status after start, #420
-  - **update** Dockertests for ROS-1, ROS-2 and API
-  - **fix** Timestamp handling (corrected system time estimation from transmit vs. generation timestamps), #428
-  - **fix** Disable UDP-Parsing during reinitialisation
-  - **fix** ParameterAlreadyDeclaredException on reinitialisation
-  - **add** LaserScan messages encode reflector detection through high intensity values
-  - **update** user level and user password can be freely specified in the launch file. For picoScan, multiScan and LRS4xxx, the default user level is 4.
+  - **Fixed** TCP connection timeout, #424
+  - **Added** Support for LRS-4xxx IMU and contamination data, #418
+  - **Changed** Improved TiM-7xx field evaluation status after start, #420
+  - **Changed** Dockertests for ROS-1, ROS-2 and API
+  - **Fixed** Timestamp handling (corrected system time estimation from transmit vs. generation timestamps), #428
+  - **Fixed** Disable UDP-Parsing during reinitialisation
+  - **Fixed** ParameterAlreadyDeclaredException on reinitialisation
+  - **Added** LaserScan messages encode reflector detection through high intensity values
+  - **Changed** user level and user password can be freely specified in the launch file. For picoScan, multiScan and LRS4xxx, the default user level is 4.
 
 ### Release v3.6.0
-  - **add** Launchfiles and configuration for picoScan120
-  - **add** Optional AngleRangeFilter and IntervalFilter for picoScan
-  - **fix** Obsolete topic "/sick_multiscan/scan" removed
-  - **add** IMU automatically deactivated after receiving an error code for IMU activation from picoScan w/o addons
-  - **fix** Customization of hash values for authorization #366
-  - **fix** Replaced builtin_addressof expressions #370
-  - **add** Different UDP timeouts for state initial and running, improved UDP timeout handling
-  - **fix** Picoscan range_min value in laserScan message #382
-  - **add** Support for RMS2xxx LIDoutputstate telegrams
-  - **fix** sick_generic_caller debug assertion #385
-  - **add** Check of udp receiver ip at startup
-  - **add** cmake-option to overwrite optimization level
+  - **Added** Launchfiles and configuration for picoScan120
+  - **Added** Optional AngleRangeFilter and IntervalFilter for picoScan
+  - **Fixed** Obsolete topic "/sick_multiscan/scan" removed
+  - **Added** IMU automatically deactivated after receiving an error code for IMU activation from picoScan w/o addons
+  - **Fixed** Customization of hash values for authorization #366
+  - **Fixed** Replaced builtin_addressof expressions #370
+  - **Added** Different UDP timeouts for state initial and running, improved UDP timeout handling
+  - **Fixed** Picoscan range_min value in laserScan message #382
+  - **Added** Support for RMS2xxx LIDoutputstate telegrams
+  - **Fixed** sick_generic_caller debug assertion #385
+  - **Added** Check of udp receiver ip at startup
+  - **Added** cmake-option to overwrite optimization level
   - **change** Documentation restructured
-  - **add** Improved field evaluation TiM7xx, Tim7xxS (publish LIDinputstate messages, configuration and services for options FieldSetSelectionMethod and ActiveFieldSet)
-  - **add** PicoScan parameter add_transform_xyz_rpy #399
-  - **fix** LMS4000 encoder settings #403
-  - **fix** CMake-flag for target sick_scan_xd_api_dockertest #404
+  - **Added** Improved field evaluation TiM7xx, Tim7xxS (publish LIDinputstate messages, configuration and services for options FieldSetSelectionMethod and ActiveFieldSet)
+  - **Added** PicoScan parameter add_transform_xyz_rpy #399
+  - **Fixed** LMS4000 encoder settings #403
+  - **Fixed** CMake-flag for target sick_scan_xd_api_dockertest #404
   - **change** Merge PR #405 (typo) and PR #406 (sick_scan_xd_api_test)
 
 
 ### Release v3.5.0
-  - **add** Optional switch between "system timestamps" (default) and "tick timestamps"
-  - **add** Extract sick_scan_xd version from package.xml
-  - **add** Add git info to sick_scan_xd version
-  - **fix** #316 (blocking API-close in case of wrong ip-address)
-  - **add** #321, #310 (optional cmake-flag to set a calling convention for API calls)
-  - **add** Hector SLAM configuration and example for picoScan
-  - **add** Correction angle shift settings for LRS-36x0 and OEM-15xx
-  - **add** Update FAQ (Network settings etc.)
-  - **add** Integration PR #347 (NAV350 landmarks)
-  - **add** Support for 3D-SLAM (OctoMap, RTAB-Map, timestamps for each scanpoint for deskewing, configuration example for multiScan)
-  - **add** customisations for gcc 13 (Ubuntu 24)
-  - **add** Update for bloom releases ROS-2 iron and jazzy
-  - **add** Configuration multiScan interval filter via launchfile (#352)
-  - **add** SPDX licence text (PR #354)
-  - **fix** Fix #355 (API launchfile parsing error)
-  - **add** Example configurations for parallel operation multi and picoScan
+  - **Added** Optional switch between "system timestamps" (default) and "tick timestamps"
+  - **Added** Extract sick_scan_xd version from package.xml
+  - **Added** Add git info to sick_scan_xd version
+  - **Fixed** #316 (blocking API-close in case of wrong ip-address)
+  - **Added** #321, #310 (optional cmake-flag to set a calling convention for API calls)
+  - **Added** Hector SLAM configuration and example for picoScan
+  - **Added** Correction angle shift settings for LRS-36x0 and OEM-15xx
+  - **Added** Update FAQ (Network settings etc.)
+  - **Added** Integration PR #347 (NAV350 landmarks)
+  - **Added** Support for 3D-SLAM (OctoMap, RTAB-Map, timestamps for each scanpoint for deskewing, configuration example for multiScan)
+  - **Added** customisations for gcc 13 (Ubuntu 24)
+  - **Added** Update for bloom releases ROS-2 iron and jazzy
+  - **Added** Configuration multiScan interval filter via launchfile (#352)
+  - **Added** SPDX licence text (PR #354)
+  - **Fixed** Fix #355 (API launchfile parsing error)
+  - **Added** Example configurations for parallel operation multi and picoScan
 
 ### Release v3.4.0
-  - **add** azimuth angle table for MRS-1xxx and LMS-1xxx with firmware 2.2.0 oder newer
-  - **add** dockertests for MRS-1xxx, multiScan and picoScan with ROS-2
-  - **add** API-funktion SickScanApiSendSOPAS to send SOPAS commands (e.g. "sRN SCdevicestate" or "sRN ContaminationResult")
-  - **add** generation of TF messages
-  - **add** Option to deactivate initialization sequence for TiM-7xxS devices
-  - **add** Documented option "-b master"  to clone the release version
-  - **fix** #316 API re-init nach close
+  - **Added** azimuth angle table for MRS-1xxx and LMS-1xxx with firmware 2.2.0 oder newer
+  - **Added** dockertests for MRS-1xxx, multiScan and picoScan with ROS-2
+  - **Added** API-funktion SickScanApiSendSOPAS to send SOPAS commands (e.g. "sRN SCdevicestate" or "sRN ContaminationResult")
+  - **Added** generation of TF messages
+  - **Added** Option to deactivate initialization sequence for TiM-7xxS devices
+  - **Added** Documented option "-b master"  to clone the release version
+  - **Fixed** #316 API re-init nach close
 
 ### Release v3.3.0
 
-  - **add** Option for MRS1xxx azimuth correction table
-  - **add** Support for picoScan100 (single echo w/o addons)
-  - **add** API logging functions and verbosity (#270)
-  - **add** API documentation (multiple lidars not supported, #281)
+  - **Added** Option for MRS1xxx azimuth correction table
+  - **Added** Support for picoScan100 (single echo w/o addons)
+  - **Added** API logging functions and verbosity (#270)
+  - **Added** API documentation (multiple lidars not supported, #281)
   - **change** API extended (added topic in PointCloud messages, #271)
 
 ### Release v3.2.0
 
-  - **add** IMU support for multiScan and picoScan
-  - **add** support bloom releases for ROS-2 humble
-  - **add** docker tests for ROS1 noetic incl. testcases for multiScan, picoScan, MRS1xxx
-  - **add** PR #255, support picoScan performance profiles
+  - **Added** IMU support for multiScan and picoScan
+  - **Added** support bloom releases for ROS-2 humble
+  - **Added** docker tests for ROS1 noetic incl. testcases for multiScan, picoScan, MRS1xxx
+  - **Added** PR #255, support picoScan performance profiles
   - **change** configuration time flag LMDscandatacfg switched off for the TiM240
-  - **fix** #218 (API reinit)
-  - **fix** #220 (Fullframe Laserscan messages multi- and picoScan)
-  - **fix** #221 (No scandata while activated scan range filter)
-  - **fix** #222 (rviz visualization of polar pointclouds)
-  - **fix** #247 (Launchfile option for laserscan topic)
-  - **fix** #256 (Clean API-exit picoScan and multiScan)
-  - **fix** #260 (Provide API-functions to query lidar status, error codes and error messages)
+  - **Fixed** #218 (API reinit)
+  - **Fixed** #220 (Fullframe Laserscan messages multi- and picoScan)
+  - **Fixed** #221 (No scandata while activated scan range filter)
+  - **Fixed** #222 (rviz visualization of polar pointclouds)
+  - **Fixed** #247 (Launchfile option for laserscan topic)
+  - **Fixed** #256 (Clean API-exit picoScan and multiScan)
+  - **Fixed** #260 (Provide API-functions to query lidar status, error codes and error messages)
 
 ### Release v3.1.0
 
-  - **add** IMU support for multiScan
-  - **add** LaserScan output for picoScan
-  - **fix** API reinit
-  - **fix** multiScan data output with range filter activated
-  - **fix** adapt multiScan startup and shutdown sequence
-  - **fix** adaptations for MRS-1000 v2 firmware
+  - **Added** IMU support for multiScan
+  - **Added** LaserScan output for picoScan
+  - **Fixed** API reinit
+  - **Fixed** multiScan data output with range filter activated
+  - **Fixed** adapt multiScan startup and shutdown sequence
+  - **Fixed** adaptations for MRS-1000 v2 firmware
 
 ### Release v3.0.0
 
 This release has a new major version as it breaks with the previously used ROS module name "sick_scan".
 For consistency, the ROS module name has been changed to "sick_scan_xd" to match the name used everywhere else.
 
-  - **add** New topics for additional data and properties
-  - **add** Official ARM64 support
-  - **add** Service for requesting contamination detection information
+  - **Added** New topics for additional data and properties
+  - **Added** Official ARM64 support
+  - **Added** Service for requesting contamination detection information
   - **change** Improvements from customer tickets and documentation enhancements
-  - **fix** ROS module name consistency
+  - **Fixed** ROS module name consistency
 
 ### Release v2.10.3
-  - **fix** avoid problems with min/max definition in the STL and preprocessor definitions
+  - **Fixed** avoid problems with min/max definition in the STL and preprocessor definitions
 
 ### Release v2.10.2
-  - **fix** correct picoScan details in documentation and launch files
+  - **Fixed** correct picoScan details in documentation and launch files
 
 ### Release v2.10.1
-  - **update** make Compact format the default for picoScan and multiScan
+  - **Changed** make Compact format the default for picoScan and multiScan
 
 ### Release v2.10.0
-  - **add** picoScan support
-  - **add** Compact format support
-  - **add** LMS4000 encoder setting support
-  - **fix** multiScan angle range filter parameter unit
-  - **fix** MRS1104 diagnostic message
-  - **fix** TiM781S login
+  - **Added** picoScan support
+  - **Added** Compact format support
+  - **Added** LMS4000 encoder setting support
+  - **Fixed** multiScan angle range filter parameter unit
+  - **Fixed** MRS1104 diagnostic message
+  - **Fixed** TiM781S login
 
 ### v2.9.1 - Angle correction
-  - **Fix** Angle correction (min/max angle settings), fix #166
-  - **Fix** TiM240 initialization (start measurement)
+  - **Fixed** Angle correction (min/max angle settings), fix #166
+  - **Fixed** TiM240 initialization (start measurement)
   - **Added** Documentation for Interlacing mode
 
 ### v2.9.0 - RMSxxxx support and NAV350 support
   - **Added** RMSxxxx support, unification of RMS-1xxx and RMS-2xxx Note: RMSxxxx supports ASCII-communication mode only (Cola-A).
-  - **Update** #159 (nav310 angle setting compability), merge with NAV310 angle settings branch https://github.com/SICKAG/sick_scan_xd/tree/159-nav310-angle-setting-compability
-  - **Update** Documentation LD-LRS3600,LD-LRS3601,LD-LRS3611,LD-OEM1500,LD-OEM1501 support
-  - **Update** Removed obsolete RMS-3xx
+  - **Changed** #159 (nav310 angle setting compability), merge with NAV310 angle settings branch https://github.com/SICKAG/sick_scan_xd/tree/159-nav310-angle-setting-compability
+  - **Changed** Documentation LD-LRS3600,LD-LRS3601,LD-LRS3611,LD-OEM1500,LD-OEM1501 support
+  - **Changed** Removed obsolete RMS-3xx
   - **Added** NAV350 support
-  - **Update** Merge lms511_field_mon (fix lms511 field parsing and wait api), default_echo_setting (activate last echo by default), monitoring_ros2_qos (ROS2 QoS configuration), scansegment_xd_support (update build instructions), rename-mrs100-multiscan, rename-fullframe-topic
+  - **Changed** Merge lms511_field_mon (fix lms511 field parsing and wait api), default_echo_setting (activate last echo by default), monitoring_ros2_qos (ROS2 QoS configuration), scansegment_xd_support (update build instructions), rename-mrs100-multiscan, rename-fullframe-topic
 
 ### v2.8.15 - Release Jan. 2023
-  - **Update** Win64 build instructions
-  - **Update** API documentation, driver states diagrams and typos
+  - **Changed** Win64 build instructions
+  - **Changed** API documentation, driver states diagrams and typos
   - **Added**  LRS-36xx configuration for upside-down mounting
   - **Removed** Obsolete service commands and RMS3xx support
-  - **Fix** LRS-36xx angle configuration
-  - **Fix** catkin_lint warnings
-  - **Fix** ROS-2 Humble build
+  - **Fixed** LRS-36xx angle configuration
+  - **Fixed** catkin_lint warnings
+  - **Fixed** ROS-2 Humble build
 
 ### v2.8.14 - Laserscan messages for multiScan136
-  - **Update** Laserscan messages for multiScan136 lidar, #96
+  - **Changed** Laserscan messages for multiScan136 lidar, #96
 
 ### v2.8.13 - Dynamical pointcloud transform and QoS configuration
-  - **Update** Configuration of ROS quality of service by launchfile, #101
-  - **Update** Dynamical configuration of an additional pointcloud transform by rosparam, #104
+  - **Changed** Configuration of ROS quality of service by launchfile, #101
+  - **Changed** Dynamical configuration of an additional pointcloud transform by rosparam, #104
 
 ### v2.8.11 - LMS 1xxx support
-  - **Update** LMS 1xxx support with scan configuration (scan frequency and angular resolution for firmware 2.x)
+  - **Changed** LMS 1xxx support with scan configuration (scan frequency and angular resolution for firmware 2.x)
 
 ### v2.8.10 - RMS ascii emulator and tests
-  - **Update** RMS ascii emulator and tests
-  - **Update** RMS2xxx support
+  - **Changed** RMS ascii emulator and tests
+  - **Changed** RMS2xxx support
 
 ### v2.8.9 - MRS-1000 layer angle conversion, improved MRS 1xxx support
   - **Fixed** MRS-1000 layer angle conversion for slam support
 
 ### v2.8.8 - RMS1xxx Cola-ASCII support
-  - **Update** Update for RMS1xxx Cola-ASCII support
+  - **Changed** Update for RMS1xxx Cola-ASCII support
 
 ### v2.8.7 - Range filter
-  - **Update** Range filter settings, #98 and #108
-  - **Update** Preparation for RMS1xxx support (tutorial, preparation for RMS1/RMS2, not activated)
+  - **Changed** Range filter settings, #98 and #108
+  - **Changed** Preparation for RMS1xxx support (tutorial, preparation for RMS1/RMS2, not activated)
 
 ### v2.8.6 - multiScan136 update
-  - **Update** multiScan136 update for 16-bit RSSI and modified SOPAS startup sequence
+  - **Changed** multiScan136 update for 16-bit RSSI and modified SOPAS startup sequence
 
 ### v2.8.5 - LRS4000 update
-  - **Update** LRS4000 extended configuration (glare detection sensitivity, echo-, mean-, median-filter)
+  - **Changed** LRS4000 extended configuration (glare detection sensitivity, echo-, mean-, median-filter)
   - **Added** ROS-2 usage example
 
 ### v2.8.4 - Generic API
-  - **Update** Fix of version number
+  - **Changed** Fix of version number
   - **Added**  GETTINGSTARTED.md
 
 ### v2.8.3 - Generic API
-  - **Update** Update for ROS-2 Humble and docker container
-  - **Update** Integrate API feedback, documentation and minimalistic usage examples
+  - **Changed** Update for ROS-2 Humble and docker container
+  - **Changed** Integrate API feedback, documentation and minimalistic usage examples
   - **Added** Minimalistic API usage examples (Python, C, C++)
-  - **Update** Documentation
-  - **Update** Doxygen and numpy.docstring support
+  - **Changed** Documentation
+  - **Changed** Doxygen and numpy.docstring support
   - **Fixed** Compiler warnings (Visual Studio)
-  - **Update** README.md restructured
-  - **Update** Collected update including previous v2.8.x changes
+  - **Changed** README.md restructured
+  - **Changed** Collected update including previous v2.8.x changes
 
 ### v2.8.2 - development branch
   - **Fixed** Update build instructions in README.md, visualization in python API-example with low frequency to reduce cpu usage.
@@ -228,10 +233,10 @@ For consistency, the ROS module name has been changed to "sick_scan_xd" to match
   - **Fixed** Merge pull request #76
 
 ### v2.6.7 -
-  - **Update** LMS511 configuration #67
+  - **Changed** LMS511 configuration #67
 
 ### v2.6.6 -
-  - **Update** NAV310 + LRS4xxx update, issues #58, #59, #60, #61
+  - **Changed** NAV310 + LRS4xxx update, issues #58, #59, #60, #61
 
 ### v2.6.5 -
   - **Fixed** LRS4xxx scan configuration #52

@@ -104,6 +104,7 @@ Main features and characteristics:
     * [MSGPACK validation](#msgpack-validation)
     * [Firewall configuration](#firewall-configuration)
     * [Reflector detection](#reflector-detection)
+    * [TF frame IDs and layer suffixes (picoScan / multi-layer devices)](#tf-frame-ids-and-layer-suffixes-picoscan--multi-layer-devices)
   * [TiMxxx](#timxxx)
   * [NAV350](#nav350)
     * [Process loop](#process-loop)
@@ -158,6 +159,7 @@ Main features and characteristics:
   * [How can I convert a pcapng-file with scan data to a msgpack- or json-file?](#how-can-i-convert-a-pcapng-file-with-scan-data-to-a-msgpack--or-json-file)
 * [Troubleshooting and technical support](#troubleshooting-and-technical-support)
 * [Creators and contribution](#creators-and-contribution)
+* [License](#license)
 * [Keywords](#keywords)
 
 </details>
@@ -206,7 +208,7 @@ The driver supports Ethernet-IPv4-based communication with all of the following 
 > * ROS services are  not available for LD-MRS.
 > * LD-MRS is not supported on Windows.
 > * Publishing point cloud data requires ROS 1 or ROS 2. On native Linux and native Windows, point cloud data are exported via API.
-> * The driver is not tested on MAC.
+> * The driver is not tested on macOS.
 
 ## Getting started
 
@@ -266,7 +268,7 @@ Run the following steps for a quick start:
 
 ### Starting with a new SICK device
 
-The SICK device is delivered with a standard IP address `192.168.0.1`. Devices like picoScan100, multiScan100, LRS4000 and RMS1/2000 can easily accessed via web broswer: [192.168.0.1](http://192.168.0.1/#/). Please make sure, the used ethernet interface is part of the same subnet. The ethernet setting can be change on this page [http://192.168.0.1/#/configuration/ethernet](http://192.168.0.1/#/configuration/ethernet)
+The SICK device is delivered with a standard IP address `192.168.0.1`. Devices like picoScan100, multiScan100, LRS4000 and RMS1/2000 can be accessed through a web browser: [192.168.0.1](http://192.168.0.1/#/). Make sure the Ethernet interface is part of the same subnet. The Ethernet setting can be changed on this page [http://192.168.0.1/#/configuration/ethernet](http://192.168.0.1/#/configuration/ethernet).
 
 For other devices, please use [SICK SOPAS ET](https://www.sick.com/de/de/sopas-engineering-tool-2018/p/p367244) for Windows. When the tool is started, a search is performed which lists all Ethernet based SICK devices available in the network.
 
@@ -276,7 +278,7 @@ Double-click to select the device for the project.
 
 ![SOPAS select](doc/ipconfig/scanner_added.PNG "SOPAS select")
 
-Double click on the icon to open the configuration menu of the device. Select the network configuration menu and set the parameters by clicking on the save icon (red arrow).
+Double-click the icon to open the configuration menu of the device. Select the network configuration menu and set the parameters by clicking the save icon (red arrow).
 
 ![SOPAS save network](doc/ipconfig/set_config.PNG "SOPAS save network")
 
@@ -298,18 +300,18 @@ The IP address of the device can be changed with a customized launch file. The f
 roslaunch sick_scan_xd sick_new_ip.launch hostname:=192.168.0.1 new_IP:=192.168.0.100
 ```
 
-The launch file restarts the lidar after the address change and stops the sick_scan_xd node. After a few seconds of booting time the device is reachable under the new IP address. The Python script is experimental. It is known that some ethernet adapter are not fully supported. As a fallback solution you can always use the SOPAS ET software under Windows.
+The launch file restarts the lidar after the address change and stops the sick_scan_xd node. After a few seconds of boot time the device is reachable at the new IP address. The Python script is experimental. It is known that some Ethernet adapters are not fully supported. As a fallback you can always use the SOPAS ET software under Windows.
 
 ### Test connection (Linux)
 
-To test the settings under the Linux target system you can use netcat to check if a TCP connection to the device can be established `nc -z -v -w5 $SCANNERIPADDRESS 2112` the connection can be successfully established
+To test the settings on Linux you can use netcat to check whether a TCP connection to the device can be established: `nc -z -v -w5 $SCANNERIPADDRESS 2112`. The connection should be successfully established.
 
 ```sh
 @ubuntu:~S nc -z -v -w5 192.168.0.71 2112
 Connection to 192.168.0.71 2112 port [tcp/*] succeeded!
 ```
 
-unlike a ping, the connection attempt to the host PC is not successful
+Unlike a ping, the connection attempt to the host PC will fail.
 
 ```sh
 @ubuntu: ~$ nc -z-v -w5 192.168.0.110 2112
@@ -718,7 +720,7 @@ To install sick_scan_xd on Windows, follow the steps below:
    set _cmake_string=Visual Studio 17 2022
    set _msvc=Visual Studio 2022
    set _cmake_build_dir=build
-   REM Create the build directory if it doesnt exist
+   REM Create the build directory if it doesn't exist
    %_cmake_build_dir% mkdir %_cmake_build_dir%
    REM Navigate to the build directory
    pushd %_cmake_build_dir%
@@ -920,6 +922,13 @@ Use the following commands to run the sick_scan_xd driver for a specific device 
   * Linux ROS 2:    `ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
   * Windows native: `sick_generic_caller sick_multiscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
   * Windows ROS 2:  `ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * `hostname` is the IP address of the lidar, `udp_receiver_ip` is the IP address of the receiver (i.e. the IP of the computer running sick_generic_caller).
+* For picoScan120:
+  * Linux native:   `sick_generic_caller sick_picoscan_120.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * Linux ROS 1:    `roslaunch sick_scan_xd sick_picoscan_120.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * Linux ROS 2:    `ros2 launch sick_scan_xd sick_picoscan_120.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * Windows native: `sick_generic_caller sick_picoscan_120.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
+  * Windows ROS 2:  `ros2 launch sick_scan_xd sick_picoscan_120.launch.py hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
   * `hostname` is the IP address of the lidar, `udp_receiver_ip` is the IP address of the receiver (i.e. the IP of the computer running sick_generic_caller).
 * For picoScan150:
   * Linux native:   `sick_generic_caller sick_picoscan.launch hostname:=<ip-address> udp_receiver_ip:=<ip-address>`
@@ -1942,16 +1951,16 @@ The API provides the following functions for diagnostics:
 
   * C++ example:
 
-      ```c++
+```c++
      char sopas_response_buffer[1024] = { 0 };
      SickScanApiSendSOPAS(apiHandle, "sRN SCdevicestate", &sopas_response_buffer[0], (int32_t)sizeof(sopas_response_buffer); // returns "sRA SCdevicestate \x00" in sopas_response_buffer
-     ```
+```
 
   * Python example:
 
-      ```python
+```python
      sopas_response = SickScanApiSendSOPAS(sick_scan_library, api_handle, "sRN SCdevicestate")` # returns "sRA SCdevicestate \x00".
-      ```
+```
 
    See the telegram listing for valid SOPAS commands.
 
@@ -1967,7 +1976,7 @@ Open a new terminal and run the following steps to test the api against a TiM7xx
 
 1. Build library `libsick_scan_xd_shared_lib.so` incl. emulator with option `-DCMAKE_ENABLE_EMULATOR=1`:
 
-   ```sh
+```sh
    mkdir -p ./src/build
    pushd ./src/build
    rm -rf ./*
@@ -1975,24 +1984,24 @@ Open a new terminal and run the following steps to test the api against a TiM7xx
    make -j4
    ls -al libsick_scan_xd_shared_lib.so sick_scan_xd_api_test sick_generic_caller sick_scan_emulator # list size and date of the binaries
    popd
-   ```
+```
 
    Building sick_scan_xd with option `-DCMAKE_ENABLE_EMULATOR=1` requires jsoncpp. Install libjsoncpp by running "sudo apt-get install libjsoncpp-dev" on Linux resp. "vcpkg install jsoncpp:x64-windows" on Windows (vcpkg required). Run the following steps to install Visual Studios package manager vcpkg on Windows:
 
    * Download vcpkg-master.zip from <https://github.com/microsoft/vcpkg/archive/master.zip> and unzip to `c:\vcpkg`. Alternatively, run `git clone https://github.com/microsoft/vcpkg"`
    * Install vcpkg by running the following commands:
 
-     ```sh
+```sh
      cd c:/vcpkg
      bootstrap-vcpkg.bat
      vcpkg integrate install
-     ```
+```
 
    * Include vcpkg in your path:
 
-     ```sh
+```sh
      set PATH=c:\vcpkg;%PATH%
-     ```
+```
 
 2. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
 
@@ -2000,18 +2009,18 @@ Open a new terminal and run the following steps to test the api against a TiM7xx
 
 4. Start the TiM7xx simulator:
 
-   ```sh
+```sh
    cp -f ./src/sick_scan_xd/test/emulator/scandata/sopas_et_field_test_1_2_both_010.pcapng.json /tmp/lmd_scandata.pcapng.json
    ./src/build/sick_scan_emulator ./src/sick_scan_xd/test/emulator/launch/emulator_01_default.launch &
    sleep 1
-   ```
+```
 
 5. Run sick_scan_xd_api_test.py against the TiM7xx simulator on localhost:
 
-   ```sh
+```sh
    export PYTHONPATH=.:./src/sick_scan_xd/python/api:$PYTHONPATH
    python3 ./src/sick_scan_xd/test/python/sick_scan_xd_api/sick_scan_xd_api_test.py ./src/sick_scan_xd/launch/sick_tim_7xx.launch hostname:=127.0.0.1 port:=2111 sw_pll_only_publish:=False
-   ```
+```
 
 6. Start rviz and visualize the point cloud on topic "/sick_scan_xd_api_test/api_cloud".
 
@@ -2429,20 +2438,20 @@ Performance problems can have very different reasons. Notes to help with the eli
 
 2. Eliminate multiple echos. For most lidars, the echo filter is activated by default and only the last echo is transmitted. Check the launch file configuration and set parameter `filter_echos` if not yet done:
 
-    ```xml
+```xml
     <param name="filter_echos" type="int" value="2"/> <!-- FREchoFilter settings: 0: first echo, 1: all echos, 2: last echo -->
-    ```
+```
 
     For multican lidars, the echo filter is activated in the launch file by parameter `host_FREchoFilter`:
 
-    ```xml
+```xml
     <param name="host_FREchoFilter" type="int" value="2" />          <!-- Optionally set FREchoFilter with 0 for FIRST_ECHO (default, EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1) -->
     <param name="host_set_FREchoFilter" type="bool" value="True" />  <!-- If true, FREchoFilter is set at startup (default: false) -->
-    ```
+```
 
 3. Run a basic performance test on ROS 2 using a tiny SOPAS test server and a UDP player to emulate a multiscan:
 
-    ```sh
+```sh
     # Start multiScan100 emulator (sopas test server)
     python3 ./src/sick_scan_xd/test/python/multiscan_sopas_test_server.py --tcp_port=2111 --cola_binary=0 &
     # Start rviz
@@ -2453,24 +2462,24 @@ Performance problems can have very different reasons. Notes to help with the eli
     sleep 3
     # Play udp packets to emulate multiScan
     python3 ./src/sick_scan_xd/test/python/multiscan_perftest_player.py --udp_port=2115 --repeat=100 --send_rate=100 --verbose=0 --prompt=0
-    ```
+```
 
     The result should look like the follwing screenshot:
-
+    
     ![screenshot raspberry performance test](doc/screenshots/raspberry-perftest-01.png)
-
+    
     If you otherwise observe the loss of UDP packets, message drops, missing  point clouds or mean latency times significantly higher than 6 milliseconds/message, check the system load of your Raspberry and try to eliminate CPU or network intensive processes.
 
 4. Start sick_scan_xd and the SOPAS test server on the Raspberry as above, but run the UDP player `multiscan_perftest_player.py` on another PC in your local subnet, e.g.
 
-    ```sh
+```sh
     python3 multiscan_perftest_player.py --dst_ip=192.168.1.27 --udp_port=2115 --repeat=1000 --send_rate=0 --force_delay=3.0e-3 --verbose=0 --prompt=0
-    ```
+```
 
-    Replace the example IP adresse `192.168.1.27` by the IP adresse of your Raspberry Pi. The result should look like the following screenshot:
-
+    Replace the example IP address `192.168.1.27` with the IP address of your Raspberry Pi. The result should look like the following screenshot:
+    
     ![screenshot raspberry performance test](doc/screenshots/raspberry-perftest-02.png)
-
+    
     If you otherwise observe the loss of UDP packets, message drops, missing  point clouds or mean latency times significantly higher than 6 milliseconds/message, check the system load of your Raspberry and try to eliminate CPU or network intensive processes. sick_scan_xd (i.e. process sick_generic_caller) should consume ca. 80% of one core resp. cause ca. 20% of the total CPU load.
 
 #### Build without internet or GitHub access
@@ -2516,28 +2525,28 @@ Run the following steps to install and run docker on Linux:
    * Follow the instructions on <https://docs.docker.com/desktop/install/ubuntu/>,
    * or (recommended) install Docker without Docker Desktop by running
 
-      ```sh
+```sh
       pushd /tmp
       curl -fsSL https://get.docker.com -o get-docker.sh
       sudo sh get-docker.sh
       sudo usermod -aG docker $USER
       popd
-      ```
+```
 
 2. Reboot
 3. Quick test: Run
 
-    ```sh
+```sh
     docker --version
     docker info
     docker run hello-world
-    ```
+```
 
 4. Optionally install pandoc to generate html reports:
 
-    ```sh
+```sh
    sudo apt-get install pandoc
-    ```
+```
 
 5. Optionally start "Docker Desktop" if installed (not required). Note:
    * "Docker Desktop" is not required to build and run sick_scan_xd in docker container, and
@@ -2590,31 +2599,31 @@ Run the following steps to build and run sick_scan_xd for ROS 1 noetic in a dock
 
 1. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
 
-   ```sh
+```sh
    mkdir -p ./sick_scan_ws
    cd ./sick_scan_ws
-   ```
+```
 
 2. Clone repository <https://github.com/SICKAG/sick_scan_xd>:
 
-   ```sh
+```sh
    mkdir ./src
    pushd ./src
    git clone -b master https://github.com/SICKAG/sick_scan_xd.git
    popd
-   ```
+```
 
    If you want to test sources from a different branch or repository, just replace the git call resp. the git url.
 3. Create a docker image named `sick_scan_xd/ros1_noetic` from dockerfile [src/sick_scan_xd/test/docker/dockerfile_linux_ros1_noetic_sick_scan_xd](dockerfile_linux_ros1_noetic_sick_scan_xd) with local sources in folder `./src/sick_scan_xd`:
 
-   ```sh
+```sh
    docker build --progress=plain -t sick_scan_xd/ros1_noetic -f ./src/sick_scan_xd/test/docker/dockerfile_linux_ros1_noetic_sick_scan_xd .
    docker images -a # list all docker images
-   ```
+```
 
 4. Run docker image `sick_scan_xd/ros1_noetic` and test sick_scan_xd with a simulated multiScan100 lidar:
 
-   ```sh
+```sh
    # Allow docker to display rviz
    xhost +local:docker
    # Run sick_scan_xd simulation in docker container sick_scan_xd/ros1_noetic
@@ -2623,12 +2632,12 @@ Run the following steps to build and run sick_scan_xd for ROS 1 noetic in a dock
    docker_exit_status=$?
    echo -e "docker_exit_status = $docker_exit_status"
    if [ $docker_exit_status -eq 0 ] ; then echo -e "\nSUCCESS: sick_scan_xd docker test passed\n" ; else echo -e "\n## ERROR: sick_scan_xd docker test FAILED\n" ; fi
-   ```
+```
 
   If all tests were passed, i.e. all expected point cloud-, Laserscan- and IMU-messages have been verified, docker returns with exit status 0 and the message `SUCCESS: sick_scan_xd docker test passed` is displayed. Otherwise docker returns with an error code and the message `## ERROR: sick_scan_xd docker test FAILED` is displayed.
 5. To optionally cleanup and uninstall all containers and images, run the following commands:
 
-   ```sh
+```sh
    docker ps -a -q # list all docker container
    docker stop $(docker ps -a -q)
    docker rm $(docker ps -a -q)
@@ -2636,7 +2645,7 @@ Run the following steps to build and run sick_scan_xd for ROS 1 noetic in a dock
    docker volume prune -f
    docker images -a # list all docker images
    # docker rmi -f $(docker images -a) # remove all docker images
-   ```
+```
 
    This will remove **all** docker logfiles, images, containers and caches.
 
@@ -2821,37 +2830,37 @@ Run the following steps to build and run OctoMap and sick_scan_xd with a multiSc
 
 1. Clone OctoMap + sick_scan_xd:
 
-    ```sh
+```sh
     pushd src
     git clone https://github.com/SICKAG/sick_scan_xd.git
     git clone https://github.com/OctoMap/octomap_ros.git
     git clone https://github.com/OctoMap/octomap_msgs.git
     git clone https://github.com/OctoMap/octomap_mapping.git
     popd
-    ```
+```
 
 2. Set topic and frame_id for multiScan100 in octomap_mapping.launch:
 
-    ```xml
+```xml
     <param name="frame_id" type="string" value="world" />
     <remap from="cloud_in" to="/cloud_unstructured_fullframe" />
-    ```
+```
 
 3. Build:
 
-    ```sh
+```sh
     rm -rf ./build ./devel ./install ./build_isolated ./devel_isolated ./install_isolated ./log
     catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -Wno-dev
-    ```
+```
 
 4. Run OctoMap + sick_scan_xd:
 
-    ```sh
+```sh
     # Run sick_scan_xd + multiScan100
     roslaunch sick_scan_xd sick_multiscan.launch hostname:="192.168.0.1" udp_receiver_ip:=" 192.168.0.100"
     # Run octomap_server
     roslaunch octomap_server octomap_mapping.launch
-    ```
+```
 
     Replace parameter "hostname" with the IP address of the multiScan100 lidar and "udp_receiver_ip" with the IP address of the PC running sick_scan_xd.
 5. Visualize OctoMap with rviz:
@@ -2859,15 +2868,15 @@ Run the following steps to build and run OctoMap and sick_scan_xd with a multiSc
     * Add Map topic "/projected_map“ (gray 2D Projection)
 6. Save the OctoMap:
 
-    ```sh
+```sh
     rosrun octomap_server octomap_saver -f ./octomap_multiscan.bt
-    ```
+```
 
 7. Publish the saved OctoMap:
 
-    ```sh
+```sh
     rosrun octomap_server octomap_server_node ./octomap_multiscan.bt
-    ```
+```
 
 The following screenshot shows an example of an octomap created from a multiScan100 point cloud:
 
@@ -2883,7 +2892,7 @@ Run the following steps to build rtabmap and sick_scan_xd with on ROS 1:
 
 1. Build the prerequisites for RTAB-Map:
 
-    ```sh
+```sh
     sudo apt-get install libboost-all-dev
     sudo apt-get install libeigen3-dev
     sudo apt-get install libsdl-image1.2-dev
@@ -2912,11 +2921,11 @@ Run the following steps to build rtabmap and sick_scan_xd with on ROS 1:
     popd
     sudo ldconfig
     popd
-    ```
+```
 
 2. Build RTAB-Map and sick_scan_xd in your workspace:
 
-    ```sh
+```sh
     pushd src
     git clone https://github.com/ros-planning/navigation.git
     git clone https://github.com/ros-planning/navigation_msgs.git
@@ -2926,7 +2935,7 @@ Run the following steps to build rtabmap and sick_scan_xd with on ROS 1:
     rm -rf ./build ./devel ./install ./build_isolated ./devel_isolated ./install_isolated ./log
     catkin_make_isolated --install --cmake-args -DROS_VERSION=1 -Wno-dev
     sudo ldconfig
-    ```
+```
 
 Run `sudo ldconfig` if you encounter errors while loading shared libraries. Note that building rtabmap with libpointermatch is highly recommended.
 
@@ -2966,7 +2975,7 @@ Building rtabmap and sick_scan_xd on ROS 2 is similar to ROS 1. Run the followin
 
 1. Build the prerequisites for RTAB-Map:
 
-    ```sh
+```sh
     sudo apt-get install libboost-all-dev
     sudo apt-get install libeigen3-dev
     sudo apt-get install libsdl-image1.2-dev
@@ -2999,11 +3008,11 @@ Building rtabmap and sick_scan_xd on ROS 2 is similar to ROS 1. Run the followin
     popd
     sudo ldconfig
     popd
-    ```
+```
 
 2. Build RTAB-Map and sick_scan_xd in your workspace:
 
-    ```sh
+```sh
     pushd src
     git clone --branch ros2 https://github.com/introlab/rtabmap_ros.git rtabmap_ros
     git clone https://github.com/SICKAG/sick_scan_xd.git
@@ -3012,7 +3021,7 @@ Building rtabmap and sick_scan_xd on ROS 2 is similar to ROS 1. Run the followin
     rm -rf ./build ./devel ./install ./build_isolated ./devel_isolated ./install_isolated ./log
     colcon build --symlink-install --cmake-args " -DROS_VERSION=2" " -DCMAKE_ENABLE_EMULATOR=1" "-DCMAKE_BUILD_TYPE=Release" --event-handlers console_direct+
     sudo ldconfig
-    ```
+```
 
 #### Run RTAB-MAP and multiScan100 on ROS 2
 
@@ -3415,6 +3424,20 @@ For the `PointCloud2` topic, the reflector information is encoded into a seperat
 
 * Reflector field value without reflector: `0` (`uint8`)
 * Reflector field value with reflector: `1` (`uint8`)
+
+#### TF frame IDs and layer suffixes (picoScan / multi-layer devices)
+
+By default, sick_scan_xd appends the layer number to frame_id (e.g. world → world_1). If TF only has map → world, rviz shows no data.  
+
+
+This is **intended** so that downstream consumers (rviz, SLAM, fusion, etc.) can distinguish layers.
+
+Example for checking the current frame id under ROS2:
+
+```bash
+ros2 topic echo -n 1 /scan | grep frame_id
+```
+
 
 ### TiMxxx
 
@@ -4149,15 +4172,15 @@ Pointcloud callbacks defined in the [API](#generic-driver-api) are called the sa
 4. Close all applications, which are not necessary (like IDE, browser, git client)
 5. Setup Tracking algorithm
 
-   ```sh
+```sh
    top
-   ```
+```
 
 6. Record data
 
-   ```sh
+```sh
    rosrun rosbag record record -o combi -a
-   ```
+```
 
 #### RMS1000 and LMS1000
 
@@ -4167,10 +4190,10 @@ Run the following steps:
 
 1. Connect RMS1000 and LMS1000 and start sick_scan_xd with launch files sick_lms_1xxx.launch and sick_rms_xxxx.launch:
 
-   ```sh
+```sh
    roslaunch sick_scan_xd sick_lms_1xxx.launch
    roslaunch sick_scan_xd sick_rms_xxxx.launch
-   ```
+```
 
    Make sure, that different ROS node names and different IP-addresses are used.
    The following rviz screenshot shows both pointclouds:
@@ -4182,9 +4205,9 @@ Run the following steps:
 
 2. Start a ROS static_transform_publisher to convert radar frames (frame id `/radar`) to lidar frames (frame id `/cloud`):
 
-   ```sh
+```sh
    rosrun tf static_transform_publisher 0 0 0 0 0 0 /cloud /radar 100
-   ```
+```
 
    Using this transform, rviz displays both the radar and lidar pointcloud:
 
@@ -4222,27 +4245,27 @@ Use `ifconfig -a` on Linux resp. `ipconfig /all` on Windows to view network sett
 
 1. Try to ping your device:
 
-   ```bash
+```bash
    ping 192.168.0.1
-   ```
+```
 
 2. Disconnect your device and retry ping
 
-   ```bash
+```bash
    ping 192.168.0.1
-   ```
+```
 
    The result of ping contains a pattern like
 
-   ```bash
+```bash
     ... Destination Host Unreachable
-   ```
+```
 
 3. Reconnect your device and try to ping:
 
-   ```bash
+```bash
    ping 192.168.0.1
-   ```
+```
 
 If the IP addresses are unknown try to find the IP addresses of your PC and your lidar in your subnet:
 
@@ -4607,6 +4630,10 @@ In case of application support please use [https://support.sick.com](https://sup
 ## Creators and contribution
 
 [Michael Lehning](http://www.lehning.de) on behalf of [SICK AG](https://www.sick.com/). This [documentation](/CONTRIBUTING.md) is intended to provide background information on the maintenance and extension of the repository.
+
+## License
+
+This project is licensed under the [Apache License 2.0](/LICENSE).
 
 ## Keywords
 
