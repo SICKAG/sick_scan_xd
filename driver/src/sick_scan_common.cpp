@@ -2759,7 +2759,7 @@ namespace sick_scan_xd
           // Here we get the reply to "sRN LMPscancfg". We use this reply to set the scan configuration (frequency, start and stop angle)
           // for the following "sMN mCLsetscancfglist" and "sMN mLMPsetscancfg ..." commands
           int cfgListEntry = 1;
-          // rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
+          rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
           rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
           sopasCmdVec[CMD_SET_SCAN_CFG_LIST] = "\x02sMN mCLsetscancfglist " + std::to_string(cfgListEntry) + "\x03"; // set scan config from list for NAX310  LD - OEM15xx LD - LRS36xx
           sopasCmdVec[CMD_SET_SCANDATACONFIGNAV] = ""; // set start and stop angle by LMPscancfgToSopas()
@@ -2900,7 +2900,7 @@ namespace sick_scan_xd
           // scanconfig handling with list
           char requestsMNmCLsetscancfglist[MAX_STR_LEN];
           int cfgListEntry = 1;
-          //rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
+          rosDeclareParam(nh, "scan_cfg_list_entry", cfgListEntry);
           rosGetParam(nh, "scan_cfg_list_entry", cfgListEntry);
           // Uses sprintf-Mask to set bitencoded echos and rssi enable flag
           const char *pcCmdMask = sopasCmdMaskVec[CMD_SET_SCAN_CFG_LIST].c_str();
