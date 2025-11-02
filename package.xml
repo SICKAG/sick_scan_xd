@@ -15,6 +15,7 @@
   <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
   <buildtool_depend condition="$ROS_VERSION != 1">ament_cmake</buildtool_depend>
 
+  <build_depend>ros_environment</build_depend>  <!-- Supplies ROS_VERSION environment variable -->
   <build_depend condition="$ROS_VERSION == 1">message_generation</build_depend>
   <build_depend condition="$ROS_VERSION != 1">rosidl_default_generators</build_depend>
 
@@ -52,4 +53,3 @@
 
   <member_of_group condition="$ROS_VERSION != 1">rosidl_interface_packages</member_of_group>
 </package>
-
