@@ -536,6 +536,7 @@ namespace sick_scan_xd
     public:
         std::string frame_id = "cloud";
         std::string imu_frame_id = "imu_link";
+        bool listen_only_mode = false;
         bool intensity = true; // false;
         bool auto_reboot = false;
         double min_ang = -M_PI / 2;

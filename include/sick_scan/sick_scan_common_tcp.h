@@ -116,6 +116,10 @@ namespace sick_scan_xd
 
     SopasEventMessage findFrameInReceiveBuffer();
 
+    bool getListenOnlyMode() const; // in listen mode do not open a  tcp connection (just list to incoming UDP packets)
+
+    void setListenOnlyMode(bool _listenOnlyMode); // set listen only mode
+
     void processFrame(rosTime timeStamp, SopasEventMessage &frame);
 
     int reinit(rosNodePtr nh, int delay_millisec);
@@ -178,7 +182,7 @@ namespace sick_scan_xd
 
     bool m_beVerbose;
     bool m_emulSensor;
-
+    bool m_listenOnlyMode; // listen only mode - disable tcp connection
     //boost::asio::io_service io_service_;
     //boost::asio::deadline_timer deadline_;
     //boost::asio::streambuf input_buffer_;

@@ -581,6 +581,10 @@ namespace sick_scan_xd
     rosDeclareParam(nh, "cloud_output_mode", config_.cloud_output_mode);
     rosGetParam(nh, "cloud_output_mode", config_.cloud_output_mode);
 
+    rosDeclareParam(nh, "listen_only_mode", config_.listen_only_mode);
+    rosGetParam(nh, "listen_only_mode", config_.listen_only_mode);
+
+
     double expected_frequency_tolerance = 0.1; // frequency should be target +- 10%
     rosDeclareParam(nh, "expected_frequency_tolerance", expected_frequency_tolerance);
     rosGetParam(nh, "expected_frequency_tolerance", expected_frequency_tolerance);

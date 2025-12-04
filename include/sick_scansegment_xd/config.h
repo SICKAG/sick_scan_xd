@@ -167,7 +167,7 @@ namespace sick_scansegment_xd
         int sopas_timeout_ms;                       // Timeout for SOPAS response in milliseconds, default: 5000
         int user_level = 3;                         // Default User Level (for picoScan, multiScan: 4)
         std::string user_level_password = "F4724744";  // Default password for client authorization
-
+        bool listen_only_mode = false;             // Flag to activate "listen only mode"
         // MSR100 filter settings
         bool host_read_filtersettings;             // True  // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true
         int host_FREchoFilter;                     // 1     // Optionally set FREchoFilter with 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)
