@@ -173,7 +173,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
     ROS_INFO_STREAM("sick_scansegment_xd::runThreadCb() start (" << __LINE__ << "," << (int)m_run_scansegment_thread << "," << (int)rosOk() << ")...");
     if(!m_config.logfolder.empty() && m_config.logfolder != ".")
     {
-        sick_scansegment_xd::MkDir(m_config.logfolder);
+        sick_scansegment_xd::MkDir(m_config.logfolder);  // create log folder (if configured)
     }
 
     // (Re-)initialize and run loop
@@ -261,6 +261,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             ROS_INFO_STREAM("MsgPackThreads: initializing sopas tcp (" << m_config.hostname << ":" << m_config.sopas_tcp_port << ", timeout:" << (0.001*m_config.sopas_timeout_ms) << ", binary:" << m_config.sopas_cola_binary << ")");
             sopas_tcp = new sick_scan_xd::SickScanCommonTcp(m_config.hostname, m_config.sopas_tcp_port, m_config.sopas_timeout_ms, m_config.node, &parser, m_config.sopas_cola_binary ? 'B' : 'A');
             ROS_INFO_STREAM("MsgPackThreads: initializing device");
+            sopas_tcp->setListenOnlyMode(this->m_config.listen_only_mode);
             sopas_tcp->init_device(); // sopas_tcp->init();
             sopas_tcp->setReadTimeOutInMs(m_config.sopas_timeout_ms);
             ROS_INFO_STREAM("MsgPackThreads: initializing services");
@@ -304,7 +305,11 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             }
             else
             {
+              // Suppress the warning in listen-only mode; otherwise, display it.
+              if (!sopas_tcp->getListenOnlyMode())
+              {
                 ROS_WARN_STREAM("## ERROR sick_scansegment_xd: no sopas tcp connection, multiScan136 filter settings not queried or written");
+              }
             }
         }
 
@@ -331,7 +336,11 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             }
             else
             {
+              // Suppress the warning in listen-only mode; otherwise, display it.
+              if (!sopas_tcp->getListenOnlyMode())
+              {
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: no sopas tcp connection, startup sequence not sent, receiving scan data may fail.");
+              }
             }
         }
 
@@ -355,8 +364,12 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         {
             if (!sopas_tcp->isConnected())
             {
+              // Suppress the warning in listen-only mode; otherwise, display it.
+              if (!sopas_tcp->getListenOnlyMode())
+              {
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: sopas tcp connection lost, stop and reconnect...");
                 break;
+              }
             }
             if (udp_receiver->Fifo()->TotalMessagesPushed() <= 1 || udp_receiver->Fifo()->SecondsSinceLastPush() > 1.0e-3 * m_config.udp_timeout_ms)
             {

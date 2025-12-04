@@ -13,6 +13,7 @@
     <arg name="imu_topic" default="imu" />                                          <!-- topic of ros IMU messages -->
     <arg name="udp_port" default="2115" />                                          <!-- default udp port for multiScan devices is 2115 -->
     <arg name="imu_udp_port" default="7503"/>                                       <!-- udp port for multiScan imu data (if imu_enable is true) -->
+    <arg name="listen_only_mode" default="False" />                                 <!-- flag to active listen only mode. If true TCP SOPAS initialization is skipped -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="add_transform_check_dynamic_updates" default="false"/>               <!-- Note: dynamical updates of parameter add_transform_xyz_rpy can decrease the performance and is therefor deactivated by default -->
     <arg name="laserscan_layer_filter" default="0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0" /> <!-- Configuration of laserscan messages (ROS only), default: laserscan messages for layer 6 activated (hires layer, elevation -0.07 deg) -->

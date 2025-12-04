@@ -120,7 +120,8 @@ sick_scan_xd::SickScanServices::SickScanServices(rosNodePtr nh, sick_scan_xd::Si
         rosGetParam(nh, "user_level", m_user_level);
         rosDeclareParam(nh, "user_level_password", m_user_level_password);
         rosGetParam(nh, "user_level_password", m_user_level_password);
-
+        rosDeclareParam(nh, "listen_only_mode", m_listen_only_mode);
+        rosGetParam(nh, "listen_only_mode", m_listen_only_mode);
 #if __ROS_VERSION == 2
 #define serviceCbColaMsgROS sick_scan_xd::SickScanServices::serviceCbColaMsgROS2
 #define serviceCbECRChangeArrROS sick_scan_xd::SickScanServices::serviceCbECRChangeArrROS2

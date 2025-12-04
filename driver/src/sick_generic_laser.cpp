@@ -428,6 +428,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   exit_code = sick_scan_xd::ExitSuccess;
   bool doInternalDebug = false;
   bool emulSensor = false;
+  bool listenOnlyMode = false;
   for (int i = 0; i < argc; i++)
   {
     std::string argv_str = argv[i];
@@ -475,6 +476,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
 
   std::string cloud_topic = "cloud";
   rosDeclareParam(nhPriv, "hostname", "192.168.0.1");
+  rosDeclareParam(nhPriv, "listen_only_mode", false);
   rosDeclareParam(nhPriv, "imu_enable", false);
   rosDeclareParam(nhPriv, "imu_topic", "imu");
   rosDeclareParam(nhPriv, "cloud_topic", cloud_topic);
@@ -500,6 +502,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   {
     useTCP = true;
   }
+
   bool changeIP = false;
   std::string sNewIp;
   rosDeclareParam(nhPriv, "new_IP_address", sNewIp);

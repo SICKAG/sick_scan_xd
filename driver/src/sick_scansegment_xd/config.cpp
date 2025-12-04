@@ -178,7 +178,7 @@ sick_scansegment_xd::Config::Config()
     sopas_timeout_ms = 5000;                 // Timeout for SOPAS response in milliseconds, default: 5000
     user_level = 3;                          // Default user level for client authorization (3 -> "authorized client", 4 -> "service")
     user_level_password = "F4724744";        // Default password for client authorization 
-    
+    listen_only_mode = false;                // True: Skip initialization mode for segment base lidar and jump directly to listing of UDP data
 
     // MSR100 default filter settings
     host_read_filtersettings = true;                            // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true
@@ -294,6 +294,7 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "sopas_timeout_ms", sopas_timeout_ms);
     ROS_DECL_GET_PARAMETER(node, "user_level", user_level);
     ROS_DECL_GET_PARAMETER(node, "user_level_password", user_level_password);
+    ROS_DECL_GET_PARAMETER(node, "listen_only_mode", listen_only_mode);
     // MSR100 filter settings
     ROS_DECL_GET_PARAMETER(node, "host_read_filtersettings", host_read_filtersettings);
     ROS_DECL_GET_PARAMETER(node, "host_FREchoFilter", host_FREchoFilter);
@@ -441,6 +442,7 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "sopas_timeout_ms", sopas_timeout_ms);
     setOptionalArgument(cli_parameter_map, "user_level", user_level);
     setOptionalArgument(cli_parameter_map, "user_level_password", user_level_password);
+    setOptionalArgument(cli_parameter_map, "listen_only_mode", listen_only_mode);
     setOptionalArgument(cli_parameter_map, "host_read_filtersettings", host_read_filtersettings);
     setOptionalArgument(cli_parameter_map, "host_FREchoFilter", host_FREchoFilter);
     setOptionalArgument(cli_parameter_map, "host_set_FREchoFilter", host_set_FREchoFilter);
@@ -493,6 +495,7 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     ROS_INFO_STREAM("scanner_type:                     " << scanner_type);
     ROS_INFO_STREAM("udp_sender:                       " << udp_sender);
     ROS_INFO_STREAM("udp_port:                         " << udp_port);
+    ROS_INFO_STREAM("listen_only_mode:                 " << (listen_only_mode ? "true" : "false"));
     ROS_INFO_STREAM("check_udp_receiver_ip:            " << check_udp_receiver_ip);
     ROS_INFO_STREAM("check_udp_receiver_port:          " << check_udp_receiver_port);
     ROS_INFO_STREAM("all_segments_min_deg:             " << all_segments_min_deg);

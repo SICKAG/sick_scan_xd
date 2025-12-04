@@ -594,6 +594,30 @@ namespace sick_scan_xd
     }
   }
 
+  /**
+   * @brief Returns whether the TCP connection is in "listen-only" mode.
+   * 
+   * In listen-only mode, the scanner receives data but does not send any commands.
+   * 
+   * @return true if the scanner operates in listen-only mode, false otherwise.
+   */
+  bool SickScanCommonTcp::getListenOnlyMode() const
+  {
+    return m_listenOnlyMode; 
+  }
+
+  /**
+    * @brief Enables or disables the "listen-only" mode.
+    *
+    * When set to true, the scanner will only listen for incoming data
+    * without sending any commands or control messages.
+    *
+    * @param _listenOnlyMode Set to true to enable listen-only mode, false to disable it.
+    */
+  void SickScanCommonTcp::setListenOnlyMode(bool _listenOnlyMode)
+  {
+    this->m_listenOnlyMode = _listenOnlyMode; 
+  }
 
   int SickScanCommonTcp::init_device()
   {
@@ -607,7 +631,10 @@ namespace sick_scan_xd
     }
     else
     {
-      m_nw.connect();
+      if (!getListenOnlyMode())  
+      {
+        m_nw.connect();  // only connect, if listen only mode is  off 
+      }
     }
     return ExitSuccess;
   }
