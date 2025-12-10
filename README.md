@@ -1,12 +1,13 @@
 # sick_scan_xd - Driver and tools for SICK LiDAR and RADAR devices
 
-<img align=right width="200" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Logo_SICK_AG_2009.svg/1200px-Logo_SICK_AG_2009.svg.png"/>
+<img align=right width="200" src="doc/SICK-logo.svg"/>
 
 This project provides a driver for SICK LiDARs and Radar sensors mentioned [here](#supported-sick-devices). The driver supports both Linux (native, ROS 1, ROS 2) and Windows (native and ROS 2). See the [CHANGELOG.md](CHANGELOG.md) for the latest updates.
 
 Main features and characteristics:
 
 * Support of ROS 1 (Linux), ROS 2 (Linux and Windows)
+  **_NOTE:_** **Although ROS 1 is still mentioned below, active development for ROS1 will not be continued.** 
 * Generic C/C++ and Python API for usage without ROS (Linux and Windows)
 * SLAM support
 * Compatible with x64 and ARM64 architecture (incl. Raspberry Pi)
@@ -320,6 +321,8 @@ nc: connect to 192.168.0.110 port 2112 (tcp) failed: Connection refused
 
 ## Building the driver
 
+**_NOTE:_** **Although ROS1 is still mentioned below, active development for ROS1 will not be continued.** 
+
 sick_scan_xd can be build on 64-bit Linux and Windows, with and without ROS, with and without the dependencies for the SICK LiDAR LD-MRS. The following table shows the allowed combinations and how to build. sick_scan_xd supports 64 bit Linux and Windows, 32 bit systems are not supported.
 
 | **Target**                 | **Cmake settings**           | **Build script**                                                       |
@@ -333,9 +336,9 @@ sick_scan_xd can be build on 64-bit Linux and Windows, with and without ROS, wit
 | Windows, native, no LD-MRS | BUILD_WITH_LDMRS_SUPPORT OFF | `cd test\\scripts && make_win64.cmd`                                     |
 | Windows, ROS 2, no LD-MRS  | BUILD_WITH_LDMRS_SUPPORT OFF | `cd test\\scripts && make_ros2.cmd`                                      |
 
-If you're using ROS, set your ROS-environment before running one of these scripts, e.g.
+If you are using ROS, set your ROS-environment before running one of these scripts, e.g.
 
-* `source /opt/ros/noetic/setup.bash` for ROS 1 noetic, or
+* `source /opt/ros/noetic/setup.bash` for ROS 1 noetic (End of Life), or
 * `source /opt/ros/foxy/setup.bash` for ROS 2 foxy, or
 * `source /opt/ros/humble/setup.bash` for ROS 2 humble.
 
@@ -348,6 +351,7 @@ To build resp. install sick_scan_xd on Linux with ROS 1, you can build sick_scan
 Run the following steps to install sick_scan_xd on Linux with ROS 1 noetic:
 
 ```sh
+# Note: ROS1 is End of Life
 sudo apt update
 sudo apt-get install ros-noetic-sick-scan-xd
 ```
@@ -356,6 +360,7 @@ After successful installation, you can run sick_scan_xd using `roslaunch sick_sc
 
 #### ROS 1: Build from sources
 
+**_NOTE:_** **Although ROS1 is still mentioned below, active development for ROS1 will not be continued.** 
 Run the following steps to build sick_scan_xd on Linux with ROS 1:
 
 1. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
@@ -1893,6 +1898,7 @@ firefox ./demo/image_viewer_api_test.html &
 ![api_test_linux_tim7xx.png](doc/sick_scan_api/api_test_linux_tim7xx.png)
 
 ##### Complete usage example in Python
+**_NOTE:_** **Although ROS1 is still mentioned below, active development for ROS1 will not be continued.** 
 
 A complete python usage example is implemented in [sick_scan_xd_api_test.py](test/python/sick_scan_xd_api/sick_scan_xd_api_test.py). It is handy to test the sick_scan_xd library. Like its C++ counterpart [sick_scan_xd_api_test.cpp](test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp), it just loads library `libsick_scan_xd_shared_lib.so` resp. `sick_scan_xd_shared_lib.dll`, starts a lidar and receives the lidar point cloud and messages via API. On ROS 1, the lidar point cloud and messages are converted to ROS and published. The lidar point cloud can be visualized by rviz using topic "/sick_scan_xd_api_test/api_cloud".
 
@@ -2553,8 +2559,9 @@ Run the following steps to install and run docker on Linux:
    * depending on your system, it runs qemu-system-x86 with high cpu and memory load.
 
 #### Build and run on Linux ROS 1 (short cut)
+**_NOTE:_** **Although ROS1 is still mentioned below, active development for ROS1 will not be continued.** 
 
-Short cut to build and run sick_scan_xd in a docker container for ROS1 noetic on Linux:
+Shortcut to build and run sick_scan_xd in a docker container for ROS1 noetic on Linux:
 
 ```sh
 # Create a workspace folder (e.g. sick_scan_ws or any other name) and clone the sick_scan_xd repository:
