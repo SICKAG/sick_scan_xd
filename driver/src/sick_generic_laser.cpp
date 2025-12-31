@@ -567,20 +567,20 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   SoftwarePLL::instance().setTicksToTimestampMode(tick_to_timestamp_mode);
 
   // Start TF publisher
-  sick_scan_xd::SickTransformPublisher tf_publisher(nhPriv);
-  tf_publisher.run();
+  // sick_scan_xd::SickTransformPublisher tf_publisher(nhPriv);
+  // tf_publisher.run();
 
   if(scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME || scannerName == SICK_SCANNER_PICOSCAN_NAME)
   {
 #if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
     exit_code = sick_scansegment_xd::run(nhPriv, scannerName);
     std::cout << "sick_generic_laser: sick_scansegment_xd finished with " << (exit_code == sick_scan_xd::ExitSuccess ? "success" : "ERROR") << std::endl;
-    tf_publisher.stop();
+    //tf_publisher.stop();
     return;
 #else
     ROS_ERROR_STREAM("SCANSEGMENT_XD_SUPPORT deactivated, " << scannerName << " not supported. Please build sick_scan_xd with option SCANSEGMENT_XD_SUPPORT");
     exit_code = sick_scan_xd::ExitError;
-    tf_publisher.stop();
+    //tf_publisher.stop();
     return;
 #endif
   }
@@ -813,7 +813,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   printf("sick_generic_laser: leaving main loop...");
   setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
 
-  tf_publisher.stop();
+  //tf_publisher.stop();
   if(pointcloud_monitor)
     pointcloud_monitor->stopPointCloudMonitoring();
   DELETE_PTR(scan_msg_monitor);
