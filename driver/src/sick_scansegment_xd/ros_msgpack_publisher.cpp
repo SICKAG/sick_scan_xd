@@ -898,7 +898,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 #elif defined __ROS_VERSION && __ROS_VERSION > 0
 				laser_scan_msg.header.stamp.nsec = timestamp_nsec;
 #endif
-				laser_scan_msg.header.frame_id = frame_id + "_" + std::to_string(layer_idx + 1);
+				laser_scan_msg.header.frame_id = frame_id;
 				if (num_echos_publish > 1)
 				  laser_scan_msg.header.frame_id = laser_scan_msg.header.frame_id + "_" + std::to_string(echo_idx);
 				// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
