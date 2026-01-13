@@ -871,6 +871,7 @@ namespace sick_scan_xd
 #define OBJLEN_KEYWORD "OBLE1"
 #define OBJID_KEYWORD "OBID1"
 
+
     const int RAWTARGET_LOOP = 0;
     const int OBJECT_LOOP = 1;
 
@@ -892,7 +893,7 @@ namespace sick_scan_xd
             case RADAR_1D:
               keyWordList.push_back(P3DX1_KEYWORD);
               keyWordList.push_back(V3DX1_KEYWORD);
-              keyWordList.push_back(OBJLEN_KEYWORD);
+              // keyWordList.push_back(OBJLEN_KEYWORD);
               keyWordList.push_back(OBJID_KEYWORD);
               break;
             case RADAR_3D:
@@ -900,7 +901,7 @@ namespace sick_scan_xd
               keyWordList.push_back(P3DY1_KEYWORD);
               keyWordList.push_back(V3DX1_KEYWORD);
               keyWordList.push_back(V3DY1_KEYWORD);
-              keyWordList.push_back(OBJLEN_KEYWORD);
+              // keyWordList.push_back(OBJLEN_KEYWORD);
               keyWordList.push_back(OBJID_KEYWORD);
               break;
             default: // unsupported
@@ -921,12 +922,24 @@ namespace sick_scan_xd
         keyWordPos[i] = -1;
       }
       int numKeyWords = keyWordPos.size();
-      for (int i = 0; i < fields.size(); i++)
+      // Supported field keywords (extract) for object detection and kinematic attributes
+      // DIST1, AZMT1, VRAD1, AMPL1, MODE1, P3DX1, P3DY1, V3DX1, V3DY1, OBLE1, OBID1
+      for (int i = 0; i < fields.size(); i++) // just searching for the keyword. This makes the parsing reliable.
       {
+        // Iterate over all known keywords
         for (int j = 0; j < keyWordList.size(); j++)
         {
-          if (fields[i].len == keyWordList[j].length() && strncmp(fields[i].data, keyWordList[j].c_str(), fields[i].len) == 0)
+          // Check if the field length matches the keyword length
+          // (quick filter before doing a full string comparison)
+          if (fields[i].len == keyWordList[j].length() &&
+            // Compare the field's raw character data with the keyword string
+            // for exactly 'len' characters; strncmp == 0 means exact match
+            strncmp(fields[i].data,
+              keyWordList[j].c_str(),
+              fields[i].len) == 0)
           {
+            // Store the index of the matching field:
+            // keyword j was found at position i in 'fields'
             keyWordPos[j] = i;
           }
         }
@@ -948,22 +961,13 @@ namespace sick_scan_xd
           if (keyWordPos[i] == -1)
           {
             static int num_warnings = 0;
-            if (num_warnings < numKeyWords || (num_warnings % 100) == 0) 
+            if (num_warnings < numKeyWords || (num_warnings % 100) == 0)
             {
               ROS_WARN_STREAM("parseRadarDatagram(): " << (i + 1) << ". keyword " << keyWordList[i] << " missing, but first keyword " << keyWordList[0] << " found, value set to 0.0 (warning repeated " << num_warnings << " times)");
             }
             num_warnings++;
             entriesNumOk = false;
             allow_missing_keywords = true; // P3DY1 and V3DY1 set to 0 if missing
-          }
-          else
-          {
-            int entriesNumTmp = (int)radarFieldToInt32(fields[keyWordPos[i] + 3], useBinaryProtocol); // getHexValue(fields[keyWordPos[i] + 3].data);
-            if (entriesNumTmp != entriesNum)
-            {
-              ROS_WARN_STREAM("parseRadarDatagram(): Number of items for keyword " << keyWordList[i] << " differs from number of items for " << keyWordList[0]);
-              entriesNumOk = false;
-            }
           }
         }
       }
@@ -1090,15 +1094,18 @@ namespace sick_scan_xd
                   vy = val;
 
                 }
+                /*
                 if (token.compare(OBJLEN_KEYWORD) == 0)
                 {
                   objLen = val;
                 }
+                */
                 if (token.compare(OBJID_KEYWORD) == 0)
                 {
                   int objIdRaw = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getHexValue(fields[dataRowIdx].data);
                   objId = (int) (objIdRaw * keyWordScale[j] + 0.5);
                 }
+
               }
 
               objectList[i].ObjId(objId);
@@ -1541,7 +1548,7 @@ namespace sick_scan_xd
       char *buffer_pos = (char *) receiveBuffer;
       char *dstart = NULL;
       char *dend = NULL;
-      int32_t dlength = 0;
+      size_t dlength = 0;
 
       if (useBinaryProtocol)
       {
@@ -1567,14 +1574,15 @@ namespace sick_scan_xd
         if ((dstart != NULL) && (dend != NULL))
         {
           dataToProcess = true; // continue parsing
-          dlength = dend - dstart;
+          dlength = (size_t)(dend - dstart);
           *dend = '\0';
           dstart++;
         }
       }
       if(dataToProcess && dstart != 0 && dlength > 0 && dstart + dlength <= (char*)receiveBuffer + actual_length)
       {
-        if (parseRadarDatagram(dstart, dlength, useBinaryProtocol, &radarMsg_, objectList, rawTargetList) != ExitSuccess)
+        int verboseLevel = 0; // default: 0 -> no verbose, 1 -> dump to directory /tmp
+        if (parseRadarDatagram(dstart, dlength, useBinaryProtocol, &radarMsg_, objectList, rawTargetList, verboseLevel) != ExitSuccess)
         {
           dataToProcess = false;
         }

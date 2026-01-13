@@ -661,19 +661,27 @@ namespace sick_scan_xd
     if (parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_SCANSEGMENT_XD_NAME) != 0
      && parser_->getCurrentParamPtr()->getScannerName().compare(SICK_SCANNER_PICOSCAN_NAME) != 0)
     {
-      cloud_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, cloud_topic_val, 100);
-      ROS_INFO_STREAM("Publishing lidar pointcloud2 to " << cloud_topic_val);
+      if (parser_->getCurrentParamPtr()->getDeviceIsRadar())
+      {
+        // device is radar. Skip the following section
+        ROS_INFO_STREAM("Publishing lidar pointcloud2 skipped. Device is a radar");
+      }
+      else
+      {
+        cloud_pub_ = rosAdvertise<ros_sensor_msgs::PointCloud2>(nh, cloud_topic_val, 100);
+        ROS_INFO_STREAM("Publishing lidar pointcloud2 to " << cloud_topic_val);
 
-      std::string imu_topic = nodename + "/imu";
-      rosDeclareParam(nh, "imu_topic", imu_topic);
-      rosGetParam(nh, "imu_topic", imu_topic);
-      imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, imu_topic, 100);
-      ROS_INFO_STREAM("Publishing imu data to " << imu_topic);
+        std::string imu_topic = nodename + "/imu";
+        rosDeclareParam(nh, "imu_topic", imu_topic);
+        rosGetParam(nh, "imu_topic", imu_topic);
+        imuScan_pub_ = rosAdvertise<ros_sensor_msgs::Imu>(nh, imu_topic, 100);
+        ROS_INFO_STREAM("Publishing imu data to " << imu_topic);
 
-      Encoder_pub = rosAdvertise<sick_scan_msg::Encoder>(nh, nodename + "/encoder", 100);
+        Encoder_pub = rosAdvertise<sick_scan_msg::Encoder>(nh, nodename + "/encoder", 100);
 
-      // scan publisher
-      pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, laserscan_topic, 1000);
+        // scan publisher
+        pub_ = rosAdvertise<ros_sensor_msgs::LaserScan>(nh, laserscan_topic, 1000);
+      }
     }
     else
     {
@@ -710,10 +718,13 @@ namespace sick_scan_xd
 #elif __ROS_VERSION == 2
       if(!diagnosticPub_ && diagnostics_)
       {
-            diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>>(pub_, *diagnostics_,
-              diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10), // frequency should be target +- 10%
-              diagnostic_updater::TimeStampStatusParam(-1, max_timestamp_delay));
-            assert(diagnosticPub_ != NULL);
+        if (pub_ != nullptr)
+        {
+          diagnosticPub_ = new DiagnosedPublishAdapter<rosPublisher<ros_sensor_msgs::LaserScan>>(pub_, *diagnostics_,
+            diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, expected_frequency_tolerance, 10), // frequency should be target +- 10%
+            diagnostic_updater::TimeStampStatusParam(-1, max_timestamp_delay));
+          assert(diagnosticPub_ != NULL);
+        }
       }
 #endif
     }
@@ -4307,43 +4318,49 @@ namespace sick_scan_xd
     return reply_str;
   }
 
-  bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(unsigned char *buffer, int bufLen, bool isBinary)
+
+bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(
+  unsigned char* buffer, int bufLen, bool isBinary)
+{
+  static size_t max_dump_size = 64 * 1024 * 1024;
+  static size_t datasize_cnt = 0;
+  static int file_cnt = 0;
+
+  char szDumpFileName[511] = { 0 };
+  char szDir[255] = { 0 };
+
+  if (datasize_cnt > max_dump_size)
   {
-    static size_t max_dump_size = 64 * 1024 * 1024;
-    static size_t datasize_cnt = 0;
-    static int file_cnt = 0;
-    bool ret = true;
-    char szDumpFileName[511] = {0};
-    char szDir[255] = {0};
-
-    if (datasize_cnt > max_dump_size)
-    {
-      ROS_WARN_STREAM("Attention: verboseLevel is set to 1 (debugging only). Total dump size of " << (max_dump_size / (1024 * 1024)) << " MByte in /tmp folder exceeded, data NOT dumped to file.");
-      return false;
-    }
-    ROS_WARN("Attention: verboseLevel is set to 1 (debugging only). Datagrams are stored in the /tmp folder.");
-#ifdef _MSC_VER
-    strcpy(szDir, "C:\\temp\\");
-#else
-    strcpy(szDir, "/tmp/");
-#endif
-    sprintf(szDumpFileName, "%ssick_datagram_%06d.bin", szDir, file_cnt);
-    if (isBinary)
-    {
-      FILE *ftmp;
-      ftmp = fopen(szDumpFileName, "wb");
-      if (ftmp != NULL)
-      {
-        fwrite(buffer, bufLen, 1, ftmp);
-        fclose(ftmp);
-      }
-    }
-    file_cnt++;
-    datasize_cnt += bufLen;
-
-    return (true);
-
+    ROS_WARN_STREAM(
+      "Attention: verboseLevel is set to 1 (debugging only). "
+      "Total dump size of " << (max_dump_size / (1024 * 1024))
+      << " MByte in /tmp folder exceeded, data NOT dumped to file.");
+    return false;
   }
+
+  ROS_WARN(
+    "Attention: verboseLevel is set to 1 (debugging only). "
+    "Datagrams are stored in the /tmp folder.");
+
+  strcpy(szDir, "/tmp/");
+
+  if (isBinary)
+    sprintf(szDumpFileName, "%ssick_datagram_%06d.bin", szDir, file_cnt);
+  else
+    sprintf(szDumpFileName, "%ssick_datagram_%06d.txt", szDir, file_cnt);
+
+  FILE* ftmp = fopen(szDumpFileName, isBinary ? "wb" : "w");
+  if (ftmp != NULL)
+  {
+    fwrite(buffer, bufLen, 1, ftmp);
+    fclose(ftmp);
+  }
+
+  file_cnt++;
+  datasize_cnt += bufLen;
+
+  return true;
+}
 
 
   /*!
