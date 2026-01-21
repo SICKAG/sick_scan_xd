@@ -866,6 +866,10 @@ if(ROS_VERSION EQUAL 2)
 
 endif()
 
+if(MSVC)
+  target_compile_options(sick_scan_xd_lib PRIVATE /bigobj)
+endif()
+
 # Build test and usage example for sick_scan_xd_api
 # For ROS-1 and ROS-2:
 # - sick_scan_xd_api_test with is deactivated by default
