@@ -104,10 +104,16 @@ namespace sick_scan_xd
         rosDeclareParam(nh, "frame_id", tf_lidar_frame_id);
         rosGetParam(nh, "frame_id", tf_lidar_frame_id);
       }
+      // TF base frame id (parent frame of the TF tree, e.g. "base_link")
       rosDeclareParam(nh, "tf_base_frame_id", tf_base_frame_id);
       rosGetParam(nh, "tf_base_frame_id", tf_base_frame_id);
+
+      // Static transform from base frame to lidar frame
+      // Format: [x, y, z, roll, pitch, yaw] (translation in meters, rotation in radians)
       rosDeclareParam(nh, "tf_base_lidar_xyz_rpy", tf_base_lidar_xyz_rpy);
       rosGetParam(nh, "tf_base_lidar_xyz_rpy", tf_base_lidar_xyz_rpy);
+
+      // TF publishing rate in Hz (<= 0 disables TF publishing)
       rosDeclareParam(nh, "tf_publish_rate", tf_publish_rate);
       rosGetParam(nh, "tf_publish_rate", tf_publish_rate);
       // Split string tf_base_lidar_xyz_rpy to 6D pose x,y,z,roll,pitch,yaw in [m] resp. [rad]
@@ -128,7 +134,7 @@ namespace sick_scan_xd
   void SickTransformPublisher::run()
   {
 #   if __ROS_VERSION > 0
-    if(tf_publish_rate > 1.0e-6)
+    if(tf_publish_rate > 1.0e-6)  // start TF publishing only if a valid publish rate is configured
     {
       tf_publish_thread_running = true;
       tf_publish_thread = new std::thread(&sick_scan_xd::SickTransformPublisher::runTFpublishThreadCb, this);

@@ -184,7 +184,7 @@ namespace sick_scan_xd
             ros_sensor_msgs::PointCloud2 resized_pointcloud;
             resized_pointcloud.header = cloud.header;
             resized_pointcloud.height = cloud.height;
-            resized_pointcloud.width = rangeNum;
+            resized_pointcloud.width = (int)rangeNum;
             resized_pointcloud.is_bigendian = cloud.is_bigendian;
             resized_pointcloud.is_dense = cloud.is_dense;
             resized_pointcloud.point_step = cloud.point_step;

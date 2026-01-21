@@ -89,6 +89,7 @@
 #define _USE_MATH_DEFINES
 
 #include <math.h>
+#include <mutex>
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,6 +113,8 @@ static sick_scan_xd::SickScanCommonTcp *s_scanner = NULL;
 
 static std::string versionInfo = std::string(SICK_SCAN_XD_VERSION) + GITHASH_STR + GITINFO_STR;
 static bool s_shutdownSignalReceived = false;
+
+static std::mutex g_diag_mutex;  // Mutex to protect notifier call
 
 void setVersionInfo(std::string _versionInfo)
 {
@@ -298,16 +301,52 @@ std::string vargs_to_string(const char *const format, ...)
   return std::string {temp.data(), length};
 }
 
-// Set the global diagnostic status and message (OK, WARN, ERROR, INIT or EXIT)
+/**
+ * @brief Sets the global diagnostic status and message.
+ *
+ * Updates the global diagnostic status and associated message.
+ * If the status changes or indicates a warning or error, all
+ * registered diagnostic listeners are notified.
+ *
+ * This function is thread-safe.
+ *
+ * @param status_code     New diagnostic status code (OK, WARN, ERROR, INIT, or EXIT).
+ * @param status_message  Human-readable status message associated with the status code.
+ */
 void setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS status_code, const std::string& status_message)
 {
-  static bool status_first_time = true;
-  bool notify_status_update = (status_first_time || s_status_code != status_code || s_status_code == SICK_DIAGNOSTIC_STATUS_WARN || s_status_code == SICK_DIAGNOSTIC_STATUS_ERROR);
-  s_status_code = status_code;
-  s_status_message = status_message;
-  if (notify_status_update) // status changed, notify registered listener
-    notifyDiagnosticListener(s_status_code, s_status_message);
-  status_first_time = false;
+  bool notify = false;
+  SICK_DIAGNOSTIC_STATUS code_copy;
+  std::string msg_copy;
+  {
+    std::lock_guard<std::mutex> lock(g_diag_mutex);
+
+    static bool status_first_time = true;
+
+    const bool notify_status_update =
+      status_first_time ||
+      s_status_code != status_code ||
+      s_status_code == SICK_DIAGNOSTIC_STATUS_WARN ||
+      s_status_code == SICK_DIAGNOSTIC_STATUS_ERROR;
+
+    s_status_code = status_code;
+    s_status_message = status_message;
+
+    if (notify_status_update)
+    {
+      notify = true;
+      code_copy = s_status_code;
+      msg_copy = s_status_message;
+    }
+
+    status_first_time = false;
+  } // Mutex is released here
+
+  if (notify)
+  {
+    // Listener receives only copies; no lock is held at this point.
+    notifyDiagnosticListener(code_copy, msg_copy);
+  }
 }
 
 // Returns the global diagnostic status and message (OK, WARN, ERROR, INIT or EXIT)
@@ -428,6 +467,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   exit_code = sick_scan_xd::ExitSuccess;
   bool doInternalDebug = false;
   bool emulSensor = false;
+  bool listenOnlyMode = false;
   for (int i = 0; i < argc; i++)
   {
     std::string argv_str = argv[i];
@@ -475,6 +515,8 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
 
   std::string cloud_topic = "cloud";
   rosDeclareParam(nhPriv, "hostname", "192.168.0.1");
+  rosDeclareParam(nhPriv, "layer_lookup_table_id", 0);  // default table id for multiScan136/166, set 1 for multiScan165, set -1 for self learning table
+  rosDeclareParam(nhPriv, "listen_only_mode", false);
   rosDeclareParam(nhPriv, "imu_enable", false);
   rosDeclareParam(nhPriv, "imu_topic", "imu");
   rosDeclareParam(nhPriv, "cloud_topic", cloud_topic);
@@ -500,6 +542,7 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   {
     useTCP = true;
   }
+
   bool changeIP = false;
   std::string sNewIp;
   rosDeclareParam(nhPriv, "new_IP_address", sNewIp);
@@ -570,22 +613,25 @@ void mainGenericLaserInternal(int argc, char **argv, std::string nodeName, rosNo
   sick_scan_xd::SickTransformPublisher tf_publisher(nhPriv);
   tf_publisher.run();
 
-  if(scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME || scannerName == SICK_SCANNER_PICOSCAN_NAME)
+  sick_scan_xd::SickGenericParser* parser = new sick_scan_xd::SickGenericParser(scannerName);
+
+  if (parser->isSegmentLidar(scannerName))
   {
+    // Segment-based LiDARs produce high-frequency packets, so use a larger FIFO.
+    SoftwarePLL::instance().setFifoSize(SoftwarePLL::FIFO_SIZE_SEGMENT_MODE);
 #if defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
     exit_code = sick_scansegment_xd::run(nhPriv, scannerName);
     std::cout << "sick_generic_laser: sick_scansegment_xd finished with " << (exit_code == sick_scan_xd::ExitSuccess ? "success" : "ERROR") << std::endl;
     tf_publisher.stop();
     return;
 #else
-    ROS_ERROR_STREAM("SCANSEGMENT_XD_SUPPORT deactivated, " << scannerName << " not supported. Please build sick_scan_xd with option SCANSEGMENT_XD_SUPPORT");
+    ROS_ERROR_STREAM("SCANSEGMENT_XD_SUPPORT deactivated, " << scannerName << " not supported. Plea e build sick_scan_xd with option SCANSEGMENT_XD_SUPPORT");
     exit_code = sick_scan_xd::ExitError;
     tf_publisher.stop();
     return;
 #endif
   }
 
-  sick_scan_xd::SickGenericParser *parser = new sick_scan_xd::SickGenericParser(scannerName);
 
   char colaDialectId = 'A'; // A or B (Ascii or Binary)
 

@@ -218,7 +218,7 @@ namespace sick_scansegment_xd
             // Receive \x02\x02\x02\x02 | 4Bytes payloadlength incl. CRC | Payload | CRC32
             while (m_running && bytes_received < bytes_to_receive && (timeout < 0 || sick_scansegment_xd::Seconds(start_timestamp, chrono_system_clock::now()) < timeout))
             {
-                int64_t chunk_bytes_received = recv(m_udp_socket, (char*)msg_payload.data() + bytes_received, (int)msg_payload.size() - bytes_received, m_recv_flags);
+                int64_t chunk_bytes_received = recv(m_udp_socket, (char*)msg_payload.data() + static_cast<int>(bytes_received), static_cast<int>(msg_payload.size() - bytes_received), m_recv_flags);
                 if (chunk_bytes_received <= 0)
                 {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -369,7 +369,7 @@ namespace sick_scansegment_xd
                     }
                     sim_servaddr.sin_family = AF_INET;
                     sim_servaddr.sin_port = htons(m_udp_port);
-                    bytes_sent = sendto(m_udp_socket, (const char*)message.data(), message.size(), 0, (SOCKADDR*)&sim_servaddr, sizeof(sim_servaddr));
+                    bytes_sent = sendto(m_udp_socket, (const char*)message.data(), static_cast<int>(message.size()), 0, (SOCKADDR*)&sim_servaddr, sizeof(sim_servaddr));
                     if (bytes_sent != message.size())
                     {
                         ROS_ERROR_STREAM("## ERROR UdpSenderSocketImpl()::Send() failed, " << bytes_sent << " of " << message.size() << " bytes sent.");

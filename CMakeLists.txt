@@ -863,7 +863,6 @@ if(ROS_VERSION EQUAL 2)
         target_link_libraries(sick_generic_caller PUBLIC "${c_typesupport_target}")
         target_link_libraries(sick_generic_caller PUBLIC "${cpp_typesupport_target}")
     endif()
-
 endif()
 
 if(MSVC)
