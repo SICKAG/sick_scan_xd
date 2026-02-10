@@ -281,7 +281,7 @@ namespace sick_scan_xd
       ptr = strstr(datagram, szKeyWord.c_str());
       if (ptr != NULL)
       {
-        int offset = ptr - datagram;
+        int offset = (int)(ptr - datagram);
         if ((offset == 0) || (offset == 1)) // should work with 0x02 and without 0x02
         {
           isImuMsg = true;

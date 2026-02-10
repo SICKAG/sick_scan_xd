@@ -863,7 +863,10 @@ if(ROS_VERSION EQUAL 2)
         target_link_libraries(sick_generic_caller PUBLIC "${c_typesupport_target}")
         target_link_libraries(sick_generic_caller PUBLIC "${cpp_typesupport_target}")
     endif()
+endif()
 
+if(MSVC)
+  target_compile_options(sick_scan_xd_lib PRIVATE /bigobj)
 endif()
 
 # Build test and usage example for sick_scan_xd_api

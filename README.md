@@ -1,12 +1,13 @@
 # sick_scan_xd - Driver and tools for SICK LiDAR and RADAR devices
 
-<img align=right width="200" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Logo_SICK_AG_2009.svg/1200px-Logo_SICK_AG_2009.svg.png"/>
+<img align=right width="200" src="doc/SICK-logo.svg"/>
 
 This project provides a driver for SICK LiDARs and Radar sensors mentioned [here](#supported-sick-devices). The driver supports both Linux (native, ROS 1, ROS 2) and Windows (native and ROS 2). See the [CHANGELOG.md](CHANGELOG.md) for the latest updates.
 
 Main features and characteristics:
 
 * Support of ROS 1 (Linux), ROS 2 (Linux and Windows)
+  **_NOTE:_** **Although ROS 1 is still mentioned below, active development for ROS1 will not be continued.** 
 * Generic C/C++ and Python API for usage without ROS (Linux and Windows)
 * SLAM support
 * Compatible with x64 and ARM64 architecture (incl. Raspberry Pi)
@@ -320,6 +321,8 @@ nc: connect to 192.168.0.110 port 2112 (tcp) failed: Connection refused
 
 ## Building the driver
 
+**_NOTE:_** **Although ROS1 is still mentioned below, active development for ROS1 will not be continued.** 
+
 sick_scan_xd can be build on 64-bit Linux and Windows, with and without ROS, with and without the dependencies for the SICK LiDAR LD-MRS. The following table shows the allowed combinations and how to build. sick_scan_xd supports 64 bit Linux and Windows, 32 bit systems are not supported.
 
 | **Target**                 | **Cmake settings**           | **Build script**                                                       |
@@ -333,9 +336,9 @@ sick_scan_xd can be build on 64-bit Linux and Windows, with and without ROS, wit
 | Windows, native, no LD-MRS | BUILD_WITH_LDMRS_SUPPORT OFF | `cd test\\scripts && make_win64.cmd`                                     |
 | Windows, ROS 2, no LD-MRS  | BUILD_WITH_LDMRS_SUPPORT OFF | `cd test\\scripts && make_ros2.cmd`                                      |
 
-If you're using ROS, set your ROS-environment before running one of these scripts, e.g.
+If you are using ROS, set your ROS-environment before running one of these scripts, e.g.
 
-* `source /opt/ros/noetic/setup.bash` for ROS 1 noetic, or
+* `source /opt/ros/noetic/setup.bash` for ROS 1 noetic (End of Life), or
 * `source /opt/ros/foxy/setup.bash` for ROS 2 foxy, or
 * `source /opt/ros/humble/setup.bash` for ROS 2 humble.
 
@@ -348,6 +351,7 @@ To build resp. install sick_scan_xd on Linux with ROS 1, you can build sick_scan
 Run the following steps to install sick_scan_xd on Linux with ROS 1 noetic:
 
 ```sh
+# Note: ROS1 is End of Life
 sudo apt update
 sudo apt-get install ros-noetic-sick-scan-xd
 ```
@@ -356,6 +360,7 @@ After successful installation, you can run sick_scan_xd using `roslaunch sick_sc
 
 #### ROS 1: Build from sources
 
+**_NOTE:_** **Although ROS1 is still mentioned below, active development for ROS1 will not be continued.** 
 Run the following steps to build sick_scan_xd on Linux with ROS 1:
 
 1. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
@@ -532,63 +537,374 @@ cd ./doxygen
 doxygen ./docs/Doxyfile
 ```
 
-### ROS 2 on Windows
+### ROS 2 on Windows (Jazzy & Kilted)
 
-To install sick_scan_xd on Windows with ROS 2, follow the steps below:
+#### Table of Contents for ROS 2 on Windows
+1. Scope and Design Principles
+2. Prerequisites
+3. ROS 2 Jazzy on Windows via Pixi (RoboStack)
+   3.1 Prepare Workspace
+   3.2 Create Pixi Project
+   3.3 Pixi Configuration (pixi.toml)
+   3.4 Install ROS 2 Jazzy
+   3.5 Activate and Test Environment
+   3.6 Notes (Jazzy)
+4. ROS 2 Kilted on Windows (ZIP + Pixi)
+   4.1 Prepare Workspace
+   4.2 Pixi Configuration
+   4.3 Download ROS 2 Kilted Windows Binary
+   4.4 Unzip ROS 2 Binary
+   4.5 Environment Entry Point
+   4.6 Test ROS 2 Kilted
+   4.7 Notes (Kilted)
+5. Build sick_scan_xd on Windows (Jazzy / Kilted)
+   5.1 Workspace Setup
+   5.2 Clone Repositories
+   5.3 Verify Environment
+   5.4 Clean Before First Build
+   5.5 python_d.exe Workaround
+   5.6 Build Commands
+   5.7 Overlay and Run
+   5.8 Environment Notes
+   5.9 Cleanup to Ensure Complete Rebuild
+   5.10 Build sick_generic_caller
+6. Debugging with Visual Studio
+7. Optional Build Variants
+8. Rules, Anti-Patterns, and Support Checklist
+9. Useful Resources and Hints
 
-1. If not yet done, install Visual Studio. Visual Studio 2019 Community or Professional Edition is recommended.
+---
 
-2. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
+#### 1. Scope and Design Principles
 
-   ```sh
-   mkdir sick_scan_ws
-   cd sick_scan_ws
-   ```
+- Windows 10/11 only
+- Pixi is used for Python/tooling management
+- ROS 2 Jazzy: fully Pixi-managed (RoboStack)
+- ROS 2 Kilted: official Windows ZIP + Pixi tooling
+- Single, explicit environment entry point
+- No hidden state, no implicit sourcing
 
-3. Clone repository <https://github.com/SICKAG/sick_scan_xd>:
+---
 
-   ```sh
-   mkdir .\src
-   pushd .\src
-   git clone -b master https://github.com/SICKAG/sick_scan_xd.git
-   popd
-   ```
+#### 2. Prerequisites
 
-4. Set the ROS 2 and Visual-Studio environment:
+1. Install Visual Studio 2019 Community or Professional  
+   - Visual Studio 2022 also works (adapt paths accordingly)  
+2. Install Pixi  
+   https://pixi.sh  
+3. Use Developer Command Prompt for Visual Studio (x64 Native Tools)
 
-   ```sh
-   call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
-   call C:\opt\ros\humble\x64\setup.bat
-   ```
+Developer Command Prompt fallback (if needed):
 
-   This step depends on your local ROS 2 and Visual-Studio installation. Please replace `C:\opt\ros\humble\x64\setup.bat` with your ROS 2 version and adapt the path to the Visual Studio folder if your installation is different.
-
-5. Cleanup to insure a complete rebuild:
-
-   ```sh
-   rmdir /s/q .\build
-   rmdir /s/q .\install
-   rmdir /s/q .\log
-   del /f/q .\src\CMakeLists.txt
-   ```
-
-   This step is only required for a complete rebuild. A complete rebuild is recommended e.g. after an update of the sick_scan_xd sources.
-
-6. Build sick_generic_caller:
-
-   ```sh
-   colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" --event-handlers console_direct+
-   call .\install\setup.bat
-   ```
-
-> **_NOTE:_**
->
-> * LD-MRS sensors are currently not supported on Windows.
-> * To build sick_generic_caller without multiScan100/picoScan100/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in [CMakeLists.txt](./CMakeLists.txt) or call cmake with option `-DSCANSEGMENT_XD=0`:
-
-```sh
-colcon build --packages-select sick_scan_xd --cmake-args " -DROS_VERSION=2" " -DSCANSEGMENT_XD=0" --event-handlers console_direct+
+```bat
+call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64 -host_arch=amd64
 ```
+
+---
+
+#### 3. ROS 2 Jazzy on Windows via Pixi (RoboStack)
+
+##### 3.1 Prepare workspace
+
+```bat
+mkdir C:\pixi_ws
+cd C:\pixi_ws
+pixi init
+```
+
+##### 3.2 Create Pixi project
+
+```bat
+pixi init
+```
+
+##### 3.3 Pixi configuration (pixi.toml)
+
+Replace the auto-generated file with:
+
+```toml
+[project]
+name = "ros2_jazzy"
+version = "0.1.0"
+channels = [
+  "https://prefix.dev/conda-forge",
+  "https://prefix.dev/robostack-jazzy"
+]
+platforms = ["win-64"]
+
+[dependencies]
+python = "3.12.*"
+ros-jazzy-desktop = "*"
+colcon-common-extensions = "*"
+pip = "*"
+ninja = ">=1.13.1,<2"
+ros-jazzy-diagnostic-updater = "*"
+```
+
+##### 3.4 Install ROS 2 Jazzy
+
+```bat
+pixi install
+pixi shell
+```
+
+##### 3.5 Activate and test
+
+```bat
+ros2 run demo_nodes_cpp talker
+```
+
+##### 3.6 Notes (Jazzy)
+
+- Do not mix with ZIP-based ROS installs
+- Always start with `pixi shell`
+- Pixi manages Python and middleware DLLs
+
+---
+
+#### 4. ROS 2 Kilted on Windows (ZIP + Pixi)
+
+##### 4.1 Prepare workspace
+
+```bat
+mkdir C:\pixi_ws
+cd C:\pixi_ws
+```
+
+##### 4.2 Pixi configuration
+
+```powershell
+irm https://raw.githubusercontent.com/ros2/ros2/refs/heads/kilted/pixi.toml -OutFile pixi.toml
+pixi install
+```
+
+##### 4.3 Download ROS 2 Kilted Windows Binary
+
+From GitHub ROS2 releases:
+
+ros2-kilted-YYYYMMDD-windows-release-amd64.zip
+
+##### 4.4 Unzip ROS 2 binary
+
+Extract to:
+
+C:\pixi_ws\ros2-windows
+
+Expected:
+
+local_setup.bat  
+setup.bat  
+bin\  
+Scripts\  
+Lib\  
+share\  
+
+##### 4.5 Environment entry point
+
+Create file C:\pixi_ws\ros2_prepare.cmd:
+
+```bat
+@echo off
+pixi shell || goto :error
+call C:\pixi_ws\ros2-windows\local_setup.bat || goto :error
+
+set RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+set ROS_LOCALHOST_ONLY=1
+set ROS_DISABLE_ROS2CLI_DAEMON=1
+
+set RCUTILS_LOGGING_USE_STDOUT=1
+set RCUTILS_LOGGING_BUFFERED_STREAM=0
+
+echo === ROS 2 Kilted environment ready ===
+goto :eof
+
+:error
+exit /b 1
+```
+
+##### 4.6 Test ROS 2 Kilted
+
+```bat
+ros2 run demo_nodes_cpp talker
+```
+
+##### 4.7 Notes (Kilted)
+
+- Do not call setup.bat manually
+- Do not mix Jazzy Pixi and Kilted ZIP environments
+- CycloneDDS recommended
+
+---
+
+#### 5. Build sick_scan_xd on Windows (Jazzy / Kilted)
+
+##### 5.1 Workspace setup
+
+```bat
+cd C:\pixi_ws
+mkdir sick_scan_xd_ws
+cd sick_scan_xd_ws
+mkdir src
+cd src
+```
+
+##### 5.2 Clone repositories
+
+```bat
+git clone https://github.com/SICKAG/sick_scan_xd.git
+```
+
+##### 5.3 Verify environment
+
+```bat
+echo %CMAKE_PREFIX_PATH%
+```
+
+Expected example:
+
+C:\pixi_ws\ros2-windows;C:\pixi_ws\ros2-windows\opt\...
+
+##### 5.4 Clean before first build
+
+```bat
+cd C:\pixi_ws\sick_scan_xd_ws
+rmdir /s /q build 2>nul
+rmdir /s /q install 2>nul
+rmdir /s /q log 2>nul
+```
+
+##### 5.5 python_d.exe workaround
+
+Ensure that file
+
+C:\pixi_ws\.pixi\envs\default\python_d.exe
+
+exists.
+
+If it is not there, copy python.exe to python_d.exe.  
+This is needed due to a bug in the ROS 2 build for “RelWithDebInfo”.
+
+```bat
+copy C:\pixi_ws\.pixi\envs\default\python.exe C:\pixi_ws\.pixi\envs\default\python_d.exe
+```
+
+##### 5.6 Build commands
+
+```bat
+colcon build --packages-select diagnostic_updater sick_scan_xd ^
+  --cmake-args "-DROS_VERSION=2" ^
+  --event-handlers console_direct+
+```
+
+If successful, you will see:
+
+```
+Summary: 2 packages finished successfully
+```
+
+##### 5.7 Overlay and run
+
+Activate the workspace:
+
+```bat
+call install\setup.bat
+```
+
+Then test a launch file (adjust for your sensor type):
+
+```bat
+ros2 launch sick_scan_xd sick_multiscan.launch.py ^
+  hostname:=192.168.0.1 ^
+  udp_receiver_ip:=192.168.0.100 ^
+  tick_to_timestamp_mode:=2
+```
+
+##### 5.8 Environment Notes
+
+| Variable | Purpose | Typical Content |
+|---|---|---|
+| `CMAKE_PREFIX_PATH` | Where CMake finds installed packages | ROS 2 install and workspace paths |
+| `AMENT_PREFIX_PATH` | ROS 2’s ament-specific search path | Similar to CMAKE_PREFIX_PATH |
+| `colcon` | ROS 2 build tool | Uses both variables automatically |
+
+##### 5.9 Cleanup to ensure complete rebuild
+
+```bat
+rmdir /s /q .\build
+rmdir /s /q .\install
+rmdir /s /q .\log
+del /f /q .\src\CMakeLists.txt
+```
+
+##### 5.10 Build sick_generic_caller
+
+```bat
+colcon build --packages-select sick_scan_xd ^
+  --cmake-args "-DROS_VERSION=2" ^
+  --event-handlers console_direct+
+
+call .\install\setup.bat
+```
+
+---
+
+#### 6. Debugging with Visual Studio
+
+If you find it useful, you can try to run the code in the MS Visual Studio environment:
+
+a) Launch pixi environment and change to the sick_scan_xd repository  
+b) call .\install\setup.bat  
+c) Change to project type `RelWithDebInfo`  
+d) Run sick_generic_caller with the following command line:
+
+C:\pixi_ws\sick_scan_xd_ws\install\sick_scan_xd\share\sick_scan_xd\launch\sick_multiscan.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100 --ros-args
+
+> NOTE:
+> - LD-MRS sensors are currently not supported on Windows.
+> - To build sick_generic_caller without multiScan100/picoScan100/sick_scansegment_xd support, switch off option `BUILD_WITH_SCANSEGMENT_XD_SUPPORT` in CMakeLists.txt or call cmake with option `-DSCANSEGMENT_XD=0`:
+
+```bat
+colcon build --packages-select sick_scan_xd ^
+  --cmake-args "-DROS_VERSION=2" "-DSCANSEGMENT_XD=0" ^
+  --event-handlers console_direct+
+```
+
+---
+
+#### 7. Optional Build Variants
+
+(see command above)
+
+---
+
+#### 8. Rules, Anti-Patterns, and Support Checklist
+
+Rules:
+- Always use documented entry point
+- Always clean when switching environments
+- Always use Developer Command Prompt
+
+Support checklist:
+1. where ros2
+2. where python
+3. Exact colcon build command
+4. Entry point used
+
+---
+
+This document defines the supported Windows ROS 2 workflow.  
+Any deviation is unsupported by definition. See also FAQ sections for ROS 2 installation issues under Windows.
+
+---
+
+#### 9. Useful Resources and Hints
+
+- Full installation video for Kilted with official ROS2 sources:  
+  https://www.youtube.com/watch?v=xSXrRQGWmbQ&t=11s  
+
+- We recommend to use the robostack setup described above because it is clearly based on Conda.
+
+- See also in the FAQ section for the keyword "Windows ROS2".
 
 ### Without ROS on Linux
 
@@ -670,7 +986,7 @@ doxygen ./docs/Doxyfile
 
 To install sick_scan_xd on Windows, follow the steps below:
 
-1. If not yet done, install Visual Studio. Visual Studio 2019 Community or Professional Edition is recommended.
+1. If you have not already done so, please install Visual Studio. We recommend using Visual Studio 2019 Community or Professional Edition, or a newer version (see also the special note for 2026).
 
 2. Create a workspace folder, e.g. `sick_scan_ws` (or any other name):
 
@@ -685,7 +1001,7 @@ To install sick_scan_xd on Windows, follow the steps below:
    git clone -b master https://github.com/SICKAG/sick_scan_xd.git
    ```
 
-4. Build sick_generic_caller and sick_scan_xd_shared_lib.dll with cmake and Visual Studio 2019:
+4. Build sick_generic_caller and sick_scan_xd_shared_lib.dll with cmake and Visual Studio 2019 or Visual Studio 2022:
 
    ```sh
    cd sick_scan_xd
@@ -721,7 +1037,7 @@ To install sick_scan_xd on Windows, follow the steps below:
    set _msvc=Visual Studio 2022
    set _cmake_build_dir=build
    REM Create the build directory if it doesn't exist
-   %_cmake_build_dir% mkdir %_cmake_build_dir%
+   if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
    REM Navigate to the build directory
    pushd %_cmake_build_dir%
    REM Run CMake to configure the project (using Visual Studio 2022)
@@ -736,6 +1052,48 @@ To install sick_scan_xd on Windows, follow the steps below:
 
 After successful build, binary files `sick_generic_caller.exe` and `sick_scan_xd_shared_lib.dll` are created in folders `sick_scan_xd\build\Debug` and `sick_scan_xd\build\Release`.
 
+#### Building on Windows with Visual Studio 2026 (MSVC v18)
+
+**Important note for Windows users:**  
+Visual Studio **2026** ships with **MSVC toolset version 18**, which requires **CMake ≥ 4.2.0**.  
+Older CMake versions (including the one delivered through **WinGet**) are **not compatible**.  
+You must install CMake **4.2.0 or newer** directly from the official CMake website.
+
+##### Requirements
+- Visual Studio **2026**
+- MSVC **v18**
+- CMake **≥ 4.2.0** (download from cmake.org)
+
+##### Example build procedure (Windows, Visual Studio 2026)
+
+```bat
+cd sick_scan_xd
+
+REM Set environment variables
+set _os=x64
+set _cmake_string=Visual Studio 18 2026
+set _msvc=Visual Studio 2026
+set _cmake_build_dir=build
+
+REM Create the build directory if it doesn't exist
+if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
+
+REM Navigate to the build directory
+pushd %_cmake_build_dir%
+
+REM Run CMake to configure the project
+cmake -DROS_VERSION=0 -G "%_cmake_string%" ..
+
+REM Build the project in Debug and Release modes
+cmake --build . --clean-first --config Debug
+cmake --build . --clean-first --config Release
+
+REM Note: Open sick_scan_xd.sln in Visual Studio 2026 for development and debugging
+
+REM Return to previous directory
+popd
+
+
 > **_NOTE:_**
 >
 > * LD-MRS sensors are currently not supported on Windows.
@@ -744,6 +1102,9 @@ After successful build, binary files `sick_generic_caller.exe` and `sick_scan_xd
 ```sh
 cmake -DROS_VERSION=0 -DSCANSEGMENT_XD=0 -G "%_cmake_string%" ..
 ```
+
+
+
 
 ## Running the driver
 
@@ -1806,7 +2167,7 @@ set _msvc=Visual Studio 2019
 set _cmake_build_dir=build
 REM Build the minimalistic C usage example
 cd examples\c
-mkdir %_cmake_build_dir%
+if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
 cd %_cmake_build_dir%
 cmake -G "%_cmake_string%" ..
 cmake --build . --clean-first --config Debug
@@ -1844,7 +2205,7 @@ set _msvc=Visual Studio 2019
 set _cmake_build_dir=build
 REM Build the minimalistic C++ usage example
 cd examples\cpp
-mkdir %_cmake_build_dir%
+ if not exist %_cmake_build_dir% mkdir %_cmake_build_dir%
 cd %_cmake_build_dir%
 cmake -G "%_cmake_string%" ..
 cmake --build . --clean-first --config Debug
@@ -1893,6 +2254,7 @@ firefox ./demo/image_viewer_api_test.html &
 ![api_test_linux_tim7xx.png](doc/sick_scan_api/api_test_linux_tim7xx.png)
 
 ##### Complete usage example in Python
+**_NOTE:_** **Although ROS1 is still mentioned below, active development for ROS1 will not be continued.** 
 
 A complete python usage example is implemented in [sick_scan_xd_api_test.py](test/python/sick_scan_xd_api/sick_scan_xd_api_test.py). It is handy to test the sick_scan_xd library. Like its C++ counterpart [sick_scan_xd_api_test.cpp](test/src/sick_scan_xd_api/sick_scan_xd_api_test.cpp), it just loads library `libsick_scan_xd_shared_lib.so` resp. `sick_scan_xd_shared_lib.dll`, starts a lidar and receives the lidar point cloud and messages via API. On ROS 1, the lidar point cloud and messages are converted to ROS and published. The lidar point cloud can be visualized by rviz using topic "/sick_scan_xd_api_test/api_cloud".
 
@@ -2553,8 +2915,9 @@ Run the following steps to install and run docker on Linux:
    * depending on your system, it runs qemu-system-x86 with high cpu and memory load.
 
 #### Build and run on Linux ROS 1 (short cut)
+**_NOTE:_** **Although ROS1 is still mentioned below, active development for ROS1 will not be continued.** 
 
-Short cut to build and run sick_scan_xd in a docker container for ROS1 noetic on Linux:
+Shortcut to build and run sick_scan_xd in a docker container for ROS1 noetic on Linux:
 
 ```sh
 # Create a workspace folder (e.g. sick_scan_ws or any other name) and clone the sick_scan_xd repository:
@@ -3069,6 +3432,10 @@ Overview of the tools:
 
 The multiScan100 and the picoScan100 families are supported by sick_scan_xd. In contrast to the most other supported devices the scan data is transmitted in MSGPACK or compact format over UDP.
 The following describes the configuration, validation and test in more detail.
+
+#### multiScan100 family layer structure
+
+Within the multiScan family, there are different variants with different layer structures. Further information about the layer structure can be found [here](doc/multiscan/multiscan.md).
 
 #### Configuration
 
@@ -4599,6 +4966,125 @@ popd
 ```
 
 Then paste the content of files `20220915_multiscan_msgpack_output.msgpack.hex` resp. `20210929_multiscan_token_udp.msgpack.hex` in <https://toolslick.com/conversion/data/messagepack-to-json> and save the json-output.
+
+### Windows ROS2: AMENT_PREFIX_PATH problem
+**Message:**  `The path 'C:\dev\ros2_humble' in AMENT_PREFIX_PATH doesn't exist`
+**Cause:** Environment still references an old Humble installation.  
+**Fix:**
+```bat
+set AMENT_PREFIX_PATH=
+set CMAKE_PREFIX_PATH=
+call C:\pixi_ws\ros2-windows\setup.bat
+```
+
+### Windows ROS2: Missing diagnostic_updater
+**Message:** `Could not find package configuration file provided by "diagnostic_updater"`  
+**Cause:** The `diagnostics` package (which provides `diagnostic_updater`) is not included in the default Kilted Windows build.  
+**Fix:**
+```bat
+cd src
+git clone -b ros2-kilted https://github.com/ros/diagnostics.git
+cd ..
+colcon build --packages-select diagnostic_updater sick_scan_xd --cmake-args "-DROS_VERSION=2 -DLDMRS=0 
+  --event-handlers console_direct+
+```
+
+---
+
+### Windows ROS2: Finddiagnostic_updater.cmake not found
+**Message:** `By not providing "Finddiagnostic_updater.cmake" in CMAKE_MODULE_PATH...`  
+**Cause:** `diagnostic_updater` is missing or not visible to CMake.  
+**Fix:** Add or rebuild the `diagnostics` repo (see above).
+
+---
+
+### Windows ROS2: CMAKE_PREFIX_PATH incomplete
+**Message:** `Could not find package ...` or `rclcpp not found`  
+**Cause:** Visual Studio and ROS 2 setup scripts not sourced.  
+**Fix:**
+```bat
+call "%ProgramFiles%\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" -arch=amd64
+call C:\pixi_ws\ros2-windows\setup.bat
+echo %CMAKE_PREFIX_PATH%
+```
+Ensure the output includes `C:\pixi_ws\ros2-windows`.
+
+---
+
+### Windows ROS2: Mixed ROS 2 installations
+**Message:** Build fails or wrong include paths when mixing Humble and Kilted.  
+**Cause:** Mixing multiple ROS 2 versions in one session.  
+**Fix:**  
+Only use **one** ROS 2 distribution per terminal.  
+If switching, clear variables:
+```bat
+set AMENT_PREFIX_PATH=
+set CMAKE_PREFIX_PATH=
+```
+Then source only Kilted:
+```bat
+call C:\pixi_ws\ros2-windows\setup.bat
+```
+
+---
+
+### Windows ROS2: Header not found
+**Message:** `fatal error: rclcpp/rclcpp.hpp: No such file or directory`  
+**Cause:** ROS 2 environment not sourced before building.  
+**Fix:**
+```bat
+call C:\pixi_ws\ros2-windows\setup.bat
+```
+Then rebuild your workspace.
+
+---
+
+### Windows ROS2: colcon or ros2 command not found
+**Message:** `'colcon' is not recognized as an internal or external command`  
+**Cause:** The Pixi environment is not active.  
+**Fix:**
+```bat
+pixi shell pixi_ros2_kilted
+```
+
+---
+
+### Windows ROS2: Clean build issues
+**Message:** CMake or colcon cache errors.  
+**Cause:** Old build artifacts conflicting with new settings.  
+**Fix:**
+```bat
+rmdir /s /q build install log  2>nul
+colcon build --event-handlers console_direct+
+```
+---
+### Windows ROS2: Software PLL shows a lot of error messages
+**Message:** For picoScan or multiScan the Software PLL throws a lot of error message. <br>
+**Cause:** Timestamp mechanism differs betweend Windows and Linux. <br>
+**Fix:** Modify the needed lauch file by modification of the following entry:
+
+```bat
+        <param name="tick_to_timestamp_mode" type="int" value="2"/>
+```
+
+---
+### Windows ROS2: Pixi Cache
+**Cause:** The default ROS environment was modified. These changes persist even if you reinstall your environment.  
+**Fix:** Pixi stores installation packages in  
+`C:\Users\<username>\AppData\Local\rattler`.  
+Delete (or rename) this directory to force Pixi to download fresh packages from the internet.
+
+---
+### Windows ROS2: ConnectionResetError: [WinError 10054]
+
+**Cause:** If you see the following error:
+```
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+```
+it indicates that the ROS daemon is not accepting the request.  
+**Fix:**
+In this case, run commands such as `ros2 topic list` with the `--no-daemon` option.  
+Example: `ros2 topic list --no-daemon`
 
 ## Troubleshooting and technical support
 
