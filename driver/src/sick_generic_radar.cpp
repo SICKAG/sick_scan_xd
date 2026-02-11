@@ -1,8 +1,8 @@
 /**
 * \file
 * \brief Radar Main Handling
-* Copyright (C) 2018, Ing.-Buero Dr. Michael Lehning, Hildesheim
-* Copyright (C) 2018, SICK AG, Waldkirch
+* Copyright (C) 2026, Ing.-Buero Dr. Michael Lehning, Hildesheim
+* Copyright (C) 2026, SICK AG, Waldkirch
 * All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -871,6 +871,7 @@ namespace sick_scan_xd
 #define OBJLEN_KEYWORD "OBLE1"
 #define OBJID_KEYWORD "OBID1"
 
+
     const int RAWTARGET_LOOP = 0;
     const int OBJECT_LOOP = 1;
 
@@ -892,7 +893,6 @@ namespace sick_scan_xd
             case RADAR_1D:
               keyWordList.push_back(P3DX1_KEYWORD);
               keyWordList.push_back(V3DX1_KEYWORD);
-              keyWordList.push_back(OBJLEN_KEYWORD);
               keyWordList.push_back(OBJID_KEYWORD);
               break;
             case RADAR_3D:
@@ -900,7 +900,7 @@ namespace sick_scan_xd
               keyWordList.push_back(P3DY1_KEYWORD);
               keyWordList.push_back(V3DX1_KEYWORD);
               keyWordList.push_back(V3DY1_KEYWORD);
-              keyWordList.push_back(OBJLEN_KEYWORD);
+              // keyWordList.push_back(OBJLEN_KEYWORD);
               keyWordList.push_back(OBJID_KEYWORD);
               break;
             default: // unsupported
@@ -921,12 +921,24 @@ namespace sick_scan_xd
         keyWordPos[i] = -1;
       }
       int numKeyWords = keyWordPos.size();
-      for (int i = 0; i < fields.size(); i++)
+      // Supported field keywords (extract) for object detection and kinematic attributes
+      // DIST1, AZMT1, VRAD1, AMPL1, MODE1, P3DX1, P3DY1, V3DX1, V3DY1, OBLE1, OBID1
+      for (int i = 0; i < fields.size(); i++) // just searching for the keyword. This makes the parsing reliable.
       {
+        // Iterate over all known keywords
         for (int j = 0; j < keyWordList.size(); j++)
         {
-          if (fields[i].len == keyWordList[j].length() && strncmp(fields[i].data, keyWordList[j].c_str(), fields[i].len) == 0)
+          // Check if the field length matches the keyword length
+          // (quick filter before doing a full string comparison)
+          if (fields[i].len == keyWordList[j].length() &&
+            // Compare the field's raw character data with the keyword string
+            // for exactly 'len' characters; strncmp == 0 means exact match
+            strncmp(fields[i].data,
+              keyWordList[j].c_str(),
+              fields[i].len) == 0)
           {
+            // Store the index of the matching field:
+            // keyword j was found at position i in 'fields'
             keyWordPos[j] = i;
           }
         }
@@ -948,22 +960,13 @@ namespace sick_scan_xd
           if (keyWordPos[i] == -1)
           {
             static int num_warnings = 0;
-            if (num_warnings < numKeyWords || (num_warnings % 100) == 0) 
+            if (num_warnings < numKeyWords || (num_warnings % 100) == 0)
             {
               ROS_WARN_STREAM("parseRadarDatagram(): " << (i + 1) << ". keyword " << keyWordList[i] << " missing, but first keyword " << keyWordList[0] << " found, value set to 0.0 (warning repeated " << num_warnings << " times)");
             }
             num_warnings++;
             entriesNumOk = false;
             allow_missing_keywords = true; // P3DY1 and V3DY1 set to 0 if missing
-          }
-          else
-          {
-            int entriesNumTmp = (int)radarFieldToInt32(fields[keyWordPos[i] + 3], useBinaryProtocol); // getHexValue(fields[keyWordPos[i] + 3].data);
-            if (entriesNumTmp != entriesNum)
-            {
-              ROS_WARN_STREAM("parseRadarDatagram(): Number of items for keyword " << keyWordList[i] << " differs from number of items for " << keyWordList[0]);
-              entriesNumOk = false;
-            }
           }
         }
       }
@@ -980,11 +983,8 @@ namespace sick_scan_xd
           }
           int scaleLineIdx = keyWordPos[i] + 1;
           int scaleOffsetLineIdx = keyWordPos[i] + 2;
-          // std::string token = radarFieldToString(fields[scaleLineIdx], useBinaryProtocol); // fields[scaleLineIdx].data;
           keyWordScale[i] = radarFieldToFloat(fields[scaleLineIdx], useBinaryProtocol); // getFloatValue(token);
-          // token = fields[scaleOffsetLineIdx].data;
           keyWordScaleOffset[i] = radarFieldToFloat(fields[scaleOffsetLineIdx], useBinaryProtocol); // getFloatValue(token);
-          // printf("Keyword: %-6s %8.3lf %8.3lf\n", keyWordList[i].c_str(), keyWordScale[i], keyWordScaleOffset[i]);
         }
 
         switch (iLoop)
@@ -1042,7 +1042,7 @@ namespace sick_scan_xd
                 if (token.compare(AMPL1_KEYWORD) == 0)
                 {
                   int amplRaw = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getShortValue(fields[dataRowIdx].data);
-                  ampl = (int) (convertScaledIntValue(amplRaw, keyWordScale[j], keyWordScaleOffset[j]) + 0.5);
+                  ampl = (float) (convertScaledIntValue(amplRaw, keyWordScale[j], keyWordScaleOffset[j]) + 0.5);
                 }
               }
               rawTargetList[i].Dist(dist);
@@ -1055,52 +1055,51 @@ namespace sick_scan_xd
               break;
             case OBJECT_LOOP:
             {
-              float px = 0.0;
-              float py = 0.0;
-              float vx = 0.0;
-              float vy = 0.0;
-              float objLen = 0.0;
-              int objId = 0;
+              // Radar object state (sensor coordinate frame)
+              float px = 0.0f;   // position X [m]
+              float py = 0.0f;   // position Y [m]
+              float vx = 0.0f;   // velocity X [m/s]
+              float vy = 0.0f;   // velocity Y [m/s]
 
-              for (int j = 0; j < numKeyWords; j++)
+              float objLen = 0.0f; // object length [m] (not assigned in this block)
+              int   objId = 0;    // unique object identifier
+
+              for (int j = 0; j < numKeyWords; ++j)
               {
-                if (true == allow_missing_keywords && keyWordPos[j] == -1)
-                {
-                  continue; // keyword is missing
-                }
-                int dataRowIdx = keyWordPos[j] + 4 + i;
-                std::string token = keyWordList[j];
-                int intVal = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getShortValue(fields[dataRowIdx].data);
-                float val = convertScaledIntValue(intVal, keyWordScale[j], keyWordScaleOffset[j]);
+                // Skip missing keywords if allowed
+                if (allow_missing_keywords && keyWordPos[j] == -1)
+                  continue;
 
-                if (token.compare(P3DX1_KEYWORD) == 0)
-                {
-                  px = val * 0.001f;
-                }
-                if (token.compare(P3DY1_KEYWORD) == 0)
-                {
-                  py = val * 0.001f;
-                }
-                if (token.compare(V3DX1_KEYWORD) == 0)
-                {
-                  vx = val;
-                }
-                if (token.compare(V3DY1_KEYWORD) == 0)
-                {
-                  vy = val;
+                // Index into radar data field array
+                const int dataRowIdx = keyWordPos[j] + 4 + i;
 
-                }
-                if (token.compare(OBJLEN_KEYWORD) == 0)
-                {
-                  objLen = val;
-                }
-                if (token.compare(OBJID_KEYWORD) == 0)
-                {
-                  int objIdRaw = (int)radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol); // getHexValue(fields[dataRowIdx].data);
-                  objId = (int) (objIdRaw * keyWordScale[j] + 0.5);
-                }
+                // Keyword name for this entry
+                const std::string& token = keyWordList[j];
+
+                // Raw integer value from radar telegram
+                const int rawInt =
+                  static_cast<int>(radarFieldToInt32(fields[dataRowIdx], useBinaryProtocol));
+
+                // Convert raw value to scaled physical value
+                const float scaledVal =
+                  convertScaledIntValue(rawInt, keyWordScale[j], keyWordScaleOffset[j]);
+
+                // Identify keyword once
+                const bool isPx = (token == P3DX1_KEYWORD);   // position X
+                const bool isPy = (token == P3DY1_KEYWORD);   // position Y
+                const bool isVx = (token == V3DX1_KEYWORD);   // velocity X
+                const bool isVy = (token == V3DY1_KEYWORD);   // velocity Y
+                const bool isObjId = (token == OBJID_KEYWORD);   // object id
+
+                // Assign values based on keyword
+                if (isPx)    px = scaledVal * 0.001f;  // mm -> m
+                if (isPy)    py = scaledVal * 0.001f;  // mm -> m
+                if (isVx)    vx = scaledVal;           // m/s
+                if (isVy)    vy = scaledVal;           // m/s
+                if (isObjId) objId = static_cast<int>(rawInt * keyWordScale[j] + 0.5f); // rounded
               }
 
+              // Store parsed object into output list
               objectList[i].ObjId(objId);
               objectList[i].ObjLength(objLen);
               objectList[i].P3Dx(px);
@@ -1108,7 +1107,7 @@ namespace sick_scan_xd
               objectList[i].V3Dx(vx);
               objectList[i].V3Dy(vy);
             }
-              break;
+            break;
           }
         }
       }
@@ -1206,7 +1205,7 @@ namespace sick_scan_xd
         float xp[2] = {0};  // for raw target
         float yp[2] = {0};
         float vehicleWidth = 1.8f;
-        y = iY * 2.0;
+        y = (float)(iY * 2.0f);
         float speed = y * 10.0f; // [m/s]
         vehicle.V3Dx(speed); // +/- 20 m/s
         vehicle.V3Dy(0.1f); // just for testing
@@ -1216,8 +1215,8 @@ namespace sick_scan_xd
         {
           xOff = 100.0;
         }
-        vehicle.P3Dx((xOff + 0.1 * speed * (callCnt % 20)) * 1000.0);
-        vehicle.P3Dy(y * 1000.0);
+        vehicle.P3Dx((float)((xOff + 0.1 * speed * (callCnt % 20)) * 1000.0f));
+        vehicle.P3Dy(y * 1000.0f);
         float objLen = 6.0f + y;
         vehicle.ObjLength(objLen);
 
@@ -1228,31 +1227,31 @@ namespace sick_scan_xd
         {
           SickScanRadarRawTarget rawTarget;
 
-          xp[i] = vehicle.P3Dx() * 0.001;
-          yp[i] = vehicle.P3Dy() * 0.001;
+          xp[i] = vehicle.P3Dx() * 0.001f;
+          yp[i] = vehicle.P3Dy() * 0.001f;
 
           if (i == 0)
           {
-            yp[i] -= vehicleWidth / 2.0;
+            yp[i] -= vehicleWidth / 2.0f;
           }
           else
           {
-            yp[i] += vehicleWidth / 2.0;
+            yp[i] += vehicleWidth / 2.0f;
           }
           if (speed < 0.0)  // oncoming
           {
-            xp[i] -= objLen * 0.5;
+            xp[i] -= objLen * 0.5f;
           }
           else
           {
-            xp[i] += objLen * 0.5;
+            xp[i] += objLen * 0.5f;
           }
 
           float azimuth = atan2(yp[i], xp[i]);
           float dist = sqrt(xp[i] * xp[i] + yp[i] * yp[i]);
           float vrad = speed * cos(azimuth);  // speed in y direction
-          float mode = 0;
-          float ampl = 50.0;  // between 30 and 70
+          int mode = 0;
+          float ampl = 50.0f;  // between 30 and 70
 
           rawTarget.Ampl(ampl);
           rawTarget.Mode(mode);
@@ -1296,10 +1295,10 @@ namespace sick_scan_xd
         switch (i)
         {
           case 0:
-            val = 1000.0 * rawTargetList[j].Dist();
+            val = 1000.0f * rawTargetList[j].Dist();
             break;
           case 1:
-            val = 1.0 / deg2rad * rawTargetList[j].Azimuth();
+            val = (float)(1.0f / deg2rad * rawTargetList[j].Azimuth());
             break;
           case 2:
             val = rawTargetList[j].Vrad();
@@ -1376,10 +1375,10 @@ namespace sick_scan_xd
         switch (i)
         {
           case 0:
-            val = rawTargetList[j].Mode();
+            val = (float)rawTargetList[j].Mode();
             break;
           case 1:
-            val = objectList[j].ObjId();
+            val = (float)objectList[j].ObjId();
             break;
         }
 
@@ -1403,7 +1402,7 @@ namespace sick_scan_xd
         {
           val -= 0.5;
         }
-        int8_t shortVal = (int16_t) (val);
+        int8_t shortVal = (int8_t) (val);
 
         sprintf(szDummy, "%08x", shortVal);
         strcpy(szDummy, szDummy + 6);  // remove first 6 digits due to integer / short
@@ -1541,7 +1540,7 @@ namespace sick_scan_xd
       char *buffer_pos = (char *) receiveBuffer;
       char *dstart = NULL;
       char *dend = NULL;
-      int32_t dlength = 0;
+      size_t dlength = 0;
 
       if (useBinaryProtocol)
       {
@@ -1567,14 +1566,15 @@ namespace sick_scan_xd
         if ((dstart != NULL) && (dend != NULL))
         {
           dataToProcess = true; // continue parsing
-          dlength = dend - dstart;
+          dlength = (size_t)(dend - dstart);
           *dend = '\0';
           dstart++;
         }
       }
       if(dataToProcess && dstart != 0 && dlength > 0 && dstart + dlength <= (char*)receiveBuffer + actual_length)
       {
-        if (parseRadarDatagram(dstart, dlength, useBinaryProtocol, &radarMsg_, objectList, rawTargetList) != ExitSuccess)
+        int verboseLevel = 0; // default: 0 -> no verbose, 1 -> dump to directory /tmp
+        if (parseRadarDatagram(dstart, dlength, useBinaryProtocol, &radarMsg_, objectList, rawTargetList, verboseLevel) != ExitSuccess)
         {
           dataToProcess = false;
         }
@@ -1656,7 +1656,7 @@ namespace sick_scan_xd
             {
               case 0:
                 {
-                  float angle = deg2rad * rawTargetList[i].Azimuth();
+                  float angle = (float)(deg2rad * rawTargetList[i].Azimuth());
                   float range = rawTargetList[i].Dist();
                   tgt_valid = m_range_filter.apply(range, range_modified);
                   if (tgt_valid)
@@ -1678,7 +1678,7 @@ namespace sick_scan_xd
                 valSingle[4] = objectList[i].V3Dy();
                 valSingle[5] = 0.0;
                 valSingle[6] = objectList[i].ObjLength();
-                valSingle[7] = objectList[i].ObjId();
+                valSingle[7] = (float)(objectList[i].ObjId());
                 break;
             }
             if (!tgt_valid)
@@ -1743,7 +1743,7 @@ namespace sick_scan_xd
         radarMsg_.objects[i].bounding_box_center.position.y = objectList[i].P3Dy();
         radarMsg_.objects[i].bounding_box_center.position.z = 0.0;
 
-        float heading2 = heading / 2.0;
+        float heading2 = heading / 2.0f;
         // (n_x, n_y, n_z) = (0, 0, 1), so (x, y, z, w) = (0, 0, sin(theta/2), cos(theta/2))
         /// https://answers.ros.org/question/9772/quaternions-orientation-representation/
         // see also this beautiful website: https://quaternions.online/

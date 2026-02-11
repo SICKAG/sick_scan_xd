@@ -189,6 +189,8 @@ namespace sick_scansegment_xd
         // Apply an additional transform to the cartesian pointcloud, default: "0,0,0,0,0,0" (i.e. no transform)
         sick_scan_xd::SickCloudTransform add_transform_xyz_rpy;
 
+        int layer_lookup_table_id; // Index for Layer lookup table: 0: multiScan136/166, 1: multiScan165
+
         // Configuration of laserscan messages (ROS only), activate/deactivate laserscan messages for each layer
         std::vector<int> laserscan_layer_filter; // Default: { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, i.e. laserscan messages for layer 5 activated (elevation -0.07 degree, max number of scan points)
 

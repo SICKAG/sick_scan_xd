@@ -29,6 +29,12 @@ public:
 
   ~SoftwarePLL() {}
 
+  // runtime fifo size setter
+  void setFifoSize(std::size_t newSize);
+
+  // read size of fio
+  std::size_t getFifoSize() const { return fifoSize; }
+
   // Update tick fifo and clock fifo
   bool pushIntoFifo(double curTimeStamp, uint64_t curtickTransmit, uint64_t curtickScan);
 
@@ -46,8 +52,14 @@ public:
   bool getDemoFileData(std::string fileName, std::vector<uint32_t>& tickVec,
     std::vector<uint32_t>& secVec, std::vector<uint32_t>& nanoSecVec);
 
+
+  void dumpInternalStatus(const std::string& filename) const; // dump internal status for debugging to a csv file
+
   static void testbed();
   static void testbed_32bit_overflow();
+
+  static constexpr int FIFO_SIZE_SEGMENT_MODE = 101;
+  static constexpr int FIFO_SIZE_STANDARD_MODE = 7;
 
   bool IsInitialized() const
   {
@@ -84,7 +96,6 @@ public:
 
   int findDiffInFifo(double diff, double tol);
 
-  static const int fifoSize = 7;
   size_t packets_dropped = 0;
   size_t packets_received = 0;
   double max_abs_delta_time = 0;
@@ -102,6 +113,15 @@ private:
     TICK_SCAN
   };
 
+  std::size_t fifoSize = 0;
+
+  std::vector<uint64_t> tickFifoTransmit;
+  std::vector<uint64_t> tickFifoScan;
+  std::vector<double>   clockFifo;
+
+  bool isInitialized = false;
+  int  numberValInFifo = 0;
+
   // Per-source 32-bit unwrap state
   bool     m_unwrap_init_transmit = false;
   bool     m_unwrap_init_scan = false;
@@ -113,16 +133,10 @@ private:
   // Convert possibly-32-bit tick into internal monotonic 64-bit tick
   uint64_t unwrapTick32(uint64_t raw_tick, TickSource source);
 
-  int numberValInFifo = 0;
   static const double MaxAllowedTimeDeviation;
   static const uint32_t MaxExtrapolationCounter;
 
-  uint64_t tickFifoTransmit[fifoSize] = { 0 }; // unwrapped transmit ticks
-  uint64_t tickFifoScan[fifoSize] = { 0 }; // unwrapped scan ticks
-  double   clockFifo[fifoSize] = { 0.0 };
-
   double lastValidTimeStamp = 0.0;
-  bool   isInitialized = false;
   double dTAvgFeedback = 0.0;
   double dClockDiffFeedBack = 0.0;
   double firstTimeStamp = 0.0;
@@ -155,6 +169,7 @@ private:
 
   SoftwarePLL()
   {
+    setFifoSize(FIFO_SIZE_STANDARD_MODE);
     AllowedTimeDeviation(SoftwarePLL::MaxAllowedTimeDeviation);
     numberValInFifo = 0;
     isInitialized = false;
