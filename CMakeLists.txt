@@ -321,6 +321,8 @@ if(ROS_VERSION EQUAL 2)
 
     find_package(ament_cmake REQUIRED)
     find_package(rclcpp REQUIRED)
+    find_package(rclcpp_lifecycle REQUIRED)
+    add_definitions(-DSICK_LIFECYCLE_NODE_AVAILABLE=1)
     
     set(diagnostic_updater_pkg diagnostic_updater)
     add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
@@ -749,7 +751,17 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         # target_link_options(${PROJECT_NAME}_shared_lib PUBLIC "-fPIC")
         target_link_libraries(${PROJECT_NAME}_shared_lib ${SICK_LDMRS_LIBRARIES})
     endif()
-    add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
+    add_executable(sick_generic_caller
+        driver/src/sick_generic_caller.cpp
+    )
+    # Add lifecycle node files only for ROS2
+    if(ROS_VERSION EQUAL 2)
+        target_sources(sick_generic_caller PRIVATE
+            driver/src/sick_scan_lifecycle_node.cpp
+            driver/src/sick_scansegment_xd/scansegment_threads.cpp
+            driver/src/sick_scansegment_xd/ros_msgpack_publisher.cpp
+        )
+    endif()
     if(ROS_VERSION EQUAL 0 AND NOT WIN32)
         target_link_libraries(sick_generic_caller PUBLIC ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} "pthread") # pthread required for std::thread
         target_link_options(sick_generic_caller PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
@@ -770,6 +782,7 @@ if(ROS_VERSION EQUAL 2)
     ament_target_dependencies(
         ${PROJECT_NAME}_lib
         "rclcpp"
+        "rclcpp_lifecycle"
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
@@ -784,6 +797,7 @@ if(ROS_VERSION EQUAL 2)
     ament_target_dependencies(
         ${PROJECT_NAME}_shared_lib
         "rclcpp"
+        "rclcpp_lifecycle"
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
@@ -798,6 +812,7 @@ if(ROS_VERSION EQUAL 2)
     ament_target_dependencies(
         sick_generic_caller
         "rclcpp"
+        "rclcpp_lifecycle"
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
@@ -825,6 +840,7 @@ if(ROS_VERSION EQUAL 2)
       ${std_msgs_TARGETS}
       ${visualization_msgs_TARGETS}
       rclcpp::rclcpp
+      rclcpp_lifecycle::rclcpp_lifecycle
       tf2_ros::tf2_ros
       ${LDMRS_TARGET_DEPENDENCIES}
     )
@@ -838,11 +854,13 @@ if(ROS_VERSION EQUAL 2)
       ${std_msgs_TARGETS}
       ${visualization_msgs_TARGETS}
       rclcpp::rclcpp
+      rclcpp_lifecycle::rclcpp_lifecycle
       tf2_ros::tf2_ros
       ${LDMRS_TARGET_DEPENDENCIES}
     )
 
     target_link_libraries(sick_generic_caller PUBLIC
+      ${PROJECT_NAME}_lib
       ${diagnostic_updater_TARGETS}
       ${diagnostic_msgs_TARGETS}
       ${geometry_msgs_TARGETS}
@@ -851,6 +869,7 @@ if(ROS_VERSION EQUAL 2)
       ${std_msgs_TARGETS}
       ${visualization_msgs_TARGETS}
       rclcpp::rclcpp
+      rclcpp_lifecycle::rclcpp_lifecycle
       tf2_ros::tf2_ros
       ${LDMRS_TARGET_DEPENDENCIES}
     )

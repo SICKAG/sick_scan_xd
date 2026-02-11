@@ -38,6 +38,7 @@ Main features and characteristics:
 * [Running the driver](#running-the-driver)
   * [Starting device with specific IP address](#starting-device-with-specific-ip-address)
   * [Start multiple devices / nodes](#start-multiple-devices--nodes)
+  * [ROS 2 Lifecycle Node Support](#ros-2-lifecycle-node-support)
   * [Parameters](#parameters)
   * [ROS services](#ros-services)
   * [ROS 2 example for messages and services](#ros-2-example-for-messages-and-services)
@@ -1396,6 +1397,31 @@ It is recommended to first verify the launch file configurations separately for 
 For picoScan100 and multiScan100, parameter udp_receiver_ip must be set to the IP address of the PC running sick_scan_xd. It is recommend to use IP addresses in the same subnet.
 
 > **_NOTE:_** The sick_scan_xd API does not support running multiple lidars simultaneously in a single process.** Currently the sick_scan_xd API does not support the single or multi-threaded use of 2 or more lidars in one process, since the sick_scan_xd library is not guaranteed to be thread-safe. To run multiple lidars simultaneously, we recommend using ROS or running sick_scan_xd in multiple and separate processes, so that each process serves one sensor.
+
+### ROS 2 Lifecycle Node Support
+
+**ROS 2 only**: The sick_scan_xd driver supports optional Lifecycle Node management for advanced state control and coordinated system startup/shutdown.
+
+**Quick Start:**
+
+```bash
+# Enable lifecycle mode
+ros2 launch sick_scan_xd sick_tim_7xx.launch.py lifecycle_managed_node:=true
+
+# Transition through states
+ros2 lifecycle set /sick_scan configure
+ros2 lifecycle set /sick_scan activate
+```
+
+**Key Features:**
+- Deterministic state management (Unconfigured → Inactive → Active)
+- Controlled initialization and shutdown sequences
+- Integration with lifecycle managers (nav2, ros2_control)
+- Enhanced shutdown for multiScan/picoScan devices (prevents deadlock)
+
+**Documentation:** See [doc/lifecycle_node.rst](doc/lifecycle_node.rst) for complete usage guide, troubleshooting, and examples.
+
+**Note:** Lifecycle mode is opt-in. Without the `lifecycle_managed_node:=true` parameter, the driver uses standard ROS 2 node behavior (autostart).
 
 ### Parameters
 
