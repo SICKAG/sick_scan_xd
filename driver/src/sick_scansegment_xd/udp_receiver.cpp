@@ -235,7 +235,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                     // msgpack data (default): UDP message := (4 byte \x02\x02\x02\x02) + (4 byte payload length) + payload + (4 byte CRC)
                     payload_length_bytes = Convert4Byte(udp_payload.data() + m_udp_msg_start_seq.size());
                     bytes_to_receive = (uint32_t)(payload_length_bytes + m_udp_msg_start_seq.size() + 2 * sizeof(uint32_t));
-                    udp_payload_offset = m_udp_msg_start_seq.size() + sizeof(uint32_t); // payload starts after (4 byte \x02\x02\x02\x02) + (4 byte payload length)
+                    udp_payload_offset = static_cast<uint32_t>(m_udp_msg_start_seq.size() + sizeof(uint32_t)); // payload starts after (4 byte \x02\x02\x02\x02) + (4 byte payload length)
                 }
                 else if (m_scandataformat == SCANDATA_COMPACT)
                 {

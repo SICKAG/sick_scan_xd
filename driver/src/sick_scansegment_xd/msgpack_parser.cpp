@@ -719,7 +719,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 			assert(channelPhi.data().size() == 1 && channelTheta.data().size() > 0 && distValues.size() == iEchoCount && rssiValues.size() == iEchoCount);
 
       // Check optional propertyValues: if available, we expect as many properties as we have points
-			int numProperties = propertyValues.size();
+			int numProperties = static_cast<int>(propertyValues.size());
 			for (int n = 0; n < numProperties; n++)
 			{
 				// ROS_DEBUG_STREAM("MsgPackParser::Parse(): " << (distValues[n].data().size()) << " dist values, " << (rssiValues[n].data().size()) << " rssi values, " << (propertyValues[n].size()) << " property values (" << (n+1) << ". echo)");
@@ -764,7 +764,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 				groupData.push_back(sick_scansegment_xd::ScanSegmentParserOutput::Scanline());
 				sick_scansegment_xd::ScanSegmentParserOutput::Scanline& scanline = groupData.back();
 				scanline.points.reserve(iPointCount);
-				int numPropertiesForThisEcho = propertyValues[echoIdx].size();  // number of properties for this echo index
+				int numPropertiesForThisEcho = static_cast<int>(propertyValues[echoIdx].size());  // number of properties for this echo index
 				for (int pointIdx = 0; pointIdx < iPointCount; pointIdx++)
 				{
      			    

@@ -1,8 +1,8 @@
 /*
  * @brief compact_parser parses and convertes scandata in compact format
  *
- * Copyright (C) 2020,2021,2022,2023,2024,2025 Ing.-Buero Dr. Michael Lehning, Hildesheim
- * Copyright (C) 2020,2021,2022,2023,2024,2025 SICK AG, Waldkirch
+ * Copyright (C) 2020,2021,2022,2023,2024,2025,2026 Ing.-Buero Dr. Michael Lehning, Hildesheim
+ * Copyright (C) 2020,2021,2022,2023,2024,2025,2026 SICK AG, Waldkirch
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@
  *      Authors:
  *         Michael Lehning <michael.lehning@lehning.de>
  *
- *  Copyright 2025 SICK AG
- *  Copyright 2025 Ing.-Buero Dr. Michael Lehning
+ *  Copyright 2026 SICK AG
+ *  Copyright 2026 Ing.-Buero Dr. Michael Lehning
  *
  */
 #include "sick_scan/softwarePLL.h"
@@ -363,11 +363,11 @@ sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParse
     }
     // Phi
     CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(float), module_size, "Phi", __LINE__);
-    metadata.Phi.reserve(metadata.NumberOfLinesInModule);
-    for(uint32_t cnt = 0; cnt < metadata.NumberOfLinesInModule; cnt++)  // Array of elevation angles in radians for each layer in this module, number of elements is numberOfLinesInModule
+    metadata.Phi.resize(metadata.NumberOfLinesInModule);
+
+    for (uint32_t i = 0; i < metadata.NumberOfLinesInModule; ++i)
     {
-        float val = readFloat32(scandata + byte_cnt, &byte_cnt);
-        metadata.Phi.push_back(val);
+      metadata.Phi[i] = readFloat32(scandata + byte_cnt, &byte_cnt);
     }
     // ThetaStart
     CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, metadata.NumberOfLinesInModule * sizeof(float), module_size, "ThetaStart", __LINE__);
@@ -446,32 +446,87 @@ int sick_scansegment_xd::CompactDataParser::GetLayerIDfromElevation(float layer_
   {
     int layer_idx = 0;
     int elevation_dist = std::abs(layer_elevation_mdeg - s_layer_elevation_table_mdeg[layer_idx]);
-    for(int n = 1; n < s_layer_elevation_table_mdeg.size(); n++)
+    // Search for nearest elevation table entry
+    for (size_t n = 1; n < s_layer_elevation_table_mdeg.size(); ++n)
     {
-      int dist = std::abs(layer_elevation_mdeg - s_layer_elevation_table_mdeg[n]);
-      if (elevation_dist > dist)
+      int dist =
+        std::abs(layer_elevation_mdeg - s_layer_elevation_table_mdeg[n]);
+
+      if (dist < elevation_dist)
       {
         elevation_dist = dist;
-        layer_idx = n;
+        layer_idx = static_cast<int>(n);
       }
-      else
+      else  // early exit.
       {
+        // IMPORTANT: This early-exit optimization is correct only if
+        // s_layer_elevation_table_mdeg is strictly monotonic by elevation.
+        // Otherwise this break must be removed.
+        // valid ONLY if table is sorted by elevation
         break;
+      }
+    }
+    constexpr int MAX_ELEVATION_DEVIATION_MDEG = 1500; // 1.5 deg
+
+    if (elevation_dist > MAX_ELEVATION_DEVIATION_MDEG)
+    {
+      using clock = std::chrono::steady_clock;
+      static auto last_log_time = clock::now();
+      const auto now = clock::now();
+
+      if (now - last_log_time >= std::chrono::seconds(1))
+      {
+        last_log_time = now;
+        ROS_ERROR_STREAM(
+          "## ERROR CompactDataParser::GetLayerIDfromElevation(): "
+          "LayerID match misleading. Check layer_lookup_table_id in launch file."
+        );
       }
     }
     return layer_idx;
   }
-  else
+  else  // dynamic create of elevation layerid
   {
-    static std::map<int,int> elevation_layerid_map;
-    if (elevation_layerid_map.find(layer_elevation_mdeg) == elevation_layerid_map.end())
+    static std::map<int, int, std::greater<int>> elevationLayerIdMap;
+
+    // Insert only if elevation not yet present
+    if (elevationLayerIdMap.emplace(layer_elevation_mdeg, 0).second)
     {
-      elevation_layerid_map[layer_elevation_mdeg] = elevation_layerid_map.size() + 1; // Add new layer
-      int layerid = 0;
-      for(std::map<int,int>::iterator iter_layerid_map = elevation_layerid_map.begin(); iter_layerid_map != elevation_layerid_map.end(); iter_layerid_map++)
-        iter_layerid_map->second = layerid++; // Resort by ascending elevation
+      int layerId = 0;
+
+      // Map is ordered by descending elevation
+      for (auto& [elevationMdeg, mappedLayerId] : elevationLayerIdMap)
+      {
+        mappedLayerId = layerId++;  // highest elevation -> layerId 0
+      }
     }
-    return elevation_layerid_map[layer_elevation_mdeg];
+    if (elevationLayerIdMap.size() == 16)
+    {
+      static bool first_time = true;
+      if (first_time)
+      {
+        first_time = false;
+        ROS_INFO_STREAM("=== Elevation -> LayerID mapping (sorted by elevation) ===");
+        ROS_INFO_STREAM("LayerIdx | Elevation [mdeg] | LayerID");
+        ROS_INFO_STREAM("---------+------------------+--------");
+
+        int idx = 0; 
+        for (const auto& [elevation_mdeg, layerid] : elevationLayerIdMap)
+        {
+          std::ostringstream oss;
+          idx++;
+          oss << std::setw(8) << idx << " | "
+            << std::setw(16) << elevation_mdeg << " | "
+            << std::setw(6) << layerid;
+          ROS_INFO_STREAM(oss.str());
+        }
+
+        ROS_INFO_STREAM("===============================================");
+
+      } 
+    }
+
+    return elevationLayerIdMap[layer_elevation_mdeg];
   }
 }
 
@@ -537,9 +592,22 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
 
   for (uint32_t layer_idx = 0; layer_idx < num_layers; layer_idx++)
   {
-    uint32_t layer_timeStamp_start_sec = (meta_data.TimeStampStart[layer_idx] / 1000000);
+#if 0
+    const double angle_rad = meta_data.Phi[layer_idx];
+    const double angle_deg = angle_rad * 180.0 / M_PI;
+    const double angle_mdeg = angle_deg * 1000.0;
+
+    printf(
+      "LayerIdx: %02d  Angle [rad]: %10.6f, Angle [deg]: %8.3f, Angle [mdeg]: %8.0f\n",
+      layer_idx,
+      angle_rad,
+      angle_deg,
+      angle_mdeg
+    ); 
+#endif
+    uint32_t layer_timeStamp_start_sec = static_cast<uint32_t>((meta_data.TimeStampStart[layer_idx] / 1000000));
     uint32_t layer_timeStamp_start_nsec = 1000 * (meta_data.TimeStampStart[layer_idx] % 1000000);
-    uint32_t layer_timeStamp_stop_sec = (meta_data.TimeStampStop[layer_idx] / 1000000);
+    uint32_t layer_timeStamp_stop_sec = static_cast<uint32_t>(meta_data.TimeStampStop[layer_idx] / 1000000);
     uint32_t layer_timeStamp_stop_nsec = 1000 * (meta_data.TimeStampStop[layer_idx] % 1000000);
     measurement_data.scandata[layer_idx].timestampStart_sec = layer_timeStamp_start_sec;
     measurement_data.scandata[layer_idx].timestampStart_nsec = layer_timeStamp_start_nsec;
@@ -673,10 +741,10 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
         pt.elevation = layer_elevation;
         double range = pt.range;
 
-        // Convert polar coordinates to Cartesian
-        pt.x = range * cos_azimuth * cos_elevation;
-        pt.y = range * sin_azimuth * cos_elevation;
-        pt.z = range * sin_elevation;
+        // Convert spherical coordinates (range, azimuth, elevation) to Cartesian coordinates
+        pt.x = static_cast<float>(range * cos_azimuth * cos_elevation);
+        pt.y = static_cast<float>(range * sin_azimuth * cos_elevation);
+        pt.z = static_cast<float>(range * sin_elevation);
 
         // Assign additional metadata
         pt.echoIdx = echo_idx;
@@ -738,7 +806,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
             ROS_INFO_STREAM("CompactDataParser::ParseSegment(): " << bytes_received << " bytes received (compact), at least " << (msg_start_seq.size() + 32) << " bytes required for compact data header");
         }
         payload_length_bytes = 0;
-        num_bytes_required  = msg_start_seq.size() + 32;
+        num_bytes_required  =  static_cast<uint32_t>(msg_start_seq.size() + 32);
         return false;
     }
     if (segment_data)
@@ -901,7 +969,7 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
     result.scandata.clear();
     result.imudata = segment_data.segmentHeader.imudata;
     result.segmentIndex = 0;
-    result.telegramCnt = segmentHeader.telegramCounter;
+    result.telegramCnt = static_cast<int>(segmentHeader.telegramCounter);
     for (int module_idx = 0; module_idx < segment_data.segmentModules.size(); module_idx++)
     {
         sick_scansegment_xd::CompactModuleMetaData& moduleMetadata = segment_data.segmentModules[module_idx].moduleMetadata;
@@ -962,7 +1030,7 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
         }
         if (module_idx == 0)
         {
-            result.segmentIndex = moduleMetadata.SegmentCounter;
+            result.segmentIndex = static_cast<int>(moduleMetadata.SegmentCounter);
         }
         else if (result.segmentIndex != moduleMetadata.SegmentCounter)
         {
@@ -975,14 +1043,18 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
         ROS_ERROR_STREAM("## ERROR CompactDataParser::Parse(): CompactDataParser::ParseSegment() failed (no scandata found)");
         return false;
     }
+    bool scanDataAvailable = false;
     // Convert timestamp from sensor time to system time
     uint64_t sensor_timeStamp = segmentHeader.timeStampTransmit; // Sensor timestamp in microseconds since 1.1.1970 00:00 UTC
     if (result.imudata.valid)
         sensor_timeStamp -= parser_config.imu_latency_microsec;
     if (!result.scandata.empty())
-        sensor_timeStamp = (uint64_t)result.scandata[0].timestampStart_sec * 1000000UL + (uint64_t)result.scandata[0].timestampStart_nsec / 1000; // i.e. start of scan in microseconds
-    result.timestamp_sec = (sensor_timeStamp / 1000000);
-    result.timestamp_nsec= 1000 * (sensor_timeStamp % 1000000);
+    {
+      sensor_timeStamp = (uint64_t)result.scandata[0].timestampStart_sec * 1000000UL + (uint64_t)result.scandata[0].timestampStart_nsec / 1000; // i.e. start of scan in microseconds
+      scanDataAvailable = true;
+    }
+    result.timestamp_sec = static_cast<uint32_t>((sensor_timeStamp / 1000000));
+    result.timestamp_nsec= static_cast<uint32_t>(1000 * (sensor_timeStamp % 1000000));
     if (use_software_pll)
     {
         if (sensor_timeStamp == 0 && !result.scandata.empty())
@@ -997,10 +1069,28 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
             ROS_WARN_STREAM("## WARNING CompactDataParser::Parse(): segmentHeader.timeStampTransmit=" << segmentHeader.timeStampTransmit << ", sensor_timeStamp=" << sensor_timeStamp << ", compact_parser.cpp:" << __LINE__);
         }
         SoftwarePLL& software_pll = SoftwarePLL::instance();
-        int64_t systemtime_nanoseconds = system_timestamp.time_since_epoch().count();
-        uint32_t systemtime_sec = (uint32_t)(systemtime_nanoseconds / 1000000000);  // seconds part of system timestamp
-        uint32_t systemtime_nsec = (uint32_t)(systemtime_nanoseconds % 1000000000); // nanoseconds part of system timestamp
-        software_pll.updatePLL(systemtime_sec, systemtime_nsec, segmentHeader.timeStampTransmit, sensor_timeStamp);
+//        int64_t systemtime_nanoseconds = system_timestamp.time_since_epoch().count();
+//        uint32_t systemtime_sec = (uint32_t)(systemtime_nanoseconds / 1000000000);  // seconds part of system timestamp
+//        uint32_t systemtime_nsec = (uint32_t)(systemtime_nanoseconds % 1000000000); // nanoseconds part of system timestamp
+
+        // Whole seconds since Unix epoch
+        auto timepoint_seconds =
+          std::chrono::time_point_cast<std::chrono::seconds>(system_timestamp);
+
+        // Remaining fractional part in nanoseconds (range: 0 … 999,999,999)
+        auto remainder_nanoseconds =
+          std::chrono::duration_cast<std::chrono::nanoseconds>(system_timestamp - timepoint_seconds);
+
+        // Split timestamp into seconds and nanoseconds
+        uint64_t systemtime_seconds =
+          static_cast<uint64_t>(timepoint_seconds.time_since_epoch().count());
+
+        uint32_t systemtime_nanoseconds =
+          static_cast<uint32_t>(remainder_nanoseconds.count());
+        if (scanDataAvailable)  // update Software PLL only, if the timestamp is received from scandata (i.e. skip IMU data or missing data)
+        {
+          software_pll.updatePLL(static_cast<uint32_t>(systemtime_seconds), static_cast<uint32_t>(systemtime_nanoseconds), segmentHeader.timeStampTransmit, sensor_timeStamp);
+        }
         if (software_pll.IsInitialized())
         {
             uint32_t pll_sec = 0, pll_nsec = 0;

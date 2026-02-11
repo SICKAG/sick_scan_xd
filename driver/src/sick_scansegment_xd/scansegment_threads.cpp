@@ -84,9 +84,37 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     config.PrintConfig();
     if (scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
     {
-        std::vector<int> layer_elevation_table_mdeg = { 22710, 17560, 12480, 7510, 2490, 70, -2430, -7290, -12790, -17280, -21940, -26730, -31860, -34420, -37180, -42790 };
-        sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(layer_elevation_table_mdeg);
-    }
+      std::size_t layerElevationTableIndex = config.layer_lookup_table_id; // get table id from config entry
+
+			if (config.layer_lookup_table_id != -1)  // if layer_lookup_table_id is -1, we create our own internal lookup table
+			{
+				static const std::array<std::vector<int>, 2> layerElevationTablesMdeg = { {
+						// Table 0 multiScan 136/166
+						{
+              // Layer 1 is the lowest layer (pointing 22.71 deg downwards)
+              // Layer 16 is the highest layer (pointing 42.79 deg upwards)
+              22710, 17560, 12480,  7510,  2490,    70, -2430, -7290,
+						 -12790,-17280,-21940,-26730,-31860,-34420,-37180,-42790
+						},
+					// Table 1 multiScan 165
+					{
+            // Layer 1 is the lowest layer (pointing 7.3 deg downwards)
+            // Layer 16 is the highest layer (point 35.3 deg upwards)
+						 7300,  2400,     0, -2500, -5400, -7400,-10000,-12500,
+					 -14700,-17500,-19600,-22700,-24700,-27300,-29900,-35300
+					}
+				} };
+
+				// Safe selection with fallback to table 0
+				const std::vector<int>& activeTable =
+					(layerElevationTableIndex < layerElevationTablesMdeg.size())
+					? layerElevationTablesMdeg[layerElevationTableIndex]
+					: layerElevationTablesMdeg[0];
+
+				sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(activeTable);
+			}
+		}
+
     // Run sick_scansegment_xd (msgpack receive, convert and publish)
     ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") started.");
     sick_scansegment_xd::MsgPackThreads msgpack_threads;

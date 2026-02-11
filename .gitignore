@@ -144,3 +144,6 @@ test/docker/data
 tools/pandoc/
 
 test/docker/images/
+
+tools/pointcloud_receiver_test/cloud_structured.csv
+doc/ros2_windows_pixi.md_remove

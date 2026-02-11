@@ -1044,22 +1044,36 @@ void ScannerBasicParam::setTrackingModeSupported(bool _trackingModeSupported)
   }
 
   /*!
-  \brief checks the given scannerName/scannerType of validity
-  \param scannerName as string (e.g. "tim_5xx")
-  \return index of found scanner. -1 corresponds to "not found"
-  */
-  int SickGenericParser::lookUpForAllowedScanner(std::string scannerName)
+   * \brief Checks whether the given scanner name is contained in the list of allowed scanners.
+   *
+   * \param scannerName Scanner name as string (e.g. "tim_5xx").
+   * \return Index of the found scanner in \c allowedScannerNames,
+   *         or \c -1 if the scanner is not found.
+   */
+  int SickGenericParser::lookUpForAllowedScanner(const std::string& scannerName)
   {
-    int iRet = -1;
-    for (int i = 0; i < (int) allowedScannerNames.size(); i++)
+    for (std::size_t i = 0; i < allowedScannerNames.size(); ++i)
     {
-      if (allowedScannerNames[i].compare(scannerName) == 0)
+      if (allowedScannerNames[i] == scannerName)
       {
-        return (i);
+        return static_cast<int>(i);
       }
     }
+    return -1;
+  }
 
-    return (iRet);
+  /*!
+   * \brief Checks whether the given lidar name corresponds to a segment-based lidar.
+   *
+   * Segment-based lidars currently include ScanSegment XD and picoScan devices.
+   *
+   * \param lidarName Lidar/scanner name.
+   * \return \c true if the lidar is a segment-based lidar, otherwise \c false.
+   */
+  bool SickGenericParser::isSegmentLidar(const std::string& lidarName)
+  {
+    return (lidarName == SICK_SCANNER_SCANSEGMENT_XD_NAME ||
+      lidarName == SICK_SCANNER_PICOSCAN_NAME);
   }
 
   /*!

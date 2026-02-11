@@ -268,7 +268,9 @@ namespace sick_scan_xd
 
     std::string getScannerType(void);
 
-    int lookUpForAllowedScanner(std::string scannerName);
+    int lookUpForAllowedScanner(const std::string& scannerName);
+
+    bool isSegmentLidar(const std::string& lidarName);  // Checks whether the given lidar name corresponds to a segment-based lidar (like multiScan or picoScan)
 
     void setCurrentParamPtr(ScannerBasicParam *_ptr);
 

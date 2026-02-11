@@ -12,6 +12,8 @@ File: softwarePLL.cpp
 #include <sstream>
 #include <vector>
 #include <string>
+#include <iomanip>
+#include <cstdint>
 
 #if defined __ROS_VERSION && __ROS_VERSION > 0
 #include <sick_scan/sick_ros_wrapper.h>
@@ -54,13 +56,17 @@ std::istream& operator>>(std::istream& str, CSVRow& data)
  * Convert a possibly-32-bit hardware tick into a monotonic 64-bit tick.
  * Separate unwrap state for transmit vs scan.
  */
+#include <cstdint>
+#include <cstdio>
+
 uint64_t SoftwarePLL::unwrapTick32(uint64_t raw_tick, TickSource source)
 {
   // If it's already beyond 32-bit range, assume it's a real 64-bit tick
   if (raw_tick > 0xFFFFFFFFULL)
     return raw_tick;
 
-  uint32_t t32 = static_cast<uint32_t>(raw_tick);
+  const uint32_t t32 = static_cast<uint32_t>(raw_tick);
+
   bool* init_flag = nullptr;
   uint32_t* last_tick = nullptr;
   uint64_t* wrap_offset = nullptr;
@@ -83,14 +89,32 @@ uint64_t SoftwarePLL::unwrapTick32(uint64_t raw_tick, TickSource source)
     *init_flag = true;
     *last_tick = t32;
     *wrap_offset = 0;
-  }
-  else
-  {
-    if (t32 < *last_tick)             // 32-bit wrap-around
-      *wrap_offset += 0x100000000ULL; // add 2^32
-    *last_tick = t32;
+    return static_cast<uint64_t>(t32);
   }
 
+  const uint32_t prev = *last_tick;
+
+  // Treat as wrap ONLY if the backward jump is "large" (more than half the 32-bit range).
+  // This tolerates small out-of-order arrivals without falsely adding 2^32.
+  if (t32 < prev)
+  {
+    const uint32_t back = prev - t32;
+
+    // Real wrap: prev near max and t32 near zero -> huge backward jump
+    if (back > 0x80000000U)
+    {
+      *wrap_offset += 0x100000000ULL; // add 2^32
+    }
+    else
+    {
+      // Out-of-order / jitter / reset-like small backward step: do NOT wrap.
+      // Optional debug:
+      // printf("unwrapTick32: non-wrap backward step source=%d prev=%u t32=%u back=%u\n",
+      //        (int)source, prev, t32, back);
+    }
+  }
+
+  *last_tick = t32;
   return *wrap_offset + static_cast<uint64_t>(t32);
 }
 
@@ -110,8 +134,9 @@ bool SoftwarePLL::pushIntoFifo(double curTimeStamp, uint64_t curtickTransmit, ui
   clockFifo[fifoSize - 1] = curTimeStamp;
 
   if (numberValInFifo < fifoSize)
+  {
     numberValInFifo++;
-
+  }
   FirstTickTransmit(tickFifoTransmit[0]);
   FirstTickScan(tickFifoScan[0]);
   FirstTimeStamp(clockFifo[0]);
@@ -171,7 +196,9 @@ bool SoftwarePLL::updatePLL(uint32_t sec, uint32_t nanoSec,
       pushIntoFifo(start, curtickTransmit64, curtickScan64);
       bool bCheck = this->updateInterpolationSlope();
       if (bCheck)
+      {
         IsInitialized(true);
+      }
     }
 
     if (!IsInitialized())
@@ -588,6 +615,69 @@ void SoftwarePLL::testbed_32bit_overflow()
     << " ts=" << corr_sec << "." << std::setw(9) << std::setfill('0') << corr_nsec
     << std::endl;
 }
+
+void SoftwarePLL::setFifoSize(std::size_t newSize)
+{
+  if (newSize == 0)
+    return; // defensive: ignore invalid size
+
+  fifoSize = newSize;
+
+  // Clear and resize FIFOs
+  tickFifoTransmit.assign(fifoSize, 0);
+  tickFifoScan.assign(fifoSize, 0);
+  clockFifo.assign(fifoSize, 0.0);
+
+  // Reset internal state
+  numberValInFifo = 0;
+  isInitialized = false;
+}
+
+void SoftwarePLL::dumpInternalStatus(const std::string& filename) const
+{
+  // Nothing to dump
+  if (numberValInFifo <= 0)
+    return;
+
+  const int n = (numberValInFifo < fifoSize) ? numberValInFifo : static_cast<int>(fifoSize);
+
+  // Offsets (first valid FIFO entry)
+  const uint64_t sc0 = tickFifoScan[0];     // used for BOTH scan and transmit offsets
+  const double   t00 = clockFifo[0];
+
+  std::ofstream out(filename, std::ios::out | std::ios::trunc);
+  if (!out.is_open())
+    return;
+
+  // CSV header (semicolon separated)
+  out << "idx;"
+    << "d_tick_scan;d_tick_transmit;d_clock;"
+    << "tick_scan;tick_transmit;clock"
+    << "\n";
+
+  // For nice double formatting
+  out << std::fixed << std::setprecision(9);
+
+  for (int i = 0; i < n; ++i)
+  {
+    const uint64_t tx = tickFifoTransmit[i];
+    const uint64_t sc = tickFifoScan[i];
+    const double   tt = clockFifo[i];
+
+    // Diffs to first SCAN tick
+    const uint64_t d_sc = sc - sc0;
+    const uint64_t d_tx = tx - sc0;
+    const double   d_tt = tt - t00;
+
+    out << i << ";"
+      << d_sc << ";" << d_tx << ";" << d_tt << ";"
+      << sc << ";" << tx << ";" << tt
+      << "\n";
+  }
+
+  out.flush();
+}
+
 
 #ifdef softwarePLL_MAINTEST
 int main(int argc, char** argv)
