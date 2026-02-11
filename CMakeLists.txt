@@ -993,6 +993,20 @@ if(ROS_VERSION EQUAL 2)
     install(TARGETS sick_generic_caller DESTINATION lib/${PROJECT_NAME})
     install(TARGETS ${PROJECT_NAME}_lib ${PROJECT_NAME}_shared_lib DESTINATION lib)
     install(DIRECTORY launch urdf meshes DESTINATION share/${PROJECT_NAME})
+    # rosidl installs .msg files from msg/ but misses nested ROS2 message paths.
+    # Install these aliases explicitly so `ros2 interface show` can resolve them.
+    install(FILES
+        msg/ros2/RadarObject.msg
+        DESTINATION share/${PROJECT_NAME}/msg
+        RENAME RadarObject.msg)
+    install(FILES
+        msg/ros2/ldmrs/SickLdmrsObject.msg
+        DESTINATION share/${PROJECT_NAME}/msg
+        RENAME SickLdmrsObject.msg)
+    install(FILES
+        msg/ros2/ldmrs/SickLdmrsObjectArray.msg
+        DESTINATION share/${PROJECT_NAME}/msg
+        RENAME SickLdmrsObjectArray.msg)
 
     ament_package()        
 endif()
