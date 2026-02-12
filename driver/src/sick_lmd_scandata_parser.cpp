@@ -74,7 +74,8 @@ namespace sick_scan_xd
         {
           ROS_INFO("Software PLL locking started, mapping ticks to system time.");
         }
-        int packets_expected_to_drop = SoftwarePLL::instance().fifoSize - 1;
+        int packets_expected_to_drop =
+          static_cast<int>(SoftwarePLL::instance().getFifoSize()) - 1;
         SoftwarePLL::instance().packets_dropped++;
         size_t packets_dropped = SoftwarePLL::instance().packets_dropped;
         size_t packets_received = SoftwarePLL::instance().packets_received;
@@ -109,7 +110,7 @@ namespace sick_scan_xd
     bool check_near_plus_minus_pi(float *angle_val)
     {
       bool angle_slightly_modified = false;
-      float pi_multiplier = *angle_val/M_PI;
+      float pi_multiplier = (float)(*angle_val/M_PI);
       // float check_deviation_to_abs_one = fabs(pi_multiplier) - 1.0;
       // check for a small deviation
       // if (check_deviation_to_abs_one < 10.0 * FLT_EPSILON )
@@ -119,8 +120,8 @@ namespace sick_scan_xd
       }
       else if (pi_multiplier > 1.0 - 10.0 * FLT_EPSILON || pi_multiplier < -1.0 + 10.0 * FLT_EPSILON)
       {
-        float factor =  (*angle_val < 0.0) ? (-1.0) : (1.0);
-        *angle_val = factor * (1.0 - FLT_EPSILON) * M_PI;
+        float factor = (float)((*angle_val < 0.0) ? (-1.0) : (1.0));
+        *angle_val = (float)(factor * (1.0 - FLT_EPSILON) * M_PI);
         angle_slightly_modified = true;  
       }
       else
@@ -152,14 +153,14 @@ namespace sick_scan_xd
       auto params = parser->getCurrentParamPtr();
 
       // Basic angle setup
-      msg.angle_min = startAngle / 180.0 * M_PI + params->getScanAngleShift();
-      msg.angle_increment = sizeOfSingleAngularStep / 180.0 * M_PI;
+      msg.angle_min = (float)(startAngle / 180.0 * M_PI + params->getScanAngleShift());
+      msg.angle_increment = (float)(sizeOfSingleAngularStep / 180.0 * M_PI);
       msg.angle_max = msg.angle_min + (numberOfItems - 1) * msg.angle_increment;
 
       // Handle special time increment case (e.g., NAV-350)
       if (msg.time_increment == 0)
       {
-        msg.time_increment = fabs(params->getNumberOfLayers() * msg.scan_time * msg.angle_increment / (2.0 * M_PI));
+        msg.time_increment = (float)(fabs(params->getNumberOfLayers() * msg.scan_time * msg.angle_increment / (2.0 * M_PI)));
       }
 
       const std::string& scannerName = params->getScannerName();
@@ -303,7 +304,7 @@ namespace sick_scan_xd
                   swap_endian((unsigned char *) &measurementFrequencyDiv100, 4);
 
 
-                  msg.scan_time = 1.0 / (scanFrequencyX100 / 100.0);
+                  msg.scan_time = (float)(1.0 / (scanFrequencyX100 / 100.0));
 
                   //due firmware inconsistency
                   if (measurementFrequencyDiv100 > 10000)
@@ -312,7 +313,7 @@ namespace sick_scan_xd
                   }
                   if (measurementFrequencyDiv100 != 0)
                   {
-                    msg.time_increment = 1.0 / (measurementFrequencyDiv100 * 100.0);
+                    msg.time_increment = (float)(1.0 / (measurementFrequencyDiv100 * 100.0));
                   }
                   else
                   {
@@ -684,8 +685,8 @@ namespace sick_scan_xd
                                   ROS_WARN_STREAM("## WARNING parseCommonBinaryResultTelegram(): process_azimuth with unexpected scaleFactorOffset=" << scaleFactorOffset << ", expected value is not 0.0");
                                   ROS_WARN_STREAM("## WARNING parseCommonBinaryResultTelegram(): set parameter scandatacfg_azimuth_table=0 in the launchfile if the lidar has no calibrated azimuth table.");
                                 }
-                                float angle_min_rad = (1.0e-4f * startAngleDiv10000) * M_PI / 180.0 + parser_->getCurrentParamPtr()->getScanAngleShift();
-                                float angle_inc_rad = (1.0e-4f * sizeOfSingleAngularStepDiv10000) * M_PI / 180.0;
+                                float angle_min_rad =(float)( (1.0e-4f * startAngleDiv10000) * M_PI / 180.0 + parser_->getCurrentParamPtr()->getScanAngleShift());
+                                float angle_inc_rad = (float)((1.0e-4f * sizeOfSingleAngularStepDiv10000) * M_PI / 180.0);
                                 float angle_max_rad = angle_min_rad + (numberOfItems - 1) * angle_inc_rad;
                                 ROS_DEBUG_STREAM("process_dist: msg.angle_min=" << (msg.angle_min*180/M_PI) << ", msg.angle_max=" << (msg.angle_max*180/M_PI) << ", msg.angle_increment=" << (msg.angle_increment*180/M_PI));
                                 ROS_DEBUG_STREAM("process_azimuth: angle_min=" << (angle_min_rad*180/M_PI) << ", angle_max=" << (angle_max_rad*180/M_PI) << ", angle_inc=" << (angle_inc_rad*180/M_PI) 

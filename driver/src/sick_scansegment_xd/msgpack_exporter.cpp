@@ -225,7 +225,7 @@ bool sick_scansegment_xd::MsgPackExporter::RunCb(void)
                     max_count_udp_messages_in_fifo = std::max(max_count_udp_messages_in_fifo, current_udp_fifo_size + 1);
                     max_count_output_messages_in_fifo = std::max(max_count_output_messages_in_fifo, current_output_fifo_size + 1);
                     double msg_exported_rate = (double)msg_exported_counter / sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(recv_start_timestamp, fifo_clock::now());
-                    if (m_verbose && ((msg_exported_counter%100) == 0 || sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(last_print_timestamp, fifo_clock::now()) > 0.1)) // avoid printing with more than 100 Hz
+                    if (m_verbose && ((msg_exported_counter%100) == 0 || sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(last_print_timestamp, fifo_clock::now()) > 0.1)) // avoid printing with more than 10 Hz
                     {
                         ROS_INFO_STREAM("MsgPack/Compact-Exporter:   " << current_udp_fifo_size << " udp packages still in input fifo, " << current_output_fifo_size << " messages still in output fifo, current segment index: " << msgpack_output.segmentIndex);
                         ROS_INFO_STREAM("MsgPack/Compact-Exporter: " << msg_udp_received_counter << " udp scandata messages received, " << msg_exported_counter << " messages exported (scan+imu), " << (100.0 * packages_lost_rate) << "% package lost.");

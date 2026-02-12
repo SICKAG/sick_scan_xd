@@ -4,6 +4,16 @@ Possible types are **Added** for new features. **Changed** for changes to the ex
 features that will be removed in future versions **Removed** for deprecated features that were removed in this release.
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
+## Release v3.9.0
+  - **Added** Support for multiScan165
+  - **Added** Integration of `layer_lookup_table_id` in the launch file to configure laser scan filtering
+  - **Added** Listen-only mode support for multiScan and picoScan to avoid TCP/IP traffic
+  - **Fixed** Reduced compiler warnings due to missing type casts
+  - **Fixed** Software PLL overflow due to 32-bit overflow
+  - **Added** Improved setup for ROS 2 under Windows
+  - **Fixed** Support for `scan_cfg_list_entry`
+  - **Changed** README.md extended for the Bloom process and multiScan handling
+
 ## Release v3.8.0
   - **Added** Extra frameid for IMU message
   - **Added** ROS2 kilted support
@@ -16,7 +26,7 @@ features that will be removed in future versions **Removed** for deprecated feat
 ### Release v3.7.0
   - **Fixed** TiM7xx fieldset settings and services, #394, #408
   - **Changed** README.md and cmake requirements
-  - **change** Publish lferec messages latched, #420
+  - **Changed** Publish lferec messages latched, #420
   - **Fixed** TCP connection timeout, #424
   - **Added** Support for LRS-4xxx IMU and contamination data, #418
   - **Changed** Improved TiM-7xx field evaluation status after start, #420

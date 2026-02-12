@@ -258,6 +258,7 @@ namespace sick_scan_xd
     sick_scan_xd::SickScanCommonTcp* m_common_tcp;     ///< common tcp handler
     std::string m_user_level_password;
     int m_user_level;
+    bool m_listen_only_mode;
     rosServiceServer<sick_scan_srv::ColaMsgSrv> m_srv_server_ColaMsg;        ///< service "ColaMsg", &sick_scan::SickScanServices::serviceCbColaMsg
     rosServiceServer<sick_scan_srv::ECRChangeArrSrv> m_srv_server_ECRChangeArr;   ///< service "ECRChangeArr", &sick_scan::SickScanServices::serviceCbECRChangeArr
     rosServiceServer<sick_scan_srv::GetContaminationDataSrv> m_srv_server_GetContaminationData; ///< service "GetContaminationData", &sick_scan::SickScanServices::serviceCbGetContaminationData (LRS-4xxx only)

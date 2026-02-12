@@ -178,7 +178,7 @@ sick_scansegment_xd::Config::Config()
     sopas_timeout_ms = 5000;                 // Timeout for SOPAS response in milliseconds, default: 5000
     user_level = 3;                          // Default user level for client authorization (3 -> "authorized client", 4 -> "service")
     user_level_password = "F4724744";        // Default password for client authorization 
-    
+    listen_only_mode = false;                // True: Skip initialization mode for segment base lidar and jump directly to listing of UDP data
 
     // MSR100 default filter settings
     host_read_filtersettings = true;                            // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true
@@ -203,6 +203,8 @@ sick_scansegment_xd::Config::Config()
     msgpack_validator_filter_settings.msgpack_validator_elevation_end = (float)(M_PI/2.0);    // default for full scan: +M_PI/2.0;
     msgpack_validator_filter_settings.msgpack_validator_layer_filter = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }; // default for full scan: 16 layer active, i.e. { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
     msgpack_validator_valid_segments = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }; // default for full scan: 12 segments, i.e. { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }
+
+    layer_lookup_table_id = 0; // Index for Layer lookup table: 0: multiScan136/166, 1: multiScan165 
 
     // Configuration of laserscan messages (ROS only):
     // Parameter "laserscan_layer_filter" sets a mask to create laserscan messages for configured layer (0: no laserscan message, 1: create laserscan messages for this layer)
@@ -254,6 +256,8 @@ void sick_scansegment_xd::Config::PrintHelp(void)
  */
 bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
 {
+    constexpr double kRadToDeg = 180.0 / 3.14159265358979323846;
+    constexpr double kDeg2Rad = 3.14159265358979323846 / 180.0;
     node = _node;
 
     ROS_DECL_GET_PARAMETER(node, "scanner_type", scanner_type);
@@ -294,6 +298,8 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "sopas_timeout_ms", sopas_timeout_ms);
     ROS_DECL_GET_PARAMETER(node, "user_level", user_level);
     ROS_DECL_GET_PARAMETER(node, "user_level_password", user_level_password);
+    ROS_DECL_GET_PARAMETER(node, "listen_only_mode", listen_only_mode);
+    ROS_DECL_GET_PARAMETER(node, "layer_lookup_table_id", layer_lookup_table_id);
     // MSR100 filter settings
     ROS_DECL_GET_PARAMETER(node, "host_read_filtersettings", host_read_filtersettings);
     ROS_DECL_GET_PARAMETER(node, "host_FREchoFilter", host_FREchoFilter);
@@ -316,10 +322,10 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     std::string str_msgpack_validator_required_echos = "0";
     std::string str_msgpack_validator_valid_segments = "0 1 2 3 4 5 6 7 8 9 10 11";
     std::string str_msgpack_validator_layer_filter = "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1";
-    float msgpack_validator_azimuth_start_deg = msgpack_validator_filter_settings.msgpack_validator_azimuth_start * 180.0 / M_PI;
-    float msgpack_validator_azimuth_end_deg = msgpack_validator_filter_settings.msgpack_validator_azimuth_end * 180.0 / M_PI;
-    float msgpack_validator_elevation_start_deg = msgpack_validator_filter_settings.msgpack_validator_elevation_start * 180.0 / M_PI;
-    float msgpack_validator_elevation_end_deg = msgpack_validator_filter_settings.msgpack_validator_elevation_end * 180.0 / M_PI;
+    float msgpack_validator_azimuth_start_deg = msgpack_validator_filter_settings.msgpack_validator_azimuth_start * static_cast<float>(kRadToDeg);
+    float msgpack_validator_azimuth_end_deg = msgpack_validator_filter_settings.msgpack_validator_azimuth_end * static_cast<float>(kRadToDeg);
+    float msgpack_validator_elevation_start_deg = msgpack_validator_filter_settings.msgpack_validator_elevation_start * static_cast<float>(kRadToDeg);
+    float msgpack_validator_elevation_end_deg = msgpack_validator_filter_settings.msgpack_validator_elevation_end * static_cast<float>(kRadToDeg);
     ROS_DECL_GET_PARAMETER(node, "msgpack_validator_enabled", msgpack_validator_enabled);
     ROS_DECL_GET_PARAMETER(node, "msgpack_validator_verbose", msgpack_validator_verbose);
     ROS_DECL_GET_PARAMETER(node, "msgpack_validator_discard_msgpacks_out_of_bounds", msgpack_validator_discard_msgpacks_out_of_bounds);
@@ -330,10 +336,10 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "msgpack_validator_azimuth_end", msgpack_validator_azimuth_end_deg);
     ROS_DECL_GET_PARAMETER(node, "msgpack_validator_elevation_start", msgpack_validator_elevation_start_deg);
     ROS_DECL_GET_PARAMETER(node, "msgpack_validator_elevation_end", msgpack_validator_elevation_end_deg);
-    msgpack_validator_filter_settings.msgpack_validator_azimuth_start = msgpack_validator_azimuth_start_deg * M_PI / 180;
-    msgpack_validator_filter_settings.msgpack_validator_azimuth_end = msgpack_validator_azimuth_end_deg * M_PI / 180;
-    msgpack_validator_filter_settings.msgpack_validator_elevation_start = msgpack_validator_elevation_start_deg * M_PI / 180;
-    msgpack_validator_filter_settings.msgpack_validator_elevation_end = msgpack_validator_elevation_end_deg * M_PI / 180;
+    msgpack_validator_filter_settings.msgpack_validator_azimuth_start = msgpack_validator_azimuth_start_deg * static_cast<float>(kDeg2Rad);
+    msgpack_validator_filter_settings.msgpack_validator_azimuth_end = msgpack_validator_azimuth_end_deg * static_cast<float>(kDeg2Rad);
+    msgpack_validator_filter_settings.msgpack_validator_elevation_start = msgpack_validator_elevation_start_deg * static_cast<float>(kDeg2Rad);
+    msgpack_validator_filter_settings.msgpack_validator_elevation_end = msgpack_validator_elevation_end_deg * static_cast<float>(kDeg2Rad);
     ROS_DECL_GET_PARAMETER(node, "msgpack_validator_valid_segments", str_msgpack_validator_valid_segments);
     ROS_DECL_GET_PARAMETER(node, "msgpack_validator_layer_filter", str_msgpack_validator_layer_filter);
     sick_scansegment_xd::util::parseVector(str_msgpack_validator_valid_segments, msgpack_validator_valid_segments);
@@ -441,6 +447,7 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "sopas_timeout_ms", sopas_timeout_ms);
     setOptionalArgument(cli_parameter_map, "user_level", user_level);
     setOptionalArgument(cli_parameter_map, "user_level_password", user_level_password);
+    setOptionalArgument(cli_parameter_map, "listen_only_mode", listen_only_mode);
     setOptionalArgument(cli_parameter_map, "host_read_filtersettings", host_read_filtersettings);
     setOptionalArgument(cli_parameter_map, "host_FREchoFilter", host_FREchoFilter);
     setOptionalArgument(cli_parameter_map, "host_set_FREchoFilter", host_set_FREchoFilter);
@@ -493,6 +500,7 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     ROS_INFO_STREAM("scanner_type:                     " << scanner_type);
     ROS_INFO_STREAM("udp_sender:                       " << udp_sender);
     ROS_INFO_STREAM("udp_port:                         " << udp_port);
+    ROS_INFO_STREAM("listen_only_mode:                 " << (listen_only_mode ? "true" : "false"));
     ROS_INFO_STREAM("check_udp_receiver_ip:            " << check_udp_receiver_ip);
     ROS_INFO_STREAM("check_udp_receiver_port:          " << check_udp_receiver_port);
     ROS_INFO_STREAM("all_segments_min_deg:             " << all_segments_min_deg);
@@ -515,6 +523,7 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     //ROS_INFO_STREAM("send_udp_start_string:            " << send_udp_start_string);
     ROS_INFO_STREAM("udp_timeout_ms:                   " << udp_timeout_ms);
     ROS_INFO_STREAM("udp_timeout_ms_initial:           " << udp_timeout_ms_initial);
+    ROS_INFO_STREAM("layer_lookup_table_id:            " << layer_lookup_table_id);
     ROS_INFO_STREAM("scandataformat:                   " << scandataformat);
     ROS_INFO_STREAM("performanceprofilenumber:         " << performanceprofilenumber);
     ROS_INFO_STREAM("imu_enable:                       " << imu_enable);

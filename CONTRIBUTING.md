@@ -1,14 +1,14 @@
+# sick_scan_xd Maintenance and Development Documentation
 
-<img align=right width="200" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Logo_SICK_AG_2009.svg/1200px-Logo_SICK_AG_2009.svg.png"/>
+<img align=right width="200" src="doc/SICK-logo.svg"/>
 
-Executive Summary
+## Executive Summary
+
+This documentation provides background information on maintaining, testing, and extending the `sick_scan_xd` repository.
+
 ---
 
-This documentation is intended to provide background information on the maintenance and extension of the repository.
-
-Table of Contents
----
-
+## Table of Contents
 - [Adding a new device to the driver](#adding-a-new-device-to-the-driver)
   - [Naming convention](#naming-convention)
   - [Launch files](#launch-files)
@@ -89,13 +89,13 @@ of this file.
 
 Summary of bloom release build:
 
-* Update release repositories for rosdistros noetic, humble, iron and jazzy with `bloom-release` on Linux:
+* Update release repositories for rosdistros humble, iron, jazzy and kilted with `bloom-release` on Linux:
    ```
    cd /tmp
-   bloom-release --rosdistro noetic -d sick_scan_xd # update release repository https://github.com/SICKAG/sick_scan_xd-release.git, argument -d enables debug infos
-   bloom-release --rosdistro humble -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
-   bloom-release --rosdistro iron   -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
-   bloom-release --rosdistro jazzy  -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
+   bloom-release --rosdistro humble  -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
+   bloom-release --rosdistro iron    -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
+   bloom-release --rosdistro jazzy   -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
+   bloom-release --rosdistro kilted  -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
    ```
    Confirm "push to release" and "open pull request" with Y.
    If `bloom-release` is not installed, then install it by `sudo apt-get install python-bloom`.
@@ -103,7 +103,7 @@ Summary of bloom release build:
 * Check that the new version is committed in the release repositories https://github.com/SICKAG/sick_scan_xd-release.git (ROS 1) and https://github.com/ros2-gbp/sick_scan_xd-release.git (ROS 2).
 
 * Check Jenkins build status (new Jenkins build after 0-3 days):
-   * ROS 1 noetic jenkins build status: https://build.ros.org/job/Ndev__sick_scan_xd__ubuntu_focal_amd64/lastBuild/
+   * EOL - just for information: ROS 1 noetic jenkins build status: https://build.ros.org/job/Ndev__sick_scan_xd__ubuntu_focal_amd64/lastBuild/
    * ROS 2 humble jenkins build status: https://build.ros2.org/job/Hdev__sick_scan_xd__ubuntu_jammy_amd64/lastBuild/
    * ROS 2 iron jenkins build status: https://build.ros2.org/job/Idev__sick_scan_xd__ubuntu_jammy_amd64/lastBuild/
    * ROS 2 jazzy jenkins build status: https://build.ros2.org/job/Jdev__sick_scan_xd__ubuntu_noble_amd64/lastBuild/
@@ -113,10 +113,11 @@ Summary of bloom release build:
    ```
    cd /tmp
    sudo apt update
-   sudo apt show ros-noetic-sick-scan-xd
+   # EOL sudo apt show ros-noetic-sick-scan-xd
    sudo apt show ros-humble-sick-scan-xd
    sudo apt show ros-iron-sick-scan-xd
    sudo apt show ros-jazzy-sick-scan-xd
+   sudo apt show ros-kilted-sick-scan-xd
    ```
 
 ## First time installation of toolchain
@@ -204,7 +205,7 @@ Summary of bloom release build:
     * git push: `git push origin master`
     * Submit a pull request on `https://github.com/<username>/rosdistro`
 
-4. For ROS 2 humble: Follow instructions on https://docs.ros.org/en/humble/How-To-Guides/Releasing/Releasing-a-Package.html
+4. For ROS2 humble: Follow instructions on https://docs.ros.org/en/humble/How-To-Guides/Releasing/Releasing-a-Package.html
 
 **_NOTE:_** Bloom releases for ROS 2 foxy are no longer supported (Pull request failed, "This pull request changes files for a ROS distribution that is no longer supported (End Of Life)")
 
@@ -308,15 +309,16 @@ For ROS 2 follow the instructions on https://docs.ros.org/en/humble/How-To-Guide
     bloom-release --rosdistro humble --track humble sick_scan_xd # at first time: call with option --new-track
     ```
 
-    For the initial release (i.e. at the first time): Run bloom-release configuration with option --new-track:
+    For the initial release (i.e. at the first time) of a new ROS2 version: Run bloom-release configuration with option --new-track:
     `bloom-release --new-track --rosdistro humble --track humble sick_scan_xd`
+    
     * Release repository url: https://github.com/ros2-gbp/sick_scan_xd-release.git
     * Upstream: <default>
     * Upstream Repository URI: https://github.com/SICKAG/sick_scan_xd.git
     * Upstream Devel Branch: develop
     * ROS Distro: humble
     After the initial release has been approved: Run
-
+    
     ```
     sudo rosdep init
     rosdep update
@@ -329,6 +331,7 @@ Jenkins build status:
 * ROS 2 humble jenkins build status: https://build.ros2.org/job/Hdev__sick_scan_xd__ubuntu_jammy_amd64/lastBuild/
 * ROS 2 iron   jenkins build status: https://build.ros2.org/job/Idev__sick_scan_xd__ubuntu_jammy_amd64/lastBuild/
 * ROS 2 jazzy  jenkins build status: https://build.ros2.org/job/Jdev__sick_scan_xd__ubuntu_noble_amd64/lastBuild/
+* ROS 2 kilted jenkins build status: https://build.ros2.org/job/Kdev__sick_scan_xd__ubuntu_noble_amd64/lastBuild/
 * ROS 1 jenkins: https://build.ros.org/search/?q=sick_scan_xd
 * ROS 2 jenkins: https://build.ros2.org/search/?q=sick_scan_xd
 
@@ -344,6 +347,7 @@ sudo apt show ros-noetic-sick-scan-xd
 sudo apt show ros-humble-sick-scan-xd
 sudo apt show ros-iron-sick-scan-xd
 sudo apt show ros-jazzy-sick-scan-xd
+sudo apt show ros-kilted-sick-scan-xd (coming soon - currently not available)
 ```
 
 Installation of prebuilt binaries:
@@ -358,6 +362,7 @@ sudo apt-get remove ros-noetic-sick-scan-xd
 sudo apt-get remove ros-humble-sick-scan-xd
 sudo apt-get remove ros-iron-sick-scan-xd
 sudo apt-get remove ros-jazzy-sick-scan-xd
+sudo apt-get remove ros-kilted-sick-scan-xd (coming soon - currently not available)
 ```
 
 ## Useful links and information
@@ -365,6 +370,7 @@ sudo apt-get remove ros-jazzy-sick-scan-xd
 * http://wiki.ros.org/bloom
 * https://wiki.ros.org/bloom/Tutorials/FirstTimeRelease
 * https://docs.ros.org/en/humble/How-To-Guides/Releasing/Releasing-a-Package.html
+* [Background information of ROS2 build engine and release pretest](doc/ros2_release_process.md)
 
 **Bloom builds an old sick_scan_xd version (ROS 1)**
 
@@ -502,7 +508,7 @@ Run the following steps to install and run docker on Linux:
 1. Install Docker: 
    * Follow the instructions on https://docs.docker.com/desktop/install/ubuntu/
    * or (more recommended) install Docker without Docker Desktop by running
-  
+   
       ```
       pushd /tmp
       curl -fsSL https://get.docker.com -o get-docker.sh
@@ -532,7 +538,8 @@ Run the following steps to install and run docker on Linux:
 
 #### Build and run all sick_scan_xd docker tests on Linux 
 
-Script `run_all_dockertests_linux.bash` in folder `sick_scan_xd/test/docker` builds docker images for x64, ROS1 and ROS2 on Linux und runs all dockertests:
+Script `run_all_dockertests_linux.bash` in folder `sick_scan_xd/test/docker` builds docker images for x64, ROS1 and ROS2 on Linux und runs all dockertests.
+**_NOTE:_** **Although ROS1 is still mentioned below, active development for ROS1 will not be continued.** 
 
 Create a workspace folder (e.g. sick_scan_ws or any other name) and clone the sick_scan_xd repository:
 
@@ -555,14 +562,14 @@ After successful build and run, the message **SUCCESS: sick_scan_xd docker test 
 
 Dockerfiles to create linux docker images are provided in folder sick_scan_xd/test/docker/dockerfiles:
 
-| Dockerfile                           | System                                      |
-| ------------------------------------ | ------------------------------------------- |
-| dockerfile_linux_x64_develop         | ubuntu 22.04 + cmake + python modules       |
-| dockerfile_linux_ros1_noetic_develop | ubuntu 20.04 + ROS1 noetic + python modules |
-| dockerfile_linux_ros2_humble_develop | ubuntu 22.04 + ROS2 humble + python modules |
-| dockerfile_sick_scan_xd/linux_x64    | linux_x64_develop + sick_scan_xd            |
-| dockerfile_sick_scan_xd/ros1_noetic  | linux_ros1_noetic_develop + sick_scan_xd    |
-| dockerfile_sick_scan_xd/ros2_humble  | linux_ros2_humble_develop + sick_scan_xd    |
+| Dockerfile                                 | System                                                                  |
+| ------------------------------------------ | ----------------------------------------------------------------------- |
+| dockerfile_linux_x64_develop               | ubuntu 22.04 + cmake + python modules                                   |
+| dockerfile_linux_ros1_noetic_develop - EOL | No longer supported - EOL - ubuntu 20.04 + ROS1 noetic + python modules |
+| dockerfile_linux_ros2_humble_develop       | ubuntu 22.04 + ROS2 humble + python modules                             |
+| dockerfile_sick_scan_xd/linux_x64          | linux_x64_develop + sick_scan_xd                                        |
+| dockerfile_sick_scan_xd/ros1_noetic        | linux_ros1_noetic_develop + sick_scan_xd                                |
+| dockerfile_sick_scan_xd/ros2_humble        | linux_ros2_humble_develop + sick_scan_xd                                |
 
 The following chapter gives a more detailed description of the build and run process for ROS1/Linux. The same process applies accordingly for dockertests of the C++ API, the Python API and ROS-2.
 
@@ -730,7 +737,7 @@ Dockerfiles to create a windows docker image are provided in folder sick_scan_xd
 | dockerfile_windows_x64_sick_scan_xd           | windows_x64_develop + sick_scan_xd                                                                                      |
 | dockerfile_windows_dotnet48_buildtools        | Windows core with .NET 4.8 (required by chocolatey and ROS2) + build tools incl. Visual Studio compiler (vs_buildtools) |
 | dockerfile_windows_dotnet48_develop           | windows_dotnet48_buildtools + chocolatey + cmake + python                                                               |
-| dockerfile_windows_dotnet48_ros2_foxy         | windows_dotnet48_develop + ROS2 foxy                                                                                    |
+| dockerfile_windows_dotnet48_ros2_foxy  EOL    | no longer supported - End of Life - windows_dotnet48_develop + ROS2 foxy                                                |
 | dockerfile_windows_dotnet48_ros2_humble       | windows_dotnet48_develop + ROS2 humble                                                                                  |
 | dockerfile_windows_dotnet48_ros2_sick_scan_xd | windows_dotnet48_ros2_humble + sick_scan_xd                                                                             |
 

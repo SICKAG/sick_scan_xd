@@ -38,7 +38,7 @@
         <param name="hostname" type="string" value="$(arg hostname)"/>
         <param name="cloud_topic" type="string" value="$(arg cloud_topic)"/>
         <param name="frame_id" type="str" value="$(arg frame_id)"/>
-        <param name="port" type="string" value="2112"/>
+        <param name="port" type="string" value="2111"/>               <!-- Port 2111 belongs to ASCII communication, Port 2112 belongs to binary communication -->
         <param name="use_binary_protocol" type="bool" value="false"/> <!-- Binary communication currently not supported for RMS-xxxx devices -->
         <param name="timelimit" type="int" value="5"/>
         <!-- param name="emul_sensor" type="bool" value="false"/ --> <!-- radar devices can be emulated with emul_sensor:=true (experimental feature, do not activate except for debugging) -->

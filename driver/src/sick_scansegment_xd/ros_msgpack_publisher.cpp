@@ -127,7 +127,7 @@ sick_scansegment_xd::CustomPointCloudConfiguration::CustomPointCloudConfiguratio
 		if (echos.empty())
 		    echos = { 0, 1, 2 };
 		if (layers.empty())
-		    layers = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+		    layers = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };  // fill vector 0 ... 15
 		if (reflectors.empty())
 		    reflectors = { 0, 1 };
 		if (infringed.empty())
@@ -625,14 +625,14 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
 	  field_properties.push_back(PointCloudFieldProperty("reflector", PointField::INT8, sizeof(int8_t), (uint8_t*)&dummy_lidar_point.reflectorbit - (uint8_t*)&dummy_lidar_point));
 	if (pointcloud_cfg.fieldEnabled("infringed"))
 	  field_properties.push_back(PointCloudFieldProperty("infringed", PointField::INT8, sizeof(int8_t), (uint8_t*)&dummy_lidar_point.infringed - (uint8_t*)&dummy_lidar_point));
-  int num_fields = field_properties.size();
+  int num_fields = static_cast<int>(field_properties.size());
   size_t max_number_of_points = 0;
   for (int echo_idx = 0; echo_idx < lidar_points.size(); echo_idx++)
   {
 		max_number_of_points += lidar_points[echo_idx].size();
 	}
   pointcloud_msg.height = 1;
-  pointcloud_msg.width = max_number_of_points;
+  pointcloud_msg.width = static_cast<uint32_t>(max_number_of_points);
   pointcloud_msg.is_bigendian = false;
   pointcloud_msg.is_dense = true;
   pointcloud_msg.point_step = 0;
@@ -643,9 +643,9 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToCustomizedFieldsCl
     pointcloud_msg.fields[i].name = field_properties[i].name;
     pointcloud_msg.fields[i].datatype = field_properties[i].datatype;
     pointcloud_msg.fields[i].offset = pointcloud_msg.point_step;
-		pointcloud_msg.point_step += field_properties[i].datasize;
+		pointcloud_msg.point_step += static_cast<uint32_t>(field_properties[i].datasize);
   }
-  pointcloud_msg.row_step = pointcloud_msg.point_step * max_number_of_points;
+  pointcloud_msg.row_step = static_cast<uint32_t>(pointcloud_msg.point_step * max_number_of_points);
   pointcloud_msg.data.clear();
   pointcloud_msg.data.resize(pointcloud_msg.row_step * pointcloud_msg.height, 0);
   // fill pointcloud data
@@ -750,9 +750,9 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 		{
 			sick_scansegment_xd::PointXYZRAEI32f lidar_point = lidar_points[echoIdx][pointIdx];
 			// truncate to 65533.0 for non reflectors
-			lidar_point.i = (lidar_point.i > 65533.0) ? 65533.0 : lidar_point.i;
+			lidar_point.i = (lidar_point.i > 65533.0f) ? 65533.0f : lidar_point.i;
 			if (lidar_point.reflectorbit > 0) {
-				lidar_point.i = 65534.0;
+				lidar_point.i = 65534.0f;
 			}
 
 			bool layer_enabled = (m_laserscan_layer_filter.empty() ? 1 : (m_laserscan_layer_filter[lidar_point.layer]));
@@ -882,10 +882,10 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 			if (laser_scan_msg.ranges.size() > 1 && laser_scan_msg.angle_max > laser_scan_msg.angle_min)
 			{
 				float angle_diff = laser_scan_msg.angle_max - laser_scan_msg.angle_min;
-				while (angle_diff > (float)(2.0 * M_PI))
-					angle_diff -= (float)(2.0 * M_PI);
-				while (angle_diff < 0)
-					angle_diff += (float)(2.0 * M_PI);
+				/* It can indeed happen that the angle difference of the multiScan165 is slightly greater than 2 * pi.
+				   Therefore, we must not apply the unwrapping at this point. At this location there used to be a wrapping step, 
+				   which was removed in Q4 / 2025.
+				 */
 				laser_scan_msg.angle_increment = angle_diff / (float)(laser_scan_msg.ranges.size() - 1);
 				laser_scan_msg.range_min -= 1.0e-03f;
 				laser_scan_msg.range_max += 1.0e-03f;
@@ -902,7 +902,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 				if (num_echos_publish > 1)
 				  laser_scan_msg.header.frame_id = laser_scan_msg.header.frame_id + "_" + std::to_string(echo_idx);
 				// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
-				laser_scan_msg.scan_time = m_scan_time;
+				laser_scan_msg.scan_time = static_cast<float>(m_scan_time);
 				// time_increment = 1 / measurement_frequency = scan_time / (number of scan points in a full 360-degree rotation of the sensor)
 				laser_scan_msg.time_increment = laser_scan_msg.scan_time / (float)(laser_scan_msg.ranges.size() * 2.0 * M_PI / angle_diff);
 				// ROS_INFO_STREAM("convert to LaserScan: frame_id=" << laser_scan_msg.header.frame_id << ", num_points=" << laser_scan_msg.ranges.size() << ", angle_min=" << (laser_scan_msg.angle_min * 180.0 / M_PI) << ", angle_max=" << (laser_scan_msg.angle_max * 180.0 / M_PI));
