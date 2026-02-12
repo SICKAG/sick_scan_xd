@@ -4,7 +4,7 @@ Possible types are **Added** for new features. **Changed** for changes to the ex
 features that will be removed in future versions **Removed** for deprecated features that were removed in this release.
 **Fixed** for all bug fixes. **Security** to prompt users to update in case of closed vulnerabilities.
 
-## Release v3.9.0-alpha1
+## Release v3.9.0
   - **Added** Support for multiScan165
   - **Added** Integration of `layer_lookup_table_id` in the launch file to configure laser scan filtering
   - **Added** Listen-only mode support for multiScan and picoScan to avoid TCP/IP traffic
