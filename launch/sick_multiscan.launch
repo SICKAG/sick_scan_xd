@@ -1,6 +1,16 @@
 <?xml version="1.0"?>
 <launch>
+    <!--
+       layer_lookup_table_id selects the elevation-to-LayerID lookup table used by sick_scan_xd.
 
+       Background:
+       The multiScan165 uses a different layer/elevation mapping than the multiScan136 and multiScan166.
+
+       Values:
+       0  = multiScan136 / multiScan166 (default)
+       1  = multiScan165
+       -1  = automatic retrieval of the elevation table (experimental)
+    -->
     <!-- Launch multiScan -->
     <!-- env name="ROSCONSOLE_CONFIG_FILE" value="/tmp/rosconsole_loglevel_warn.conf" / -->
     <arg name="hostname" default="192.168.0.1"/>                                    <!-- IP address of sensor -->
@@ -38,6 +48,11 @@
         <param name="check_udp_receiver_ip" type="bool" value="True" />                     <!-- check udp_receiver_ip by sending and receiving a udp test message -->
         <param name="check_udp_receiver_port" type="int" value="2116" />                    <!-- udp port to check udp_receiver_ip -->
         <param name="segment_count" type="int" value="12" />                                <!-- number of expected segments in 360 degree, multiScan136: 12 segments, 30 degree per segment -->
+        <!-- listen-only mode (skip TCP SOPAS initialization) -->
+        <param name="listen_only_mode" type="bool" value="False" />                         <!-- flag to active listen only mode. If true TCP SOPAS initialization is skipped -->
+        <!-- Layer lookup table selection -->
+        <param name="layer_lookup_table_id" type="int" value="0" />                         <!-- Index for Layer lookup table: 0: multiScan136/166, 1: multiScan165, -1: automatic retrieval of the elevation table (experimental) -->
+        
         <param name="publish_frame_id" type="string" value="$(arg publish_frame_id)" />     <!-- frame id of ros Laserscan messages, default: "world_<layer-id>" -->
         <param name="publish_imu_frame_id" type="string" value="$(arg publish_imu_frame_id)" />     <!-- frame id of ros IMU messages, default: "sick_imu" -->
         <param name="publish_laserscan_segment_topic" type="string" value="$(arg publish_laserscan_segment_topic)" />           <!-- topic of ros Laserscan segment messages -->
@@ -256,6 +271,12 @@
 
         <!-- cloud_structured_segments: cartesian and polar coordinates, segments, all echos, range filter off, low resolution layers 1,2,3,4,5,7,8,9,10,11,12,13,15,16, fields=x,y,z,i,range,azimuth,elevation, 360*14*3=15120 points per cloud -->
         <param name="cloud_structured_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=1,2,3,4,5,7,8,9,10,11,12,13,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_segments frameid=world publish=1"/>
+
+        <!-- cloud_structured: cartesian and polar coordinates, fullframe, all echos, range filter off, low resolution layers 1..16, fields=x,y,z,i,range,azimuth,elevation, 12*360*16*3=181440 points per cloud -->
+        <param name="cloud_structured_multiscan_165" type="string" value="coordinateNotation=3 updateMethod=0 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured frameid=world publish=1"/>
+
+        <!-- cloud_structured_segments: cartesian and polar coordinates, segments, all echos, range filter off, low resolution layers 1..16, fields=x,y,z,i,range,azimuth,elevation, 360*16*3=15120 points per cloud -->
+        <param name="cloud_structured_multiscan_165_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_structured_segments frameid=world publish=1"/>
 
         <!-- cloud_all_fields_segments: all fields (x,y,z,i,range,azimuth,elevation,t,ts,lidar_sec,lidar_nsec,ring,layer,echo,reflector), segments, all echos, all layers, range filter off -->
         <param name="cloud_all_fields_segments" type="string" value="coordinateNotation=3 updateMethod=1 fields=x,y,z,i,range,azimuth,elevation,t,ts,lidar_sec,lidar_nsec,ring,layer,echo,reflector echos=0,1,2 layers=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 reflectors=0,1 infringed=0,1 rangeFilter=0,999,0 topic=/cloud_all_fields_segments frameid=world publish=1"/>

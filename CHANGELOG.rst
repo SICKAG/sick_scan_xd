@@ -2,6 +2,17 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.9.0 (2026-02-12)
+------------------
+  * add: Support for multiScan165
+  * add: Integration of `layer_lookup_table_id` in the launch file to configure laser scan filtering
+  * add: Listen-only mode support for multiScan and picoScan to avoid TCP/IP traffic
+  * add: Improved setup for ROS 2 under Windows
+  * fix: Reduced compiler warnings due to missing type casts
+  * fix: Software PLL overflow due to 32-bit overflow
+  * fix: Support for `scan_cfg_list_entry`
+  * update: README.md extended for the Bloom process and multiScan handling
+
 3.8.0 (2025-09-17)
 ------------------
 * Release v3.8.0

@@ -13,6 +13,7 @@
     <arg name="imu_topic" default="imu" />                                          <!-- topic of ros IMU messages -->
     <arg name="udp_port" default="2115" />                                          <!-- default udp port for picoScan devices is 2115 -->
     <arg name="imu_udp_port" default="7503"/>                                       <!-- udp port for picoScan imu data (if imu_enable is true) -->
+    <arg name="listen_only_mode" default="False" />                                   <!-- flag to active listen only mode. If true TCP SOPAS initialization is skipped -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="scandataformat" default="2"/>                  <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
     <arg name="performanceprofilenumber" default="-1"/>       <!-- Set performance profile by "sWN PerformanceProfileNumber" if performanceprofilenumber >= 0 (for picoScan: 1-10), default: -1 -->

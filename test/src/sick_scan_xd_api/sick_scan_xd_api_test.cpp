@@ -1,9 +1,39 @@
+/**
+ * @file    sick_scan_xd_api_test.cpp
+ * @brief   Minimal test app for the SICK sick_scan_xd shared library (API).
+ *
+ * @details
+ *   This program loads the sick_scan_xd shared library at runtime, initializes a
+ *   lidar, and demonstrates two usage modes:
+ *     - Callback mode: registers callbacks for various message types
+ *     - Polling mode:  actively waits for the next message type (WaitNext*)
+ *
+ *   It prints diagnostics to stdout and (optionally) publishes ROS messages when
+ *   compiled with ROS 1 support. Without ROS 1, a simple JPEG rendering of the
+ *   cartesian point cloud can be generated for quick visual inspection.
+ *
+ *   Keyboard controls (non-ROS loop):
+ *     - 'q' or 'Q' : Exit immediately (useful to observe whether UDP continues
+ *                    after driver termination)
+ *     - 's' or 'S' : Send SOPAS command "sRN SCdevicestate"
+ *     - 'r' or 'R' : (If enabled by surrounding logic) reinitialize the test app
+ *
+ * @dependencies
+ *   - sick_scan_xd shared library at runtime
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sstream>
 #include <string>
 #include <thread>
+#include <chrono>
 #include <vector>
+#include <cstdint>
+#include <cctype>
+#include <algorithm> // std::clamp
+#include <cmath>     // std::fabs
 #ifdef _MSC_VER
 #include <conio.h>
 #else
@@ -80,41 +110,18 @@ T clamp(T val, T min_val, T max_val) {
  */
 static void intensity_to_rgb(float intensity, uint8_t& r, uint8_t& g, uint8_t& b)
 {
-  // Normalize intensity (0 to 65535) ? (0 to 1)
-  float normalized = intensity / 65535.0f;
+  // Normalize intensity 0..65535 -> 0..1
+  float t = clamp(intensity / 65535.0f, 0.0f, 1.0f);
 
-  if (normalized < 0.0f) normalized = 0.0f;
-  if (normalized > 1.0f) normalized = 1.0f;
+  // Triangular ramps centered at 0.75 (red), 0.50 (green), 0.25 (blue)
+  const float v = 4.0f * t;
+  float r_f = clamp(1.5f - std::fabs(v - 3.0f), 0.0f, 1.0f);
+  float g_f = clamp(1.5f - std::fabs(v - 2.0f), 0.0f, 1.0f);
+  float b_f = clamp(1.5f - std::fabs(v - 1.0f), 0.0f, 1.0f);
 
-  // Map to a rainbow (jet) colormap approximation
-  float fourValue = 4.0f * normalized;
-
-  float rf = fourValue - 1.5f;
-  float gf = fourValue - 0.5f;
-  float bf = fourValue + 0.5f;
-
-  // Compute Red component
-  if (rf <= 0.0f) r = 0;
-  else if (rf >= 1.0f) r = 255;
-  else r = static_cast<uint8_t>(255.0f * rf);
-
-  // Compute Green component
-  if (gf <= 0.0f) g = 0;
-  else if (gf >= 1.0f) g = 255;
-  else g = static_cast<uint8_t>(255.0f * gf);
-
-  // Compute Blue component
-  if (bf <= 0.0f) b = 0;
-  else if (bf >= 1.0f) b = 255;
-  else b = static_cast<uint8_t>(255.0f * bf);
-
-  // Reverse segments for descending slopes:
-  if (fourValue > 2.5f)
-    r = static_cast<uint8_t>(255 - r);
-  if (fourValue > 1.5f && fourValue <= 3.5f)
-    g = static_cast<uint8_t>(255 - g);
-  if (fourValue > 0.5f && fourValue <= 2.5f)
-    b = static_cast<uint8_t>(255 - b);
+  r = static_cast<uint8_t>(255.0f * r_f);
+  g = static_cast<uint8_t>(255.0f * g_f);
+  b = static_cast<uint8_t>(255.0f * b_f);
 }
 
 
@@ -238,7 +245,7 @@ static void apiTestImuMsgCallback(SickScanApiHandle apiHandle, const SickScanImu
 {
   printf("[Info]: apiTestImuMsgCallback(apiHandle:%p): Imu message, orientation=(%.6f,%.6f,%.6f,%.6f), angular_velocity=(%.6f,%.6f,%.6f), linear_acceleration=(%.6f,%.6f,%.6f)\n",
     apiHandle, msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w,
-    msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.y,
+    msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z,
     msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
 #if __ROS_VERSION == 1
   sensor_msgs::Imu ros_msg = SickScanApiConverter::convertImuMsg(*msg);
@@ -261,7 +268,7 @@ static void apiTestLIDoutputstateMsgCallback(SickScanApiHandle apiHandle, const 
 {
   printf("[Info]: apiTestLIDoutputstateMsgCallback(apiHandle:%p): LIDoutputstate message, state=(%d,%d,%d,%d,%d,%d,%d,%d), count=(%d,%d,%d,%d,%d,%d,%d,%d)\n", apiHandle,
     (int)msg->output_state[0], (int)msg->output_state[1], (int)msg->output_state[2], (int)msg->output_state[3], (int)msg->output_state[4], (int)msg->output_state[5], (int)msg->output_state[6], (int)msg->output_state[7],
-    (int)msg->output_state[0], (int)msg->output_count[1], (int)msg->output_count[2], (int)msg->output_count[3], (int)msg->output_count[4], (int)msg->output_count[5], (int)msg->output_count[6], (int)msg->output_count[7]);
+    (int)msg->output_count[0], (int)msg->output_count[1], (int)msg->output_count[2], (int)msg->output_count[3], (int)msg->output_count[4], (int)msg->output_count[5], (int)msg->output_count[6], (int)msg->output_count[7]);
 #if __ROS_VERSION == 1
   sick_scan_xd::LIDoutputstateMsg ros_msg = SickScanApiConverter::convertLIDoutputstateMsg(*msg);
   DUMP_API_LIDOUTPUTSTATE_MESSAGE("test", ros_msg);
@@ -477,7 +484,7 @@ int sick_scan_api_test_main(int argc, char** argv, const std::string& sick_scan_
     if ((ret = SickScanApiRegisterCartesianPointCloudMsg(apiHandle, apiTestCartesianPointCloudMsgCallback)) != SICK_SCAN_API_SUCCESS)
       exitOnError("SickScanApiRegisterCartesianPointCloudMsg failed", ret);
     if ((ret = SickScanApiRegisterPolarPointCloudMsg(apiHandle, apiTestPolarPointCloudMsgCallback)) != SICK_SCAN_API_SUCCESS)
-      exitOnError("SickScanApiRegisterCartesianPointCloudMsg failed", ret);
+      exitOnError("SickScanApiRegisterPolarPointCloudMsg failed", ret);
 
     // Register a callback for Imu messages
     if ((ret = SickScanApiRegisterImuMsg(apiHandle, apiTestImuMsgCallback)) != SICK_SCAN_API_SUCCESS)
@@ -537,8 +544,24 @@ int sick_scan_api_test_main(int argc, char** argv, const std::string& sick_scan_
 #endif
     printf("sick_scan_xd_api_test: user_key = '%c' (%d)\n", (char)user_key, user_key);
     const char* sopas_request = 0;
-    if (user_key == 's' || user_key == 'S') // Send sopas command "sRN SCdevicestate", sopas response: "sRA SCdevicestate \x01"
+    switch (tolower(user_key))
+    {
+    case 'q':
+      // Quit immediately to test whether UDP transfer continues after driver termination
+      printf("Exiting immediately to test whether UDP transfer continues after driver termination.\n");
+      exit(0);
+      break;
+
+    case 's':
+      // Send SOPAS command "sRN SCdevicestate"
+      // Expected SOPAS response: "sRA SCdevicestate \x01"
       sopas_request = "sRN SCdevicestate";
+      break;
+
+    default:
+      // Optional: handle other keys here
+      break;
+    }
     // else if (user_key == 'c' || user_key == 'C') // Send sopas command "sRN ContaminationResult" supported by MRS-1000, LMS-1000, multiScan, sopas response: "sRA ContaminationResult \x00\x00"
     //   sopas_request = "sRN ContaminationResult";
     if (sopas_request) // Send sopas command and continue

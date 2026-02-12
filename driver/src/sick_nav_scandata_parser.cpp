@@ -189,7 +189,7 @@ namespace sick_scan_xd
         }
       }
       // write payload size
-      payload_size = data_buffer.size() - 8;
+      payload_size = (int)(data_buffer.size() - 8);
       std::vector<uint8_t> payload_buffer;
       appendToBuffer(payload_buffer, payload_size);
       memcpy(&data_buffer[4], &payload_buffer[0], payload_buffer.size());
@@ -211,7 +211,7 @@ namespace sick_scan_xd
       navdata_src.poseDataValid = 1;
       navdata_src.poseData.x = +1234;
       navdata_src.poseData.y = -1234;
-      navdata_src.poseData.phi = M_PI / 2;
+      navdata_src.poseData.phi = (int)(90000); // corresponds to former M_PI / 2;
       navdata_src.poseData.optPoseDataValid = 1;
       navdata_src.poseData.optPoseData. outputMode = 1;
       navdata_src.poseData.optPoseData. timestamp = 123456789;

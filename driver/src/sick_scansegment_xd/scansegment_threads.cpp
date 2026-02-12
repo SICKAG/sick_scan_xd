@@ -84,9 +84,37 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     config.PrintConfig();
     if (scannerName == SICK_SCANNER_SCANSEGMENT_XD_NAME)
     {
-        std::vector<int> layer_elevation_table_mdeg = { 22710, 17560, 12480, 7510, 2490, 70, -2430, -7290, -12790, -17280, -21940, -26730, -31860, -34420, -37180, -42790 };
-        sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(layer_elevation_table_mdeg);
-    }
+      std::size_t layerElevationTableIndex = config.layer_lookup_table_id; // get table id from config entry
+
+			if (config.layer_lookup_table_id != -1)  // if layer_lookup_table_id is -1, we create our own internal lookup table
+			{
+				static const std::array<std::vector<int>, 2> layerElevationTablesMdeg = { {
+						// Table 0 multiScan 136/166
+						{
+              // Layer 1 is the lowest layer (pointing 22.71 deg downwards)
+              // Layer 16 is the highest layer (pointing 42.79 deg upwards)
+              22710, 17560, 12480,  7510,  2490,    70, -2430, -7290,
+						 -12790,-17280,-21940,-26730,-31860,-34420,-37180,-42790
+						},
+					// Table 1 multiScan 165
+					{
+            // Layer 1 is the lowest layer (pointing 7.3 deg downwards)
+            // Layer 16 is the highest layer (point 35.3 deg upwards)
+						 7300,  2400,     0, -2500, -5400, -7400,-10000,-12500,
+					 -14700,-17500,-19600,-22700,-24700,-27300,-29900,-35300
+					}
+				} };
+
+				// Safe selection with fallback to table 0
+				const std::vector<int>& activeTable =
+					(layerElevationTableIndex < layerElevationTablesMdeg.size())
+					? layerElevationTablesMdeg[layerElevationTableIndex]
+					: layerElevationTablesMdeg[0];
+
+				sick_scansegment_xd::CompactDataParser::SetLayerElevationTable(activeTable);
+			}
+		}
+
     // Run sick_scansegment_xd (msgpack receive, convert and publish)
     ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") started.");
     sick_scansegment_xd::MsgPackThreads msgpack_threads;
@@ -173,7 +201,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
     ROS_INFO_STREAM("sick_scansegment_xd::runThreadCb() start (" << __LINE__ << "," << (int)m_run_scansegment_thread << "," << (int)rosOk() << ")...");
     if(!m_config.logfolder.empty() && m_config.logfolder != ".")
     {
-        sick_scansegment_xd::MkDir(m_config.logfolder);
+        sick_scansegment_xd::MkDir(m_config.logfolder);  // create log folder (if configured)
     }
 
     // (Re-)initialize and run loop
@@ -261,6 +289,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             ROS_INFO_STREAM("MsgPackThreads: initializing sopas tcp (" << m_config.hostname << ":" << m_config.sopas_tcp_port << ", timeout:" << (0.001*m_config.sopas_timeout_ms) << ", binary:" << m_config.sopas_cola_binary << ")");
             sopas_tcp = new sick_scan_xd::SickScanCommonTcp(m_config.hostname, m_config.sopas_tcp_port, m_config.sopas_timeout_ms, m_config.node, &parser, m_config.sopas_cola_binary ? 'B' : 'A');
             ROS_INFO_STREAM("MsgPackThreads: initializing device");
+            sopas_tcp->setListenOnlyMode(this->m_config.listen_only_mode);
             sopas_tcp->init_device(); // sopas_tcp->init();
             sopas_tcp->setReadTimeOutInMs(m_config.sopas_timeout_ms);
             ROS_INFO_STREAM("MsgPackThreads: initializing services");
@@ -304,7 +333,11 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             }
             else
             {
+              // Suppress the warning in listen-only mode; otherwise, display it.
+              if (!sopas_tcp->getListenOnlyMode())
+              {
                 ROS_WARN_STREAM("## ERROR sick_scansegment_xd: no sopas tcp connection, multiScan136 filter settings not queried or written");
+              }
             }
         }
 
@@ -331,7 +364,11 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             }
             else
             {
+              // Suppress the warning in listen-only mode; otherwise, display it.
+              if (!sopas_tcp->getListenOnlyMode())
+              {
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: no sopas tcp connection, startup sequence not sent, receiving scan data may fail.");
+              }
             }
         }
 
@@ -355,8 +392,12 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         {
             if (!sopas_tcp->isConnected())
             {
+              // Suppress the warning in listen-only mode; otherwise, display it.
+              if (!sopas_tcp->getListenOnlyMode())
+              {
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: sopas tcp connection lost, stop and reconnect...");
                 break;
+              }
             }
             if (udp_receiver->Fifo()->TotalMessagesPushed() <= 1 || udp_receiver->Fifo()->SecondsSinceLastPush() > 1.0e-3 * m_config.udp_timeout_ms)
             {
