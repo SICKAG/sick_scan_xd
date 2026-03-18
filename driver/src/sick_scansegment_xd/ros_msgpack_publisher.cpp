@@ -944,6 +944,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 {
 	if (!m_active)
 		return; // publishing deactivated
+
 	// Publish optional IMU data
 	if (msgpack_data.scandata.empty() && msgpack_data.imudata.valid)
 	{
@@ -968,7 +969,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		imu_msg.linear_acceleration.y = msgpack_data.imudata.acceleration_y;
 		imu_msg.linear_acceleration.z = msgpack_data.imudata.acceleration_z;
 		// ros imu message definition: A covariance matrix of all zeros will be interpreted as "covariance unknown"
-		for(int n = 0; n < 9; n++)
+		for (int n = 0; n < 9; n++)
 		{
 			imu_msg.orientation_covariance[n] = 0;
 			imu_msg.angular_velocity_covariance[n] = 0;
@@ -979,13 +980,14 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		if (m_publisher_imu_initialized)
 		{
 #if defined __ROS_VERSION && __ROS_VERSION > 1
-	   m_publisher_imu->publish(imu_msg);
+			m_publisher_imu->publish(imu_msg);
 #else
-	   m_publisher_imu.publish(imu_msg);
+			m_publisher_imu.publish(imu_msg);
 #endif
 		}
 		return;
 	}
+
 	// Reorder points in consecutive lidarpoints for echo 0, echo 1 and echo 2 as described in https://github.com/michael1309/sick_lidar3d_pretest/issues/5
 	size_t echo_count = 0;           // number of echos (multiScan136: 1 or 3 echos)
 	size_t point_count_per_echo = 0; // number of points per echo
@@ -1001,12 +1003,14 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			point_count_per_echo = std::max(msgpack_data.scandata[groupIdx].scanlines[echoIdx].points.size(), point_count_per_echo);
 		}
 	}
+
 	float lidar_points_min_azimuth = +2.0f * (float)M_PI, lidar_points_max_azimuth = -2.0f * (float)M_PI;
 	std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>> lidar_points(echo_count);
 	for (int echoIdx = 0; echoIdx < echo_count; echoIdx++)
 	{
 		lidar_points[echoIdx].reserve(point_count_per_echo);
 	}
+
 	uint64_t lidar_timestamp_start_microsec = std::numeric_limits<uint64_t>::max();
 	for (int groupIdx = 0; groupIdx < msgpack_data.scandata.size(); groupIdx++)
 	{
@@ -1146,6 +1150,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			ROS_DEBUG_STREAM("publishPointCloud2Msg: " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
 		}
 	}
+
+
 #if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
 #else
 	LaserScanMsgMap laser_scan_msg_map; // laser_scan_msg_map[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
@@ -1153,7 +1159,6 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	publishLaserScanMsg(m_node, m_publisher_laserscan_segment, laser_scan_msg_map, std::max(1, (int)echo_count), segment_idx);
 #endif
 }
-
 /*
  * Returns this instance explicitely as an implementation of interface MsgPackExportListenerIF.
  */
