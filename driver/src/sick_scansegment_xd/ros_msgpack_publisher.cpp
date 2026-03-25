@@ -1031,13 +1031,13 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 
 	// Publishing full revolutions as ROS messages:
 	// a. Process starts
-	// b. Segments are discarded until a segment with start angle 0° arrives.
-	// c. Then 12 segments are collected until 360° coverage is reached.
+	// b. Segments are discarded until a segment with start angle 0 [deg] arrives.
+	// c. Then 12 segments are collected until 360 [deg] coverage is reached.
 	// d. The 12 segments are published only if none of the segments are corrupt.
 	// e. The 12 segments are accumulated into one point cloud and then published as one PointCloud2 message.
 	// f. Internally, two topics are used:
-	//    i.   Topic for 30° segments
-	//    ii.  Topic for 360° full revolutions
+	//    i.   Topic for 30 [deg] segments
+	//    ii.  Topic for 360 [deg] full revolutions
 	//    iii. If a topic is empty, nothing is published on that channel.
 	//    iv.  Configuration is done via YAML file.
 	// if(m_publish_topic_all_segments != "")
@@ -1046,7 +1046,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): collected azimuth table = " << printElevationAzimuthTable(m_points_collector.lidar_points));
 
 		// The collector must include the current segment before completeness is checked.
-		// Otherwise, the 360° cloud may be published one segment too late.
+		// Otherwise, the 360 [deg] cloud may be published one segment too late.
 		bool collector_reset_required =
 			(m_points_collector.total_point_count <= 0 ||
 				m_points_collector.telegram_cnt <= 0 ||
@@ -1056,7 +1056,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 
 		if (collector_reset_required || telegram_is_new)
 		{
-			// Publish previously completed 360° point cloud only on segment index wrap-around.
+			// Publish previously completed 360 [deg] point cloud only on segment index wrap-around.
 			// This is the remaining fallback for incomplete frames which were not completed before wrap-around.
 			if (m_points_collector.total_point_count > 0 &&
 				m_points_collector.telegram_cnt > 0 &&
