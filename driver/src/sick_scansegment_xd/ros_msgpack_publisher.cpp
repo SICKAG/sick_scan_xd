@@ -944,6 +944,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 {
 	if (!m_active)
 		return; // publishing deactivated
+
 	// Publish optional IMU data
 	if (msgpack_data.scandata.empty() && msgpack_data.imudata.valid)
 	{
@@ -968,7 +969,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		imu_msg.linear_acceleration.y = msgpack_data.imudata.acceleration_y;
 		imu_msg.linear_acceleration.z = msgpack_data.imudata.acceleration_z;
 		// ros imu message definition: A covariance matrix of all zeros will be interpreted as "covariance unknown"
-		for(int n = 0; n < 9; n++)
+		for (int n = 0; n < 9; n++)
 		{
 			imu_msg.orientation_covariance[n] = 0;
 			imu_msg.angular_velocity_covariance[n] = 0;
@@ -979,13 +980,14 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 		if (m_publisher_imu_initialized)
 		{
 #if defined __ROS_VERSION && __ROS_VERSION > 1
-	   m_publisher_imu->publish(imu_msg);
+			m_publisher_imu->publish(imu_msg);
 #else
-	   m_publisher_imu.publish(imu_msg);
+			m_publisher_imu.publish(imu_msg);
 #endif
 		}
 		return;
 	}
+
 	// Reorder points in consecutive lidarpoints for echo 0, echo 1 and echo 2 as described in https://github.com/michael1309/sick_lidar3d_pretest/issues/5
 	size_t echo_count = 0;           // number of echos (multiScan136: 1 or 3 echos)
 	size_t point_count_per_echo = 0; // number of points per echo
@@ -1001,12 +1003,14 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			point_count_per_echo = std::max(msgpack_data.scandata[groupIdx].scanlines[echoIdx].points.size(), point_count_per_echo);
 		}
 	}
+
 	float lidar_points_min_azimuth = +2.0f * (float)M_PI, lidar_points_max_azimuth = -2.0f * (float)M_PI;
 	std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>> lidar_points(echo_count);
 	for (int echoIdx = 0; echoIdx < echo_count; echoIdx++)
 	{
 		lidar_points[echoIdx].reserve(point_count_per_echo);
 	}
+
 	uint64_t lidar_timestamp_start_microsec = std::numeric_limits<uint64_t>::max();
 	for (int groupIdx = 0; groupIdx < msgpack_data.scandata.size(); groupIdx++)
 	{
@@ -1017,45 +1021,132 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			{
 				const sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
 				lidar_points[echoIdx].push_back(sick_scansegment_xd::PointXYZRAEI32f(point.x, point.y, point.z, point.range,
-				   point.azimuth, point.elevation, point.i, point.groupIdx, point.echoIdx, point.lidar_timestamp_microsec, point.reflectorbit));
+					point.azimuth, point.elevation, point.i, point.groupIdx, point.echoIdx, point.lidar_timestamp_microsec, point.reflectorbit));
 				lidar_points_min_azimuth = std::min(lidar_points_min_azimuth, point.azimuth);
 				lidar_points_max_azimuth = std::max(lidar_points_max_azimuth, point.azimuth);
-    		lidar_timestamp_start_microsec = std::min(lidar_timestamp_start_microsec, point.lidar_timestamp_microsec);
+				lidar_timestamp_start_microsec = std::min(lidar_timestamp_start_microsec, point.lidar_timestamp_microsec);
 			}
 		}
 	}
 
-  // Versendung von Vollumläufen als ROS-Nachricht:
-	// a. Prozess läuft an
-	// b. Segmente werden verworfen, bis ein Segment mit Startwinkel 0° eintrifft.
-	// c. Es werden dann 12 Segmente aufgesammelt, bis 360° erreicht sind.
-	// d. Die 12 Segmente werden nur ausgegeben, wenn keines von den Segmenten korrupt ist.
-	// e. Die 12 Segmente werden als eine Pointcloud aufgesammelt und dann als eine Pointcloud2-Nachricht versendet.
-	// f. Es werden intern zwei Topics verwendet:
-	// 	  i.   Topic für 30° (Segmente)
-	// 	  ii.  Topic für 360° (Vollumlauf)
-	// 	  iii. Ist ein Topic leer, dann wird auf diesem Kanal nichts publiziert.
-	// 	  iv.  Konfiguration erfolgt über YAML-Datei.
+	// Publishing full revolutions as ROS messages:
+	// a. Process starts
+	// b. Segments are discarded until a segment with start angle 0° arrives.
+	// c. Then 12 segments are collected until 360° coverage is reached.
+	// d. The 12 segments are published only if none of the segments are corrupt.
+	// e. The 12 segments are accumulated into one point cloud and then published as one PointCloud2 message.
+	// f. Internally, two topics are used:
+	//    i.   Topic for 30° segments
+	//    ii.  Topic for 360° full revolutions
+	//    iii. If a topic is empty, nothing is published on that channel.
+	//    iv.  Configuration is done via YAML file.
 	// if(m_publish_topic_all_segments != "")
 	{
 		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): check allSegmentsCovered, segment_idx=" << segment_idx);
-  	// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): collected azimuth table = " << printElevationAzimuthTable(m_points_collector.lidar_points));
-		float precheck_min_azimuth_deg = m_points_collector.min_azimuth * 180.0f / (float)M_PI;
-		float precheck_max_azimuth_deg = m_points_collector.max_azimuth * 180.0f / (float)M_PI;
-		bool publish_cloud_360 = (precheck_max_azimuth_deg - precheck_min_azimuth_deg + 1 >= m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg - 1) // fast pre-check
-		    && m_points_collector.allSegmentsCovered(m_all_segments_azimuth_min_deg, m_all_segments_azimuth_max_deg, m_all_segments_elevation_min_deg, m_all_segments_elevation_max_deg); // all segments collected in m_points_collector
-		// ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.lastSegmentIdx=" << m_points_collector.lastSegmentIdx()
-		//     << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count
-		//     << ", azimuth_range_collected=(" << precheck_min_azimuth_deg << "," << precheck_max_azimuth_deg << ")=" << (precheck_max_azimuth_deg - precheck_min_azimuth_deg)
-		//     << ", azimuth_range_configured=(" << m_all_segments_azimuth_min_deg << "," << m_all_segments_azimuth_max_deg << ")=" << (m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg)
-		//     << ", m_points_collector.allSegmentsCovered=" << publish_cloud_360);
-		if (m_points_collector.total_point_count <= 0 || m_points_collector.telegram_cnt <= 0 || publish_cloud_360 || m_points_collector.lastSegmentIdx() > segment_idx)
+		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): collected azimuth table = " << printElevationAzimuthTable(m_points_collector.lidar_points));
+
+		// The collector must include the current segment before completeness is checked.
+		// Otherwise, the 360° cloud may be published one segment too late.
+		bool collector_reset_required =
+			(m_points_collector.total_point_count <= 0 ||
+				m_points_collector.telegram_cnt <= 0 ||
+				m_points_collector.lastSegmentIdx() > segment_idx);
+
+		bool telegram_is_new = (telegram_cnt > m_points_collector.telegram_cnt);
+
+		if (collector_reset_required || telegram_is_new)
 		{
-			// 1. publish 360 degree point cloud if all segments collected
-			// 2. start a new collection of all points (first time call, all segments covered, or segment index wrap around)
-			if (m_points_collector.total_point_count > 0 && m_points_collector.telegram_cnt > 0 && publish_cloud_360)
+			// Publish previously completed 360° point cloud only on segment index wrap-around.
+			// This is the remaining fallback for incomplete frames which were not completed before wrap-around.
+			if (m_points_collector.total_point_count > 0 &&
+				m_points_collector.telegram_cnt > 0 &&
+				m_points_collector.lastSegmentIdx() > segment_idx)
 			{
-				// publish 360 degree point cloud
+				float precheck_min_azimuth_deg = m_points_collector.min_azimuth * 180.0f / (float)M_PI;
+				float precheck_max_azimuth_deg = m_points_collector.max_azimuth * 180.0f / (float)M_PI;
+				bool publish_previous_cloud_360 =
+					(precheck_max_azimuth_deg - precheck_min_azimuth_deg + 1 >= m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg - 1) // fast pre-check
+					&& m_points_collector.allSegmentsCovered(
+						m_all_segments_azimuth_min_deg, m_all_segments_azimuth_max_deg,
+						m_all_segments_elevation_min_deg, m_all_segments_elevation_max_deg); // all segments collected in m_points_collector
+
+				if (publish_previous_cloud_360)
+				{
+					// publish 360 degree point cloud
+					// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
+					m_scan_time = (msgpack_data.timestamp_sec + 1.0e-9 * msgpack_data.timestamp_nsec) - (m_points_collector.timestamp_sec + 1.0e-9 * m_points_collector.timestamp_nsec);
+					for (int cloud_cnt = 0; cloud_cnt < m_custom_pointclouds_cfg.size(); cloud_cnt++)
+					{
+						CustomPointCloudConfiguration& custom_pointcloud_cfg = m_custom_pointclouds_cfg[cloud_cnt];
+						if (custom_pointcloud_cfg.publish() && custom_pointcloud_cfg.fullframe())
+						{
+							PointCloud2Msg pointcloud_msg_custom_fields;
+							convertPointsToCustomizedFieldsCloud(
+								m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_timestamp_start_microsec,
+								m_points_collector.lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
+							publishPointCloud2Msg(
+								m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields,
+								std::max(1, (int)echo_count), -1, custom_pointcloud_cfg.coordinateNotation(), custom_pointcloud_cfg.topic());
+							// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): published " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
+						}
+					}
+					// publish 360 degree Laserscan message
+					LaserScanMsgMap laser_scan_msg_map; // laser_scan_msg_map[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
+					convertPointsToLaserscanMsg(
+						m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec,
+						m_points_collector.lidar_points, m_points_collector.total_point_count,
+						laser_scan_msg_map, m_frame_id, true);
+					publishLaserScanMsg(m_node, m_publisher_laserscan_360, laser_scan_msg_map, std::max(1, (int)echo_count), -1);
+				}
+			}
+
+			// Start a new 360 degree collection if required
+			if (collector_reset_required)
+			{
+				m_points_collector = SegmentPointsCollector(telegram_cnt);
+				m_points_collector.timestamp_sec = msgpack_data.timestamp_sec;
+				m_points_collector.timestamp_nsec = msgpack_data.timestamp_nsec;
+				m_points_collector.total_point_count = 0;
+				m_points_collector.lidar_points = std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>(lidar_points.size());
+				for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
+					m_points_collector.lidar_points[echoIdx].reserve(12 * lidar_points[echoIdx].size());
+				m_points_collector.min_azimuth = lidar_points_min_azimuth;
+				m_points_collector.max_azimuth = lidar_points_max_azimuth;
+			}
+
+			// Append current segment to the collector first
+			if (m_points_collector.lidar_points.size() < lidar_points.size())
+				m_points_collector.lidar_points.resize(lidar_points.size());
+
+			m_points_collector.telegram_cnt = telegram_cnt;
+			m_points_collector.total_point_count += total_point_count;
+			m_points_collector.appendLidarPoints(lidar_points, segment_idx, telegram_cnt);
+			m_points_collector.min_azimuth = std::min(m_points_collector.min_azimuth, lidar_points_min_azimuth);
+			m_points_collector.max_azimuth = std::max(m_points_collector.max_azimuth, lidar_points_max_azimuth);
+
+			// ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, lidar_points_min_azimuth=" << (lidar_points_min_azimuth * 180.0f / M_PI) << ", lidar_points_max_azimuth=" << (lidar_points_max_azimuth* 180.0f / M_PI));
+			// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, azimuth table = " << printElevationAzimuthTable(lidar_points));
+			// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected azimuth table = " << printElevationAzimuthTable(m_points_collector.lidar_points));
+			// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected coverage table = " << printCoverageTable(m_points_collector.segment_coverage));
+
+			// Check completeness after the current segment has been appended.
+			float precheck_min_azimuth_deg = m_points_collector.min_azimuth * 180.0f / (float)M_PI;
+			float precheck_max_azimuth_deg = m_points_collector.max_azimuth * 180.0f / (float)M_PI;
+			bool publish_cloud_360 =
+				(precheck_max_azimuth_deg - precheck_min_azimuth_deg + 1 >= m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg - 1) // fast pre-check
+				&& m_points_collector.allSegmentsCovered(
+					m_all_segments_azimuth_min_deg, m_all_segments_azimuth_max_deg,
+					m_all_segments_elevation_min_deg, m_all_segments_elevation_max_deg); // all segments collected in m_points_collector
+
+			// ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): segment_idx=" << segment_idx << ", m_points_collector.lastSegmentIdx=" << m_points_collector.lastSegmentIdx()
+			//     << ", m_points_collector.total_point_count=" << m_points_collector.total_point_count
+			//     << ", azimuth_range_collected=(" << precheck_min_azimuth_deg << "," << precheck_max_azimuth_deg << ")=" << (precheck_max_azimuth_deg - precheck_min_azimuth_deg)
+			//     << ", azimuth_range_configured=(" << m_all_segments_azimuth_min_deg << "," << m_all_segments_azimuth_max_deg << ")=" << (m_all_segments_azimuth_max_deg - m_all_segments_azimuth_min_deg)
+			//     << ", m_points_collector.allSegmentsCovered=" << publish_cloud_360);
+
+			if (publish_cloud_360)
+			{
+				// Publish 360 degree point cloud immediately when the current segment completes the frame.
 				// scan_time = 1 / scan_frequency = time for a full 360-degree rotation of the sensor
 				m_scan_time = (msgpack_data.timestamp_sec + 1.0e-9 * msgpack_data.timestamp_nsec) - (m_points_collector.timestamp_sec + 1.0e-9 * m_points_collector.timestamp_nsec);
 				for (int cloud_cnt = 0; cloud_cnt < m_custom_pointclouds_cfg.size(); cloud_cnt++)
@@ -1064,73 +1155,53 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 					if (custom_pointcloud_cfg.publish() && custom_pointcloud_cfg.fullframe())
 					{
 						PointCloud2Msg pointcloud_msg_custom_fields;
-						convertPointsToCustomizedFieldsCloud(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec,  m_points_collector.lidar_timestamp_start_microsec,
-						  m_points_collector.lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
-						publishPointCloud2Msg(m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields, std::max(1, (int)echo_count), -1, custom_pointcloud_cfg.coordinateNotation(), custom_pointcloud_cfg.topic());
+						convertPointsToCustomizedFieldsCloud(
+							m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_timestamp_start_microsec,
+							m_points_collector.lidar_points, custom_pointcloud_cfg, pointcloud_msg_custom_fields);
+						publishPointCloud2Msg(
+							m_node, custom_pointcloud_cfg.publisher(), pointcloud_msg_custom_fields,
+							std::max(1, (int)echo_count), -1, custom_pointcloud_cfg.coordinateNotation(), custom_pointcloud_cfg.topic());
 						// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): published " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
 					}
 				}
+
 				// publish 360 degree Laserscan message
 				LaserScanMsgMap laser_scan_msg_map; // laser_scan_msg_map[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
-				convertPointsToLaserscanMsg(m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec, m_points_collector.lidar_points, m_points_collector.total_point_count, laser_scan_msg_map, m_frame_id, true);
+				convertPointsToLaserscanMsg(
+					m_points_collector.timestamp_sec, m_points_collector.timestamp_nsec,
+					m_points_collector.lidar_points, m_points_collector.total_point_count,
+					laser_scan_msg_map, m_frame_id, true);
 				publishLaserScanMsg(m_node, m_publisher_laserscan_360, laser_scan_msg_map, std::max(1, (int)echo_count), -1);
+
+				// Reset collector after full-frame publish.
+				m_points_collector = SegmentPointsCollector(telegram_cnt);
 			}
-			// Start a new 360 degree collection
-			m_points_collector = SegmentPointsCollector(telegram_cnt);
-			m_points_collector.timestamp_sec = msgpack_data.timestamp_sec;
-			m_points_collector.timestamp_nsec = msgpack_data.timestamp_nsec;
-			m_points_collector.total_point_count = total_point_count;
-			m_points_collector.lidar_points = std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>(lidar_points.size());
-			for (int echoIdx = 0; echoIdx < lidar_points.size(); echoIdx++)
-				m_points_collector.lidar_points[echoIdx].reserve(12 * lidar_points[echoIdx].size());
-			m_points_collector.appendLidarPoints(lidar_points, segment_idx, telegram_cnt);
-			m_points_collector.min_azimuth = lidar_points_min_azimuth;
-			m_points_collector.max_azimuth = lidar_points_max_azimuth;
-		  // ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): started new point collection with segment_idx=" << segment_idx);
-		  // ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, lidar_points_min_azimuth=" << (lidar_points_min_azimuth * 180.0f / M_PI) << ", lidar_points_max_azimuth=" << (lidar_points_max_azimuth* 180.0f / M_PI));
-  		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, azimuth table = " << printElevationAzimuthTable(lidar_points));
-    	// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected azimuth table = " << printElevationAzimuthTable(m_points_collector.lidar_points));
-  		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected coverage table = " << printCoverageTable(m_points_collector.segment_coverage));
-		}
-		else if (telegram_cnt > m_points_collector.telegram_cnt) // append lidar points to m_points_collector
-		{
-			if (m_points_collector.lidar_points.size() < lidar_points.size())
-				m_points_collector.lidar_points.resize(lidar_points.size());
-			// m_points_collector.segment_count = segment_idx;
-			m_points_collector.telegram_cnt = telegram_cnt;
-			m_points_collector.total_point_count += total_point_count;
-			m_points_collector.appendLidarPoints(lidar_points, segment_idx, telegram_cnt);
-			m_points_collector.min_azimuth = std::min(m_points_collector.min_azimuth, lidar_points_min_azimuth);
-			m_points_collector.max_azimuth = std::max(m_points_collector.max_azimuth, lidar_points_max_azimuth);
-		  // ROS_INFO_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, lidar_points_min_azimuth=" << (lidar_points_min_azimuth * 180.0f / M_PI) << ", lidar_points_max_azimuth=" << (lidar_points_max_azimuth* 180.0f / M_PI));
-  		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, azimuth table = " << printElevationAzimuthTable(lidar_points));
-    	// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected azimuth table = " << printElevationAzimuthTable(m_points_collector.lidar_points));
-  		// ROS_DEBUG_STREAM("    RosMsgpackPublisher::HandleMsgPackData(): appendLidarPoints, collected coverage table = " << printCoverageTable(m_points_collector.segment_coverage));
 		}
 		else
 		{
 			static fifo_timestamp last_print_timestamp = fifo_clock::now();
 			if (sick_scansegment_xd::Fifo<ScanSegmentParserOutput>::Seconds(last_print_timestamp, fifo_clock::now()) > 1.0) // avoid printing with more than 1 Hz
 			{
-					if (m_points_collector.telegram_cnt > telegram_cnt) // probably test enviroment with recorded and repeated telegrams from pcapng- or upd-player
+				if (m_points_collector.telegram_cnt > telegram_cnt) // probably test environment with recorded and repeated telegrams from pcapng- or udp-player
+				{
+					ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): current telegram cnt: " << telegram_cnt << ", last telegram cnt in collector: " << m_points_collector.telegram_cnt
+						<< ", 360-degree-pointcloud not published (ok if sick_scan_xd is running in a test environment with recorded and repeated telegrams from pcapng- or udp-player, otherwise not ok)");
+				}
+				else
+				{
+					ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.lastSegmentIdx()
+						<< ", current telegram: " << telegram_cnt << ", last telegram in collector: " << m_points_collector.telegram_cnt
+						<< ", datagram(s) missing, 360-degree-pointcloud not published");
+					if (m_points_collector.numEchos() > 1)
 					{
-						ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): current telegram cnt: " << telegram_cnt << ", last telegram cnt in collector: " << m_points_collector.telegram_cnt
-							<< ", 360-degree-pointcloud not published (ok if sick_scan_xd is running in a test enviroment with recorded and repeated telegrams from pcapng- or upd-player, otherwise not ok)");
+						ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): " << m_points_collector.numEchos() << " echos received. Activate the echo filter in the launch file to reduce system load (e.g. last echo only)");
 					}
-					else
-					{
-						ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): current segment: " << segment_idx << ", last segment in collector: " << m_points_collector.lastSegmentIdx()
-							<< ", current telegram: " << telegram_cnt << ", last telegram in collector: " << m_points_collector.telegram_cnt
-							<< ", datagram(s) missing, 360-degree-pointcloud not published");
-						if (m_points_collector.numEchos() > 1)
-						{
-							ROS_WARN_STREAM("## WARNING RosMsgpackPublisher::HandleMsgPackData(): " << m_points_collector.numEchos() << " echos received. Activate the echo filter in the launchfile to reduce system load (e.g. last echo only)");
-						}
-					}
-					last_print_timestamp = fifo_clock::now();
+				}
+				last_print_timestamp = fifo_clock::now();
 			}
 			m_points_collector = SegmentPointsCollector(telegram_cnt); // reset pointcloud collector
 		}
+
 		// ROS_INFO_STREAM("RosMsgpackPublisher::HandleMsgPackData(): segment_idx " << segment_idx << " of " << m_segment_count << ", " << m_points_collector.total_point_count << " points in collector");
 	}
 
@@ -1146,6 +1217,8 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 			ROS_DEBUG_STREAM("publishPointCloud2Msg: " << pointcloud_msg_custom_fields.width << "x" << pointcloud_msg_custom_fields.height << " pointcloud, " << pointcloud_msg_custom_fields.fields.size() << " fields/point, " << pointcloud_msg_custom_fields.data.size() << " bytes");
 		}
 	}
+
+
 #if defined RASPBERRY && RASPBERRY > 0 // laserscan messages deactivated on Raspberry for performance reasons
 #else
 	LaserScanMsgMap laser_scan_msg_map; // laser_scan_msg_map[echo][layer] := LaserScan message given echo (Multiscan136: max 3 echos) and layer index (Multiscan136: 16 layer)
@@ -1153,7 +1226,6 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	publishLaserScanMsg(m_node, m_publisher_laserscan_segment, laser_scan_msg_map, std::max(1, (int)echo_count), segment_idx);
 #endif
 }
-
 /*
  * Returns this instance explicitely as an implementation of interface MsgPackExportListenerIF.
  */
