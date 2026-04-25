@@ -2,12 +2,11 @@
 
 <img align=right width="200" src="doc/SICK-logo.svg"/>
 
-This project provides a driver for SICK LiDARs and Radar sensors mentioned [here](#supported-sick-devices). The driver supports both Linux (native, ROS 1, ROS 2) and Windows (native and ROS 2). See the [CHANGELOG.md](CHANGELOG.md) for the latest updates.
+This project provides a driver for SICK LiDARs and Radar sensors mentioned [here](#supported-sick-devices). The driver supports ROS 2 for both Linux and Windows. See the [CHANGELOG.rst](CHANGELOG.rst) for the latest updates.
 
 Main features and characteristics:
 
-* Support of ROS 1 (Linux), ROS 2 (Linux and Windows)
-  **_NOTE:_** **Although ROS 1 is still mentioned below, active development for ROS1 will not be continued.** 
+* Support of ROS 2 for Linux and Windows
 * Generic C/C++ and Python API for usage without ROS (Linux and Windows)
 * SLAM support
 * Compatible with x64 and ARM64 architecture (incl. Raspberry Pi)
@@ -18,150 +17,95 @@ Main features and characteristics:
 <details>
   <summary>Expand to full table of contents </summary>
 
-* [Repository organization](#repository-organization)
-* [Supported SICK devices](#supported-sick-devices)
-* [Getting started](#getting-started)
-  * [Starting with a new SICK device](#starting-with-a-new-sick-device)
-  * [Detecting SICK devices in the network](#detecting-sick-devices-in-the-network)
-  * [Change IP address](#change-ip-address)
-  * [Test connection (Linux)](#test-connection-linux)
-* [Building the driver](#building-the-driver)
-  * [ROS 1 on Linux](#ros-1-on-linux)
-    * [ROS 1: Install prebuilt binaries](#ros-1-install-prebuilt-binaries)
-    * [ROS 1: Build from sources](#ros-1-build-from-sources)
-  * [ROS 2 on Linux](#ros-2-on-linux)
-    * [ROS 2: Install prebuilt binaries](#ros-2-install-prebuilt-binaries)
-    * [ROS 2: Build from sources](#ros-2-build-from-sources)
-  * [ROS 2 on Windows](#ros-2-on-windows)
-  * [Without ROS on Linux](#without-ros-on-linux)
-  * [Without ROS on Windows](#without-ros-on-windows)
-* [Running the driver](#running-the-driver)
-  * [Starting device with specific IP address](#starting-device-with-specific-ip-address)
-  * [Start multiple devices / nodes](#start-multiple-devices--nodes)
-  * [Parameters](#parameters)
-  * [ROS services](#ros-services)
-  * [ROS 2 example for messages and services](#ros-2-example-for-messages-and-services)
-  * [SOPAS mode](#sopas-mode)
-  * [Example startup sequence](#example-startup-sequence)
-* [Driver features and additional information](#driver-features-and-additional-information)
-  * [Software overview and structure](#software-overview-and-structure)
-    * [Message handling](#message-handling)
-    * [Driver states and timeouts](#driver-states-and-timeouts)
-    * [sick\_scansegment\_xd](#sick_scansegment_xd)
-    * [Files and folders](#files-and-folders)
-  * [Generic driver API](#generic-driver-api)
-    * [Build and test shared library](#build-and-test-shared-library)
-      * [Build the shared library on Linux](#build-the-shared-library-on-linux)
-      * [Build the shared library on Windows](#build-the-shared-library-on-windows)
-      * [Test the shared library](#test-the-shared-library)
-    * [Usage examples](#usage-examples)
-      * [Minimalistic usage example in C](#minimalistic-usage-example-in-c)
-      * [Minimalistic usage example in C++](#minimalistic-usage-example-in-c-1)
-      * [Minimalistic usage example in Python](#minimalistic-usage-example-in-python)
-      * [Complete usage example in C++](#complete-usage-example-in-c)
-      * [Complete usage example in Python](#complete-usage-example-in-python)
-    * [Diagnostic](#diagnostic)
-  * [Simulation and unit test](#simulation-and-unit-test)
-  * [Timestamps and synchronization (Software PLL)](#timestamps-and-synchronization-software-pll)
-  * [Coordinate transforms](#coordinate-transforms)
-  * [IMU support (LRS4000, MRS6000 and MRS1000)](#imu-support-lrs4000-mrs6000-and-mrs1000)
-  * [Encoder support](#encoder-support)
-  * [Field evaluation information](#field-evaluation-information)
-    * [Visualization with rviz](#visualization-with-rviz)
-    * [Cola commands](#cola-commands)
-    * [Emulation](#emulation)
-    * [Unit tests](#unit-tests)
-    * [Pcapng converter tool](#pcapng-converter-tool)
-  * [Raspberry Pi support](#raspberry-pi-support)
-    * [Performance limitations](#performance-limitations)
-    * [Build without internet or GitHub access](#build-without-internet-or-github-access)
-  * [Docker support](#docker-support)
-    * [Build and run on Linux ROS 1 (short cut)](#build-and-run-on-linux-ros-1-short-cut)
-    * [Build and run from local sources](#build-and-run-from-local-sources)
-    * [Build and run from a git repository](#build-and-run-from-a-git-repository)
-    * [Build and run from prebuilt binaries](#build-and-run-from-prebuilt-binaries)
-  * [Hector SLAM support](#hector-slam-support)
-    * [NAV350 ROS 1 SLAM example](#nav350-ros-1-slam-example)
-    * [NAV350 ROS 2 SLAM example](#nav350-ros-2-slam-example)
-    * [picoScan100 ROS 1 SLAM example](#picoscan100-ros-1-slam-example)
-    * [MRS1000 SLAM support](#mrs1000-slam-support)
-  * [Google cartographer support](#google-cartographer-support)
-  * [OctoMap support](#octomap-support)
-  * [RTAB-Map support](#rtab-map-support)
-    * [Install RTAB-Map on ROS 1](#install-rtab-map-on-ros-1)
-    * [Run RTAB-MAP and multiScan100 on ROS 1](#run-rtab-map-and-multiscan100-on-ros-1)
-    * [Install RTAB-Map on ROS 2](#install-rtab-map-on-ros-2)
-    * [Run RTAB-MAP and multiScan100 on ROS 2](#run-rtab-map-and-multiscan100-on-ros-2)
-  * [More tools](#more-tools)
-* [Device specific information](#device-specific-information)
-  * [picoScan100/multiScan100](#picoscan100multiscan100)
-    * [Configuration](#configuration)
-    * [SOPAS support for sick\_scan\_segment\_xd](#sopas-support-for-sick_scan_segment_xd)
-    * [Start and stop sequence](#start-and-stop-sequence)
-    * [IMU support](#imu-support)
-    * [Point cloud memory layout](#point-cloud-memory-layout)
-    * [Customized point clouds](#customized-point-clouds)
-    * [Customized point clouds on a Raspberry Pi](#customized-point-clouds-on-a-raspberry-pi)
-    * [MSGPACK validation](#msgpack-validation)
-    * [Firewall configuration](#firewall-configuration)
-    * [Reflector detection](#reflector-detection)
-    * [TF frame IDs and layer suffixes (picoScan / multi-layer devices)](#tf-frame-ids-and-layer-suffixes-picoscan--multi-layer-devices)
-  * [TiMxxx](#timxxx)
-  * [NAV350](#nav350)
-    * [Process loop](#process-loop)
-    * [Initialization and setup](#initialization-and-setup)
-    * [Messages](#messages)
-    * [Angle compensation](#angle-compensation)
-      * [Example](#example)
-      * [Comparing compensated vs. raw values](#comparing-compensated-vs-raw-values)
-      * [Coordinate systems](#coordinate-systems)
-      * [Check compensation function](#check-compensation-function)
-  * [MRS6124](#mrs6124)
-  * [LMS1000 / MRS1000](#lms1000--mrs1000)
-  * [RMS1000](#rms1000)
-    * [Raw targets](#raw-targets)
-    * [Tracking objects](#tracking-objects)
-    * [ROS message for Radar](#ros-message-for-radar)
-    * [Visualization](#visualization)
-    * [Launch files](#launch-files)
-    * [Parameter for Radar usage](#parameter-for-radar-usage)
-    * [Radar datagram](#radar-datagram)
-  * [Combination of devices](#combination-of-devices)
-    * [multiScan100 and picoScan100](#multiscan100-and-picoscan100)
-    * [RMS1000 and MRS6000](#rms1000-and-mrs6000)
-    * [RMS1000 and LMS1000](#rms1000-and-lms1000)
-* [FAQ](#faq)
-  * [How to fix "Failed to open TCP connection"?](#how-to-fix-failed-to-open-tcp-connection)
-  * [How to run multiple sensors concurrently?](#how-to-run-multiple-sensors-concurrently)
-  * [What to do if the driver restarts again and again after "sFA" message?](#what-to-do-if-the-driver-restarts-again-and-again-after-sfa-message)
-  * [What to do if the driver restarts after a timeout error?](#what-to-do-if-the-driver-restarts-after-a-timeout-error)
-  * [Why are my changes in launch files are ignored?](#why-are-my-changes-in-launch-files-are-ignored)
-  * [How can I create a ROS 2 node in python to run sick\_generic\_caller from a launch.py file?](#how-can-i-create-a-ros-2-node-in-python-to-run-sick_generic_caller-from-a-launchpy-file)
-  * [What timestamp is provided in the point cloud and laserscan messages?](#what-timestamp-is-provided-in-the-point-cloud-and-laserscan-messages)
-  * [Why does sick\_scan\_xd publish laserscan messages for with multiple frame ids?](#why-does-sick_scan_xd-publish-laserscan-messages-for-with-multiple-frame-ids)
-  * [The compiler reports errors in file `/opt/ros/<distro>/include/sick_scan_xd`. What can I do?](#the-compiler-reports-errors-in-file-optrosdistroincludesick_scan_xd-what-can-i-do)
-  * [cmake cannot find diagnostic\_updater. What can I do?](#cmake-cannot-find-diagnostic_updater-what-can-i-do)
-  * [catkin reports "By not providing "FindSICKLDMRS.cmake" ..." . What can I do?](#catkin-reports-by-not-providing-findsickldmrscmake---what-can-i-do)
-  * [rviz only shows a grey point cloud. What can i do?](#rviz-only-shows-a-grey-point-cloud-what-can-i-do)
-  * [rviz shows a grey point cloud and the size of points can not be adjusted. What can I do?](#rviz-shows-a-grey-point-cloud-and-the-size-of-points-can-not-be-adjusted-what-can-i-do)
-  * [rviz2 on Ubuntu 24 with ROS 2 jazzy crashes immediately after start. How to fix this?](#rviz2-on-ubuntu-24-with-ros-2-jazzy-crashes-immediately-after-start-how-to-fix-this)
-  * [The angular resolution or the scanning frequency is lower than expected. Any ideas?](#the-angular-resolution-or-the-scanning-frequency-is-lower-than-expected-any-ideas)
-  * [Independent of the configuration, the LMS1000 point cloud always displays 0.75 \[deg\] angular resolution?](#independent-of-the-configuration-the-lms1000-point-cloud-always-displays-075-deg-angular-resolution)
-  * [My device does not use the default IP address. What shall I do?](#my-device-does-not-use-the-default-ip-address-what-shall-i-do)
-  * [During start the error "no answer received after 5000 ms" appears. What can I do?](#during-start-the-error-no-answer-received-after-5000-ms-appears-what-can-i-do)
-  * [How to process data with my own methods?](#how-to-process-data-with-my-own-methods)
-  * [Occasionally, no scan data appear, but the lidar is still reachable (ping). What can I do?](#occasionally-no-scan-data-appear-but-the-lidar-is-still-reachable-ping-what-can-i-do)
-  * [On Windows with ROS, cmake complains "python\_d.exe not found" when running rosidl generator. How to fix this?](#on-windows-with-ros-cmake-complains-python_dexe-not-found-when-running-rosidl-generator-how-to-fix-this)
-  * [How can I debug sick\_generic\_caller on ROS 1?](#how-can-i-debug-sick_generic_caller-on-ros-1)
-  * [I see curved lines on a straight wall. Why?](#i-see-curved-lines-on-a-straight-wall-why)
-  * [How should I interpret the scan rate and lidar resolution from the manual?](#how-should-i-interpret-the-scan-rate-and-lidar-resolution-from-the-manual)
-  * [In Windows debug version the compiler does not stop at breakpoints. What to do?](#in-windows-debug-version-the-compiler-does-not-stop-at-breakpoints-what-to-do)
-  * [sick\_scan\_xd seems to drop packages, when sending msgpacks. What to do?](#sick_scan_xd-seems-to-drop-packages-when-sending-msgpacks-what-to-do)
-  * [How can I convert a pcapng-file with scan data to a msgpack- or json-file?](#how-can-i-convert-a-pcapng-file-with-scan-data-to-a-msgpack--or-json-file)
-* [Troubleshooting and technical support](#troubleshooting-and-technical-support)
-* [Creators and contribution](#creators-and-contribution)
-* [License](#license)
-* [Keywords](#keywords)
+- [Table of contents](#table-of-contents)
+- [Repository organization](#repository-organization)
+- [Supported SICK devices](#supported-sick-devices)
+- [Getting started](#getting-started)
+  - [Starting with a new SICK device](#starting-with-a-new-sick-device)
+  - [Detecting SICK devices in the network](#detecting-sick-devices-in-the-network)
+  - [Change IP address](#change-ip-address)
+  - [Test connection (Linux)](#test-connection-linux)
+- [Building the driver](#building-the-driver)
+  - [ROS 1 on Linux](#ros-1-on-linux)
+  - [ROS 2 on Linux](#ros-2-on-linux)
+  - [ROS 2 on Windows (Jazzy \& Kilted)](#ros-2-on-windows-jazzy--kilted)
+  - [Without ROS on Linux](#without-ros-on-linux)
+  - [Without ROS on Windows](#without-ros-on-windows)
+- [Running the driver](#running-the-driver)
+  - [Starting device with specific IP address](#starting-device-with-specific-ip-address)
+  - [Start multiple devices / nodes](#start-multiple-devices--nodes)
+  - [Parameters](#parameters)
+  - [ROS services](#ros-services)
+  - [ROS 2 example for messages and services](#ros-2-example-for-messages-and-services)
+  - [SOPAS mode](#sopas-mode)
+  - [Example startup sequence](#example-startup-sequence)
+- [Driver features and additional information](#driver-features-and-additional-information)
+  - [Software overview and structure](#software-overview-and-structure)
+  - [Generic driver API](#generic-driver-api)
+  - [Simulation and unit test](#simulation-and-unit-test)
+  - [Timestamps and synchronization (Software PLL)](#timestamps-and-synchronization-software-pll)
+  - [Coordinate transforms](#coordinate-transforms)
+  - [IMU support (LRS4000, MRS6000 and MRS1000)](#imu-support-lrs4000-mrs6000-and-mrs1000)
+  - [Encoder support](#encoder-support)
+  - [Field evaluation information](#field-evaluation-information)
+  - [Raspberry Pi support](#raspberry-pi-support)
+  - [Docker support](#docker-support)
+  - [Hector SLAM support](#hector-slam-support)
+  - [Google cartographer support](#google-cartographer-support)
+  - [OctoMap support](#octomap-support)
+  - [RTAB-Map support](#rtab-map-support)
+  - [More tools](#more-tools)
+- [Device specific information](#device-specific-information)
+  - [picoScan100/multiScan100](#picoscan100multiscan100)
+  - [TiMxxx](#timxxx)
+  - [NAV350](#nav350)
+  - [MRS6124](#mrs6124)
+  - [LMS1000 / MRS1000](#lms1000--mrs1000)
+  - [RMS1000](#rms1000)
+  - [Combination of devices](#combination-of-devices)
+- [FAQ](#faq)
+  - [How to fix "Failed to open TCP connection"?](#how-to-fix-failed-to-open-tcp-connection)
+  - [How to run multiple sensors concurrently?](#how-to-run-multiple-sensors-concurrently)
+  - [What to do if the driver restarts again and again after "sFA" message?](#what-to-do-if-the-driver-restarts-again-and-again-after-sfa-message)
+  - [What to do if the driver restarts after a timeout error?](#what-to-do-if-the-driver-restarts-after-a-timeout-error)
+  - [Why are my changes in launch files are ignored?](#why-are-my-changes-in-launch-files-are-ignored)
+  - [How can I create a ROS 2 node in python to run sick\_generic\_caller from a launch.py file?](#how-can-i-create-a-ros-2-node-in-python-to-run-sick_generic_caller-from-a-launchpy-file)
+  - [What timestamp is provided in the point cloud and laserscan messages?](#what-timestamp-is-provided-in-the-point-cloud-and-laserscan-messages)
+  - [Why does sick\_scan\_xd publish laserscan messages for with multiple frame ids?](#why-does-sick_scan_xd-publish-laserscan-messages-for-with-multiple-frame-ids)
+  - [The compiler reports errors in file `/opt/ros/<distro>/include/sick_scan_xd`. What can I do?](#the-compiler-reports-errors-in-file-optrosdistroincludesick_scan_xd-what-can-i-do)
+  - [cmake cannot find diagnostic\_updater. What can I do?](#cmake-cannot-find-diagnostic_updater-what-can-i-do)
+  - [catkin reports "By not providing "FindSICKLDMRS.cmake" ..." . What can I do?](#catkin-reports-by-not-providing-findsickldmrscmake---what-can-i-do)
+  - [rviz only shows a grey point cloud. What can i do?](#rviz-only-shows-a-grey-point-cloud-what-can-i-do)
+  - [rviz shows a grey point cloud and the size of points can not be adjusted. What can I do?](#rviz-shows-a-grey-point-cloud-and-the-size-of-points-can-not-be-adjusted-what-can-i-do)
+  - [rviz2 on Ubuntu 24 with ROS 2 jazzy crashes immediately after start. How to fix this?](#rviz2-on-ubuntu-24-with-ros-2-jazzy-crashes-immediately-after-start-how-to-fix-this)
+  - [The angular resolution or the scanning frequency is lower than expected. Any ideas?](#the-angular-resolution-or-the-scanning-frequency-is-lower-than-expected-any-ideas)
+  - [Independent of the configuration, the LMS1000 point cloud always displays 0.75 \[deg\] angular resolution?](#independent-of-the-configuration-the-lms1000-point-cloud-always-displays-075-deg-angular-resolution)
+  - [My device does not use the default IP address. What shall I do?](#my-device-does-not-use-the-default-ip-address-what-shall-i-do)
+  - [During start the error "no answer received after 5000 ms" appears. What can I do?](#during-start-the-error-no-answer-received-after-5000-ms-appears-what-can-i-do)
+  - [How to process data with my own methods?](#how-to-process-data-with-my-own-methods)
+  - [Occasionally, no scan data appear, but the lidar is still reachable (ping). What can I do?](#occasionally-no-scan-data-appear-but-the-lidar-is-still-reachable-ping-what-can-i-do)
+  - [On Windows with ROS, cmake complains "python\_d.exe not found" when running rosidl generator. How to fix this?](#on-windows-with-ros-cmake-complains-python_dexe-not-found-when-running-rosidl-generator-how-to-fix-this)
+  - [How can I debug sick\_generic\_caller on ROS 1?](#how-can-i-debug-sick_generic_caller-on-ros-1)
+  - [I see curved lines on a straight wall. Why?](#i-see-curved-lines-on-a-straight-wall-why)
+  - [How should I interpret the scan rate and lidar resolution from the manual?](#how-should-i-interpret-the-scan-rate-and-lidar-resolution-from-the-manual)
+  - [In Windows debug version the compiler does not stop at breakpoints. What to do?](#in-windows-debug-version-the-compiler-does-not-stop-at-breakpoints-what-to-do)
+  - [sick\_scan\_xd seems to drop packages, when sending msgpacks. What to do?](#sick_scan_xd-seems-to-drop-packages-when-sending-msgpacks-what-to-do)
+  - [How can I convert a pcapng-file with scan data to a msgpack- or json-file?](#how-can-i-convert-a-pcapng-file-with-scan-data-to-a-msgpack--or-json-file)
+  - [Windows ROS2: AMENT\_PREFIX\_PATH problem](#windows-ros2-ament_prefix_path-problem)
+  - [Windows ROS2: Missing diagnostic\_updater](#windows-ros2-missing-diagnostic_updater)
+  - [Windows ROS2: Finddiagnostic\_updater.cmake not found](#windows-ros2-finddiagnostic_updatercmake-not-found)
+  - [Windows ROS2: CMAKE\_PREFIX\_PATH incomplete](#windows-ros2-cmake_prefix_path-incomplete)
+  - [Windows ROS2: Mixed ROS 2 installations](#windows-ros2-mixed-ros-2-installations)
+  - [Windows ROS2: Header not found](#windows-ros2-header-not-found)
+  - [Windows ROS2: colcon or ros2 command not found](#windows-ros2-colcon-or-ros2-command-not-found)
+  - [Windows ROS2: Clean build issues](#windows-ros2-clean-build-issues)
+  - [Windows ROS2: Software PLL shows a lot of error messages](#windows-ros2-software-pll-shows-a-lot-of-error-messages)
+  - [Windows ROS2: Pixi Cache](#windows-ros2-pixi-cache)
+  - [Windows ROS2: ConnectionResetError: \[WinError 10054\]](#windows-ros2-connectionreseterror-winerror-10054)
+- [Troubleshooting and technical support](#troubleshooting-and-technical-support)
+- [Creators and contribution](#creators-and-contribution)
+- [License](#license)
+- [Keywords](#keywords)
 
 </details>
 
@@ -183,33 +127,26 @@ git clone https://github.com/SICKAG/sick_scan_xd.git
 
 ## Supported SICK devices
 
-The driver supports Ethernet-IPv4-based communication with all of the following SICK products.
+| Product                      | Type     | ROS 2 Linux | ROS 2 Windows |                    C++ (non-ROS) Linux                     |                   C++ (non-ROS) Windows                    |
+|------------------------------|----------|:-----------:|:-------------:|:----------------------------------------------------------:|:----------------------------------------------------------:|
+| **picoScan100** <sup>1</sup> | 2D LiDAR |      ✅      |       ✅       | [sick_perception_sdk](https://github.com/SICKAG/sick_perception_sdk)<sup>2)</sup><br>recommended | [sick_perception_sdk](https://github.com/SICKAG/sick_perception_sdk)<sup>2)</sup><br>recommended |
+| **LRS4000**                  | 2D LiDAR |      ✅      |       ✅       | [sick_perception_sdk](https://github.com/SICKAG/sick_perception_sdk)<sup>2)</sup><br>recommended | [sick_perception_sdk](https://github.com/SICKAG/sick_perception_sdk)<sup>2)</sup><br>recommended |
+| **LMS5xx**                   | 2D LiDAR |      ✅      |       ✅       |                             ✅                              |                             ✅                              |
+| **LMS1000**                  | 2D LiDAR |      ✅      |       ✅       |                             ✅                              |                             ✅                              |
+| **LMS4000**                  | 2D LiDAR |      ✅      |       ✅       |                             ✅                              |                             ✅                              |
+| **multiScan100**             | 3D LiDAR |      ✅      |       ✅       | [sick_perception_sdk](https://github.com/SICKAG/sick_perception_sdk)<sup>2)</sup><br>recommended | [sick_perception_sdk](https://github.com/SICKAG/sick_perception_sdk)<sup>2)</sup><br>recommended |
+| **MRS1000**                  | 3D LiDAR |      ✅      |       ✅       |                             ✅                              |                             ✅                              |
+| **RMS1000**                  | RADAR    |      ✅      |       ✅       |                             ✅                              |                             ✅                              |
+| **RMS2000**                  | RADAR    |      ✅      |       ✅       |                             ✅                              |                             ✅                              |
 
-| 2D LiDAR sensors | Part no. | 3D LiDAR sensors | Part no.| RADAR sensors   | Part no.|
-| ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------ | -------------------------------------------------------------- | ------- | -------------------------------------------------------------- |
-| picoScan100 [(supports native ROS 2 as well)](https://support.sick.com/sick-knowledgebase/article/?code=KA-09438) | [e.g. 1134610](https://www.sick.com/de/en/search?text=1134610) | multiScan100 | [e.g. 1131164](https://www.sick.com/de/en/search?text=1131164) | RMS1000 | [e.g. 1107598](https://www.sick.com/de/en/search?text=1107598) |
-| LRS4000                                                                                                     | [e.g. 1098855](https://www.sick.com/de/en/search?text=1098855) | MRS1000      | [e.g. 1081208](https://www.sick.com/de/en/search?text=1081208) | RMS2000 | [e.g. 1129088](https://www.sick.com/de/en/search?text=1129088) |
-| TiM2xx                                                                                                      | [1104981](https://www.sick.com/de/en/search?text=1104981)      | MRS6124      | [6065086](https://www.sick.com/de/en/search?text=6065086)      |         |                                                                |
-| TiM5xx                                                                                                      | [e.g. 1060445](https://www.sick.com/de/en/search?text=1060445) | LD-MRS       | [e.g. 1115128](https://www.sick.com/de/de/p/p662073)           |         |                                                                |
-| TiM7xxS                                                                                                     | [e.g. 1105052](https://www.sick.com/de/en/search?text=1105052) |              |                                                                |         |                                                                |
-| TiM7xx                                                                                                      | [e.g 1096807](https://www.sick.com/de/en/search?text=1096807)  |              |                                                                |         |                                                                |
-| LMS5xx                                                                                                      | [e.g. 1046135](https://www.sick.com/de/en/search?text=1046135) |              |                                                                |         |                                                                |
-| LMS1000                                                                                                     | [1092445](https://www.sick.com/de/en/search?text=1092445)      |              |                                                                |         |                                                                |
-| LMS1xx                                                                                                      | [e.g. 1041114](https://www.sick.com/de/en/search?text=1041114) |              |                                                                |         |                                                                |
-| LMS4000                                                                                                     | [e.g. 1091423](https://www.sick.com/de/en/search?text=1091423) |              |                                                                |         |                                                                |
-| LD-LRS                                                                                                      | [e.g. 1060831](https://www.sick.com/de/en/search?text=1060831) |              |                                                                |         |                                                                |
-| LD-OEM                                                                                                      | [e.g. 1060828](https://www.sick.com/de/en/search?text=1060828) |              |                                                                |         |                                                                |
-| NAV3xx                                                                                                      | [e.g. 1060834](https://www.sick.com/de/en/search?text=1060834) |              |                                                                |         |                                                                |
-| NAV2xx                                                                                                      | [e.g. 1074308](https://www.sick.com/de/en/search?text=1074308) |              |                                                                |         |                                                                |
-
-> **_NOTE:_**
->
-> * It is recommended to run multiple devices simultaneously in a ROS environment. The C++ driver (non-ROS) does not support single or multi-threaded use of two or more devices in one process.
-> * ROS services require installation of ROS 1 or ROS 2.
-> * ROS services are  not available for LD-MRS.
-> * LD-MRS is not supported on Windows.
-> * Publishing point cloud data requires ROS 1 or ROS 2. On native Linux and native Windows, point cloud data are exported via API.
-> * The driver is not tested on macOS.
+> [!NOTE]
+> - <sup>1</sup> Supports native ROS 2 as well, see [SICK Knowledge Base](https://support.sick.com/sick-knowledgebase/article/?code=KA-09438).
+> - <sup>2)</sup> A modern C++17 SDK for developing applications with various SICK LiDAR sensors and access to sensor configuration, scan data, and integration examples. See [sick_perception_sdk](https://github.com/SICKAG/sick_perception_sdk).
+> - ROS 1 is not maintained after V3.7
+> - TiM2xx, TiM5xx, TiM7xx, TiM7xxS, LMS1xx, LD-LRS, LD-OEM, LD-MRS, NAV2xx, NAV3xx, MRS6124 are not maintained after V3.9. For these products, maintenance and support from SICK have been stopped.
+> - The driver is not tested on macOS.
+> - It is recommended to use a ROS2 environment when using multiple devices simultaneously.
+> - Publishing point cloud data requires ROS 2. On native Linux and native Windows, point cloud data are exported via API.
 
 ## Getting started
 
@@ -218,7 +155,6 @@ Run the following steps for a quick start:
 1. Create a workspace (e.g. folder `sick_scan_ws`), clone the sick_scan_xd repository and build sick_generic_caller and shared library:
 
    * For **Linux without ROS**: Follow the [build instructions for Linux generic without ROS](#without-ros-on-linux)
-   * For **Linux with ROS 1**: Follow the [build instructions for Linux ROS 1](#ros-1-on-linux)
    * For **Linux with ROS 2**: Follow the [build instructions for Linux ROS 2](#ros-2-on-linux)
    * For **Windows without ROS**: Follow the [build instructions for Windows without ROS](#without-ros-on-windows)
    * For **Windows with ROS 2**: Follow the [build instructions for Windows with ROS 2](#ros-2-on-windows)
@@ -227,44 +163,36 @@ Run the following steps for a quick start:
 
 3. Run the sick_scan_xd driver:
 
-   For **Linux without ROS**: Use the sick_scan_xd API and run `sick_scan_xd_api_test <launchfile> hostname:=<lidar-ip-address>`, e.g.:
+   For **Linux without ROS**: Use the sick_scan_xd API and run `sick_scan_xd_api_test <launchfile> hostname:=<sensor-ip-address> udp_receiver_ip:=<host-ip-address>`, e.g.:
 
       ```sh
       cd ./sick_scan_ws
       export LD_LIBRARY_PATH=.:`pwd`/build:$LD_LIBRARY_PATH  # append absolute path to the build folder
-      ./build/sick_scan_xd_api_test ./sick_scan_xd/launch/sick_tim_7xx.launch hostname:=192.168.0.1
+      ./build/sick_scan_xd_api_test ./sick_scan_xd/launch/sick_picoscan.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100
       ```
 
-   For **Linux with ROS 1**: Launch sick_scan_xd: `roslaunch sick_scan_xd <launchfile> hostname:=<lidar-ip-address>`, e.g.:
-
-      ```sh
-      cd ./sick_scan_ws
-      source ./devel_isolated/setup.bash
-      roslaunch sick_scan_xd sick_tim_7xx.launch hostname:=192.168.0.1
-      ```
-
-   For **Linux with ROS 2**: Run `ros2 launch sick_scan_xd <launchfile> hostname:=<lidar-ip-address>`, e.g.:
+   For **Linux with ROS 2**: Run `ros2 launch sick_scan_xd <launchfile> hostname:=<sensor-ip-address> udp_receiver_ip:=<host-ip-address>`, e.g.:
 
       ```sh
       cd ./sick_scan_ws
       source ./install/setup.bash
-      ros2 launch sick_scan_xd sick_tim_7xx.launch.py hostname:=192.168.0.1
+      ros2 launch sick_scan_xd sick_picoscan.launch.py hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100
       ```
 
-   For **Windows without ROS**: Use the sick_scan_xd API and run `sick_scan_xd_api_test <launchfile> hostname:=<lidar-ip-address>`, e.g.:
+   For **Windows without ROS**: Use the sick_scan_xd API and run `sick_scan_xd_api_test <launchfile> hostname:=<sensor-ip-address> udp_receiver_ip:=<host-ip-address>`, e.g.:
 
       ```sh
       cd .\sick_scan_ws\sick_scan_xd
       set PATH=.;.\build;..\build\Debug;%PATH%
-      .\build\Debug\sick_scan_xd_api_test.exe launch/sick_tim_7xx.launch hostname:=192.168.0.1
+      .\build\Debug\sick_scan_xd_api_test.exe launch/sick_picoscan.launch hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100
       ```
 
-   For **Windows with ROS 2**: Run `ros2 launch sick_scan_xd <launchfile> hostname:=<lidar-ip-address>`, e.g.:
+   For **Windows with ROS 2**: Run `ros2 launch sick_scan_xd <launchfile> hostname:=<sensor-ip-address> udp_receiver_ip:=<host-ip-address>`, e.g.:
 
       ```sh
       cd .\sick_scan_ws
       call .\install\setup.bat
-      ros2 launch sick_scan_xd sick_tim_7xx.launch.py hostname:=192.168.0.1
+      ros2 launch sick_scan_xd sick_picoscan.launch.py hostname:=192.168.0.1 udp_receiver_ip:=192.168.0.100
       ```
 
 ### Starting with a new SICK device
