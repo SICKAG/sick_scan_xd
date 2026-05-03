@@ -42,6 +42,7 @@
   <exec_depend condition="$ROS_VERSION == 1">rviz</exec_depend>
   <exec_depend condition="$ROS_VERSION == 1">xacro</exec_depend>
   <exec_depend condition="$ROS_VERSION != 1">rosidl_default_runtime</exec_depend>
+  <test_depend condition="$ROS_VERSION != 1">ament_cmake_gtest</test_depend>
   <test_depend condition="$ROS_VERSION != 1">ament_lint_auto</test_depend>
   <test_depend condition="$ROS_VERSION != 1">ament_lint_common</test_depend>
 
