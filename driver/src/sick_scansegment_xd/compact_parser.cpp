@@ -494,10 +494,9 @@ int sick_scansegment_xd::CompactDataParser::GetLayerIDfromElevation(float layer_
     {
       int layerId = 0;
 
-      // Map is ordered by descending elevation
-      for (auto& [elevationMdeg, mappedLayerId] : elevationLayerIdMap)
+      for (auto it = elevationLayerIdMap.begin(); it != elevationLayerIdMap.end(); ++it)
       {
-        mappedLayerId = layerId++;  // highest elevation -> layerId 0
+        it->second = layerId++;  // highest elevation -> layerId 0
       }
     }
     if (elevationLayerIdMap.size() == 16)
@@ -511,16 +510,20 @@ int sick_scansegment_xd::CompactDataParser::GetLayerIDfromElevation(float layer_
         ROS_INFO_STREAM("---------+------------------+--------");
 
         int idx = 0; 
-        for (const auto& [elevation_mdeg, layerid] : elevationLayerIdMap)
+        for (const auto& entry : elevationLayerIdMap)
         {
+          const auto elevation_mdeg = entry.first;
+          const auto layerid = entry.second;
+
           std::ostringstream oss;
           idx++;
+
           oss << std::setw(8) << idx << " | "
-            << std::setw(16) << elevation_mdeg << " | "
-            << std::setw(6) << layerid;
+            << std::setw(16) << static_cast<int>(elevation_mdeg) << " | "
+            << std::setw(6) << static_cast<int>(layerid);
+
           ROS_INFO_STREAM(oss.str());
         }
-
         ROS_INFO_STREAM("===============================================");
 
       } 
