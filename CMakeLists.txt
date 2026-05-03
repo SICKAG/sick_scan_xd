@@ -1000,6 +1000,35 @@ if(ROS_VERSION EQUAL 2)
     ament_package()        
 endif()
 
+
+#
+# ros2 buildfarm test for colcon test 
+#
+if(ROS_VERSION EQUAL 2 AND BUILD_TESTING)
+    find_package(ament_cmake_gtest REQUIRED)
+
+    # Minimal test (always enabled)
+    ament_add_gtest(sick_scan_minimal_gtest
+        test/src/sick_scan_minimal_gtest.cpp
+    )
+
+    if(TARGET sick_scan_minimal_gtest)
+        target_compile_features(sick_scan_minimal_gtest PUBLIC cxx_std_14)
+    endif()
+
+    # Start test (Linux only, required for buildfarm stability)
+    if(NOT WIN32)
+        ament_add_gtest(sick_scan_start_test
+            test/src/sick_scan_start_test.cpp
+        )
+
+        if(TARGET sick_scan_start_test)
+            target_compile_features(sick_scan_start_test PUBLIC cxx_std_14)
+        endif()
+    endif()
+
+endif()
+
 #
 # build and install emulator
 #

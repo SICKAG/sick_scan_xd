@@ -5066,7 +5066,16 @@ colcon build --event-handlers console_direct+
 ```bat
         <param name="tick_to_timestamp_mode" type="int" value="2"/>
 ```
+---
+### Windows ROS2: Build fails with "C1060: compiler is out of heap space"
+**Message:** Build of sick_scan_xd fails on Windows with errors like "fatal error C1060: compiler is out of heap space". <br>
+**Cause:** The MSVC compiler runs out of memory due to large translation units and parallel compilation. <br>
+**Fix:** Reduce build parallelism to limit memory usage:
 
+```bat
+set CMAKE_BUILD_PARALLEL_LEVEL=1
+colcon build --executor sequential
+```
 ---
 ### Windows ROS2: Pixi Cache
 **Cause:** The default ROS environment was modified. These changes persist even if you reinstall your environment.  
