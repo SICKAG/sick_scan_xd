@@ -1,6 +1,16 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Unreleased (2026-02-17)
+-----------------------
+* Release v3.9.0
+  * add: Optional ROS 2 Lifecycle Node support (Managed Nodes)
+  * add: Documentation for Lifecycle states and usage (doc/ROS2_LIFECYCLE.rst)
+  * update: Relocated m_run_scansegment_thread to public for external signaling
+  * fix: Resolved shutdown deadlock in scansegment_xd (picoScan/multiScan) via asynchronous signaling
+  * fix: Added preprocessor guards for ROS 1 compatibility in lifecycle headers
+  * Updated readme.md for lifecycle node support - linked to the .rst in doc
+* Contributors: Boopesh
 
 3.9.0-alpha1 (2026-01-14)
 -------------------------

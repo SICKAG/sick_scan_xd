@@ -68,6 +68,23 @@
 sick_scan_xd::SickScanServices* s_sopas_service = 0;
 sick_scan_xd::SickScanServices* sick_scansegment_xd::sopasService() { return s_sopas_service; }
 
+// Global pointer to msgpack threads for lifecycle control
+static sick_scansegment_xd::MsgPackThreads* s_msgpack_threads = 0;
+
+/*
+ * @brief Stops msgpack threads from external code (e.g., lifecycle node cleanup).
+ * This function can be called to stop the msgpack threads without waiting for them to finish naturally.
+ */
+void sick_scansegment_xd::stopMsgPackThreads()
+{
+    if (s_msgpack_threads)
+    {
+        ROS_INFO_STREAM("sick_scansegment_xd: signaling msgpack threads to stop...");
+        // Just set the flag - don't call stop() or join() as that's handled by the run() function
+        s_msgpack_threads->m_run_scansegment_thread = false;
+    }
+}
+
 /*
  * @brief Initializes and runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
  */
@@ -118,9 +135,11 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     // Run sick_scansegment_xd (msgpack receive, convert and publish)
     ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") started.");
     sick_scansegment_xd::MsgPackThreads msgpack_threads;
+    s_msgpack_threads = &msgpack_threads; // Store global pointer for lifecycle control
     if(!msgpack_threads.start(config))
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::start() failed");
+        s_msgpack_threads = 0; // Clear global pointer
         return sick_scan_xd::ExitError;
     }
     // std::cout << "sick_scansegment_xd::run(" << __LINE__ << "): sick_scansegment_xd thread started" << std::endl;
@@ -134,6 +153,7 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::stop() failed");
     }
+    s_msgpack_threads = 0; // Clear global pointer
     std::cout << "sick_scansegment_xd (" << config.scanner_type << ") finished." << std::endl;
     return sick_scan_xd::ExitSuccess;
 }

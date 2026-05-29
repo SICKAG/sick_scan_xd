@@ -71,6 +71,12 @@ namespace sick_scansegment_xd
     int run(rosNodePtr node, const std::string& scannerName);
 
     /*
+     * @brief Stops msgpack threads from external code (e.g., lifecycle node cleanup).
+     * This function can be called to stop the msgpack threads without waiting for them to finish naturally.
+     */
+    void stopMsgPackThreads();
+
+    /*
 	  * @brief class MsgPackThreads runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
 	  */
     class MsgPackThreads
@@ -102,6 +108,11 @@ namespace sick_scansegment_xd
 	     */
         void join(void);
 
+        /*
+         * @brief Flag to control thread execution - made public for lifecycle control
+         */
+        bool m_run_scansegment_thread;
+
     protected:
 
         /*
@@ -111,7 +122,6 @@ namespace sick_scansegment_xd
 
        sick_scansegment_xd::Config m_config;                      // sick_scansegment_xd configuration
        std::thread* m_scansegment_thread;                         // background thread to convert msgpack to ScanSegmentParserOutput data
-       bool m_run_scansegment_thread;                             // flag to start and stop the udp converter thread
     };
 
     sick_scan_xd::SickScanServices* sopasService();

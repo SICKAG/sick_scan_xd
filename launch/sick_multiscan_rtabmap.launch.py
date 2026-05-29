@@ -10,6 +10,15 @@ from launch.actions import DeclareLaunchArgument
 def generate_launch_description():
 
     ld = LaunchDescription()
+
+    # Declare the optional lifecycle flag
+    lifecycle_arg = DeclareLaunchArgument(
+        'lifecycle_managed_node',
+        default_value='false',
+        description='Enable ROS 2 Lifecycle management (false: standard autostart mode, true: managed lifecycle mode)'
+    )
+    ld.add_action(lifecycle_arg)
+
     sick_scan_pkg_prefix = get_package_share_directory('sick_scan_xd')
     sick_launch_file_path = os.path.join(sick_scan_pkg_prefix, 'launch/sick_multiscan_rtabmap.launch')
     sick_node_arguments=[sick_launch_file_path]
