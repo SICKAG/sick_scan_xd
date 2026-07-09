@@ -323,10 +323,12 @@ if(ROS_VERSION EQUAL 2)
     find_package(rclcpp REQUIRED)
     
     set(diagnostic_updater_pkg diagnostic_updater)
-    add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+    find_package(diagnostic_updater QUIET)
+    find_package(diagnostic_msgs QUIET)
+    if (${diagnostic_updater_FOUND} AND ${diagnostic_msgs_FOUND})    
+        add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+    endif()
 
-    find_package(diagnostic_updater REQUIRED)
-    find_package(diagnostic_msgs REQUIRED)
     find_package(geometry_msgs REQUIRED)
     find_package(nav_msgs REQUIRED)
     find_package(rclcpp REQUIRED)
@@ -337,6 +339,10 @@ if(ROS_VERSION EQUAL 2)
     find_package(tf2_ros REQUIRED)
     find_package(visualization_msgs REQUIRED)
     if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
+        set(diagnostic_updater_pkg diagnostic_updater)
+        add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+        find_package(diagnostic_updater REQUIRED)
+        find_package(diagnostic_msgs REQUIRED)
         set(ROSIDL_EMULATOR_FILES
             # emulator messages
             "test/emulator/msg/SickLocColaTelegramMsg.msg"
