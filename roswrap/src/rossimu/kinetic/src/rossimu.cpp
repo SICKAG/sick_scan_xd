@@ -489,12 +489,14 @@ int rossimu_settings(ros::NodeHandle& nhPriv)
 	return(0);
 }
 
+#ifdef _MSC_VER
+
 int fork()
 {
 	return(0);
 }
 
-#ifdef _MSC_VER
+
 void sleep(int secs)
 {
 	Sleep(secs * 1000);
