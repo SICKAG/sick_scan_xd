@@ -341,6 +341,23 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             }
         }
 
+        if (!sopas_tcp->getListenOnlyMode())
+        {
+            // picoScan150 only: optionally configure compact telegram serialization content
+            // m_config.scanner_type == SICK_SCANNER_PICOSCAN_NAME
+            if ( m_config.host_set_SerializationFilter)
+            {
+                sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
+
+                if (!sopas_service->writePicoScanSerializationFilter(
+                    m_config.host_SerializationFilter))
+                {
+                   ROS_ERROR_STREAM("Failed to apply picoScan150 SerializationFilter");
+                }
+            }
+        }
+
+
         // Initialize msgpack validation
         // sick_scansegment_xd::MsgPackValidator msgpack_validator; // default validator expecting full range (all echos, -PI <= azimuth <= PI, -PI/2 <= elevation <= PI/2, all segments)
         sick_scansegment_xd::MsgPackValidator msgpack_validator = sick_scansegment_xd::MsgPackValidator(m_config.msgpack_validator_filter_settings.msgpack_validator_required_echos,

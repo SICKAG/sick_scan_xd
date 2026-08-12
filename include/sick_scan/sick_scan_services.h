@@ -2,8 +2,8 @@
 /*
  * @brief Implementation of ROS services for sick_scan
  *
- * Copyright (C) 2021, Ing.-Buero Dr. Michael Lehning, Hildesheim
- * Copyright (C) 2021, SICK AG, Waldkirch
+ * Copyright (C) 2026, Ing.-Buero Dr. Michael Lehning, Hildesheim
+ * Copyright (C) 2026, SICK AG, Waldkirch
  * All rights reserved.
  *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -203,6 +203,37 @@ namespace sick_scan_xd
     * @param[in] host_LFPintervalFilter Optionally set LFPintervalFilter to "<enabled> <N>" with 1 for enabled and 0 for disabled and N to reduce output to every N-th scan
     */
     bool writeMultiScanFiltersettings(int host_FREchoFilter, const std::string& host_LFPangleRangeFilter, const std::string& host_LFPlayerFilter, const std::string& host_LFPintervalFilter, const std::string& scanner_type);
+
+
+    /*!
+    * Sends the picoScan150 SOPAS command
+    * "sWN compactTelegramType1Content <RSSI> <Properties>"
+    * to configure compact telegram serialization content.
+    *
+    * Format:
+    *   "<Serialization RSSI> <Serialization Properties>"
+    *
+    * Both entries are boolean switches:
+    *   0 = disabled
+    *   1 = enabled
+    *
+    * Examples:
+    *   "1 1" -> enable RSSI and Properties
+    *   "1 0" -> enable RSSI only
+    *   "0 0" -> disable both
+    *
+    * These settings correspond to the SOPAS Web UI:
+    *   Application -> Data output -> Measurement data output
+    *   - Serialization RSSI
+    *   - Serialization Properties
+    *
+    * @param[in] serialization_filter
+    *   Serialization filter setting in format:
+    *     "<Serialization RSSI> <Serialization Properties>"
+    *
+    * @return true on success, otherwise false.
+    */
+    bool writePicoScanSerializationFilter(const std::string& serialization_filter);
 
 #endif // defined SCANSEGMENT_XD_SUPPORT && SCANSEGMENT_XD_SUPPORT > 0
 

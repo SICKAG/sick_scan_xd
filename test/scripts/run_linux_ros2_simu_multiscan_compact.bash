@@ -3,25 +3,43 @@
 # killall and cleanup after exit
 function killall_cleanup()
 {
-  sleep 3 ; killall sick_generic_caller
-  sleep 3 ; killall rviz2
-  sleep 3 ; pkill -f multiscan_sopas_test_server.py
-  sleep 3 ; pkill -f multiscan_pcap_player.py
-  sleep 3 ; killall -9 rviz2
-  sleep 3 ; killall -9 sick_generic_caller
+  sleep 3 ; killall sick_generic_caller 2>/dev/null
+  sleep 3 ; killall rviz2 2>/dev/null
+  sleep 3 ; pkill -f multiscan_sopas_test_server.py 2>/dev/null
+  sleep 3 ; pkill -f multiscan_pcap_player.py 2>/dev/null
+  sleep 3 ; killall -9 rviz2 2>/dev/null
+  sleep 3 ; killall -9 sick_generic_caller 2>/dev/null
 }
-
 # 
 # Run sick_scansegment_xd on ROS2-Linux
 # 
 
 pushd ../../../..
 printf "\033c"
-if   [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; export QT_QPA_PLATFORM=xcb
-elif [ -f /opt/ros/humble/setup.bash   ] ; then source /opt/ros/humble/setup.bash
-elif [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash
-elif [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash
+# Prefer ROSDISTRO if already defined
+if [ -n "$ROSDISTRO" ] && [ -f "/opt/ros/$ROSDISTRO/setup.bash" ]; then
+    source "/opt/ros/$ROSDISTRO/setup.bash"
+else
+    # Fallback: probe known distros
+    for distro in jazzy humble foxy eloquent; do
+        if [ -f "/opt/ros/$distro/setup.bash" ]; then
+            source "/opt/ros/$distro/setup.bash"
+            break
+        fi
+    done
 fi
+
+if [ -z "$ROSDISTRO" ]; then
+    echo "ERROR: No supported ROS distribution found"
+    exit 1
+fi
+
+# Optional: only for jazzy (Qt fix)
+if [ "$ROSDISTRO" = "jazzy" ]; then
+    export QT_QPA_PLATFORM=xcb
+fi
+echo -e "Running ./install/setup.bash"
+echo -e "ROS distro: $ROSDISTRO"
 source ./install/setup.bash
 killall_cleanup
 sleep 1
@@ -38,6 +56,7 @@ sleep 1
 
 # Start sick_generic_caller with sick_scansegment_xd
 echo -e "run_lidar3d.bash: sick_scan_xd sick_multiscan.launch.py ..."
+echo -e "Start sick_scan_xd sick_multiscan.launch.py"
 # ros2 run --prefix 'gdb -ex run --args' sick_scan_xd sick_generic_caller ./src/sick_scan_xd/launch/sick_multiscan.launch hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=2
 ros2 launch sick_scan_xd sick_multiscan.launch.py hostname:=127.0.0.1 udp_receiver_ip:="127.0.0.1" scandataformat:=2 &
 sleep 3 

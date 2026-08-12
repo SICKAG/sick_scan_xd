@@ -330,6 +330,8 @@ namespace sick_scan_xd
 
     int convertAscii2BinaryCmd(const char *requestAscii, std::vector<unsigned char> *requestBinary);
 
+    bool setPicoScanSerializationFilter(); // control via host_SerializationFilter <Serialization RSSI> <Serialization Properties>. You could enable/disable RSSI output for compact data
+
     void setLengthAndCRCinBinarySopasRequest(std::vector<uint8_t>* requestBinary);
 
     int init_cmdTables(rosNodePtr nh);
