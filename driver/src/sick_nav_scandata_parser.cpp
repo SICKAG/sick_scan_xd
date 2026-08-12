@@ -229,8 +229,8 @@ namespace sick_scan_xd
         navdata_src.landmarkData.reflectors[reflector_cnt].cartesianData.x = 2 * reflector_cnt + 0;
         navdata_src.landmarkData.reflectors[reflector_cnt].cartesianData.y = 2 * reflector_cnt + 1;
         navdata_src.landmarkData.reflectors[reflector_cnt].polarDataValid = 1;
-        navdata_src.landmarkData.reflectors[reflector_cnt].polarData.dist = 1.1415 * 2 * reflector_cnt;
-        navdata_src.landmarkData.reflectors[reflector_cnt].polarData.phi = M_PI * reflector_cnt / navdata_src.landmarkData.numReflectors;
+        navdata_src.landmarkData.reflectors[reflector_cnt].polarData.dist = (uint32_t)(1.1415 * 2 * reflector_cnt);
+        navdata_src.landmarkData.reflectors[reflector_cnt].polarData.phi = (uint32_t)(M_PI * reflector_cnt / navdata_src.landmarkData.numReflectors);
         navdata_src.landmarkData.reflectors[reflector_cnt].optReflectorDataValid = 1;
         navdata_src.landmarkData.reflectors[reflector_cnt].optReflectorData.localID = 10 * reflector_cnt + 0;
         navdata_src.landmarkData.reflectors[reflector_cnt].optReflectorData.globalID = 10 * reflector_cnt + 1;
@@ -280,7 +280,7 @@ namespace sick_scan_xd
       // Serialize to NAV350 position data to binary buffer
       writeNAV350BinaryPositionData(navdata_src, data_buffer_src);
        // Parse serialized to NAV350 position data
-     if (!parseNAV350BinaryPositionData(data_buffer_src.data(), data_buffer_src.size(), navdata_dst))
+     if (!parseNAV350BinaryPositionData(data_buffer_src.data(), (int)data_buffer_src.size(), navdata_dst))
       {
         ROS_ERROR_STREAM("## ERROR parseNAV350BinaryUnittest(): parseNAV350BinaryPositionData failed");
         return false;
@@ -591,7 +591,7 @@ namespace sick_scan_xd
         ROS_ERROR_STREAM("## ERROR parseNAV350BinaryPositionData(): parsing error");
         return false;    
       }
-      navdata.angleOffset = nav_angle_offset;
+      navdata.angleOffset = (float)nav_angle_offset;
 
       // Convert NAV350PoseData to sick_scan_msg::NAVPoseData
       nav_pose_msg = sick_scan_msg::NAVPoseData();
@@ -877,7 +877,7 @@ namespace sick_scan_xd
 
           ros_visualization_msgs::Marker marker_text;
           marker_text.ns = "sick_scan";
-          marker_text.id = reflector_cnt + reflectors.size();
+          marker_text.id = (int32_t)(reflector_cnt + reflectors.size());
           marker_text.type = ros_visualization_msgs::Marker::TEXT_VIEW_FACING;
           marker_text.text = std::to_string(reflector_id);
           marker_text.scale.x = reflector_size;

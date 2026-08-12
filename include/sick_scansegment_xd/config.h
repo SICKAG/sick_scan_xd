@@ -178,6 +178,8 @@ namespace sick_scansegment_xd
         bool host_set_LFPlayerFilter;              // False // If true (Multiscan136 only, always false for picoscan), LFPlayerFilter is set at startup (default: false)
         std::string host_LFPintervalFilter;           // "0 0" (Multiscan136 only, not for picoscan) // OOptionally set LFPintervalFilter to "<enabled> <N>" with 1 for enabled and 0 for disabled and N to reduce output to every N-th scan
         bool host_set_LFPintervalFilter;              // False // If true (Multiscan136 only, always false for picoscan), LFPintervalFilter is set at startup (default: false)
+        std::string host_SerializationFilter = "";    // Filter setting to control the embedded of RSSI data into the compact data stream. "0 0" disable RSSI values and properties values 
+        bool host_set_SerializationFilter = false;    // controls the embedding of RSSI outputs in the compact data stream. If true (only picoScan), the compact RSSI filter setting is sent"
         // msgpack validation
         bool msgpack_validator_enabled; // true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation
         int msgpack_validator_verbose;  // 0: print error messages, 1: print error and informational messages, 2: print error and all messages
