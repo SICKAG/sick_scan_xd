@@ -403,6 +403,24 @@
             "tcp.analysis.push_bytes_sent": "23"
           },
           "Timestamps": {
+            "tcp.time_relative": "1.4320000000000000"
+          },
+          "tcp.comment": "This entry is manually patched. Derived from the error messages.",
+          "tcp.producer": "pcap_json_converter.py --pcap_filename=20221018_rms_1xxx_ascii_rawtarget_object.pcapng",
+          "tcp.description": ".sEN LIDoutputstate 1.",
+          "tcp.payload": "02:73:45:4e:20:4c:49:44:6f:75:74:70:75:74:73:74:61:74:65:20:31:03"
+        }
+      }
+    }
+  },
+  {
+    "_source": {
+      "layers": {
+        "tcp": {
+          "tcp.analysis": {
+            "tcp.analysis.push_bytes_sent": "23"
+          },
+          "Timestamps": {
             "tcp.time_relative": "1.4323148727416992"
           },
           "tcp.comment": "All entries created by pcap_json_converter, not by Wireshark.",
