@@ -46,6 +46,15 @@ Main features and characteristics:
 * [Running the driver](#running-the-driver)
   * [Starting device with specific IP address](#starting-device-with-specific-ip-address)
   * [Start multiple devices / nodes](#start-multiple-devices--nodes)
+  * [ROS 2 Lifecycle Node Support](#ros-2-lifecycle-node-support)
+    * [Overview](#overview)
+    * [Quick Start](#quick-start)
+    * [Understanding Lifecycle States](#understanding-lifecycle-states)
+    * [Enabling Lifecycle Mode](#enabling-lifecycle-mode)
+    * [State Transitions](#state-transitions)
+    * [Supported Devices](#supported-devices)
+    * [Command Reference](#command-reference)
+    * [Additional Resources](#additional-resources)
   * [Parameters](#parameters)
   * [ROS services](#ros-services)
   * [ROS 2 example for messages and services](#ros-2-example-for-messages-and-services)
@@ -200,7 +209,7 @@ nc: connect to 192.168.0.110 port 2112 (tcp) failed: Connection refused
 
 sick_scan_xd can be built on 64-bit Linux and Windows, with and without ROS. The following table shows the supported build configurations. sick_scan_xd supports 64-bit Linux and Windows; 32-bit systems are not supported.
 
-| **Target**      | **Cmake settings**           | **Build script**                                                         |
+| **Target**      | **CMake settings**           | **Build script**                                                         |
 | --------------- | ---------------------------- | ------------------------------------------------------------------------ |
 | Linux, native   | BUILD_WITH_LDMRS_SUPPORT OFF | `cd test/scripts && chmod a+x ./*.bash && ./makeall_linux_no_ldmrs.bash` |
 | Linux, ROS 2    | BUILD_WITH_LDMRS_SUPPORT OFF | `cd test/scripts && chmod a+x ./*.bash && ./makeall_ros2_no_ldmrs.bash`  |
@@ -214,7 +223,7 @@ If you are using ROS, set your ROS-environment before running one of these scrip
 
 ### ROS 2 on Linux
 
-To build resp. install sick_scan_xd on Linux with ROS 2, you can build sick_scan_xd from sources or install prebuilt binaries.
+To build or install sick_scan_xd on Linux with ROS 2, you can build sick_scan_xd from sources or install prebuilt binaries.
 
 #### ROS 2: Install prebuilt binaries
 
@@ -353,7 +362,6 @@ call "%ProgramFiles(x86)%\Microsoft Visual Studio\2019\Community\Common7\Tools\V
 ```bat
 mkdir C:\pixi_ws
 cd C:\pixi_ws
-pixi init
 ```
 
 ##### 3.2 Create Pixi project
@@ -531,7 +539,7 @@ copy C:\pixi_ws\.pixi\envs\default\python.exe C:\pixi_ws\.pixi\envs\default\pyth
 ##### 5.6 Build commands
 
 ```bat
-colcon build --packages-select diagnostic_updater sick_scan_xd ^
+colcon build --packages-select sick_scan_xd ^
   --cmake-args "-DROS_VERSION=2" ^
   --event-handlers console_direct+
 ```
@@ -539,7 +547,7 @@ colcon build --packages-select diagnostic_updater sick_scan_xd ^
 If successful, you will see:
 
 ```txt
-Summary: 2 packages finished successfully
+Summary: 1 package finished successfully
 ```
 
 ##### 5.7 Overlay and run
@@ -627,9 +635,10 @@ Support checklist:
 
 #### 9. Useful Resources and Hints
 
-* Full installation video for Kilted with official ROS2 sources: [https://www.youtube.com/watch?v=xSXrRQGWmbQ&t=11s](https://www.youtube.com/watch?v=xSXrRQGWmbQ&t=11s)
-* We recommend to use the robostack setup described above because it is clearly based on Conda.
-* See also in the FAQ section for the keyword "Windows ROS2".
+* For ROS 2 Jazzy on Windows, the RoboStack/Pixi setup described above is recommended.
+* For ROS 2 Kilted on Windows, use the official ROS 2 Windows binary ZIP together with Pixi for tooling.
+* For ROS 2 Lyrical on Windows, use the official ROS 2 Windows binary ZIP together with Pixi for tooling.
+* See also the FAQ section for the keyword "Windows ROS 2".
 
 ### Without ROS on Linux
 
@@ -960,6 +969,252 @@ For picoScan100 and multiScan100, parameter udp_receiver_ip must be set to the I
 
 > [!NOTE]
 > The sick_scan_xd API does not support running multiple lidars simultaneously in a single process. Currently the sick_scan_xd API does not support the single or multi-threaded use of 2 or more lidars in one process, since the sick_scan_xd library is not guaranteed to be thread-safe. To run multiple lidars simultaneously, we recommend using ROS or running sick_scan_xd in multiple and separate processes, so that each process serves one sensor.
+
+### ROS 2 Lifecycle Node Support
+
+#### Overview
+
+The sick_scan_xd driver provides optional ROS 2 Lifecycle Node support for advanced state management and controlled initialization/shutdown sequences. This feature is particularly useful for:
+
+* **System Integration**: Coordinate scanner startup with other lifecycle-managed nodes
+* **Fault Tolerance**: Implement graceful error recovery and state transitions
+* **Deterministic Behavior**: Control exactly when the scanner starts and stops publishing data
+
+Lifecycle support is **optional** and **opt-in**. The driver defaults to standard ROS 2 node behavior for backward compatibility.
+
+---
+
+#### Quick Start
+
+##### Standard Mode (Default)
+
+```bash
+# Standard autostart mode - scanner starts immediately
+ros2 launch sick_scan_xd sick_tim_7xx.launch.py
+```
+
+The scanner automatically initializes, connects, and starts publishing data.
+
+##### Lifecycle Mode
+
+```bash
+# Lifecycle mode - scanner waits for state transitions
+ros2 launch sick_scan_xd sick_tim_7xx.launch.py lifecycle_managed_node:=true
+```
+
+The scanner starts in the **Unconfigured** state and waits for lifecycle commands.
+
+##### Transition to Active State
+
+```bash
+# Configure the node (load parameters, establish connection)
+ros2 lifecycle set /sick_scan configure
+
+# Activate the node (start data acquisition and publishing)
+ros2 lifecycle set /sick_scan activate
+```
+
+
+#### Understanding Lifecycle States
+
+The ROS 2 Lifecycle Node follows a standardized state machine with four primary states.
+
+   For the official ROS 2 lifecycle state machine diagram and detailed explanation, see:
+   
+   * [ROS 2 Lifecycle Design Document](https://design.ros2.org/articles/node_lifecycle.html)
+   * [ROS 2 Lifecycle Demonstration](https://docs.ros.org/en/rolling/p/lifecycle/)
+
+##### State Diagram
+
+
+    ┌─────────────────┐
+    │  Unconfigured   │  ← Initial state, no resources allocated
+    └────────┬────────┘
+             │ configure
+             ▼
+    ┌─────────────────┐
+    │    Inactive     │  ← Parameters loaded, ready for activation
+    └────────┬────────┘
+             │ activate
+             ▼
+    ┌─────────────────┐
+    │     Active      │  ← Scanner running, data being published
+    └────────┬────────┘
+             │ deactivate
+             ▼
+    ┌─────────────────┐
+    │    Inactive     │  ← Publishing stopped, connection maintained
+    └────────┬────────┘
+             │ cleanup
+             ▼
+    ┌─────────────────┐
+    │  Unconfigured   │  ← Resources released, ready to reconfigure
+    └─────────────────┘
+
+    Additional transitions:
+    - shutdown: From any state → Finalized (emergency stop)
+    - error handling: Automatic transition to appropriate error state
+
+##### State Descriptions
+
+| State | Description | Resources | Publishing |
+|-------|-------------|-----------|------------|
+| **Unconfigured** | Initial state, no initialization | None | No |
+| **Inactive** | Configured but not active | Parameters loaded, ready for connection | No |
+| **Active** | Fully operational | All resources active | Yes |
+| **Finalized** | Shutdown complete | All released | No |
+---
+
+#### Enabling Lifecycle Mode
+
+##### Command Line Method (Recommended)
+
+The simplest way is to pass the argument when launching:
+
+```bash
+ros2 launch sick_scan_xd sick_tim_7xx.launch.py lifecycle_managed_node:=true
+```
+
+This works with **any existing launch file** without modification.
+
+Examples with Different Lidars
+
+```bash
+# TiM7xx
+ros2 launch sick_scan_xd sick_tim_7xx.launch.py lifecycle_managed_node:=true
+
+# LMS1xx
+ros2 launch sick_scan_xd sick_lms_1xx.launch.py lifecycle_managed_node:=true
+
+# multiScan100
+ros2 launch sick_scan_xd sick_multiscan.launch.py lifecycle_managed_node:=true
+
+# picoScan100
+ros2 launch sick_scan_xd sick_picoscan.launch.py lifecycle_managed_node:=true
+```
+
+
+#### State Transitions
+
+##### Configure (Unconfigured → Inactive)
+
+The **configure** transition prepares the driver for operation without starting communication with the scanner.
+
+**Actions performed**
+
+- Synchronize parameters from the lifecycle node to the internal driver
+- Validate the scanner configuration
+- Prepare the internal driver for hardware communication
+
+> **Note**
+>
+> The hardware connection (TCP/UDP) is **not** established during this step.
+> The connection is opened during the subsequent **activate** transition.
+
+**Command**
+
+```bash
+ros2 lifecycle set /sick_scan configure
+```
+---
+
+##### Activate (Inactive → Active)
+
+The **activate** transition starts normal scanner operation.
+
+**Actions performed**
+
+- Establish the hardware connection
+- Initialize the scanner
+- Start data acquisition
+- Enable all publishers
+
+**Command**
+
+```bash
+ros2 lifecycle set /sick_scan activate
+```
+
+**Verify**
+
+```bash
+ros2 topic echo /scan
+```
+---
+
+##### Deactivate (Active → Inactive)
+
+The **deactivate** transition stops data publication while keeping the scanner connection alive.
+
+**Actions performed**
+
+- Stop publishing sensor data
+- Keep the hardware connection established
+
+**Command**
+
+```bash
+ros2 lifecycle set /sick_scan deactivate
+```
+---
+
+##### Cleanup (Inactive → Unconfigured)
+
+The **cleanup** transition releases all allocated resources and returns the node to its initial state.
+
+**Actions performed**
+
+- Stop all scanner threads gracefully
+- Close the hardware connection (TCP/UDP)
+- Release all allocated resources
+- Return to the **Unconfigured** state
+
+> **Important**
+>
+> For **multiScan100** and **picoScan100**, this transition includes an enhanced shutdown sequence that prevents thread deadlocks during cleanup. Background threads (including the MsgPack exporter) are now signaled to terminate before they are joined, ensuring a reliable and deterministic shutdown.
+
+**Command**
+
+```bash
+ros2 lifecycle set /sick_scan cleanup
+```
+---
+
+#### Supported Devices
+
+Lifecycle mode works with **all** sick_scan_xd compatible devices:
+
+* **2D LiDAR**: TiM series, LMS series, NAV series
+* **3D LiDAR**: multiScan100, picoScan100, MRS series, LRS4000
+* **RADAR**: RMS series
+---
+
+#### Command Reference
+
+```bash
+
+# Check current state
+ros2 lifecycle get /sick_scan
+
+# List available transitions
+ros2 lifecycle list /sick_scan
+
+# Monitor state changes
+ros2 topic echo /sick_scan/transition_event
+
+# Full lifecycle sequence
+ros2 lifecycle set /sick_scan configure
+ros2 lifecycle set /sick_scan activate
+ros2 lifecycle set /sick_scan deactivate
+ros2 lifecycle set /sick_scan cleanup
+```
+---
+
+#### Additional Resources
+
+* [ROS 2 Lifecycle Design](https://design.ros2.org/articles/node_lifecycle.html)
+
+#####
 
 ### Parameters
 
@@ -3488,7 +3743,7 @@ Linux example:
 
 ```sh
 pushd sick_scan_xd/test/python
-python3 python multiscan_receiver.py &
+python3 multiscan_receiver.py &
 python3 multiscan_pcap_player.py --pcap_filename=../emulator/scandata/20210929_multiscan_token_udp.pcapng
 mv ./multiscan_dump_12472.msgpack     20210929_multiscan_token_udp.msgpack
 mv ./multiscan_dump_12472.msgpack.hex 20210929_multiscan_token_udp.msgpack.hex
@@ -3534,30 +3789,6 @@ set AMENT_PREFIX_PATH=
 set CMAKE_PREFIX_PATH=
 call C:\pixi_ws\ros2-windows\setup.bat
 ```
-
-#### Windows ROS2: Missing diagnostic_updater
-
-**Message:** `Could not find package configuration file provided by "diagnostic_updater"`  
-
-**Cause:** The `diagnostics` package (which provides `diagnostic_updater`) is not included in the default Kilted Windows build.  
-
-**Fix:**
-
-```bat
-cd src
-git clone -b ros2-kilted https://github.com/ros/diagnostics.git
-cd ..
-colcon build --packages-select diagnostic_updater sick_scan_xd --cmake-args "-DROS_VERSION=2 -DLDMRS=0 
-  --event-handlers console_direct+
-```
-
-#### Windows ROS2: Finddiagnostic_updater.cmake not found
-
-**Message:** `By not providing "Finddiagnostic_updater.cmake" in CMAKE_MODULE_PATH...`  
-
-**Cause:** `diagnostic_updater` is missing or not visible to CMake.  
-
-**Fix:** Add or rebuild the `diagnostics` repo (see above).
 
 #### Windows ROS2: CMAKE_PREFIX_PATH incomplete
 

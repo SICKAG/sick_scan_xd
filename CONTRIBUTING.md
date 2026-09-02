@@ -396,7 +396,7 @@ This confirms that the release version is registered.
 After the PR has been merged, the buildfarm starts compiling the binary packages.
 
 Open:
-https://build.ros.org/
+https://build.ros2.org/ 
 
 Search for jobs like:
 ```
@@ -670,7 +670,7 @@ Create a workspace folder (e.g. sick_scan_ws or any other name) and clone the si
 ```
 mkdir -p ./sick_scan_ws/src
 cd ./sick_scan_ws/src
-git clone -b develop https://github.com/SICKAG/sick_scan_xd.git```
+git clone -b develop https://github.com/SICKAG/sick_scan_xd.git
 ```
 
 Build and run all sick_scan_xd docker images and tests:
