@@ -168,6 +168,8 @@ namespace sick_scansegment_xd
         int user_level = 3;                         // Default User Level (for picoScan, multiScan: 4)
         std::string user_level_password = "F4724744";  // Default password for client authorization
         bool listen_only_mode = false;             // Flag to activate "listen only mode"
+        bool activate_lidoutputstate;                // Activate "LIDoutputstate" telegrams (safety I/O field monitoring) and publish sick_scan_msg::LIDoutputstateMsg on topic "lidoutputstate", default: false
+        bool disable_udp_scandata;                    // True: skip udp scan data reception entirely, i.e. no udp socket timeout/reconnect handling (e.g. lidar does not send scan data over udp), default: false
         // MSR100 filter settings
         bool host_read_filtersettings;             // True  // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true
         int host_FREchoFilter;                     // 1     // Optionally set FREchoFilter with 0 for FIRST_ECHO (EchoCount=1), 1 for ALL_ECHOS (EchoCount=3), or 2 for LAST_ECHO (EchoCount=1)

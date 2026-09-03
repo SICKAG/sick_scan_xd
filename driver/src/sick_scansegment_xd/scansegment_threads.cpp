@@ -62,6 +62,9 @@
 #include "sick_scansegment_xd/scansegment_parser_output.h"
 #include "sick_scansegment_xd/udp_receiver.h"
 #include "sick_scan/sick_scan_services.h"
+#include "sick_scan/sick_scan_messages.h"
+#include "sick_scan/sick_generic_callback.h"
+#include <atomic>
 
 #define DELETE_PTR(p) do{if(p){delete(p);(p)=0;}}while(false)
 
@@ -283,6 +286,15 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         sick_scan_xd::SickGenericParser parser = sick_scan_xd::SickGenericParser(scannerName);
         sick_scan_xd::ScannerBasicParam basic_param;
         basic_param.setScannerName(scannerName);
+        // Optional publisher for LIDoutputstate messages (safety I/O field monitoring output state)
+        rosPublisher<sick_scan_msg::LIDoutputstateMsg> lidoutputstate_publisher;
+        std::atomic<bool> run_lidoutputstate_thread(false);
+        std::thread lidoutputstate_thread;
+        if (m_config.activate_lidoutputstate)
+        {
+            lidoutputstate_publisher = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(m_config.node, "lidoutputstate", 100);
+            sick_scan_xd::setLIDoutputstateTopic("lidoutputstate");
+        }
         bool multiscan_write_filtersettings = m_config.host_set_FREchoFilter || m_config.host_set_LFPangleRangeFilter || m_config.host_set_LFPlayerFilter;
         if (m_config.start_sopas_service || m_config.send_sopas_start_stop_cmd || m_config.host_read_filtersettings || multiscan_write_filtersettings)
         {
@@ -372,6 +384,42 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             }
         }
 
+        // Activate LIDoutputstate telegrams (safety I/O field monitoring output state), if configured
+        if (m_config.activate_lidoutputstate && sopas_tcp && sopas_service && sopas_tcp->isConnected())
+        {
+            sick_scan_srv::LIDoutputstateSrv::Request lidoutputstate_request;
+            sick_scan_srv::LIDoutputstateSrv::Response lidoutputstate_response;
+            lidoutputstate_request.active = true;
+            if (!sopas_service->serviceCbLIDoutputstate(lidoutputstate_request, lidoutputstate_response) || !lidoutputstate_response.success)
+            {
+                ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: failed to activate LIDoutputstate telegrams.");
+            }
+            // Dedicated worker thread blocking on recvQueue instead of polling: wakes immediately when a LIDoutputstate telegram arrives
+            run_lidoutputstate_thread = true;
+            lidoutputstate_thread = std::thread([this, sopas_tcp, &lidoutputstate_publisher, &run_lidoutputstate_thread]()
+            {
+                static const std::vector<std::string> lidoutputstate_keywords = { "LIDoutputstate" };
+                while (run_lidoutputstate_thread && m_run_scansegment_thread && rosOk())
+                {
+                    if (sopas_tcp->recvQueue.waitForIncomingObject(200, lidoutputstate_keywords))
+                    {
+                        sick_scan_xd::DatagramWithTimeStamp lidoutputstate_datagram = sopas_tcp->recvQueue.pop(lidoutputstate_keywords);
+                        sick_scan_msg::LIDoutputstateMsg lidoutputstate_msg;
+                        if (sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(lidoutputstate_datagram.timeStamp, lidoutputstate_datagram.data().data(),
+                            (int)lidoutputstate_datagram.data().size(), m_config.sopas_cola_binary, m_config.publish_frame_id, lidoutputstate_msg))
+                        {
+                            sick_scan_xd::notifyLIDoutputstateListener(m_config.node, &lidoutputstate_msg);
+                            rosPublish(lidoutputstate_publisher, lidoutputstate_msg);
+                        }
+                        else
+                        {
+                            ROS_WARN_STREAM("## ERROR sick_scansegment_xd: parseLIDoutputstateMsg failed, " << lidoutputstate_datagram.data().size() << " byte telegram ignored");
+                        }
+                    }
+                }
+            });
+        }
+
         // Activate message parsing and publishing AFTER initialization completed
         msgpack_converter.SetActive(true);
         ros_msgpack_publisher->SetActive(true);
@@ -380,8 +428,9 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::OK, "");
         s_sopas_service = sopas_service;
         // Wait for first udp message with initial timeout after start in milliseconds, default: 60*1000
+        // Skipped entirely if disable_udp_scandata is set, i.e. the lidar is not expected to send scan data over udp
         fifo_timestamp fifo_timestamp_start = fifo_clock::now();
-        while(m_run_scansegment_thread && rosOk() && sopas_tcp->isConnected() 
+        while(!m_config.disable_udp_scandata && m_run_scansegment_thread && rosOk() && sopas_tcp->isConnected() 
             && udp_receiver->Fifo()->TotalMessagesPushed() <= 1 
             && udp_receiver->Fifo()->Seconds(fifo_timestamp_start, fifo_clock::now()) <= 1.0e-3 * m_config.udp_timeout_ms_initial)
         {
@@ -399,7 +448,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
                 break;
               }
             }
-            if (udp_receiver->Fifo()->TotalMessagesPushed() <= 1 || udp_receiver->Fifo()->SecondsSinceLastPush() > 1.0e-3 * m_config.udp_timeout_ms)
+            if (!m_config.disable_udp_scandata && (udp_receiver->Fifo()->TotalMessagesPushed() <= 1 || udp_receiver->Fifo()->SecondsSinceLastPush() > 1.0e-3 * m_config.udp_timeout_ms))
             {
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: " << (udp_receiver->Fifo()->TotalMessagesPushed()) << " udp messages received");
                 if (udp_receiver->Fifo()->TotalMessagesPushed() > 0)
@@ -419,6 +468,11 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
         s_sopas_service = 0;
+
+        // Stop the LIDoutputstate worker thread before tearing down the sopas tcp connection
+        run_lidoutputstate_thread = false;
+        if (lidoutputstate_thread.joinable())
+            lidoutputstate_thread.join();
 
         // Close msgpack receiver, converter and exporter
         setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS::EXIT, "sick_scan_xd exit");
@@ -440,6 +494,13 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             std::cout << "sick_scansegment_xd exit: sending stop commands..." << std::endl;
             sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
             sopas_service->sendMultiScanStopCmd(m_config.imu_enable);
+            if (m_config.activate_lidoutputstate)
+            {
+                sick_scan_srv::LIDoutputstateSrv::Request lidoutputstate_request;
+                sick_scan_srv::LIDoutputstateSrv::Response lidoutputstate_response;
+                lidoutputstate_request.active = false;
+                sopas_service->serviceCbLIDoutputstate(lidoutputstate_request, lidoutputstate_response);
+            }
             std::cout << "sick_scansegment_xd exit: stop commands sent." << std::endl;
         }
         // Stop SOPAS services
