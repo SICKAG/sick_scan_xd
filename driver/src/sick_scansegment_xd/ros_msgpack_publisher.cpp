@@ -811,34 +811,12 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 			if (sorted_points.empty())
 				continue;
 
-			// Restrict scan points to the configured global azimuth interval.
-			constexpr float eps = 1.0e-4f; // 0.00573 deg
+			// Do not filter or wrap segment points using m_all_segments_azimuth_min/max_deg here.
+			// These limits configure full-frame coverage and may be narrower than an
+			// individual scan segment. In particular, a segment crossing +pi can
+			// legitimately contain unwrapped azimuths > +pi (e.g. 193.66 deg).
 
-			const float azimuth_min_rad = static_cast<float>(this->m_all_segments_azimuth_min_deg * M_PI / 180.0);
-			const float azimuth_max_rad = static_cast<float>(this->m_all_segments_azimuth_max_deg * M_PI / 180.0);
-
-			LaserScanMsgPoints filtered_points;
-			filtered_points.reserve(sorted_points.size());
-
-			for (LaserScanMsgPoints::const_iterator iter_point = sorted_points.begin();
-				iter_point != sorted_points.end();
-				++iter_point)
-			{
-				const LaserScanMsgPoint& point = *iter_point;
-
-				if (point.azimuth + eps >= azimuth_min_rad &&
-					point.azimuth - eps <= azimuth_max_rad)
-				{
-					filtered_points.push_back(point);
-				}
-			}
-
-			sorted_points.swap(filtered_points);
-
-			if (sorted_points.empty())
-				continue;
-
-			// Fill ROS LaserScan message from the filtered azimuth-ordered points.
+			// Fill ROS LaserScan message from the azimuth-ordered segment points.
 			ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_map[echo][layer];
 
 			laser_scan_msg.ranges.clear();
@@ -1236,3 +1214,5 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
  * Returns this instance explicitely as an implementation of interface MsgPackExportListenerIF.
  */
 sick_scansegment_xd::MsgPackExportListenerIF* sick_scansegment_xd::RosMsgpackPublisher::ExportListener(void) { return this; }
+
+
