@@ -192,9 +192,10 @@ Step-by-step instructions for creating a new Docker test for multiScan100 LiDARs
     * Activate the virtual Python environment for scapy, pcapng, etc.
 
 * Update to a new ROS version:
-    * In sources under `docker/python`, replace `"humble"` with `"humble or jazzy"` (`ros2_supported_versions=["humble", "jazzy"]`)
+    * In sources under `docker/python`, replace `"humble"` with `"humble, jazzy or lyrical"` (`ros2_supported_versions=["humble", "jazzy","lyrical"]`)
     * Create a Docker image with jazzy installation:
         * Replace `humble` with `jazzy` in `dockerfile_linux_ros2_humble_sick_scan_xd` and `dockerfile_linux_ros2_humble_develop` and rename accordingly
+    * For "lyrical" replace "jazzy" with "lyrical"
 
 * Test data has been updated. To update the repository, zip folder
     `./src/sick_scan_xd/test/docker/data`

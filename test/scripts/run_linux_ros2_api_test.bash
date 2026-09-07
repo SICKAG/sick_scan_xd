@@ -28,11 +28,55 @@ popd
 # Run API test (python example) against simulated TiM7xx
 #
 pushd ../../../..
-if   [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; export QT_QPA_PLATFORM=xcb
-elif [ -f /opt/ros/humble/setup.bash   ] ; then source /opt/ros/humble/setup.bash
-elif [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash
-elif [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash
+# Prefer ROSDISTRO if explicitly set and available.
+if [ -n "${ROSDISTRO:-}" ] && [ -f "/opt/ros/${ROSDISTRO}/setup.bash" ]; then
+    distro="${ROSDISTRO}"
+else
+    distro=""
+
+    # Probe installed ROS2 distributions, newest first.
+    #
+    # lyrical   - supported
+    # kilted    - supported
+    # jazzy     - LTS, supported
+    # iron      - EOL
+    # humble    - LTS, supported
+    # galactic  - EOL
+    # foxy      - EOL
+    # eloquent  - EOL
+    # dashing   - EOL
+    for candidate in \
+        lyrical \
+        kilted \
+        jazzy \
+        iron \
+        humble \
+        galactic \
+        foxy \
+        eloquent \
+        dashing; do
+
+        if [ -f "/opt/ros/${candidate}/setup.bash" ]; then
+            distro="${candidate}"
+            break
+        fi
+    done
 fi
+
+if [ -z "${distro}" ]; then
+    echo "ERROR: No ROS2 distribution found in /opt/ros" >&2
+    exit 1
+fi
+
+export ROSDISTRO="${distro}"
+source "/opt/ros/${ROSDISTRO}/setup.bash"
+
+# Force Qt to use X11/XCB for ROS2 Jazzy and newer.
+if [[ "${ROSDISTRO}" == "jazzy" || "${ROSDISTRO}" > "jazzy" ]]; then
+    export QT_QPA_PLATFORM=xcb
+fi
+
+echo "Using ROS2 ${ROSDISTRO}"
 source ./install/setup.bash
 export PYTHONPATH=.:./src/sick_scan_xd/python/api:$PYTHONPATH
 
