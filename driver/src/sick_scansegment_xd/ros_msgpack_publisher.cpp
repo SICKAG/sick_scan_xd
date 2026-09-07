@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Created on: May 2026
+ * Created on: September 2026
  *
  * Authors:
  *   Michael Lehning <michael.lehning@lehning.de>
@@ -822,6 +822,21 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 			const float azimuth_max_rad =
 				static_cast<float>(this->m_all_segments_azimuth_max_deg) * deg2rad;
 
+			// The configured interval is interpreted as the counter-clockwise arc
+			// from azimuth_min_rad to azimuth_max_rad. The endpoints may be on
+			// arbitrary 2*pi branches, e.g. 350 deg -> 10 deg is a 20 deg arc.
+			// A raw span of one complete revolution or more, e.g. -pi -> +pi,
+			// selects the complete circle.
+			auto mod2pi = [two_pi](float angle)
+			{
+				angle = std::fmod(angle, two_pi);
+				return angle < 0.0f ? angle + two_pi : angle;
+			};
+
+			const float raw_azimuth_width = azimuth_max_rad - azimuth_min_rad;
+			const bool full_circle = std::abs(raw_azimuth_width) >= two_pi - eps;
+			const float azimuth_width = mod2pi(raw_azimuth_width);
+
 			LaserScanMsgPoints filtered_points;
 			filtered_points.reserve(sorted_points.size());
 
@@ -831,24 +846,16 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 			{
 				const LaserScanMsgPoint& point = *iter_point;
 
-				bool in_range = false;
+				// Keep point.azimuth unwrapped. Only the relative angular position
+				// is normalized, so arbitrary +/- 2*pi branches are handled directly.
+				const float azimuth_pos = mod2pi(point.azimuth - azimuth_min_rad);
 
-				// Keep point.azimuth unwrapped.
-				// Check the configured azimuth interval on the current and
-				// adjacent +/- 2*pi branches.
-				for (int k = -1; k <= 1; ++k)
-				{
-					const float shift = static_cast<float>(k) * two_pi;
-					const float min_rad = azimuth_min_rad + shift;
-					const float max_rad = azimuth_max_rad + shift;
-
-					if (point.azimuth + eps >= min_rad &&
-						point.azimuth - eps <= max_rad)
-					{
-						in_range = true;
-						break;
-					}
-				}
+				// The second comparison preserves the epsilon tolerance at the lower
+				// interval boundary, where modulo maps a value just below zero close
+				// to 2*pi.
+				const bool in_range = full_circle ||
+					azimuth_pos <= azimuth_width + eps ||
+					azimuth_pos >= two_pi - eps;
 
 				if (in_range)
 					filtered_points.push_back(point);
@@ -1257,7 +1264,6 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
  * Returns this instance explicitely as an implementation of interface MsgPackExportListenerIF.
  */
 sick_scansegment_xd::MsgPackExportListenerIF* sick_scansegment_xd::RosMsgpackPublisher::ExportListener(void) { return this; }
-
 
 
 
