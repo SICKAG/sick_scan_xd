@@ -4,6 +4,7 @@ REM
 
 rem if exist "c:\dev\ros2_foxy\local_setup.bat" ( call C:\dev\ros2_foxy\local_setup.bat )
 rem if exist "c:\opt\ros\foxy\x64\setup.bat" ( call c:\opt\ros\foxy\x64\setup.bat )
+if exist "c:\opt\ros\lyrical\x64\setup.bat" ( call c:\opt\ros\lyrical\x64\setup.bat )
 if exist "c:\opt\ros\humble\x64\setup.bat" ( call c:\opt\ros\humble\x64\setup.bat )
 rem set PATH=c:\vcpkg\installed\x64-windows\bin;%PATH%
 

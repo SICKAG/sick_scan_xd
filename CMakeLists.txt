@@ -115,7 +115,7 @@ message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ENV{ROS
 #
 # Ensure, that for ROS2 the ROS_VERSION is set to 2.
 #
-set(ROS2_DISTROS humble iron jazzy kilted)
+set(ROS2_DISTROS humble iron jazzy kilted lyrical)
 
 # Check if CMAKE_PREFIX_PATH matches any known ROS2 path
 if(DEFINED CMAKE_PREFIX_PATH)

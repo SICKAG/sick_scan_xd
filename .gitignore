@@ -66,10 +66,6 @@ html/
 # =========================
 # Uncomment ONLY if these are not required as examples
 
-<<<<<<< HEAD
-picoscan_serialization.patch
-=======
->>>>>>> origin/feature/fix_test_scripts
 # demo/scan.jpg
 # demo/scan.csv
 # demo/scan.jpg_tmp

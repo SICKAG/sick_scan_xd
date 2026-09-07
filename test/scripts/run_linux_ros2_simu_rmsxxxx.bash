@@ -42,23 +42,13 @@ function kill_simu()
 
 # Clear terminal output.
 printf "\033c"
-
-# Determine the repository root independent of the current working directory.
-BASE="$(realpath "$(dirname "${BASH_SOURCE[0]}")/../../../..")"
-
-# Example of using $BASE: python3 "$BASE/src/sick_scan_xd/test/python/sopas_json_test_server.py" ...
-# Example of using $BASE: ros2 run rviz2 rviz2 -d "$BASE/src/sick_scan_xd/test/emulator/config/rviz_emulator_cfg_ros2_rms2xxx.rviz" &
-
-# Source the installed ROS 2 distribution.
-if [ -f /opt/ros/jazzy/setup.bash ]; then
-    source /opt/ros/jazzy/setup.bash
-    export QT_QPA_PLATFORM=xcb
-elif [ -f /opt/ros/humble/setup.bash ]; then
-    source /opt/ros/humble/setup.bash
-elif [ -f /opt/ros/foxy/setup.bash ]; then
-    source /opt/ros/foxy/setup.bash
-elif [ -f /opt/ros/eloquent/setup.bash ]; then
-    source /opt/ros/eloquent/setup.bash
+pushd ../../../..
+if   [ -f /opt/ros/lyrical/setup.bash  ] ; then source /opt/ros/lyrical/setup.bash ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/kilted/setup.bash   ] ; then source /opt/ros/kilted/setup.bash ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/humble/setup.bash   ] ; then source /opt/ros/humble/setup.bash
+elif [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash
+elif [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash
 fi
 
 # Source the local sick_scan_xd workspace.

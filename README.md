@@ -40,7 +40,7 @@ Main features and characteristics:
   * [Test connection (Linux)](#test-connection-linux)
 * [Building the driver](#building-the-driver)
   * [ROS 2 on Linux](#ros-2-on-linux)
-  * [ROS 2 on Windows (Jazzy \& Kilted)](#ros-2-on-windows-jazzy--kilted)
+  * [ROS 2 on Windows (Jazzy, Kilted \& Lyrical)](#ros-2-on-windows-jazzy-kilted--lyrical)
   * [Without ROS on Linux](#without-ros-on-linux)
   * [Without ROS on Windows](#without-ros-on-windows)
 * [Running the driver](#running-the-driver)
@@ -296,7 +296,7 @@ cd ./doxygen
 doxygen ./docs/Doxyfile
 ```
 
-### ROS 2 on Windows (Jazzy & Kilted)
+### ROS 2 on Windows (Jazzy, Kilted & Lyrical)
 
 #### Table of Contents for ROS 2 on Windows
 
@@ -317,7 +317,7 @@ doxygen ./docs/Doxyfile
    4.5 Environment Entry Point
    4.6 Test ROS 2 Kilted
    4.7 Notes (Kilted)
-5. Build sick_scan_xd on Windows (Jazzy / Kilted)
+5. Build sick_scan_xd on Windows (Jazzy / Kilted / Lyrical)
    5.1 Workspace Setup
    5.2 Clone Repositories
    5.3 Verify Environment
@@ -339,6 +339,7 @@ doxygen ./docs/Doxyfile
 * Pixi is used for Python/tooling management
 * ROS 2 Jazzy: fully Pixi-managed (RoboStack)
 * ROS 2 Kilted: official Windows ZIP + Pixi tooling
+* ROS 2 Lyrical: official Windows binary + Pixi tooling
 * Single, explicit environment entry point
 * No hidden state, no implicit sourcing
 
@@ -484,7 +485,15 @@ ros2 run demo_nodes_cpp talker
 * Do not mix Jazzy Pixi and Kilted ZIP environments
 * CycloneDDS recommended
 
-#### 5. Build sick_scan_xd on Windows (Jazzy / Kilted)
+#### 4.8 ROS 2 Lyrical on Windows (ZIP + Pixi)
+
+ROS 2 Lyrical Luth is an LTS release supported until May 2031. Windows 11 (amd64, Visual Studio 2022) is a Tier 1 platform. Use the same ZIP + Pixi workflow described above for Kilted, but use the official Lyrical Windows binary and Lyrical ROS 2 sources instead of Kilted.
+
+In particular, replace Kilted-specific references by Lyrical, e.g. use the Lyrical ROS 2 branch/configuration and extract the downloaded Lyrical Windows archive to `C:\pixi_ws\ros2-windows`. Then activate the environment through `ros2_prepare.cmd` and build `sick_scan_xd` as described below.
+
+Official ROS 2 Lyrical documentation: <https://docs.ros.org/en/lyrical/>
+
+#### 5. Build sick_scan_xd on Windows (Jazzy / Kilted / Lyrical)
 
 ##### 5.1 Workspace setup
 
