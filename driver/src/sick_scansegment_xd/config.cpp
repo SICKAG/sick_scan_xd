@@ -180,6 +180,7 @@ sick_scansegment_xd::Config::Config()
     user_level_password = "F4724744";        // Default password for client authorization 
     listen_only_mode = false;                // True: Skip initialization mode for segment base lidar and jump directly to listing of UDP data
     activate_lidoutputstate = false;         // True: activate LIDoutputstate telegrams and publish topic "lidoutputstate", default: false
+    lidoutputstate_period_ms = 0;            // Interval in ms at which the output state is re-read, refreshing topic "lidoutputstate". 0 (default): no cyclic polling; the state is still read once per connection
     disable_udp_scandata = false;            // True: skip udp scan data reception entirely (no udp timeout/reconnect handling), default: false
 
     // MSR100 default filter settings
@@ -251,6 +252,7 @@ void sick_scansegment_xd::Config::PrintHelp(void)
     ROS_INFO_STREAM("-imu_udp_port=<port>: udp port for multiScan imu data, default: " << imu_udp_port);
     ROS_INFO_STREAM("-imu_latency_microsec=<micro_sec>: imu latency in microseconds, default: " << imu_latency_microsec);
     ROS_INFO_STREAM("-activate_lidoutputstate=0|1 : activate LIDoutputstate telegrams and publish topic \"lidoutputstate\", default: " << activate_lidoutputstate);
+    ROS_INFO_STREAM("-lidoutputstate_period_ms=<ms> : interval at which the output state is re-read, refreshing topic \"lidoutputstate\", 0 for no cyclic polling (state still read once per connection), default: " << lidoutputstate_period_ms);
     ROS_INFO_STREAM("-disable_udp_scandata=0|1 : skip udp scan data reception entirely, no udp timeout/reconnect handling, default: " << disable_udp_scandata);
 }
 
@@ -304,6 +306,7 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "user_level_password", user_level_password);
     ROS_DECL_GET_PARAMETER(node, "listen_only_mode", listen_only_mode);
     ROS_DECL_GET_PARAMETER(node, "activate_lidoutputstate", activate_lidoutputstate);
+    ROS_DECL_GET_PARAMETER(node, "lidoutputstate_period_ms", lidoutputstate_period_ms);
     ROS_DECL_GET_PARAMETER(node, "disable_udp_scandata", disable_udp_scandata);
     ROS_DECL_GET_PARAMETER(node, "layer_lookup_table_id", layer_lookup_table_id);
     // MSR100 filter settings
@@ -455,6 +458,7 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "user_level_password", user_level_password);
     setOptionalArgument(cli_parameter_map, "listen_only_mode", listen_only_mode);
     setOptionalArgument(cli_parameter_map, "activate_lidoutputstate", activate_lidoutputstate);
+    setOptionalArgument(cli_parameter_map, "lidoutputstate_period_ms", lidoutputstate_period_ms);
     setOptionalArgument(cli_parameter_map, "disable_udp_scandata", disable_udp_scandata);
     setOptionalArgument(cli_parameter_map, "host_read_filtersettings", host_read_filtersettings);
     setOptionalArgument(cli_parameter_map, "host_FREchoFilter", host_FREchoFilter);
@@ -510,6 +514,7 @@ void sick_scansegment_xd::Config::PrintConfig(void)
     ROS_INFO_STREAM("udp_port:                         " << udp_port);
     ROS_INFO_STREAM("listen_only_mode:                 " << (listen_only_mode ? "true" : "false"));
     ROS_INFO_STREAM("activate_lidoutputstate:          " << (activate_lidoutputstate ? "true" : "false"));
+    ROS_INFO_STREAM("lidoutputstate_period_ms:         " << lidoutputstate_period_ms);
     ROS_INFO_STREAM("disable_udp_scandata:             " << (disable_udp_scandata ? "true" : "false"));
     ROS_INFO_STREAM("check_udp_receiver_ip:            " << check_udp_receiver_ip);
     ROS_INFO_STREAM("check_udp_receiver_port:          " << check_udp_receiver_port);

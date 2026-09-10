@@ -252,7 +252,24 @@ namespace sick_scan_xd
 
   void SickScanCommonTcp::disconnectFunction()
   {
+    // Invoked by the tcp read thread when the peer closed the connection. Mark the
+    // connection lost so that isConnected() reports it and the driver can reconnect.
+    m_nw.setDisconnected();
+  }
 
+  int SickScanCommonTcp::sendSopasRequestNoReply(const std::string& sopasCmd, bool cola_binary)
+  {
+    // Same lock sendSopasAndCheckAnswer() takes: this is called from the LIDoutputstate worker
+    // thread while ros service callbacks may be sending on the very same socket.
+    std::lock_guard<std::mutex> send_lock_guard(sopasSendMutex);
+    std::string sopasRequest = std::string("\x02") + sopasCmd + "\x03";
+    if (cola_binary)
+    {
+      std::vector<unsigned char> reqBinary;
+      convertAscii2BinaryCmd(sopasRequest.c_str(), &reqBinary);
+      return sendSOPASCommand((const char *) reqBinary.data(), 0, (int) reqBinary.size(), false);
+    }
+    return sendSOPASCommand(sopasRequest.c_str(), 0, (int) sopasRequest.size(), false);
   }
 
   void SickScanCommonTcp::disconnectFunctionS(void *obj)

@@ -60,6 +60,27 @@ public:
     return item;
   }
 
+  /*!
+  \brief Pop a matching entry if there is one, without ever blocking.
+  \return true if an entry was popped into item, false if the queue holds no match.
+
+  Use this instead of pop() whenever more than one thread consumes the queue: with two
+  consumers, a waitForIncomingObject()/pop() pair can race - the other thread takes the
+  entry in between and the blocking pop() then waits forever, ignoring any stop flag.
+  */
+  bool tryPop(const std::vector<std::string>& datagram_keywords, T& item)
+  {
+    std::unique_lock<std::mutex> mlock(mutex_);
+    typename std::list<T>::iterator datagram_found;
+    if (findFirstByKeyword(datagram_keywords, datagram_found) == false)
+    {
+      return false;
+    }
+    item = *datagram_found;
+    queue_.erase(datagram_found);
+    return true;
+  }
+
   void push(const T &item)
   {
     {

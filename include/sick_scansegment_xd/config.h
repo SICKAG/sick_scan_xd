@@ -169,6 +169,7 @@ namespace sick_scansegment_xd
         std::string user_level_password = "F4724744";  // Default password for client authorization
         bool listen_only_mode = false;             // Flag to activate "listen only mode"
         bool activate_lidoutputstate;                // Activate "LIDoutputstate" telegrams (safety I/O field monitoring) and publish sick_scan_msg::LIDoutputstateMsg on topic "lidoutputstate", default: false
+        int lidoutputstate_period_ms;                // Interval in ms at which the output state is re-read with "sRN LIDoutputstate"; 0: no cyclic polling; the state is still read once per connection and the topic is then only written when an output changes
         bool disable_udp_scandata;                    // True: skip udp scan data reception entirely, i.e. no udp socket timeout/reconnect handling (e.g. lidar does not send scan data over udp), default: false
         // MSR100 filter settings
         bool host_read_filtersettings;             // True  // Read multiScan136 settings for FREchoFilter, LFPangleRangeFilter and LFPlayerFilter at startup, default: true

@@ -15,6 +15,7 @@
     <arg name="imu_udp_port" default="7503"/>                                       <!-- udp port for picoScan imu data (if imu_enable is true) -->
     <arg name="listen_only_mode" default="False" />                                   <!-- flag to active listen only mode. If true TCP SOPAS initialization is skipped -->
     <arg name="activate_lidoutputstate" default="False" />                            <!-- activate LIDoutputstate telegrams (safety I/O field monitoring output state) and publish topic "lidoutputstate" -->
+    <arg name="lidoutputstate_period_ms" default="0" />                                <!-- interval in ms at which the output state is re-read with "sRN LIDoutputstate"; 0: no cyclic polling; the state is still read once per connection and the topic is then only written when an output changes -->
     <arg name="disable_udp_scandata" default="False" />                               <!-- True: skip udp scan data reception entirely (no udp timeout/reconnect handling), use when the lidar does not send scan data over udp -->
     <arg name="add_transform_xyz_rpy" default="0,0,0,0,0,0"/>
     <arg name="scandataformat" default="2"/>                  <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
@@ -82,6 +83,7 @@
         <param name="user_level" type="int" value="4" />                                    <!-- Default user level for authorization (3: client, 4: service) -->
         <param name="user_level_password" type="string" value="81BE23AA" />                 <!-- Default user level password (for "client" (level 3): F4724744, for "service" (level 4): 81BE23AA) -->
         <param name="activate_lidoutputstate" type="bool" value="$(arg activate_lidoutputstate)" />  <!-- activate LIDoutputstate telegrams (safety I/O field monitoring output state) and publish topic "lidoutputstate", default: false -->
+        <param name="lidoutputstate_period_ms" type="int" value="$(arg lidoutputstate_period_ms)" />  <!-- interval in ms at which the output state is re-read, refreshing topic "lidoutputstate", 0 for no cyclic polling (state still read once per connection), default: 0 -->
         <param name="disable_udp_scandata" type="bool" value="$(arg disable_udp_scandata)" />  <!-- True: skip udp scan data reception entirely (no udp timeout/reconnect handling), default: false -->
         
         <!-- picoScan150 filter settings -->

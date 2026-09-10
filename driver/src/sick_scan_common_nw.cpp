@@ -76,6 +76,7 @@
 #include "sick_scan/tcp/errorhandler.hpp"
 #include "sick_scan/tcp/toolbox.hpp"
 #include "sick_scan/tcp/Mutex.hpp"
+#include "sick_scan/sick_scan_logging.h"
 #include <assert.h>
 
 SickScanCommonNw::SickScanCommonNw()
@@ -174,6 +175,20 @@ bool SickScanCommonNw::isConnected()
 }
 
 
+//
+// Called from the tcp read thread when the peer closed the connection or the socket read
+// failed. Only moves CONNECTED -> CONSTRUCTED; the socket itself is closed by Tcp.
+//
+void SickScanCommonNw::setDisconnected()
+{
+  State expected = CONNECTED;
+  if (m_state.compare_exchange_strong(expected, CONSTRUCTED))
+  {
+    ROS_ERROR_STREAM("SickScanCommonNw::setDisconnected(): tcp connection to " << m_ipAddress << ":" << m_portNumber << " lost.");
+  }
+}
+
+
 /**
  * Open TCP-connection to endpoint (usually IP-address and port)
  *
@@ -238,8 +253,10 @@ void SickScanCommonNw::readCallbackFunction(UINT8 *buffer, UINT32 &numOfBytes)
   if (remainingSpace < numOfBytes)
   {
     bytesToBeTransferred = remainingSpace;
-    // printWarning("SickScanCommonNw::readCallbackFunction(): Input buffer space is to small, transferring only " +
-    //              ::toString(bytesToBeTransferred) + " of " + ::toString(numOfBytes) + " bytes.");
+    // Dropping bytes here corrupts the sopas frame stream: telegrams are silently lost or
+    // mis-parsed. This must never pass unnoticed, so the warning stays enabled.
+    printWarning("SickScanCommonNw::readCallbackFunction(): Input buffer space is to small, transferring only " +
+                 ::toString(bytesToBeTransferred) + " of " + ::toString(numOfBytes) + " bytes.");
   }
   else
   {

@@ -553,6 +553,9 @@ namespace sick_scan_xd
 
     int readTimeOutInMs;
 
+  protected:
+    // Locked by every sopas send, including sendSopasRequestNoReply() in the derived tcp class,
+    // which is called from a worker thread while service callbacks may send on the same socket.
     std::mutex sopasSendMutex; // mutex to lock sendSopasAndCheckAnswer
 
   private:

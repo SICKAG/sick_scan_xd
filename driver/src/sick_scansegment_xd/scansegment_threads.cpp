@@ -64,9 +64,47 @@
 #include "sick_scan/sick_scan_services.h"
 #include "sick_scan/sick_scan_messages.h"
 #include "sick_scan/sick_generic_callback.h"
+#include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <string>
 
 #define DELETE_PTR(p) do{if(p){delete(p);(p)=0;}}while(false)
+
+namespace
+{
+    /*
+     * Returns the 3 character sopas command id of a raw datagram, e.g. "sSN" for an event telegram,
+     * "sRA" for a read reply, "sEA" for an event-subscription acknowledge or "sFA" for an error reply.
+     * Returns an empty string if the datagram is too short to carry one.
+     */
+    std::string sopasCommandId(const std::vector<unsigned char>& datagram)
+    {
+        const uint32_t cola_b_start = 0x02020202;
+        if (datagram.size() > 12 && memcmp(datagram.data(), &cola_b_start, sizeof(cola_b_start)) == 0)
+        {
+            return std::string((const char*)datagram.data() + 8, 3); // 0x02020202 + { 4 byte payload length }
+        }
+        if (datagram.size() > 5)
+        {
+            return std::string((const char*)datagram.data() + 1, 3); // 0x02
+        }
+        return std::string();
+    }
+
+    /*
+     * Publishes a LIDoutputstate message with an empty output_state array, i.e. "the output states
+     * are not known". Sent while the sopas connection is down, so that a subscriber is told at once
+     * rather than having to wait for its own timeout to expire.
+     */
+    void publishLIDoutputstateUnknown(rosPublisher<sick_scan_msg::LIDoutputstateMsg>& publisher, const std::string& frame_id)
+    {
+        sick_scan_msg::LIDoutputstateMsg msg;
+        msg.header.stamp = rosTimeNow();
+        msg.header.frame_id = frame_id;
+        rosPublish(publisher, msg);
+    }
+}
 
 sick_scan_xd::SickScanServices* s_sopas_service = 0;
 sick_scan_xd::SickScanServices* sick_scansegment_xd::sopasService() { return s_sopas_service; }
@@ -207,6 +245,22 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         sick_scansegment_xd::MkDir(m_config.logfolder);  // create log folder (if configured)
     }
 
+    // Publisher for LIDoutputstate messages (safety I/O field monitoring output state).
+    // Latched (transient local): the device sends LIDoutputstate telegrams on change only (or on request), so a
+    // subscriber that starts later than the driver would otherwise never learn the current state.
+    rosPublisher<sick_scan_msg::LIDoutputstateMsg> lidoutputstate_publisher;
+    if (m_config.activate_lidoutputstate)
+    {
+#if __ROS_VERSION == 2
+        lidoutputstate_publisher = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(m_config.node, "lidoutputstate", 1, rclcpp::SystemDefaultsQoS(), true);
+#else
+        lidoutputstate_publisher = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(m_config.node, "lidoutputstate", 1, 10, true);
+#endif
+        sick_scan_xd::setLIDoutputstateTopic("lidoutputstate");
+        // Nothing is known about the lidar yet - say so until it has actually been read.
+        publishLIDoutputstateUnknown(lidoutputstate_publisher, m_config.publish_frame_id);
+    }
+
     // (Re-)initialize and run loop
     while(m_run_scansegment_thread && rosOk())
     {
@@ -286,15 +340,8 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         sick_scan_xd::SickGenericParser parser = sick_scan_xd::SickGenericParser(scannerName);
         sick_scan_xd::ScannerBasicParam basic_param;
         basic_param.setScannerName(scannerName);
-        // Optional publisher for LIDoutputstate messages (safety I/O field monitoring output state)
-        rosPublisher<sick_scan_msg::LIDoutputstateMsg> lidoutputstate_publisher;
         std::atomic<bool> run_lidoutputstate_thread(false);
         std::thread lidoutputstate_thread;
-        if (m_config.activate_lidoutputstate)
-        {
-            lidoutputstate_publisher = rosAdvertise<sick_scan_msg::LIDoutputstateMsg>(m_config.node, "lidoutputstate", 100);
-            sick_scan_xd::setLIDoutputstateTopic("lidoutputstate");
-        }
         bool multiscan_write_filtersettings = m_config.host_set_FREchoFilter || m_config.host_set_LFPangleRangeFilter || m_config.host_set_LFPlayerFilter;
         if (m_config.start_sopas_service || m_config.send_sopas_start_stop_cmd || m_config.host_read_filtersettings || multiscan_write_filtersettings)
         {
@@ -385,6 +432,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         }
 
         // Activate LIDoutputstate telegrams (safety I/O field monitoring output state), if configured
+        bool lidoutputstate_activation_failed = false;
         if (m_config.activate_lidoutputstate && sopas_tcp && sopas_service && sopas_tcp->isConnected())
         {
             sick_scan_srv::LIDoutputstateSrv::Request lidoutputstate_request;
@@ -392,18 +440,50 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             lidoutputstate_request.active = true;
             if (!sopas_service->serviceCbLIDoutputstate(lidoutputstate_request, lidoutputstate_response) || !lidoutputstate_response.success)
             {
-                ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: failed to activate LIDoutputstate telegrams.");
+                ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: failed to activate LIDoutputstate telegrams, reconnecting.");
+                lidoutputstate_activation_failed = true;
+                publishLIDoutputstateUnknown(lidoutputstate_publisher, m_config.publish_frame_id);
             }
-            // Dedicated worker thread blocking on recvQueue instead of polling: wakes immediately when a LIDoutputstate telegram arrives
+        }
+        if (m_config.activate_lidoutputstate && !lidoutputstate_activation_failed && sopas_tcp && sopas_service && sopas_tcp->isConnected())
+        {
+            // Dedicated worker thread: the only consumer of LIDoutputstate datagrams, so a non-blocking
+            // tryPop is safe and no other thread can steal a datagram between the wait and the pop.
             run_lidoutputstate_thread = true;
             lidoutputstate_thread = std::thread([this, sopas_tcp, &lidoutputstate_publisher, &run_lidoutputstate_thread]()
             {
                 static const std::vector<std::string> lidoutputstate_keywords = { "LIDoutputstate" };
+
+                // A period of 0 turns polling off and leaves the original behaviour: the topic is
+                // then only written when an output actually changes, and stays silent otherwise.
+                const bool poll_enabled = m_config.lidoutputstate_period_ms > 0;
+                const std::chrono::milliseconds poll_period(poll_enabled ? m_config.lidoutputstate_period_ms : 0);
+
+                // Read the state once per connection
+                bool initial_read_done = false;
+                auto next_poll = std::chrono::steady_clock::now();
+
                 while (run_lidoutputstate_thread && m_run_scansegment_thread && rosOk())
                 {
-                    if (sopas_tcp->recvQueue.waitForIncomingObject(200, lidoutputstate_keywords))
+                    sopas_tcp->recvQueue.waitForIncomingObject(20, lidoutputstate_keywords);
+
+                    // Drain whatever arrived: event telegrams (sSN) and replies to our own poll (sRA).
+                    sick_scan_xd::DatagramWithTimeStamp lidoutputstate_datagram(rosTimeNow(), std::vector<unsigned char>());
+                    while (sopas_tcp->recvQueue.tryPop(lidoutputstate_keywords, lidoutputstate_datagram))
                     {
-                        sick_scan_xd::DatagramWithTimeStamp lidoutputstate_datagram = sopas_tcp->recvQueue.pop(lidoutputstate_keywords);
+                        // The keyword filter matches any command id carrying "LIDoutputstate", including
+                        // the "sEA" activation acknowledge and "sFA" error replies. Only the event
+                        // telegram (sSN) and the reply to our own poll (sRA) carry an output state.
+                        const std::string command_id = sopasCommandId(lidoutputstate_datagram.data());
+                        if (command_id != "sSN" && command_id != "sRA")
+                        {
+                            if (command_id == "sFA")
+                            {
+                                // The device rejected a request - most likely it does not support reading LIDoutputstate as a variable
+                                ROS_WARN_STREAM("## ERROR sick_scansegment_xd: device answered a LIDoutputstate request with an error (sFA)");
+                            }
+                            continue;
+                        }
                         sick_scan_msg::LIDoutputstateMsg lidoutputstate_msg;
                         if (sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(lidoutputstate_datagram.timeStamp, lidoutputstate_datagram.data().data(),
                             (int)lidoutputstate_datagram.data().size(), m_config.sopas_cola_binary, m_config.publish_frame_id, lidoutputstate_msg))
@@ -416,7 +496,21 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
                             ROS_WARN_STREAM("## ERROR sick_scansegment_xd: parseLIDoutputstateMsg failed, " << lidoutputstate_datagram.data().size() << " byte telegram ignored");
                         }
                     }
+
+                    const auto now = std::chrono::steady_clock::now();
+                    const bool read_due = !initial_read_done || (poll_enabled && now >= next_poll);
+                    if (read_due && sopas_tcp->isConnected())
+                    {
+                        initial_read_done = true;
+                        next_poll = now + poll_period;
+                        if (sopas_tcp->sendSopasRequestNoReply("sRN LIDoutputstate", m_config.sopas_cola_binary) != 0)
+                        {
+                            ROS_WARN_STREAM("## ERROR sick_scansegment_xd: failed to send \"sRN LIDoutputstate\" request");
+                        }
+                    }
                 }
+                // Say "no data" at once on the way out.
+                publishLIDoutputstateUnknown(lidoutputstate_publisher, m_config.publish_frame_id);
             });
         }
 
@@ -437,12 +531,14 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }    
         // Monitor udp packets with timeout for udp messages in milliseconds, default: 10*1000
-        while(m_run_scansegment_thread && rosOk())
+        while(m_run_scansegment_thread && rosOk() && !lidoutputstate_activation_failed)
         {
             if (!sopas_tcp->isConnected())
             {
               // Suppress the warning in listen-only mode; otherwise, display it.
-              if (!sopas_tcp->getListenOnlyMode())
+              // With activate_lidoutputstate the sopas connection carries the output states, so a
+              // lost connection always has to be acted on - there is no other data path left.
+              if (!sopas_tcp->getListenOnlyMode() || m_config.activate_lidoutputstate)
               {
                 ROS_ERROR_STREAM("## ERROR sick_scansegment_xd: sopas tcp connection lost, stop and reconnect...");
                 break;

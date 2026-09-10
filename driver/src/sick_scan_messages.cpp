@@ -163,11 +163,9 @@ bool sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeS
                 ROS_ERROR_STREAM("## ERROR SickScanMessages::parseLIDoutputstateMsg(): error parsing version_number and system_counter (" << __FILE__ << ":" << __LINE__ << ")");
                 return false;
             }
-            if(output_state == 0 || output_state == 1) // 0: not active, 1: active, 2: not used
-            {
-                output_msg.output_state.push_back(output_state);
-                output_msg.output_count.push_back(output_count);
-            }
+            // Push every output, including those reported as "not used" (state 2).
+            output_msg.output_state.push_back(output_state);
+            output_msg.output_count.push_back(output_count);
         }
         // Read timestamp state
         if( !readBinaryBuffer(receiveBuffer, receiveLength, output_msg.time_state))
@@ -232,7 +230,9 @@ bool sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeS
             uint32_t output_state = 2, output_count = 0; // output_state 2: not used
             msg_ptr = readNextAsciiHexValue(msg_ptr, &output_state);
             msg_ptr = readNextAsciiHexValue(msg_ptr, &output_count);
-            if (msg_ptr && (output_state == 0 || output_state == 1)) // 0: not active, 1: active, 2: not used
+            // Keep unused outputs (state 2) in the array so the index stays aligned with the
+            // physical output number - see the note in the Cola-B branch above.
+            if (msg_ptr)
             {
                 output_msg.output_state.push_back((uint8_t)(output_state & 0xFF));
                 output_msg.output_count.push_back(output_count);
@@ -240,6 +240,13 @@ bool sick_scan_xd::SickScanMessages::parseLIDoutputstateMsg(const rosTime& timeS
         }
         for(int state_cnt = 0; state_cnt < 8; state_cnt++) // Read state and count of Ext.Out1 to Ext.Out8 (not supported?)
         {
+        }
+        if (output_msg.output_state.empty())
+        {
+            // Not a single output could be parsed, i.e. this telegram does not carry an output state (a truncated telegram)
+            ROS_WARN_STREAM("## ERROR SickScanMessages::parseLIDoutputstateMsg(): no output state in "
+                << receiveLength << " byte telegram, ignored (" << __FILE__ << ":" << __LINE__ << ")");
+            return false;
         }
         // Read optional date and time
         uint32_t time_state = 0, year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0, microsecond = 0;

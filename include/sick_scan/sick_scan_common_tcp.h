@@ -130,6 +130,14 @@ namespace sick_scan_xd
 
     bool isConnected() { return m_nw.isConnected(); }
 
+    /** \brief Sends a sopas request without waiting for or consuming the reply.
+     *
+     * The reply is left in recvQueue for whoever is interested in it.
+     *
+     * \return ExitSuccess on success, ExitError otherwise.
+     */
+    int sendSopasRequestNoReply(const std::string& sopasCmd, bool cola_binary);
+
     // Queue<std::vector<unsigned char> > recvQueue;
     Queue<DatagramWithTimeStamp> recvQueue;
     UINT32 m_alreadyReceivedBytes;

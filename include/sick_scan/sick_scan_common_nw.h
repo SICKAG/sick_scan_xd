@@ -8,6 +8,7 @@
 
 #include "sick_scan/tcp/BasicDatatypes.hpp"
 #include "sick_scan/tcp/tcp.hpp"
+#include <atomic>  // for std::atomic
 #include <map>  // for std::map
 
 //
@@ -58,6 +59,15 @@ public:
 
   /// Returns true if the tcp connection is established.
   bool isConnected();
+
+  /** \brief Marks the connection as lost, i.e. moves this object from the CONNECTED
+   * back into the CONSTRUCTED state.
+   *
+   * Called from the tcp read thread when the peer closed the connection or the socket
+   * read failed. Without this, m_state would remain CONNECTED forever and isConnected()
+   * could never report a lost connection.
+   */
+  void setDisconnected();
 
   /** \brief Closes the connection to the LMS. This is the opposite of init().
    *
@@ -127,7 +137,8 @@ protected:
     //		, RUNNING
   };
 
-  State m_state;
+  // Written by the tcp read thread (via setDisconnected), read by the driver threads.
+  std::atomic<State> m_state;
 };
 
 /// Class that represents a message that was sent by a sensor. (Event message)

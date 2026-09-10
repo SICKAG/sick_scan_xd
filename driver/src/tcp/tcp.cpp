@@ -15,6 +15,8 @@
 #else
 #include <sys/socket.h> // for socket(), bind(), and connect()
 #include <arpa/inet.h>  // for sockaddr_in and inet_ntoa()
+#include <netinet/in.h>  // for IPPROTO_TCP
+#include <netinet/tcp.h> // for TCP_KEEPIDLE / TCP_KEEPINTVL / TCP_KEEPCNT
 #endif
 #include <string.h>     // for memset()
 #include <netdb.h>      // for hostent
@@ -179,6 +181,27 @@ bool Tcp::open(std::string ipAddress, UINT16 port, bool enableVerboseDebugOutput
 		return false;
 	}
 
+	// Enable TCP keepalive so that a lost link (cable pull, device power loss) is detected
+	// within seconds instead of the OS default of ~2 hours. Without this, a silent peer
+	// leaves the socket readable-but-idle forever and the driver never notices.
+	// Best effort: a platform that does not support the per-socket tuning still gets the
+	// system default keepalive rather than none at all.
+	{
+		int keepalive_enable = 1;
+		if (setsockopt(m_connectionSocket, SOL_SOCKET, SO_KEEPALIVE, (const char*)&keepalive_enable, sizeof(keepalive_enable)) < 0)
+		{
+			ROS_WARN_STREAM("Tcp::open: setsockopt(SO_KEEPALIVE) failed, connection loss may go undetected.");
+		}
+#if defined TCP_KEEPIDLE && defined TCP_KEEPINTVL && defined TCP_KEEPCNT
+		int keepalive_idle_sec = 2;   // start probing after 2 s of idle
+		int keepalive_intvl_sec = 1;  // probe every 1 s
+		int keepalive_probes = 3;     // give up after 3 failed probes (~5 s total)
+		setsockopt(m_connectionSocket, IPPROTO_TCP, TCP_KEEPIDLE, (const char*)&keepalive_idle_sec, sizeof(keepalive_idle_sec));
+		setsockopt(m_connectionSocket, IPPROTO_TCP, TCP_KEEPINTVL, (const char*)&keepalive_intvl_sec, sizeof(keepalive_intvl_sec));
+		setsockopt(m_connectionSocket, IPPROTO_TCP, TCP_KEEPCNT, (const char*)&keepalive_probes, sizeof(keepalive_probes));
+#endif
+	}
+
 	// Socket ist da. Nun die Verbindung oeffnen.
 	ROS_INFO_STREAM("sick_scan_xd: Tcp::open: connecting to " << ipAddress << ":"  << port << " ...");
 	printInfoMessage("Tcp::open: Connecting. Target address is " + ipAddress + ":" + toString(port) + ".", m_beVerbose);
@@ -326,6 +349,14 @@ INT32 Tcp::readInputData()
   		ROS_ERROR("Tcp::readInputData: Failed to read data from socket, aborting!");
 		else
   		ROS_INFO("Tcp::readInputData: Failed to read data from socket, aborting!");
+
+		// A read error is a lost connection just as much as a clean close is - notify so the
+		// driver can detect it. Previously only the recvMsgSize == 0 case below notified.
+		if (m_disconnectFunction != NULL)
+		{
+			m_disconnectFunction(m_disconnectFunctionObjPtr);
+		}
+
 		ScopedLock lock(&m_socketMutex);
 		closeSocket(); // otherwise the driver can terminate with broken pipe in next call to Tcp::write()
 	}
