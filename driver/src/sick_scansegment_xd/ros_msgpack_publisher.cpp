@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Created on: May 2026
+ * Created on: September 2026
  *
  * Authors:
  *   Michael Lehning <michael.lehning@lehning.de>
@@ -24,6 +24,7 @@
  *
  */
 #include <climits>
+#include <cmath>
 
 #include <sick_scan/sick_generic_callback.h>
 #include "sick_scansegment_xd/compact_parser.h"
@@ -811,11 +812,30 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 			if (sorted_points.empty())
 				continue;
 
-			// Restrict scan points to the configured global azimuth interval.
-			constexpr float eps = 1.0e-4f; // 0.00573 deg
+			constexpr float eps = 1.0e-4f;
+			constexpr float two_pi = 2.0f * static_cast<float>(M_PI);
+			constexpr float deg2rad = static_cast<float>(M_PI) / 180.0f;
 
-			const float azimuth_min_rad = static_cast<float>(this->m_all_segments_azimuth_min_deg * M_PI / 180.0);
-			const float azimuth_max_rad = static_cast<float>(this->m_all_segments_azimuth_max_deg * M_PI / 180.0);
+			const float azimuth_min_rad =
+				static_cast<float>(this->m_all_segments_azimuth_min_deg) * deg2rad;
+
+			const float azimuth_max_rad =
+				static_cast<float>(this->m_all_segments_azimuth_max_deg) * deg2rad;
+
+			// The configured interval is interpreted as the counter-clockwise arc
+			// from azimuth_min_rad to azimuth_max_rad. The endpoints may be on
+			// arbitrary 2*pi branches, e.g. 350 deg -> 10 deg is a 20 deg arc.
+			// A raw span of one complete revolution or more, e.g. -pi -> +pi,
+			// selects the complete circle.
+			auto mod2pi = [two_pi](float angle)
+			{
+				angle = std::fmod(angle, two_pi);
+				return angle < 0.0f ? angle + two_pi : angle;
+			};
+
+			const float raw_azimuth_width = azimuth_max_rad - azimuth_min_rad;
+			const bool full_circle = std::abs(raw_azimuth_width) >= two_pi - eps;
+			const float azimuth_width = mod2pi(raw_azimuth_width);
 
 			LaserScanMsgPoints filtered_points;
 			filtered_points.reserve(sorted_points.size());
@@ -826,19 +846,27 @@ void sick_scansegment_xd::RosMsgpackPublisher::convertPointsToLaserscanMsg(uint3
 			{
 				const LaserScanMsgPoint& point = *iter_point;
 
-				if (point.azimuth + eps >= azimuth_min_rad &&
-					point.azimuth - eps <= azimuth_max_rad)
-				{
+				// Keep point.azimuth unwrapped. Only the relative angular position
+				// is normalized, so arbitrary +/- 2*pi branches are handled directly.
+				const float azimuth_pos = mod2pi(point.azimuth - azimuth_min_rad);
+
+				// The second comparison preserves the epsilon tolerance at the lower
+				// interval boundary, where modulo maps a value just below zero close
+				// to 2*pi.
+				const bool in_range = full_circle ||
+					azimuth_pos <= azimuth_width + eps ||
+					azimuth_pos >= two_pi - eps;
+
+				if (in_range)
 					filtered_points.push_back(point);
-				}
 			}
 
 			sorted_points.swap(filtered_points);
 
 			if (sorted_points.empty())
-				continue;
-
-			// Fill ROS LaserScan message from the filtered azimuth-ordered points.
+                continue;    
+				
+    		// Fill ROS LaserScan message from the azimuth-ordered points.
 			ros_sensor_msgs::LaserScan& laser_scan_msg = laser_scan_msg_map[echo][layer];
 
 			laser_scan_msg.ranges.clear();
@@ -1236,3 +1264,6 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
  * Returns this instance explicitely as an implementation of interface MsgPackExportListenerIF.
  */
 sick_scansegment_xd::MsgPackExportListenerIF* sick_scansegment_xd::RosMsgpackPublisher::ExportListener(void) { return this; }
+
+
+
