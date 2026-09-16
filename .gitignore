@@ -70,3 +70,8 @@ html/
 # demo/scan.csv
 # demo/scan.jpg_tmp
 picoscan_serialization.patch
+
+test/docker/data_org.zip
+test/docker/data
+
+test/docker/data/
