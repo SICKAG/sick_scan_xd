@@ -153,15 +153,37 @@ def simu_main():
         else:
             status_text = "**TEST FAILED**"
         report_md_filepath = f"{os.path.basename(config.log_folder)}/{config.report_md_filename}"
-        report_html_filepath = f"{report_md_filepath}.html"
-        file_stream.write(f"sick_scan_xd_simu {simu_start_time_str} on {config.os_name}, ROS {config.ros_version}, API {config.api}, {os.path.basename(config.config_file)}: {status_text}, [{report_md_filepath}]({report_md_filepath}), [{report_html_filepath}]({report_html_filepath})\n\n")
+        report_html_filepath = (
+            f"{report_md_filepath}.html"
+        )
+        file_stream.write(
+            f"sick_scan_xd_simu "
+            f"{simu_start_time_str} "
+            f"on {config.os_name}, "
+            f"ROS {config.ros_version}, "
+            f"API {config.api}, "
+            f"{os.path.basename(config.config_file)}: "
+            f"{status_text}, "
+            f"[{report_md_filepath}]"
+            f"({report_md_filepath}), "
+            f"[{report_html_filepath}]"
+            f"({report_html_filepath})\n\n"
+        )
     report.print_messages()
-    # shutil.rmtree(config.data_folder, ignore_errors=True) # data_folder can be removed, if locally modified data has been added to data.zip
+    # shutil.rmtree(
+    #     config.data_folder,
+    #     ignore_errors=True
+    # )
     print(
-        "[INFO] You can remove the folder if the latest local changes have already "
-        "been integrated into data.zip. Automatic removal is currently disabled."
+        "[INFO] You can remove the folder if the "
+        "latest local changes have already been "
+        "integrated into data.zip. Automatic removal "
+        "is currently disabled."
     )
-    if report.get_exit_status() == SickScanXdStatus.SUCCESS:
+    if (
+        report.get_exit_status()
+        == SickScanXdStatus.SUCCESS
+    ):
         return 0 # 0 = success, otherwise error
     else:
         return 1
