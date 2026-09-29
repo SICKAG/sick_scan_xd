@@ -104,79 +104,97 @@ namespace sick_scansegment_xd
             LidarPoint() : x(0), y(0), z(0), i(0), range(0), azimuth(0), elevation(0), groupIdx(0), echoIdx(0), pointIdx(0), lidar_timestamp_microsec(0), reflectorbit(0) {}
             LidarPoint(float _x, float _y, float _z, float _i, float _range, float _azimuth, float _elevation, int _groupIdx, int _echoIdx, int _pointIdx, uint64_t _lidar_timestamp_microsec, uint8_t _reflector_bit)
                 : x(_x), y(_y), z(_z), i(_i), range(_range), azimuth(_azimuth), elevation(_elevation), groupIdx(_groupIdx), echoIdx(_echoIdx), pointIdx(_pointIdx), lidar_timestamp_microsec(_lidar_timestamp_microsec), reflectorbit(_reflector_bit) {}
-            float x; // cartesian x coordinate in meter
-            float y; // cartesian y coordinate in meter
-            float z; // cartesian z coordinate in meter
-            float i; // intensity
-            float range;     // polar coordinate range in meter
-            float azimuth;   // polar coordinate azimuth in radians
-            float elevation; // polar coordinate elevation in radians
-            int groupIdx;    // group index (layer), 0 <= groupIdx < 16 for multiScan136
-            int echoIdx;     // echo index, 0 <= echoIdx < 3 for multiScan136
-            int pointIdx;    // point index, 0 <= pointIdx < 30 resp. 0 <= pointIdx < 240 for multiScan136
-            uint64_t lidar_timestamp_microsec; // lidar timestamp in microseconds
-            uint8_t reflectorbit; // optional reflector bit, 0 or 1, default: 0
+
+            float x;         ///< Cartesian x coordinate in meters.
+            float y;         ///< Cartesian y coordinate in meters.
+            float z;         ///< Cartesian z coordinate in meters.
+            float i;         ///< Intensity.
+            float range;     ///< Polar coordinate range in meters.
+            float azimuth;   ///< Polar coordinate azimuth in radians.
+            float elevation; ///< Polar coordinate elevation in radians.
+
+            int groupIdx; ///< Group (layer) index, 0 <= groupIdx < 16 for multiScan136.
+            int echoIdx;  ///< Echo index, 0 <= echoIdx < 3 for multiScan136.
+            int pointIdx; ///< Point index, 0 <= pointIdx < 30 or 0 <= pointIdx < 240 for multiScan136.
+
+            uint64_t lidar_timestamp_microsec; ///< LiDAR timestamp in microseconds.
+            uint8_t reflectorbit;              ///< Optional reflector bit, 0 or 1, default: 0.
         };
 
-        /*
-         * @brief type Scanline is a vector of LidarPoint data. multiScan136 and picoScan transmit up to 3 echos, each echo is a Scanline.
+        /**
+         * @brief Container for one scanline (echo).
+         *
+         * multiScan136 and picoScan transmit up to 3 echoes. Each echo is
+         * represented by one Scanline.
          */
         class Scanline
         {
         public:
-            std::vector<LidarPoint> points; // list of all scan points
+            std::vector<LidarPoint> points; ///< List of all LiDAR points in this scanline.
         };
 
-        /*
-         * @brief type Scangroup is a vector of Scanlines. multiScan136 transmits 16 groups (layers), each group has max. 3 echos (3 scanlines).
+        /**
+         * @brief Container for a group (layer) of scanlines.
+         *
+         * multiScan136 transmits 16 groups (layers). Each group contains
+         * up to 3 echoes represented by Scanline objects.
          */
         class Scangroup
         {
         public:
             Scangroup() : timestampStart_sec(0), timestampStart_nsec(0), timestampStop_sec(0), timestampStop_nsec(0), scanlines() {}
-            uint32_t timestampStart_sec;
-            uint32_t timestampStart_nsec;
-            uint32_t timestampStop_sec;
-            uint32_t timestampStop_nsec;
-            std::vector<Scanline> scanlines;
+
+            uint32_t timestampStart_sec;  ///< Seconds part of the group start timestamp.
+            uint32_t timestampStart_nsec; ///< Nanoseconds part of the group start timestamp.
+            uint32_t timestampStop_sec;   ///< Seconds part of the group stop timestamp.
+            uint32_t timestampStop_nsec;  ///< Nanoseconds part of the group stop timestamp.
+
+            std::vector<Scanline> scanlines; ///< Scanlines (echoes) of this group.
         };
 
-        /*
-         * @brief scandata contains all data of a msgpack or compact scan.
+        /**
+         * @brief All scan data decoded from one MsgPack or Compact scan.
          */
         std::vector<Scangroup> scandata;
 
-        /*
-         * @brief optional imu data
+        /**
+         * @brief Optional IMU data.
          */
         CompactImuData imudata;
 
-        /*
-         * @brief Timestamp of scandata (message received time or measurement time)
+        /**
+         * @brief Timestamp of the scan data (message receive time or measurement time).
          */
-        std::string timestamp;   // timestamp in string format "<seconds>.<mikroseconds>"
-        uint32_t timestamp_sec;  // seconds part of timestamp
-        uint32_t timestamp_nsec; // nanoseconds part of timestamp
+        std::string timestamp;   ///< Timestamp in string format "<seconds>.<microseconds>".
+        uint32_t timestamp_sec;  ///< Seconds part of the timestamp.
+        uint32_t timestamp_nsec; ///< Nanoseconds part of the timestamp.
 
-        /*
-         * @brief Counter for each message (each scandata decoded from msgpack or compact data)
+        /**
+         * @brief Counters associated with the decoded scan segment.
          */
-        int segmentIndex = 0;
-        uint64_t telegramCnt = 0;
+        int segmentIndex = 0;     ///< Counter for decoded scan segments.
+        uint64_t telegramCnt = 0; ///< Telegram counter.
     };
 
-    /*
-    * @brief return a formatted timestamp "<sec>.<millisec>".
-    * @param[in] sec second part of timestamp
-    * @param[in] nsec nanosecond part of timestamp
-    * @return "<sec>.<millisec>"
-    */
+    /**
+     * @brief Returns a formatted timestamp "<sec>.<millisec>".
+     *
+     * @param[in] sec Seconds part of the timestamp.
+     * @param[in] nsec Nanoseconds part of the timestamp.
+     * @return Timestamp formatted as "<sec>.<millisec>".
+     */
     std::string Timestamp(uint32_t sec, uint32_t nsec);
 
-    /*
-    * @brief return a timestamp of the current time (i.e. std::chrono::system_clock::now() formatted by "YYYY-MM-DD hh-mm-ss.msec").
-    */
+    /**
+     * @brief Returns a formatted timestamp for the given system clock time.
+     *
+     * The timestamp is formatted as "YYYY-MM-DD hh-mm-ss.msec".
+     *
+     * @param[in] now System clock time point.
+     * @return Formatted timestamp.
+     */
     std::string Timestamp(const std::chrono::system_clock::time_point& now);
-}
+
+} // namespace sick_scansegment_xd
 
 #endif // SICK_SCANSEGMENT_XD_PARSER_OUTPUT_H
