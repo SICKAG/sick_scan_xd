@@ -28,75 +28,96 @@
 #include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
 #include "sick_scan/sick_ros_wrapper.h"
 
-/*
- * @brief class ScanSegmentParserOutput is the output container for unpacked and converted msgpack and compact data for multiScan136 and picoScan.
- * In case of multiScan136, ScanSegmentParserOutput has 16 groups (layers), each group has 3 echos, each echo has a list of LidarPoint data in catesian coordinates
- * (x, y, z in meter and intensity). In case of picoScan, ScanSegmentParserOutput has 1 layer.
- *
- * Usage example for msgpack data:
- *
- * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
- * sick_scansegment_xd::ScanSegmentParserOutput scansegment_output;
- * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, scansegment_output);
- *
- * sick_scansegment_xd::MsgPackParser::WriteCSV({ scansegment_output }, "polarscan_testdata_000.csv")
- *
- * for (int groupIdx = 0; groupIdx < scansegment_output.scandata.size(); groupIdx++)
- * {
- * 	 for (int echoIdx = 0; echoIdx < scansegment_output.scandata[groupIdx].scanlines.size(); echoIdx++)
- * 	 {
- * 	   std::vector<sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint>& scanline = scansegment_output.scandata[groupIdx].scanlines[echoIdx].points;
- * 	   std::cout << (groupIdx + 1) << ". group, " << (echoIdx + 1) << ". echo: ";
- * 	   for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
- * 	   {
- * 		  sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
- * 		  std::cout << (pointIdx > 0 ? "," : "") << "(" << point.x << "," << point.y << "," << point.z << "," << point.i << ")";
- * 	   }
- * 	   std::cout << std::endl;
- * 	 }
- * }
- */
-
 namespace sick_scansegment_xd
 {
-    /*
-    * @brief class ScanSegmentParserConfig is a container for configuration and settings for multiScan and picoScan parser
-    */
+    /**
+     * @brief Container for configuration and settings for multiScan and picoScan parsers.
+     */
     class ScanSegmentParserConfig
     {
     public:
-        int imu_latency_microsec = 0; // imu latency in microseconds
+        int imu_latency_microsec = 0; ///< IMU latency in microseconds.
     };
 
-    /*
-    * @brief class CompactImuData is a container for imu data in compact format
-    */
+    /**
+     * @brief Container for IMU data in Compact format.
+     */
     class CompactImuData
     {
     public:
-        bool valid = false;
-        float acceleration_x = 0; // 4 bytes float in m/s^2, acceleration along the x-axis including gravity
-        float acceleration_y = 0; // 4 bytes float in m/s^2, acceleration along the y-axis including gravity
-        float acceleration_z = 0; // 4 bytes float in m/s^2, acceleration along the z-axis including gravity
-        float angular_velocity_x = 0; // 4 bytes float in rad/s
-        float angular_velocity_y = 0; // 4 bytes float in rad/s
-        float angular_velocity_z = 0; // 4 bytes float in rad/s
-        float orientation_w = 0; // 4 bytes float, orientation quaternion w
-        float orientation_x = 0; // 4 bytes float, orientation quaternion x
-        float orientation_y = 0; // 4 bytes float, orientation quaternion y
-        float orientation_z = 0; // 4 bytes float, orientation quaternion z
-        std::string to_string() const; // returns a human readable description of the imu data
+        bool valid = false; ///< True if the IMU data is valid.
+
+        float acceleration_x = 0; ///< Acceleration along the x-axis including gravity in m/s^2.
+        float acceleration_y = 0; ///< Acceleration along the y-axis including gravity in m/s^2.
+        float acceleration_z = 0; ///< Acceleration along the z-axis including gravity in m/s^2.
+
+        float angular_velocity_x = 0; ///< Angular velocity around the x-axis in rad/s.
+        float angular_velocity_y = 0; ///< Angular velocity around the y-axis in rad/s.
+        float angular_velocity_z = 0; ///< Angular velocity around the z-axis in rad/s.
+
+        float orientation_w = 0; ///< Orientation quaternion component w.
+        float orientation_x = 0; ///< Orientation quaternion component x.
+        float orientation_y = 0; ///< Orientation quaternion component y.
+        float orientation_z = 0; ///< Orientation quaternion component z.
+
+        /**
+         * @brief Returns a human-readable description of the IMU data.
+         * @return Human-readable description of the IMU data.
+         */
+        std::string to_string() const;
     };
 
+    /**
+     * @brief Output container for unpacked and converted MsgPack and Compact
+     *        scan data from multiScan136 and picoScan.
+     *
+     * For multiScan136, ScanSegmentParserOutput contains 16 groups (layers).
+     * Each group contains up to 3 echoes, and each echo contains a list of
+     * LidarPoint data in Cartesian coordinates (x, y, z in meters) with
+     * intensity information.
+     *
+     * For picoScan, ScanSegmentParserOutput contains one layer.
+     *
+     * @par Usage example for MsgPack data
+     * @code
+     * std::ifstream msgpack_istream("polarscan_testdata_000.msg", std::ios::binary);
+     * sick_scansegment_xd::ScanSegmentParserOutput scansegment_output;
+     * sick_scansegment_xd::MsgPackParser::Parse(msgpack_istream, scansegment_output);
+     *
+     * sick_scansegment_xd::MsgPackParser::WriteCSV({ scansegment_output }, "polarscan_testdata_000.csv");
+     *
+     * for (int groupIdx = 0; groupIdx < scansegment_output.scandata.size(); groupIdx++)
+     * {
+     *     for (int echoIdx = 0; echoIdx < scansegment_output.scandata[groupIdx].scanlines.size(); echoIdx++)
+     *     {
+     *         std::vector<sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint>& scanline =
+     *             scansegment_output.scandata[groupIdx].scanlines[echoIdx].points;
+     *         std::cout << (groupIdx + 1) << ". group, " << (echoIdx + 1) << ". echo: ";
+     *         for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
+     *         {
+     *             sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
+     *             std::cout << (pointIdx > 0 ? "," : "") << "(" << point.x << "," << point.y << "," << point.z << "," << point.i << ")";
+     *         }
+     *         std::cout << std::endl;
+     *     }
+     * }
+     * @endcode
+     */
     class ScanSegmentParserOutput
     {
     public:
         ScanSegmentParserOutput();
 
-        /*
-         * @brief class LidarPoint is a data point in cartesian coordinates with x, y, z in meter and an intensity value.
-         * Additionally, polar coordinates with azimuth and elevation in radians and distance in meter are given plus the
-         * group index (0 up to 15 for multiScan136) and the echo index (0 up to 2).
+        /**
+         * @brief LiDAR point in Cartesian and polar coordinates.
+         *
+         * A LidarPoint contains Cartesian coordinates x, y and z in meters
+         * and an intensity value. Additionally, polar coordinates are given
+         * by range in meters and azimuth and elevation in radians.
+         *
+         * The point also contains the group index (0 to 15 for multiScan136),
+         * echo index (0 to 2), point index, LiDAR timestamp and an optional
+         * reflector bit.
          */
         class LidarPoint
         {
