@@ -3,8 +3,8 @@ Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-Unreleased 3.10.0-alpha1 (2026-09-02)
--------------------------------------
+3.10.0-alpha1 (2026-09-29)
+--------------------------
   * add: Support for ROS2 Lyrical
   * add: Contribution made by Boopesh Eswaran <boopesh.mc@gmail.com>: Optional ROS 2 Lifecycle Node support (Managed Nodes). Original PR: https://github.com/SICKAG/sick_scan_xd/pull/552
   * update: README.md with Lifecycle Node support
