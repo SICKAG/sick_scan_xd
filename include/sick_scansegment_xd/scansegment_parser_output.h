@@ -15,13 +15,13 @@
  *
  * for (int groupIdx = 0; groupIdx < scansegment_output.scandata.size(); groupIdx++)
  * {
- * 	 for (int echoIdx = 0; echoIdx < scansegment_output.scandata[groupIdx].size(); echoIdx++)
+ * 	 for (int echoIdx = 0; echoIdx < scansegment_output.scandata[groupIdx].scanlines.size(); echoIdx++)
  * 	 {
- * 	   std::vector<sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint>& scanline = scansegment_output.scandata[groupIdx][echoIdx];
+ * 	   std::vector<sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint>& scanline = scansegment_output.scandata[groupIdx].scanlines[echoIdx].points;
  * 	   std::cout << (groupIdx + 1) << ". group, " << (echoIdx + 1) << ". echo: ";
  * 	   for (int pointIdx = 0; pointIdx < scanline.size(); pointIdx++)
  * 	   {
- * 		  sick_scansegment_xd::ScanSegmentParserOutput::PointXYZI& point = scanline[pointIdx];
+ * 		  sick_scansegment_xd::ScanSegmentParserOutput::LidarPoint& point = scanline[pointIdx];
  * 		  std::cout << (pointIdx > 0 ? "," : "") << "(" << point.x << "," << point.y << "," << point.z << "," << point.i << ")";
  * 	   }
  * 	   std::cout << std::endl;
