@@ -1,5 +1,33 @@
+/**
+ * @file sick_scansegment_xd_parser_output.h
+ * @brief Data structures and utility functions for parsed scan segment output
+ *        of multiScan and picoScan devices.
+ *
+ * Copyright (C) 2026, SICK AG, Waldkirch
+ * Copyright (C) 2026, Ing.-Buero Dr. Michael Lehning, Hildesheim
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @date September 2026
+ * @author Michael Lehning <michael.lehning@lehning.de>
+ */
+
+#ifndef SICK_SCANSEGMENT_XD_PARSER_OUTPUT_H
+#define SICK_SCANSEGMENT_XD_PARSER_OUTPUT_H
+
 #include "sick_scan/sick_scan_base.h" /* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
-/* Base definitions included in all header files, added by add_sick_scan_base_header.py. Do not edit this line. */
+#include "sick_scan/sick_ros_wrapper.h"
+
 /*
  * @brief class ScanSegmentParserOutput is the output container for unpacked and converted msgpack and compact data for multiScan136 and picoScan.
  * In case of multiScan136, ScanSegmentParserOutput has 16 groups (layers), each group has 3 echos, each echo has a list of LidarPoint data in catesian coordinates
@@ -27,32 +55,7 @@
  * 	   std::cout << std::endl;
  * 	 }
  * }
- *
- * Copyright (C) 2026, SICK AG, Waldkirch
- * Copyright (C) 2026, Ing.-Buero Dr. Michael Lehning, Hildesheim
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Created on: September 2026
- *
- * Authors:
- *   Michael Lehning <michael.lehning@lehning.de>
- *
  */
-#ifndef __SICK_SCANSEGMENT_XD_PARSER_OUTPUT_H
-#define __SICK_SCANSEGMENT_XD_PARSER_OUTPUT_H
-
-#include "sick_scan/sick_ros_wrapper.h"
 
 namespace sick_scansegment_xd
 {
@@ -175,4 +178,5 @@ namespace sick_scansegment_xd
     */
     std::string Timestamp(const std::chrono::system_clock::time_point& now);
 }
-#endif // __SICK_SCANSEGMENT_XD_PARSER_OUTPUT_H
+
+#endif // SICK_SCANSEGMENT_XD_PARSER_OUTPUT_H
