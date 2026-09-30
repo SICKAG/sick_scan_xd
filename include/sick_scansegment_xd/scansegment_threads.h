@@ -62,6 +62,7 @@ namespace sick_scan_xd
 }
 
 #include "sick_scansegment_xd/config.h"
+#include <atomic>
 
 namespace sick_scansegment_xd
 {
@@ -69,6 +70,12 @@ namespace sick_scansegment_xd
 	  * @brief Initializes and runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
 	  */
     int run(rosNodePtr node, const std::string& scannerName);
+
+    /*
+     * @brief Stops msgpack threads from external code (e.g., lifecycle node cleanup).
+     * This function can be called to stop the msgpack threads without waiting for them to finish naturally.
+     */
+    void stopMsgPackThreads();
 
     /*
 	  * @brief class MsgPackThreads runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
@@ -102,6 +109,21 @@ namespace sick_scansegment_xd
 	     */
         void join(void);
 
+        /*
+         * @brief Returns whether the scansegment thread is running.
+         */
+	      bool getRunScansegmentThread() const
+        {
+            return m_run_scansegment_thread.load();
+        }
+
+        /*
+         * @brief Sets the flag controlling the execution of the scansegment thread.
+         */
+        void setRunScansegmentThread(bool run)
+        {
+            m_run_scansegment_thread.store(run);
+        }
     protected:
 
         /*
@@ -111,7 +133,14 @@ namespace sick_scansegment_xd
 
        sick_scansegment_xd::Config m_config;                      // sick_scansegment_xd configuration
        std::thread* m_scansegment_thread;                         // background thread to convert msgpack to ScanSegmentParserOutput data
-       bool m_run_scansegment_thread;                             // flag to start and stop the udp converter thread
+       /**
+        * @brief Flag controlling execution of the scan-segment thread.
+        *
+        * The flag is accessed through getRunScansegmentThread() and
+        * setRunScansegmentThread() for lifecycle control.
+        */
+	   std::atomic<bool> m_run_scansegment_thread{false};
+    
     };
 
     sick_scan_xd::SickScanServices* sopasService();

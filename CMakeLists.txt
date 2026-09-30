@@ -115,7 +115,7 @@ message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ENV{ROS
 #
 # Ensure, that for ROS2 the ROS_VERSION is set to 2.
 #
-set(ROS2_DISTROS humble iron jazzy kilted)
+set(ROS2_DISTROS humble iron jazzy kilted lyrical)
 
 # Check if CMAKE_PREFIX_PATH matches any known ROS2 path
 if(DEFINED CMAKE_PREFIX_PATH)
@@ -321,12 +321,16 @@ if(ROS_VERSION EQUAL 2)
 
     find_package(ament_cmake REQUIRED)
     find_package(rclcpp REQUIRED)
+    find_package(rclcpp_lifecycle REQUIRED)
+    add_definitions(-DSICK_LIFECYCLE_NODE_AVAILABLE=1)
     
     set(diagnostic_updater_pkg diagnostic_updater)
-    add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+    find_package(diagnostic_updater QUIET)
+    find_package(diagnostic_msgs QUIET)
+    if (${diagnostic_updater_FOUND} AND ${diagnostic_msgs_FOUND})    
+        add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+    endif()
 
-    find_package(diagnostic_updater REQUIRED)
-    find_package(diagnostic_msgs REQUIRED)
     find_package(geometry_msgs REQUIRED)
     find_package(nav_msgs REQUIRED)
     find_package(rclcpp REQUIRED)
@@ -337,6 +341,10 @@ if(ROS_VERSION EQUAL 2)
     find_package(tf2_ros REQUIRED)
     find_package(visualization_msgs REQUIRED)
     if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
+        set(diagnostic_updater_pkg diagnostic_updater)
+        add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+        find_package(diagnostic_updater REQUIRED)
+        find_package(diagnostic_msgs REQUIRED)
         set(ROSIDL_EMULATOR_FILES
             # emulator messages
             "test/emulator/msg/SickLocColaTelegramMsg.msg"
@@ -749,7 +757,17 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         # target_link_options(${PROJECT_NAME}_shared_lib PUBLIC "-fPIC")
         target_link_libraries(${PROJECT_NAME}_shared_lib ${SICK_LDMRS_LIBRARIES})
     endif()
-    add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
+    add_executable(sick_generic_caller
+        driver/src/sick_generic_caller.cpp
+    )
+    # Add lifecycle node files only for ROS2
+    if(ROS_VERSION EQUAL 2)
+        target_sources(sick_generic_caller PRIVATE
+            driver/src/sick_scan_lifecycle_node.cpp
+            driver/src/sick_scansegment_xd/scansegment_threads.cpp
+            driver/src/sick_scansegment_xd/ros_msgpack_publisher.cpp
+        )
+    endif()
     if(ROS_VERSION EQUAL 0 AND NOT WIN32)
         target_link_libraries(sick_generic_caller PUBLIC ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} "pthread") # pthread required for std::thread
         target_link_options(sick_generic_caller PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
@@ -770,6 +788,7 @@ if(ROS_VERSION EQUAL 2)
     ament_target_dependencies(
         ${PROJECT_NAME}_lib
         "rclcpp"
+        "rclcpp_lifecycle"
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
@@ -784,6 +803,7 @@ if(ROS_VERSION EQUAL 2)
     ament_target_dependencies(
         ${PROJECT_NAME}_shared_lib
         "rclcpp"
+        "rclcpp_lifecycle"
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
@@ -798,6 +818,7 @@ if(ROS_VERSION EQUAL 2)
     ament_target_dependencies(
         sick_generic_caller
         "rclcpp"
+        "rclcpp_lifecycle"
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
@@ -825,6 +846,7 @@ if(ROS_VERSION EQUAL 2)
       ${std_msgs_TARGETS}
       ${visualization_msgs_TARGETS}
       rclcpp::rclcpp
+      rclcpp_lifecycle::rclcpp_lifecycle
       tf2_ros::tf2_ros
       ${LDMRS_TARGET_DEPENDENCIES}
     )
@@ -838,11 +860,13 @@ if(ROS_VERSION EQUAL 2)
       ${std_msgs_TARGETS}
       ${visualization_msgs_TARGETS}
       rclcpp::rclcpp
+      rclcpp_lifecycle::rclcpp_lifecycle
       tf2_ros::tf2_ros
       ${LDMRS_TARGET_DEPENDENCIES}
     )
 
     target_link_libraries(sick_generic_caller PUBLIC
+      ${PROJECT_NAME}_lib
       ${diagnostic_updater_TARGETS}
       ${diagnostic_msgs_TARGETS}
       ${geometry_msgs_TARGETS}
@@ -851,6 +875,7 @@ if(ROS_VERSION EQUAL 2)
       ${std_msgs_TARGETS}
       ${visualization_msgs_TARGETS}
       rclcpp::rclcpp
+      rclcpp_lifecycle::rclcpp_lifecycle
       tf2_ros::tf2_ros
       ${LDMRS_TARGET_DEPENDENCIES}
     )

@@ -14,12 +14,13 @@ ros1_found = False
 ros2_found = False
 ros1_supported_versions = []
 ros2_supported_versions = []
+
 try:
     import rospy
     from sensor_msgs.msg import PointCloud2, PointField, LaserScan, Imu
     ros1_found = True
     ros1_supported_versions = [ "noetic" ]
-except ModuleNotFoundError as exc:
+except (ModuleNotFoundError, ImportError) as exc:
     ros1_found = False
 
 try:
@@ -28,7 +29,7 @@ try:
     from sensor_msgs.msg import PointCloud2, PointField, LaserScan, Imu
     ros2_found = True
     ros2_supported_versions = [ "foxy", "humble" ]
-except ModuleNotFoundError as exc:
+except (ModuleNotFoundError, ImportError) as exc:
     ros2_found = False
 
 if not ros2_found:
@@ -299,17 +300,20 @@ class SickScanXdSubscriber(Node):
     def pointcloud_listener_callback(self, msg):
         # print(f"SickScanXdSubscriber.pointcloud_listener_callback: PointCloud2 message = {msg}")
         self.messages_received.append(RefPointcloudMsg(msg))
-        # print(f"SickScanXdSubscriber: {len(self.messages_received)} PointCloud2 messages received")
+        if (len(self.messages_received) % 100) == 0:
+            print(f"SickScanXdSubscriber: {len(self.messages_received)} messages received")
 
     def laserscan_listener_callback(self, msg):
         # print(f"SickScanXdSubscriber.laserscan_listener_callback: LaserScan message = {msg}")
         self.messages_received.append(RefLaserscanMsg(msg))
-        # print(f"SickScanXdSubscriber: {len(self.messages_received)} LaserScan messages received")
+        if (len(self.messages_received) % 100) == 0:
+            print(f"SickScanXdSubscriber: {len(self.messages_received)} messages received")
 
     def imu_listener_callback(self, msg):
         # print(f"SickScanXdSubscriber.imu_listener_callback: Imu message = {msg}")
         self.messages_received.append(RefImuMsg(msg))
-        # print(f"SickScanXdSubscriber: {len(self.messages_received)} Imu messages received")
+        if (len(self.messages_received) % 100) == 0:
+            print(f"SickScanXdSubscriber: {len(self.messages_received)} messages received")
 
     def export_dictionary(self, dict):
         if len(self.messages_received) > 0:
@@ -334,10 +338,13 @@ class SickScanXdMonitor():
             ros_init(os_name = config.os_name, ros_version = config.ros_version, node_name = "sick_scan_xd_simu")
         for topic in config.sick_scan_xd_pointcloud_topics:
             self.pointcloud_subscriber.append(SickScanXdSubscriber(os_name = config.os_name, ros_version = config.ros_version, pointcloud_subscriber_topic = topic))
+            print(f"SickScanXdMonitor: subscribed to topic {topic}")
         for topic in config.sick_scan_xd_laserscan_topics:
             self.laserscan_subscriber.append(SickScanXdSubscriber(os_name = config.os_name, ros_version = config.ros_version, laserscan_subscriber_topic = topic))
+            print(f"SickScanXdMonitor: subscribed to topic {topic}")
         for topic in config.sick_scan_xd_imu_topics:
             self.imu_subscriber.append(SickScanXdSubscriber(os_name = config.os_name, ros_version = config.ros_version, imu_subscriber_topic = topic))
+            print(f"SickScanXdMonitor: subscribed to topic {topic}")
         if run_ros_init and ros2_found and config.ros_version in ros2_supported_versions:
             # see https://answers.ros.org/question/377848/spinning-multiple-nodes-across-multiple-threads/
             self.ros_spin_executor = rclpy.executors.MultiThreadedExecutor()
@@ -349,6 +356,7 @@ class SickScanXdMonitor():
                 self.ros_spin_executor.add_node(node)
             self.ros_spin_thread = threading.Thread(target=self.ros_spin_executor.spin, daemon=True)
             self.ros_spin_thread.start()
+        print(f"SickScanXdMonitor: initialization finished")
 
     def export_received_messages(self):
         self.messages_received["RefLaserscanMsg"] = {}
@@ -364,6 +372,7 @@ class SickScanXdMonitor():
         for subscriber in self.imu_subscriber:
             subscriber.export_dictionary(self.messages_received["RefImuMsg"])
             num_messages += len(subscriber.messages_received)
+        print(f"SickScanXdMonitor.export_received_messages(): {num_messages} received")
         return num_messages, self.messages_received
 
     def export_received_messages_to_jsonfile(self, jsonfile):

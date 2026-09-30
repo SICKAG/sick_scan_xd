@@ -105,11 +105,11 @@ def closeCppfile(cpp_filename):
 
 # Decodes and returns the payload length of a cola message, i.e. returns message_payload_length in a message := { 4 byte STX 0x02020202 } +  { 4 byte message_payload_length } + { message_payload } + { 1 byte CRC }
 def parseColaPayloadLength(payload):
-    length = 0
-    if len(payload) > 9 and payload.startswith(b'\x02\x02\x02\x02'):
-        length = (payload[4] << 24) + (payload[5] << 16) + (payload[6] << 8) + (payload[7] << 0)
-    return length
-
+    if len(payload) > 7 and payload.startswith(b'\x02\x02\x02\x02'):
+        paylength = int.from_bytes(payload[4:8], byteorder='big')        
+        return paylength
+    return 0
+    
 if __name__ == "__main__":
 
     pcap_filename = "example.pcapng"
@@ -151,7 +151,7 @@ if __name__ == "__main__":
                 # Write json file, if payload starts with 0x02020202 (i.e. payload is a lidar message)
                 if start_timestamp < 0:
                     start_timestamp = block.timestamp
-                if isinstance(block_decoded.payload, scapy.packet.Raw) and len(block_decoded.payload) > 0:                
+                if isinstance(block_decoded.payload, scapy.packet.Raw) and len(block_decoded.payload) > 0 and len(block_decoded.payload) < 64000:                
                     payload_chunk = bytes(block_decoded.payload)
                     # Check start resp. continuation of binary messages
                     if payload_chunk.startswith(b'\x02\x02\x02\x02'): # start of a new binary message

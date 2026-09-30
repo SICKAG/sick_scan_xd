@@ -68,6 +68,23 @@
 sick_scan_xd::SickScanServices* s_sopas_service = 0;
 sick_scan_xd::SickScanServices* sick_scansegment_xd::sopasService() { return s_sopas_service; }
 
+// Global pointer to msgpack threads for lifecycle control
+static sick_scansegment_xd::MsgPackThreads* s_msgpack_threads = nullptr;
+
+/*
+ * @brief Stops msgpack threads from external code (e.g., lifecycle node cleanup).
+ * This function can be called to stop the msgpack threads without waiting for them to finish naturally.
+ */
+void sick_scansegment_xd::stopMsgPackThreads()
+{
+    if (s_msgpack_threads)
+    {
+        ROS_INFO_STREAM("sick_scansegment_xd: signaling msgpack threads to stop...");
+        // Just set the flag - don't call stop() or join() as that's handled by the run() function
+        s_msgpack_threads->setRunScansegmentThread(false);
+    }
+}
+
 /*
  * @brief Initializes and runs all threads to receive, convert and publish scan data for the sick 3D lidar multiScan136.
  */
@@ -118,9 +135,11 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     // Run sick_scansegment_xd (msgpack receive, convert and publish)
     ROS_INFO_STREAM("sick_scansegment_xd (" << config.scanner_type << ") started.");
     sick_scansegment_xd::MsgPackThreads msgpack_threads;
+    s_msgpack_threads = &msgpack_threads; // Store global pointer for lifecycle control
     if(!msgpack_threads.start(config))
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::start() failed");
+        s_msgpack_threads = nullptr; // Clear global pointer
         return sick_scan_xd::ExitError;
     }
     // std::cout << "sick_scansegment_xd::run(" << __LINE__ << "): sick_scansegment_xd thread started" << std::endl;
@@ -134,6 +153,7 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
     {
         ROS_ERROR_STREAM("## ERROR sick_scansegment_xd::run(" << config.scanner_type << "): sick_scansegment_xd::MsgPackThreads::stop() failed");
     }
+    s_msgpack_threads = nullptr; // Clear global pointer
     std::cout << "sick_scansegment_xd (" << config.scanner_type << ") finished." << std::endl;
     return sick_scan_xd::ExitSuccess;
 }
@@ -142,8 +162,9 @@ int sick_scansegment_xd::run(rosNodePtr node, const std::string& scannerName)
  * @brief MsgPackThreads constructor
  */
 sick_scansegment_xd::MsgPackThreads::MsgPackThreads()
-: m_scansegment_thread(0), m_run_scansegment_thread(false)
+: m_scansegment_thread(nullptr)
 {
+	setRunScansegmentThread(false);
 }
 
 /*
@@ -160,7 +181,7 @@ sick_scansegment_xd::MsgPackThreads::~MsgPackThreads()
 bool sick_scansegment_xd::MsgPackThreads::start(const sick_scansegment_xd::Config& config)
 {
     m_config = config;
-    m_run_scansegment_thread = true;
+    setRunScansegmentThread(true);
     m_scansegment_thread = new std::thread(&sick_scansegment_xd::MsgPackThreads::runThreadCb, this);
     return true;
 }
@@ -170,7 +191,7 @@ bool sick_scansegment_xd::MsgPackThreads::start(const sick_scansegment_xd::Confi
  */
 bool sick_scansegment_xd::MsgPackThreads::stop(bool do_join)
 {
-    m_run_scansegment_thread = false;
+	setRunScansegmentThread(false);
     if(m_scansegment_thread)
     {
         if (do_join && m_scansegment_thread->joinable()) // std::thread::joinable() is false if std::thread::join finished successfull before
@@ -198,20 +219,20 @@ void sick_scansegment_xd::MsgPackThreads::join(void)
  */
 bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 {
-    ROS_INFO_STREAM("sick_scansegment_xd::runThreadCb() start (" << __LINE__ << "," << (int)m_run_scansegment_thread << "," << (int)rosOk() << ")...");
+    ROS_INFO_STREAM("sick_scansegment_xd::runThreadCb() start (" << __LINE__ << "," << (int)getRunScansegmentThread() << "," << (int)rosOk() << ")...");
     if(!m_config.logfolder.empty() && m_config.logfolder != ".")
     {
         sick_scansegment_xd::MkDir(m_config.logfolder);  // create log folder (if configured)
     }
 
     // (Re-)initialize and run loop
-    while(m_run_scansegment_thread && rosOk())
+    while(getRunScansegmentThread() && rosOk())
     {
         ROS_INFO_STREAM("sick_scansegment_xd initializing...");
 
         // Initialize udp receiver for scan data
         sick_scansegment_xd::UdpReceiver* udp_receiver = 0;
-        while(m_run_scansegment_thread && rosOk() && udp_receiver == 0)
+        while(getRunScansegmentThread() && rosOk() && udp_receiver == 0)
         {
             udp_receiver = new sick_scansegment_xd::UdpReceiver();
             if(udp_receiver->Init(m_config.udp_sender, m_config.udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat, 0))
@@ -229,7 +250,7 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
 
         // Initialize udp receiver for imu data
         sick_scansegment_xd::UdpReceiver* udp_receiver_imu = 0;
-        while(m_run_scansegment_thread && rosOk() && m_config.imu_enable && m_config.scandataformat == SCANDATA_COMPACT && udp_receiver_imu == 0)
+        while(getRunScansegmentThread() && rosOk() && m_config.imu_enable && m_config.scandataformat == SCANDATA_COMPACT && udp_receiver_imu == 0)
         {
             udp_receiver_imu = new sick_scansegment_xd::UdpReceiver();
             if(udp_receiver_imu->Init(m_config.udp_sender, m_config.imu_udp_port, m_config.udp_input_fifolength, m_config.verbose_level > 1, m_config.export_udp_msg, m_config.scandataformat, udp_receiver->Fifo())) // udp receiver for scan and imu data share the same fifo
@@ -341,6 +362,23 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
             }
         }
 
+        if (!sopas_tcp->getListenOnlyMode())
+        {
+            // picoScan150 only: optionally configure compact telegram serialization content
+            // m_config.scanner_type == SICK_SCANNER_PICOSCAN_NAME
+            if ( m_config.host_set_SerializationFilter)
+            {
+                sopas_service->sendAuthorization();//(m_config.client_authorization_pw);
+
+                if (!sopas_service->writePicoScanSerializationFilter(
+                    m_config.host_SerializationFilter))
+                {
+                   ROS_ERROR_STREAM("Failed to apply picoScan150 SerializationFilter");
+                }
+            }
+        }
+
+
         // Initialize msgpack validation
         // sick_scansegment_xd::MsgPackValidator msgpack_validator; // default validator expecting full range (all echos, -PI <= azimuth <= PI, -PI/2 <= elevation <= PI/2, all segments)
         sick_scansegment_xd::MsgPackValidator msgpack_validator = sick_scansegment_xd::MsgPackValidator(m_config.msgpack_validator_filter_settings.msgpack_validator_required_echos,
@@ -381,14 +419,14 @@ bool sick_scansegment_xd::MsgPackThreads::runThreadCb(void)
         s_sopas_service = sopas_service;
         // Wait for first udp message with initial timeout after start in milliseconds, default: 60*1000
         fifo_timestamp fifo_timestamp_start = fifo_clock::now();
-        while(m_run_scansegment_thread && rosOk() && sopas_tcp->isConnected() 
+        while(getRunScansegmentThread() && rosOk() && sopas_tcp->isConnected() 
             && udp_receiver->Fifo()->TotalMessagesPushed() <= 1 
             && udp_receiver->Fifo()->Seconds(fifo_timestamp_start, fifo_clock::now()) <= 1.0e-3 * m_config.udp_timeout_ms_initial)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }    
         // Monitor udp packets with timeout for udp messages in milliseconds, default: 10*1000
-        while(m_run_scansegment_thread && rosOk())
+        while(getRunScansegmentThread() && rosOk())
         {
             if (!sopas_tcp->isConnected())
             {

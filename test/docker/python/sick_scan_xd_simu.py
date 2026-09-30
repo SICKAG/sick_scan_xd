@@ -110,6 +110,7 @@ def simu_main():
             sick_scan_xd_monitor.import_received_messages_from_jsonfile(f"{config.log_folder}/{config.save_messages_jsonfile}")
         else:
             sick_scan_xd_monitor.export_received_messages_to_jsonfile(f"{config.log_folder}/{config.save_messages_jsonfile}")
+            print(f"sick_scan_xd_simu: received messages exported to file {config.log_folder}/{config.save_messages_jsonfile}")
         report.append_file_links(SickScanXdMsgStatus.INFO, "sick_scan_xd_simu: received messages exported to file ", [config.save_messages_jsonfile])
     if len(config.reference_messages_jsonfile) > 0:
         report.append_file_links(SickScanXdMsgStatus.INFO, "sick_scan_xd_simu: references messages from file ", [config.reference_messages_jsonfile])
@@ -152,11 +153,37 @@ def simu_main():
         else:
             status_text = "**TEST FAILED**"
         report_md_filepath = f"{os.path.basename(config.log_folder)}/{config.report_md_filename}"
-        report_html_filepath = f"{report_md_filepath}.html"
-        file_stream.write(f"sick_scan_xd_simu {simu_start_time_str} on {config.os_name}, ROS {config.ros_version}, API {config.api}, {os.path.basename(config.config_file)}: {status_text}, [{report_md_filepath}]({report_md_filepath}), [{report_html_filepath}]({report_html_filepath})\n\n")
+        report_html_filepath = (
+            f"{report_md_filepath}.html"
+        )
+        file_stream.write(
+            f"sick_scan_xd_simu "
+            f"{simu_start_time_str} "
+            f"on {config.os_name}, "
+            f"ROS {config.ros_version}, "
+            f"API {config.api}, "
+            f"{os.path.basename(config.config_file)}: "
+            f"{status_text}, "
+            f"[{report_md_filepath}]"
+            f"({report_md_filepath}), "
+            f"[{report_html_filepath}]"
+            f"({report_html_filepath})\n\n"
+        )
     report.print_messages()
-    shutil.rmtree(config.data_folder, ignore_errors=True)
-    if report.get_exit_status() == SickScanXdStatus.SUCCESS:
+    # shutil.rmtree(
+    #     config.data_folder,
+    #     ignore_errors=True
+    # )
+    print(
+        "[INFO] You can remove the folder if the "
+        "latest local changes have already been "
+        "integrated into data.zip. Automatic removal "
+        "is currently disabled."
+    )
+    if (
+        report.get_exit_status()
+        == SickScanXdStatus.SUCCESS
+    ):
         return 0 # 0 = success, otherwise error
     else:
         return 1

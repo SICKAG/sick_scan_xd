@@ -233,7 +233,7 @@ namespace sick_scansegment_xd
          * @brief Counter for each message (each scandata decoded from msgpack data)
          */
         static int messageCount;
-        static int telegramCount;
+        static uint64_t telegramCount;
 
 	};  // class MsgPackParser
 

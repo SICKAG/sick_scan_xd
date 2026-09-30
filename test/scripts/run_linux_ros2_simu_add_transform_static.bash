@@ -42,7 +42,9 @@ function run_simu_tim7xx()
 simu_killall
 printf "\033c"
 pushd ../../../..
-if   [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; export QT_QPA_PLATFORM=xcb
+if   [ -f /opt/ros/lyrical/setup.bash  ] ; then source /opt/ros/lyrical/setup.bash ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/kilted/setup.bash   ] ; then source /opt/ros/kilted/setup.bash ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; export QT_QPA_PLATFORM=xcb
 elif [ -f /opt/ros/humble/setup.bash   ] ; then source /opt/ros/humble/setup.bash
 elif [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash
 elif [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash

@@ -2,8 +2,18 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-3.9.0-alpha1 (2026-01-14)
--------------------------
+
+3.10.0-alpha1 (2026-09-29)
+--------------------------
+  * add: Support for ROS2 Lyrical
+  * add: Contribution made by Boopesh Eswaran <boopesh.mc@gmail.com>: Optional ROS 2 Lifecycle Node support (Managed Nodes). Original PR: https://github.com/SICKAG/sick_scan_xd/pull/552
+  * update: README.md with Lifecycle Node support
+  * update: Relocated m_run_scansegment_thread to public for external signaling
+  * fix: Resolved shutdown deadlock in scansegment_xd (picoScan/multiScan) via asynchronous signaling
+  * fix: Added preprocessor guards for ROS 1 compatibility in lifecycle headers
+
+3.9.0 (2026-01-14)
+------------------
   * add: Support for multiScan165
   * add: Integration of `layer_lookup_table_id` in the launch file to configure laser scan filtering
   * add: Listen-only mode support for multiScan and picoScan to avoid TCP/IP traffic

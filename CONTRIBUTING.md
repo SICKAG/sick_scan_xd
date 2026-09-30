@@ -90,12 +90,13 @@ of this file.
 
 Summary of bloom release build:
 
-* Update release repositories for rosdistros humble, jazzy and kilted with `bloom-release` on Linux:
+* Update release repositories for rosdistros humble, jazzy, kilted and lyrical with `bloom-release` on Linux:
    ```
    cd /tmp
    bloom-release --rosdistro humble  -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
    bloom-release --rosdistro jazzy   -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
    bloom-release --rosdistro kilted  -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
+   bloom-release --rosdistro lyrical -d sick_scan_xd # update release repository https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
    ```
    Confirm "push to release" and "open pull request" with Y.
    If `bloom-release` is not installed, then install it by `sudo apt-get install python-bloom`.
@@ -107,6 +108,7 @@ Summary of bloom release build:
    * ROS 2 humble jenkins build status: https://build.ros2.org/job/Hdev__sick_scan_xd__ubuntu_jammy_amd64/lastBuild/
    * ROS 2 jazzy  jenkins build status: https://build.ros2.org/job/Jdev__sick_scan_xd__ubuntu_noble_amd64/lastBuild/
    * ROS 2 kilted jenkins build status: https://build.ros2.org/job/Kdev__sick_scan_xd__ubuntu_noble_amd64/lastBuild/
+   * ROS 2 lyrical jenkins build status: [https://build.ros2.org/search/?q=sick_scan_xd](https://build.ros2.org/search/?q=sick_scan_xd)
 
 * Check apt version after 4-6 weeks with `sudo apt show ros-<distro>-sick-scan-xd`:
    ```
@@ -116,6 +118,7 @@ Summary of bloom release build:
    sudo apt show ros-humble-sick-scan-xd
    sudo apt show ros-jazzy-sick-scan-xd
    sudo apt show ros-kilted-sick-scan-xd
+   sudo apt show ros-lyrical-sick-scan-xd
    ```
 
 ## First time installation of toolchain
@@ -203,14 +206,16 @@ Summary of bloom release build:
     * git push: `git push origin master`
     * Submit a pull request on `https://github.com/<username>/rosdistro`
 	
-### 4. For ROS 2 Jazzy
+### 4. For ROS 2 Jazzy and newer distributions (Kilted, Lyrical)
 
-Follow the official guide:  
-https://docs.ros.org/en/jazzy/How-To-Guides/Releasing/Releasing-a-Package.html
+Follow the official ROS 2 release guide for the target distribution. For the current LTS release Lyrical, see:  
+https://docs.ros.org/en/lyrical/How-To-Guides/Releasing/  
 
-**_NOTE:_** Bloom releases for older ROS 2 distributions like Foxy and Iron are no longer supported (End Of Life).
+ROS 2 Lyrical Luth was released in May 2026, is an LTS distribution supported until May 2031, and targets Ubuntu 26.04 (Resolute). The same bloom/rosdistro workflow described below for Jazzy applies conceptually; replace the distro name and target distribution file as appropriate.
 
-### Submit package `sick_scan_xd` for indexing (ROS 2 jazzy)
+**_NOTE:_** Bloom releases for older ROS 2 distributions like Foxy and Iron are no longer supported (End Of Life). Lyrical is the current ROS 2 LTS release; Kilted and Jazzy remain relevant older supported releases according to their lifecycle.
+
+### Submit package `sick_scan_xd` for indexing (ROS 2 Jazzy / Kilted / Lyrical)
 
 - Reset fork  
   https://github.com/<username>/rosdistro.git  
@@ -223,7 +228,8 @@ https://docs.ros.org/en/jazzy/How-To-Guides/Releasing/Releasing-a-Package.html
 
 - Edit file:
   ```
-  rosdistro/jazzy/distribution.yaml
+  rosdistro/<distro>/distribution.yaml
+  # e.g. rosdistro/lyrical/distribution.yaml
   ```
 
 - Add the following entry (e.g. after `sick_safevisionary_ros2`):
@@ -239,7 +245,7 @@ https://docs.ros.org/en/jazzy/How-To-Guides/Releasing/Releasing-a-Package.html
 
 - Commit and push:
   ```
-  git commit -m "Adding sick_scan_xd to documentation index for distro jazzy"
+  git commit -m "Adding sick_scan_xd to documentation index for distro <distro>"
   git push
   ```
 
@@ -249,7 +255,8 @@ https://docs.ros.org/en/jazzy/How-To-Guides/Releasing/Releasing-a-Package.html
   ```
 
 ### Notes
-- Repeat this step only for actively supported distros, e.g. Humble and Jazzy
+- Repeat this step only for actively supported distros, currently including Humble, Jazzy, Kilted and Lyrical as applicable
+- Lyrical Luth is the current LTS release (May 2026, supported until May 2031)
 - Drop references to EOL distros like Iron
 
 ### Release team (unchanged)
@@ -318,7 +325,7 @@ https://docs.ros.org/en/jazzy/How-To-Guides/Releasing/Releasing-a-Package.html
 
 ## Release build for ROS 2
 
-For ROS 2 follow the instructions on https://docs.ros.org/en/jazzy/How-To-Guides/Releasing/Releasing-a-Package.html :
+For ROS 2 follow the release instructions for the target distribution. For Lyrical, see https://docs.ros.org/en/lyrical/How-To-Guides/Releasing/ . The examples below use Jazzy; for Lyrical replace `jazzy` with `lyrical`.
 * Checkout the sick_scan_xd version to be released and run:
 
     ```
@@ -339,17 +346,20 @@ For ROS 2 follow the instructions on https://docs.ros.org/en/jazzy/How-To-Guides
 * Run `catkin_prepare_release` and `bloom-release`:
 
     ```
-    bloom-release --rosdistro jazzy --track jazzy sick_scan_xd # at first time: call with option --new-track
+    bloom-release --rosdistro jazzy --track jazzy sick_scan_xd # Jazzy
+    bloom-release --rosdistro lyrical --track lyrical sick_scan_xd # Lyrical; at first time call with option --new-track
     ```
 
     For the initial release (i.e. at the first time) of a new ROS 2 version: Run bloom-release configuration with option `--new-track`:
     `bloom-release --new-track --rosdistro jazzy --track jazzy sick_scan_xd`
     
+    For Lyrical use `bloom-release --new-track --rosdistro lyrical --track lyrical sick_scan_xd`.
+    
     * Release repository url: https://github.com/ros2-gbp/sick_scan_xd-release.git
     * Upstream: <default>
     * Upstream Repository URI: https://github.com/SICKAG/sick_scan_xd.git
     * Upstream Devel Branch: develop
-    * ROS Distro: jazzy
+    * ROS Distro: jazzy (or `lyrical` for Lyrical)
 
     After the initial release has been approved: Run
     
@@ -396,7 +406,7 @@ This confirms that the release version is registered.
 After the PR has been merged, the buildfarm starts compiling the binary packages.
 
 Open:
-https://build.ros.org/
+https://build.ros2.org/ 
 
 Search for jobs like:
 ```
@@ -450,6 +460,7 @@ Jenkins build status:
 * ROS 2 humble jenkins build status: https://build.ros2.org/job/Hdev__sick_scan_xd__ubuntu_jammy_amd64/lastBuild/
 * ROS 2 jazzy  jenkins build status: https://build.ros2.org/job/Jbin_uN64__sick_scan_xd__ubuntu_noble_amd64__binary/lastBuild/
 * ROS 2 kilted jenkins build status: https://build.ros2.org/job/Kdev__sick_scan_xd__ubuntu_noble_amd64/lastBuild/
+- ROS 2 lyrical jenkins build status: [https://build.ros2.org/search/?q=sick_scan_xd](https://build.ros2.org/search/?q=sick_scan_xd)
 * ROS 1 jenkins: https://build.ros.org/search/?q=sick_scan_xd
 * ROS 2 jenkins: https://build.ros2.org/search/?q=sick_scan_xd
 
@@ -465,6 +476,7 @@ sudo apt show ros-noetic-sick-scan-xd
 sudo apt show ros-humble-sick-scan-xd
 sudo apt show ros-jazzy-sick-scan-xd
 sudo apt show ros-kilted-sick-scan-xd
+sudo apt show ros-lyrical-sick-scan-xd
 ```
 
 Installation of prebuilt binaries:
@@ -505,6 +517,7 @@ Check `devel_branch` in https://github.com/ros2-gbp/sick_scan_xd-release/blob/ma
         bloom-release --rosdistro humble -d sick_scan_xd # release repository: https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
         bloom-release --rosdistro jazzy  -d sick_scan_xd # release repository: https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
         bloom-release --rosdistro kilted -d sick_scan_xd # release repository: https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
+        bloom-release --rosdistro lyrical -d sick_scan_xd # release repository: https://github.com/ros2-gbp/sick_scan_xd-release.git, argument -d enables debug infos
         ```
   * In case of GitHub 2FA errors: Follow http://wiki.ros.org/bloom/Tutorials/GithubManualAuthorization to create a 2FA token and configure the token in file `~/.config/bloom`.
   * Note: Updates of release repository https://github.com/SICKAG/sick_scan_xd-release.git require GitHub authentication via SSH. See https://docs.github.com/en/authentication/connecting-to-github-with-ssh and https://wiki.ros.org/bloom/Tutorials/GithubManualAuthorization for details.
@@ -616,6 +629,15 @@ Further examples are provided in folder `test/scripts`.
 
 # Docker testing
 
+## Introduction
+
+A comprehensive description of the Docker tests can be found in the document
+[`test/docker/docker.md`](test/docker/docker.md).
+
+Since segment-based LiDARs additionally require preprocessing of UDP data,
+this workflow is described separately in
+[`test/docker/docker_multiscan.md`](test/docker/docker_multiscan.md).
+
 ## Docker on Linux
 
 Run the following steps to install and run docker on Linux:
@@ -661,7 +683,7 @@ Create a workspace folder (e.g. sick_scan_ws or any other name) and clone the si
 ```
 mkdir -p ./sick_scan_ws/src
 cd ./sick_scan_ws/src
-git clone -b develop https://github.com/SICKAG/sick_scan_xd.git```
+git clone -b develop https://github.com/SICKAG/sick_scan_xd.git
 ```
 
 Build and run all sick_scan_xd docker images and tests:
@@ -1000,11 +1022,11 @@ Run the following steps to prepare scan data for sick_scan_xd testing:
 2. For multiScan100 and picoScan100: Play the pcapng-file for a short time (e.g. 1 second) using [multiscan_pcap_player.py](test/docker/python/multiscan_pcap_player.py) and save UDP packets in a json file.
    Example to convert the recorded pcapng-file `20231009-multiscan-compact-imu-01.pcapng` to json-file `multiscan_compact_test01_udp_scandata.json`:
    ```
-   python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231009-multiscan-compact-imu-01.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim --max_seconds=1 --save_udp_jsonfile=./src/sick_scan_xd/test/docker/data/multiscan_compact_test01_udp_scandata.json
+   python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20231009-multiscan-compact-imu-01.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_data --max_seconds=1 --save_udp_jsonfile=./src/sick_scan_xd/test/docker/data/multiscan_compact_test01_udp_scandata.json
    ```
    Example to convert the recorded pcapng-file `20230911-picoscan-compact.pcapng` to json-file `picoscan_compact_test01_udp_scandata.json`:
    ```
-   python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230911-picoscan-compact.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_hildesheim --max_seconds=1 --save_udp_jsonfile=./src/sick_scan_xd/test/docker/data/picoscan_compact_test01_udp_scandata.json
+   python3 ./src/sick_scan_xd/test/python/multiscan_pcap_player.py --pcap_filename=./src/sick_scan_xd/test/emulator/scandata/20230911-picoscan-compact.pcapng --udp_port=-1 --repeat=1 --verbose=0 --filter=pcap_filter_multiscan_data --max_seconds=1 --save_udp_jsonfile=./src/sick_scan_xd/test/docker/data/picoscan_compact_test01_udp_scandata.json
    ```
 3. For lidars using SOPAS LMDscandata over TCP (e.g. MRS1000): Convert the pcapng-file to json file with [pcap_json_converter.py](test/docker/pcap_json_converter/pcap_json_converter.py).
    Example for MRS1000:

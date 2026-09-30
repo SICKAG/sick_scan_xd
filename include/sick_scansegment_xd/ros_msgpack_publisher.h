@@ -236,13 +236,13 @@ namespace sick_scansegment_xd
         class SegmentPointsCollector
         {
         public:
-            SegmentPointsCollector(int telegram_idx = 0) : timestamp_sec(0), timestamp_nsec(0), telegram_cnt(telegram_idx), min_azimuth(0), max_azimuth(0), total_point_count(0), lidar_timestamp_start_microsec(0), lidar_timestamp_stop_microsec(0), lidar_points()
+            SegmentPointsCollector(uint64_t telegram_idx = 0) : timestamp_sec(0), timestamp_nsec(0), telegram_cnt(telegram_idx), min_azimuth(0), max_azimuth(0), total_point_count(0), lidar_timestamp_start_microsec(0), lidar_timestamp_stop_microsec(0), lidar_points()
             {
                 segment_list.reserve(12);
                 telegram_list.reserve(12);
                 segment_coverage.clear();
             }
-            void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& points, int32_t segment_idx, int32_t telegram_cnt)
+            void appendLidarPoints(const std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>>& points, int32_t segment_idx, uint64_t telegram_cnt)
             {
                 for (int echoIdx = 0; echoIdx < points.size() && echoIdx < lidar_points.size(); echoIdx++)
                 {
@@ -350,7 +350,7 @@ namespace sick_scansegment_xd
             uint32_t timestamp_sec;   // seconds part of timestamp of the first segment (system time)
             uint32_t timestamp_nsec;  // nanoseconds part of timestamp of the first segment (system time)
             // int32_t segment_count; // number of segments collected
-            int32_t telegram_cnt;     // telegram counter (must be continuously incremented) 
+            uint64_t telegram_cnt;     // telegram counter (must be continuously incremented) 
             float min_azimuth;        // min azimuth of all points in radians
             float max_azimuth;        // max azimuth of all points in radians
             size_t total_point_count; // total number of points in all segments
@@ -358,7 +358,7 @@ namespace sick_scansegment_xd
             uint64_t lidar_timestamp_stop_microsec;  // lidar stop timestamp in microseconds
             std::vector<std::vector<sick_scansegment_xd::PointXYZRAEI32f>> lidar_points; // list of PointXYZRAEI32f: lidar_points[echoIdx] are the points of all segments of an echo (idx echoIdx)
             std::vector<int32_t> segment_list; // list of all collected segment indices
-            std::vector<int32_t> telegram_list; // list of all collected telegram counters
+            std::vector<uint64_t> telegram_list; // list of all collected telegram counters
             std::map<int, std::map<int, int>> segment_coverage; // (elevation,azimuth) histogram: segment_coverage[elevation][azimuth] > 0: elevation in mdeg and azimuth in deg covered (otherwise no hits)
         };
 

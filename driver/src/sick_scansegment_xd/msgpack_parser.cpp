@@ -96,7 +96,7 @@ static float normalizeAngle(float angle_rad)
   * @brief Counter for each message (each scandata decoded from msgpack data)
   */
 int sick_scansegment_xd::MsgPackParser::messageCount = 0;
-int sick_scansegment_xd::MsgPackParser::telegramCount = 0;
+uint64_t sick_scansegment_xd::MsgPackParser::telegramCount = 0;
 
 /*
  * @brief Returns the tokenized integer of a msgpack key.
@@ -549,7 +549,7 @@ bool sick_scansegment_xd::MsgPackParser::Parse(std::istream& msgpack_istream, fi
 	result.timestamp_sec = systemtime_sec;
 	result.timestamp_nsec = systemtime_nsec;
 	int32_t segment_idx = messageCount++; // default value: counter for each message (each scandata decoded from msgpack data), overwritten by msgpack data
-	int32_t telegram_cnt = telegramCount++; // default value: counter for each message (each scandata decoded from msgpack data), overwritten by msgpack data
+	uint64_t telegram_cnt = telegramCount++; // default value: counter for each message (each scandata decoded from msgpack data), overwritten by msgpack data
 	msgpack11::MsgPack msg_unpacked;
 	try
 	{

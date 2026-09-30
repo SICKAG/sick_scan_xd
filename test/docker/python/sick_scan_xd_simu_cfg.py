@@ -21,7 +21,13 @@ class SickScanXdSimuConfig:
             os_name = "windows"
         self.data_zip = "./src/sick_scan_xd/test/docker/data.zip"
         self.data_folder = "./src/sick_scan_xd/test/docker/data"
-        shutil.unpack_archive(self.data_zip, self.data_folder)
+        if not os.path.exists(self.data_folder):
+            os.makedirs(self.data_folder, exist_ok=True)
+            print(f"[INFO] Extracting archive '{self.data_zip}' to '{self.data_folder}' ...")
+            shutil.unpack_archive(self.data_zip, self.data_folder)
+            print("[OK] Archive extracted successfully.")
+        else:
+            print(f"[INFO] Target folder '{self.data_folder}' already exists. Skipping extraction.")
         self.config_file = f"{self.data_folder}/multiscan_compact_test01_cfg.json"
         self.log_folder = f"./log/sick_scan_xd_simu/{simu_start_time.strftime('%Y%m%d_%H%M%S')}"
         parser = argparse.ArgumentParser(description="Run a sick_scan_xd simulation")

@@ -972,7 +972,8 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
     result.scandata.clear();
     result.imudata = segment_data.segmentHeader.imudata;
     result.segmentIndex = 0;
-    result.telegramCnt = static_cast<int>(segmentHeader.telegramCounter);
+    result.telegramCnt =  segmentHeader.telegramCounter;
+
     for (int module_idx = 0; module_idx < segment_data.segmentModules.size(); module_idx++)
     {
         sick_scansegment_xd::CompactModuleMetaData& moduleMetadata = segment_data.segmentModules[module_idx].moduleMetadata;
@@ -1080,7 +1081,7 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
         auto timepoint_seconds =
           std::chrono::time_point_cast<std::chrono::seconds>(system_timestamp);
 
-        // Remaining fractional part in nanoseconds (range: 0 … 999,999,999)
+        // Remaining fractional part in nanoseconds (range: 0 ï¿½ 999,999,999)
         auto remainder_nanoseconds =
           std::chrono::duration_cast<std::chrono::nanoseconds>(system_timestamp - timepoint_seconds);
 

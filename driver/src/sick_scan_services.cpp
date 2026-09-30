@@ -1,8 +1,8 @@
 /*
  * @brief Implementation of ROS services for sick_scan
  *
- * Copyright (C) 2021, Ing.-Buero Dr. Michael Lehning, Hildesheim
- * Copyright (C) 2021, SICK AG, Waldkirch
+ * Copyright (C) 2021..2026, Ing.-Buero Dr. Michael Lehning, Hildesheim
+ * Copyright (C) 2021..2026, SICK AG, Waldkirch
  * All rights reserved.
  *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -362,8 +362,8 @@ bool sick_scan_xd::SickScanServices::serviceCbGetContaminationData(sick_scan_srv
     }
   }
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
-  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\""
-    << " (response.success=" << (int)(service_response.success) << ", response.data=" << DataDumper::binDataToAsciiString(service_response.data.data(), service_response.data.size()) << ")");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), (int)sopasReplyBin.size()) << "\""
+    << " (response.success=" << (int)(service_response.success) << ", response.data=" << DataDumper::binDataToAsciiString(service_response.data.data(), (int)service_response.data.size()) << ")");
 
   return true;
 }
@@ -410,7 +410,7 @@ bool sick_scan_xd::SickScanServices::serviceCbGetContaminationResult(sick_scan_s
     }
   }
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
-  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\""
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), (int)sopasReplyBin.size()) << "\""
     << " (response.success=" << (int)(service_response.success) << ", response.warning=" << (int)(service_response.warning) << ", response.error=" << (int)(service_response.error) << ")");
 
   return true;
@@ -769,7 +769,7 @@ std::string sick_scan_xd::SickScanServices::convertFloatToHexString(float value,
 float sick_scan_xd::SickScanServices::convertHexStringToAngleDeg(const std::string& hex_str, bool hexStrIsBigEndian)
 {
   char hex_str_8byte[9] = "00000000";
-  for(int m=7,n=hex_str.size()-1; n >= 0; m--,n--)
+  for(int m=7,n=(int)hex_str.size()-1; n >= 0; m--,n--)
     hex_str_8byte[m] = hex_str[n]; // fill with leading '0'
   FLOAT_BYTE32_UNION hex_buffer;
   if(hexStrIsBigEndian)
@@ -958,10 +958,19 @@ bool sick_scan_xd::SickScanServices::queryMultiScanFiltersettings(int& host_FREc
   }
   if(multiscan_angles_deg.size() == 4) // otherwise LFPangleRangeFilter disabled (-> use configured default values)
   {
-    msgpack_validator_filter_settings.msgpack_validator_azimuth_start = (multiscan_angles_deg[0] * M_PI / 180);
-    msgpack_validator_filter_settings.msgpack_validator_azimuth_end = (multiscan_angles_deg[1] * M_PI / 180);
-    msgpack_validator_filter_settings.msgpack_validator_elevation_start = (multiscan_angles_deg[2] * M_PI / 180);
-    msgpack_validator_filter_settings.msgpack_validator_elevation_end = (multiscan_angles_deg[3] * M_PI / 180);
+    constexpr float DEG2RAD = static_cast<float>(M_PI / 180.0);
+
+    msgpack_validator_filter_settings.msgpack_validator_azimuth_start =
+      static_cast<float>(multiscan_angles_deg[0]) * DEG2RAD;
+
+    msgpack_validator_filter_settings.msgpack_validator_azimuth_end =
+      static_cast<float>(multiscan_angles_deg[1]) * DEG2RAD;
+
+    msgpack_validator_filter_settings.msgpack_validator_elevation_start =
+      static_cast<float>(multiscan_angles_deg[2]) * DEG2RAD;
+
+    msgpack_validator_filter_settings.msgpack_validator_elevation_end =
+      static_cast<float>(multiscan_angles_deg[3]) * DEG2RAD;
   }
   if(layer_active_vector.size() == 16)  // otherwise LFPlayerFilter disabled (-> use configured default values)
   {
@@ -1075,6 +1084,92 @@ bool sick_scan_xd::SickScanServices::writeMultiScanFiltersettings(int host_FREch
   }
   return true;
 }
+
+/*!
+* Sends the picoScan150 SOPAS command
+* "sWN compactTelegramType1Content <RSSI> <Properties>"
+* to configure compact telegram serialization content.
+*
+* Format:
+*   "<Serialization RSSI> <Serialization Properties>"
+*
+* Both entries are boolean switches:
+*   0 = disabled
+*   1 = enabled
+*
+* Examples:
+*   "1 1" -> enable RSSI and Properties
+*   "1 0" -> enable RSSI only
+*   "0 0" -> disable both
+*
+* These settings correspond to the SOPAS Web UI:
+*   Application -> Data output -> Measurement data output
+*   - Serialization RSSI
+*   - Serialization Properties
+*
+* @param[in] serialization_filter
+*   Serialization filter setting in format:
+*     "<Serialization RSSI> <Serialization Properties>"
+*
+* @return true on success, otherwise false.
+*/
+bool sick_scan_xd::SickScanServices::writePicoScanSerializationFilter(const std::string& serialization_filter)
+{
+  std::stringstream parser(serialization_filter);
+
+  int serialization_rssi = -1;
+  int serialization_properties = -1;
+
+  parser >> serialization_rssi >> serialization_properties;
+
+  if (!parser ||
+    (serialization_rssi != 0 && serialization_rssi != 1) ||
+    (serialization_properties != 0 && serialization_properties != 1))
+  {
+    ROS_ERROR_STREAM("Invalid host_SerializationFilter=\"" << serialization_filter
+      << "\". Expected \"<Serialization RSSI> <Serialization Properties>\" "
+      << "with boolean values 0 or 1.");
+    return false;
+  }
+
+
+  std::stringstream cola_cmd;
+
+  // Use '\x02' and '\x03' for STX/ETX, not "\0x02"
+  cola_cmd << "\x02sWN compactTelegramType1Content "
+    << serialization_rssi << " "
+    << serialization_properties
+    << "\x03";
+
+  // Create readable string without STX (0x02) and ETX (0x03)
+  std::string cola_cmd_info = cola_cmd.str();
+
+  cola_cmd_info.erase(
+    std::remove(cola_cmd_info.begin(), cola_cmd_info.end(), '\x02'),
+    cola_cmd_info.end());
+
+  cola_cmd_info.erase(
+    std::remove(cola_cmd_info.begin(), cola_cmd_info.end(), '\x03'),
+    cola_cmd_info.end());
+
+  ROS_INFO_STREAM("Setting picoScan150 serialization filter: " << cola_cmd_info);
+
+  std::vector<unsigned char> sopas_response;
+  std::string cola_cmd_str = cola_cmd.str();
+  int ret_code = m_common_tcp->sendSopasAndCheckAnswer(
+    cola_cmd_str,
+    &sopas_response,
+    static_cast<int>(cola_cmd_str.length()));
+
+  if (ret_code != 0)
+  {
+    ROS_ERROR_STREAM("Failed to set picoScan150 serialization filter with command: "
+      << cola_cmd.str());
+    return false;
+  }
+
+  return true;
+}
 #endif // SCANSEGMENT_XD_SUPPORT
 
 /*!
@@ -1108,7 +1203,7 @@ bool sick_scan_xd::SickScanServices::serviceCbSCdevicestate(sick_scan_srv::SCdev
     service_response.state = state_byte;
   }
   ROS_INFO_STREAM("SickScanServices: request: \"" << sopasCmd << "\"");
-  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), sopasReplyBin.size()) << "\"");
+  ROS_INFO_STREAM("SickScanServices: response: \"" << sopasReplyString << "\" = \"" << DataDumper::binDataToAsciiString(sopasReplyBin.data(), (int)sopasReplyBin.size()) << "\"");
 
   return true;
 }
