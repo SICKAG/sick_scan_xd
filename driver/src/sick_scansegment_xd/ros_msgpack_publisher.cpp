@@ -1032,7 +1032,7 @@ void sick_scansegment_xd::RosMsgpackPublisher::HandleMsgPackData(const sick_scan
 	size_t point_count_per_echo = 0; // number of points per echo
 	size_t total_point_count = 0;    // total number of points in all echos
 	int32_t segment_idx = msgpack_data.segmentIndex;
-	int32_t telegram_cnt = msgpack_data.telegramCnt;
+	uint64_t telegram_cnt = msgpack_data.telegramCnt;
 	for (int groupIdx = 0; groupIdx < msgpack_data.scandata.size(); groupIdx++)
 	{
 		echo_count = std::max(msgpack_data.scandata[groupIdx].scanlines.size(), echo_count);
