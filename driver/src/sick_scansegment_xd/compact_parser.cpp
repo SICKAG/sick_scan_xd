@@ -972,13 +972,7 @@ bool sick_scansegment_xd::CompactDataParser::Parse(const ScanSegmentParserConfig
     result.scandata.clear();
     result.imudata = segment_data.segmentHeader.imudata;
     result.segmentIndex = 0;
-    // result.telegramCnt =  segmentHeader.telegramCounter + 2147483647;
-    result.telegramCnt =  segmentHeader.telegramCounter + 0;
-    if (result.telegramCnt % 1000 == 0)
-    {
-        ROS_INFO_STREAM("CompactDataParser::Parse(): telegramCnt=" << result.telegramCnt << ", segmentIndex=" << result.segmentIndex);
-    }
-    
+    result.telegramCnt =  segmentHeader.telegramCounter;
 
     for (int module_idx = 0; module_idx < segment_data.segmentModules.size(); module_idx++)
     {
