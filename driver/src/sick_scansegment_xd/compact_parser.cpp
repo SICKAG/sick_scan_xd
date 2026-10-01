@@ -114,22 +114,22 @@ static inline float readFloat32(const uint8_t* scandata, uint32_t* byte_cnt)
     return buffer.f32_val[0];
 #endif
 }
+
 /**
- * @brief Checks whether reading additional bytes would exceed the buffer bounds.
- *
- * Uses subtraction instead of addition to prevent integer overflow when
- * calculating the required buffer size.
- *
- * @param[in] current_offset Current byte offset within the buffer.
- * @param[in] bytes_to_read Number of additional bytes to read.
- * @param[in] buffer_size Total number of bytes available in the buffer.
- * @return true if the requested read exceeds the buffer bounds, false otherwise.
- */
-static inline bool endOfBuffer(uint32_t current_offset, size_t bytes_to_read, uint32_t buffer_size)
+  * @brief Checks whether reading additional bytes would exceed the buffer bounds.
+  *
+  * Uses subtraction instead of addition to prevent integer overflow when
+  * calculating the required buffer size.
+  *
+  * @param[in] current_offset Current byte offset within the buffer.
+  * @param[in] bytes_to_read Number of additional bytes to read.
+  * @param[in] buffer_size Total number of bytes available in the buffer.
+  * @return true if the requested read exceeds the buffer bounds, false otherwise.
+  */
+static inline bool endOfBuffer(size_t current_offset, size_t bytes_to_read, size_t buffer_size)
 {
   return (current_offset > buffer_size || bytes_to_read > buffer_size - current_offset);
 }
-
 static void print_warning(const std::string& err_msg, int line_number, double print_rate = 1)
 {
   static std::map<int, std::chrono::system_clock::time_point> last_error_printed;
@@ -848,7 +848,8 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
     bool success = true;
     while (module_size > 0)
     {
-        if (module_offset +  module_size > bytes_received)
+        // Check that the complete module is within the received buffer without risking integer overflow.
+        if (endOfBuffer(module_offset, module_size, bytes_received))
         {
             if (verbose > 0)
             {
