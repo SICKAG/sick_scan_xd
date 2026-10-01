@@ -727,7 +727,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
         {
           if (beam_prop_available)
           {
-            if (byte_cnt + sizeof(uint8_t) > num_bytes)
+            if (endOfBuffer(byte_cnt, sizeof(uint8_t), num_bytes))
             {
               ROS_ERROR_STREAM("## ERROR CompactDataParser::ParseModuleMeasurementData(" << __LINE__ << "): byte_cnt=" << byte_cnt << ", num_bytes=" << num_bytes << ", layer " << layer_idx << " of " << num_layers
                 << ", point " << point_idx << " of " << meta_data.NumberOfBeamsPerScan);
