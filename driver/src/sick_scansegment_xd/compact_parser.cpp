@@ -335,7 +335,8 @@ sick_scansegment_xd::CompactDataHeader sick_scansegment_xd::CompactDataParser::P
 */
 sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParser::ParseModuleMetaData(const uint8_t* scandata, uint32_t module_size, uint32_t telegramVersion, uint32_t& module_metadata_size)
 {
-    uint32_t byte_cnt = 0, byte_required = 0;
+    uint32_t byte_cnt = 0;
+    uint64_t byte_required = 0;
     sick_scansegment_xd::CompactModuleMetaData metadata;
     // metadata.valid flag is false and becomes true after successful parsing
     module_metadata_size = 0;
