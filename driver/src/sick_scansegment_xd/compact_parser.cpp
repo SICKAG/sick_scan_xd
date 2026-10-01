@@ -146,15 +146,21 @@ static void print_warning(const std::string& err_msg, int line_number, double pr
   error_cnt[line_number] += 1;
 }
 
-#define CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, bytes_to_read, module_size, name, line_number) \
-if (((byte_required) = (byte_cnt) + (bytes_to_read)) > (module_size))                                       \
-{                                                                                                           \
-    std::stringstream err_msg;                                                                              \
-    err_msg << "## WARNING CompactDataParser::ParseModuleMetaData(): module_size=" << (module_size) << ", "   \
-        << (byte_required) << " bytes required to read " << (name);                                         \
-    print_warning(err_msg.str(), line_number);                                                                \
-    return (metadata);                                                                                      \
-}
+#define CHECK_MODULE_SIZE(metadata, required_end_offset, current_offset, bytes_to_read, module_size, field_name, line_number) \
+do                                                                                                                          \
+{                                                                                                                           \
+    (required_end_offset) = static_cast<uint64_t>(current_offset) + static_cast<uint64_t>(bytes_to_read);                    \
+    if ((current_offset) > (module_size) || (bytes_to_read) > (module_size) - (current_offset))                              \
+    {                                                                                                                       \
+        std::stringstream err_msg;                                                                                          \
+        err_msg << "## WARNING CompactDataParser::ParseModuleMetaData(): module_size=" << (module_size) << ", "              \
+            << (required_end_offset) << " bytes required to read " << (field_name);                                         \
+        print_warning(err_msg.str(), line_number);                                                                          \
+        return (metadata);                                                                                                  \
+    }                                                                                                                       \
+} while (0)
+
+
 
 /** returns a human readable description of the imu  data */
 std::string sick_scansegment_xd::CompactImuData::to_string() const
