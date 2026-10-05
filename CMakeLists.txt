@@ -90,12 +90,12 @@ if(BUILD_LIB_HIDE_FUNCTIONS AND NOT WIN32)
 endif()
 
 # Switch on, if you use c11-specific commands
-if(NOT WIN32)
+if(NOT WIN32 AND NOT APPLE)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow -fno-var-tracking-assignments")
 endif()
 
-# Option SICK_TARGET_ENDIANESS sets the endianess of the cmake target to build sick_scan_xd (default is little endian).
-# The target endianess can be set either to little endian by cmake option "-DSICK_TARGET_ENDIANESS=1",
+# Option SICK_TARGET_ENDIANESS sets the endianness of the cmake target to build sick_scan_xd (default is little endian).
+# The target endianness can be set either to little endian by cmake option "-DSICK_TARGET_ENDIANESS=1",
 # or to big endian by cmake option "-DSICK_TARGET_ENDIANESS=2"
 # Since LITTLE_ENDIAN and BIG_ENDIAN might already be defined differently on a system or in a 3rd party headerfile,
 # SICK_TARGET_ENDIANESS, SICK_LITTLE_ENDIAN and SICK_BIG_ENDIAN are used to avoid conflicts
