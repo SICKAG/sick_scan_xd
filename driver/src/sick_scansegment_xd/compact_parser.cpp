@@ -115,11 +115,21 @@ static inline float readFloat32(const uint8_t* scandata, uint32_t* byte_cnt)
 #endif
 }
 
-static inline bool endOfBuffer(uint32_t byte_cnt, size_t bytes_to_read, uint32_t num_bytes)
+/**
+  * @brief Checks whether reading additional bytes would exceed the buffer bounds.
+  *
+  * Uses subtraction instead of addition to prevent integer overflow when
+  * calculating the required buffer size.
+  *
+  * @param[in] current_offset Current byte offset within the buffer.
+  * @param[in] bytes_to_read Number of additional bytes to read.
+  * @param[in] buffer_size Total number of bytes available in the buffer.
+  * @return true if the requested read exceeds the buffer bounds, false otherwise.
+  */
+static inline bool endOfBuffer(size_t current_offset, size_t bytes_to_read, size_t buffer_size)
 {
-    return ((byte_cnt) + (bytes_to_read) > (num_bytes));
+  return (current_offset > buffer_size || bytes_to_read > buffer_size - current_offset);
 }
-
 static void print_warning(const std::string& err_msg, int line_number, double print_rate = 1)
 {
   static std::map<int, std::chrono::system_clock::time_point> last_error_printed;
@@ -136,15 +146,21 @@ static void print_warning(const std::string& err_msg, int line_number, double pr
   error_cnt[line_number] += 1;
 }
 
-#define CHECK_MODULE_SIZE(metadata, byte_required, byte_cnt, bytes_to_read, module_size, name, line_number) \
-if (((byte_required) = (byte_cnt) + (bytes_to_read)) > (module_size))                                       \
-{                                                                                                           \
-    std::stringstream err_msg;                                                                              \
-    err_msg << "## WARNING CompactDataParser::ParseModuleMetaData(): module_size=" << (module_size) << ", "   \
-        << (byte_required) << " bytes required to read " << (name);                                         \
-    print_warning(err_msg.str(), line_number);                                                                \
-    return (metadata);                                                                                      \
-}
+#define CHECK_MODULE_SIZE(metadata, required_end_offset, current_offset, bytes_to_read, module_size, field_name, line_number) \
+do                                                                                                                          \
+{                                                                                                                           \
+    (required_end_offset) = static_cast<uint64_t>(current_offset) + static_cast<uint64_t>(bytes_to_read);                    \
+    if ((current_offset) > (module_size) || (bytes_to_read) > (module_size) - (current_offset))                              \
+    {                                                                                                                       \
+        std::stringstream err_msg;                                                                                          \
+        err_msg << "## WARNING CompactDataParser::ParseModuleMetaData(): module_size=" << (module_size) << ", "              \
+            << (required_end_offset) << " bytes required to read " << (field_name);                                         \
+        print_warning(err_msg.str(), line_number);                                                                          \
+        return (metadata);                                                                                                  \
+    }                                                                                                                       \
+} while (0)
+
+
 
 /** returns a human readable description of the imu  data */
 std::string sick_scansegment_xd::CompactImuData::to_string() const
@@ -319,7 +335,8 @@ sick_scansegment_xd::CompactDataHeader sick_scansegment_xd::CompactDataParser::P
 */
 sick_scansegment_xd::CompactModuleMetaData sick_scansegment_xd::CompactDataParser::ParseModuleMetaData(const uint8_t* scandata, uint32_t module_size, uint32_t telegramVersion, uint32_t& module_metadata_size)
 {
-    uint32_t byte_cnt = 0, byte_required = 0;
+    uint32_t byte_cnt = 0;
+    uint64_t byte_required = 0;
     sick_scansegment_xd::CompactModuleMetaData metadata;
     // metadata.valid flag is false and becomes true after successful parsing
     module_metadata_size = 0;
@@ -710,7 +727,7 @@ bool sick_scansegment_xd::CompactDataParser::ParseModuleMeasurementData(const ui
         {
           if (beam_prop_available)
           {
-            if (byte_cnt + sizeof(uint8_t) > num_bytes)
+            if (endOfBuffer(byte_cnt, sizeof(uint8_t), num_bytes))
             {
               ROS_ERROR_STREAM("## ERROR CompactDataParser::ParseModuleMeasurementData(" << __LINE__ << "): byte_cnt=" << byte_cnt << ", num_bytes=" << num_bytes << ", layer " << layer_idx << " of " << num_layers
                 << ", point " << point_idx << " of " << meta_data.NumberOfBeamsPerScan);
@@ -831,7 +848,8 @@ bool sick_scansegment_xd::CompactDataParser::ParseSegment(const uint8_t* payload
     bool success = true;
     while (module_size > 0)
     {
-        if (module_offset +  module_size > bytes_received)
+        // Check that the complete module is within the received buffer without risking integer overflow.
+        if (endOfBuffer(module_offset, module_size, bytes_received))
         {
             if (verbose > 0)
             {
