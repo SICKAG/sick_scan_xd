@@ -2,15 +2,15 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-
-Unreleased 3.10.0-alpha1 (2026-09-02)
--------------------------------------
+Unreleased 3.10.0 (2026-10-12)
+------------------------------
   * add: Support for ROS2 Lyrical
   * add: Contribution made by Boopesh Eswaran <boopesh.mc@gmail.com>: Optional ROS 2 Lifecycle Node support (Managed Nodes). Original PR: https://github.com/SICKAG/sick_scan_xd/pull/552
   * update: README.md with Lifecycle Node support
   * update: Relocated m_run_scansegment_thread to public for external signaling
   * fix: Resolved shutdown deadlock in scansegment_xd (picoScan/multiScan) via asynchronous signaling
   * fix: Added preprocessor guards for ROS 1 compatibility in lifecycle headers
+  * fix: Added boundary and overflow checks for UDP payloads, telegram parsing, and counters
 
 3.9.0 (2026-01-14)
 ------------------
