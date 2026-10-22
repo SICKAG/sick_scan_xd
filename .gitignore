@@ -1,149 +1,77 @@
-
-ros_win/
-
-cmake-build-debug/
-
-\.idea/
-
+# =========================
+# Build & CMake
+# =========================
 build/
-build_x64/
-build_win64/
-build_linux/
-
-\.vs/
-\.vscode/
-src/sick_scan_common\.cpp~RF1a1a7142\.TMP
-
-launch/sick_mrs_6xxx_test\.launch
-
-launch/sick_lms_1xxx_test\.launch
-
-launch/sick_lms_1xx_test\.launch
-
-launch/sick_lms_5xx_test\.launch
-
-test/sick_scan_test_lms_1xx_res\.xml
-
-test/sick_scan_test_lms_5xx_res\.xml
-
-test/sick_scan_test_tim_5xx_res\.xml
-
-launch/sick_tim_5xx_test\.launch
-
-html/
-
-\.#html_step3\.sh
-
-test/results/
-
-test/\.catkin_workspace
-
-test/src/CMakeLists\.txt
-
-test/tmp/
-
-*.7z
-*.res
-*.bak
-
-
-test/demo_roscon/
-
-CMakeFiles/bond_generate_messages_py\.dir/
-
-CMakeFiles/clean_test_results\.dir/
-
-CMakeFiles/
-
-gtest/googlemock/
-
-gtest/
-
+build_*/
+cmake-build-*/
 devel/
-
-cmake/
-
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
 catkin_generated/
 
-cmake_install\.cmake
+# =========================
+# IDE / Editor
+# =========================
+.idea/
+.vscode/
+.vs/
 
-CMakeCache\.txt
+# =========================
+# Logs, temp, backups
+# =========================
+*.log
+*.tmp
+*.bak
+*.res
+*.7z
+*~
 
-sick_scan\.cbp
+# =========================
+# Python
+# =========================
+__pycache__/
+*.pyc
+venv/
 
-Makefile
+# =========================
+# Test artifacts
+# =========================
+test/results/
+test/tmp/
+test/.catkin_workspace
 
-setup_custom_pythonpath\.sh
-
-CTestTestfile\.cmake
-
-tools/imu_tester/venv/
-tools/imu_tester/imutimestampsmu+2sigma.png
-tools/imu_tester/.idea
-tools/sick_generic_device_finder/venv
-tools/sick_generic_device_finder/.idea
-tools/git_lfs
-tools/wireshark_win64_3.6.0_portable
-tools/plantuml
-tools/pandoc
-tools/python_installer/python-3.9.13-amd64.exe
-
-doc/angle_compensation/ampl_phase_offset\.png
-
-demo/scan.jpg_tmp
-demo/scan.jpg
-demo/scan.csv
-
-# Note: emulator testfiles (pcapng and json records) are ignored except a few very short test examples
+# Ignore emulator data except selected example
 test/emulator/scandata/*.*
-test/emulator/scandata/20230719_mrs1104_infringement
+!test/emulator/scandata/20260319_rms_1xxx_ascii_rms2_objects.pcapng.json
 
-test/scripts/run_win64_ros1_simu_lms5xx.cmd
-test/scripts/make_win64_vs2022.cmd
-test/python/msgpack_output/
-test/python/common/__pycache__/
-test/python/sick_scan_xd_api/__pycache__/
-test/python/common/
-python/api/__pycache__/
-
-doc/backlog.md
-doc/20210712_sick_scan_xd.pptx
-doc/20220428_sick_scan_xd_sw_overview.pptx
-doc/20220322_sick_scan_xd_lidar3d_integration.pptx
-doc/20220407_sick_scan_xd_lidar3d_integration.pptx
-doc/20220407_sick_scan_xd_nav350.pptx
-doc/nav350_ros1_screenshot1.jpg
-doc/nav350_ros2_screenshot1.jpg
-doc/nav350_ros2_screenshot2.jpg
-doc/combination_rms_1xxx_lms_1xx/rms_1xxx_lms_1xx_movement_on.bag
-doc/sick_scansegment_xd_emulator_test.md
-doc/sick_scan_api/GBC08_Specification_Export_2528general_template.docx
-doc/sick_scan_api/20220701_Review API gegen Requ_2cd4d185f7d849b7a0e0dcdf3858a360-010722-1540-312.pdf
-doc/sick_scan_api/20220704_measurements_in_sensor_coords.docm
-doc/sick_scan_api/20220707_sick_scan_xd_api_update.pptx
-doc/sick_scan_api/20220714_sick_scan_xd_api_update.pptx
-doc/sick_scan_api/20220812_sick_scan_xd_api_update.pptx
-doc/sick_scan_api/20220801_Anmerkungen_Manuel_technical_pretest.pdf
-doc/sick_scan_api/20220817_Anmerkungen_Manuel_technical_pretest.pdf
-doc/sick_scan_api/20220818_API_Anpassungen.txt
-doc/sick_scan_api/20220905_Anmerkungen_Manuel_technical_pretest.pdf
-doc/sick_scan_api/2022-08-24.minutes.technische.details.generische.api.pdf
-
-test/scripts/run_win64_picoscan_emulator.cmd
-test/scripts/bloom_release.cmd
-
-test/emulator/scandata/20230719_mrs1104_infringement/
-
-doc/20230919_sick_scan_xd_timeout_settings.pptx
-
-test/docker/archive/
-test/docker/images/
-test/docker/python/__pycache__/
-test/docker/data
-
+# =========================
+# Tools (local installs / binaries)
+# =========================
+tools/*/venv/
+tools/python_installer/
+tools/wireshark_*/
+tools/git_lfs/
 tools/pandoc/
 
-test/docker/images/
+# =========================
+# Generated / cache / misc
+# =========================
+html/
+.#*
 
-tools/pointcloud_receiver_test/cloud_structured.csv
-doc/ros2_windows_pixi.md_remove
+# =========================
+# Optional (keep if needed)
+# =========================
+# Uncomment ONLY if these are not required as examples
+
+# demo/scan.jpg
+# demo/scan.csv
+# demo/scan.jpg_tmp
+picoscan_serialization.patch
+
+test/docker/data_org.zip
+test/docker/data
+
+test/docker/data/

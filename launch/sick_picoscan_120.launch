@@ -14,6 +14,8 @@
     <arg name="scandataformat" default="2"/>                  <!-- ScanDataFormat: 1 for msgpack or 2 for compact scandata, default: 2 -->
     <arg name="all_segments_min_deg" default="-138.0" />      <!-- angle range covering all segments: all segments pointcloud on topic publish_topic_all_segments is published,  -->
     <arg name="all_segments_max_deg" default="+138.0" />      <!-- if received segments cover angle range from all_segments_min_deg to all_segments_max_deg. -138...+138 for picoScan (fullscan) -->
+    <arg name="host_SerializationFilter" default="1 0" />     <!-- "<Serialization RSSI> <Serialization Properties>", 0=disabled, 1=enabled -->
+    <arg name="host_set_SerializationFilter" default="True" /> <!-- If true, SerializationFilter is set at startup -->
     <arg name="custom_pointclouds" default="cloud_unstructured_segments cloud_unstructured_fullframe cloud_polar_unstructured_segments cloud_polar_unstructured_fullframe cloud_all_fields_fullframe"/> <!-- Default pointclouds: segmented and fullframe pointclouds in both cartesian and polar coordinates -->
     <arg name="tf_publish_rate" default="10.0" />                     <!-- Rate to publish TF messages in hz, use 0 to deactivate TF messages -->
     <node name="$(arg nodename)" pkg="sick_scan_xd" type="sick_generic_caller" respawn="false" output="screen" required="true">
@@ -62,6 +64,37 @@
         <param name="sopas_timeout_ms" type="int" value="5000" />                           <!-- Timeout for SOPAS response in milliseconds, default: 5000 -->
         <param name="user_level" type="int" value="4" />                                    <!-- Default user level for authorization (3: client, 4: service) -->
         <param name="user_level_password" type="string" value="81BE23AA" />                 <!-- Default user level password (for "client" (level 3): F4724744, for "service" (level 4): 81BE23AA) -->
+
+        <!-- Serialization filter:
+             Controls compact measurement data serialization.
+             Corresponds to the "Serialization" section in the SOPAS web UI
+             under Application -> Data output -> Measurement data output.
+
+             Format:
+             "<Serialization RSSI> <Serialization Properties>"
+
+             Both entries are boolean switches:
+                0 = disabled
+                1 = enabled
+
+             Example:
+               "1 0"
+                 -> Serialization RSSI       enabled
+                 -> Serialization Properties disabled
+
+               "1 1"
+                 -> both enabled
+               "0 0"
+                 -> both disabled
+
+              These settings control the switches:
+               - "Serialization RSSI"
+               - "Serialization Properties"
+
+              Corresponds to CoLa command: "sWN compactTelegramType1Content <RSSI> <Properties>"
+        -->
+        <param name="host_SerializationFilter" type="string" value="$(arg host_SerializationFilter)" />       <!-- "<Serialization RSSI> <Serialization Properties>", e.g. "1 0" -->
+        <param name="host_set_SerializationFilter" type="bool" value="$(arg host_set_SerializationFilter)" /> <!-- If true, the SerializationFilter setting is applied at startup -->
 
         <!-- Msgpack validation -->
         <param name="msgpack_validator_enabled" type="bool" value="False" />                                  <!-- true: check msgpack data for out of bounds and missing scan data, false: no msgpack validation (default) -->

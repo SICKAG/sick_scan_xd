@@ -2,8 +2,8 @@
 * \file
 * \brief Laser Scanner Main Handling
 * Copyright (C) 2013,     Osnabrueck University
-* Copyright (C) 2017,2018 Ing.-Buero Dr. Michael Lehning, Hildesheim
-* Copyright (C) 2017,2018 SICK AG, Waldkirch
+* Copyright (C) 2017..2026 Ing.-Buero Dr. Michael Lehning, Hildesheim
+* Copyright (C) 2017..2026 SICK AG, Waldkirch
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 *
-*  Last modified: 13th April 2024
+*  Last modified: August 2026
 *
 *      Authors:
 *         Michael Lehning <michael.lehning@lehning.de>
@@ -88,12 +88,16 @@
 
 #define _USE_MATH_DEFINES
 
-#include <math.h>
+#include <algorithm>
+#include <cmath>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <exception>
+#include <csignal>
 #include <mutex>
 #include <string>
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
+#include <vector>
 
 #ifdef GITHASH
 #define GITHASH_STR (strlen(GITHASH)>2?(std::string(" githash:")+std::string(GITHASH)):(std::string("")))
@@ -169,7 +173,6 @@ int32_t s_verbose_level = 1; // verbose level: 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR,
 \param [Ozt] val: Value after Parsing
 \return Result of matching process (true: matching expression found, false: no match found)
 */
-
 bool getTagVal(std::string tagVal, std::string &tag, std::string &val)
 {
   bool ret = false;
@@ -240,12 +243,18 @@ bool convertSendSOPASCommand(const std::string& sopas_ascii_request, std::string
   std::vector<unsigned char> sopas_response_raw;
   if (s_scanner != NULL && s_isInitialized)
   {
-    if (sopas_ascii_request[0] != 0x02) // append <stx> and <etx>
+    if (sopas_ascii_request.empty())  // empty SOPAS request?
     {
-      sopas_request.clear();
-      sopas_request.push_back((char)0x02); // <stx>
+      ROS_WARN("convertSendSOPASCommand(): empty SOPAS request");
+      return false;  // empty SOPAS request, return false
+    }
+
+    if (sopas_ascii_request[0] != 0x02) // SOPAS request does not start with <stx>?
+    {
+      sopas_request.clear();  // in this case append <std> and <etx>
+      sopas_request.push_back((char)0x02); // append <stx>
       sopas_request.insert(sopas_request.end(), sopas_ascii_request.begin(), sopas_ascii_request.end());
-      sopas_request.push_back((char)0x03); // <etx>
+      sopas_request.push_back((char)0x03); // append <etx>
     }
     if (s_scanner->convertSendSOPASCommand(sopas_request, &sopas_response_raw, wait_for_reply) == sick_scan_xd::ExitSuccess)
     {
@@ -280,25 +289,85 @@ bool convertSendSOPASCommand(const std::string& sopas_ascii_request, std::string
   return false;
 }
 
-// fprintf-like conversion of va_args to string, thanks to https://codereview.stackexchange.com/questions/115760/use-va-list-to-format-a-string
+/**
+ * @brief Converts printf-style variable arguments to a std::string.
+ *
+ * Provides fprintf-like conversion of variable arguments to a std::string.
+ *
+ * The original implementation was based on:
+ * https://codereview.stackexchange.com/questions/115760/use-va-list-to-format-a-string
+ *
+ * Formats a variable argument list according to the given printf-style format
+ * string and returns the resulting text as a std::string.
+ *
+ * The required buffer size is determined first without writing any output.
+ * A buffer of exactly the required size (plus the terminating null character)
+ * is then allocated and the formatted string is generated in a second pass.
+ *
+ * A copy of the variable argument list is required because processing a
+ * va_list changes its internal state. va_copy() is supported by current GCC,
+ * Clang and Microsoft Visual Studio (including Visual Studio 2019).
+ *
+ * @param format printf-style format string. Must not be nullptr.
+ * @param ...    Arguments referenced by the format string.
+ *
+ * @return Formatted string, or an empty string if format is nullptr or
+ *         formatting fails.
+ *
+ * @note The caller is responsible for ensuring that the argument types match
+ *       the conversion specifiers in the format string. A mismatch results
+ *       in undefined behavior, as with printf().
+ *
+ * @note Requires <cstdarg>, <cstdio>, <string> and <vector>.
+ */
 std::string vargs_to_string(const char *const format, ...)
 {
-  std::size_t length = std::max<size_t>((size_t)1024, 2 * strlen(format));
-  std::vector<char> temp;
+  if (format == nullptr)
+    return {};
+
   std::va_list args;
-  for (int cnt = 0; temp.size() <= length && cnt < 10; cnt++)
-  {
-    temp.resize(length + 1);
-    va_start(args, format);
+  va_start(args, format);
+
+  std::va_list args_copy;
+  va_copy(args_copy, args);
+
 #ifdef WIN32
-    std::size_t required_length = _vsnprintf_s(temp.data(), temp.size(), _TRUNCATE, format, args);
+  const int required_length = _vscprintf(format, args_copy);
 #else
-    std::size_t required_length = std::vsnprintf(temp.data(), temp.size(), format, args);
+  const int required_length = std::vsnprintf(nullptr, 0, format, args_copy);
 #endif
+
+  va_end(args_copy);
+
+  if (required_length < 0)
+  {
     va_end(args);
-    length = std::max<size_t>(length, required_length);
+    return {};
   }
-  return std::string {temp.data(), length};
+
+  std::vector<char> buffer(static_cast<std::size_t>(required_length) + 1);
+
+#ifdef WIN32
+  const int written = _vsnprintf_s(
+    buffer.data(),
+    buffer.size(),
+    _TRUNCATE,
+    format,
+    args);
+#else
+  const int written = std::vsnprintf(
+    buffer.data(),
+    buffer.size(),
+    format,
+    args);
+#endif
+
+  va_end(args);
+
+  if (written < 0)
+    return {};
+
+  return std::string(buffer.data(), static_cast<std::size_t>(written));
 }
 
 /**
@@ -350,10 +419,12 @@ void setDiagnosticStatus(SICK_DIAGNOSTIC_STATUS status_code, const std::string& 
 }
 
 // Returns the global diagnostic status and message (OK, WARN, ERROR, INIT or EXIT)
-void getDiagnosticStatus(SICK_DIAGNOSTIC_STATUS& status_code, std::string& status_message)
+void getDiagnosticStatus(SICK_DIAGNOSTIC_STATUS& status_code,
+                         std::string& status_message)
 {
- status_code = s_status_code;
- status_message = s_status_message;
+  std::lock_guard<std::mutex> lock(g_diag_mutex);  // Mutex is held to ensure thread-safe access to the global status variables
+  status_code = s_status_code;
+  status_message = s_status_message;
 }
 
 // Set verbose level 0=DEBUG, 1=INFO, 2=WARN, 3=ERROR, 4=FATAL or 5=QUIET (equivalent to ros::console::levels),
@@ -377,76 +448,273 @@ inline bool ends_with(std::string const &value, std::string const &ending)
   return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-/*!
-\brief Parses an optional launchfile and sets all parameters.
-       This function is used at startup to enable system independant parameter handling
-       for native Linux/Windows, ROS-1 and ROS-2. Parameter are overwritten by optional
-       commandline arguments
-\param argc: Number of commandline arguments
-\param argv: commandline arguments
-\param nodeName name of the ROS-node
-\return exit-code
-\sa main
-*/
+/**
+ * @brief Parses launch-file and command-line parameters and stores them in the ROS parameter server.
+ *
+ * This function initializes ROS parameters from two possible sources:
+ *
+ * 1. Launch file
+ *    - Command-line arguments ending in ".launch" are interpreted as launch files.
+ *    - The launch file is parsed using LaunchParser.
+ *    - Supported parameter types are:
+ *        - bool
+ *        - int
+ *        - float
+ *        - double
+ *        - string
+ *    - Parsed values are written to the ROS parameter server using rosSetParam().
+ *
+ * 2. Command-line overrides
+ *    - Additional command-line arguments can override parameters using the syntax:
+ *
+ *          <tag>:=<value>
+ *
+ *      Example:
+ *
+ *          hostname:=192.168.0.4
+ *
+ *    - Command-line overrides are applied after the launch file has been parsed
+ *      and therefore take precedence over values specified in the launch file.
+ *    - Arguments starting with "--ros-args" and all following arguments are ignored,
+ *      since these belong to the ROS command-line interface.
+ *
+ * After all parameters have been applied, the function reads the effective values
+ * back from the ROS parameter server and prints them together with their types.
+ * This ensures that the displayed values include any command-line overrides.
+ *
+ * @param nhPriv Private ROS node handle used to access the parameter server.
+ * @param argc   Number of command-line arguments.
+ * @param argv   Command-line argument array.
+ *
+ * @return true if all launch files and command-line parameter assignments were
+ *         processed successfully.
+ * @return false if an invalid command-line parameter assignment was found.
+ *
+ * @note If a launch file cannot be parsed, the function logs an error and
+ *       terminates the process using exit(-1).
+ *
+ * @note Command-line values supplied as <tag>:=<value> are converted to the
+ *       type declared for the corresponding launch-file parameter. Parameters
+ *       not declared in a launch file are stored as strings.
+ */
 bool parseLaunchfileSetParameter(rosNodePtr nhPriv, int argc, char **argv)
 {
   std::string tag;
   std::string val;
-  int launchArgcFileIdx = -1;
+  std::vector<std::string> launchTagList, launchTypeList, launchValList;
+
+  // --------------------------------------------------------------------------
+  // Parse launch files and initialize parameters with their declared types.
+  // --------------------------------------------------------------------------
   for (int n = 1; n < argc; n++)
   {
-    std::string extKey = ".launch";
-    std::string argv_str = argv[n];
+    const std::string extKey = ".launch";
+    const std::string argv_str = argv[n];
+
     if (ends_with(argv_str, extKey))
     {
-      launchArgcFileIdx = n;
-      std::vector<std::string> tagList, typeList, valList;
       LaunchParser launchParser;
-      bool ret = launchParser.parseFile(argv_str, tagList, typeList, valList);
+      bool ret = launchParser.parseFile(
+        argv_str, launchTagList, launchTypeList, launchValList);
+
       if (ret == false)
       {
-        ROS_INFO_STREAM("Cannot parse launch file (check existence and content): >>>" << argv_str << "<<<\n");
+        ROS_INFO_STREAM(
+          "Cannot parse launch file (check existence and content): >>>"
+          << argv_str << "<<<\n");
         exit(-1);
       }
-      for (size_t i = 0; i < tagList.size(); i++)
+
+      for (size_t i = 0; i < launchTagList.size(); i++)
       {
-        printf("%-30s %-10s %-20s\n", tagList[i].c_str(), typeList[i].c_str(), valList[i].c_str());
-        if(typeList[i] == "bool" && !valList[i].empty())
-          rosSetParam(nhPriv, tagList[i], (bool)(valList[i][0] == '1' || valList[i][0] == 't' || valList[i][0] == 'T'));
-        else if(typeList[i] == "int" && !valList[i].empty())
-          rosSetParam(nhPriv, tagList[i], (int)std::stoi(valList[i]));
-        else if(typeList[i] == "float" && !valList[i].empty())
-          rosSetParam(nhPriv, tagList[i], (float)std::stof(valList[i]));
-        else if(typeList[i] == "double" && !valList[i].empty())
-          rosSetParam(nhPriv, tagList[i], (double)std::stod(valList[i]));
-        else // parameter type "string"
-          rosSetParam(nhPriv, tagList[i], valList[i]);
+        if (launchTypeList[i] == "bool" && !launchValList[i].empty())
+        {
+          rosSetParam(
+            nhPriv,
+            launchTagList[i],
+            (bool)(launchValList[i][0] == '1' // true if first character is '1', 't' or 'T'
+                || launchValList[i][0] == 't'
+                || launchValList[i][0] == 'T'));
+        }
+        else if (launchTypeList[i] == "int" && !launchValList[i].empty())
+        {
+          rosSetParam(
+            nhPriv, launchTagList[i], (int)std::stoi(launchValList[i]));
+        }
+        else if (launchTypeList[i] == "float" && !launchValList[i].empty())
+        {
+          rosSetParam(
+            nhPriv, launchTagList[i], (float)std::stof(launchValList[i]));
+        }
+        else if (launchTypeList[i] == "double" && !launchValList[i].empty())
+        {
+          rosSetParam(
+            nhPriv, launchTagList[i], (double)std::stod(launchValList[i]));
+        }
+        else
+        {
+          // Default parameter type: string.
+          rosSetParam(nhPriv, launchTagList[i], launchValList[i]);
+        }
       }
     }
   }
 
+  // --------------------------------------------------------------------------
+  // Apply command-line parameter overrides.
+  //
+  // Syntax:
+  //     <tag>:=<value>
+  //
+  // These values are applied after the launch-file parameters and therefore
+  // have higher priority.
+  // --------------------------------------------------------------------------
   for (int n = 1; n < argc; n++)
   {
-    std::string argv_str = argv[n];
+    const std::string argv_str = argv[n];
 
-    // Ignore all arguments after and including --ros-args
-    if (argv_str == "--ros-args") {
+    // "--ros-args" marks the beginning of ROS-specific command-line options.
+    // Do not interpret these options as application parameter assignments.
+    if (argv_str == "--ros-args")
+    {
       break;
     }
 
     if (getTagVal(argv_str, tag, val))
     {
+      const auto it = std::find(launchTagList.begin(), launchTagList.end(), tag);
+
+      if (it != launchTagList.end())
+      {
+        const std::size_t idx =
+          static_cast<std::size_t>(std::distance(launchTagList.begin(), it));
+
+        try
+        {
+          if (launchTypeList[idx] == "bool")
+          {
+            bool bool_value = false;
+
+            if (val == "true" || val == "True" || val == "TRUE" || val == "1")
+            {
+              bool_value = true;
+            }
+            else if (val == "false" || val == "False" || val == "FALSE" || val == "0")
+            {
+              bool_value = false;
+            }
+            else
+            {
+              ROS_ERROR_STREAM(
+                "## ERROR parseLaunchfileSetParameter(): "
+                "Cannot convert command-line parameter \"" << tag
+                << "\" with value \"" << val
+                << "\" to type \"bool\". "
+                "Expected true, false, 1 or 0.");
+              return false;
+            }
+
+            rosSetParam(nhPriv, tag, bool_value);
+          }
+          else if (launchTypeList[idx] == "int")
+          {
+            rosSetParam(nhPriv, tag, std::stoi(val));
+          }
+          else if (launchTypeList[idx] == "float")
+          {
+            rosSetParam(nhPriv, tag, std::stof(val));
+          }
+          else if (launchTypeList[idx] == "double")
+          {
+            rosSetParam(nhPriv, tag, std::stod(val));
+          }
+          else
+          {
+            rosSetParam(nhPriv, tag, val);
+          }
+        }
+        catch (const std::exception& exc)
+        {
+          ROS_ERROR_STREAM(
+            "## ERROR parseLaunchfileSetParameter(): "
+            "Cannot convert command-line parameter \"" << tag
+            << "\" with value \"" << val
+            << "\" to type \"" << launchTypeList[idx]
+            << "\": " << exc.what());
+          return false;
+        }
+      }
+      else
+      {
+        // Type is unknown because this parameter was not defined in the
+        // launch file. Preserve the previous behavior and store it as string.
         rosSetParam(nhPriv, tag, val);
+      }
     }
     else
     {
-      if (launchArgcFileIdx != n)
+      // Launch-file arguments themselves are valid and must not be interpreted
+      // as <tag>:=<value> assignments.
+      if (!ends_with(argv_str, ".launch"))
       {
-          ROS_ERROR_STREAM("## ERROR parseLaunchfileSetParameter(): Tag-Value setting not valid. Use pattern: <tag>:=<value>  (e.g. hostname:=192.168.0.4) (Check the entry: " << argv_str << ")\n");
-          return false;
+        ROS_ERROR_STREAM(
+          "## ERROR parseLaunchfileSetParameter(): "
+          "Tag-Value setting not valid. Use pattern: <tag>:=<value> "
+          "(e.g. hostname:=192.168.0.4) "
+          "(Check the entry: " << argv_str << ")\n");
+
+        return false;
       }
     }
   }
+
+  // --------------------------------------------------------------------------
+  // Print the effective parameter values.
+  //
+  // Values are read back from the parameter server so that command-line
+  // overrides are reflected in the output.
+  // --------------------------------------------------------------------------
+  for (size_t i = 0; i < launchTagList.size(); i++)
+  {
+    std::string effectiveValue = launchValList[i];
+
+    if (launchTypeList[i] == "bool")
+    {
+      bool value = false;
+      if (rosGetParam(nhPriv, launchTagList[i], value))
+        effectiveValue = value ? "true" : "false";
+    }
+    else if (launchTypeList[i] == "int")
+    {
+      int value = 0;
+      if (rosGetParam(nhPriv, launchTagList[i], value))
+        effectiveValue = std::to_string(value);
+    }
+    else if (launchTypeList[i] == "float")
+    {
+      float value = 0;
+      if (rosGetParam(nhPriv, launchTagList[i], value))
+        effectiveValue = std::to_string(value);
+    }
+    else if (launchTypeList[i] == "double")
+    {
+      double value = 0;
+      if (rosGetParam(nhPriv, launchTagList[i], value))
+        effectiveValue = std::to_string(value);
+    }
+    else
+    {
+      std::string value;
+      if (rosGetParam(nhPriv, launchTagList[i], value))
+        effectiveValue = value;
+    }
+
+    printf("%-30s %-10s %-20s\n",
+      launchTagList[i].c_str(),
+      launchTypeList[i].c_str(),
+      effectiveValue.c_str());
+  }
+
   return true;
 }
 

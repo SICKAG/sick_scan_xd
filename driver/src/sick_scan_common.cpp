@@ -3,8 +3,8 @@
 * \brief Laser Scanner communication main routine
 *
 * Copyright (C) 2013, Osnabrueck University
-* Copyright (C) 2017-2025, Ing.-Buero Dr. Michael Lehning, Hildesheim
-* Copyright (C) 2017-2025, SICK AG, Waldkirch
+* Copyright (C) 2017-2026, Ing.-Buero Dr. Michael Lehning, Hildesheim
+* Copyright (C) 2017-2026, SICK AG, Waldkirch
 *
 * All rights reserved.
 *
@@ -1502,11 +1502,11 @@ namespace sick_scan_xd
   void SickScanCommon::messageCbRosOdom(const ros_nav_msgs::Odometry& msg)
   {
     sick_scan_msg::NAVOdomVelocity nav_odom_vel_msg;
-    nav_odom_vel_msg.vel_x = msg.twist.twist.linear.x;
-    nav_odom_vel_msg.vel_y = msg.twist.twist.linear.y;
+    nav_odom_vel_msg.vel_x = static_cast<float>(msg.twist.twist.linear.x);
+    nav_odom_vel_msg.vel_y = static_cast<float>(msg.twist.twist.linear.y);
     double angle_shift = -1.0 * parser_->getCurrentParamPtr()->getScanAngleShift();
     rotateXYbyAngleOffset(nav_odom_vel_msg.vel_x, nav_odom_vel_msg.vel_y, angle_shift); // Convert to velocity in lidar coordinates in m/s
-    nav_odom_vel_msg.omega = msg.twist.twist.angular.z; // angular velocity of the NAV350 in radians/s, -2*PI ... +2*PI rad/s
+    nav_odom_vel_msg.omega = static_cast<float>(msg.twist.twist.angular.z); // angular velocity of the NAV350 in radians/s, -2*PI ... +2*PI rad/s
     nav_odom_vel_msg.coordbase = 0; // 0 = local coordinate system of the NAV350
     nav_odom_vel_msg.timestamp = (uint32_t)(1000.0 * rosTimeToSeconds(msg.header.stamp)); // millisecond timestamp of the Velocity vector related to the NAV350 clock
     if (SoftwarePLL::instance().IsInitialized())
@@ -5243,7 +5243,7 @@ bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(
                     }
 
                     // Cartesian pointcloud
-                    float phi2_used = phi_used + m_add_transform_xyz_rpy.azimuthOffset();
+                    float phi2_used = static_cast<float>(phi_used + m_add_transform_xyz_rpy.azimuthOffset());
                     fptr[idx_x] = rangeCos * (float)cos(phi2_used) * mirror_factor;  // copy x value in pointcloud
                     fptr[idx_y] = rangeCos * (float)sin(phi2_used) * mirror_factor;  // copy y value in pointcloud
                     fptr[idx_z] = range_meter * sinAlphaTablePtr[rangeIdxScan] * mirror_factor; // copy z value in pointcloud
@@ -5252,7 +5252,7 @@ bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(
 
                     // Polar pointcloud (sick_scan_xd API)
                     fptr_polar[idx_x] = range_meter; // range in meter
-                    fptr_polar[idx_y] = phi_used;    // azimuth in radians
+                    fptr_polar[idx_y] = static_cast<float>(phi_used);    // azimuth in radians
                     fptr_polar[idx_z] = alpha;       // elevation in radians
 
                     fptr[idx_intensity] = 0.0;
@@ -5498,7 +5498,7 @@ bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(
         else if(parameter.get_name() == "ang_res" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE)
           new_config.ang_res = parameter.as_double();
         else if(parameter.get_name() == "skip" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_INTEGER)
-          new_config.skip = parameter.as_int();
+          new_config.skip = static_cast<int>(parameter.as_int());
         else if(parameter.get_name() == "sw_pll_only_publish" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_BOOL)
           new_config.sw_pll_only_publish = parameter.as_bool();
         else if(parameter.get_name() == "use_generation_timestamp" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_BOOL)
@@ -5506,7 +5506,7 @@ bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(
         else if(parameter.get_name() == "time_offset" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_DOUBLE)
           new_config.time_offset = parameter.as_double();
         else if(parameter.get_name() == "cloud_output_mode" && parameter.get_type() == rclcpp::ParameterType::PARAMETER_INTEGER)
-          new_config.cloud_output_mode = parameter.as_int();
+          new_config.cloud_output_mode = static_cast<int>(parameter.as_int());
       }
       // getConfigUpdateParam(new_config);
       update_config(new_config, 0);
@@ -6097,6 +6097,52 @@ bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(
 
   };
 
+  bool SickScanCommon::setPicoScanSerializationFilter()
+  {
+    bool host_set_SerializationFilter = false;
+    std::string host_SerializationFilter = "1 1";
+
+    rosDeclareParam(m_nh, "host_set_SerializationFilter", host_set_SerializationFilter);
+    rosGetParam(m_nh, "host_set_SerializationFilter", host_set_SerializationFilter);
+
+    rosDeclareParam(m_nh, "host_SerializationFilter", host_SerializationFilter);
+    rosGetParam(m_nh, "host_SerializationFilter", host_SerializationFilter);
+
+    if (!host_set_SerializationFilter)
+      return true;
+
+    std::stringstream parser(host_SerializationFilter);
+    int serialization_rssi = -1;
+    int serialization_properties = -1;
+    parser >> serialization_rssi >> serialization_properties;
+
+    if (!parser || (serialization_rssi != 0 && serialization_rssi != 1) ||
+      (serialization_properties != 0 && serialization_properties != 1))
+    {
+      ROS_ERROR_STREAM("Invalid host_SerializationFilter=\"" << host_SerializationFilter
+        << "\". Expected \"<Serialization RSSI> <Serialization Properties>\" with values 0 or 1.");
+      return false;
+    }
+
+    std::stringstream cola_cmd;
+    cola_cmd << "sWN compactTelegramType1Content "
+      << serialization_rssi << " "
+      << serialization_properties;
+
+    ROS_INFO_STREAM("Setting picoScan150 SerializationFilter: " << cola_cmd.str());
+
+    std::vector<unsigned char> sopas_response;
+    int result = sendSOPASCommand(cola_cmd.str().c_str(), &sopas_response, (int)cola_cmd.str().length());
+
+    if (result != ExitSuccess)
+    {
+      ROS_ERROR_STREAM("Failed to set picoScan150 SerializationFilter by CoLa command: " << cola_cmd.str());
+      return false;
+    }
+
+    return true;
+  }
+
   void SickScanCommon::setLengthAndCRCinBinarySopasRequest(std::vector<uint8_t>* requestBinary)
   {
 
@@ -6590,6 +6636,4 @@ bool sick_scan_xd::SickScanCommon::dumpDatagramForDebugging(
   }
 
 } /* namespace sick_scan_xd */
-
-
 

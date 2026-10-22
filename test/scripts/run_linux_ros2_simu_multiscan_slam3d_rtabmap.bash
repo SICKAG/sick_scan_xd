@@ -34,7 +34,9 @@ function waitUntilRvizClosed()
 # 
 
 pushd ../../../..
-if   [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; export QT_QPA_PLATFORM=xcb
+if   [ -f /opt/ros/lyrical/setup.bash  ] ; then source /opt/ros/lyrical/setup.bash ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/kilted/setup.bash   ] ; then source /opt/ros/kilted/setup.bash ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; export QT_QPA_PLATFORM=xcb
 elif [ -f /opt/ros/humble/setup.bash   ] ; then source /opt/ros/humble/setup.bash
 fi
 killall_cleanup
@@ -47,12 +49,12 @@ if [ ! $REBUILD_ALL -eq 0 ] ; then
   sudo apt-get install libeigen3-dev
   sudo apt-get install libsdl-image1.2-dev
   sudo apt-get install libsdl1.2-dev
-  sudo apt-get install ros-humble-nav-msgs
-  sudo apt-get install ros-humble-tf2-sensor-msgs
-  sudo apt-get install ros-humble-imu-filter-madgwick
+  sudo apt-get install ros-$ROS_DISTRO-nav-msgs
+  sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
+  sudo apt-get install ros-$ROS_DISTRO-imu-filter-madgwick
   sudo apt-get install python3-wstool
-  sudo apt-get install ros-humble-scan-tools
-  sudo apt install ros-humble-pcl-ros
+  sudo apt-get install ros-$ROS_DISTRO-scan-tools
+  sudo apt install ros-$ROS_DISTRO-pcl-ros
   pushd /tmp
   git clone https://github.com/introlab/rtabmap.git rtabmap
   git clone https://github.com/ethz-asl/libnabo.git libnabo

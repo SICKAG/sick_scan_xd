@@ -98,23 +98,23 @@ void dump_data(const T value, std::ostream& os)
 }
 
 inline void dump(NullStruct, std::ostream& os) {
-    os.put(0xc0);
+    os.put(static_cast<char>(0xc0));
 }
 
 inline void dump(float value, std::ostream& os) {
-    os.put(0xca);
+    os.put(static_cast<char>(0xca));
     dump_data(value, os);
 }
 
 inline void dump(double value, std::ostream& os) {
-    os.put(0xcb);
+    os.put(static_cast<char>(0xcb));
     dump_data(value, os);
 }
 
 inline void dump(uint8_t value, std::ostream& os) {
     if(128 <= value)
     {
-        os.put(0xcc);
+        os.put(static_cast<char>(0xcc));
     }
     os.put(value);
 }
@@ -126,7 +126,7 @@ inline void dump(uint16_t value, std::ostream& os) {
     }
     else
     {
-        os.put(0xcd);
+        os.put(static_cast<char>(0xcd));
         dump_data(value, os);
     }
 }
@@ -138,7 +138,7 @@ inline void dump(uint32_t value, std::ostream& os) {
     }
     else
     {
-        os.put(0xce);
+        os.put(static_cast<char>(0xce));
         dump_data(value, os);
     }
 }
@@ -150,7 +150,7 @@ inline void dump(uint64_t value, std::ostream& os) {
     }
     else
     {
-        os.put(0xcf);
+        os.put(static_cast<char>(0xcf));
         dump_data(value, os);
     }
 }
@@ -158,7 +158,7 @@ inline void dump(uint64_t value, std::ostream& os) {
 inline void dump(int8_t value, std::ostream& os) {
     if( value < -32 )
     {
-        os.put(0xd0);
+        os.put(static_cast<char>(0xd0));
     }
     os.put(value);
 }
@@ -166,7 +166,7 @@ inline void dump(int8_t value, std::ostream& os) {
 inline void dump(int16_t value, std::ostream& os) {
     if( value < -(1 << 7) )
     {
-        os.put(0xd1);
+        os.put(static_cast<char>(0xd1));
         dump_data(value, os);
     }
     else if( value <= 0 )
@@ -182,7 +182,7 @@ inline void dump(int16_t value, std::ostream& os) {
 inline void dump(int32_t value, std::ostream& os) {
     if( value < -(1 << 15) )
     {
-        os.put(0xd2);
+        os.put(static_cast<char>(0xd2));
         dump_data(value, os);
     }
     else if( value <= 0 )
@@ -198,7 +198,7 @@ inline void dump(int32_t value, std::ostream& os) {
 inline void dump(int64_t value, std::ostream& os) {
     if( value < -(1LL << 31) )
     {
-        os.put(0xd3);
+        os.put(static_cast<char>(0xd3));
         dump_data(value, os);
     }
     else if( value <= 0 )
@@ -225,17 +225,17 @@ inline void dump(const std::string& value, std::ostream& os) {
     }
     else if(len <= 0xff)
     {
-        os.put(0xd9);
+        os.put(static_cast<char>(0xd9));
         os.put(static_cast<uint8_t>(len));
     }
     else if(len <= 0xffff)
     {
-        os.put(0xda);
+        os.put(static_cast<char>(0xda));
         dump_data(static_cast<uint16_t>(len), os);
     }
     else if(len <= 0xffffffff)
     {
-        os.put(0xdb);
+        os.put(static_cast<char>(0xdb));
         dump_data(static_cast<uint32_t>(len), os);
     }
     else
@@ -257,12 +257,12 @@ inline void dump(const MsgPack::array& value, std::ostream& os) {
     }
     else if(len <= 0xffff)
     {
-        os.put(0xdc);
+        os.put(static_cast<char>(0xdc));
         dump_data(static_cast<uint16_t>(len), os);
     }
     else if(len <= 0xffffffff)
     {
-        os.put(0xdd);
+        os.put(static_cast<char>(0xdd));
         dump_data(static_cast<uint32_t>(len), os);
     }
     else
@@ -284,12 +284,12 @@ inline void dump(const MsgPack::object& value, std::ostream& os) {
     }
     else if(len <= 0xffff)
     {
-        os.put(0xde);
+        os.put(static_cast<char>(0xde));
         dump_data(static_cast<uint16_t>(len), os);
     }
     else if(len <= 0xffffffff)
     {
-        os.put(0xdf);
+        os.put(static_cast<char>(0xdf));
         dump_data(static_cast<uint32_t>(len), os);
     }
     else
@@ -307,17 +307,17 @@ inline void dump(const MsgPack::binary& value, std::ostream& os) {
     size_t const len = value.size();
     if(len <= 0xff)
     {
-        os.put(0xc4);
+        os.put(static_cast<char>(0xc4));
         dump_data(static_cast<uint8_t>(len), os);
     }
     else if(len <= 0xffff)
     {
-        os.put(0xc5);
+        os.put(static_cast<char>(0xc5));
         dump_data(static_cast<uint16_t>(len), os);
     }
     else if(len <= 0xffffffff)
     {
-        os.put(0xc6);
+        os.put(static_cast<char>(0xc6));
         dump_data(static_cast<uint32_t>(len), os);
     }
     else
@@ -333,30 +333,30 @@ inline void dump(const MsgPack::extension& value, std::ostream& os) {
     const size_t len = data.size();
 
     if(len == 0x01) {
-        os.put(0xd4);
+        os.put(static_cast<char>(0xd4));
     }
     else if(len == 0x02) {
-        os.put(0xd5);
+        os.put(static_cast<char>(0xd5));
     }
     else if(len == 0x04) {
-        os.put(0xd6);
+        os.put(static_cast<char>(0xd6));
     }
     else if(len == 0x08) {
-        os.put(0xd7);
+        os.put(static_cast<char>(0xd7));
     }
     else if(len == 0x10) {
-        os.put(0xd8);
+        os.put(static_cast<char>(0xd8));
     }
     else if(len <= 0xff) {
-        os.put(0xc7);
+        os.put(static_cast<char>(0xc7));
         os.put(static_cast<uint8_t>(len));
     }
     else if(len <= 0xffff) {
-        os.put(0xc8);
+        os.put(static_cast<char>(0xc8));
         dump_data(static_cast<uint16_t>(len), os);
     }
     else if(len <= 0xffffffff) {
-        os.put(0xc9);
+        os.put(static_cast<char>(0xc9));
         dump_data(static_cast<uint32_t>(len), os);
     }
     else {

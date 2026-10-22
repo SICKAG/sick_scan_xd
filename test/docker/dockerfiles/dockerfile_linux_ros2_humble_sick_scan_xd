@@ -31,7 +31,7 @@ RUN /bin/bash -c "if [ $SICK_SCAN_XD_APT_PKG != $NONE ] ; then ( rm -rf /workspa
 #
 WORKDIR /workspace
 RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (ls -al /workspace /workspace/src) ; fi"
-RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (source /opt/ros/${ROS_DISTRO}/setup.bash ; colcon build --packages-select sick_scan_xd --event-handlers console_direct+ ; source ./install/setup.bash) ; fi"
+RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (source /opt/ros/${ROS_DISTRO}/setup.bash ; colcon build --packages-select sick_scan_xd --cmake-args \" -DROS_VERSION=2\" \" -DLDMRS=0\" --event-handlers console_direct+ ; source ./install/setup.bash) ; fi"
 RUN /bin/bash -c "if [ $SICK_SCAN_XD_BUILD_FROM_SOURCES -ne 0 ] ; then (echo -e \"\ncolcon build sick_scan_xd finished:\" ; ls -al /workspace/install/sick_scan_xd/lib/sick_scan_xd) ; fi"
 
 #

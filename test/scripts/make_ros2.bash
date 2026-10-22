@@ -11,9 +11,11 @@ pushd ../../../..
 BUILDTYPE=Release
 
 LDMRS_SUPPORT=1
-# Note: LDMRS currently not supported on ROS-2 jazzy or humble. export QT_QPA_PLATFORM=xcb fixes rviz2 issues using wayland,
+# Note: LDMRS currently not supported on ROS-2 lyrical, kilted, jazzy or humble. export QT_QPA_PLATFORM=xcb fixes rviz2 issues using wayland,
 # see https://github.com/ros-visualization/rviz/issues/1442#issuecomment-553900795 and https://blog.martin-graesslin.com/blog/2015/07/porting-qt-applications-to-wayland/
-if   [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; LDMRS_SUPPORT=0 ; export QT_QPA_PLATFORM=xcb
+if   [ -f /opt/ros/lyrical/setup.bash  ] ; then source /opt/ros/lyrical/setup.bash ; LDMRS_SUPPORT=0 ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/kilted/setup.bash   ] ; then source /opt/ros/kilted/setup.bash ; LDMRS_SUPPORT=0 ; export QT_QPA_PLATFORM=xcb
+elif [ -f /opt/ros/jazzy/setup.bash    ] ; then source /opt/ros/jazzy/setup.bash ; LDMRS_SUPPORT=0 ; export QT_QPA_PLATFORM=xcb
 elif [ -f /opt/ros/humble/setup.bash   ] ; then source /opt/ros/humble/setup.bash ; LDMRS_SUPPORT=0
 elif [ -f /opt/ros/foxy/setup.bash     ] ; then source /opt/ros/foxy/setup.bash
 elif [ -f /opt/ros/eloquent/setup.bash ] ; then source /opt/ros/eloquent/setup.bash

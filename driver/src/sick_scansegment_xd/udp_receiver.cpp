@@ -215,6 +215,7 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
         double udp_recv_timeout = -1; // initial timeout: block until first datagram received
         chrono_system_time timestamp_last_print = chrono_system_clock::now();
         chrono_system_time timestamp_last_print_crc_error = chrono_system_clock::now();
+        chrono_system_time timestamp_last_drop_warning = chrono_system_clock::now() - std::chrono::seconds(2);
         chrono_system_time timestamp_last_udp_recv = chrono_system_clock::now();
         while (m_run_receiver_thread)
         {
@@ -223,6 +224,11 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
             bool do_print_crc_error = (sick_scansegment_xd::Seconds(timestamp_last_print_crc_error, chrono_system_clock::now()) > 1.0); // avoid printing crc errors with more than 1 Hz
             // std::cout << "UdpReceiver::Run(): " << bytes_received << " bytes received" << std::endl;
             ROS_DEBUG_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received (port " << m_socket_impl->port() << ", udp_receiver.cpp:" << __LINE__ << ")");
+            if (bytes_received > udp_payload.size())
+            {
+                ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): received length exceeds buffer size");
+                continue;
+            }
             if(m_run_receiver_thread && bytes_received > m_udp_msg_start_seq.size() + 8 && std::equal(udp_payload.begin(), udp_payload.begin() + m_udp_msg_start_seq.size(), m_udp_msg_start_seq.begin()))
             {
                 // Received \x02\x02\x02\x02 | 4Bytes payload length | Payload | CRC32
@@ -234,44 +240,111 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                 {
                     // msgpack data (default): UDP message := (4 byte \x02\x02\x02\x02) + (4 byte payload length) + payload + (4 byte CRC)
                     payload_length_bytes = Convert4Byte(udp_payload.data() + m_udp_msg_start_seq.size());
-                    bytes_to_receive = (uint32_t)(payload_length_bytes + m_udp_msg_start_seq.size() + 2 * sizeof(uint32_t));
+                    uint64_t required = uint64_t(payload_length_bytes) + m_udp_msg_start_seq.size() + 2 * sizeof(uint32_t);
+                    if (required > 1024ULL * 1024ULL)
+                    {
+                        if (sick_scansegment_xd::Seconds(timestamp_last_drop_warning, chrono_system_clock::now()) > 1.0)
+                        {
+                            ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): msgpack telegram size " << required << " exceeds 1 MB, discarding telegram");
+                            timestamp_last_drop_warning = chrono_system_clock::now();
+                        }
+                        continue;
+                    }
+                    bytes_to_receive = static_cast<uint32_t>(required);
                     udp_payload_offset = static_cast<uint32_t>(m_udp_msg_start_seq.size() + sizeof(uint32_t)); // payload starts after (4 byte \x02\x02\x02\x02) + (4 byte payload length)
                 }
                 else if (m_scandataformat == SCANDATA_COMPACT)
                 {
                     bool parse_success = false;
-                    uint32_t num_bytes_required  = 0;
+                    bool invalid_chunk = false;
+                    uint32_t num_bytes_required = 0;
                     chrono_system_time recv_start_timestamp = chrono_system_clock::now();
                     while (m_run_receiver_thread &&
                     (parse_success = sick_scansegment_xd::CompactDataParser::ParseSegment(udp_payload.data(), bytes_received, 0, payload_length_bytes, num_bytes_required )) == false &&
                     (udp_recv_timeout < 0 || sick_scansegment_xd::Seconds(recv_start_timestamp, chrono_system_clock::now()) < udp_recv_timeout)) // read blocking (udp_recv_timeout < 0) or udp_recv_timeout in seconds
                     {
-                        if (num_bytes_required  > 1024*1024)
+                        // A malformed parser result must not cause a tight re-parse loop.
+                        if (num_bytes_required == 0)
+                        {
+                            invalid_chunk = true;
+                            if (sick_scansegment_xd::Seconds(timestamp_last_drop_warning, chrono_system_clock::now()) > 1.0)
+                            {
+                                ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): compact parser returned zero required bytes, discarding telegram");
+                                timestamp_last_drop_warning = chrono_system_clock::now();
+                            }
+                            break;
+                        }
+                        if (uint64_t(num_bytes_required) + sizeof(uint32_t) <= bytes_received)
+                        {
+                            invalid_chunk = true;
+                            if (sick_scansegment_xd::Seconds(timestamp_last_drop_warning, chrono_system_clock::now()) > 1.0)
+                            {
+                                ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): compact parser rejected complete telegram, discarding telegram");
+                                timestamp_last_drop_warning = chrono_system_clock::now();
+                            }
+                            break;
+                        }
+                        if (uint64_t(num_bytes_required) + sizeof(uint32_t) > 1024ULL * 1024ULL)
                         {
                             parse_success = false;
-                            ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): " << bytes_received << " bytes received (compact), " << (num_bytes_required  + sizeof(uint32_t)) << " bytes or more required, probably incorrect payload");
+                            ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): " << bytes_received << " bytes received (compact), " << (uint64_t(num_bytes_required) + sizeof(uint32_t)) << " bytes or more required, probably incorrect payload");
                             // parse again with debug output after error
                             sick_scansegment_xd::CompactDataParser::ParseSegment(udp_payload.data(), bytes_received, 0, payload_length_bytes, num_bytes_required , 0.0f, 1);
                             break;
                         }
-                        ROS_DEBUG_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received (compact), " << (num_bytes_required  + sizeof(uint32_t)) << " bytes or more required");
-                        while(m_run_receiver_thread && bytes_received < num_bytes_required  + sizeof(uint32_t) && // payload + 4 byte CRC required
+                        ROS_DEBUG_STREAM("UdpReceiver::Run(): " << bytes_received << " bytes received (compact), " << (uint64_t(num_bytes_required) + sizeof(uint32_t)) << " bytes or more required");
+                        while(m_run_receiver_thread && uint64_t(bytes_received) < uint64_t(num_bytes_required) + sizeof(uint32_t) && // payload + 4 byte CRC required
                         (udp_recv_timeout < 0 || sick_scansegment_xd::Seconds(recv_start_timestamp, chrono_system_clock::now()) < udp_recv_timeout)) // read blocking (udp_recv_timeout < 0) or udp_recv_timeout in seconds
                         {
                             std::vector<uint8_t> chunk_payload(m_udp_recv_buffer_size, 0);
                             size_t chunk_bytes_received = m_socket_impl->Receive(chunk_payload);
+                            if (chunk_bytes_received == 0)
+                            {
+                                invalid_chunk = true;
+                                if (sick_scansegment_xd::Seconds(timestamp_last_drop_warning, chrono_system_clock::now()) > 1.0)
+                                {
+                                    ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): no additional compact data received, discarding incomplete telegram");
+                                    timestamp_last_drop_warning = chrono_system_clock::now();
+                                }
+                                break;
+                            }
                             if (m_verbose)
                                 ROS_INFO_STREAM("UdpReceiver::Run(): chunk of " << chunk_bytes_received << " bytes received (udp_receiver.cpp:" << __LINE__ << ")");
+                            if (chunk_bytes_received > chunk_payload.size() || bytes_received > udp_payload.size() ||
+                                uint64_t(bytes_received) + chunk_bytes_received > 1024ULL * 1024ULL)
+                            {
+                                invalid_chunk = true;
+                                if (sick_scansegment_xd::Seconds(timestamp_last_drop_warning, chrono_system_clock::now()) > 1.0)
+                                {
+                                    ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): compact chunk exceeds buffer or 1 MB limit, discarding telegram");
+                                    timestamp_last_drop_warning = chrono_system_clock::now();
+                                }
+                                break;
+                            }
                             udp_payload.insert(udp_payload.begin() + bytes_received, chunk_payload.begin(), chunk_payload.begin() + chunk_bytes_received);
                             bytes_received += chunk_bytes_received;
                         }
+                        if (invalid_chunk)
+                            break;
                     }
+                    if (invalid_chunk)
+                        continue;
                     if (!parse_success)
                     {
                         ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): CompactDataParser::ParseSegment failed");
                         continue;
                     }
-                    bytes_to_receive = (uint32_t)(payload_length_bytes + sizeof(uint32_t)); // payload + (4 byte CRC)
+                    uint64_t required = uint64_t(payload_length_bytes) + sizeof(uint32_t);
+                    if (required > 1024ULL * 1024ULL)
+                    {
+                        if (sick_scansegment_xd::Seconds(timestamp_last_drop_warning, chrono_system_clock::now()) > 1.0)
+                        {
+                            ROS_WARN_STREAM("## WARNING UdpReceiver::Run(): compact telegram size " << required << " exceeds 1 MB, discarding telegram");
+                            timestamp_last_drop_warning = chrono_system_clock::now();
+                        }
+                        continue;
+                    }
+                    bytes_to_receive = static_cast<uint32_t>(required); // payload + (4 byte CRC)
                     udp_payload_offset = 0; // compact format calculates CRC over complete message (incl. header)
                     ROS_DEBUG_STREAM("UdpReceiver::Run(): payload_length_bytes=" << payload_length_bytes << ", bytes_to_receive= " << bytes_to_receive << ", bytes_received=" << bytes_received << " (udp_receiver.cpp:" << __LINE__ << ")");
                 }
@@ -299,6 +372,9 @@ bool sick_scansegment_xd::UdpReceiver::Run(void)
                 // std::cout << "UdpReceiver: payload_length_bytes = " << payload_length_bytes << " byte" << std::endl;
                 // CRC check
                 size_t bytes_valid = std::min<size_t>(bytes_received, (size_t)bytes_to_receive);
+                if (bytes_valid < sizeof(uint32_t) || bytes_valid > udp_payload.size() ||
+                    udp_payload_offset > bytes_valid - sizeof(uint32_t))
+                    continue;
                 uint32_t u32PayloadCRC = Convert4Byte(udp_payload.data() + bytes_valid - sizeof(uint32_t)); // last 4 bytes are CRC
                 std::vector<uint8_t> msgpack_payload(udp_payload.begin() + udp_payload_offset, udp_payload.begin() + bytes_valid - sizeof(uint32_t));
                 uint32_t u32MsgPackCRC = crc32(0, msgpack_payload.data(), msgpack_payload.size());

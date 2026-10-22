@@ -191,6 +191,10 @@ sick_scansegment_xd::Config::Config()
     host_LFPintervalFilter = "0 1";                             // Optionally set LFPintervalFilter to "<enabled> <N>" with 1 for enabled and 0 for disabled and N to reduce output to every N-th scan
     host_set_LFPintervalFilter = false;                         // If true, LFPintervalFilter is set at startup (default: false)
 
+    // picoScan 150 filter settings
+    std::string host_SerializationFilter = "1 0";               // "<Serialization RSSI> <Serialization Properties>", e.g. "1 0" control integration of RSSI output in the compact data stream
+    bool host_set_SerializationFilter = false;                  // if true, SerializationFilter is set at startup (default: false)
+
     // msgpack validation default settings
     msgpack_validator_enabled = false; // true: check msgpack data for out of bounds and missing scan data, false (default): no msgpack validation
     msgpack_validator_verbose = 0;    // 0: print error messages, 1: print error and informational messages, 2: print error and all messages
@@ -308,15 +312,22 @@ bool sick_scansegment_xd::Config::Init(rosNodePtr _node)
     ROS_DECL_GET_PARAMETER(node, "host_set_LFPangleRangeFilter", host_set_LFPangleRangeFilter);
     ROS_DECL_GET_PARAMETER(node, "host_LFPintervalFilter", host_LFPintervalFilter);
     ROS_DECL_GET_PARAMETER(node, "host_set_LFPintervalFilter", host_set_LFPintervalFilter);
-    if (scanner_type != SICK_SCANNER_PICOSCAN_NAME)
+    if (scanner_type == SICK_SCANNER_PICOSCAN_NAME)
     {
-        ROS_DECL_GET_PARAMETER(node, "host_LFPlayerFilter", host_LFPlayerFilter);
-        ROS_DECL_GET_PARAMETER(node, "host_set_LFPlayerFilter", host_set_LFPlayerFilter);
+        host_LFPlayerFilter = "";  // disable for picoScan150 LFPlayerFilter   
+        host_set_LFPlayerFilter = false;
+		// declare serialization filter setting for picoScan150
+        ROS_DECL_GET_PARAMETER(node, "host_SerializationFilter", host_SerializationFilter);
+        ROS_DECL_GET_PARAMETER(node, "host_set_SerializationFilter", host_set_SerializationFilter);
     }
     else
     {
-        host_LFPlayerFilter = "";
-        host_set_LFPlayerFilter = false;
+	    // enable LFPlayerFilter for all other lidars
+        ROS_DECL_GET_PARAMETER(node, "host_LFPlayerFilter", host_LFPlayerFilter);  
+        ROS_DECL_GET_PARAMETER(node, "host_set_LFPlayerFilter", host_set_LFPlayerFilter);
+		// SerializationFilter is supported only for picoScan150 compact datastream
+        host_SerializationFilter = "";
+        host_set_SerializationFilter = false;
     }
     // msgpack validation settings
     std::string str_msgpack_validator_required_echos = "0";
@@ -457,6 +468,8 @@ bool sick_scansegment_xd::Config::Init(int argc, char** argv)
     setOptionalArgument(cli_parameter_map, "host_set_LFPlayerFilter", host_set_LFPlayerFilter);
     setOptionalArgument(cli_parameter_map, "host_LFPintervalFilter", host_LFPintervalFilter);
     setOptionalArgument(cli_parameter_map, "host_set_LFPintervalFilter", host_set_LFPintervalFilter);
+    setOptionalArgument(cli_parameter_map, "host_LFPintervalFilter", host_SerializationFilter);
+    setOptionalArgument(cli_parameter_map, "host_set_LFPintervalFilter", host_set_SerializationFilter);
     setOptionalArgument(cli_parameter_map, "msgpack_validator_enabled", msgpack_validator_enabled);
     setOptionalArgument(cli_parameter_map, "msgpack_validator_verbose", msgpack_validator_verbose);
     setOptionalArgument(cli_parameter_map, "msgpack_validator_discard_msgpacks_out_of_bounds", msgpack_validator_discard_msgpacks_out_of_bounds);

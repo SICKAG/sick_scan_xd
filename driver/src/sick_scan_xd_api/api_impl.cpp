@@ -75,7 +75,7 @@ static SickScanPointCloudMsg convertPointCloudMsg(const sick_scan_xd::PointCloud
     export_msg.num_echos = msg_with_echo.num_echos;
     export_msg.segment_idx = msg_with_echo.segment_idx;
     // Copy field descriptions
-    int num_fields = msg.fields.size();
+    int num_fields = (int)msg.fields.size();
     std::vector<SickScanPointFieldMsg> export_fields(num_fields);
     for(int n = 0; n < num_fields; n++)
     {
@@ -250,7 +250,7 @@ static SickScanRadarScan convertRadarScanMsg(const sick_scan_msg::RadarScan& src
     dst_msg.radarpreheader.uioutputs = src_msg.radarpreheader.radarpreheaderstatusblock.uioutputs;
     dst_msg.radarpreheader.uicycleduration = src_msg.radarpreheader.radarpreheadermeasurementparam1block.uicycleduration;
     dst_msg.radarpreheader.uinoiselevel = src_msg.radarpreheader.radarpreheadermeasurementparam1block.uinoiselevel;
-    dst_msg.radarpreheader.numencoder = src_msg.radarpreheader.radarpreheaderarrayencoderblock.size();
+    dst_msg.radarpreheader.numencoder = (uint16_t)src_msg.radarpreheader.radarpreheaderarrayencoderblock.size();
     int max_encpositions = (int)(sizeof(dst_msg.radarpreheader.udiencoderpos) / sizeof(dst_msg.radarpreheader.udiencoderpos[0]));
     int max_encspeedvals = (int)(sizeof(dst_msg.radarpreheader.iencoderspeed) / sizeof(dst_msg.radarpreheader.iencoderspeed[0]));
     dst_msg.radarpreheader.numencoder = ((dst_msg.radarpreheader.numencoder < max_encpositions) ? dst_msg.radarpreheader.numencoder : max_encpositions);
@@ -739,7 +739,7 @@ int32_t SickScanApiInitByLaunchfile(SickScanApiHandle apiHandle, const char* lau
         }
         args.push_back(args_string);
         // Convert to argc, argv
-        int argc = args.size() + 1;
+        int argc = (int)args.size() + 1;
         char** argv = (char**)malloc(argc * sizeof(char*));
         s_malloced_resources.push_back(argv);
         argv[0] = (char*)malloc(s_api_caller[apiHandle].size() + 1);

@@ -7,6 +7,7 @@
     Usage:
 
     pip install scapy
+    pip install --upgrade pip setuptools wheel
     pip install pypcapfile
     pip install python-pcapng
 
@@ -165,7 +166,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--dst_ip", help="udp destination ip, e.g. 127.0.0.1 or <broadcast>", default=udp_dst_ip, type=str)
     arg_parser.add_argument("--repeat", help="number of repetitions", default=num_repetitions, type=int)
     arg_parser.add_argument("--verbose", help="print verbose messages", default=verbose, type=int)
-    arg_parser.add_argument("--filter", help="enable pcap filter by name, e.g. pcap_filter_multiscan_hildesheim for src_ip=192.168.0.1, dst_ip=192.168.0.100", default="", type=str)
+    arg_parser.add_argument("--filter", help="enable pcap filter by name, e.g. pcap_filter_multiscan_data for src_ip=192.168.0.1, dst_ip=192.168.0.100", default="", type=str)
     arg_parser.add_argument("--max_seconds", help="max seconds to play", default=max_seconds, type=float)
 
     cli_args = arg_parser.parse_args()
@@ -182,7 +183,7 @@ if __name__ == "__main__":
 
     # Optional filter pcap blocks by src ip, dst ip and port: send a pcap block if its src ip, dst ip and port is found in these lists (or all if this list empty), default: empty
     pcap_filter = PcapFilter()
-    if cli_args.filter == "pcap_filter_multiscan_hildesheim": # pcapng filter multiscan Hildesheim: src_ip=192.168.0.1, dst_ip=192.168.0.100, ports 2115 (scandata) and 7503 (imu)
+    if cli_args.filter == "pcap_filter_multiscan_data": # pcapng filter multiscan data: src_ip=192.168.0.1, dst_ip=192.168.0.100, ports 2115 (scandata) and 7503 (imu)
         pcap_filter = PcapFilter([ "192.168.0.1" ], [ "192.168.0.100" ], [ 2115, 7503 ], [ "UDP", "IP" ] ) 
 
     # Read and parse pcap file, extract udp raw data

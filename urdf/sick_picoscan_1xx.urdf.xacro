@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<robot xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+  xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
+  xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
+  xmlns:xacro="http://ros.org/wiki/xacro">
+
+
+  <xacro:macro name="sick_picoscan_1xx" params="name ros_topic gaussian_noise:=0.004">
+    <xacro:sick_picoscan_1 name="${name}" ros_topic="${ros_topic}"
+      length="0.240074" width="0.102001" height="0.209265" mass="0.220" x_offset="0.0" y_offset="0.030601" z_offset="0.015455"
+      min_range="0.05" max_range="60.0" gaussian_noise="${gaussian_noise}" />
+  </xacro:macro>
+
+  <xacro:macro name="sick_picoscan_1" params="name ros_topic length width height mass x_offset y_offset z_offset min_range max_range gaussian_noise">
+    <link name="${name}_mount_link">
+      <visual>
+        <origin xyz="0 0 -0.062" rpy="1.5707963268 0 1.5707963268" />
+        <geometry>
+          <mesh filename="package://sick_scan_xd/meshes/sick_picoscan_1xx.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+        <material name="silver">
+          <color rgba="0.75 0.75 0.78 1.0" />
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 -0.062" rpy="1.5707963268 0 1.5707963268" />
+        <geometry>
+          <mesh filename="package://sick_scan_xd/meshes/sick_picoscan_1xx.stl" scale="0.001 0.001 0.001" />
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="${mass}" />
+        <origin xyz="${x_offset} ${y_offset} ${z_offset}" />
+        <inertia ixx="${0.0833333 * mass * (width * width + height * height)}" ixy="0.0" ixz="0.0"
+          iyy="${0.0833333 * mass * (length * length + height * height)}" iyz="0.0"
+          izz="${0.0833333 * mass * (length * length + width * width)}" />
+      </inertial>
+    </link>
+
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${name}_mount_link" />
+      <child link="${name}_laser" />
+      <origin rpy="0 0 0" xyz="0 0 0" />
+    </joint>
+
+    <link name="${name}_laser">
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+          iyy="0.000001" iyz="0.0" izz="0.000001" />
+      </inertial>
+    </link>
+    <xacro:sick_picoscan_1_laser_gazebo_v0 name="${name}" link="${name}_laser" ros_topic="${ros_topic}" update_rate="20.0" min_angle="-2.408554" max_angle="2.408554" min_range="${min_range}" max_range="${max_range}" gaussian_noise="${gaussian_noise}" />
+  </xacro:macro>
+
+  <xacro:macro name="sick_picoscan_1_laser_gazebo_v0" params="name link ros_topic update_rate min_angle max_angle min_range max_range gaussian_noise">
+    <gazebo reference="${link}">
+      <material value="Gazebo/Grey" />
+      <xacro:if value="${$(env ROS_VERSION) == 1}">
+        <sensor type="ray" name="${name}">
+          <always_on>true</always_on>
+          <update_rate>${update_rate}</update_rate>
+          <pose>0 0 0 0 0 0</pose>
+          <visualize>false</visualize>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>2761</samples>
+                <resolution>1</resolution>
+                <min_angle>${min_angle}</min_angle>
+                <max_angle>${max_angle}</max_angle>
+              </horizontal>
+            </scan>
+            <range>
+              <min>${min_range}</min>
+              <max>${max_range}</max>
+              <resolution>0.01</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>${gaussian_noise}</stddev>
+            </noise>
+          </ray>
+          <plugin name="gazebo_ros_${name}_controller" filename="libgazebo_ros_laser.so">
+            <topicName>${ros_topic}</topicName>
+            <frameName>${link}</frameName>
+          </plugin>
+        </sensor>
+      </xacro:if>
+      <xacro:if value="${$(env ROS_VERSION) == 2}">
+        <sensor type="gpu_lidar" name="${name}">
+          <pose>0 0 0 0 0 0</pose>
+          <topic>${ros_topic}</topic>
+          <frame_id>${name}</frame_id>
+          <update_rate>${update_rate}</update_rate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>2761</samples>
+                <resolution>1</resolution>
+                <min_angle>${min_angle}</min_angle>
+                <max_angle>${max_angle}</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>1</samples>
+                <resolution>0.01</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>0</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>${min_range}</min>
+              <max>${max_range}</max>
+              <resolution>0.01</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>${gaussian_noise}</stddev>
+            </noise>
+          </ray>
+          <always_on>1</always_on>
+          <visualize>false</visualize>
+        </sensor>
+      </xacro:if>
+    </gazebo>
+  </xacro:macro>
+</robot>

@@ -90,19 +90,21 @@ if(BUILD_LIB_HIDE_FUNCTIONS AND NOT WIN32)
 endif()
 
 # Switch on, if you use c11-specific commands
-if(NOT WIN32)
+if(NOT WIN32 AND NOT APPLE)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow -fno-var-tracking-assignments")
 endif()
 
-# Option SICK_TARGET_ENDIANESS sets the endianess of the cmake target to build sick_scan_xd (default is little endian).
-# The target endianess can be set either to little endian by cmake option "-DSICK_TARGET_ENDIANESS=1",
-# or to big endian by cmake option "-DSICK_TARGET_ENDIANESS=2"
-# Since LITTLE_ENDIAN and BIG_ENDIAN might already be defined differently on a system or in a 3rd party headerfile,
-# SICK_TARGET_ENDIANESS, SICK_LITTLE_ENDIAN and SICK_BIG_ENDIAN are used to avoid conflicts
-if(DEFINED ENV{SICK_TARGET_ENDIANESS})
-    add_compile_options(-DSICK_TARGET_ENDIANESS=$ENV{SICK_TARGET_ENDIANESS})
-elseif(DEFINED SICK_TARGET_ENDIANESS)
-    add_compile_options(-DSICK_TARGET_ENDIANESS=${SICK_TARGET_ENDIANESS})
+# Option SICK_TARGET_ENDIANNESS sets the endianness of the target platform
+# for which sick_scan_xd is built (default: little-endian).
+# The target endianness can be set to little-endian using the CMake option
+# "-DSICK_TARGET_ENDIANNESS=1" or to big-endian using "-DSICK_TARGET_ENDIANNESS=2".
+# Since LITTLE_ENDIAN and BIG_ENDIAN might already be defined differently
+# on a system or in a third-party header file, SICK_TARGET_ENDIANNESS,
+# SICK_LITTLE_ENDIAN, and SICK_BIG_ENDIAN are used to avoid conflicts.
+if(DEFINED ENV{SICK_TARGET_ENDIANNESS})
+    add_compile_options(-DSICK_TARGET_ENDIANNESS=$ENV{SICK_TARGET_ENDIANNESS})
+elseif(DEFINED SICK_TARGET_ENDIANNESS)
+    add_compile_options(-DSICK_TARGET_ENDIANNESS=${SICK_TARGET_ENDIANNESS})
 endif()
 
 # Optional calling convention of sick_scan_xd API (using default is recommended, but can be overwritten by cmake flag if required)
@@ -115,7 +117,7 @@ message(STATUS "ROS_VERSION precheck: ENV{ROS_VERSION}=$ENV{ROS_VERSION} ENV{ROS
 #
 # Ensure, that for ROS2 the ROS_VERSION is set to 2.
 #
-set(ROS2_DISTROS humble iron jazzy kilted)
+set(ROS2_DISTROS humble iron jazzy kilted lyrical)
 
 # Check if CMAKE_PREFIX_PATH matches any known ROS2 path
 if(DEFINED CMAKE_PREFIX_PATH)
@@ -321,12 +323,16 @@ if(ROS_VERSION EQUAL 2)
 
     find_package(ament_cmake REQUIRED)
     find_package(rclcpp REQUIRED)
+    find_package(rclcpp_lifecycle REQUIRED)
+    add_definitions(-DSICK_LIFECYCLE_NODE_AVAILABLE=1)
     
     set(diagnostic_updater_pkg diagnostic_updater)
-    add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+    find_package(diagnostic_updater QUIET)
+    find_package(diagnostic_msgs QUIET)
+    if (${diagnostic_updater_FOUND} AND ${diagnostic_msgs_FOUND})    
+        add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+    endif()
 
-    find_package(diagnostic_updater REQUIRED)
-    find_package(diagnostic_msgs REQUIRED)
     find_package(geometry_msgs REQUIRED)
     find_package(nav_msgs REQUIRED)
     find_package(rclcpp REQUIRED)
@@ -337,6 +343,10 @@ if(ROS_VERSION EQUAL 2)
     find_package(tf2_ros REQUIRED)
     find_package(visualization_msgs REQUIRED)
     if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
+        set(diagnostic_updater_pkg diagnostic_updater)
+        add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
+        find_package(diagnostic_updater REQUIRED)
+        find_package(diagnostic_msgs REQUIRED)
         set(ROSIDL_EMULATOR_FILES
             # emulator messages
             "test/emulator/msg/SickLocColaTelegramMsg.msg"
@@ -749,7 +759,17 @@ else() # i.e. (ROS_VERSION EQUAL 0 OR ROS_VERSION EQUAL 2)
         # target_link_options(${PROJECT_NAME}_shared_lib PUBLIC "-fPIC")
         target_link_libraries(${PROJECT_NAME}_shared_lib ${SICK_LDMRS_LIBRARIES})
     endif()
-    add_executable(sick_generic_caller driver/src/sick_generic_caller.cpp)
+    add_executable(sick_generic_caller
+        driver/src/sick_generic_caller.cpp
+    )
+    # Add lifecycle node files only for ROS2
+    if(ROS_VERSION EQUAL 2)
+        target_sources(sick_generic_caller PRIVATE
+            driver/src/sick_scan_lifecycle_node.cpp
+            driver/src/sick_scansegment_xd/scansegment_threads.cpp
+            driver/src/sick_scansegment_xd/ros_msgpack_publisher.cpp
+        )
+    endif()
     if(ROS_VERSION EQUAL 0 AND NOT WIN32)
         target_link_libraries(sick_generic_caller PUBLIC ${PROJECT_NAME}_lib ${SICK_LDMRS_LIBRARIES} "pthread") # pthread required for std::thread
         target_link_options(sick_generic_caller PUBLIC "LINKER:--no-as-needed") # fixes exception "Enable multithreading to use std::thread: Operation not permitted" 
@@ -770,6 +790,7 @@ if(ROS_VERSION EQUAL 2)
     ament_target_dependencies(
         ${PROJECT_NAME}_lib
         "rclcpp"
+        "rclcpp_lifecycle"
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
@@ -784,6 +805,7 @@ if(ROS_VERSION EQUAL 2)
     ament_target_dependencies(
         ${PROJECT_NAME}_shared_lib
         "rclcpp"
+        "rclcpp_lifecycle"
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
@@ -798,6 +820,7 @@ if(ROS_VERSION EQUAL 2)
     ament_target_dependencies(
         sick_generic_caller
         "rclcpp"
+        "rclcpp_lifecycle"
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
@@ -825,6 +848,7 @@ if(ROS_VERSION EQUAL 2)
       ${std_msgs_TARGETS}
       ${visualization_msgs_TARGETS}
       rclcpp::rclcpp
+      rclcpp_lifecycle::rclcpp_lifecycle
       tf2_ros::tf2_ros
       ${LDMRS_TARGET_DEPENDENCIES}
     )
@@ -838,11 +862,13 @@ if(ROS_VERSION EQUAL 2)
       ${std_msgs_TARGETS}
       ${visualization_msgs_TARGETS}
       rclcpp::rclcpp
+      rclcpp_lifecycle::rclcpp_lifecycle
       tf2_ros::tf2_ros
       ${LDMRS_TARGET_DEPENDENCIES}
     )
 
     target_link_libraries(sick_generic_caller PUBLIC
+      ${PROJECT_NAME}_lib
       ${diagnostic_updater_TARGETS}
       ${diagnostic_msgs_TARGETS}
       ${geometry_msgs_TARGETS}
@@ -851,6 +877,7 @@ if(ROS_VERSION EQUAL 2)
       ${std_msgs_TARGETS}
       ${visualization_msgs_TARGETS}
       rclcpp::rclcpp
+      rclcpp_lifecycle::rclcpp_lifecycle
       tf2_ros::tf2_ros
       ${LDMRS_TARGET_DEPENDENCIES}
     )
@@ -998,6 +1025,35 @@ if(ROS_VERSION EQUAL 2)
     install(DIRECTORY launch urdf meshes DESTINATION share/${PROJECT_NAME})
 
     ament_package()        
+endif()
+
+
+#
+# ros2 buildfarm test for colcon test 
+#
+if(ROS_VERSION EQUAL 2 AND BUILD_TESTING)
+    find_package(ament_cmake_gtest REQUIRED)
+
+    # Minimal test (always enabled)
+    ament_add_gtest(sick_scan_minimal_gtest
+        test/src/sick_scan_minimal_gtest.cpp
+    )
+
+    if(TARGET sick_scan_minimal_gtest)
+        target_compile_features(sick_scan_minimal_gtest PUBLIC cxx_std_14)
+    endif()
+
+    # Start test (Linux only, required for buildfarm stability)
+    if(NOT WIN32)
+        ament_add_gtest(sick_scan_start_test
+            test/src/sick_scan_start_test.cpp
+        )
+
+        if(TARGET sick_scan_start_test)
+            target_compile_features(sick_scan_start_test PUBLIC cxx_std_14)
+        endif()
+    endif()
+
 endif()
 
 #

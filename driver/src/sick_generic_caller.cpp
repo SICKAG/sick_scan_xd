@@ -71,6 +71,9 @@
 #include <string.h>
 #include <signal.h>
 
+#if defined __ROS_VERSION && __ROS_VERSION == 2
+#include "sick_scan/sick_scan_lifecycle_node.h"
+#endif
 #include "sick_scan/sick_generic_laser.h"
 #include "sick_scan/dataDumper.h"
 #include "sick_scan/helper/angle_compensator.h"
@@ -138,15 +141,53 @@ int main(int argc, char** argv)
 #if defined __ROS_VERSION && __ROS_VERSION == 2
     // Pass command line arguments to rclcpp.
     rclcpp::init(argc, argv);
-    bool ros_signal_handler = rclcpp::signal_handlers_installed();
-    ROS_INFO_STREAM("ROS2 signal handler are " << (ros_signal_handler? "" : " NOT") << "installed");
-    if (rclcpp::uninstall_signal_handlers())
-      ROS_INFO_STREAM("ROS2 signal handler uninstalled");
-    else
-      ROS_ERROR_STREAM("## ERROR: Failed to uninstall ROS2 signal handler");
+
+    // SICK-specific signal handling: uninstall default ROS handlers to let SICK SDK handle it
+    rclcpp::uninstall_signal_handlers();
+
     rclcpp::NodeOptions node_options;
     node_options.allow_undeclared_parameters(true);
-    //node_options.automatically_declare_initial_parameters(true);
+
+    // Lifecycle Switch Logic
+    bool use_lifecycle_managed_mode = false;
+    for (int i = 0; i < argc; i++)
+    {
+        if (std::string(argv[i]) == "lifecycle_managed_node:=true")
+        {
+            use_lifecycle_managed_mode = true;
+            break;
+        }
+    }
+
+    if (use_lifecycle_managed_mode)
+    {
+#if SICK_LIFECYCLE_NODE_AVAILABLE
+        // MANAGED PATH: Use the new modular lifecycle class
+        RCLCPP_INFO(rclcpp::get_logger("sick_scan"), "-----------------------------------------------------------");
+        RCLCPP_INFO(rclcpp::get_logger("sick_scan"), "SICK Scan: Initializing in LIFECYCLE MANAGED mode.");
+        RCLCPP_INFO(rclcpp::get_logger("sick_scan"), "Node State: [UNCONFIGURED]. Waiting for state transition.");
+        RCLCPP_INFO(rclcpp::get_logger("sick_scan"), "-----------------------------------------------------------");
+
+        auto lc_node = std::make_shared<sick_scan_xd::SickLifecycleNode>(
+            "sick_scan", argc_tmp, argv_tmp, scannerName, node_options);
+
+        // Spin the lifecycle node interface
+        rclcpp::spin(lc_node->get_node_base_interface());
+        rclcpp::shutdown();
+        return 0;
+#else
+        RCLCPP_ERROR(rclcpp::get_logger("sick_scan"), "Lifecycle mode requested but SICK_LIFECYCLE_NODE_AVAILABLE is false.");
+        return 1;
+#endif
+    }
+    else
+    {
+        RCLCPP_INFO(rclcpp::get_logger("sick_scan"), "-----------------------------------------------------------");
+        RCLCPP_INFO(rclcpp::get_logger("sick_scan"), "SICK Scan: Starting in STANDARD mode (Autostart).");
+        RCLCPP_INFO(rclcpp::get_logger("sick_scan"), "-----------------------------------------------------------");
+    }
+
+    // STANDARD PATH: Original logic for non-managed mode
     rosNodePtr node = rclcpp::Node::make_shared("sick_scan", "", node_options);
 #else
   ros::init(argc, argv, scannerName, ros::init_options::NoSigintHandler);  // scannerName holds the node-name
