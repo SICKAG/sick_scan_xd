@@ -82,13 +82,20 @@
 #define __ROS_VERSION 0 // default: native Linux or Windows
 #endif
 
-// Default target is little endian. Overwrite SICK_TARGET_ENDIANESS in CMakeLists.txt to build for big endian.
-#define SICK_LITTLE_ENDIAN 1 // LITTLE_ENDIAN and BIG_ENDIAN might already be defined differently on a system or in a 3rd party headerfile,
-#define SICK_BIG_ENDIAN    2 // SICK_TARGET_ENDIANESS, SICK_LITTLE_ENDIAN and SICK_BIG_ENDIAN are used to avoid conflicts
-#ifndef SICK_TARGET_ENDIANESS
-#define SICK_TARGET_ENDIANESS SICK_LITTLE_ENDIAN
+
+// The target platform is little-endian by default.
+// Set SICK_TARGET_ENDIANNESS in CMakeLists.txt to build for a big-endian target.
+// Use SICK_LITTLE_ENDIAN and SICK_BIG_ENDIAN to avoid conflicts with
+// LITTLE_ENDIAN and BIG_ENDIAN, which may already be defined by system
+// headers or third-party libraries.
+#define SICK_LITTLE_ENDIAN 1
+#define SICK_BIG_ENDIAN    2
+
+#ifndef SICK_TARGET_ENDIANNESS
+#define SICK_TARGET_ENDIANNESS SICK_LITTLE_ENDIAN
 #endif
-#if SICK_TARGET_ENDIANESS==SICK_LITTLE_ENDIAN
+
+#if SICK_TARGET_ENDIANNESS == SICK_LITTLE_ENDIAN
 #define TARGET_IS_LITTLE_ENDIAN 1
 #else
 #define TARGET_IS_LITTLE_ENDIAN 0
