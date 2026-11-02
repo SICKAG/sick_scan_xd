@@ -326,12 +326,6 @@ if(ROS_VERSION EQUAL 2)
     find_package(rclcpp_lifecycle REQUIRED)
     add_definitions(-DSICK_LIFECYCLE_NODE_AVAILABLE=1)
     
-    set(diagnostic_updater_pkg diagnostic_updater)
-    find_package(diagnostic_updater QUIET)
-    find_package(diagnostic_msgs QUIET)
-    if (${diagnostic_updater_FOUND} AND ${diagnostic_msgs_FOUND})    
-        add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
-    endif()
 
     find_package(geometry_msgs REQUIRED)
     find_package(nav_msgs REQUIRED)
@@ -343,10 +337,6 @@ if(ROS_VERSION EQUAL 2)
     find_package(tf2_ros REQUIRED)
     find_package(visualization_msgs REQUIRED)
     if(${ENABLE_EMULATOR} OR ENABLE_EMULATOR EQUAL ON)
-        set(diagnostic_updater_pkg diagnostic_updater)
-        add_compile_options(-DROS_DIAGNOSTICS_UPDATER_AVAILABLE)
-        find_package(diagnostic_updater REQUIRED)
-        find_package(diagnostic_msgs REQUIRED)
         set(ROSIDL_EMULATOR_FILES
             # emulator messages
             "test/emulator/msg/SickLocColaTelegramMsg.msg"
@@ -794,11 +784,9 @@ if(ROS_VERSION EQUAL 2)
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
-        "diagnostic_msgs" 
         "nav_msgs"
         "visualization_msgs"
         "tf2_ros"
-        "${diagnostic_updater_pkg}"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
@@ -809,11 +797,9 @@ if(ROS_VERSION EQUAL 2)
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
-        "diagnostic_msgs" 
         "nav_msgs"
         "visualization_msgs"
         "tf2_ros"
-        "${diagnostic_updater_pkg}"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
@@ -824,11 +810,9 @@ if(ROS_VERSION EQUAL 2)
         "sensor_msgs"
         "std_msgs"
         "geometry_msgs"
-        "diagnostic_msgs"
         "nav_msgs"
         "visualization_msgs"
         "tf2_ros"
-        "${diagnostic_updater_pkg}"
         ${LDMRS_TARGET_DEPENDENCIES}
     )
 
@@ -840,8 +824,6 @@ if(ROS_VERSION EQUAL 2)
         rosidl_target_interfaces(sick_generic_caller ${PROJECT_NAME} "rosidl_typesupport_cpp") # required?
     else() # rosidl_typesupport for ROS2 humble or later      
       target_link_libraries(${PROJECT_NAME}_lib PUBLIC
-      ${diagnostic_updater_TARGETS}
-      ${diagnostic_msgs_TARGETS}
       ${geometry_msgs_TARGETS}
       ${nav_msgs_TARGETS}
       ${sensor_msgs_TARGETS}
@@ -854,8 +836,6 @@ if(ROS_VERSION EQUAL 2)
     )
 
    target_link_libraries(${PROJECT_NAME}_shared_lib PUBLIC
-      ${diagnostic_updater_TARGETS}
-      ${diagnostic_msgs_TARGETS}
       ${geometry_msgs_TARGETS}
       ${nav_msgs_TARGETS}
       ${sensor_msgs_TARGETS}
@@ -869,8 +849,6 @@ if(ROS_VERSION EQUAL 2)
 
     target_link_libraries(sick_generic_caller PUBLIC
       ${PROJECT_NAME}_lib
-      ${diagnostic_updater_TARGETS}
-      ${diagnostic_msgs_TARGETS}
       ${geometry_msgs_TARGETS}
       ${nav_msgs_TARGETS}
       ${sensor_msgs_TARGETS}
