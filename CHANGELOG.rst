@@ -2,6 +2,10 @@
 Changelog for package sick_scan_xd
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.10.1 (2026-11-03)
+-------------------
+  * fix: Removed the diagnostic_msgs dependency to resolve Bloom build issues with ROS 2 Humble and Jazzy
+  
 3.10.0 (2026-10-20)
 -------------------
   * add: Support for ROS2 Lyrical
